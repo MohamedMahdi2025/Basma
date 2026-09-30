@@ -4,6 +4,8 @@
 'use strict';
 
 Object.assign(T.ar, {
+  mfDashTitle:'شهري في لمحة', mfdAtt:'نسبة حضوري', mfdPunct:'في الموعد', mfdLateDays:'أيام التأخير', mfdLate:'دقائق التأخير', mfdOt:'ساعات إضافية', mfdLeave:'رصيد إجازتي السنوية',
+  mfdOpen:'طلباتي المفتوحة', mfdAbsent:'غياب', mfdHours:'ساعات عملي يوما بيوم', mfdHoursLead:'هذا الشهر. العمود البرتقالي يوم تأخرت فيه.',
   mfEmpNo:'الرقم الوظيفي', mfService:'سنوات الخدمة', mfYears:'سنة', mfSince:'منذ', mfManagers:'مديري',
   mfDirect:'المدير المباشر', mfHead:'مدير الإدارة', mfAndHead:'ومدير الإدارة', mfNone:'لم يحدد بعد', mfJd:'الوصف الوظيفي', mfPurpose:'الغرض من الوظيفة',
   mfDuties:'المهام', mfReq:'المتطلبات', mfNoJd:'لم يضف الوصف الوظيفي لوظيفتك بعد. تواصل مع الموارد البشرية لإضافته.',
@@ -20,6 +22,8 @@ Object.assign(T.ar, {
   doc_contract:'العقد', doc_driving_licence:'رخصة القيادة', doc_other:'وثيقة أخرى', doc_contract_end:'نهاية العقد', doc_probation_end:'نهاية التجربة'
 });
 Object.assign(T.en, {
+  mfDashTitle:'My month at a glance', mfdAtt:'My attendance', mfdPunct:'On time', mfdLateDays:'Late days', mfdLate:'Minutes late', mfdOt:'Overtime hours', mfdLeave:'Annual leave left',
+  mfdOpen:'My open requests', mfdAbsent:'Absent', mfdHours:'My hours day by day', mfdHoursLead:'This month. Amber columns are days I was late.',
   mfEmpNo:'Employee ID', mfService:'Years of service', mfYears:'years', mfSince:'since', mfManagers:'My managers',
   mfDirect:'Direct manager', mfHead:'Department head', mfAndHead:'and department head', mfNone:'Not set yet', mfJd:'Job description', mfPurpose:'Purpose of the job',
   mfDuties:'Duties', mfReq:'Requirements', mfNoJd:'Your job description has not been added yet. Ask HR to add it.',
@@ -194,7 +198,8 @@ function draw(main, f){
     return '<li><b>' + esc(h.department || t('mfNone')) + '</b><small>' + fmtDate(h.effectiveFrom) + (h.manager ? '، ' + t('mfDirect') + ': ' + esc(h.manager) : '') + '</small></li>';
   }).join('') + '</ul>');
 
-  main.innerHTML = '<section class="page mf"><div class="mf-grid"><div class="mf-side">' + side + '</div><div class="mf-main">' + mainHtml + '</div></div></section>';
+  main.innerHTML = '<section class="page mf"><div id="mfDash">' + (window.Viz ? Viz.panel('file', t('mfDashTitle'), Viz.skeleton(6)) : '') + '</div><div class="mf-grid"><div class="mf-side">' + side + '</div><div class="mf-main">' + mainHtml + '</div></div></section>';
+  myDash(main, null);
   var sb = $('#mfShow');
   if (sb) sb.onclick = function(){ shown = !shown; draw(main, f); };
   $('#mfAtt').onclick = function(){ S.tab = 'history'; renderShell(); };
@@ -204,6 +209,37 @@ function draw(main, f){
   var pf = $('#mfPerf', main); if (pf && window.Perf) Perf.myCards(pf);
 }
 
+/**
+ * My month at a glance: attendance, punctuality, lateness, overtime, leave left and open requests, and hours per day.
+ * Draws from myHistory (this month) and the myRequests answer; either may arrive first.
+ */
+var DASH = { hist: null, req: null };
+function myDash(main, reqRes){
+  if (!window.Viz) return;
+  if (reqRes) DASH.req = reqRes;
+  if (!reqRes) apiFresh('myHistory', {}, function(r){ if (r.ok) { DASH.hist = r; paint(); } }, true);
+  paint();
+  function paint(){
+    var box = $('#mfDash', main); if (!box || !DASH.hist) return;
+    var H = DASH.hist, days = H.days.slice().reverse(), T0 = H.totals, V = Viz;
+    var exp = days.filter(function(d){ return d.workday && ['upcoming', 'leave', 'holiday'].indexOf(d.status) < 0; }).length;
+    var rate = exp ? T0.present / exp * 100 : null, punct = T0.present ? (T0.present - T0.lateDays) / T0.present * 100 : null;
+    var q = DASH.req, av = q && q.leave && q.leave.annual ? q.leave.annual.available : null, open = q ? q.rows.filter(function(x){ return x.status === 'pending'; }).length : null;
+    var tiles = V.tile(t('mfdAtt'), rate == null ? '-' : V.n1(rate, 0) + '%', plural(T0.present, 'days') + ' / ' + V.n1(exp, 0), null, true, true) +
+      V.tile(t('mfdPunct'), punct == null ? '-' : V.n1(punct, 0) + '%', T0.lateDays ? t('mfdLateDays') + ' ' + T0.lateDays : '') +
+      V.tile(t('mfdLate'), V.n1(T0.lateMin, 0) + ' ' + t('dbMinutes'), '') + V.tile(t('mfdOt'), V.n1(T0.overtimeMin / 60) + ' ' + t('dbHours'), '') +
+      V.tile(t('mfdLeave'), av == null ? '-' : V.n1(av), t('dbDays')) + V.tile(t('mfdOpen'), open == null ? '-' : V.n1(open, 0), T0.absent ? t('mfdAbsent') + ' ' + T0.absent : '');
+    var bars = days.filter(function(d){ return d.workday || d.firstIn; }).slice(-22).map(function(d){
+      var hrs = Math.round(d.workedMin / 6) / 10;
+      return { label: String(Number(d.date.slice(8))), value: hrs, alt: d.lateMin > 0, tip: V.shortDate(d.date) + ': ' + hrs + ' ' + t('dbHours') + (d.lateMin ? ' · ' + t('late') + ' ' + d.lateMin + ' ' + t('dbMinutes') : '') + (d.status === 'absent' ? ' · ' + t('st_absent') : d.status === 'leave' ? ' · ' + t('st_leave') : '') };
+    });
+    var chart = V.card('mfh', t('mfdHours'), t('mfdHoursLead'), V.cols(bars, {}) + '<div class="db-legend"><span><i style="background:var(--s1)"></i>' + t('st_present') + '</span><span><i style="background:var(--s2)"></i>' + t('late') + '</span></div>',
+      V.tbl([t('date'), t('dbHours'), t('late')], days.filter(function(d){ return d.firstIn; }).map(function(d){ return [V.shortDate(d.date), Math.round(d.workedMin / 6) / 10, d.lateMin]; })));
+    box.innerHTML = V.panel('file', t('mfDashTitle'), '<div class="db-tiles">' + tiles + '</div><div class="db-grid">' + chart + '</div>');
+    V.wire(box);
+  }
+}
+
 /** Leave balance and requests: their own call, so the file shows first and these fill in (from memory when seen before). */
 function requests(main, f){
   if (!window.Req) return;
@@ -211,6 +247,7 @@ function requests(main, f){
     var lv = $('#mfLeave', main), rq = $('#mfReq', main);
     if (!lv || !rq) return;
     if (!r.ok) { lv.remove(); rq.innerHTML = '<p>' + t('mfLoadFail') + '</p>'; return; }
+    myDash(main, r);
     lv.innerHTML = Req.balanceCard(r.leave, r.holidays) + (r.inbox ? '<button type="button" class="btn btn-dark btn-sm mf-go" id="mfInbox">' + ph('seal-check') + t('mfInbox') + ' (' + r.inbox + ')</button>' : '');
     rq.innerHTML = Req.listCard(r.rows);
     Req.wireList(rq, r.rows, f, function(){ requests(main, f); });

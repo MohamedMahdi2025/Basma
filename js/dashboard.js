@@ -18,7 +18,7 @@ Object.assign(T.ar, {
   dbGosiEr:'تأمينات على الشركة', dbOtCost:'تكلفة العمل الإضافي', dbLeaveLiab:'التزام الإجازات غير المستخدمة', dbEosLiab:'التزام مكافأة نهاية الخدمة',
   dbAdvances:'سلف غير مسددة', dbCostTrend:'تكلفة الرواتب الشهرية (الإجمالي والتأمينات على الشركة)', dbCostDept:'تكلفة آخر مسير حسب الإدارة', dbNoRuns:'لا توجد مسيرات معتمدة بعد.',
   dbTable:'جدول', dbChart:'رسم', dbGenerated:'أعدت في', dbReview:'بصمات للمراجعة', dbMissingOut:'بلا انصراف', dbLiabNote:'تقدير حتى اليوم: المكافأة كاملة لكل الموظفين حسب المادة 84، والإجازة بالأجر الإجمالي.',
-  dbNoData:'لا توجد بيانات في هذه الفترة.', lt_unpaid_short:'بدون راتب'
+  dbNoData:'لا توجد بيانات في هذه الفترة.', dbHideDash:'إخفاء الملخص', dbShowDash:'إظهار الملخص', lt_unpaid_short:'بدون راتب'
 });
 Object.assign(T.en, {
   dbTitle:'Management dashboard', dbThisMonth:'This month', dbLastMonth:'Last month', dbLast30:'Last 30 days', dbLast90:'Last 90 days', dbPrint:'Print',
@@ -34,7 +34,7 @@ Object.assign(T.en, {
   dbGosiEr:'Employer GOSI', dbOtCost:'Overtime cost', dbLeaveLiab:'Unused leave liability', dbEosLiab:'End-of-service liability',
   dbAdvances:'Advances outstanding', dbCostTrend:'Monthly payroll cost (gross plus employer GOSI)', dbCostDept:'Last payroll cost by department', dbNoRuns:'No approved payroll yet.',
   dbTable:'Table', dbChart:'Chart', dbGenerated:'Prepared', dbReview:'Punches to review', dbMissingOut:'No check-out', dbLiabNote:'Estimate as of today: full Art. 84 award for everyone, leave at total wage.',
-  dbNoData:'No data in this period.', lt_unpaid_short:'Unpaid'
+  dbNoData:'No data in this period.', dbHideDash:'Hide summary', dbShowDash:'Show summary', lt_unpaid_short:'Unpaid'
 });
 
 var css = '' +
@@ -85,6 +85,10 @@ var css = '' +
 '.db-tip{position:fixed;z-index:95;pointer-events:none;background:var(--ink);color:var(--cream);border-radius:8px;padding:6px 10px;font-size:12px;line-height:1.5;box-shadow:0 6px 18px rgba(0,0,0,.2);white-space:nowrap}' +
 '.db-tip b{font-size:14px}.db-tip .k{display:inline-block;width:12px;height:2px;margin-inline-end:6px;vertical-align:middle}' +
 '.db-status{display:inline-flex;align-items:center;gap:4px}' +
+'.db-panel{background:var(--paper);border:1px solid var(--line);border-radius:var(--r-m);padding:12px 14px 2px;margin:0 0 16px}' +
+'.db-ph{display:flex;align-items:center;gap:8px;margin-bottom:10px}.db-ph h3{margin:0;font-size:14.5px;font-weight:600;display:flex;align-items:center;gap:6px;flex:1}.db-ph h3 i{color:var(--brand);font-size:18px}' +
+'.db-panel .db-tiles{margin-bottom:12px}.db-panel .db-grid{margin-bottom:12px}.db-panel .db-tile.lead b{font-size:34px}' +
+'.db-panel .tg{height:28px;padding:0 10px;border-radius:8px;border:1px solid var(--line);background:var(--card);font-size:12px;color:var(--ink-2)}' +
 '@media (min-width:1024px){.db-tiles{grid-template-columns:2fr repeat(5,minmax(0,1fr))}.db-tile.lead{grid-column:auto}.db-grid.two{grid-template-columns:1.4fr 1fr}.db-grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}}' +
 '@media print{.tabs,.topbar,.hr-rail,.db-filters button,.db-card .tg,.update-bar{display:none!important}.app{padding:0!important}.hr-shell{display:block!important;min-height:0!important}.db-card,.db-tile{break-inside:avoid}body{background:#fff}}';
 var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
@@ -275,8 +279,24 @@ function draw(r){
 }
 function lang(ar, en){ return S.lang === 'en' && en ? en : ar; }
 
+/** A screen's own dashboard: a titled band that can be folded (remembered per device). */
+function panel(key, title, html){
+  var hid = false; try { hid = (JSON.parse(localStorage.getItem('bgatt.dashFold') || '{}') || {})[key]; } catch (e) {}
+  return '<section class="db db-panel" data-fold="' + key + '"><div class="db-ph"><h3>' + ph('chart-pie-slice') + title + '</h3><button type="button" class="tg" data-foldbtn aria-expanded="' + !hid + '">' + (hid ? t('dbShowDash') : t('dbHideDash')) + '</button></div>' +
+    '<div class="db-pb' + (hid ? ' hidden' : '') + '">' + html + '</div></section>';
+}
+function wire(root){
+  wireLines(root); wireTips(root);
+  $$('[data-foldbtn]', root).forEach(function(b){ b.onclick = function(){
+    var p = b.closest('[data-fold]'), body = p.querySelector('.db-pb'), hide = !body.classList.contains('hidden');
+    body.classList.toggle('hidden', hide); b.setAttribute('aria-expanded', !hide); b.textContent = hide ? t('dbShowDash') : t('dbHideDash');
+    try { var m = JSON.parse(localStorage.getItem('bgatt.dashFold') || '{}') || {}; m[p.dataset.fold] = hide; localStorage.setItem('bgatt.dashFold', JSON.stringify(m)); } catch (e) {}
+  }; });
+}
+function skeleton(n){ return '<div class="db-tiles">' + Array.apply(null, Array(n || 4)).map(function(_, i){ return '<div class="db-tile' + (i ? '' : ' lead') + '"><span class="sk" style="width:60%"></span><span class="sk" style="margin-top:10px;height:22px"></span></div>'; }).join('') + '</div>'; }
+
 window.Dash = { section: section };
 // Shared chart kit: every other screen draws its own mini dashboard with these, so all charts look and behave alike.
 window.Viz = { tile: tile, card: card, tbl: tbl, lineChart: lineChart, cols: cols, grouped: grouped, hbars: hbars, wireLines: wireLines, wireTips: wireTips,
-  n1: n1, sar: sar, shortDate: shortDate, monthShort: monthShort, range: range, showTip: showTip, hideTip: hideTip };
+  n1: n1, sar: sar, shortDate: shortDate, monthShort: monthShort, range: range, showTip: showTip, hideTip: hideTip, panel: panel, wire: wire, skeleton: skeleton };
 })();

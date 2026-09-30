@@ -414,7 +414,7 @@ function api_hrDirectory(req, me) {
     o.departmentName = ctx.depts[e.departmentId] ? ctx.depts[e.departmentId].nameAr : e.department;
     o.positionName = pos[e.positionId] || e.title; o.managerName = ctx.emps[e.managerId] ? ctx.emps[e.managerId].name : '';
     o.extraRoles = String(e.extraRoles || ''); o.isSaudi = bool_(e.isSaudi); o.nationality = e.nationality || '';
-    o.contractType = e.contractType || ''; o.contractEnd = e.contractEnd || '';
+    o.contractType = e.contractType || ''; o.contractEnd = e.contractEnd || ''; o.gender = e.gender || ''; o.lastWorkingDay = e.lastWorkingDay || '';
     if (e.status === 'active') {
       sum.headcount++;
       if (o.isSaudi) {

@@ -4,6 +4,11 @@
 'use strict';
 
 Object.assign(T.ar, {
+  scd_1:'يخفق باستمرار في مسؤوليات أساسية، ويحتاج تحسينا فوريا أو خطة تحسين أداء.', scd_2:'يحقق بعض المسؤوليات الأساسية دون غيرها، ويحتاج خطة تطوير ودعما.',
+  scd_3:'يحقق متطلبات الوظيفة باستمرار، مساهم ثابت يعتمد عليه. هذا مستوى أغلب الموظفين.', scd_4:'يتجاوز متطلبات الوظيفة بوضوح، ويضيف قيمة قابلة للقياس ويساند زملاءه.',
+  scd_5:'أداء استثنائي في كل الجوانب وأثر كبير على نجاح الشركة. نادر.',
+  pdPerfTitle:'دورة التقييم في لمحة', pdRated:'قيموا', pdGuide:'النطاق الصحي', pdInRange:'ضمن النطاق', pdOutRange:'خارج النطاق', pdDistLead:'التوزيع النهائي مقارنة بالنطاق الصحي المعتاد.',
+  pdFewRated:'يظهر الحكم على التوزيع بعد اكتمال 5 تقييمات على الأقل.', pdCalibrateHint:'التوزيع خارج النطاق المعتاد: راجع التقييمات في المعايرة وتأكد أن كل تقدير مدعوم بأمثلة.',
   pfTitle:'الأداء', pfMine:'أهدافي وأدائي', pfNoCycle:'لا توجد دورة تقييم مفتوحة الآن.', pfNoKpis:'لم يحدد مديرك أهدافك لهذه الدورة بعد.',
   pfWeight:'الوزن', pfTarget:'المستهدف', pfSelf:'تقييمي الذاتي', pfSelfDone:'أرسلت تقييمك الذاتي', pfLast:'آخر تقييم أداء', pfAck:'اطلعت على التقييم',
   pfAckDone:'تم الاطلاع', pfAckNote:'تعليقك (اختياري)', pfMgrComment:'ملاحظة المدير', pfAdjusted:'عدلته لجنة المعايرة', pf360Tasks:'تقييمات 360 مطلوبة منك',
@@ -23,6 +28,11 @@ Object.assign(T.ar, {
   e_cannot_edit_own:'لا يمكنك تعديل تقييمك أو أهدافك.', e_incomplete:'أكمل كل البنود أولا.', e_already_submitted:'أرسل من قبل.'
 });
 Object.assign(T.en, {
+  scd_1:'Consistently misses key responsibilities; needs immediate improvement or a performance plan.', scd_2:'Meets some key responsibilities but not all; needs a development plan and support.',
+  scd_3:'Consistently meets the job requirements; a solid contributor. Most people sit here.', scd_4:'Clearly exceeds the job requirements; adds measurable value and helps others.',
+  scd_5:'Exceptional across every dimension with major impact. Rare.',
+  pdPerfTitle:'Review cycle at a glance', pdRated:'rated', pdGuide:'Healthy range', pdInRange:'In range', pdOutRange:'Out of range', pdDistLead:'Final ratings against the usual healthy spread.',
+  pdFewRated:'The spread is judged once at least 5 reviews are complete.', pdCalibrateHint:'The spread is outside the usual range: review ratings in calibration and make sure each is backed by examples.',
   pfTitle:'Performance', pfMine:'My goals and performance', pfNoCycle:'No review cycle is open now.', pfNoKpis:'Your manager has not set your goals for this cycle yet.',
   pfWeight:'Weight', pfTarget:'Target', pfSelf:'My self-assessment', pfSelfDone:'Self-assessment sent', pfLast:'Latest performance review', pfAck:'I have read this review',
   pfAckDone:'Acknowledged', pfAckNote:'Your comment (optional)', pfMgrComment:'Manager\'s note', pfAdjusted:'Adjusted in calibration', pf360Tasks:'360 feedback requested from you',
@@ -77,12 +87,14 @@ function dots(n){ var h = ''; for (var i = 1; i <= 5; i++) h += '<i class="' + (
 function picker(name, val){
   var h = '<div class="pf-score" role="radiogroup" data-pick="' + esc(name) + '">';
   for (var i = 1; i <= 5; i++) h += '<button type="button" role="radio" data-v="' + i + '" aria-pressed="' + (Number(val) === i) + '" title="' + t('sc_' + i) + '">' + i + '</button>';
-  return h + '</div><div class="hint" data-hint="' + esc(name) + '">' + (val ? t('sc_' + val) : '') + '</div>';
+  return h + '</div><div class="hint" data-hint="' + esc(name) + '">' + (val ? scText(val) : '') + '</div>';
+}
+function scText(v){ return t('sc_' + v) + ': ' + t('scd_' + v);
 }
 function wirePickers(root){
   $$('[data-pick]', root).forEach(function(g){ $$('button', g).forEach(function(b){ b.onclick = function(){
     $$('button', g).forEach(function(x){ x.setAttribute('aria-pressed', x === b); }); g.dataset.val = b.dataset.v;
-    var h = root.querySelector('[data-hint="' + g.dataset.pick + '"]'); if (h) h.textContent = t('sc_' + b.dataset.v);
+    var h = root.querySelector('[data-hint="' + g.dataset.pick + '"]'); if (h) h.textContent = scText(b.dataset.v);
   }; }); var on = g.querySelector('[aria-pressed="true"]'); if (on) g.dataset.val = on.dataset.v; });
 }
 function picked(root, name){ var g = root.querySelector('[data-pick="' + name + '"]'); return g && g.dataset.val ? Number(g.dataset.val) : null; }
@@ -212,18 +224,37 @@ function overview(body, id){
     el.innerHTML = stagesBar(c) + '<div class="btnrow" style="margin:0 0 14px">' + (i > 0 ? '<button type="button" class="btn btn-line btn-sm" data-st="' + STAGES[i - 1] + '">' + t('pfPrev') + '</button>' : '') +
       (i < STAGES.length - 1 ? '<button type="button" class="btn btn-dark btn-sm" data-st="' + STAGES[i + 1] + '">' + t('pfNext') + ': ' + t('st_' + STAGES[i + 1]) + '</button>' : '') +
       (c.status !== 'closed' ? '<button type="button" class="btn btn-line btn-sm" id="pfL">' + ph('users-four') + t('pfLaunch') + '</button>' : '') + '</div>' +
-      '<h3 class="hr-sub" style="margin-top:0">' + t('pfProgress') + '</h3><div class="kpis">' + [['pfPeople', p.people], ['pfKpisSet', p.kpisSet], ['pfMidDone', p.midDone], ['pfSelfDoneK', p.selfDone], ['pfMgrDoneK', p.mgrDone], ['pfAckK', p.acknowledged], ['360', r.fb360.submitted + ' / ' + r.fb360.invited]]
-        .map(function(x){ return '<div class="kpi"><span>' + (x[0] === '360' ? '360' : t(x[0])) + '</span><b class="num" style="font-size:22px">' + x[1] + '</b></div>'; }).join('') + '</div>' +
-      '<div class="two" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-bottom:14px"><div class="mf-card"><h3>' + t('pfDist') + '</h3><div class="pf-dist">' + [1, 2, 3, 4, 5].map(function(n){
-        return '<div><b>' + r.distribution[n] + '</b><i style="height:' + (r.distribution[n] / max * 100) + '%"></i><span>' + n + '</span></div>'; }).join('') + '</div></div>' +
-      '<div class="mf-card"><h3>' + t('pfDept') + '</h3><div class="pf-bars">' + r.departments.map(function(d){ return '<div class="pf-bar"><span>' + esc(d.department) + '</span><div class="track">' + (d.average ? '<i style="width:' + (d.average / 5 * 100) + '%"></i>' : '') + '<span>' + num(d.average) + '</span></div></div>'; }).join('') + '</div></div></div>' +
+      (window.Viz ? perfDash(r) : '') +
       teamTable(r.rows, c, c.status === 'calibration');
+    if (window.Viz) Viz.wire(el);
     $$('[data-st]', el).forEach(function(b){ b.onclick = function(){ b.disabled = true; api('perfCycleStage', { id: c.id, status: b.dataset.st }).then(function(x){ if (!x.ok) { b.disabled = false; return toast(errText(x.error)); } overview(body, id); }); }; });
     var lb = $('#pfL', el); if (lb) lb.onclick = function(){ lb.disabled = true; api('feedbackLaunch', { cycleId: c.id }).then(function(x){ lb.disabled = false; if (!x.ok) return toast(errText(x.error)); toast(t('pfLaunched') + ': ' + x.invitations); overview(body, id); }); };
     $$('[data-calok]', el).forEach(function(b){ b.onclick = function(){ var rid = b.dataset.calok; b.disabled = true;
       api('perfCalibrate', { reviewId: rid, finalRating: el.querySelector('[data-cal="' + rid + '"]').value, note: el.querySelector('[data-note="' + rid + '"]').value }).then(function(x){ b.disabled = false; if (!x.ok) return toast(errText(x.error)); toast(t('saved')); overview(body, id); }); }; });
     $$('[data-emp]', el).forEach(function(x){ x.onclick = function(){ empDrawer(x.dataset.emp, c.id, function(){ overview(body, id); }); }; });
   });
+}
+// Healthy spread of final ratings (performance-review skill): roughly 0-5% / 5-15% / 60-75% / 10-20% / 1-5%.
+var GUIDE = { 1: [0, 5], 2: [5, 15], 3: [60, 75], 4: [10, 20], 5: [1, 5] };
+/** Cycle progress step by step, the rating spread against the healthy range, and department averages. */
+function perfDash(r){
+  var V = Viz, p = r.progress, n = p.people || 0, pc = function(x){ return n ? x / n * 100 : 0; };
+  var steps = [['pfKpisSet', p.kpisSet], ['pfMidDone', p.midDone], ['pfSelfDoneK', p.selfDone], ['pfMgrDoneK', p.mgrDone], ['pfAckK', p.acknowledged]].map(function(x){
+    return { label: t(x[0]), value: pc(x[1]), text: x[1] + ' / ' + n, tip: t(x[0]) + ': ' + x[1] + ' / ' + n + ' (' + V.n1(pc(x[1]), 0) + '%)', gray: !x[1] }; });
+  var rated = [1, 2, 3, 4, 5].reduce(function(s, k){ return s + (r.distribution[k] || 0); }, 0);
+  var dist = [1, 2, 3, 4, 5].map(function(k){ var share = rated ? r.distribution[k] / rated * 100 : 0, g = GUIDE[k], off = rated >= 5 && (share < g[0] - 0.01 || share > g[1] + 0.01);
+    return { label: k + ' ' + t('sc_' + k), value: share, alt: off, text: V.n1(share, 0) + '%', tip: t('sc_' + k) + ': ' + r.distribution[k] + ' (' + V.n1(share, 0) + '%) · ' + t('pdGuide') + ' ' + g[0] + '-' + g[1] + '%' }; });
+  var offs = dist.filter(function(d){ return d.alt; }).length;
+  var distHtml = '<div class="db-cols">' + dist.map(function(d){ return '<div class="c" tabindex="0" data-tip="' + esc(d.tip) + '"><em>' + (rated ? d.text : '') + '</em><i class="' + (d.alt ? 'alt' : '') + '" style="height:' + d.value + '%"></i><span>' + d.label.split(' ')[0] + '</span></div>'; }).join('') + '</div>' +
+    '<div class="db-legend"><span><i style="background:var(--s1)"></i>' + t('pdInRange') + '</span><span><i style="background:var(--s2)"></i>' + t('pdOutRange') + '</span></div>' +
+    (rated < 5 ? '<p class="hr-hint">' + t('pdFewRated') + '</p>' : offs ? '<p class="hr-hint"><span class="db-status">' + ph('warning') + ' ' + t('pdCalibrateHint') + '</span></p>' : '');
+  var depts = r.departments.filter(function(d){ return d.average != null; }).map(function(d){ return { label: d.department, value: d.average, text: V.n1(d.average, 2), tip: d.department + ': ' + V.n1(d.average, 2) + ' (' + d.rated + '/' + d.people + ')' }; });
+  var tiles = V.tile(t('pfPeople'), V.n1(n, 0), t('pdRated') + ': ' + rated, null, true, true) + V.tile(t('pfSelfDoneK'), V.n1(pc(p.selfDone), 0) + '%', '') + V.tile(t('pfMgrDoneK'), V.n1(pc(p.mgrDone), 0) + '%', '') +
+    V.tile('360', r.fb360.invited ? V.n1(r.fb360.submitted / r.fb360.invited * 100, 0) + '%' : '-', r.fb360.submitted + ' / ' + r.fb360.invited);
+  return V.panel('perf', t('pdPerfTitle'), '<div class="db-tiles">' + tiles + '</div><div class="db-grid three">' +
+    V.card('pfs', t('pfProgress'), '', V.hbars(steps, { max: 100 }), V.tbl(['', ''], steps.map(function(s){ return [esc(s.label), s.text]; }))) +
+    V.card('pfd', t('pfDist'), t('pdDistLead'), distHtml, V.tbl(['', '%', t('pdGuide')], dist.map(function(d, i){ return [esc(d.label), d.text, GUIDE[i + 1][0] + '-' + GUIDE[i + 1][1] + '%']; }))) +
+    V.card('pfdp', t('pfDept'), '', V.hbars(depts, { max: 5 }), V.tbl(['', ''], depts.map(function(d){ return [esc(d.label), d.text]; }))) + '</div>');
 }
 function newCycle(done){
   var y = new Date().getFullYear();

@@ -12,6 +12,8 @@ var L = {
     gosi:'GOSI (employee share)', advance:'Advance instalment', fine:'Fine', other_deduction:'Other deduction', overtime_hours:'Overtime hours' }
 };
 Object.assign(T.ar, {
+  pdTitle:'الرواتب في لمحة', pdLastNet:'صافي آخر مسير', pdDrafts:'مسيرات بانتظار الاعتماد', pdDraftsNote:'يعتمدها شخص غير الذي أعدها', pdTrend:'صافي الرواتب شهرا بشهر',
+  pdRunTitle:'تحليل المسير', pdEarn:'مكونات الإجمالي', pdDed:'الخصومات', pdDept:'الصافي حسب الإدارة', pdWarn:'قسائم عليها ملاحظات',
   prTitle:'الرواتب', prMine:'رواتبي', prMineEmpty:'تظهر هنا قسيمة كل شهر بعد اعتماد مسير الرواتب.', prOpen:'عرض القسيمة', prPrint:'طباعة القسيمة',
   prRuns:'مسيرات الرواتب', prNew:'إعداد مسير شهر', prMonth:'الشهر', prCreate:'إعداد المسير', prEmpty:'لا توجد مسيرات بعد. ابدأ بإعداد مسير الشهر الماضي.',
   pr_draft:'مسودة', pr_locked:'معتمد ومقفل', prHead:'الموظفون', prGross:'الإجمالي', prDed:'الاستقطاعات', prNet:'الصافي', prGosiEr:'تأمينات على الشركة', prWarn:'ملاحظات',
@@ -34,6 +36,8 @@ Object.assign(T.ar, {
   prRecalcDone:'أعيد الحساب', prApproved:'اعتمد المسير وأقفل', prGosiNote:'حصة الشركة في التأمينات'
 });
 Object.assign(T.en, {
+  pdTitle:'Payroll at a glance', pdLastNet:'Last run net', pdDrafts:'Runs awaiting approval', pdDraftsNote:'approved by someone other than the preparer', pdTrend:'Net pay month by month',
+  pdRunTitle:'Run analysis', pdEarn:'What the gross is made of', pdDed:'Deductions', pdDept:'Net by department', pdWarn:'Payslips with notes',
   prTitle:'Payroll', prMine:'My payslips', prMineEmpty:'Each month\'s payslip appears here once payroll is approved.', prOpen:'View payslip', prPrint:'Print payslip',
   prRuns:'Payroll runs', prNew:'Prepare a month', prMonth:'Month', prCreate:'Prepare payroll', prEmpty:'No payroll runs yet. Start with last month.',
   pr_draft:'Draft', pr_locked:'Approved and locked', prHead:'Employees', prGross:'Gross', prDed:'Deductions', prNet:'Net', prGosiEr:'Employer GOSI', prWarn:'Notes',
@@ -151,13 +155,40 @@ function section(body){
   var el = $('#prList', body);
   apiFresh('payrollList', {}, function(r){
     if (!r.ok) return el.innerHTML = '<p class="hr-bad">' + errText(r.error) + '</p>';
-    el.innerHTML = r.rows.length ? '<div class="list">' + r.rows.map(function(x){
+    el.innerHTML = (window.Viz && r.rows.length ? listDash(r.rows) : '') + (r.rows.length ? '<div class="list">' + r.rows.map(function(x){
       return '<div class="row click" data-run="' + x.id + '" tabindex="0"><div class="av">' + ph('money') + '</div><div class="main"><b>' + esc(monthName(x.month)) + '</b><small><bdi>' + esc(x.ref) + '</bdi>، ' + plural(x.totals.headcount || 0, 'people') + '</small></div>' +
         '<div class="end"><b class="num">' + money(x.totals.net) + '</b><small><span class="chip ' + (x.status === 'locked' ? 'in' : 'late') + '">' + t('pr_' + x.status) + '</span></small></div></div>';
-    }).join('') + '</div>' : '<div class="empty">' + ph('money') + '<b>' + t('prEmpty') + '</b></div>';
+    }).join('') + '</div>' : '<div class="empty">' + ph('money') + '<b>' + t('prEmpty') + '</b></div>');
+    if (window.Viz) Viz.wire(el);
     $$('[data-run]', el).forEach(function(x){ x.onclick = function(){ S.prRun = x.dataset.run; section(body); }; });
   });
   eosBox($('#prEos', body));
+}
+
+/** The payroll over time: net and headcount per run, and what changed since the previous one. */
+function listDash(rows){
+  var V = Viz, asc = rows.slice().sort(function(a, b){ return a.month < b.month ? -1 : 1; }), last = asc[asc.length - 1], prev = asc[asc.length - 2];
+  var ch = prev && prev.totals.net ? (last.totals.net - prev.totals.net) / prev.totals.net * 100 : null, drafts = rows.filter(function(x){ return x.status === 'draft'; }).length;
+  var pts = asc.slice(-12).map(function(x){ return { label: V.monthShort(x.month), y: x.totals.net, note: plural(x.totals.headcount || 0, 'people') }; });
+  return V.panel('payroll', t('pdTitle'), '<div class="db-tiles">' + V.tile(t('pdLastNet'), V.sar(last.totals.net), monthName(last.month), ch, true, true, '%') +
+    V.tile(t('prGross'), V.sar(last.totals.gross), '') + V.tile(t('prGosiEr'), V.sar(last.totals.gosiEmployer), '') + V.tile(t('prHead'), V.n1(last.totals.headcount || 0, 0), '') +
+    V.tile(t('pdDrafts'), V.n1(drafts, 0), drafts ? t('pdDraftsNote') : '') + '</div>' +
+    (pts.length > 1 ? '<div class="db-grid">' + V.card('pn', t('pdTrend'), '', V.lineChart(pts, { fmt: 'sar', aria: t('pdTrend') }), V.tbl(['', t('prNet'), t('prHead')], asc.map(function(x){ return [monthName(x.month), money(x.totals.net), x.totals.headcount]; }))) + '</div>' : ''));
+}
+var EARN = { basic: 1, housing: 1, transport: 1, allowance: 1, overtime: 1, bonus: 1, commission: 1, other_earning: 1 };
+/** One run: what the gross is made of, where the deductions go, and net by department. */
+function runDash(r){
+  var V = Viz, earn = {}, ded = {}, dept = {}, warn = 0, lab = L[S.lang] || L.ar;
+  r.slips.forEach(function(s){
+    (s.lines || []).forEach(function(l){ var a = Math.abs(Number(l.amount) || 0); if (!a) return; if (EARN[l.code]) earn[l.code] = (earn[l.code] || 0) + a; else ded[l.code] = (ded[l.code] || 0) + a; });
+    var d = s.emp && s.emp.department || '-'; dept[d] = (dept[d] || 0) + s.net;
+    if ((s.warnings || []).length) warn++;
+  });
+  var items = function(m, labels){ return Object.keys(m).sort(function(a, b){ return m[b] - m[a]; }).slice(0, 10).map(function(k){ var lb = labels ? labels[k] || k : k; return { label: lb, value: m[k], text: V.sar(m[k]), tip: lb + ': ' + V.sar(m[k]) }; }); };
+  var e = items(earn, lab), d = items(ded, lab), n = items(dept);
+  var tb = function(list){ return V.tbl(['', t('mfSar')], list.map(function(i){ return [esc(i.label), money(i.value)]; })); };
+  return V.panel('payrun', t('pdRunTitle'), (warn ? '<p class="hr-hint" style="margin:0 0 10px"><span class="db-status">' + ph('warning') + ' ' + t('pdWarn') + ': ' + warn + '</span></p>' : '') +
+    '<div class="db-grid three">' + V.card('pe', t('pdEarn'), '', V.hbars(e), tb(e)) + V.card('pdd', t('pdDed'), '', V.hbars(d), tb(d)) + V.card('pdn', t('pdDept'), '', V.hbars(n), tb(n)) + '</div>');
 }
 
 function runView(body, id){
@@ -172,7 +203,7 @@ function runView(body, id){
       '<div class="pr-kpis"><div class="net"><span>' + t('prNet') + '</span><b class="num">' + money(tt.net) + '</b></div><div class="kpi"><span>' + t('prGross') + '</span><b class="num" style="font-size:20px">' + money(tt.gross) + '</b></div>' +
       '<div class="kpi"><span>' + t('prDed') + '</span><b class="num" style="font-size:20px">' + money(tt.deductions) + '</b></div><div class="kpi"><span>' + t('prGosiEr') + '</span><b class="num" style="font-size:20px">' + money(tt.gosiEmployer) + '</b></div>' +
       '<div class="kpi"><span>' + t('prHead') + '</span><b class="num" style="font-size:20px">' + tt.headcount + '</b></div></div>' +
-      '<div class="btnrow" style="margin-bottom:12px">' + (draft ? '<button type="button" class="btn btn-line btn-sm" id="prRe">' + ph('arrows-clockwise') + t('prRecalc') + '</button>' + (r.canApprove ? '<button type="button" class="btn btn-dark btn-sm" id="prOk">' + ph('seal-check') + t('prApprove') + '</button>' : '') +
+      (window.Viz ? runDash(r) : '') + '<div class="btnrow" style="margin-bottom:12px">' + (draft ? '<button type="button" class="btn btn-line btn-sm" id="prRe">' + ph('arrows-clockwise') + t('prRecalc') + '</button>' + (r.canApprove ? '<button type="button" class="btn btn-dark btn-sm" id="prOk">' + ph('seal-check') + t('prApprove') + '</button>' : '') +
         '<button type="button" class="btn btn-danger btn-sm" id="prDel">' + t('prDelete') + '</button>' : '<button type="button" class="btn btn-dark btn-sm" id="prMail">' + ph('envelope-simple') + t('prEmail') + '</button>') +
       '<button type="button" class="btn btn-line btn-sm" id="prXls">' + ph('microsoft-excel-logo') + t('prExport') + '</button></div>' +
       (draft ? '<p class="hr-hint">' + t('prApproveHint') + '</p>' : '') + '<div class="err" id="prMsg" style="color:var(--red);margin-bottom:8px"></div>' +
@@ -181,6 +212,7 @@ function runView(body, id){
         '<td class="hr-amt">' + money(s.gross) + '</td><td class="hr-amt">' + money(s.deductions) + '</td><td class="hr-amt"><b>' + money(s.net) + '</b></td><td>' + warnChips(s.warnings) + '</td></tr>'; }).join('') + '</tbody></table></div>' +
       '<h3 class="hr-sub">' + t('prAdj') + '</h3><div id="prAdj"></div>';
     $('#prBack', el).onclick = function(){ S.prRun = null; section(body); };
+    if (window.Viz) Viz.wire(el);
     $$('[data-s]', el).forEach(function(x){ x.onclick = function(){ openSlip(r.slips.filter(function(s){ return s.id === x.dataset.s; })[0]); }; });
     var msg = $('#prMsg', el), act = function(action, done){ return function(){ this.disabled = true; var b = this; api(action, { id: run.id }).then(function(x){ b.disabled = false; if (!x.ok) { msg.textContent = errText(x.error); if (x.error === 'email_not_configured') msg.textContent = t('prEmailNo'); return; } done(x); }); }; };
     if ($('#prRe', el)) $('#prRe', el).onclick = act('payrollRecalc', function(){ toast(t('prRecalcDone')); runView(body, id); });

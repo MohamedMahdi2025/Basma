@@ -79,6 +79,10 @@ console.log('Backend files share one namespace');
     });
   });
   ok(dup.length === 0, 'no function name is defined twice across backend files', dup);
+  // String.replace turns "$$" into "$" in inserted code: $('[x]').forEach then throws and a whole screen goes blank.
+  const client = ['index.html'].concat(fs.readdirSync(path.join(__dirname, '..', 'js')).map(f => 'js/' + f)), single = [];
+  client.forEach(f => (fs.readFileSync(path.join(__dirname, '..', f), 'utf8').split('\n')).forEach((l, i) => { if (/(^|[^$\w])\$\([^()]*\)\.(forEach|map|filter)\(/.test(l)) single.push(f + ':' + (i + 1)); }));
+  ok(single.length === 0, 'no $(...) is used as a list ($$ lost in an edit)', single);
   const get = B0.ctx.doGet({});
   ok(typeof get === 'string' && JSON.parse(get).ok === true, 'the web entry point (doGet) answers JSON', get);
   const post = B0.ctx.doPost({ postData: { contents: JSON.stringify({ action: 'ping' }) } });

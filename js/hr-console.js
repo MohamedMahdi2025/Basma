@@ -4,6 +4,10 @@
 'use strict';
 
 Object.assign(T.ar, {
+  hdTitle:'القوى العاملة في لمحة', hdNonSaudi:'غير السعوديين', hdJoiners:'تعيينات جديدة', hdLast12:'آخر 12 شهرا', hdEnding:'عقود تنتهي قريبا', hdNext90:'خلال 90 يوما',
+  hdByDept:'الموظفون حسب الإدارة', hdNat:'الجنسيات', hdContract:'أنواع العقود', hdGender:'الجنس', hdMale:'ذكور', hdFemale:'إناث', hdUnset:'غير محدد',
+  ibTitle:'الطلبات في لمحة', ibOpen:'تنتظر قرارك', ibOld:'أقدم طلب', ibOver3:'أكثر من 3 أيام', ibByType:'حسب النوع', ibByAge:'حسب العمر', ibAge0:'اليوم', ibAge1:'1-3 أيام', ibAge3:'4-7 أيام', ibAge7:'أكثر من أسبوع',
+  lvdTitle:'إجازات الشهر في لمحة', lvdPeople:'موظفون في إجازة', lvdDays:'أيام إجازة معتمدة', lvdPending:'طلبات تنتظر', lvdByType:'الأيام حسب النوع', lvdBalTitle:'الأرصدة', lvdHigh:'رصيد أكثر من 30 يوما', lvdNoOpen:'بلا رصيد افتتاحي', lvdTotal:'مجموع الأرصدة المتاحة', lvdDaysNote:'تقويمية داخل الشهر',
   hrInbox:'الطلبات', hrLeave:'الإجازات', hrHolidays:'العطل الرسمية', inMine:'بانتظاري', inAll:'كل الطلبات', inAllStatus:'كل الحالات',
   inEmpty:'لا توجد طلبات بانتظارك.', inEmptyAll:'لا توجد طلبات.', inApprove:'اعتماد', inReject:'رفض', inNote:'ملاحظة للموظف (مطلوبة عند الرفض)',
   inDone:'تم الاعتماد', inRejectedT:'تم الرفض', inBalance:'رصيده المتاح بعد طلباته المعلقة', inAfter:'بعد الطلب', inOnBehalf:'تعتمد نيابة عن المدير',
@@ -69,6 +73,10 @@ Object.assign(T.ar, {
   e_too_many_rows:'الملف أكبر من 2000 صف.', e_not_found:'السجل غير موجود.', e_missing_fields:'أكمل الحقول المطلوبة.'
 });
 Object.assign(T.en, {
+  hdTitle:'Workforce at a glance', hdNonSaudi:'Non-Saudis', hdJoiners:'New hires', hdLast12:'Last 12 months', hdEnding:'Contracts ending soon', hdNext90:'Within 90 days',
+  hdByDept:'People by department', hdNat:'Nationalities', hdContract:'Contract types', hdGender:'Gender', hdMale:'Male', hdFemale:'Female', hdUnset:'Not set',
+  ibTitle:'Requests at a glance', ibOpen:'Waiting for you', ibOld:'Oldest request', ibOver3:'Older than 3 days', ibByType:'By type', ibByAge:'By age', ibAge0:'Today', ibAge1:'1-3 days', ibAge3:'4-7 days', ibAge7:'Over a week',
+  lvdTitle:'Leave this month at a glance', lvdPeople:'People on leave', lvdDays:'Approved leave days', lvdPending:'Waiting requests', lvdByType:'Days by type', lvdBalTitle:'Balances', lvdHigh:'Balance over 30 days', lvdNoOpen:'No opening balance', lvdTotal:'Total available days', lvdDaysNote:'calendar days in the month',
   hrInbox:'Requests', hrLeave:'Leave', hrHolidays:'Public holidays', inMine:'Waiting for me', inAll:'All requests', inAllStatus:'Any status',
   inEmpty:'Nothing is waiting for you.', inEmptyAll:'No requests.', inApprove:'Approve', inReject:'Reject', inNote:'Note to the employee (needed to reject)',
   inDone:'Approved', inRejectedT:'Rejected', inBalance:'Available after pending requests', inAfter:'after this', inOnBehalf:'You approve on the manager\'s behalf',
@@ -345,19 +353,38 @@ function setBadge(id, n){ var b = $('#' + id); if (!b) return; b.textContent = n
 function setApBadge(n){ var b = $('#apBadge'); if (!b) return; b.textContent = n; b.classList.toggle('hidden', !n); }
 
 // ---------------- people ----------------
+/** Workforce at a glance, from the directory already in memory: no extra call. */
+function peopleDash(s){
+  var V = Viz, act = H.dir.filter(function(e){ return e.status === 'active'; }), td = riyadhToday(), soon = new Date(Date.parse(td) + 90 * 864e5).toISOString().slice(0, 10);
+  var yearAgo = new Date(Date.parse(td) - 365 * 864e5).toISOString().slice(0, 10);
+  var joiners = H.dir.filter(function(e){ var h = String(e.hireDate || '').slice(0, 10); return h && h >= yearAgo && h <= td; }).length;
+  var ending = act.filter(function(e){ var c = String(e.contractEnd || '').slice(0, 10); return e.contractType === 'fixed' && c && c >= td && c <= soon; }).length;
+  var count = function(list, fn){ var m = {}; list.forEach(function(e){ var k = fn(e) || '-'; m[k] = (m[k] || 0) + 1; }); return Object.keys(m).map(function(k){ return { k: k, n: m[k] }; }).sort(function(a, b){ return b.n - a.n; }); };
+  var bar = function(x, label){ return { label: label, value: x.n, text: String(x.n), tip: label + ': ' + x.n }; };
+  var byDept = count(act, function(e){ return e.departmentName; }).slice(0, 10).map(function(x){ return bar(x, x.k); });
+  var bands = [['<1', 0, 1], ['1-2', 1, 3], ['3-4', 3, 5], ['5-9', 5, 10], ['10+', 10, 99]];
+  var ten = bands.map(function(b){ var n = act.filter(function(e){ if (!e.hireDate) return false; var y = (Date.parse(td) - Date.parse(String(e.hireDate).slice(0, 10))) / (365.25 * 864e5); return y >= b[1] && y < b[2]; }).length; return { label: b[0], value: n, tip: b[0] + ': ' + n }; });
+  var ct = count(act, function(e){ return e.contractType ? t('ct_' + e.contractType) : t('hdUnset'); }).map(function(x){ return bar(x, x.k); });
+  var nat = count(act, function(e){ return e.isSaudi ? t('dbSaudi') : (e.nationality || t('hdUnset')); }).slice(0, 8).map(function(x){ return bar(x, x.k); });
+  var gen = count(act, function(e){ return e.gender === 'male' ? t('hdMale') : e.gender === 'female' ? t('hdFemale') : t('hdUnset'); }).map(function(x){ return bar(x, x.k); });
+  var tiles = V.tile(t('hrHeadcount'), V.n1(s.headcount, 0), t('hrSaudis') + ': ' + s.saudis, null, true, true) + V.tile(t('hrSaudiPct'), V.n1(s.saudiPct) + '%', t('dbSaudization')) +
+    V.tile(t('hdNonSaudi'), V.n1(s.headcount - s.saudis, 0), '') + V.tile(t('hdJoiners'), V.n1(joiners, 0), t('hdLast12')) +
+    V.tile(t('hdEnding'), V.n1(ending, 0), t('hdNext90')) + V.tile(t('hrNoPkg'), V.n1(s.saudiNoPackage, 0), '');
+  var tb = function(items){ return V.tbl(['', t('rpCount')], items.map(function(i){ return [esc(i.label), i.value]; })); };
+  return V.panel('people', t('hdTitle'), '<div class="db-tiles">' + tiles + '</div>' +
+    '<div class="db-grid two">' + V.card('pd', t('hdByDept'), '', V.hbars(byDept), tb(byDept)) + V.card('pt', t('dbTenure'), '', V.cols(ten, { labels: true }), tb(ten)) + '</div>' +
+    '<div class="db-grid three">' + V.card('pn', t('hdNat'), '', V.hbars(nat), tb(nat)) + V.card('pc', t('hdContract'), '', V.hbars(ct), tb(ct)) + V.card('pg', t('hdGender'), '', V.hbars(gen), tb(gen)) + '</div>');
+}
 function people(body){
   loading(body);
   orgThen(function(ok){
     if (!ok) return failed(body, function(){ people(body); });
     var s = H.sat, pct = Math.min(100, s.saudiPct);
     body.innerHTML = '<div class="hr-h"><h2>' + t('hrPeople') + '</h2><button type="button" class="btn btn-dark btn-sm" id="hrAdd">' + ph('user-plus') + t('hrAddEmp') + '</button></div>' +
-      '<div class="hr-sat"><div class="meter"><span>' + t('hrSaudiPct') + '</span><b class="num">' + s.saudiPct.toLocaleString(LOCALE()) + '%</b><div class="track"><i style="width:0"></i></div><small>' + t('hrSaudiLead') + '</small></div>' +
-      '<div class="kpi"><span>' + t('hrHeadcount') + '</span><b class="num">' + s.headcount + '</b></div>' +
-      '<div class="kpi"><span>' + t('hrSaudis') + '</span><b class="num">' + s.saudis + '</b></div>' +
-      '<div class="kpi"><span>' + t('hrNoPkg') + '</span><b class="num">' + s.saudiNoPackage + '</b></div></div>' +
+      (window.Viz ? peopleDash(s) : '') +
       '<div class="toolbar"><input class="grow" id="pq" type="search" placeholder="' + t('hrSearch') + '" value="' + esc(S.hrQ || '') + '">' +
       '<select id="pd">' + opt('', t('hrAllDepts'), S.hrD) + H.depts.map(function(d){ return opt(d.id, lang(d.nameAr, d.nameEn), S.hrD); }).join('') + '</select></div><div id="plist"></div>';
-    requestAnimationFrame(function(){ var i = $('.hr-sat .track i'); if (i) i.style.width = pct + '%'; });
+    if (window.Viz) Viz.wire(body);
     $('#hrAdd').onclick = function(){ if (typeof empDrawer === 'function') empDrawer(null); };
     $('#pq').oninput = function(){ S.hrQ = this.value; list(); };
     $('#pd').onchange = function(){ S.hrD = this.value; list(); };
@@ -818,9 +845,10 @@ function inbox(body){
     if (!r.ok) return failed(el, function(){ inbox(body); });
     if (scope === 'mine') setBadge('inBadge', r.rows.length);
     if (!r.rows.length) { el.innerHTML = '<div class="empty">' + ph('tray') + '<b>' + (scope === 'mine' ? t('inEmpty') : t('inEmptyAll')) + '</b></div>'; return; }
-    el.innerHTML = '<div class="list" style="padding:0 14px">' + r.rows.map(function(o){ return Req.rowHtml(o, { who: true, actions: actions }); }).join('') + '</div>';
+    el.innerHTML = (window.Viz ? inboxDash(r.rows, scope) : '') + '<div class="list" style="padding:0 14px">' + r.rows.map(function(o){ return Req.rowHtml(o, { who: true, actions: actions }); }).join('') + '</div>';
     $$('[data-more]', el).forEach(function(m){ if (scope === 'mine') m.classList.remove('hidden'); });
     Req.wireList(el, r.rows, null, function(){ inbox(body); });
+    if (window.Viz) Viz.wire(el);
     $$('[data-dec]', el).forEach(function(b){ b.onclick = function(){
       var id = b.dataset.id, note = (el.querySelector('[data-note="' + id + '"]') || {}).value || '';
       $$('[data-id="' + id + '"]', el).forEach(function(x){ x.disabled = true; });
@@ -847,6 +875,20 @@ function inbox(body){
     if (o.type === 'letter' && o.status === 'approved' && roles().hr) h += '<div class="btnrow" style="margin:0 0 12px"><button type="button" class="btn btn-dark btn-sm" data-hrprint="' + o.id + '">' + ph('printer') + t('rqPrint') + '</button></div>';
     return h;
   }
+}
+
+/** What is waiting, how old it is and of which kind. */
+function inboxDash(rows, scope){
+  var V = Viz, now = Date.now(), open = rows.filter(function(o){ return o.status === 'pending'; });
+  var age = function(o){ return Math.floor((now - Date.parse(o.createdAt)) / 864e5); };
+  var oldest = open.reduce(function(m, o){ return Math.max(m, age(o)); }, 0), over3 = open.filter(function(o){ return age(o) > 3; }).length;
+  var byType = {}; open.forEach(function(o){ byType[o.type] = (byType[o.type] || 0) + 1; });
+  var types = Object.keys(byType).sort(function(a, b){ return byType[b] - byType[a]; }).map(function(k){ return { label: t('rt_' + k), value: byType[k], text: String(byType[k]), tip: t('rt_' + k) + ': ' + byType[k] }; });
+  var bk = [['ibAge0', 0, 0], ['ibAge1', 1, 3], ['ibAge3', 4, 7], ['ibAge7', 8, 9999]].map(function(b){ var n = open.filter(function(o){ var a = age(o); return a >= b[1] && a <= b[2]; }).length; return { label: t(b[0]), value: n, alt: b[1] > 3, tip: t(b[0]) + ': ' + n }; });
+  var tb = function(items){ return V.tbl(['', t('rpCount')], items.map(function(i){ return [esc(i.label), i.value]; })); };
+  return '<div style="padding:0 14px">' + V.panel('inbox', t('ibTitle'), '<div class="db-tiles">' + V.tile(scope === 'mine' ? t('ibOpen') : t('rs_pending'), V.n1(open.length, 0), plural(rows.length, 'rows'), null, true, true) +
+    V.tile(t('ibOld'), plural(oldest, 'days'), '') + V.tile(t('ibOver3'), '<span class="db-status">' + (over3 ? ph('warning') + ' ' : '') + over3 + '</span>', '') + '</div>' +
+    (open.length ? '<div class="db-grid two">' + V.card('it', t('ibByType'), '', V.hbars(types), tb(types)) + V.card('ia', t('ibByAge'), '', V.cols(bk, { labels: true }), tb(bk)) + '</div>' : '')) + '</div>';
 }
 
 // ---------------- team leave calendar and balances ----------------
@@ -876,7 +918,8 @@ function leaveSec(body){
         return '<div class="lvg-cell' + (n === 5 || n === 6 ? ' we' : '') + (hol[x] ? ' ho' : '') + (hit ? ' on ' + hit.status : '') + '"' + (hit ? ' title="' + esc(t('lt_' + hit.subtype) + ' ' + hit.ref) + '"' : '') + '></div>';
       }).join('');
     }).join('');
-    cal.innerHTML = '<div class="lvg-wrap"><div class="lvg" style="grid-template-columns:' + cols + '">' + head + rows + '</div></div>' +
+    setTimeout(function(){ if (window.Viz) Viz.wire(cal); });
+    cal.innerHTML = (window.Viz ? leaveDash(r, days) : '') + '<div class="lvg-wrap"><div class="lvg" style="grid-template-columns:' + cols + '">' + head + rows + '</div></div>' +
       '<div class="lv-legend" style="margin-top:8px"><span><i style="background:var(--brand)"></i>' + t('lvApproved') + '</span><span><i style="background:var(--amber)"></i>' + t('lvPendingK') + '</span><span><i style="background:#D9D4C7"></i>' + t('lvHolidayK') + '</span></div>' +
       (r.holidays.length ? '<p class="hr-hint">' + r.holidays.filter(function(h, i, a){ return !i || a[i - 1].name !== h.name; }).map(function(h){ return esc(h.name) + ' (' + Req.fmtDate(h.date) + ')'; }).join('، ') + '</p>' : '');
   });
@@ -894,6 +937,18 @@ function leaveSec(body){
       }).join('') + '</tbody></table></div>';
     $$('[data-open]', bal).forEach(function(b){ b.onclick = function(){ openingDrawer(r.rows.filter(function(x){ return x.emp.id === b.dataset.open; })[0], function(){ leaveSec(body); }); }; });
   });
+}
+/** The month's leave: who, how many days, of which kind, and what is still waiting. */
+function leaveDash(r, days){
+  var V = Viz, first = days[0], last = days[days.length - 1], ap = r.rows.filter(function(x){ return x.status === 'approved'; });
+  var inMonth = function(x){ var a = x.fromDate < first ? first : x.fromDate, b = x.toDate > last ? last : x.toDate; return Math.max(0, (Date.parse(b) - Date.parse(a)) / 864e5 + 1); };
+  var who = {}, byT = {}, dsum = 0;
+  ap.forEach(function(x){ who[x.emp.id] = 1; var n = inMonth(x); dsum += n; byT[x.subtype] = (byT[x.subtype] || 0) + n; });
+  var types = Object.keys(byT).sort(function(a, b){ return byT[b] - byT[a]; }).map(function(k){ return { label: t('lt_' + k), value: byT[k], text: plural(byT[k], 'days'), tip: t('lt_' + k) + ': ' + byT[k] }; });
+  var pend = r.rows.filter(function(x){ return x.status === 'pending'; }).length;
+  return V.panel('leave', t('lvdTitle'), '<div class="db-tiles">' + V.tile(t('lvdPeople'), V.n1(Object.keys(who).length, 0), plural(r.people || 0, 'people'), null, true, true) +
+    V.tile(t('lvdDays'), V.n1(dsum, 0), t('lvdDaysNote')) + V.tile(t('lvdPending'), V.n1(pend, 0), '') + V.tile(t('hrHolidays'), V.n1(r.holidays.length, 0), '') + '</div>' +
+    (types.length ? '<div class="db-grid">' + V.card('lt', t('lvdByType'), '', V.hbars(types), V.tbl(['', t('dbDays')], types.map(function(i){ return [esc(i.label), i.value]; }))) + '</div>' : ''));
 }
 function openingDrawer(x, done){
   var dr = drawer('<h3>' + t('lvEditOpening') + '</h3><p class="hr-hint">' + esc(x.emp.name) + '</p><form class="form" id="opf">' +
