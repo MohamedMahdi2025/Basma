@@ -386,6 +386,7 @@ table.tbl{width:100%;border-collapse:collapse;background:var(--card);font-size:1
 .btn-danger{background:#FBE9E4;color:#8E2F1C}
 .code{font-size:34px;font-weight:600;letter-spacing:3px;text-align:center;padding:16px;border-radius:var(--r-m);background:var(--pine);color:var(--cream);direction:ltr;margin:6px 0 10px}
 #map{height:320px;border-radius:var(--r-m);border:1px solid var(--line);overflow:hidden;z-index:0}
+.update-bar{position:fixed;top:calc(10px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:90;background:var(--brand);color:#fff;border:0;border-radius:999px;padding:10px 18px;font:inherit;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.25);cursor:pointer;max-width:92vw}
 .toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:80;background:var(--ink);color:var(--cream);padding:10px 16px;border-radius:12px;font-size:14px;max-width:90vw;animation:up .25s var(--ease) both}
 .loader{position:fixed;top:0;inset-inline:0;height:3px;z-index:90;overflow:hidden}
 .loader i{display:block;height:100%;width:40%;background:var(--signal);animation:load 1s ease-in-out infinite}
@@ -1204,7 +1205,7 @@ var T = {
     manualTitle:'تصحيح حضور', type:'النوع', date:'التاريخ', time:'الوقت', reason:'السبب',
     setShift:'الدوام الافتراضي', secHours:'الدوام وأيام العمل', secHoursLead:'يُطبَّق على كل موظف ليس له دوام خاص.', secLoc:'دقة الموقع والمراجعة', secLocLead:'متى يُقبل الموقع، ومتى تُحال الحركة للموارد البشرية.', secMethods:'طرق الدخول والتسجيل', secMethodsLead:'ما يُسمح به للموظفين. التسجيل يبقى داخل نطاق المقر دائماً.', graceHint:'بعدها يُحسب التأخير.', gapHint:'يمنع التسجيل المكرر بالخطأ.', accHint:'الهاتف عادة 5 إلى 30 م.', accDeskHint:'الكمبيوتر يحدد موقعه بالواي فاي، فيحتاج هامشاً أوسع.', riskHint:'مجموع إشارات الخطر الذي تُحال عنده الحركة للمراجعة.', swDesk:'التسجيل من الكمبيوتر', swDeskLead:'برمز سري من 6 أرقام على جهاز مفعّل.', swPw:'التسجيل بكلمة المرور', swPwLead:'من أي جهاز غير مسجل، ويُعلَّم للمراجعة.', swDk:'التسجيل بالرمز السري على الهاتف', swDkLead:'الطريقة الأساسية للهواتف.', swOut:'الانصراف من خارج النطاق', swOutLead:'للحالات الطارئة فقط، ويُحال للمراجعة.', mins:'دقيقة', meters:'م', grace:'فترة السماح (دقيقة)', workdays:'أيام العمل', maxAcc:'أقصى خطأ مسموح في الموقع (م)', riskTh:'حد المراجعة', allowOut:'السماح بالانصراف من خارج النطاق (يُحال للمراجعة)', minGap:'أقل فاصل بين حركتين (دقيقة)',
     dows:['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'],
-    saved:'تم الحفظ', device:'الجهاز', since:'منذ', signOut:'قفل التطبيق', forgetDevice:'إزالة الحساب من هذا الجهاز', installHint:'لتثبيت التطبيق: شارك ← أضف إلى الشاشة الرئيسية',
+    updateReady:'نسخة جديدة متاحة، اضغط للتحديث', saved:'تم الحفظ', device:'الجهاز', since:'منذ', signOut:'قفل التطبيق', forgetDevice:'إزالة الحساب من هذا الجهاز', installHint:'لتثبيت التطبيق: شارك ← أضف إلى الشاشة الرئيسية',
     f_static_samples:'إحداثيات ثابتة تماماً (احتمال موقع وهمي)', f_zero_accuracy:'دقة غير واقعية', f_stale_fix:'موقع قديم', f_clock_drift:'ساعة الجهاز غير مضبوطة', f_impossible_travel:'انتقال مستحيل', f_new_device:'جهاز جديد', f_few_samples:'قراءة موقع واحدة', f_off_hours:'خارج الأوقات', f_edge:'على حافة النطاق', f_outside_checkout:'انصراف من خارج النطاق',
     e_outside_zone:'أنت خارج نطاق المقر', e_accuracy_too_low:'دقة الموقع ضعيفة جداً، حاول مجدداً', e_no_location:'تعذّر تحديد موقعك', e_no_zone:'لا يوجد نطاق عمل محدد لك',
     e_too_soon:'سُجّلت حركتك للتو', e_state_changed:'تغيّرت حالتك، حدّث الشاشة', e_bad_activation:'الرقم الوظيفي أو رمز التفعيل غير صحيح', e_activation_expired:'انتهت صلاحية رمز التفعيل، اطلب رمزاً جديداً',
@@ -1263,7 +1264,7 @@ var T = {
     manualTitle:'Attendance correction', type:'Type', date:'Date', time:'Time', reason:'Reason',
     setShift:'Default shift', secHours:'Hours and work days', secHoursLead:'Applies to everyone without a custom shift.', secLoc:'Location accuracy and review', secLocLead:'When a location is trusted, and when a punch goes to HR.', secMethods:'Sign-in and check-in methods', secMethodsLead:'What employees may use. Check-in always stays inside the HQ zone.', graceHint:'Lateness counts after this.', gapHint:'Stops accidental double punches.', accHint:'Phones are usually 5 to 30 m.', accDeskHint:'Computers locate by Wi-Fi and need a wider margin.', riskHint:'Total risk score at which a punch goes to review.', swDesk:'Check-in from computers', swDeskLead:'With a 6-digit PIN on an activated computer.', swPw:'Check-in with password', swPwLead:'From any unregistered device, flagged for review.', swDk:'PIN check-in on phones', swDkLead:'The main method for phones.', swOut:'Check-out outside the zone', swOutLead:'Emergencies only; sent to review.', mins:'min', meters:'m', grace:'Grace period (min)', workdays:'Work days', maxAcc:'Largest location error allowed (m)', riskTh:'Review threshold', allowOut:'Allow check-out outside the zone (sent to review)', minGap:'Minimum gap between punches (min)',
     dows:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
-    saved:'Saved', device:'Device', since:'since', signOut:'Lock app', forgetDevice:'Remove account from this device', installHint:'To install: Share → Add to Home Screen',
+    updateReady:'A new version is ready. Tap to update', saved:'Saved', device:'Device', since:'since', signOut:'Lock app', forgetDevice:'Remove account from this device', installHint:'To install: Share → Add to Home Screen',
     f_static_samples:'Perfectly frozen coordinates (possible fake GPS)', f_zero_accuracy:'Unrealistic accuracy', f_stale_fix:'Old location fix', f_clock_drift:'Device clock is wrong', f_impossible_travel:'Impossible travel', f_new_device:'New device', f_few_samples:'Single location reading', f_off_hours:'Off hours', f_edge:'At zone edge', f_outside_checkout:'Checked out outside zone',
     e_outside_zone:'You are outside the HQ zone', e_accuracy_too_low:'Location is too imprecise, try again', e_no_location:'Could not get your location', e_no_zone:'No work zone is set for you',
     e_too_soon:'You just punched', e_state_changed:'Your status changed, refresh', e_bad_activation:'Employee number or activation code is wrong', e_activation_expired:'The activation code expired, ask for a new one',
@@ -2505,7 +2506,27 @@ function admAudit(){
 }
 
 // ---------------- start ----------------
-if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(function(){});
+if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function(){});
+
+// New releases: check version.json on open, on return to the app and every 5 minutes.
+// Signed out, the page reloads at once; signed in, a banner offers the update so no one loses a check-in mid-way.
+var updateShown = false;
+function checkForUpdate(){
+  if (location.protocol !== 'https:') return;
+  fetch('version.json?t=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.json() : null; }).then(function(v){
+    if (!v || !v.build || v.build === BUILD) return;
+    if (!S.me) { location.reload(); return; }
+    if (updateShown) return;
+    updateShown = true;
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'update-bar'; b.textContent = t('updateReady');
+    b.onclick = function(){ if (navigator.serviceWorker && navigator.serviceWorker.getRegistration) navigator.serviceWorker.getRegistration().then(function(g){ if (g) g.update(); }); location.reload(); };
+    document.body.appendChild(b);
+  }).catch(function(){});
+}
+setInterval(checkForUpdate, 5 * 60000);
+document.addEventListener('visibilitychange', function(){ if (!document.hidden) checkForUpdate(); });
+setTimeout(checkForUpdate, 4000);
 document.addEventListener('visibilitychange', function(){ if (!document.hidden && S.me && S.tab === 'home') { refreshMe(); schedulePunchPrefetch(); } });
 tickWorked();
 boot();

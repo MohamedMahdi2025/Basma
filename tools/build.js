@@ -19,7 +19,11 @@ function stripComments(html) {
   return html.replace(/<!--[\s\S]*?-->/g, '').split('\n').filter(l => !/^\s*\/\/(?!\/)/.test(l)).join('\n');
 }
 
-const page = stripComments(fs.readFileSync(path.join(SRC, 'index.html'), 'utf8'));
+// Every build gets its own stamp: the app compares it with version.json to know a new release is out.
+const STAMP = new Date().toISOString().replace(/[-:]/g, '').slice(0, 15).replace('T', '.');
+const page = stripComments(fs.readFileSync(path.join(SRC, 'index.html'), 'utf8'))
+  .replace(/var BUILD = '[^']*';/, "var BUILD = '" + STAMP + "';");
+if (!page.includes("var BUILD = '" + STAMP + "';")) { console.error('refusing: BUILD line not found in index.html'); process.exit(1); }
 const key = crypto.randomBytes(48);
 const data = Buffer.from(page, 'utf8');
 const enc = Buffer.alloc(data.length);
@@ -54,9 +58,11 @@ document.open();document.write(h);document.close();
 `;
 
 fs.writeFileSync(path.join(OUT, 'index.html'), loader);
-for (const f of ['sw.js', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png', 'favicon-48.png']) {
+fs.writeFileSync(path.join(OUT, 'version.json'), JSON.stringify({ build: STAMP }) + '\n');
+fs.writeFileSync(path.join(OUT, 'sw.js'), fs.readFileSync(path.join(SRC, 'sw.js'), 'utf8').replace(/var CACHE = '[^']*';/, "var CACHE = 'bgatt-" + STAMP + "';"));
+for (const f of ['manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png', 'favicon-48.png']) {
   fs.copyFileSync(path.join(SRC, f), path.join(OUT, f));
 }
 const long = loader.split('\n').filter(l => /[A-Za-z0-9+/]{40,}/.test(l)).length;
-console.log('built app/index.html', Math.round(loader.length / 1024) + ' KB', 'source', Math.round(page.length / 1024) + ' KB', 'long runs:', long);
+console.log('built ' + STAMP + ' app/index.html', Math.round(loader.length / 1024) + ' KB', 'source', Math.round(page.length / 1024) + ' KB', 'long runs:', long);
 if (long) { console.error('refusing: a line holds a 40+ character run (GitHub push protection)'); process.exit(1); }
