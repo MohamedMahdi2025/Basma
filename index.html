@@ -345,10 +345,37 @@ table.tbl{width:100%;border-collapse:collapse;background:var(--card);font-size:1
 .form{display:grid;gap:12px}
 .form .field label{color:var(--ink-2)}
 .form input,.form select,.form textarea{width:100%;height:46px;border:1px solid var(--line);border-radius:var(--r-s);background:var(--card);padding:0 12px}
+.form input[type=checkbox],.form input[type=radio],.checks input{width:auto;height:auto;padding:0;border:0;background:none;flex:none}
 .form textarea{height:80px;padding:10px 12px}
 .form .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .checks{display:flex;flex-wrap:wrap;gap:8px}
-.checks label{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 12px;border:1px solid var(--line);border-radius:999px;background:var(--card);font-size:13.5px;color:var(--ink)}
+.checks label{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 12px;border:1px solid var(--line);border-radius:999px;background:var(--card);font-size:13.5px;color:var(--ink);cursor:pointer;transition:background-color .15s,border-color .15s,color .15s}
+.checks label:has(input:checked){background:var(--pine);border-color:var(--pine);color:var(--cream)}
+.checks input{accent-color:var(--brand)}
+.chips input{position:absolute;opacity:0;pointer-events:none}
+.chips label{min-width:74px;justify-content:center;position:relative}
+.chips label:has(input:focus-visible){outline:2px solid var(--brand);outline-offset:2px}
+.set-grid{display:grid;gap:16px;max-width:980px}
+.set-card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-m);padding:18px 18px 8px}
+.set-card h3{margin:0 0 2px;font-size:16px;font-weight:600;display:flex;align-items:center;gap:8px}
+.set-card h3 i{color:var(--brand);font-size:20px}
+.set-card > p{margin:0 0 14px;color:var(--ink-2);font-size:13px}
+.set-card .field{margin-bottom:14px}
+.set-card .field small{display:block;color:var(--ink-2);font-size:12px;margin-top:4px}
+.sw-row{display:grid;grid-template-columns:1fr auto;align-items:center;gap:14px;padding:12px 0;border-top:1px solid var(--line);cursor:pointer}
+.sw-row:first-of-type{border-top:0}
+.sw-row b{display:block;font-weight:500;font-size:14px}
+.sw-row small{display:block;color:var(--ink-2);font-size:12.5px;margin-top:2px}
+.switch{position:relative;width:48px;height:28px;flex:none}
+.switch input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer;z-index:1}
+.switch span{position:absolute;inset:0;border-radius:14px;background:#CBD1C6;transition:background-color .2s}
+.switch span::after{content:"";position:absolute;top:3px;inset-inline-start:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .2s var(--ease)}
+.switch input:checked + span{background:var(--brand)}
+.switch input:checked + span::after{transform:translateX(20px)}
+[dir="rtl"] .switch input:checked + span::after{transform:translateX(-20px)}
+.switch input:focus-visible + span{outline:2px solid var(--brand);outline-offset:2px}
+.set-actions{position:sticky;bottom:0;display:flex;gap:10px;align-items:center;padding:12px 0;background:linear-gradient(to top, var(--paper) 70%, rgba(247,245,239,0))}
+@media (min-width:1024px){ .set-grid{grid-template-columns:1fr 1fr} .set-card.wide{grid-column:1 / -1} }
 .drawer{position:fixed;inset:0;z-index:50;display:flex;justify-content:flex-end;align-items:flex-end;background:rgba(18,28,21,.45);animation:fadeIn .18s ease both}
 .drawer .panel{background:var(--paper);width:100%;max-height:92dvh;overflow:auto;border-radius:var(--r-l) var(--r-l) 0 0;padding:20px 18px calc(24px + env(safe-area-inset-bottom));animation:up .32s var(--ease) both}
 @keyframes up{from{transform:translateY(40px);opacity:0}}
@@ -413,12 +440,13 @@ table.tbl{width:100%;border-collapse:collapse;background:var(--card);font-size:1
 
   /* app shell: labelled side rail */
   .app{padding-inline-start:112px}
+  .app > .tabs{position:fixed}
   .tabs{position:fixed;top:0;bottom:0;inset-inline-start:0;width:112px;flex-direction:column;justify-content:flex-start;gap:6px;
     padding:92px 10px 20px;border-top:0;border-inline-end:1px solid rgba(255,255,255,.06);background:rgba(18,28,21,.96)}
   .tabs button{flex:none;padding:10px 0;font-size:12.5px}
   .tabs button:hover{color:var(--cream)}
   .topbar{max-width:1440px;width:100%;margin:0 auto;padding:18px 28px}
-  .topbar img{position:fixed;top:18px;inset-inline-start:34px;height:44px;visibility:visible!important;z-index:21}
+  .topbar img{position:static;height:42px;visibility:visible!important}
   .topbar .who b{font-size:17px}
 
   /* check-in: radar stage + control panel */
@@ -1168,7 +1196,7 @@ var T = {
     runReport:'عرض', exportCsv:'تصدير CSV', employee:'الموظف', days:'حضور', hours:'ساعات', lateMin:'دقائق التأخير', overtime:'إضافي', missingOut:'بلا انصراف', early:'خروج مبكر', allEmp:'كل الموظفين',
     toReview:'بانتظار المراجعة', rejectedTab:'محاولات مرفوضة', approve:'اعتماد', reject:'رفض', noReview:'لا توجد حركات بانتظار المراجعة', risk:'درجة الخطورة', openMap:'عرض على الخريطة',
     manualTitle:'تصحيح حضور', type:'النوع', date:'التاريخ', time:'الوقت', reason:'السبب',
-    setShift:'الدوام الافتراضي', grace:'فترة السماح (دقيقة)', workdays:'أيام العمل', maxAcc:'أقصى خطأ مسموح في الموقع (م)', riskTh:'حد المراجعة', allowOut:'السماح بالانصراف من خارج النطاق (يُحال للمراجعة)', minGap:'أقل فاصل بين حركتين (دقيقة)',
+    setShift:'الدوام الافتراضي', secHours:'الدوام وأيام العمل', secHoursLead:'يُطبَّق على كل موظف ليس له دوام خاص.', secLoc:'دقة الموقع والمراجعة', secLocLead:'متى يُقبل الموقع، ومتى تُحال الحركة للموارد البشرية.', secMethods:'طرق الدخول والتسجيل', secMethodsLead:'ما يُسمح به للموظفين. التسجيل يبقى داخل نطاق المقر دائماً.', graceHint:'بعدها يُحسب التأخير.', gapHint:'يمنع التسجيل المكرر بالخطأ.', accHint:'الهاتف عادة 5 إلى 30 م.', accDeskHint:'الكمبيوتر يحدد موقعه بالواي فاي، فيحتاج هامشاً أوسع.', riskHint:'مجموع إشارات الخطر الذي تُحال عنده الحركة للمراجعة.', swDesk:'التسجيل من الكمبيوتر', swDeskLead:'برمز سري من 6 أرقام على جهاز مفعّل.', swPw:'التسجيل بكلمة المرور', swPwLead:'من أي جهاز غير مسجل، ويُعلَّم للمراجعة.', swDk:'التسجيل بالرمز السري على الهاتف', swDkLead:'الطريقة الأساسية للهواتف.', swOut:'الانصراف من خارج النطاق', swOutLead:'للحالات الطارئة فقط، ويُحال للمراجعة.', mins:'دقيقة', meters:'م', grace:'فترة السماح (دقيقة)', workdays:'أيام العمل', maxAcc:'أقصى خطأ مسموح في الموقع (م)', riskTh:'حد المراجعة', allowOut:'السماح بالانصراف من خارج النطاق (يُحال للمراجعة)', minGap:'أقل فاصل بين حركتين (دقيقة)',
     dows:['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'],
     saved:'تم الحفظ', device:'الجهاز', since:'منذ', signOut:'قفل التطبيق', forgetDevice:'إزالة الحساب من هذا الجهاز', installHint:'لتثبيت التطبيق: شارك ← أضف إلى الشاشة الرئيسية',
     f_static_samples:'إحداثيات ثابتة تماماً (احتمال موقع وهمي)', f_zero_accuracy:'دقة غير واقعية', f_stale_fix:'موقع قديم', f_clock_drift:'ساعة الجهاز غير مضبوطة', f_impossible_travel:'انتقال مستحيل', f_new_device:'جهاز جديد', f_few_samples:'قراءة موقع واحدة', f_off_hours:'خارج الأوقات', f_edge:'على حافة النطاق', f_outside_checkout:'انصراف من خارج النطاق',
@@ -1221,7 +1249,7 @@ var T = {
     runReport:'Show', exportCsv:'Export CSV', employee:'Employee', days:'Present', hours:'Hours', lateMin:'Late min', overtime:'Overtime', missingOut:'No check-out', early:'Left early', allEmp:'All employees',
     toReview:'Awaiting review', rejectedTab:'Refused attempts', approve:'Approve', reject:'Reject', noReview:'Nothing is waiting for review', risk:'Risk score', openMap:'Show on map',
     manualTitle:'Attendance correction', type:'Type', date:'Date', time:'Time', reason:'Reason',
-    setShift:'Default shift', grace:'Grace period (min)', workdays:'Work days', maxAcc:'Largest location error allowed (m)', riskTh:'Review threshold', allowOut:'Allow check-out outside the zone (sent to review)', minGap:'Minimum gap between punches (min)',
+    setShift:'Default shift', secHours:'Hours and work days', secHoursLead:'Applies to everyone without a custom shift.', secLoc:'Location accuracy and review', secLocLead:'When a location is trusted, and when a punch goes to HR.', secMethods:'Sign-in and check-in methods', secMethodsLead:'What employees may use. Check-in always stays inside the HQ zone.', graceHint:'Lateness counts after this.', gapHint:'Stops accidental double punches.', accHint:'Phones are usually 5 to 30 m.', accDeskHint:'Computers locate by Wi-Fi and need a wider margin.', riskHint:'Total risk score at which a punch goes to review.', swDesk:'Check-in from computers', swDeskLead:'With a 6-digit PIN on an activated computer.', swPw:'Check-in with password', swPwLead:'From any unregistered device, flagged for review.', swDk:'PIN check-in on phones', swDkLead:'The main method for phones.', swOut:'Check-out outside the zone', swOutLead:'Emergencies only; sent to review.', mins:'min', meters:'m', grace:'Grace period (min)', workdays:'Work days', maxAcc:'Largest location error allowed (m)', riskTh:'Review threshold', allowOut:'Allow check-out outside the zone (sent to review)', minGap:'Minimum gap between punches (min)',
     dows:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
     saved:'Saved', device:'Device', since:'since', signOut:'Lock app', forgetDevice:'Remove account from this device', installHint:'To install: Share → Add to Home Screen',
     f_static_samples:'Perfectly frozen coordinates (possible fake GPS)', f_zero_accuracy:'Unrealistic accuracy', f_stale_fix:'Old location fix', f_clock_drift:'Device clock is wrong', f_impossible_travel:'Impossible travel', f_new_device:'New device', f_few_samples:'Single location reading', f_off_hours:'Off hours', f_edge:'At zone edge', f_outside_checkout:'Checked out outside zone',
@@ -2333,14 +2361,29 @@ function admReports(){
 // ---------- settings ----------
 function admSettings(){
   api('settingsGet').then(function(r){
-    if (!r.ok) return; var s = r.settings, wd = String(s.workdays).split(',');
-    $('#admBody').innerHTML = '<form class="form" id="sf" style="max-width:560px"><div class="field"><label>' + t('setShift') + '</label><div class="two"><input name="shiftStart" type="time" value="' + s.shiftStart + '"><input name="shiftEnd" type="time" value="' + s.shiftEnd + '"></div></div>' +
-      '<div class="field"><label>' + t('workdays') + '</label><div class="checks">' + t('dows').map(function(n, i){ return '<label><input type="checkbox" name="wd" value="' + i + '"' + (wd.indexOf(String(i)) >= 0 ? ' checked' : '') + '>' + n + '</label>'; }).join('') + '</div></div>' +
-      '<div class="two"><div class="field"><label>' + t('grace') + '</label><input name="graceMin" type="number" min="0" max="120" value="' + s.graceMin + '"></div><div class="field"><label>' + t('minGap') + '</label><input name="minPunchGapMin" type="number" min="0" max="60" value="' + s.minPunchGapMin + '"></div></div>' +
-      '<div class="two"><div class="field"><label>' + t('maxAcc') + '</label><input name="maxAccuracy" type="number" min="10" max="500" value="' + s.maxAccuracy + '"></div><div class="field"><label>' + t('riskTh') + '</label><input name="reviewRiskThreshold" type="number" min="10" max="100" value="' + s.reviewRiskThreshold + '"></div></div>' +
-      '<div class="field"><label>' + t('maxAccDesk') + '</label><input name="maxAccuracyDesktop" type="number" min="20" max="1000" value="' + s.maxAccuracyDesktop + '"></div>' +
-      '<div class="checks" style="flex-direction:column;align-items:flex-start"><label><input type="checkbox" name="allowPasswordPunch"' + (s.allowPasswordPunch ? ' checked' : '') + '>' + t('allowPwPunch') + '</label><label><input type="checkbox" name="allowDesktop"' + (s.allowDesktop ? ' checked' : '') + '>' + t('allowDesk') + '</label><label><input type="checkbox" name="allowDeviceKey"' + (s.allowDeviceKey ? ' checked' : '') + '>' + t('allowDk') + '</label><label><input type="checkbox" name="allowCheckoutOutside"' + (s.allowCheckoutOutside ? ' checked' : '') + '>' + t('allowOut') + '</label></div>' +
-      '<div class="btnrow"><button class="btn btn-dark">' + t('save') + '</button></div></form>';
+    if (!r.ok) return; var st = r.settings, wd = String(st.workdays).split(',');
+    function num(name, label, hint, min, max, unit){
+      return '<div class="field"><label for="' + name + '">' + label + '</label><div style="position:relative"><input id="' + name + '" name="' + name + '" type="number" inputmode="numeric" min="' + min + '" max="' + max + '" value="' + esc(st[name]) + '" style="padding-inline-end:52px"><span style="position:absolute;inset-inline-end:12px;top:50%;transform:translateY(-50%);color:var(--ink-2);font-size:13px">' + unit + '</span></div><small>' + hint + '</small></div>';
+    }
+    function sw(name, title, lead){
+      return '<label class="sw-row"><div><b>' + title + '</b><small>' + lead + '</small></div><span class="switch"><input type="checkbox" name="' + name + '"' + (st[name] ? ' checked' : '') + ' role="switch"><span></span></span></label>';
+    }
+    $('#admBody').innerHTML = '<form class="form" id="sf"><div class="set-grid">' +
+      '<section class="set-card wide"><h3>' + ph('clock') + t('secHours') + '</h3><p>' + t('secHoursLead') + '</p>' +
+        '<div class="two" style="max-width:520px"><div class="field"><label for="shiftStart">' + t('from') + '</label><input id="shiftStart" name="shiftStart" type="time" value="' + esc(st.shiftStart) + '"></div><div class="field"><label for="shiftEnd">' + t('to') + '</label><input id="shiftEnd" name="shiftEnd" type="time" value="' + esc(st.shiftEnd) + '"></div></div>' +
+        '<div class="field"><label>' + t('workdays') + '</label><div class="checks chips">' + t('dows').map(function(n, i){ return '<label><input type="checkbox" name="wd" value="' + i + '"' + (wd.indexOf(String(i)) >= 0 ? ' checked' : '') + '>' + n + '</label>'; }).join('') + '</div></div>' +
+        '<div class="two" style="max-width:520px">' + num('graceMin', t('grace').replace(/\s*\(.*\)/, ''), t('graceHint'), 0, 120, t('mins')) + num('minPunchGapMin', t('minGap').replace(/\s*\(.*\)/, ''), t('gapHint'), 0, 60, t('mins')) + '</div>' +
+      '</section>' +
+      '<section class="set-card"><h3>' + ph('map-pin-area') + t('secLoc') + '</h3><p>' + t('secLocLead') + '</p>' +
+        num('maxAccuracy', t('maxAcc').replace(/\s*\(.*\)/, ''), t('accHint'), 10, 500, t('meters')) +
+        num('maxAccuracyDesktop', t('maxAccDesk').replace(/\s*\(.*\)/, ''), t('accDeskHint'), 20, 1000, t('meters')) +
+        num('reviewRiskThreshold', t('riskTh'), t('riskHint'), 10, 100, '/100') +
+      '</section>' +
+      '<section class="set-card"><h3>' + ph('shield-check') + t('secMethods') + '</h3><p>' + t('secMethodsLead') + '</p>' +
+        sw('allowDeviceKey', t('swDk'), t('swDkLead')) + sw('allowDesktop', t('swDesk'), t('swDeskLead')) +
+        sw('allowPasswordPunch', t('swPw'), t('swPwLead')) + sw('allowCheckoutOutside', t('swOut'), t('swOutLead')) +
+      '</section></div>' +
+      '<div class="set-actions"><button class="btn btn-dark">' + t('save') + '</button><span id="sfmsg" class="lead" style="margin:0"></span></div></form>';
     $('#sf').onsubmit = function(ev){ ev.preventDefault(); var f = ev.target;
       api('settingsSave', { settings: { shiftStart: f.shiftStart.value, shiftEnd: f.shiftEnd.value, graceMin: f.graceMin.value, minPunchGapMin: f.minPunchGapMin.value, maxAccuracy: f.maxAccuracy.value, reviewRiskThreshold: f.reviewRiskThreshold.value,
         workdays: $$('input[name=wd]:checked', f).map(function(x){ return x.value; }).join(',') || '0,1,2,3,4', allowCheckoutOutside: f.allowCheckoutOutside.checked, allowDeviceKey: f.allowDeviceKey.checked, allowDesktop: f.allowDesktop.checked, allowPasswordPunch: f.allowPasswordPunch.checked, maxAccuracyDesktop: f.maxAccuracyDesktop.value } })
