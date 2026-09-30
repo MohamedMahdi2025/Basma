@@ -17,7 +17,7 @@ echo "tests: all passed"
 node tools/build.js
 
 cd "$SRC/../apps-script"
-for f in Code WebAuthn Attendance Admin Hr Leave Payroll Performance Dashboard Reports Engage Compliance; do [ -f "$SRC/backend/$f.gs" ] && cp "$SRC/backend/$f.gs" "$f.js"; done
+for f in Code WebAuthn Attendance Admin Hr Leave Payroll Performance Dashboard Reports Engage Compliance Shifts Relations Custody; do [ -f "$SRC/backend/$f.gs" ] && cp "$SRC/backend/$f.gs" "$f.js"; done
 clasp push -f | head -1
 clasp deploy -i "$DEP" -d "$MSG" | tail -1
 curl -sL "$URL" | grep -q '"ok":true' || { echo "backend did not answer JSON after deploy"; exit 1; }

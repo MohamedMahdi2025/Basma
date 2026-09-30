@@ -26,7 +26,7 @@ var SHEETS = { EMP: 'employees', CRED: 'credentials', ZONES: 'zones', PUNCH: 'pu
   REQ: 'requests', HOL: 'holidays', RUN: 'payrollRuns', SLIP: 'payslips', ADJ: 'adjustments',
   CYC: 'perfCycles', KPI: 'kpis', REV: 'reviews', FB: 'feedback360', RLOG: 'reportLog',
   ONB: 'onboarding', SRV: 'surveys', SANS: 'surveyAnswers', POL: 'policies', PACK: 'policyAcks', PLAN: 'devPlans',
-  DLG: 'delegations', WPS: 'wpsLog', RECON: 'salaryRecon' };
+  DLG: 'delegations', WPS: 'wpsLog', RECON: 'salaryRecon', SHIFT: 'shifts', ROSTER: 'roster', DCODE: 'discCodes', DCASE: 'discCases', INJ: 'injuries', ASSET: 'assets', CUST: 'custody', CLR: 'clearance' };
 
 var HEADERS = {
   employees: ['id', 'empNo', 'name', 'nameEn', 'email', 'phone', 'department', 'title', 'role', 'status',
@@ -37,7 +37,9 @@ var HEADERS = {
     'nationality', 'isSaudi', 'gender', 'workLocation', 'contractNo', 'occupationCode', 'employmentType',
     'workDaysPerWeek', 'dailyHours', 'annualLeaveDays', 'noticeDays',
     // HR (Phase 2): leave opening balance carried over from the old system, and resignation
-    'leaveOpeningDays', 'leaveOpeningDate', 'resignedOn', 'lastWorkingDay'],
+    'leaveOpeningDays', 'leaveOpeningDate', 'resignedOn', 'lastWorkingDay',
+    // Shifts (2026-09-30): Ramadan short day applies unless 'no' (Art. 98); outdoor work is checked against the summer midday ban
+    'ramadanReduced', 'outdoor'],
   credentials: ['credId', 'empId', 'x', 'y', 'signCount', 'label', 'status', 'createdAt', 'lastUsedAt', 'aaguid', 'kind',
     'platform', 'pinHash', 'pinSalt', 'pinTries'],
   zones: ['id', 'name', 'nameEn', 'lat', 'lng', 'radius', 'status', 'createdAt', 'updatedAt'],
@@ -78,7 +80,17 @@ var HEADERS = {
   devPlans: ['id', 'ref', 'empId', 'type', 'titleAr', 'reason', 'goalsJson', 'support', 'startDate', 'endDate', 'status', 'checkInsJson', 'ackAt', 'employeeComment', 'outcomeNote', 'createdBy', 'createdAt', 'updatedAt'],
   delegations: ['id', 'ref', 'fromEmpId', 'toEmpId', 'fromDate', 'toDate', 'scope', 'reason', 'status', 'createdBy', 'createdAt'],
   wpsLog: ['id', 'ref', 'runId', 'month', 'status', 'rows', 'total', 'generatedBy', 'generatedAt', 'uploadedBy', 'uploadedAt', 'bankRef', 'confirmedBy', 'confirmedAt', 'note'],
-  salaryRecon: ['id', 'ref', 'month', 'source', 'total', 'matched', 'mismatchesJson', 'missingJson', 'unknownJson', 'status', 'by', 'at', 'resolvedBy', 'resolvedAt', 'note']
+  salaryRecon: ['id', 'ref', 'month', 'source', 'total', 'matched', 'mismatchesJson', 'missingJson', 'unknownJson', 'status', 'by', 'at', 'resolvedBy', 'resolvedAt', 'note'],
+  shifts: ['id', 'code', 'nameAr', 'nameEn', 'start', 'end', 'workdays', 'outdoor', 'status', 'createdAt', 'updatedAt'],
+  roster: ['id', 'empId', 'shiftId', 'fromDate', 'toDate', 'status', 'createdBy', 'createdAt'],
+  discCodes: ['id', 'code', 'titleAr', 'titleEn', 'p1', 'p2', 'p3', 'p4', 'status', 'createdAt', 'updatedAt'],
+  discCases: ['id', 'ref', 'empId', 'code', 'violation', 'occurrence', 'incidentDate', 'discoveredDate', 'description', 'reportedBy', 'chargedAt', 'responseText', 'responseAt',
+    'hearingsJson', 'suggested', 'decision', 'decisionNote', 'decidedBy', 'decidedAt', 'amount', 'adjMonth', 'objection', 'objectedAt', 'objectionResult', 'status', 'createdAt', 'updatedAt'],
+  injuries: ['id', 'ref', 'empId', 'occurredAt', 'place', 'description', 'firstAid', 'witnesses', 'reportedBy', 'reportedAt', 'gosiDue', 'gosiRef', 'gosiReportedAt', 'offFrom', 'offTo',
+    'status', 'closedNote', 'createdAt', 'updatedAt'],
+  assets: ['id', 'ref', 'type', 'nameAr', 'serial', 'value', 'status', 'note', 'createdAt', 'updatedAt'],
+  custody: ['id', 'assetId', 'empId', 'handedAt', 'handedBy', 'conditionOut', 'ackAt', 'returnedAt', 'returnedTo', 'conditionIn', 'status', 'charge', 'chargeStatus', 'chargeBy', 'chargeApprovedBy', 'note'],
+  clearance: ['id', 'ref', 'empId', 'lastDay', 'reason', 'tasksJson', 'status', 'createdBy', 'createdAt', 'clearedAt']
 };
 
 var ROLES = { employee: 1, hr: 2, admin: 3 };
@@ -140,7 +152,7 @@ function forget_(name) { delete READ_MEMO_[name]; }
 // Every small tab can be served from the copy; punches and audit grow without end and are always read.
 var CACHED_TABS_ = { employees: 1, zones: 1, credentials: 1, departments: 1, positions: 1, empPrivate: 1, compensation: 1,
   jobHistory: 1, documents: 1, requests: 1, holidays: 1, payrollRuns: 1, adjustments: 1, perfCycles: 1, kpis: 1, reviews: 1, feedback360: 1,
-  onboarding: 1, surveys: 1, policies: 1, policyAcks: 1, devPlans: 1, delegations: 1, wpsLog: 1, salaryRecon: 1 };
+  onboarding: 1, surveys: 1, policies: 1, policyAcks: 1, devPlans: 1, delegations: 1, wpsLog: 1, salaryRecon: 1, shifts: 1, roster: 1, discCodes: 1, discCases: 1, injuries: 1, assets: 1, custody: 1, clearance: 1 };
 var USE_TAB_CACHE_ = false; // true: every cached tab; an object: only those tabs (sign-in writes credentials)
 // Version tags make app writes and hand edits visible at once; the expiry only bounds what Sheets
 // never reports to onEdit (deleting or sorting rows by hand).
@@ -321,7 +333,10 @@ function audit_(actorId, action, targetId, detail) {
 // ---------------- settings ----------------
 
 var DEFAULT_SETTINGS = {
-  wpsDueDay: 10,             // WPS / Mudad: salaries of month M uploaded by this day of month M+1 (check with the bank / Mudad)
+  wpsDueDay: 10,
+  rostersEnabled: false,     // shifts and rosters (Shifts.gs); off = everyone keeps their own shift, nothing extra is read
+  ramadanFrom: '', ramadanTo: '', ramadanHours: 6,   // Art. 98: at most 6 hours a day for Muslim staff in Ramadan
+  summerBanFrom: '06-15', summerBanTo: '09-15', summerBanStart: '12:00', summerBanEnd: '15:00', // outdoor midday ban (verify yearly)             // WPS / Mudad: salaries of month M uploaded by this day of month M+1 (check with the bank / Mudad)
   leaveCountMode: 'working', // annual leave counts working days (rest days and holidays excluded) or 'calendar'
   allowNegativeLeave: 0,     // days of annual leave that may be taken ahead of accrual
   maxAdvanceSalaries: 1,     // a salary advance is at most this many monthly wages
@@ -408,9 +423,9 @@ var REF_DEFAULTS = {
   leave: 'LV', letter: 'LT', advance: 'AD', correction: 'AC', data_change: 'DC', resignation: 'RS',
   salary: 'SAL', document: 'DOC', import: 'IMP', department: 'DEP', position: 'POS',
   payroll: 'PR', payslip: 'PS', adjustment: 'ADJ', perf_cycle: 'PC', kpi: 'KPI', review: 'PE', feedback: 'FB', report: 'RPT',
-  onboarding: 'ONB', survey: 'SRV', policy: 'POL', idp: 'IDP', pip: 'PIP', delegation: 'DLG', wps: 'WPS', recon: 'REC'
+  onboarding: 'ONB', survey: 'SRV', policy: 'POL', idp: 'IDP', pip: 'PIP', delegation: 'DLG', wps: 'WPS', recon: 'REC', shift: 'SH', disciplinary: 'DSC', injury: 'INJ', asset: 'AST', clearance: 'CLR'
 };
-var REF_YEARLY = { department: false, position: false };
+var REF_YEARLY = { department: false, position: false, shift: false, asset: false };
 
 function refPrefix_(kind) {
   var custom = {};
@@ -534,8 +549,10 @@ var EMP_ACTIONS = { me: 1, myHistory: 1, passwordSet: 1, punchPw: 1,
   dashboard: 1, myPerformance: 1, perfTeam: 1, perfEmp: 1, kpiSave: 1, kpiMid: 1, reviewSelf: 1, reviewManager: 1, reviewAck: 1, feedbackSubmit: 1, feedbackResults: 1,
   reportCatalog: 1, reportRun: 1, reportExport: 1, reportLog: 1, reportReview: 1, reportVerify: 1,
   onboardList: 1, onboardTask: 1, mySurveys: 1, surveyAnswer: 1, surveyResults: 1, policyList: 1, policyAck: 1, planSave: 1, planList: 1, planCheckIn: 1, planAck: 1,
-  myTasks: 1, delegationSave: 1, delegationList: 1, delegationRevoke: 1, wpsFile: 1, wpsStep: 1, reconUpload: 1, reconList: 1, reconResolve: 1, complianceCalendar: 1 };
-var HR_ACTIONS = { onboardStart: 1, surveySave: 1, surveyClose: 1, policySave: 1, planClose: 1, perfCycleSave: 1, perfCycleList: 1, perfCycleStage: 1, perfOverview: 1, perfCalibrate: 1, feedbackLaunch: 1, hrBootstrap: 1, holidaySave: 1, holidayDelete: 1, leaveBalances: 1, leaveOpeningSave: 1, hrDirectory: 1, hrDeptList: 1, hrDeptSave: 1, hrPositionList: 1, hrPositionSave: 1, hrEmpSave: 1,
+  myTasks: 1, delegationSave: 1, delegationList: 1, delegationRevoke: 1, wpsFile: 1, wpsStep: 1, reconUpload: 1, reconList: 1, reconResolve: 1, complianceCalendar: 1, shiftList: 1, rosterList: 1,
+  discCodes: 1, discOpen: 1, discList: 1, discRespond: 1, discObject: 1, injuryReport: 1, injuryList: 1,
+  assetList: 1, assetAck: 1, assetCharge: 1, clearanceList: 1, clearanceTask: 1 };
+var HR_ACTIONS = { assetSave: 1, assetAssign: 1, assetReturn: 1, clearanceStart: 1, discCodesSave: 1, discHearing: 1, discDecide: 1, discObjectionDecide: 1, injuryUpdate: 1, shiftSave: 1, rosterSave: 1, rosterDelete: 1, onboardStart: 1, surveySave: 1, surveyClose: 1, policySave: 1, planClose: 1, perfCycleSave: 1, perfCycleList: 1, perfCycleStage: 1, perfOverview: 1, perfCalibrate: 1, feedbackLaunch: 1, hrBootstrap: 1, holidaySave: 1, holidayDelete: 1, leaveBalances: 1, leaveOpeningSave: 1, hrDirectory: 1, hrDeptList: 1, hrDeptSave: 1, hrPositionList: 1, hrPositionSave: 1, hrEmpSave: 1,
   hrPrivateSave: 1, hrImportValidate: 1, hrImportCommit: 1, hrDocList: 1, hrDocSave: 1, hrExpiring: 1, empPasswordReset: 1, board: 1, empList: 1, zoneList: 1, report: 1, reviewList: 1, reviewDecide: 1, manualPunch: 1, auditList: 1, settingsGet: 1, empSave: 1, empActivation: 1 };
 /**
  * Actions that only read (plus the audit line of a salary view). They may use the cached tab copies;
@@ -545,7 +562,7 @@ var READ_ONLY_ACTIONS = { me: 1, myHistory: 1, myFile: 1, hrEmpFile: 1, hrTeam: 
   hrPositionList: 1, hrDocList: 1, hrExpiring: 1, hrBootstrap: 1, hrImportValidate: 1, board: 1, empList: 1, zoneList: 1, report: 1,
   reviewList: 1, auditList: 1, settingsGet: 1, myRequests: 1, requestQuote: 1, reqInbox: 1, holidayList: 1, leaveTeam: 1, leaveBalances: 1,
   dashboard: 1, mySlips: 1, payrollList: 1, payrollGet: 1, eosQuote: 1, myPerformance: 1, perfTeam: 1, perfEmp: 1, feedbackResults: 1, perfCycleList: 1, perfOverview: 1,
-  reportCatalog: 1, reportRun: 1, reportLog: 1, onboardList: 1, mySurveys: 1, surveyResults: 1, policyList: 1, planList: 1, myTasks: 1, delegationList: 1, reconList: 1, complianceCalendar: 1, wpsFile: 1 };
+  reportCatalog: 1, reportRun: 1, reportLog: 1, onboardList: 1, mySurveys: 1, surveyResults: 1, policyList: 1, planList: 1, myTasks: 1, delegationList: 1, reconList: 1, complianceCalendar: 1, wpsFile: 1, shiftList: 1, rosterList: 1, discCodes: 1, discList: 1, injuryList: 1, assetList: 1, clearanceList: 1 };
 
 var ADMIN_ACTIONS = { hrRolesSave: 1, empResetDevice: 1, zoneSave: 1, zoneDelete: 1, settingsSave: 1 };
 

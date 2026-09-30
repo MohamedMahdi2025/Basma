@@ -593,7 +593,7 @@ function shiftOf_(emp, s) {
  */
 /** off: from offIndex_ (Leave.gs), or null where the caller does not read leave (the home screen, to keep sign-in fast). */
 function summarizeDay_(emp, date, punches, s, now, off) {
-  var sh = shiftOf_(emp, s);
+  var sh = adjustShift_(emp, shiftOf_(emp, s), s, date); // roster and Ramadan hours (Shifts.gs)
   var lpNow = localParts_(now);
   var dow = new Date(date + 'T00:00:00Z').getUTCDay();
   var workday = sh.workdays.indexOf(dow) >= 0;

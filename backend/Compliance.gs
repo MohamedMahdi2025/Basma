@@ -240,6 +240,7 @@ function api_complianceCalendar(req, me) {
     else if (!w || w.status === 'generated') add('wps_upload', due, null, { month: m, run: run.ref });
     else if (w.status === 'uploaded') add('wps_confirm', due, null, { month: m, run: run.ref });
   }
+  readAll_(SHEETS.INJ).filter(function (x) { return x.status === 'reported'; }).forEach(function (x) { add('injury_gosi', String(x.gosiDue).slice(0, 10), ctx.emps[x.empId], { ref: x.ref }); });
   readAll_(SHEETS.RECON).filter(function (x) { return x.status === 'open'; }).forEach(function (x) { add('recon_open', '', null, { month: x.month, ref: x.ref, count: parseJson_(x.mismatchesJson, []).length, level: 'error' }); });
   items.forEach(function (x) { if (x.kind === 'recon_open') x.level = 'error'; });
   var target = Number(s.saudizationTarget) || 0;
@@ -269,6 +270,16 @@ function api_myTasks(req, me) {
   add('policies', readAll_(SHEETS.POL).filter(function (p) { return p.status === 'active' && !acks[p.id + '|' + (Number(p.version) || 1)]; }).length, { tab: 'file' });
   add('survey', readAll_(SHEETS.SRV).filter(function (s) { return s.status === 'open' && String(s.closesAt).slice(0, 10) >= t && parseJson_(s.votersJson, []).indexOf(voterHash_(s.id, me.id)) < 0; }).length, { tab: 'file' });
   add('plans', readAll_(SHEETS.PLAN).filter(function (p) { return p.empId === me.id && !p.ackAt && (p.status === 'active' || p.status === 'extended'); }).length, { tab: 'file' });
+  add('disc_respond', readAll_(SHEETS.DCASE).filter(function (x) { return x.empId === me.id && x.status === 'charged'; }).length, { tab: 'file' });
+  if (hr) {
+    add('disc_decide', readAll_(SHEETS.DCASE).filter(function (x) { return (x.status === 'charged' || x.status === 'responded') && x.reportedBy !== me.id && x.empId !== me.id && parseJson_(x.hearingsJson, []).length; }).length, { tab: 'hr', sec: 'relations' });
+    add('disc_objection', readAll_(SHEETS.DCASE).filter(function (x) { return x.status === 'objected' && x.decidedBy !== me.id; }).length, { tab: 'hr', sec: 'relations' });
+    add('injury', readAll_(SHEETS.INJ).filter(function (x) { return x.status === 'reported'; }).length, { tab: 'hr', sec: 'relations' });
+  }
+  add('asset_ack', readAll_(SHEETS.CUST).filter(function (c) { return c.empId === me.id && c.status === 'held' && !c.ackAt; }).length, { tab: 'file' });
+  if (pay) add('asset_charge', readAll_(SHEETS.CUST).filter(function (c) { return c.chargeStatus === 'proposed' && c.chargeBy !== me.id && c.empId !== me.id; }).length, { tab: 'hr', sec: 'custody' });
+  if (hr || pay || managesAnyone_(me, ctx)) add('clearance', readAll_(SHEETS.CLR).filter(function (x) { return x.status === 'open'; }).map(function (x) { return clearanceView_(x, me, ctx); })
+    .reduce(function (s, v) { return s + v.tasks.filter(function (t) { return t.canTick; }).length; }, 0), { tab: 'hr', sec: 'offboarding' });
   var dl = readAll_(SHEETS.DLG).filter(function (d) { return d.toEmpId === me.id && d.status === 'active' && String(d.fromDate).slice(0, 10) <= t && String(d.toDate).slice(0, 10) >= t; });
   if (dl.length) out.push({ kind: 'delegated', count: dl.length, target: { tab: 'hr', sec: 'inbox' }, names: dl.map(function (d) { return ctx.emps[d.fromEmpId] ? ctx.emps[d.fromEmpId].name : ''; }) });
   return { ok: true, tasks: out, total: out.filter(function (x) { return x.kind !== 'delegated'; }).reduce(function (s, x) { return s + x.count; }, 0) };

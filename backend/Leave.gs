@@ -356,6 +356,7 @@ function applyEffect_(r, emp, me, p) {
   } else if (r.type === 'resignation') {
     emp.resignedOn = String(r.createdAt).slice(0, 10); emp.lastWorkingDay = p.lastDay; emp.updatedAt = now;
     update_(SHEETS.EMP, emp);
+    clearanceOpen_(emp, p.lastDay, 'resignation', me.id); // offboarding clearance (Custody.gs)
   }
 }
 
@@ -517,6 +518,12 @@ function offIndex_(from, to) {
     if (r.type !== 'leave' || r.status !== 'approved') return;
     var a = maxDate_(String(r.fromDate).slice(0, 10), from), b = minDate_(String(r.toDate).slice(0, 10), to);
     for (var d = a, i = 0; d <= b && i < 200; d = addDays_(d, 1), i++) leave[r.empId + '|' + d] = r.subtype;
+  });
+  // Days off after a work injury (Relations.gs) are paid leave, never absence.
+  readAll_(SHEETS.INJ).forEach(function (x) {
+    if (!x.offFrom || !x.offTo) return;
+    var a = maxDate_(String(x.offFrom).slice(0, 10), from), b = minDate_(String(x.offTo).slice(0, 10), to);
+    for (var d = a, i = 0; d <= b && i < 200; d = addDays_(d, 1), i++) if (!leave[x.empId + '|' + d]) leave[x.empId + '|' + d] = 'injury';
   });
   return function (empId, date) {
     var h = hol[date], l = leave[empId + '|' + date];
