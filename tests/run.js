@@ -67,6 +67,24 @@ console.log('P-256 ECDSA against Node crypto');
   ok(bad === 0, 'plain-JS SHA-256 matches the service SHA-256 for 200 lengths', bad);
 }
 
+console.log('Backend files share one namespace');
+{
+  // Apps Script loads every .gs into one global scope: a second function with the same name silently
+  // replaces the first (a helper called json_ once took down every reply). Names must be unique.
+  const fs = require('fs'), path = require('path'), dir = path.join(__dirname, '..', 'backend'), seen = {}, dup = [];
+  fs.readdirSync(dir).filter(f => f.endsWith('.gs')).forEach(f => {
+    (fs.readFileSync(path.join(dir, f), 'utf8').match(/^function\s+([A-Za-z0-9_$]+)/gm) || []).forEach(m => {
+      const n = m.replace(/^function\s+/, '');
+      if (seen[n]) dup.push(n + ' (' + seen[n] + ', ' + f + ')'); else seen[n] = f;
+    });
+  });
+  ok(dup.length === 0, 'no function name is defined twice across backend files', dup);
+  const get = B0.ctx.doGet({});
+  ok(typeof get === 'string' && JSON.parse(get).ok === true, 'the web entry point (doGet) answers JSON', get);
+  const post = B0.ctx.doPost({ postData: { contents: JSON.stringify({ action: 'ping' }) } });
+  ok(typeof post === 'string' && JSON.parse(post).ok !== undefined, 'doPost answers JSON through the real entry point', post);
+}
+
 console.log('Bootstrap, enrollment, sign-in');
 const SETUP = 'test-setup-key-1234';
 const B = load({ setupKeyHash: sha(SETUP), now: T0 });

@@ -315,7 +315,7 @@ function sections(){
   if (r.manager) s.push(['team', ph('users'), t('hrTeamSec')]);
   if (r.hr) s.push(['org', ph('tree-structure'), t('hrOrg')], ['positions', ph('briefcase'), t('hrPositions')]);
   if (r.hr || r.payroll) s.push(['approvals', ph('seal-check'), t('hrApprovals')], ['payroll', ph('money'), t('prTitle')]);
-  if (r.hr || r.manager) s.push(['leave', ph('calendar-dots'), t('hrLeave')]);
+  if (r.hr || r.manager) s.push(['leave', ph('calendar-dots'), t('hrLeave')], ['performance', ph('target'), t('pfTitle')]);
   if (r.hr) s.push(['holidays', ph('confetti'), t('hrHolidays')]);
   if (r.hr) s.push(['expiring', ph('calendar-x'), t('hrExpiring')], ['import', ph('microsoft-excel-logo'), t('hrImport')]);
   return s;
@@ -335,7 +335,7 @@ function render(main){
   }).join('') + '</nav><div class="hr-body" id="hrBody"></div></div>';
   $$('.hr-rail button').forEach(function(b){ b.onclick = function(){ S.hrSec = b.dataset.s; render(main); }; });
   var body = $('#hrBody');
-  ({ payroll: function(b){ Payroll.section(b); }, inbox: inbox, leave: leaveSec, holidays: holidaysSec, people: people, team: team, org: org, positions: positions, approvals: approvals, expiring: expiring, import: importer })[S.hrSec](body);
+  ({ performance: function(b){ Perf.section(b, roles()); }, payroll: function(b){ Payroll.section(b); }, inbox: inbox, leave: leaveSec, holidays: holidaysSec, people: people, team: team, org: org, positions: positions, approvals: approvals, expiring: expiring, import: importer })[S.hrSec](body);
   apiFresh('reqInbox', {}, function(r){ if (r.ok) setBadge('inBadge', r.rows.length); }, true);
   if (roles().hr || roles().payroll) api('hrCompList', { status: 'pending' }, true).then(function(r){ if (r.ok) setApBadge(r.rows.filter(function(x){ return !x.mine; }).length); });
 }

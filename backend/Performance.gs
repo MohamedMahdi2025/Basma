@@ -28,7 +28,7 @@ function kpisOf_(cycleId, empId) {
 function reviewOf_(cycleId, empId) {
   return readAll_(SHEETS.REV).filter(function (r) { return r.cycleId === cycleId && r.empId === empId; })[0] || null;
 }
-function json_(s, d) { try { return JSON.parse(s || '') || d; } catch (e) { return d; } }
+function parseJson_(s, d) { try { return JSON.parse(s || '') || d; } catch (e) { return d; } }
 function score_(v) { var n = Number(v); return n >= 1 && n <= 5 && Math.round(n) === n ? n : null; }
 function needStage_(cycle, stages) {
   if (!cycle) fail_('not_found');
@@ -54,8 +54,8 @@ function publicKpi_(k, showMgr) {
 function publicReview_(r, cycle, view) {
   if (!r) return null;
   var closed = cycle && cycle.status === 'closed', o = { id: r.id, ref: r.ref, stage: r.stage, selfAt: r.selfAt, mgrAt: r.mgrAt, acknowledgedAt: r.acknowledgedAt, employeeComment: r.employeeComment };
-  if (view === 'self' || view === 'hr' || r.selfAt) { o.selfComps = json_(r.selfCompJson, {}); o.selfComment = r.selfComment; }
-  if (view !== 'self' || closed) { o.mgrComps = json_(r.mgrCompJson, {}); o.mgrComment = r.mgrComment; o.kpiScore = r.kpiScore === '' ? null : Number(r.kpiScore);
+  if (view === 'self' || view === 'hr' || r.selfAt) { o.selfComps = parseJson_(r.selfCompJson, {}); o.selfComment = r.selfComment; }
+  if (view !== 'self' || closed) { o.mgrComps = parseJson_(r.mgrCompJson, {}); o.mgrComment = r.mgrComment; o.kpiScore = r.kpiScore === '' ? null : Number(r.kpiScore);
     o.compScore = r.compScore === '' ? null : Number(r.compScore); o.overall = r.overall === '' ? null : Number(r.overall); }
   if (view === 'hr' || closed) { o.finalRating = r.finalRating === '' ? null : Number(r.finalRating); o.calibrationNote = view === 'hr' ? r.calibrationNote : ''; o.adjusted = !!r.calibrationNote; }
   return o;
@@ -414,7 +414,7 @@ function api_feedbackResults(req, me) {
     var g = rows.filter(function (f) { return f.relation === rel; }), n = g.length;
     var shown = n > 0 && (rel === 'self' || rel === 'manager' || n >= FB_MIN_GROUP);
     var avg = {};
-    if (shown) list.forEach(function (c) { var v = g.map(function (f) { return Number(json_(f.answersJson, {})[c]) || 0; }).filter(Boolean); avg[c] = v.length ? Math.round(v.reduce(function (a, b) { return a + b; }, 0) / v.length * 100) / 100 : null; });
+    if (shown) list.forEach(function (c) { var v = g.map(function (f) { return Number(parseJson_(f.answersJson, {})[c]) || 0; }).filter(Boolean); avg[c] = v.length ? Math.round(v.reduce(function (a, b) { return a + b; }, 0) / v.length * 100) / 100 : null; });
     groups[rel] = { n: n, shown: shown, avg: shown ? avg : null };
     if (shown && rel !== 'self') g.forEach(function (f) { if (f.comment) comments.push(f.comment); });
   });
@@ -422,7 +422,7 @@ function api_feedbackResults(req, me) {
   var others = {};
   list.forEach(function (c) {
     var vals = [];
-    ['manager', 'peer', 'report'].forEach(function (rel) { if (groups[rel].shown) rows.filter(function (f) { return f.relation === rel; }).forEach(function (f) { var v = Number(json_(f.answersJson, {})[c]); if (v) vals.push(v); }); });
+    ['manager', 'peer', 'report'].forEach(function (rel) { if (groups[rel].shown) rows.filter(function (f) { return f.relation === rel; }).forEach(function (f) { var v = Number(parseJson_(f.answersJson, {})[c]); if (v) vals.push(v); }); });
     others[c] = vals.length ? Math.round(vals.reduce(function (a, b) { return a + b; }, 0) / vals.length * 100) / 100 : null;
   });
   comments.sort(function () { return 0.5 - Math.random(); });

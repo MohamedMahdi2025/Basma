@@ -172,3 +172,16 @@ Tabs `payrollRuns`, `payslips`, `adjustments`. Plan: docs/superpowers/plans/2026
   M365_CLIENT_SECRET, M365_SENDER. **Also needs `https://www.googleapis.com/auth/script.external_request`
   in appsscript.json oauthScopes and the owner re-running `authorize`** (deploy that only when the user can
   click, or every request breaks). Until then it answers email_not_configured; it never uses Gmail.
+
+## HR (Phase 4, live 2026-09-30): performance
+
+`backend/Performance.gs`, `js/performance.js` (card in "ملفي", section "الأداء": team view for managers,
+cycle console for HR), tests `tests/performance.js`. Tabs perfCycles, kpis, reviews, feedback360.
+Plan: docs/superpowers/plans/2026-09-30-hr-phase4-performance.md.
+- Stages setup > goals > midyear > review > calibration > closed, moved by HR. KPIs 3-7, weights 5-50,
+  total 100, set by the manager or HR (never by the employee). Overall = kpiWeight x weighted KPI score +
+  compWeight x competency average (70/30 default). Calibration to another rating needs a note (shown to
+  the employee only as "adjusted"; the note stays with HR). Closing fills finals from the rounded overall.
+- The employee sees manager scores and the final rating only when closed. 360: groups of peers or reports
+  appear only with 3+ answers, comments never carry names, raw answers are never returned by the API.
+- Action names must be letters only (handle_ regex), so 360 actions are feedbackLaunch / Submit / Results.

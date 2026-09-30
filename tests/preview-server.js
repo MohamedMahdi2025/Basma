@@ -59,6 +59,11 @@ const B = load({ props: { RP_ID: 'localhost', ORIGINS: ORIGIN }, setupKeyHash: c
   rq('R2', 'LV-2026-00002', 'E2003', 'leave', 'sick', addDays(-2), addDays(-1), 2, 'hr', { docNo: 'SEHA-1', stepsJson: JSON.stringify([{ step: 'manager', by: 'E2004', decision: 'approve', note: '', at: now }]) });
   rq('R3', 'LT-2026-00001', 'E2001', 'letter', 'salary_certificate', '', '', '', 'hr', { payloadJson: JSON.stringify({ addressee: 'بنك الراجحي', lang: 'ar' }) });
   rq('R4', 'LV-2026-00003', 'E2006', 'leave', 'annual', addDays(3), addDays(5), 3, 'done', { status: 'approved' });
+  // Phase 4 demo: a 2026 cycle in the review stage with KPIs for 2001 and a 360 request to 2001
+  B.ctx.append_('perfCycles', { id: 'Y1', ref: 'PC-2026-00001', year: 2026, nameAr: 'تقييم الأداء 2026', nameEn: 'Performance 2026', type: 'annual', status: 'review', kpiWeight: 70, compWeight: 30, goalsDue: '', midDue: '', reviewDue: '', createdBy: 'E2002', createdAt: now, updatedAt: now });
+  [['تحقيق خطة التحصيل الشهرية', '95', '%', 40, 'on_track'], ['مطابقة البنوك قبل اليوم الخامس', '12', 'مرة', 30, 'at_risk'], ['تقليل القيود المرفوضة', '2', '%', 30, 'on_track']].forEach((k, i) =>
+    B.ctx.append_('kpis', { id: 'K' + i, ref: 'KPI-2026-0000' + (i + 1), cycleId: 'Y1', empId: 'E2001', titleAr: k[0], titleEn: '', measure: '', target: k[1], unit: k[2], weight: k[3], status: 'agreed', midStatus: k[4], midNote: i === 1 ? 'تأخر كشف بنك واحد' : '', actual: '', selfScore: '', selfComment: '', mgrScore: '', mgrComment: '', setBy: 'E2004', createdAt: now, updatedAt: now }));
+  B.ctx.append_('feedback360', { id: 'B1', ref: 'FB-2026-00001', cycleId: 'Y1', subjectId: 'E2004', raterId: 'E2001', relation: 'report', status: 'invited', answersJson: '', comment: '', createdAt: now, submittedAt: '' });
   B.ctx.append_('documents', { id: 'F2', empId: 'E2001', type: 'medical_insurance', number: 'MI-22019', issueDate: '2026-01-01', expiryDate: '2026-12-31', note: '', status: 'active', createdAt: now, updatedAt: now });
 })();
 

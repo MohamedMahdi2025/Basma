@@ -167,7 +167,8 @@ function draw(main, f){
   } else jdHtml += '<p>' + t('mfNoJd') + '</p>';
 
   if ('comp' in f) side += '<div class="mf-card" id="mfSlips" style="--i:' + (i++) + '"><span class="sk" style="width:40%"></span><span class="sk"></span></div>';
-  var mainHtml = '<div class="mf-card wide" id="mfReq" style="--i:' + (i++) + '"><span class="sk" style="width:40%"></span><span class="sk"></span><span class="sk" style="width:70%"></span></div>' + card('wide', jdHtml);
+  var perfCard = '<div class="mf-card wide" id="mfPerf"><span class="sk" style="width:40%"></span><span class="sk"></span></div>';
+  var mainHtml = '<div class="mf-card wide" id="mfReq" style="--i:' + (i++) + '"><span class="sk" style="width:40%"></span><span class="sk"></span><span class="sk" style="width:70%"></span></div>' + card('wide', jdHtml) + perfCard;
   if ('comp' in f) mainHtml += card('', '<h3>' + ph('wallet') + t('mfPay') + '<span class="sp"></span>' + (f.comp ? '<button type="button" class="mf-toggle" id="mfShow" aria-pressed="' + shown + '">' + ph(shown ? 'eye-slash' : 'eye') + (shown ? t('mfHide') : t('mfShow')) + '</button>' : '') + '</h3><div id="mfPay">' + payCard(f.comp) + '</div>');
   mainHtml += card('', '<h3>' + ph('file-text') + t('mfContract') + '</h3>' + (kv([
     [t('mfType'), j.contractType ? t('ct_' + j.contractType) : ''],
@@ -200,6 +201,7 @@ function draw(main, f){
   var tb = $('#mfTeam'); if (tb) tb.onclick = function(){ S.tab = 'hr'; S.hrSec = 'team'; renderShell(); };
   requests(main, f);
   var sl = $('#mfSlips', main); if (sl && window.Payroll) Payroll.myCard(sl, f.emp);
+  var pf = $('#mfPerf', main); if (pf && window.Perf) Perf.myCards(pf);
 }
 
 /** Leave balance and requests: their own call, so the file shows first and these fill in (from memory when seen before). */
