@@ -395,6 +395,9 @@ function api_diag(req) {
     x[1].forEach(function (k) { var v = vals[vals.length - 1][hdr.indexOf(k)]; raw[x[0] + '.' + k] = (v instanceof Date ? 'Date:' + v.toISOString() : typeof v + ':' + String(v).slice(0, 24)); });
   });
   raw.tz = ss_().getSpreadsheetTimeZone();
+  forget_(SHEETS.PUNCH); var lp = readAll_(SHEETS.PUNCH).slice(-1)[0];
+  raw.appReads = lp ? lp.date : '';
+  raw.today = localParts_(new Date()).date;
   return { ok: true, ms: out, rows: rows, raw: raw };
 }
 
