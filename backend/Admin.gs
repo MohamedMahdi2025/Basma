@@ -106,7 +106,7 @@ function api_empActivation(req, me) {
     var emp = findBy_(SHEETS.EMP, 'id', req.id);
     if (!emp) fail_('not_found');
     if (me.role !== 'admin' && emp.role !== 'employee') fail_('forbidden');
-    var code = setActivation_(emp);
+    var code = setActivation_(emp, me.id);
     emp.updatedAt = new Date().toISOString();
     update_(SHEETS.EMP, emp);
     audit_(me.id, 'activation_issued', emp.id, null);

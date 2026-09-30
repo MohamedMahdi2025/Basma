@@ -1654,8 +1654,12 @@ function pinPadHtml(){
     }).join('') + '</div></div>';
 }
 
+var lockRefresh = null;
 function renderLock(){
-  if (S.pwOnly) { S.auth = 'dev'; S.token = null; store('token', null); return renderPwLogin(S.empNo); }
+  // Locking destroys the session in the browser: the PIN lock is not just a screen over a live token.
+  S.auth = 'dev'; S.token = null; store('token', null); S.me = null;
+  clearInterval(lockRefresh);
+  if (S.pwOnly) return renderPwLogin(S.empNo);
   rerender = renderLock;
   stopWatch(); clearTimeout(prefetchTimer); clearInterval(clockTimer); clearInterval(boardTimer);
   var name = store('name') || '';
@@ -1673,10 +1677,14 @@ function renderLock(){
   S.loginOpts = null;
   (S.loginPromise || api('authBegin', { empNo: S.empNo }, true)).then(function(r){
     S.loginPromise = null;
-    if (r.ok) { S.loginOpts = r.options; if (S.kind === 'devicekey' && !pinMode) doUnlock(); if (S.pendingPin) { var p = S.pendingPin; S.pendingPin = null; doUnlock(p); } }
+    if (r.ok) { S.loginOpts = r.options; S.loginOptsAt = Date.now(); if (S.kind === 'devicekey' && !pinMode) doUnlock(); if (S.pendingPin) { var p = S.pendingPin; S.pendingPin = null; doUnlock(p); } }
     else if (r.error === 'no_device' || r.error === 'unknown_employee') { forget(); }
     else $('#err').textContent = errText(r.error);
   });
+  lockRefresh = setInterval(function(){
+    if (!$('#pinpad') && !$('#f')) return clearInterval(lockRefresh);
+    api('authBegin', { empNo: S.empNo }, true).then(function(r){ if (r.ok) { S.loginOpts = r.options; S.loginOptsAt = Date.now(); } });
+  }, 150000);
   if (pinMode) wirePinPad(function(pin){ doUnlock(pin); });
   else $('#f').onsubmit = function(e){ e.preventDefault(); doUnlock(); };
   $('#other').onclick = function(){ forget(); };
@@ -1698,6 +1706,7 @@ function wirePinPad(done){
 }
 
 function renderPwLogin(prefNo){
+  clearInterval(lockRefresh);
   rerender = function(){ renderPwLogin($('#pno') && $('#pno').value); };
   stopWatch(); clearTimeout(prefetchTimer); clearInterval(clockTimer); clearInterval(boardTimer);
   var hasDevice = !!S.empNo && !S.pwOnly;
@@ -1727,7 +1736,7 @@ function renderPwLogin(prefNo){
 
 function forget(){ ['empNo', 'token', 'name', 'kind', 'dkId', 'dkJwk', 'platform', 'hasPin', 'pwOnly'].forEach(function(k){ store(k, null); }); S.hasPin = false; S.pwOnly = false; S.auth = 'dev'; S.empNo = null; S.token = null; S.kind = 'passkey'; S.dkId = null; S.platform = ''; S.pin = null; renderActivate(); }
 
-function doUnlock(padPin){
+function doUnlock(padPin, retried){
   $('#err').textContent = '';
   var pad = $('#pinpad');
   var pin = usesPin() ? padPin : null;
@@ -1742,12 +1751,17 @@ function doUnlock(padPin){
   // credentials.get runs straight from the tap: Safari refuses it after an await.
   getAssertion(o).then(function(cred){ return api('authFinish', { credential: cred, pin: pin }); }, function(e){ return { ok:false, error: passkeyError(e) }; })
     .then(function(r){
+      if (!r.ok && r.error === 'challenge_expired' && !retried) {
+        // The challenge aged out while the pad waited: fetch a fresh one and try the same PIN once more.
+        return api('authBegin', { empNo: S.empNo }, true).then(function(b){ if (b.ok) { S.loginOpts = b.options; doUnlock(pin, true); } else { $('#err').textContent = errText(b.error); if (pad) pad.reset(true); } });
+      }
       if (!r.ok) {
         $('#err').textContent = errText(r.error);
         if (pad) pad.reset(true);
         return api('authBegin', { empNo: S.empNo }, true).then(function(b){ if (b.ok) S.loginOpts = b.options; });
       }
-      S.pin = pin; S.me = r.me; enterApp(r.home);
+      clearInterval(lockRefresh);
+      S.auth = 'dev'; S.pin = pin; S.me = r.me; enterApp(r.home);
     });
 }
 
@@ -1758,11 +1772,11 @@ function armIdleLock(){
   clearTimeout(idleTimer);
   idleTimer = setTimeout(function(){ if (S.me) { S.lockMsg = t('autoLocked'); renderLock(); } }, 15 * 60000);
 }
-['pointerdown', 'keydown', 'wheel'].forEach(function(ev){ document.addEventListener(ev, function(){ if (S.me && S.pin) armIdleLock(); }, { passive: true }); });
+['pointerdown', 'keydown', 'wheel'].forEach(function(ev){ document.addEventListener(ev, function(){ if (S.me && (S.pin || S.auth === 'pw')) armIdleLock(); }, { passive: true }); });
 var hiddenAt = 0;
 document.addEventListener('visibilitychange', function(){
   if (document.hidden) { hiddenAt = Date.now(); return; }
-  if (S.me && usesPin() && hiddenAt && Date.now() - hiddenAt > 5 * 60000) { S.lockMsg = t('bgLocked'); renderLock(); }
+  if (S.me && (usesPin() || S.auth === 'pw') && hiddenAt && Date.now() - hiddenAt > 5 * 60000) { S.lockMsg = t('bgLocked'); renderLock(); }
 });
 
 // ---------------- app shell ----------------

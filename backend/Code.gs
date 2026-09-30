@@ -26,7 +26,7 @@ var SHEETS = { EMP: 'employees', CRED: 'credentials', ZONES: 'zones', PUNCH: 'pu
 var HEADERS = {
   employees: ['id', 'empNo', 'name', 'nameEn', 'email', 'phone', 'department', 'title', 'role', 'status',
     'zoneIds', 'shiftStart', 'shiftEnd', 'workdays', 'tokenVer', 'actHash', 'actExp', 'actTries', 'createdAt', 'updatedAt',
-    'pwHash', 'pwSalt', 'pwTries', 'pwLockUntil'],
+    'pwHash', 'pwSalt', 'pwTries', 'pwLockUntil', 'actIssuedBy'],
   credentials: ['credId', 'empId', 'x', 'y', 'signCount', 'label', 'status', 'createdAt', 'lastUsedAt', 'aaguid', 'kind',
     'platform', 'pinHash', 'pinSalt', 'pinTries'],
   zones: ['id', 'name', 'nameEn', 'lat', 'lng', 'radius', 'status', 'createdAt', 'updatedAt'],

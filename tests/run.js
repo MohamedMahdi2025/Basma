@@ -304,6 +304,34 @@ B.setNow(B.ctx.Date.now() + 16 * 60000);
 r = B.call({ action: 'pwLogin', empNo: '1000', password: 'BestGas2026x' });
 ok(r.ok, 'after 15 minutes the right password works again', r);
 
+console.log('Review fixes');
+r = B.call({ action: 'adminRecover', setupKey: 'junk', empNo: '1000' });
+for (let i = 0; i < 12; i++) B.call({ action: 'adminRecover', setupKey: 'junk' + i, empNo: '1000' });
+r = B.call({ action: 'adminRecover', setupKey: SETUP, empNo: '1000' });
+ok(r.ok, 'junk recovery attempts cannot block the real setup key', r);
+for (let i = 0; i < 4; i++) r = B.call({ action: 'pwLogin', empNo: '99999', password: 'Wrong2026x' });
+ok(!r.ok && r.error === 'bad_login', 'unknown employee number: bad_login', r);
+r = B.call({ action: 'pwLogin', empNo: '99999', password: 'Wrong2026x' });
+ok(!r.ok && r.error === 'password_locked', 'unknown numbers lock like real ones, so the reply reveals nothing', r);
+{
+  const phoneTok = login(adminDev, '1000');
+  const code = B.call({ action: 'empActivation', token: phoneTok, id: B.call({ action: 'me', token: phoneTok }).me.id }).activationCode;
+  const lapA = new DeviceKey();
+  let b = B.call({ action: 'enrollBegin', empNo: '1000', code });
+  r = B.call({ action: 'enrollFinish', deviceKey: lapA.create(b.options), platform: 'desktop', pin: '582914' });
+  ok(r.ok, 'admin activates a laptop', r);
+  r = B.call({ action: 'me', token: phoneTok });
+  ok(r.ok, 'adding a laptop keeps the phone signed in', r.error);
+  const code2 = B.call({ action: 'empActivation', token: r.ok ? phoneTok : '', id: r.me.id }).activationCode;
+  const lapB = new DeviceKey();
+  b = B.call({ action: 'enrollBegin', empNo: '1000', code: code2 });
+  B.call({ action: 'enrollFinish', deviceKey: lapB.create(b.options), platform: 'desktop', pin: '582914' });
+  r = B.call({ action: 'me', token: phoneTok });
+  ok(!r.ok && r.error === 'session_expired', 'replacing a laptop ends earlier sessions', r);
+  r = B.call({ action: 'auditList', token: login(adminDev, '1000') });
+  ok(r.rows.some(a => a.action === 'device_enrolled' && /codeIssuedBy/.test(a.detail)), 'the audit shows who issued the code used for each activation');
+}
+
 console.log('Tokens');
 r = B.call({ action: 'me', token: adminToken.slice(0, -2) + 'xx' });
 ok(!r.ok && r.error === 'session_expired', 'a forged token is refused', r);

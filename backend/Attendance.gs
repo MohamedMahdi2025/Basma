@@ -27,9 +27,12 @@ function api_bootstrapStatus() { return { ok: true, needsSetup: !hasAdmin_() }; 
  * or phone, authorised by the private setup key (never in the repo). Audited.
  */
 function api_adminRecover(req) {
-  if (!rateLimit_('recover', 5, 3600)) fail_('too_many_attempts');
   var expected = (typeof SETUP_KEY_HASH === 'string') ? SETUP_KEY_HASH : '';
-  if (!expected || !safeEqual_(sha256Hex_(String(req.setupKey || '').trim()), expected)) fail_('bad_setup_key');
+  if (!expected || !safeEqual_(sha256Hex_(String(req.setupKey || '').trim()), expected)) {
+    // Only wrong keys are counted, so junk requests cannot lock the owner out of recovery.
+    if (!rateLimit_('recoverFail:' + String(req.empNo || ''), 10, 3600)) fail_('too_many_attempts');
+    fail_('bad_setup_key');
+  }
   return withLock_(function () {
     var emp = empByNo_(req.empNo);
     if (!emp || emp.role !== 'admin' || emp.status !== 'active') fail_('not_found');
@@ -64,7 +67,8 @@ function api_bootstrap(req) {
 
 var ACT_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
-function setActivation_(emp) {
+function setActivation_(emp, issuedBy) {
+  emp.actIssuedBy = issuedBy || '';
   var b = randomBytes_(8), code = '';
   for (var i = 0; i < 8; i++) { code += ACT_ALPHABET[b[i] % ACT_ALPHABET.length]; if (i === 3) code += '-'; }
   emp.actHash = sha256Hex_(emp.id + ':' + code);
@@ -138,19 +142,22 @@ function api_enrollFinish(req) {
     if (!emp || emp.status !== 'active' || !emp.actHash) fail_('bad_activation');
     if (findBy_(SHEETS.CRED, 'credId', reg.credId)) fail_('bad_credential');
     // One phone and one laptop per employee: a new enrollment retires only the earlier device of the same kind.
+    var retired = 0;
     readAll_(SHEETS.CRED).forEach(function (c) {
-      if (c.empId === emp.id && c.status === 'active' && (c.platform || 'mobile') === platform) { c.status = 'retired'; update_(SHEETS.CRED, c); }
+      if (c.empId === emp.id && c.status === 'active' && (c.platform || 'mobile') === platform) { c.status = 'retired'; update_(SHEETS.CRED, c); retired++; }
     });
     var salt = pin ? bytesToB64u_(randomBytes_(16)) : '';
     var now = new Date().toISOString();
     append_(SHEETS.CRED, { credId: reg.credId, empId: emp.id, x: reg.x, y: reg.y, signCount: reg.signCount,
       label: String(req.label || '').slice(0, 80), status: 'active', createdAt: now, lastUsedAt: now, aaguid: reg.aaguid,
       kind: isDk ? 'devicekey' : 'passkey', platform: platform, pinHash: pin ? pinHash_(pin, salt) : '', pinSalt: salt, pinTries: 0 });
-    emp.actHash = ''; emp.actExp = ''; emp.actTries = 0;
-    emp.tokenVer = Number(emp.tokenVer || 0) + 1;
+    var issuedBy = emp.actIssuedBy || '';
+    emp.actHash = ''; emp.actExp = ''; emp.actTries = 0; emp.actIssuedBy = '';
+    // Replacing a device ends the old device's sessions; adding a second kind (a laptop next to the phone) does not.
+    if (retired) emp.tokenVer = Number(emp.tokenVer || 0) + 1;
     emp.updatedAt = now;
     update_(SHEETS.EMP, emp);
-    audit_(emp.id, 'device_enrolled', emp.id, { credId: reg.credId.slice(0, 12), label: req.label, kind: isDk ? 'devicekey' : 'passkey', platform: platform });
+    audit_(emp.id, 'device_enrolled', emp.id, { credId: reg.credId.slice(0, 12), label: req.label, kind: isDk ? 'devicekey' : 'passkey', platform: platform, replaced: retired, codeIssuedBy: issuedBy });
     return { ok: true, token: issueToken_(emp), me: publicEmp_(emp), credId: reg.credId, kind: isDk ? 'devicekey' : 'passkey', platform: platform, home: homePayload_(emp) };
   });
 }
@@ -197,7 +204,12 @@ function api_pwLogin(req) {
   return withLock_(function () {
     var emp = empByNo_(empNo);
     // One message for unknown employee, no password yet, and wrong password: nothing to learn from the reply.
-    if (!emp || emp.status !== 'active' || !emp.pwHash) fail_('bad_login');
+    if (!emp || emp.status !== 'active' || !emp.pwHash) {
+      // Unknown numbers lock too, so password_locked does not reveal which accounts exist.
+      var c = CacheService.getScriptCache(), k = 'pwghost:' + empNo, n = Number(c.get(k) || 0) + 1;
+      c.put(k, String(n), PW_LOCK_MINUTES * 60);
+      fail_(n >= PW_MAX_TRIES ? 'password_locked' : 'bad_login');
+    }
     if (emp.pwLockUntil && new Date(emp.pwLockUntil).getTime() > Date.now()) fail_('password_locked');
     if (!safeEqual_(pwHash_(String(req.password || ''), emp.pwSalt), emp.pwHash)) {
       emp.pwTries = Number(emp.pwTries || 0) + 1;
@@ -209,8 +221,7 @@ function api_pwLogin(req) {
     }
     if (Number(emp.pwTries || 0) || emp.pwLockUntil) { emp.pwTries = 0; emp.pwLockUntil = ''; update_(SHEETS.EMP, emp); }
     audit_(emp.id, 'login_password', emp.id, null);
-    var home = homePayload_(emp);
-    home.punch = null; // a password session checks in through punchPw, not a device challenge
+    var home = homePayload_(emp, true); // a password session checks in through punchPw, not a device challenge
     return { ok: true, token: issueToken_(emp, 'pw'), me: publicEmp_(emp), home: home };
   });
 }
@@ -269,7 +280,7 @@ function assertionOptions_(emp, purpose, extra) {
   for (var k in (extra || {})) data[k] = extra[k];
   return {
     kind: cred.kind || 'passkey',
-    challenge: newChallenge_(data),
+    challenge: newChallenge_(data), // one challenge per call; callers pass the punch type in extra instead of replacing it
     rpId: cfg_().rpId,
     allowCredentials: creds.filter(function (c) { return c.kind !== 'devicekey'; }).map(function (c) { return { type: 'public-key', id: c.credId, transports: ['internal', 'hybrid'] }; }),
     userVerification: 'required',
@@ -321,11 +332,12 @@ function api_authFinish(req) {
 }
 
 function api_punchBegin(req) {
-  var b = beginFor_(req, 'punch');
-  var expected = nextPunchType_(b.emp.id);
+  var emp = empByNo_(req.empNo);
+  if (!rateLimit_('auth:' + String(req.empNo || ''), 30, 600)) fail_('too_many_attempts');
+  if (!emp || emp.status !== 'active') fail_('unknown_employee');
+  var expected = nextPunchType_(emp.id);
   if (req.type && req.type !== expected) fail_('state_changed');
-  b.options.challenge = newChallenge_({ purpose: 'punch', empId: b.emp.id, type: expected });
-  return { ok: true, type: expected, options: b.options };
+  return { ok: true, type: expected, options: assertionOptions_(emp, 'punch', { type: expected }) };
 }
 
 function api_punchFinish(req) {
@@ -558,22 +570,19 @@ function todayFor_(emp, s) {
 // ---------------- employee screens ----------------
 
 /** Everything the home screen needs, so sign-in is one round trip instead of three. */
-function homePayload_(me) {
+function homePayload_(me, noPunch) {
   var s = settings_();
   var today = todayFor_(me, s);
   var home = { me: publicEmp_(me), hasPassword: !!me.pwHash, zones: zonesFor_(me).map(publicZone_), today: today, shift: shiftOf_(me, s),
     devices: activeCreds_(me.id).map(publicDevice_),
     rules: { maxAccuracy: s.maxAccuracy, maxAccuracyDesktop: s.maxAccuracyDesktop, allowCheckoutOutside: s.allowCheckoutOutside },
     serverTime: new Date().toISOString() };
-  try { home.punch = { type: today.next, options: punchOptions_(me, today.next) }; } catch (e) { home.punch = null; }
+  home.punch = null;
+  if (!noPunch) { try { home.punch = { type: today.next, options: punchOptions_(me, today.next) }; } catch (e) { home.punch = null; } }
   return home;
 }
 
-function punchOptions_(emp, type) {
-  var o = assertionOptions_(emp, 'punch');
-  o.challenge = newChallenge_({ purpose: 'punch', empId: emp.id, type: type });
-  return o;
-}
+function punchOptions_(emp, type) { return assertionOptions_(emp, 'punch', { type: type }); }
 
 function api_me(req, me) {
   var h = homePayload_(me);
