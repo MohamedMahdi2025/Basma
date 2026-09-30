@@ -92,6 +92,19 @@ the lock ~150 ms, and Google's own round trip ~2 s. So speed = fewer Sheet calls
   Credentials, punches and anything written under the lock are always read fresh.
   Row deletes/sorts by hand fire no onEdit: the 60 s expiry covers them. Never turn the
   copy on for an action that writes employees or zones.
+- Since 2026-09-30 (later): every action in  (Code.gs) reads all small tabs
+  (: everything except punches, audit, settings) from the versioned copy, token check included;
+  one CacheService getAll fetches all copies (), big tabs are split in 90 KB parts. Sign-in
+  uses the copy for employees and zones only (it writes credentials). Adding an action that writes to
+  READ_ONLY_ACTIONS makes update_ throw "cached copy" - that is the guard working, remove it from the list.
+  Copy expiry 300 s bounds only hand row deletes/sorts; edits and app writes show on the next request.
+- Client:  shows the last answer from memory at once and redraws only
+  when the fresh one differs; any successful non-read action clears the memory; lock clears it too.
+  After sign-in the app pre-loads myFile (and hrBootstrap for HR). HR lists come in one call, .
+- **Sheets converts text on write** ("2026-09-30" to a date, "08:00" to a time, "0501..." to a number, "=..." to
+  a formula).  writes every string with a leading apostrophe (stored as text);  reads back
+  cells converted before that fix. The test harness sheet now mimics the conversion (), so a raw
+  write would fail the tests. This bug had stopped check-out on the live system until 2026-09-30 @16.
 - Settings cache is 120 s (cleared on save and on hand edits of the settings tab).
 - The site: each build stamps `BUILD`, `version.json` and the SW cache name; the page
   checks `version.json` on open, on resume and every 5 min (reloads when signed out,
