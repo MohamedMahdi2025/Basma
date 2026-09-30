@@ -304,7 +304,7 @@ var DEFAULT_SETTINGS = {
   allowNegativeLeave: 0,     // days of annual leave that may be taken ahead of accrual
   maxAdvanceSalaries: 1,     // a salary advance is at most this many monthly wages
   advanceMaxMonths: 12,
-  deductAbsence: true,              // unexcused absent working days are not paid
+  deductAbsence: false,             // unexcused absent working days are not paid: switch on once everyone checks in with the app
   deductLateMinutes: false,         // pay for minutes late: only with an approved work regulation
   payOvertimeFromAttendance: false, // overtime hours from punches; off = HR enters approved hours
   eosWageBasis: 'total',            // end of service on the total wage, or 'basic_housing'

@@ -59,6 +59,8 @@ direct(() => {
   B.ctx.append_('requests', { id: 'RU', ref: 'LV-2026-00001', empId: ids['5003'], type: 'leave', subtype: 'unpaid', fromDate: '2026-10-20', toDate: '2026-10-21', days: 2, amount: '', months: '', payloadJson: '{}', reason: '', docNo: '', status: 'approved', step: 'done', stepsJson: '[]', effectJson: '{}', createdAt: '2026-10-01T00:00:00Z', updatedAt: '', decidedAt: '2026-10-02T00:00:00Z' });
   B.ctx.append_('requests', { id: 'RA', ref: 'AD-2026-00001', empId: ids['5003'], type: 'advance', subtype: '', fromDate: '', toDate: '', days: '', amount: 3000, months: 3, payloadJson: JSON.stringify({ startMonth: '2026-10', installment: 1000 }), reason: '', docNo: '', status: 'approved', step: 'done', stepsJson: '[]', effectJson: '{}', createdAt: '2026-09-20T00:00:00Z', updatedAt: '', decidedAt: '2026-09-21T00:00:00Z' });
 });
+direct(() => B.ctx.append_('settings', { key: 'deductAbsence', value: 'true' }));
+B.ctx.CacheService.getScriptCache().remove('settings:v1');
 let r;
 
 console.log('Adjustments');
