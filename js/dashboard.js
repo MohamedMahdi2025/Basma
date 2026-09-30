@@ -89,6 +89,7 @@ var css = '' +
 '.db-card,.db-tile{border-color:transparent;box-shadow:0 1px 2px rgba(28,42,31,.05), 0 10px 26px -18px rgba(28,42,31,.28)}.db-tile{border-radius:16px}.db-card{border-radius:18px}' +
 '.db-tile.lead{box-shadow:0 14px 30px -18px rgba(28,42,31,.8);background:radial-gradient(90% 120% at 100% 0%, rgba(159,224,174,.18), transparent 55%), linear-gradient(155deg,#2E4433,#1C2A1F 75%)}' +
 '.db-tile b{font-variant-numeric:tabular-nums;letter-spacing:-.01em}' +
+'.db-tile b .db-status{display:inline-flex;font-size:inherit;color:inherit;gap:6px}.db-tile b .db-status i{font-size:.6em}' +
 '.db-panel{background:var(--paper);border:1px solid var(--line);border-radius:var(--r-m);padding:12px 14px 2px;margin:0 0 16px}' +
 '.db-ph{display:flex;align-items:center;gap:8px;margin-bottom:10px}.db-ph h3{margin:0;font-size:14.5px;font-weight:600;display:flex;align-items:center;gap:6px;flex:1}.db-ph h3 i{color:var(--brand);font-size:18px}' +
 '.db-panel .db-tiles{margin-bottom:12px}.db-panel .db-grid{margin-bottom:12px}.db-panel .db-tile.lead b{font-size:34px}' +

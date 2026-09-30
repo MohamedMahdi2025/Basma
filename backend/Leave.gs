@@ -255,7 +255,7 @@ function history_(r) { try { return JSON.parse(r.stepsJson || '[]') || []; } cat
 function canAct_(me, r, emp, ctx) {
   if (!me || !emp || r.status !== 'pending' || r.empId === me.id) return false;
   if (history_(r).some(function (h) { return h.by === me.id; })) return false;
-  if (r.step === 'manager') return manages_(me, emp, ctx) || isHr_(me);
+  if (r.step === 'manager') return manages_(me, emp, ctx) || isHr_(me) || !!delegatedFor_(me, emp, ctx);
   if (r.step === 'hr') return isHr_(me);
   if (r.step === 'payroll') return hasRole_(me, 'payroll') || me.role === 'admin';
   return false;
@@ -313,7 +313,8 @@ function api_reqDecide(req, me) {
     var note = str_(req.note, 300), now = new Date().toISOString();
     if (decision === 'reject' && !note) fail_('note_required');
     var h = history_(r);
-    h.push({ step: r.step, by: me.id, role: r.step === 'manager' && !manages_(me, emp, ctx) ? 'hr_on_behalf' : r.step, decision: decision, note: note, at: now });
+    var dg = r.step === 'manager' && !manages_(me, emp, ctx) && !isHr_(me) ? delegatedFor_(me, emp, ctx) : null;
+    h.push({ step: r.step, by: me.id, role: dg ? 'delegate' : r.step === 'manager' && !manages_(me, emp, ctx) ? 'hr_on_behalf' : r.step, onBehalfOf: dg ? dg.fromEmpId : '', decision: decision, note: note, at: now });
     r.stepsJson = JSON.stringify(h); r.updatedAt = now;
     if (decision === 'reject') { r.status = 'rejected'; r.decidedAt = now; }
     else {

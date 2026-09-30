@@ -231,3 +231,18 @@ tests `tests/engage.js`. Tabs onboarding, surveys, surveyAnswers, policies, poli
   the manager or HR, never by the person; check-ins by manager/HR; employee acknowledges; outcome only by HR.
 - Report `pay_equity` (Reports.gs): average package per position by gender and Saudi/non-Saudi, gap %, warn at 10%.
 - Trap (again): String.replace turns `$$` into `$` in inserted code; tests/run.js now fails on `$(...).forEach`.
+
+## Compliance and daily work (live 2026-09-30, from docs/research/2026-09-30-hr-gap-study.md)
+
+`backend/Compliance.gs`, `js/compliance.js` (HR console section "الامتثال" for hr/payroll; delegation drawer from the inbox),
+the bell "مهامي" in index.html (`loadTasks`/`openTasks`, action `myTasks`), tests `tests/compliance.js`.
+Tabs delegations (DLG), wpsLog (WPS), salaryRecon (REC). Setting `wpsDueDay` (10).
+- Delegation: a manager (or HR for anyone) hands manager-step approvals to someone for up to 60 days, no overlaps;
+  `canAct_` accepts `delegatedFor_`; the history records role 'delegate' + onBehalfOf. Nobody approves their own request.
+- WPS: `wpsFile` for a locked run checks IBAN (mod 97), ID (1… Saudi, 2… iqama), net > 0, basic > 0; zero payslips are
+  skipped and listed. Tracker generated -> uploaded (bank/Mudad ref) -> confirmed by someone else. Excel columns follow
+  common WPS files; **confirm the exact template with the bank / Mudad before the first upload**.
+- Reconciliation: GOSI wage = basic + housing, Qiwa = basic; > 1 SAR difference is a mismatch; `payrollApprove` fails
+  `recon_open` while a mismatch for that month is open; closing needs a note and a second person.
+- Calendar: GOSI registration 15 days, Qiwa contract documentation, expiries (90 days), payroll/WPS by month, open recon,
+  Saudization vs target. Rule details from vendor summaries: verify with HRSD / Qiwa / GOSI.

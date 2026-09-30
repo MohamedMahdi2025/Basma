@@ -25,7 +25,8 @@ var SHEETS = { EMP: 'employees', CRED: 'credentials', ZONES: 'zones', PUNCH: 'pu
   DEPT: 'departments', POS: 'positions', PRIV: 'empPrivate', COMP: 'compensation', JOBH: 'jobHistory', DOCS: 'documents',
   REQ: 'requests', HOL: 'holidays', RUN: 'payrollRuns', SLIP: 'payslips', ADJ: 'adjustments',
   CYC: 'perfCycles', KPI: 'kpis', REV: 'reviews', FB: 'feedback360', RLOG: 'reportLog',
-  ONB: 'onboarding', SRV: 'surveys', SANS: 'surveyAnswers', POL: 'policies', PACK: 'policyAcks', PLAN: 'devPlans' };
+  ONB: 'onboarding', SRV: 'surveys', SANS: 'surveyAnswers', POL: 'policies', PACK: 'policyAcks', PLAN: 'devPlans',
+  DLG: 'delegations', WPS: 'wpsLog', RECON: 'salaryRecon' };
 
 var HEADERS = {
   employees: ['id', 'empNo', 'name', 'nameEn', 'email', 'phone', 'department', 'title', 'role', 'status',
@@ -74,7 +75,10 @@ var HEADERS = {
   surveyAnswers: ['id', 'surveyId', 'departmentId', 'tenureBand', 'answersJson', 'comment', 'at'],
   policies: ['id', 'ref', 'code', 'titleAr', 'titleEn', 'bodyAr', 'bodyEn', 'version', 'effectiveFrom', 'status', 'createdBy', 'createdAt', 'updatedAt'],
   policyAcks: ['id', 'policyId', 'version', 'empId', 'at'],
-  devPlans: ['id', 'ref', 'empId', 'type', 'titleAr', 'reason', 'goalsJson', 'support', 'startDate', 'endDate', 'status', 'checkInsJson', 'ackAt', 'employeeComment', 'outcomeNote', 'createdBy', 'createdAt', 'updatedAt']
+  devPlans: ['id', 'ref', 'empId', 'type', 'titleAr', 'reason', 'goalsJson', 'support', 'startDate', 'endDate', 'status', 'checkInsJson', 'ackAt', 'employeeComment', 'outcomeNote', 'createdBy', 'createdAt', 'updatedAt'],
+  delegations: ['id', 'ref', 'fromEmpId', 'toEmpId', 'fromDate', 'toDate', 'scope', 'reason', 'status', 'createdBy', 'createdAt'],
+  wpsLog: ['id', 'ref', 'runId', 'month', 'status', 'rows', 'total', 'generatedBy', 'generatedAt', 'uploadedBy', 'uploadedAt', 'bankRef', 'confirmedBy', 'confirmedAt', 'note'],
+  salaryRecon: ['id', 'ref', 'month', 'source', 'total', 'matched', 'mismatchesJson', 'missingJson', 'unknownJson', 'status', 'by', 'at', 'resolvedBy', 'resolvedAt', 'note']
 };
 
 var ROLES = { employee: 1, hr: 2, admin: 3 };
@@ -136,7 +140,7 @@ function forget_(name) { delete READ_MEMO_[name]; }
 // Every small tab can be served from the copy; punches and audit grow without end and are always read.
 var CACHED_TABS_ = { employees: 1, zones: 1, credentials: 1, departments: 1, positions: 1, empPrivate: 1, compensation: 1,
   jobHistory: 1, documents: 1, requests: 1, holidays: 1, payrollRuns: 1, adjustments: 1, perfCycles: 1, kpis: 1, reviews: 1, feedback360: 1,
-  onboarding: 1, surveys: 1, policies: 1, policyAcks: 1, devPlans: 1 };
+  onboarding: 1, surveys: 1, policies: 1, policyAcks: 1, devPlans: 1, delegations: 1, wpsLog: 1, salaryRecon: 1 };
 var USE_TAB_CACHE_ = false; // true: every cached tab; an object: only those tabs (sign-in writes credentials)
 // Version tags make app writes and hand edits visible at once; the expiry only bounds what Sheets
 // never reports to onEdit (deleting or sorting rows by hand).
@@ -317,6 +321,7 @@ function audit_(actorId, action, targetId, detail) {
 // ---------------- settings ----------------
 
 var DEFAULT_SETTINGS = {
+  wpsDueDay: 10,             // WPS / Mudad: salaries of month M uploaded by this day of month M+1 (check with the bank / Mudad)
   leaveCountMode: 'working', // annual leave counts working days (rest days and holidays excluded) or 'calendar'
   allowNegativeLeave: 0,     // days of annual leave that may be taken ahead of accrual
   maxAdvanceSalaries: 1,     // a salary advance is at most this many monthly wages
@@ -403,7 +408,7 @@ var REF_DEFAULTS = {
   leave: 'LV', letter: 'LT', advance: 'AD', correction: 'AC', data_change: 'DC', resignation: 'RS',
   salary: 'SAL', document: 'DOC', import: 'IMP', department: 'DEP', position: 'POS',
   payroll: 'PR', payslip: 'PS', adjustment: 'ADJ', perf_cycle: 'PC', kpi: 'KPI', review: 'PE', feedback: 'FB', report: 'RPT',
-  onboarding: 'ONB', survey: 'SRV', policy: 'POL', idp: 'IDP', pip: 'PIP'
+  onboarding: 'ONB', survey: 'SRV', policy: 'POL', idp: 'IDP', pip: 'PIP', delegation: 'DLG', wps: 'WPS', recon: 'REC'
 };
 var REF_YEARLY = { department: false, position: false };
 
@@ -528,7 +533,8 @@ var EMP_ACTIONS = { me: 1, myHistory: 1, passwordSet: 1, punchPw: 1,
   payrollAdjDelete: 1, payrollExport: 1, payrollEmail: 1, eosQuote: 1,
   dashboard: 1, myPerformance: 1, perfTeam: 1, perfEmp: 1, kpiSave: 1, kpiMid: 1, reviewSelf: 1, reviewManager: 1, reviewAck: 1, feedbackSubmit: 1, feedbackResults: 1,
   reportCatalog: 1, reportRun: 1, reportExport: 1, reportLog: 1, reportReview: 1, reportVerify: 1,
-  onboardList: 1, onboardTask: 1, mySurveys: 1, surveyAnswer: 1, surveyResults: 1, policyList: 1, policyAck: 1, planSave: 1, planList: 1, planCheckIn: 1, planAck: 1 };
+  onboardList: 1, onboardTask: 1, mySurveys: 1, surveyAnswer: 1, surveyResults: 1, policyList: 1, policyAck: 1, planSave: 1, planList: 1, planCheckIn: 1, planAck: 1,
+  myTasks: 1, delegationSave: 1, delegationList: 1, delegationRevoke: 1, wpsFile: 1, wpsStep: 1, reconUpload: 1, reconList: 1, reconResolve: 1, complianceCalendar: 1 };
 var HR_ACTIONS = { onboardStart: 1, surveySave: 1, surveyClose: 1, policySave: 1, planClose: 1, perfCycleSave: 1, perfCycleList: 1, perfCycleStage: 1, perfOverview: 1, perfCalibrate: 1, feedbackLaunch: 1, hrBootstrap: 1, holidaySave: 1, holidayDelete: 1, leaveBalances: 1, leaveOpeningSave: 1, hrDirectory: 1, hrDeptList: 1, hrDeptSave: 1, hrPositionList: 1, hrPositionSave: 1, hrEmpSave: 1,
   hrPrivateSave: 1, hrImportValidate: 1, hrImportCommit: 1, hrDocList: 1, hrDocSave: 1, hrExpiring: 1, empPasswordReset: 1, board: 1, empList: 1, zoneList: 1, report: 1, reviewList: 1, reviewDecide: 1, manualPunch: 1, auditList: 1, settingsGet: 1, empSave: 1, empActivation: 1 };
 /**
@@ -539,7 +545,7 @@ var READ_ONLY_ACTIONS = { me: 1, myHistory: 1, myFile: 1, hrEmpFile: 1, hrTeam: 
   hrPositionList: 1, hrDocList: 1, hrExpiring: 1, hrBootstrap: 1, hrImportValidate: 1, board: 1, empList: 1, zoneList: 1, report: 1,
   reviewList: 1, auditList: 1, settingsGet: 1, myRequests: 1, requestQuote: 1, reqInbox: 1, holidayList: 1, leaveTeam: 1, leaveBalances: 1,
   dashboard: 1, mySlips: 1, payrollList: 1, payrollGet: 1, eosQuote: 1, myPerformance: 1, perfTeam: 1, perfEmp: 1, feedbackResults: 1, perfCycleList: 1, perfOverview: 1,
-  reportCatalog: 1, reportRun: 1, reportLog: 1, onboardList: 1, mySurveys: 1, surveyResults: 1, policyList: 1, planList: 1 };
+  reportCatalog: 1, reportRun: 1, reportLog: 1, onboardList: 1, mySurveys: 1, surveyResults: 1, policyList: 1, planList: 1, myTasks: 1, delegationList: 1, reconList: 1, complianceCalendar: 1, wpsFile: 1 };
 
 var ADMIN_ACTIONS = { hrRolesSave: 1, empResetDevice: 1, zoneSave: 1, zoneDelete: 1, settingsSave: 1 };
 

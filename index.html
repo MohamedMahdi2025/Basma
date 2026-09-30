@@ -132,6 +132,10 @@ button{cursor:pointer}
 .topbar .who{flex:1;min-width:0;line-height:1.25}
 .topbar .who b{display:block;font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .topbar .who span{font-size:12px;color:#AFC0AD}
+.tk-bell{position:relative}.tk-bell i{font-size:20px}.tk-n{position:absolute;top:-4px;inset-inline-end:-4px;min-width:19px;height:19px;padding:0 5px;border-radius:10px;background:var(--amber);color:#1C2A1F;font-size:11px;font-weight:700;display:grid;place-items:center;box-shadow:0 0 0 2px var(--pine)}
+.tk-list{display:grid;gap:8px}.tk-row{display:flex;align-items:center;gap:12px;width:100%;text-align:start;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:var(--card);cursor:pointer;color:var(--ink);font-size:14.5px;transition:background-color .2s,transform .12s}
+.tk-row:hover{background:#FAF8F3}.tk-row:active{transform:translateY(1px)}.tk-row:focus-visible{outline:2px solid var(--brand);outline-offset:2px}.tk-ic{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:#E6EFE7;color:var(--brand);font-size:20px;flex:none}
+.tk-row.info .tk-ic{background:#E3EEFA;color:#2a78d6}.tk-t{flex:1;min-width:0}.tk-c{min-width:30px;height:28px;border-radius:9px;background:var(--pine);color:var(--cream);display:grid;place-items:center;font-size:13.5px;padding:0 8px}.tk-go{color:var(--ink-2)}
 .iconbtn{width:40px;height:40px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:var(--cream);display:grid;place-items:center;transition:transform .12s var(--ease)}
 .iconbtn:active{transform:scale(.92)}
 main{flex:1;display:flex;flex-direction:column}
@@ -1205,7 +1209,9 @@ var T = {
     oldPhone:'هاتفي لا يدعم Face ID / البصمة', tapMode:'تسجيل بالنقر', bioMode:'Face ID / بصمة', unlockTap:'دخول', allowDk:'السماح للأجهزة القديمة بالتسجيل بالنقر (بدون بصمة، داخل النطاق فقط)', f_no_biometric:'جهاز بدون بصمة (تسجيل بالنقر)', e_device_key_disabled:'التسجيل بالنقر موقوف، تواصل مع الموارد البشرية', e_no_devicekey:'هذا المتصفح قديم جداً، حدّث المتصفح',
     readyIn:'جاهز لتسجيل الحضور', readyOut:'جاهز لتسجيل الانصراف', moveCloser:'اقترب من المقر لتفعيل الزر', weakGps:'إشارة الموقع ضعيفة، اقترب من نافذة أو انتظر قليلاً',
     firstIn:'الحضور', lastOut:'الانصراف', worked:'ساعات العمل', shift:'الدوام', late:'تأخير', min:'د', h:'س',
-    doneIn:'تم تسجيل الحضور', doneOut:'تم تسجيل الانصراف', reviewNote:'سُجّل وسيُراجع من الموارد البشرية', close:'تم', closeX:'إغلاق',
+    doneIn:'تم تسجيل الحضور', doneOut:'تم تسجيل الانصراف', reviewNote:'سُجّل وسيُراجع من الموارد البشرية', close:'تم', closeX:'إغلاق', tkTitle:'مهامي', tkNone:'لا شيء ينتظرك الآن', tkNoneLead:'ستظهر هنا الطلبات والموافقات والمهام التي تحتاج إجراءك.',
+    tk_requests:'طلبات تنتظر قرارك', tk_salaries:'رواتب تنتظر اعتمادك', tk_payroll:'مسيرات رواتب تنتظر اعتمادك', tk_reports:'تقارير صادرة تنتظر مراجعتك', tk_recon:'فروقات أجور (التأمينات أو قوى) تنتظر إغلاقك',
+    tk_wps:'رفع ملف حماية الأجور ينتظر تأكيدك', tk_onboarding:'مهام انضمام مستحقة خلال أسبوع', tk_policies:'سياسات تحتاج إقرارك', tk_survey:'استبيان ينتظر مشاركتك', tk_plans:'خطة تطوير تنتظر اطلاعك', tk_delegated:'مفوض بالموافقات نيابة عن',
     punchFailed:'لم يتم التسجيل', todayTitle:'اليوم',
     histTitle:'سجل الحضور', present:'أيام الحضور', totalHours:'مجموع الساعات', lateDays:'أيام التأخير', absent:'غياب',
     st_in:'داخل الدوام', st_present:'حاضر', st_absent:'غائب', st_leave:'في إجازة', st_holiday:'عطلة رسمية', kLeave:'في إجازة', st_off:'عطلة', st_upcoming:'لم يحضر بعد', st_missing_out:'بلا انصراف',
@@ -1264,7 +1270,9 @@ var T = {
     oldPhone:'My phone has no Face ID / fingerprint', tapMode:'Tap check-in', bioMode:'Face ID / fingerprint', unlockTap:'Sign in', allowDk:'Let older phones check in with a tap (no biometric, inside the zone only)', f_no_biometric:'No biometric (tap check-in)', e_device_key_disabled:'Tap check-in is switched off. Contact HR.', e_no_devicekey:'This browser is too old. Update it.',
     readyIn:'Ready to check in', readyOut:'Ready to check out', moveCloser:'Move closer to HQ to enable the button', weakGps:'Weak location signal. Move near a window or wait a moment',
     firstIn:'In', lastOut:'Out', worked:'Worked', shift:'Shift', late:'Late', min:'m', h:'h',
-    doneIn:'Checked in', doneOut:'Checked out', reviewNote:'Recorded, HR will review it', close:'Done', closeX:'Close',
+    doneIn:'Checked in', doneOut:'Checked out', reviewNote:'Recorded, HR will review it', close:'Done', closeX:'Close', tkTitle:'My tasks', tkNone:'Nothing is waiting for you', tkNoneLead:'Requests, approvals and tasks that need your action appear here.',
+    tk_requests:'Requests waiting for your decision', tk_salaries:'Salaries waiting for your approval', tk_payroll:'Payroll runs waiting for your approval', tk_reports:'Exported reports waiting for your review', tk_recon:'Wage mismatches (GOSI or Qiwa) waiting for you',
+    tk_wps:'WPS upload waiting for your confirmation', tk_onboarding:'Onboarding tasks due within a week', tk_policies:'Policies to acknowledge', tk_survey:'A survey waiting for you', tk_plans:'A development plan to read', tk_delegated:'Approving on behalf of',
     punchFailed:'Not recorded', todayTitle:'Today',
     histTitle:'Attendance record', present:'Days present', totalHours:'Total hours', lateDays:'Late days', absent:'Absent',
     st_in:'On shift', st_present:'Present', st_absent:'Absent', st_leave:'On leave', st_holiday:'Public holiday', kLeave:'On leave', st_off:'Day off', st_upcoming:'Not in yet', st_missing_out:'No check-out',
@@ -1411,7 +1419,7 @@ function api(action, payload, quiet){
 var READ_CACHE = {};
 var CLIENT_READS = { myFile: 1, myRequests: 1, hrBootstrap: 1, hrCompList: 1, hrExpiring: 1, hrTeam: 1, hrEmpFile: 1, reqInbox: 1,
   leaveTeam: 1, holidayList: 1, leaveBalances: 1, myHistory: 1, me: 1, board: 1, empList: 1, zoneList: 1, report: 1, reviewList: 1,
-  auditList: 1, settingsGet: 1, requestQuote: 1, dashboard: 1, mySlips: 1, payrollList: 1, eosQuote: 1, myPerformance: 1, perfTeam: 1, perfEmp: 1, feedbackResults: 1, perfCycleList: 1, perfOverview: 1, reportCatalog: 1, reportRun: 1, reportLog: 1, reportVerify: 1, onboardList: 1, mySurveys: 1, surveyResults: 1, policyList: 1, planList: 1, hrDirectory: 1, hrDeptList: 1, hrPositionList: 1, hrDocList: 1, hrImportValidate: 1,
+  auditList: 1, settingsGet: 1, requestQuote: 1, dashboard: 1, mySlips: 1, payrollList: 1, eosQuote: 1, myPerformance: 1, perfTeam: 1, perfEmp: 1, feedbackResults: 1, perfCycleList: 1, perfOverview: 1, reportCatalog: 1, reportRun: 1, reportLog: 1, reportVerify: 1, myTasks: 1, delegationList: 1, reconList: 1, complianceCalendar: 1, wpsFile: 1, onboardList: 1, mySurveys: 1, surveyResults: 1, policyList: 1, planList: 1, hrDirectory: 1, hrDeptList: 1, hrPositionList: 1, hrDocList: 1, hrImportValidate: 1,
   authBegin: 1, punchBegin: 1, bootstrapStatus: 1, ping: 1 };
 /** onData(result, fromMemory) runs once from memory (if any) and again only when the fresh answer differs. */
 function apiFresh(action, payload, onData, quiet){
@@ -2030,18 +2038,58 @@ function renderShell(){
   var cur = S.tab === 'history' ? 'file' : S.tab;
   root('<div class="app' + (wide ? ' admin-wide' : '') + (S.tab === 'home' ? ' on-home' : '') + '">' +
     '<header class="topbar"><img src="' + MARK + '" alt="Best Gas"><div class="who"><b>' + esc(S.me.name) + '</b><span>' + esc(S.me.title || S.me.department || t('company')) + ' · ' + esc(S.me.empNo) + '</span></div>' +
+    '<button class="iconbtn tk-bell" type="button" id="tkBell" aria-label="' + t('tkTitle') + '">' + ph('bell') + '<span class="tk-n hidden" id="tkN"></span></button>' +
     '<button class="iconbtn" type="button" onclick="toggleLang()" aria-label="language" style="font-size:12px;width:auto;padding:0 10px">' + t('langBtn') + '</button>' +
     '<button class="iconbtn" type="button" onclick="renderLock()" aria-label="' + t('signOut') + '">' + I.lock + '</button></header>' +
     '<main id="main"></main>' +
     '<nav class="tabs" aria-label="' + t('appName') + '">' + tabs.map(function(x){ return '<button type="button" data-tab="' + x[0] + '"' + (cur === x[0] ? ' aria-current="page"' : '') + '>' + x[1] + '<span>' + x[2] + '</span></button>'; }).join('') + '</nav></div>');
   $$('.tabs button').forEach(function(b){ b.onclick = function(){ S.tab = b.dataset.tab; renderShell(); }; });
+  $('#tkBell').onclick = openTasks;
+  setTimeout(loadTasks, S.tab === 'home' ? 1500 : 0); // never before the check-in screen is ready
   if (S.tab === 'home') renderHome();
   else if (S.tab === 'history') renderHistory();
   else if (S.tab === 'file') lazyScreen(['js/dashboard.js', 'js/my-file.js', 'js/requests.js', 'js/payroll.js', 'js/performance.js', 'js/engage.js'], function(m){ MyFile.render(m); });
-  else if (S.tab === 'hr') lazyScreen(['js/my-file.js', 'js/requests.js', 'js/payroll.js', 'js/performance.js', 'js/dashboard.js', 'js/reports.js', 'js/engage.js', 'js/hr-console.js'], function(m){ HrConsole.render(m); });
+  else if (S.tab === 'hr') lazyScreen(['js/my-file.js', 'js/requests.js', 'js/payroll.js', 'js/performance.js', 'js/dashboard.js', 'js/reports.js', 'js/engage.js', 'js/compliance.js', 'js/hr-console.js'], function(m){ HrConsole.render(m); });
   else if (S.tab === 'admin') renderAdmin();
   else renderMe();
 }
+
+// ---------------- my tasks (the bell) ----------------
+var TASKS = null;
+function loadTasks(){
+  if (!S.token) return;
+  apiFresh('myTasks', {}, function(r){
+    if (!r.ok) return;
+    TASKS = r;
+    var n = $('#tkN'); if (!n) return;
+    n.textContent = r.total > 99 ? '99+' : r.total; n.classList.toggle('hidden', !r.total);
+    var b = $('#tkBell'); if (b) b.setAttribute('aria-label', t('tkTitle') + (r.total ? ' (' + r.total + ')' : ''));
+  }, true);
+}
+function openTasks(){
+  var d = drawer('<h3>' + t('tkTitle') + '</h3><div id="tkList"><span class="sk"></span><span class="sk" style="width:70%"></span></div>');
+  var el = $('#tkList', d);
+  function draw(r){
+    if (!r || !r.ok) { el.innerHTML = '<p class="hr-bad">' + errText(r && r.error) + '</p>'; return; }
+    var list = r.tasks;
+    if (!list.length) { el.innerHTML = '<div class="empty" style="padding:30px 10px">' + ph('check-circle') + '<b>' + t('tkNone') + '</b><p style="color:var(--ink-2);margin:6px 0 0">' + t('tkNoneLead') + '</p></div>'; return; }
+    el.innerHTML = '<div class="tk-list">' + list.map(function(x, i){
+      var label = x.kind === 'delegated' ? t('tk_delegated') + ' ' + (x.names || []).map(esc).join('، ') : t('tk_' + x.kind);
+      return '<button type="button" class="tk-row' + (x.kind === 'delegated' ? ' info' : '') + '" data-i="' + i + '"><span class="tk-ic">' + ph(TK_ICON[x.kind] || 'circle') + '</span><span class="tk-t">' + label + '</span>' +
+        (x.kind === 'delegated' ? '' : '<b class="tk-c num">' + x.count + '</b>') + '<span class="tk-go">' + (S.lang === 'ar' ? ph('caret-left') : ph('caret-right')) + '</span></button>';
+    }).join('') + '</div>';
+    $$('.tk-row', el).forEach(function(b){ b.onclick = function(){
+      var x = list[b.dataset.i], g = x.target || {};
+      d.remove(); S.tab = g.tab || 'file'; if (g.sec) S.hrSec = g.sec;
+      if (g.view) S.rpJump = g.view;
+      renderShell();
+    }; });
+  }
+  if (TASKS) draw(TASKS);
+  api('myTasks', {}, true).then(function(r){ if (r.ok) TASKS = r; if (d.isConnected) draw(r); loadTasks(); });
+}
+var TK_ICON = { requests: 'tray', salaries: 'seal-check', payroll: 'money', reports: 'file-text', recon: 'scales', wps: 'bank', onboarding: 'rocket-launch', policies: 'book-open-text',
+  survey: 'heartbeat', plans: 'path', delegated: 'handshake' };
 
 // ---------------- location ----------------
 function startWatch(){

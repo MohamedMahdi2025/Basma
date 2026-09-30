@@ -255,6 +255,7 @@ function api_payrollApprove(req, me) {
     var run = findBy_(SHEETS.RUN, 'id', req.id);
     if (!run || run.status !== 'draft') fail_('not_found');
     if (run.preparedBy === me.id) fail_('second_approver_required');
+    if (reconBlocks_(run.month)) fail_('recon_open'); // an open GOSI / Qiwa wage mismatch for this month
     var now = new Date().toISOString();
     var slips = readAll_(SHEETS.SLIP).filter(function (s) { return s.runId === run.id && s.status === 'draft'; });
     slips.forEach(function (s) { s.status = 'locked'; s.updatedAt = now; });

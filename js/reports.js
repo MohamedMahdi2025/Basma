@@ -231,6 +231,7 @@ function section(body){
   var tabs = [['catalog', 'squares-four', t('rpCatalog')]];
   if (can.hr || can.payroll) tabs.push(['log', 'list-checks', t('rpLog')]);
   if (can.hr || can.payroll || can.executive) tabs.push(['verify', 'seal-check', t('rpVerify')]);
+  if (S.rpJump) { R.view = S.rpJump; S.rpJump = null; }
   if (R.view === 'run' && !R.id) R.view = 'catalog';
   var top = R.view === 'run' ? 'catalog' : R.view;
   body.innerHTML = '<div class="db rp"><div class="hr-h"><h2>' + t('rpTitle') + '</h2></div>' +
