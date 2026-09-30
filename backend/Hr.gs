@@ -395,6 +395,12 @@ function nitaqatWeight_(comp) {
   return w >= 4000 ? 1 : w >= 3000 ? 0.5 : 0;
 }
 
+/** The HR console's lists in one round trip (was three calls of about two seconds each). */
+function api_hrBootstrap(req, me) {
+  var d = api_hrDirectory(req, me);
+  return { ok: true, rows: d.rows, saudization: d.saudization, depts: api_hrDeptList().rows, positions: api_hrPositionList().rows };
+}
+
 function api_hrDirectory(req, me) {
   var ctx = orgCtx_(), pos = {}, t = today_();
   readAll_(SHEETS.POS).forEach(function (p) { pos[p.id] = p.titleAr; });

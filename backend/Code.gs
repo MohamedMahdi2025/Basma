@@ -113,25 +113,64 @@ function forget_(name) { delete READ_MEMO_[name]; }
  * the copy also lapses after 60 s whatever happens. Rows from the copy are marked and can never
  * be written back (update_ refuses), so the copy cannot overwrite the Sheet.
  */
-var CACHED_TABS_ = { employees: 1, zones: 1 };
-var USE_TAB_CACHE_ = false;
-var TAB_CACHE_SECONDS_ = 60;
-function tabKeys_(name) { return { snap: 'tab:v1:' + name, ver: 'tabver:v1:' + name }; }
+// Every small tab can be served from the copy; punches and audit grow without end and are always read.
+var CACHED_TABS_ = { employees: 1, zones: 1, credentials: 1, departments: 1, positions: 1, empPrivate: 1, compensation: 1,
+  jobHistory: 1, documents: 1, requests: 1, holidays: 1 };
+var USE_TAB_CACHE_ = false; // true: every cached tab; an object: only those tabs (sign-in writes credentials)
+// Version tags make app writes and hand edits visible at once; the expiry only bounds what Sheets
+// never reports to onEdit (deleting or sorting rows by hand).
+var TAB_CACHE_SECONDS_ = 300;
+var TAB_PART_ = 90000;
+var TAB_PREFETCH_ = null;
+function tabKeys_(name) { return { snap: 'tab:v2:' + name, ver: 'tabver:v1:' + name }; }
 function bumpTab_(name) {
   if (!CACHED_TABS_[name]) return;
+  if (TAB_PREFETCH_) delete TAB_PREFETCH_[name];
   try { CacheService.getScriptCache().put(tabKeys_(name).ver, bytesToB64u_(randomBytes_(9)), 21600); } catch (e) {}
 }
+/** One CacheService call for the version and copy of every cached tab (about 50 ms in all). */
+function prefetchTabs_() {
+  TAB_PREFETCH_ = {};
+  var keys = [];
+  Object.keys(CACHED_TABS_).forEach(function (n) { var k = tabKeys_(n); keys.push(k.snap, k.ver); });
+  var got = {};
+  try { got = CacheService.getScriptCache().getAll(keys) || {}; } catch (e) { got = {}; }
+  Object.keys(CACHED_TABS_).forEach(function (n) {
+    var k = tabKeys_(n), ver = got[k.ver] || '', meta = null;
+    try { meta = got[k.snap] ? JSON.parse(got[k.snap]) : null; } catch (e) { meta = null; }
+    TAB_PREFETCH_[n] = { ver: ver, meta: meta && meta.ver === ver ? meta : null };
+  });
+}
 function cachedRows_(name) {
-  var k = tabKeys_(name), got;
-  try { got = CacheService.getScriptCache().getAll([k.snap, k.ver]); } catch (e) { return null; }
-  var ver = got[k.ver] || '';
-  if (got[k.snap]) {
+  if (!TAB_PREFETCH_) prefetchTabs_();
+  var p = TAB_PREFETCH_[name];
+  if (!p) return null;
+  var rows = null;
+  if (p.meta && p.meta.n === 0) rows = p.meta.d;
+  else if (p.meta && p.meta.n > 0) { // a big tab is split into parts
+    var keys = [];
+    for (var i = 0; i < p.meta.n; i++) keys.push(tabKeys_(name).snap + ':' + i);
     try {
-      var snap = JSON.parse(got[k.snap]);
-      if (snap.ver === ver) { snap.rows.forEach(function (r) { r._cached = true; }); return { rows: snap.rows }; }
-    } catch (e) {}
+      var got = CacheService.getScriptCache().getAll(keys), s = '';
+      for (var j = 0; j < keys.length; j++) { if (got[keys[j]] == null) { s = null; break; } s += got[keys[j]]; }
+      if (s !== null) rows = JSON.parse(s);
+    } catch (e) { rows = null; }
   }
-  return { ver: ver };
+  if (rows) { rows.forEach(function (r) { r._cached = true; }); return { rows: rows }; }
+  return { ver: p.ver };
+}
+function storeTab_(name, ver, rows) {
+  try {
+    var json = JSON.stringify(rows), k = tabKeys_(name).snap, put = {};
+    if (json.length < TAB_PART_) put[k] = JSON.stringify({ ver: ver, n: 0, d: rows });
+    else {
+      var n = Math.ceil(json.length / TAB_PART_);
+      if (n > 20) return; // over 1.8 MB: not worth caching
+      for (var i = 0; i < n; i++) put[k + ':' + i] = json.slice(i * TAB_PART_, (i + 1) * TAB_PART_);
+      put[k] = JSON.stringify({ ver: ver, n: n });
+    }
+    CacheService.getScriptCache().putAll(put, TAB_CACHE_SECONDS_);
+  } catch (e) {}
 }
 
 /** Simple trigger: a hand edit in the Sheet makes the app read that tab fresh on the next request. */
@@ -146,7 +185,7 @@ function onEdit(e) {
 function readAll_(name) {
   if (READ_MEMO_[name]) return READ_MEMO_[name];
   var tag = null;
-  if (USE_TAB_CACHE_ && CACHED_TABS_[name]) {
+  if (USE_TAB_CACHE_ && CACHED_TABS_[name] && (USE_TAB_CACHE_ === true || USE_TAB_CACHE_[name])) {
     var c = cachedRows_(name);
     if (c && c.rows) return (READ_MEMO_[name] = c.rows);
     if (c) tag = c.ver;
@@ -167,12 +206,7 @@ function readAll_(name) {
     }
     if (!blank) out.push(o);
   }
-  if (tag !== null) {
-    try {
-      var json = JSON.stringify({ ver: tag, rows: out });
-      if (json.length < 90000) CacheService.getScriptCache().put(tabKeys_(name).snap, json, TAB_CACHE_SECONDS_);
-    } catch (e) {}
-  }
+  if (tag !== null) storeTab_(name, tag, out);
   READ_MEMO_[name] = out;
   return out;
 }
@@ -462,14 +496,24 @@ var PUBLIC_ACTIONS = {
 var EMP_ACTIONS = { me: 1, myHistory: 1, passwordSet: 1, punchPw: 1,
   myFile: 1, hrEmpFile: 1, hrTeam: 1, hrCompList: 1, hrCompPropose: 1, hrCompDecide: 1,
   myRequests: 1, requestQuote: 1, requestCreate: 1, requestCancel: 1, reqInbox: 1, reqDecide: 1, holidayList: 1, leaveTeam: 1 };
-var HR_ACTIONS = { holidaySave: 1, holidayDelete: 1, leaveBalances: 1, leaveOpeningSave: 1, hrDirectory: 1, hrDeptList: 1, hrDeptSave: 1, hrPositionList: 1, hrPositionSave: 1, hrEmpSave: 1,
+var HR_ACTIONS = { hrBootstrap: 1, holidaySave: 1, holidayDelete: 1, leaveBalances: 1, leaveOpeningSave: 1, hrDirectory: 1, hrDeptList: 1, hrDeptSave: 1, hrPositionList: 1, hrPositionSave: 1, hrEmpSave: 1,
   hrPrivateSave: 1, hrImportValidate: 1, hrImportCommit: 1, hrDocList: 1, hrDocSave: 1, hrExpiring: 1, empPasswordReset: 1, board: 1, empList: 1, zoneList: 1, report: 1, reviewList: 1, reviewDecide: 1, manualPunch: 1, auditList: 1, settingsGet: 1, empSave: 1, empActivation: 1 };
+/**
+ * Actions that only read (plus the audit line of a salary view). They may use the cached tab copies;
+ * update_ refuses a cached row, so a mistake here fails loudly instead of overwriting the Sheet.
+ */
+var READ_ONLY_ACTIONS = { me: 1, myHistory: 1, myFile: 1, hrEmpFile: 1, hrTeam: 1, hrCompList: 1, hrDirectory: 1, hrDeptList: 1,
+  hrPositionList: 1, hrDocList: 1, hrExpiring: 1, hrBootstrap: 1, hrImportValidate: 1, board: 1, empList: 1, zoneList: 1, report: 1,
+  reviewList: 1, auditList: 1, settingsGet: 1, myRequests: 1, requestQuote: 1, reqInbox: 1, holidayList: 1, leaveTeam: 1, leaveBalances: 1 };
+
 var ADMIN_ACTIONS = { hrRolesSave: 1, empResetDevice: 1, zoneSave: 1, zoneDelete: 1, settingsSave: 1 };
 
 function handle_(req) {
   READ_MEMO_ = {};
   USE_TAB_CACHE_ = false;
+  TAB_PREFETCH_ = null;
   var action = req && req.action;
+  if (READ_ONLY_ACTIONS[action]) USE_TAB_CACHE_ = true;
   try {
     var fn = /^[a-zA-Z]+$/.test(String(action)) ? globalThis['api_' + action] : null;
     if (typeof fn !== 'function') return { ok: false, error: 'unknown_action' };

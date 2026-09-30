@@ -340,12 +340,12 @@ function api_pinChange(req) {
 }
 
 function api_authBegin(req) {
-  USE_TAB_CACHE_ = true; // read-only: employees and zones may come from the versioned copy
+  USE_TAB_CACHE_ = { employees: 1, zones: 1 }; // read-only here: employees and zones may come from the versioned copy
   return { ok: true, options: beginFor_(req, 'login').options };
 }
 
 function api_authFinish(req) {
-  USE_TAB_CACHE_ = true; // writes only credentials and audit, which are always read fresh
+  USE_TAB_CACHE_ = { employees: 1, zones: 1 }; // writes only credentials and audit, which stay fresh
   var r = withLock_(function () { return finishFor_(req, 'login'); });
   // Reading the home screen and writing the audit line do not need the lock: others sign in meanwhile.
   var out = { ok: true, token: issueToken_(r.emp), me: publicEmp_(r.emp), home: homePayload_(r.emp) };

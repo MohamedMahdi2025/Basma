@@ -269,13 +269,12 @@ function empOpts(excludeId){ return (H.dir || []).filter(function(e){ return e.s
 function loading(el){ el.innerHTML = '<div class="list">' + [0, 1, 2, 3].map(function(){ return '<div class="row"><div class="main"><span class="sk" style="width:45%"></span><span class="sk" style="width:70%"></span></div></div>'; }).join('') + '</div>'; }
 function failed(el, retry){ el.innerHTML = '<div class="empty">' + ph('wifi-slash') + '<b>' + t('loadFail') + '</b><div class="btnrow" style="justify-content:center;margin-top:10px"><button class="btn btn-dark btn-sm" type="button">' + t('mfRetry') + '</button></div></div>'; el.querySelector('button').onclick = retry; }
 
-function loadOrg(force){
-  if (!force && H.dir && H.depts && H.pos) return Promise.resolve(true);
-  return Promise.all([api('hrDirectory', {}, true), api('hrDeptList', {}, true), api('hrPositionList', {}, true)]).then(function(rs){
-    if (!rs[0].ok || !rs[1].ok || !rs[2].ok) return false;
-    H.dir = rs[0].rows; H.sat = rs[0].saudization; H.depts = rs[1].rows; H.pos = rs[2].rows;
-    return true;
-  });
+/** fn(ok) runs from memory at once when possible, and again when fresh data differs. */
+function orgThen(fn){
+  apiFresh('hrBootstrap', {}, function(r){
+    if (r.ok) { H.dir = r.rows; H.sat = r.saudization; H.depts = r.depts; H.pos = r.positions; }
+    fn(!!r.ok);
+  }, true);
 }
 
 // ---------------- shell ----------------
@@ -311,7 +310,7 @@ function setApBadge(n){ var b = $('#apBadge'); if (!b) return; b.textContent = n
 // ---------------- people ----------------
 function people(body){
   loading(body);
-  loadOrg(true).then(function(ok){
+  orgThen(function(ok){
     if (!ok) return failed(body, function(){ people(body); });
     var s = H.sat, pct = Math.min(100, s.saudiPct);
     body.innerHTML = '<div class="hr-h"><h2>' + t('hrPeople') + '</h2><button type="button" class="btn btn-dark btn-sm" id="hrAdd">' + ph('user-plus') + t('hrAddEmp') + '</button></div>' +
@@ -348,7 +347,7 @@ function openEmp(id, readOnly){
   loading(box);
   var tab = 'job';
   function load(){
-    Promise.all([api('hrEmpFile', { id: id }, true), readOnly ? Promise.resolve(true) : loadOrg(false)]).then(function(rs){
+    Promise.all([api('hrEmpFile', { id: id }, true), readOnly || (H.dir && H.depts && H.pos) ? Promise.resolve(true) : new Promise(function(res){ var once = false; orgThen(function(ok){ if (!once) { once = true; res(ok); } }); })]).then(function(rs){
       var r = rs[0];
       if (!r.ok) { showErr(box, r); return; }
       draw(r.file);
@@ -516,7 +515,7 @@ function histTab(el, f){
 // ---------------- my team (managers) ----------------
 function team(body){
   loading(body);
-  api('hrTeam', {}, true).then(function(r){
+  apiFresh('hrTeam', {}, function(r){
     if (!r.ok) return failed(body, function(){ team(body); });
     body.innerHTML = '<div class="hr-h"><h2>' + t('hrTeamSec') + '</h2><span class="chip in num">' + plural(r.rows.length, 'people') + '</span></div>' +
       (r.rows.length ? '<div class="list">' + r.rows.map(function(e){ return '<div class="row click" data-id="' + e.id + '" tabindex="0"><div class="av">' + esc(initials(e.name)) + '</div><div class="main"><b>' + esc(lang(e.name, e.nameEn)) + '</b><small>' + esc(e.title || '') + '</small></div><div class="end num">' + esc(e.empNo) + '</div></div>'; }).join('') + '</div>'
@@ -528,7 +527,7 @@ function team(body){
 // ---------------- organisation ----------------
 function org(body){
   loading(body);
-  loadOrg(true).then(function(ok){
+  orgThen(function(ok){
     if (!ok) return failed(body, function(){ org(body); });
     var view = S.orgView || 'depts';
     body.innerHTML = '<div class="hr-h"><h2>' + t('hrOrg') + '</h2><div class="hr-seg" role="group"><button type="button" data-v="depts" aria-pressed="' + (view === 'depts') + '">' + t('orgDepts') + '</button><button type="button" data-v="chart" aria-pressed="' + (view === 'chart') + '">' + t('orgChart') + '</button></div>' +
@@ -590,7 +589,7 @@ function deptDrawer(d, done){
 // ---------------- positions and job descriptions ----------------
 function positions(body){
   loading(body);
-  loadOrg(true).then(function(ok){
+  orgThen(function(ok){
     if (!ok) return failed(body, function(){ positions(body); });
     var used = {}; H.dir.forEach(function(e){ if (e.status === 'active' && e.positionId) used[e.positionId] = (used[e.positionId] || 0) + 1; });
     body.innerHTML = '<div class="hr-h"><h2>' + t('hrPositions') + '</h2><button type="button" class="btn btn-dark btn-sm" id="posAdd">' + ph('plus') + t('posAdd') + '</button></div>' +
@@ -629,7 +628,7 @@ function posDrawer(p, done){
 // ---------------- salary approvals ----------------
 function approvals(body){
   loading(body);
-  api('hrCompList', { status: 'pending' }, true).then(function(r){
+  apiFresh('hrCompList', { status: 'pending' }, function(r){
     if (!r.ok) return failed(body, function(){ approvals(body); });
     var rows = r.rows, open = rows.filter(function(x){ return !x.mine; });
     setApBadge(open.length);
@@ -668,7 +667,7 @@ function expiring(body){
   $('#exd').onchange = function(){ S.exDays = Number(this.value); expiring(body); };
   var el = $('#exBody');
   loading(el);
-  api('hrExpiring', { days: days }, true).then(function(r){
+  apiFresh('hrExpiring', { days: days }, function(r){
     if (!r.ok) return failed(el, function(){ expiring(body); });
     if (!r.rows.length) { el.innerHTML = '<div class="empty">' + ph('calendar-check') + '<b>' + t('exEmpty') + '</b></div>'; return; }
     el.innerHTML = '<div class="list">' + r.rows.map(function(x){

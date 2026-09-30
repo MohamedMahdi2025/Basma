@@ -202,7 +202,7 @@ function draw(main, f){
 function render(main){
   main.innerHTML = '<section class="page mf"><div class="mf-grid"><div class="mf-side"><div class="mf-id" style="min-height:220px"></div></div>' +
     '<div class="mf-main">' + [0, 1, 2].map(function(){ return '<div class="mf-card"><span class="sk" style="width:40%"></span><span class="sk"></span><span class="sk" style="width:70%"></span></div>'; }).join('') + '</div></div></section>';
-  api('myFile', {}, true).then(function(r){
+  apiFresh('myFile', {}, function(r){
     if (S.tab !== 'file' || !main.isConnected) return;
     if (!r.ok) {
       main.innerHTML = '<section class="page"><div class="empty">' + ph('wifi-slash') + '<b>' + t('mfLoadFail') + '</b><div class="btnrow" style="justify-content:center;margin-top:12px"><button class="btn btn-dark btn-sm" id="mfRetry">' + t('mfRetry') + '</button></div></div></section>';

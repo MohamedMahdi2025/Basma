@@ -1322,10 +1322,32 @@ function api(action, payload, quiet){
     .then(function(res){
       if (!quiet && --inflight <= 0) { inflight = 0; $('#loader').classList.add('hidden'); }
       if (res && res.token) { S.token = res.token; store('token', res.token); }
+      if (res && res.ok && !CLIENT_READS[action]) READ_CACHE = {};
       if (res && res.error === 'session_expired' && action !== 'me') { S.token = null; store('token', null); renderLock(); }
       if (res && res.error === 'password_change_required') renderMustChange('', null);
       return res;
     });
+}
+
+// Screens already seen show their last answer at once while a fresh one loads (kept in memory only,
+// dropped on lock and after any change). Most clicks then feel instant instead of waiting ~2 s for Google.
+var READ_CACHE = {};
+var CLIENT_READS = { myFile: 1, myRequests: 1, hrBootstrap: 1, hrCompList: 1, hrExpiring: 1, hrTeam: 1, hrEmpFile: 1, reqInbox: 1,
+  leaveTeam: 1, holidayList: 1, leaveBalances: 1, myHistory: 1, me: 1, board: 1, empList: 1, zoneList: 1, report: 1, reviewList: 1,
+  auditList: 1, settingsGet: 1, requestQuote: 1, hrDirectory: 1, hrDeptList: 1, hrPositionList: 1, hrDocList: 1, hrImportValidate: 1,
+  authBegin: 1, punchBegin: 1, bootstrapStatus: 1, ping: 1 };
+/** onData(result, fromMemory) runs once from memory (if any) and again only when the fresh answer differs. */
+function apiFresh(action, payload, onData, quiet){
+  var key = action + ':' + JSON.stringify(payload || {}), hit = READ_CACHE[key];
+  if (hit) onData(hit, true);
+  return api(action, Object.assign({}, payload || {}), !!hit || !!quiet).then(function(r){
+    if (r && r.ok) {
+      var changed = !hit || JSON.stringify(hit) !== JSON.stringify(r);
+      READ_CACHE[key] = r;
+      if (changed) onData(r, false);
+    } else if (!hit) onData(r || { ok: false, error: 'network' }, false);
+    return r;
+  });
 }
 
 // ---------------- WebAuthn ----------------
@@ -1718,6 +1740,7 @@ function pinPadHtml(){
 
 var lockRefresh = null;
 function renderLock(){
+  READ_CACHE = {};
   // Locking destroys the session in the browser: the PIN lock is not just a screen over a live token.
   S.auth = 'dev'; S.token = null; store('token', null); S.me = null;
   clearInterval(lockRefresh);
@@ -1899,6 +1922,12 @@ function enterApp(home){
     applyHome(r); armIdleLock();
     S.fileRoles = null;
     S.tab = location.hash === '#hr' ? 'hr' : location.hash === '#file' ? 'file' : 'home'; renderShell(); startWatch(); schedulePunchPrefetch(true);
+    setTimeout(function(){
+      if (!S.me) return;
+      loadScript('js/my-file.js').catch(function(){});
+      apiFresh('myFile', {}, function(r){ if (r.ok && window.setHrAccess) setHrAccess(r.file); }, true);
+      if (isHr()) setTimeout(function(){ if (S.me) apiFresh('hrBootstrap', {}, function(){}, true); }, 800);
+    }, 1200);
   }
   if (home && home.me) return go(home);
   api('me', {}).then(function(r){ if (!r.ok) return r.error === 'password_change_required' ? null : renderLock(); go(r); });
