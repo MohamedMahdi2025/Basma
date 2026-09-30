@@ -388,7 +388,7 @@ var EMP_ACTIONS = { me: 1, myHistory: 1, passwordSet: 1, punchPw: 1,
   myFile: 1, hrEmpFile: 1, hrTeam: 1, hrCompList: 1, hrCompPropose: 1, hrCompDecide: 1 };
 var HR_ACTIONS = { hrDirectory: 1, hrDeptList: 1, hrDeptSave: 1, hrPositionList: 1, hrPositionSave: 1, hrEmpSave: 1,
   hrPrivateSave: 1, hrImportValidate: 1, hrImportCommit: 1, hrDocList: 1, hrDocSave: 1, hrExpiring: 1, empPasswordReset: 1, board: 1, empList: 1, zoneList: 1, report: 1, reviewList: 1, reviewDecide: 1, manualPunch: 1, auditList: 1, settingsGet: 1, empSave: 1, empActivation: 1 };
-var ADMIN_ACTIONS = { empResetDevice: 1, zoneSave: 1, zoneDelete: 1, settingsSave: 1 };
+var ADMIN_ACTIONS = { hrRolesSave: 1, empResetDevice: 1, zoneSave: 1, zoneDelete: 1, settingsSave: 1 };
 
 function handle_(req) {
   READ_MEMO_ = {};

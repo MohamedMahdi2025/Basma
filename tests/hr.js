@@ -1,0 +1,265 @@
+// HR Phase 1 checks: node tests/hr.js
+const crypto = require('crypto');
+const { load, Authenticator } = require('./harness');
+let passed = 0, failed = 0;
+function ok(c, name, extra) { if (c) { passed++; console.log('  ok  ' + name); } else { failed++; console.log('  FAIL ' + name + (extra !== undefined ? '  -> ' + JSON.stringify(extra) : '')); } }
+const sha = s => crypto.createHash('sha256').update(s).digest('hex');
+const T0 = Date.parse('2026-10-04T04:55:00Z'); // Riyadh 2026-10-04 07:55
+const B = load({ setupKeyHash: sha('k'), now: T0 });
+
+/** A valid Saudi IBAN for a 20-character BBAN: computes the ISO 13616 check digits. */
+function iban(bban) {
+  const s = (bban + 'SA00').replace(/[A-Z]/g, c => String(c.charCodeAt(0) - 55));
+  let rem = 0; for (const ch of s) rem = (rem * 10 + Number(ch)) % 97;
+  return 'SA' + String(98 - rem).padStart(2, '0') + bban;
+}
+
+// People: admin 1000, hr 3001, payroll 3002 (employee + payroll), head 5000, manager 5001, staff 5002 and 5003
+const devs = {}, ids = {}, toks = {};
+function tok(no, fresh) {
+  if (toks[no] && !fresh) return toks[no];
+  const b = B.call({ action: 'authBegin', empNo: no });
+  return (toks[no] = B.call({ action: 'authFinish', credential: devs[no].get(b.options) }).token);
+}
+function person(no, name, role) {
+  const r = no === '1000' ? B.call({ action: 'bootstrap', setupKey: 'k', name, empNo: no })
+    : B.call({ action: 'empSave', token: tok('1000'), emp: { empNo: no, name, role } });
+  devs[no] = new Authenticator();
+  const b = B.call({ action: 'enrollBegin', empNo: no, code: r.activationCode });
+  const f = B.call({ action: 'enrollFinish', credential: devs[no].create(b.options) });
+  ids[no] = f.me.id; toks[no] = f.token;
+}
+/** Direct backend access in a test: never through a sign-in's cached copy. */
+function direct(fn) { B.ctx.USE_TAB_CACHE_ = false; B.ctx.READ_MEMO_ = {}; const v = B.ctx.withLock_(fn); B.ctx.READ_MEMO_ = {}; return v; }
+const E = no => direct(() => B.ctx.findBy_('employees', 'empNo', no));
+
+person('1000', 'مدير النظام', 'admin');
+person('3001', 'الموارد البشرية', 'hr');
+person('3002', 'الرواتب', 'employee');
+person('5000', 'رئيس قسم المالية', 'employee');
+person('5001', 'مدير الحسابات', 'employee');
+person('5002', 'محاسب أول', 'employee');
+person('5003', 'محاسب', 'employee');
+let r;
+
+console.log('Roles and access helpers');
+r = B.call({ action: 'hrRolesSave', token: tok('3001'), id: ids['3002'], extraRoles: 'payroll' });
+ok(!r.ok && r.error === 'forbidden', 'HR cannot hand out the payroll role', r);
+r = B.call({ action: 'hrRolesSave', token: tok('1000'), id: ids['3002'], extraRoles: 'payroll, superuser' });
+ok(r.ok, 'admin grants payroll', r);
+ok(E('3002').extraRoles === 'payroll', 'only known extra roles are stored', E('3002').extraRoles);
+r = B.call({ action: 'me', token: tok('3002') });
+ok(!r.ok && r.error === 'session_expired', 'a role change ends the old sessions', r);
+tok('3002', true);
+ok(B.ctx.hasRole_(E('3002'), 'payroll'), 'extra role payroll is recognised');
+ok(!B.ctx.hasRole_(E('5001'), 'payroll'), 'a plain employee has no payroll role');
+ok(B.ctx.canSeeSalary_(E('3001'), E('5002')), 'HR can see salaries');
+ok(!B.ctx.canSeeSalary_(E('1000'), E('5002')), 'admin without payroll cannot see salaries');
+ok(B.ctx.canSeeSalary_(E('5002'), E('5002')), 'an employee sees their own salary');
+ok(!B.ctx.canSeeSalary_(E('5001'), E('5002')), 'a manager cannot see a report salary');
+
+console.log('Departments and positions');
+const hrT = tok('3001');
+r = B.call({ action: 'hrDeptSave', token: hrT, dept: { nameAr: 'الإدارة المالية', nameEn: 'Finance', code: 'FIN', headEmpId: ids['5000'] } });
+ok(r.ok && r.dept.id, 'HR creates a department with a head', r);
+const finId = r.dept.id;
+r = B.call({ action: 'hrDeptSave', token: hrT, dept: { nameAr: 'الحسابات', parentId: finId } });
+ok(r.ok, 'HR creates a sub-department', r);
+const accId = r.dept.id;
+r = B.call({ action: 'hrDeptSave', token: hrT, dept: { id: finId, nameAr: 'الإدارة المالية', parentId: accId } });
+ok(!r.ok && r.error === 'dept_cycle', 'a department cannot sit under its own sub-department', r);
+r = B.call({ action: 'hrDeptSave', token: hrT, dept: { id: finId, nameAr: 'الإدارة المالية', parentId: finId } });
+ok(!r.ok && r.error === 'dept_cycle', 'nor under itself', r);
+r = B.call({ action: 'hrDeptSave', token: hrT, dept: { nameAr: 'الادارة الماليه ' } });
+ok(!r.ok && r.error === 'duplicate_name', 'the same name with other alef or taa marbuta forms is a duplicate', r);
+r = B.call({ action: 'hrPositionSave', token: hrT, position: { titleAr: 'محاسب', titleEn: 'Accountant', departmentId: accId, grade: 'G5',
+  purposeAr: 'تسجيل القيود اليومية ومطابقة الحسابات', dutiesAr: 'إعداد القيود\nمطابقة البنوك', requirementsAr: 'بكالوريوس محاسبة' } });
+ok(r.ok && r.position.id, 'HR creates a position with its job description', r);
+const accountantPos = r.position.id;
+r = B.call({ action: 'hrDeptList', token: tok('5002') });
+ok(!r.ok && r.error === 'forbidden', 'an employee cannot list or edit the organisation', r);
+
+console.log('Employee file and access');
+const [E5000, E5001, E5002, E5003] = ['5000', '5001', '5002', '5003'].map(n => ids[n]);
+r = B.call({ action: 'hrEmpSave', token: hrT, emp: { id: E5001, departmentId: accId, managerId: E5000, hireDate: '2019-03-01' } });
+ok(r.ok, 'HR sets department, manager and hire date', r);
+r = B.call({ action: 'hrEmpSave', token: hrT, emp: { id: E5002, departmentId: accId, positionId: accountantPos, managerId: E5001, hireDate: '2021-06-15', nationality: 'SA' } });
+ok(r.ok, 'HR places an accountant under the accounts manager', r);
+ok(E('5002').isSaudi === true && E('5002').title === 'محاسب' && E('5002').department === 'الحسابات', 'nationality SA marks Saudi; attendance title and department follow', E('5002'));
+B.call({ action: 'hrEmpSave', token: hrT, emp: { id: E5003, departmentId: accId, positionId: accountantPos, managerId: E5001, hireDate: '2024-01-07', nationality: 'IN' } });
+r = B.call({ action: 'hrEmpSave', token: hrT, emp: { id: E5001, managerId: E5002 } });
+ok(!r.ok && r.error === 'manager_cycle', 'a report cannot become their own manager\'s manager', r);
+r = B.call({ action: 'hrEmpSave', token: hrT, emp: { id: E5002, managerId: E5002 } });
+ok(!r.ok && r.error === 'manager_cycle', 'nobody manages themselves', r);
+r = B.call({ action: 'hrEmpSave', token: hrT, emp: { id: E5003, contractType: 'indefinite' } });
+ok(!r.ok && r.error === 'expat_contract_fixed', 'a non-Saudi contract cannot be indefinite (Art. 37)', r);
+r = B.call({ action: 'hrEmpSave', token: hrT, emp: { id: E5003, contractType: 'محدد المدة', contractEnd: '2026-11-15' } });
+ok(r.ok && E('5003').contractType === 'fixed', 'a fixed-term contract is accepted, Arabic label included', r);
+r = B.call({ action: 'hrEmpSave', token: hrT, emp: { id: E5003, probationEnd: '2024-08-01' } });
+ok(!r.ok && r.error === 'probation_too_long', 'probation longer than 180 days is refused (Art. 53)', r);
+r = B.call({ action: 'hrEmpSave', token: hrT, emp: { id: E5003, annualLeaveDays: 15 } });
+ok(!r.ok && r.error === 'leave_below_minimum', 'annual leave below 21 days is refused (Art. 109)', r);
+r = B.call({ action: 'hrEmpSave', token: hrT, emp: { id: E5003, annualLeaveDays: 30, workDaysPerWeek: 5, dailyHours: 8, occupationCode: '331301', contractNo: 'Q-7788' } });
+ok(r.ok, 'Qiwa contract terms are stored', r);
+r = B.call({ action: 'hrEmpSave', token: hrT, emp: { id: E5003, dailyHours: 20 } });
+ok(!r.ok && r.error === 'bad_value', 'impossible working hours are refused', r);
+const goodIban = iban('80000000608010167519');
+r = B.call({ action: 'hrPrivateSave', token: hrT, empId: E5002, priv: { nationalId: '1012345678', iban: goodIban, nameEnOfficial: 'SENIOR ACCOUNTANT' } });
+ok(r.ok, 'HR saves ID, a valid Saudi IBAN and the official English name', r);
+r = B.call({ action: 'hrPrivateSave', token: hrT, empId: E5002, priv: { iban: goodIban.slice(0, -1) + (goodIban.slice(-1) === '9' ? '8' : '9') } });
+ok(!r.ok && r.error === 'bad_iban', 'an IBAN with a wrong check digit is refused', r);
+r = B.call({ action: 'hrPrivateSave', token: hrT, empId: E5002, priv: { nationalId: '3012345678' } });
+ok(!r.ok && r.error === 'bad_national_id', 'a national ID must start with 1 (Saudi) or 2 (iqama) and have 10 digits', r);
+r = B.call({ action: 'hrPrivateSave', token: hrT, empId: E5003, priv: { nationalId: '1012345678' } });
+ok(!r.ok && r.error === 'duplicate_national_id', 'the same national ID cannot belong to two people', r);
+B.call({ action: 'hrPrivateSave', token: hrT, empId: E5003, priv: { nationalId: '2123456780', idExpiry: '2026-10-20', passportNo: 'P1234567', passportExpiry: '2027-12-01' } });
+
+const mgrT = tok('5001');
+r = B.call({ action: 'hrEmpFile', token: mgrT, id: E5002 });
+ok(r.ok && r.file.job.manager.id === E5001 && !('comp' in r.file) && !('priv' in r.file) && !('compHistory' in r.file) && !('documents' in r.file),
+  'a manager opens a report file with no salary, private or document keys at all', r.file && Object.keys(r.file));
+r = B.call({ action: 'hrEmpFile', token: mgrT, id: E5000 });
+ok(!r.ok && r.error === 'forbidden', 'a manager cannot open their own manager file', r);
+r = B.call({ action: 'hrEmpFile', token: tok('5003'), id: E5002 });
+ok(!r.ok && r.error === 'forbidden', 'a colleague cannot open another colleague file', r);
+r = B.call({ action: 'hrEmpFile', token: tok('5000'), id: E5003 });
+ok(r.ok && r.file.job.head.id === E5000, 'the department head reaches staff two levels down', r.file && r.file.job);
+r = B.call({ action: 'hrTeam', token: mgrT });
+ok(r.ok && r.rows.length === 2 && r.rows.every(x => x.direct), 'the manager team view lists exactly their two direct reports', r.rows && r.rows.map(x => x.empNo));
+r = B.call({ action: 'hrTeam', token: tok('5000') });
+ok(r.ok && r.rows.length === 3, 'the department head sees the whole department', r.rows && r.rows.map(x => x.empNo));
+r = B.call({ action: 'hrEmpFile', token: hrT, id: E5002 });
+ok(r.ok && r.file.priv.iban === goodIban && r.file.jobHistory.length >= 1, 'HR sees private data and job history', r.file && Object.keys(r.file));
+
+console.log('Compensation');
+r = B.call({ action: 'hrCompPropose', token: hrT, empId: E5002, effectiveFrom: '2026-10-01', basic: 9000, housing: 2250, transport: 900, other: { 'بدل هاتف': 200 }, reason: 'initial' });
+ok(r.ok && r.comp.status === 'pending', 'HR proposes a salary package', r);
+const c1 = r.comp.id;
+r = B.call({ action: 'hrCompDecide', token: hrT, ids: [c1], decision: 'approve' });
+ok(!r.ok && r.error === 'second_approver_required', 'the proposer cannot approve their own proposal', r);
+r = B.call({ action: 'hrCompDecide', token: mgrT, ids: [c1], decision: 'approve' });
+ok(!r.ok && r.error === 'forbidden', 'a manager cannot approve salaries', r);
+r = B.call({ action: 'hrCompPropose', token: tok('5002'), empId: E5003, effectiveFrom: '2026-10-01', basic: 1 });
+ok(!r.ok && r.error === 'forbidden', 'an employee cannot propose salaries', r);
+r = B.call({ action: 'hrCompPropose', token: tok('3002'), empId: ids['3002'], effectiveFrom: '2026-10-01', basic: 99999 });
+ok(!r.ok && r.error === 'cannot_change_own_salary', 'payroll cannot set their own salary', r);
+const payT = tok('3002');
+r = B.call({ action: 'hrCompDecide', token: payT, ids: [c1], decision: 'approve' });
+ok(r.ok && r.decided === 1, 'payroll approves it', r);
+r = B.call({ action: 'hrEmpFile', token: tok('5002'), id: E5002 });
+ok(r.ok && r.file.comp.total === 12350 && r.file.comp.other['بدل هاتف'] === 200 && !('compHistory' in r.file), 'the employee sees their own package and total', r.file && r.file.comp);
+B.call({ action: 'hrCompPropose', token: payT, empId: E5002, effectiveFrom: '2026-11-01', basic: 9500, housing: 2375, transport: 900, reason: 'raise' });
+const c2 = B.call({ action: 'hrCompList', token: hrT, status: 'pending' }).rows[0].id;
+B.call({ action: 'hrCompDecide', token: hrT, ids: [c2], decision: 'approve' });
+r = B.call({ action: 'hrEmpFile', token: tok('5002'), id: E5002 });
+ok(r.file.comp.basic === 9000, 'a raise effective next month does not show as current today', r.file.comp);
+r = B.call({ action: 'hrCompPropose', token: hrT, empId: E5002, effectiveFrom: '2026-12-01', basic: -5 });
+ok(!r.ok && r.error === 'bad_amount', 'negative or missing basic salary is refused', r);
+r = B.call({ action: 'hrCompPropose', token: hrT, empId: E5003, effectiveFrom: '2026-10-01', basic: '٧٬٠٠٠', housing: '1,750' });
+ok(r.ok && r.comp.basic === 7000 && r.comp.housing === 1750, 'Arabic digits and thousands separators are read as numbers', r.comp);
+r = B.call({ action: 'hrEmpFile', token: tok('1000'), id: E5002 });
+ok(r.ok && !('comp' in r.file), 'admin without payroll does not see the salary', r.file && Object.keys(r.file));
+r = B.call({ action: 'auditList', token: tok('1000') });
+ok(r.rows.some(a => a.action === 'salary_view'), 'salary views by others are audited');
+
+console.log('Documents and expiries');
+r = B.call({ action: 'hrDocSave', token: hrT, doc: { empId: E5003, type: 'work_permit', number: 'WP-1', issueDate: '2025-11-01', expiryDate: '2026-11-01' } });
+ok(r.ok && r.doc.id, 'HR records a work permit', r);
+r = B.call({ action: 'hrDocSave', token: hrT, doc: { empId: E5003, type: 'visa-ish', expiryDate: '2026-11-01' } });
+ok(!r.ok && r.error === 'bad_value', 'unknown document types are refused', r);
+r = B.call({ action: 'hrDocSave', token: hrT, doc: { empId: E5003, type: 'passport', issueDate: '2026-01-01', expiryDate: '2025-01-01' } });
+ok(!r.ok && r.error === 'bad_date', 'an expiry before the issue date is refused', r);
+r = B.call({ action: 'hrExpiring', token: hrT, days: 60 });
+const kinds = r.rows ? r.rows.map(x => x.kind + ':' + x.empNo) : [];
+ok(r.ok && kinds.includes('iqama:5003') && kinds.includes('work_permit:5003') && kinds.includes('contract_end:5003') && !kinds.includes('passport:5003'),
+  'the 60-day list has the iqama, work permit and contract end but not a passport due in 14 months', kinds);
+ok(r.rows[0].daysLeft === 16 && r.rows[0].kind === 'iqama', 'soonest first, with days left', r.rows[0]);
+r = B.call({ action: 'hrDocList', token: tok('5003') });
+ok(!r.ok && r.error === 'forbidden', 'an employee cannot list documents', r);
+r = B.call({ action: 'myFile', token: tok('5003') });
+ok(r.ok && r.file.documents.length === 1 && r.file.priv.passportNo === 'P1234567', 'the employee sees their own documents and passport data');
+
+console.log('Excel import');
+const base = { department: 'المبيعات', position: 'مندوب مبيعات', hireDate: 45566, nationality: 'SA', basic: 6000, housing: 1500, transport: 600 };
+const rows = [
+  Object.assign({}, base, { empNo: '7001', nameAr: 'سلمان العنزي', nationalId: '1098765432', iban: iban('20000001234567891234'), managerEmpNo: '' }),
+  Object.assign({}, base, { empNo: '7002', nameAr: 'تركي المطيري', nationalId: 1098765433, managerEmpNo: 7001, hireDate: '15/02/2025' }),
+  Object.assign({}, base, { empNo: '7003', nameAr: 'Ahmed Khan', nationality: 'PK', nationalId: '2123456789', managerEmpNo: '7001', hireDate: '2023-09-10',
+    contractType: 'محدد', contractEnd: '2027-09-09', passportNo: 'AB998877', passportExpiry: '2028-01-31', occupationCode: '524401' })
+];
+r = B.call({ action: 'hrImportValidate', token: hrT, rows });
+ok(r.ok && r.errors.length === 0 && r.summary.create === 3 && r.summary.departments === 1 && r.summary.positions === 1,
+  'a clean file validates, with the new department and position counted', r);
+const bad = [
+  Object.assign({}, rows[0]),
+  Object.assign({}, rows[1], { empNo: '7001' }),
+  Object.assign({}, rows[2], { iban: 'SA0000000000000000000000', hireDate: '31/02/2025', managerEmpNo: '9999', basic: 'abc' }),
+  Object.assign({}, base, { empNo: '7004', nameAr: '', nationalId: '1098765432' }),
+  Object.assign({}, base, { empNo: '7005', nameAr: 'دائري أ', nationalId: '1000000001', managerEmpNo: '7006' }),
+  Object.assign({}, base, { empNo: '7006', nameAr: 'دائري ب', nationalId: '1000000002', managerEmpNo: '7005' }),
+  Object.assign({}, base, { empNo: '7007', nameAr: 'Expat', nationality: 'EG', nationalId: '2000000003', contractType: 'غير محدد' }),
+  Object.assign({}, base, { empNo: '7008', nameAr: 'تجربة', nationalId: '1000000004', hireDate: '2026-01-01', probationEnd: '2026-08-01', annualLeaveDays: 30 }),
+  Object.assign({}, base, { empNo: '7009', nameAr: 'إجازة', nationalId: '1000000005', annualLeaveDays: 14 }),
+  Object.assign({}, base, { empNo: '7010', nameAr: 'مكرر', nationalId: '1012345678' })
+];
+r = B.call({ action: 'hrImportValidate', token: hrT, rows: bad });
+const has = (row, code) => r.errors.some(e => e.row === row && e.code === code);
+ok(has(3, 'duplicate_emp_no'), 'a repeated employee number is reported on its row', r.errors);
+ok(has(4, 'bad_iban') && has(4, 'bad_date') && has(4, 'unknown_manager') && has(4, 'bad_amount'), 'bad IBAN, impossible date, unknown manager and bad amount all reported', r.errors.filter(e => e.row === 4));
+ok(has(5, 'required') && has(5, 'duplicate_national_id'), 'a missing name and a national ID repeated in the file are reported', r.errors.filter(e => e.row === 5));
+ok(has(6, 'manager_cycle') || has(7, 'manager_cycle'), 'two people managing each other is refused', r.errors);
+ok(has(8, 'expat_contract_fixed'), 'an indefinite contract for a non-Saudi is refused in the import', r.errors.filter(e => e.row === 8));
+ok(has(9, 'probation_too_long') && has(10, 'leave_below_minimum'), 'probation and leave rules apply to the import too', r.errors.filter(e => e.row >= 9));
+ok(has(11, 'duplicate_national_id'), 'a national ID that already belongs to another employee is refused', r.errors.filter(e => e.row === 11));
+r = B.call({ action: 'hrImportCommit', token: hrT, rows: bad });
+ok(!r.ok && r.error === 'import_invalid', 'a file with errors commits nothing', r.error);
+ok(!B.call({ action: 'hrDirectory', token: hrT }).rows.some(e => e.empNo === '7001'), 'and nothing was written');
+r = B.call({ action: 'hrImportCommit', token: tok('5002'), rows });
+ok(!r.ok && r.error === 'forbidden', 'only HR can import', r);
+r = B.call({ action: 'hrImportCommit', token: hrT, rows });
+ok(r.ok && r.created === 3 && r.pendingSalaries === 3, 'a clean file commits all rows in one go', r);
+r = B.call({ action: 'hrDirectory', token: hrT });
+const s2 = r.rows.find(e => e.empNo === '7002');
+ok(s2 && s2.managerName === 'سلمان العنزي' && s2.hireDate === '2025-02-15' && s2.departmentName === 'المبيعات', 'manager, Arabic names and dd/mm/yyyy dates survive the import', s2);
+ok(r.rows.find(e => e.empNo === '7001').hireDate === '2024-10-01', 'Excel serial dates become YYYY-MM-DD');
+const k3 = r.rows.find(e => e.empNo === '7003');
+ok(k3.contractType === 'fixed' && !k3.isSaudi, 'contract type and nationality come through', k3);
+r = B.call({ action: 'hrEmpFile', token: hrT, id: k3.id });
+ok(r.file.priv.passportNo === 'AB998877' && r.file.job.occupationCode === '524401', 'passport and occupation code are filed', r.file.priv);
+r = B.call({ action: 'hrCompList', token: payT, status: 'pending' });
+const imported = r.rows.filter(c => c.reason === 'import');
+ok(imported.length === 3, 'imported salaries wait for payroll approval', r.rows.length);
+r = B.call({ action: 'hrCompDecide', token: payT, ids: imported.map(c => c.id), decision: 'approve' });
+ok(r.ok && r.decided === 3, 'payroll approves the whole import batch at once', r);
+
+console.log('Saudization (Nitaqat weight)');
+r = B.call({ action: 'hrDirectory', token: hrT });
+ok(r.saudization.headcount === 10 && r.saudization.saudis === 3 && r.saudization.saudiWeighted === 3 && r.saudization.saudiPct === 30,
+  'three Saudis at full weight out of ten', r.saudization);
+direct(() => { const c = B.ctx.readAll_('compensation').find(x => x.empId === ids['5002'] && x.reason === 'initial'); c.basic = 2500; c.housing = 600; B.ctx.update_('compensation', c); });
+r = B.call({ action: 'hrDirectory', token: hrT });
+ok(r.saudization.saudiWeighted === 2.5, 'a Saudi on 3,000 to 3,999 counts half', r.saudization);
+
+console.log('Re-import updates in place');
+const again = rows.map(x => Object.assign({}, x)).concat([Object.assign({}, base, { empNo: '5002', nameAr: 'محاسب أول', department: 'الحسابات', position: 'محاسب',
+  nationalId: '1012345678', hireDate: '2021-06-15', managerEmpNo: '5001', basic: 2500, housing: 600, transport: 900 })]);
+again[0].nameEn = 'Salman Alanazi';
+const before5000 = JSON.stringify(E('5000'));
+r = B.call({ action: 'hrImportCommit', token: hrT, rows: again });
+ok(r.ok && r.updated === 4 && r.created === 0 && r.pendingSalaries === 0, 'importing again updates by employee number, with no duplicate salary lines', r);
+ok(E('7001').nameEn === 'Salman Alanazi' && E('5002').managerId === ids['5001'] && E('5002').positionId === accountantPos, 'the updates landed on the right rows');
+ok(JSON.stringify(E('5000')) === before5000, 'rows in between are written back unchanged');
+ok(direct(() => B.ctx.readAll_('departments').length) === 3, 'no department was created twice');
+
+console.log('My file');
+r = B.call({ action: 'myFile', token: tok('5002') });
+ok(r.ok && r.file.emp.empNo === '5002' && r.file.job.manager.empNo === '5001' && r.file.job.head.empNo === '5000' &&
+  r.file.jd.purposeAr.indexOf('القيود') >= 0 && r.file.comp && r.file.isManager === false,
+  'the employee sees ID, both managers, JD and salary package', r.file && { job: r.file.job, comp: r.file.comp });
+r = B.call({ action: 'myFile', token: mgrT });
+ok(r.ok && r.file.isManager === true && r.file.teamCount === 2, 'a manager sees they manage two people', r.file && r.file.teamCount);
+r = B.call({ action: 'myFile', token: payT });
+ok(r.ok && r.file.roles.payroll === true && r.file.roles.hr === false, 'the file tells the app which consoles to offer', r.file && r.file.roles);
+
+console.log('\n' + passed + ' passed, ' + failed + ' failed');
+process.exit(failed ? 1 : 0);
