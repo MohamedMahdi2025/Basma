@@ -1,0 +1,2368 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>حضور الناقل الأفضل</title>
+<meta name="description" content="Best Gas attendance: check in and out at head office with your PIN or password">
+<meta name="theme-color" content="#1C2A1F">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="حضور Best Gas">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="48x48" href="favicon-48.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --brand:#4D6D51; --brand-2:#5E8262; --pine:#1C2A1F; --pine-2:#243628; --pine-3:#2E4433;
+  --cream:#F2EEE4; --paper:#F7F5EF; --ink:#17221A; --ink-2:#4A5A4D; --line:#DAD5C8;
+  --signal:#9FE0AE; --amber:#E0A043; --red:#C4513A; --card:#FFFFFF;
+  --r-s:10px; --r-m:16px; --r-l:28px;
+  --ease:cubic-bezier(.2,.8,.2,1);
+  --font:'Readex Pro', system-ui, -apple-system, 'Segoe UI', Tahoma, sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{font-family:var(--font);background:var(--pine);color:var(--ink);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased;overscroll-behavior:none}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+.hidden{display:none!important}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---------- splash / gate screens (dark) ---------- */
+.gate{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px calc(32px + env(safe-area-inset-bottom));color:var(--cream);
+  background:radial-gradient(120% 70% at 50% 0%, var(--pine-3) 0%, var(--pine) 60%);text-align:center;gap:18px}
+.gate .logo3d{width:min(62vw,260px);perspective:700px}
+.gate .logo3d img{width:100%;display:block;transform-style:preserve-3d;animation:logoIn 1.1s var(--ease) both;filter:drop-shadow(0 18px 24px rgba(0,0,0,.35))}
+@keyframes logoIn{from{opacity:0;transform:rotateX(38deg) translateY(28px) scale(.9)}to{opacity:1;transform:none}}
+.gate h1{font-size:22px;font-weight:600;margin:6px 0 0;letter-spacing:0}
+.gate p{margin:0;color:#C9D3C6;max-width:34ch}
+.gate form{width:100%;max-width:360px;display:flex;flex-direction:column;gap:12px;margin-top:6px;text-align:start}
+.field label{display:block;font-size:13px;color:#B9C6B6;margin-bottom:6px}
+.gate input{width:100%;height:52px;border-radius:var(--r-m);border:1px solid #3C5541;background:rgba(255,255,255,.06);padding:0 16px;color:var(--cream);font-size:17px}
+.gate input::placeholder{color:#7F9480}
+.gate input:focus{border-color:var(--signal);outline:none;background:rgba(255,255,255,.09)}
+.btn{height:52px;border:0;border-radius:var(--r-m);padding:0 22px;font-weight:600;font-size:16px;display:inline-flex;align-items:center;justify-content:center;gap:10px;transition:transform .12s var(--ease),background-color .2s,opacity .2s}
+.btn:active{transform:scale(.97)}
+.btn[disabled]{opacity:.5;pointer-events:none}
+.btn-primary{background:var(--cream);color:var(--pine)}
+.btn-ghost{background:transparent;color:var(--cream);border:1px solid #3C5541}
+.btn-brand{background:var(--brand);color:var(--cream)}
+.btn-sm{height:38px;font-size:14px;padding:0 14px;border-radius:var(--r-s)}
+.linkish{background:none;border:0;color:#B9C6B6;text-decoration:underline;text-underline-offset:3px;font-size:14px;padding:6px}
+.err{color:#FFB4A3;font-size:14px;min-height:20px}
+.pinpad{display:flex;flex-direction:column;align-items:center;gap:18px;width:100%;max-width:320px;margin:0 auto}
+.pindots{display:flex;gap:14px;direction:ltr}
+.pindots i{width:14px;height:14px;border-radius:50%;border:2px solid rgba(242,238,228,.55);transition:background-color .15s,transform .15s}
+.pindots i.on{background:var(--cream);border-color:var(--cream);transform:scale(1.08)}
+.pinpad.bad .pindots{animation:shake .4s}
+@keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.pinkeys{display:grid;grid-template-columns:repeat(3,76px);gap:14px 22px;direction:ltr}
+.pinkeys button{width:76px;height:76px;border-radius:50%;border:1px solid rgba(242,238,228,.14);background:rgba(255,255,255,.06);color:var(--cream);font-size:28px;font-weight:500;transition:transform .08s,background-color .15s}
+.pinkeys button:active{transform:scale(.92);background:rgba(159,224,174,.22)}
+.pinkeys button.fn{background:none;border-color:transparent;font-size:15px;color:#B9C6B6}
+.pinpad.busy{opacity:.55;pointer-events:none}
+/* the lock screen with the PIN pad fits one phone screen */
+@media (max-width:1023px){
+  .gate:has(.pinpad){justify-content:flex-start;gap:8px;padding-top:calc(18px + env(safe-area-inset-top));padding-bottom:calc(14px + env(safe-area-inset-bottom))}
+  .gate:has(.pinpad) .b3d{width:min(30vw,124px)}
+  .gate:has(.pinpad) .wm-ar{font-size:21px}
+  .gate:has(.pinpad) .wm-en{font-size:10.5px}
+  .gate:has(.pinpad) h1{font-size:19px;margin:2px 0 0}
+  .gate:has(.pinpad) p{font-size:14px}
+  .gate:has(.pinpad) .err{min-height:18px}
+  .gate:has(.pinpad) .pinpad{gap:14px}
+  .gate:has(.pinpad) .pinkeys{grid-template-columns:repeat(3,68px);gap:10px 22px}
+  .gate:has(.pinpad) .pinkeys button{width:68px;height:68px;font-size:26px}
+  .gate:has(.pinpad) .linkish{padding:2px}
+}
+.gate input.pinin{font-size:26px;letter-spacing:12px;text-align:center;padding:0 12px}
+.bio-icon{font-size:32px;width:64px;height:64px;border-radius:50%;display:grid;place-items:center;background:rgba(159,224,174,.12);color:var(--signal);animation:bioPulse 2.4s ease-in-out infinite}
+@keyframes bioPulse{0%,100%{box-shadow:0 0 0 0 rgba(159,224,174,.35)}50%{box-shadow:0 0 0 16px rgba(159,224,174,0)}}
+.langsw{position:fixed;top:calc(12px + env(safe-area-inset-top));inset-inline-end:14px;z-index:30;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:var(--cream);border-radius:999px;height:34px;padding:0 14px;font-size:13px}
+
+/* ---------- 3D medallion + animated company name ---------- */
+.brand3d{position:relative;display:flex;flex-direction:column;align-items:center;gap:14px}
+.b3d{position:relative;width:min(56vw,230px);aspect-ratio:1;margin:0 auto}
+.b3d canvas{position:absolute;inset:-22%;width:144%!important;height:144%!important;display:block;pointer-events:none;
+  -webkit-mask-image:radial-gradient(circle closest-side, #000 62%, transparent 98%);mask-image:radial-gradient(circle closest-side, #000 62%, transparent 98%)}
+.b3d .b3d-fallback{position:absolute;inset:14%;width:72%;opacity:0;transition:opacity .4s}
+.b3d.no-webgl .b3d-fallback{opacity:1}
+.wordmark{display:flex;flex-direction:column;align-items:center;gap:6px;line-height:1.2;user-select:none}
+.wm-ar{font-size:26px;font-weight:600;color:var(--cream);display:flex;gap:.32em;flex-wrap:wrap;justify-content:center}
+.wm-en{font-size:12px;font-weight:500;letter-spacing:.34em;color:#C9D3C6;direction:ltr;white-space:nowrap}
+.wm-ar .w,.wm-en .l{display:inline-block;opacity:0}
+.wm-ar .w{animation:wordIn .8s var(--ease) forwards;animation-delay:calc(.25s + var(--i) * .2s)}
+.wm-en .l{animation:letterIn .45s var(--ease) forwards;animation-delay:calc(1.05s + var(--i) * .022s)}
+@keyframes wordIn{0%{opacity:0;filter:blur(12px);transform:translateY(22px) scale(.94);text-shadow:0 0 0 rgba(159,224,174,0)}
+  55%{opacity:1;filter:blur(0);text-shadow:0 0 22px rgba(159,224,174,.85)}100%{opacity:1;filter:none;transform:none;text-shadow:0 0 0 rgba(159,224,174,0)}}
+@keyframes letterIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.wordmark .sweep-line{height:1px;width:0;background:linear-gradient(90deg,transparent,rgba(159,224,174,.9),transparent);animation:lineIn .9s .95s var(--ease) forwards}
+.splash .tagline{animation-delay:1.4s!important}
+@keyframes lineIn{to{width:min(260px,70vw)}}
+.gate .brand3d{margin-bottom:4px}
+.hero-logo.b3d-host{width:118px;height:118px;top:0;filter:none;animation:none}
+.hero-logo.b3d-host .b3d{width:118px}
+.aurora{position:absolute;inset:-20%;pointer-events:none;filter:blur(60px);opacity:.55}
+.aurora i{position:absolute;border-radius:50%;mix-blend-mode:screen}
+.aurora i:nth-child(1){width:55%;height:55%;left:5%;top:10%;background:radial-gradient(circle,#5E8262,transparent 70%);animation:drift1 16s ease-in-out infinite alternate}
+.aurora i:nth-child(2){width:45%;height:45%;right:0;top:35%;background:radial-gradient(circle,#3F6B4A,transparent 70%);animation:drift2 19s ease-in-out infinite alternate}
+.aurora i:nth-child(3){width:40%;height:40%;left:30%;bottom:0;background:radial-gradient(circle,rgba(159,224,174,.5),transparent 70%);animation:drift1 23s ease-in-out infinite alternate-reverse}
+@keyframes drift1{to{transform:translate(18%,12%) scale(1.15)}}
+@keyframes drift2{to{transform:translate(-20%,-14%) scale(.9)}}
+
+/* ---------- app shell ---------- */
+.app{height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+/* Only the content scrolls; the top bar and the tab bar never move, even when iOS bounces. */
+.app > main{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.app > .tabs{position:relative;flex:none}
+.home-wide{display:flex;flex-direction:column;flex:1}
+.app.on-home .topbar img{visibility:hidden}
+.topbar{display:flex;align-items:center;gap:12px;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;color:var(--cream);position:sticky;top:0;z-index:25;
+  background:rgba(28,42,31,.9);backdrop-filter:blur(14px) saturate(1.2);-webkit-backdrop-filter:blur(14px) saturate(1.2);border-bottom:1px solid rgba(242,238,228,.06)}
+.topbar img{height:34px;width:auto;filter:drop-shadow(0 4px 8px rgba(0,0,0,.3))}
+.topbar .who{flex:1;min-width:0;line-height:1.25}
+.topbar .who b{display:block;font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.topbar .who span{font-size:12px;color:#AFC0AD}
+.iconbtn{width:40px;height:40px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:var(--cream);display:grid;place-items:center;transition:transform .12s var(--ease)}
+.iconbtn:active{transform:scale(.92)}
+main{flex:1;display:flex;flex-direction:column}
+.tabs{position:sticky;bottom:0;z-index:20;display:flex;justify-content:space-around;background:rgba(22,33,25,.94);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid rgba(255,255,255,.06);padding:6px 6px calc(6px + env(safe-area-inset-bottom))}
+.tabs button{flex:1;background:none;border:0;color:#8FA38D;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11.5px;padding:6px 0;border-radius:12px;transition:color .2s,transform .12s var(--ease)}
+.tabs button:active{transform:scale(.94)}
+.tabs button i{font-size:23px;width:52px;height:30px;display:grid;place-items:center;border-radius:15px;transition:background-color .25s var(--ease)}
+.tabs button[aria-current="page"]{color:var(--cream)}
+.tabs button[aria-current="page"] i{background:rgba(159,224,174,.16);color:var(--signal)}
+
+/* ---------- check-in screen fits one phone screen ---------- */
+@media (max-width:1023px){
+  .app.on-home{height:100vh;height:100dvh;overflow:hidden}
+  .app.on-home main{min-height:0;overflow:hidden}
+  .app.on-home .home-wide{min-height:0}
+  .app.on-home .hero{flex:1 1 auto;height:auto;min-height:0}
+  .app.on-home .sheet{flex:none;margin-top:-14px;padding:16px 16px 12px;max-height:52dvh;overflow-y:auto;overscroll-behavior:contain}
+  .app.on-home .sheet .today{margin-top:14px}
+  .app.on-home .sheet .notice{margin-top:10px;padding:8px 12px}
+  .app.on-home .sheet .timeline{margin-top:10px}
+  .app.on-home .sheet .timeline li{padding:7px 0}
+  .app.on-home .punch{width:118px;height:118px}
+  .app.on-home .punch svg.ring{inset:-6px;width:130px;height:130px}
+  .app.on-home .punchinfo .clock{font-size:30px}
+  .app.on-home .readout{bottom:18px}
+  .app.on-home .readout .dist{font-size:38px;margin-top:4px}
+  .app.on-home .hero-logo.b3d-host{width:96px;height:96px}
+  .app.on-home .hero-logo.b3d-host .b3d{width:96px}
+  .app.on-home .plane{top:56%}
+}
+@media (max-width:1023px) and (max-height:700px){
+  .app.on-home .hero-logo.b3d-host{display:none}
+  .app.on-home .readout .dist{font-size:32px}
+  .app.on-home .readout .sub{display:none}
+  .app.on-home .punchinfo .date{display:none}
+  .app.on-home .sheet .notice{display:none}
+}
+
+/* ---------- 3D geofence radar ---------- */
+.hero{position:relative;height:min(58vh,440px);min-height:330px;overflow:hidden;perspective:1100px;perspective-origin:50% 20%}
+.hero::after{content:"";position:absolute;inset:auto 0 0 0;height:90px;background:linear-gradient(to bottom, rgba(28,42,31,0), var(--pine));pointer-events:none}
+.tilt{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .5s var(--ease)}
+.plane{position:absolute;left:50%;top:52%;width:min(118vw,560px);aspect-ratio:1;margin-left:calc(min(118vw,560px) / -2);margin-top:calc(min(118vw,560px) / -2);
+  transform:rotateX(62deg);transform-style:preserve-3d;border-radius:50%}
+.plane .grid{position:absolute;inset:0;border-radius:50%;
+  background:
+   radial-gradient(circle closest-side, transparent 0 49.4%, rgba(159,224,174,.20) 49.6% 50%, transparent 50.2% 74.4%, rgba(159,224,174,.15) 74.6% 75%, transparent 75.2% 98.6%, rgba(159,224,174,.24) 98.8% 99.4%, transparent 99.6%),
+   repeating-conic-gradient(from 0deg, rgba(159,224,174,.07) 0 .35deg, transparent .35deg 30deg),
+   radial-gradient(circle closest-side, rgba(77,109,81,.5), rgba(28,42,31,0) 100%)}
+.ringlbl{position:absolute;left:50%;top:50%;width:0;height:0;transform-style:preserve-3d}
+.ringlbl span{position:absolute;left:0;bottom:0;transform-origin:50% 100%;transform:translateX(-50%) rotateX(-62deg);font-size:11px;color:rgba(242,238,228,.62);white-space:nowrap;padding:1px 6px;border-radius:6px;background:rgba(28,42,31,.55)}
+.north{position:absolute;left:50%;top:0;width:0;height:0;transform-style:preserve-3d}
+.north span{position:absolute;left:0;bottom:4px;transform-origin:50% 100%;transform:translateX(-50%) rotateX(-62deg);font-size:12px;font-weight:600;color:var(--signal)}
+.bld{position:absolute;left:-17px;top:-17px;width:34px;height:34px;transform-style:preserve-3d;transform:rotateZ(45deg)}
+.bld i{position:absolute;left:0;top:0;display:block}
+.bld .tp{width:34px;height:34px;transform:translateZ(30px);background:linear-gradient(135deg,#FBF8F0,#DCD5C4);box-shadow:0 0 18px rgba(242,238,228,.35)}
+.bld .sn,.bld .ss{width:34px;height:30px;transform-origin:50% 0;background:repeating-linear-gradient(to bottom, #C9C1AE 0 5px, #8E9A86 5px 7px)}
+.bld .sn{transform:rotateX(90deg)}
+.bld .ss{transform:translateY(34px) rotateX(90deg);background:repeating-linear-gradient(to bottom, #EDE7D8 0 5px, #A9B6A2 5px 7px)}
+.bld .sw,.bld .se{width:30px;height:34px;transform-origin:0 50%;background:repeating-linear-gradient(to right, #B4AD9B 0 5px, #7E8A77 5px 7px)}
+.bld .sw{transform:rotateY(-90deg)}
+.bld .se{transform:translateX(34px) rotateY(-90deg);background:repeating-linear-gradient(to right, #DAD3C2 0 5px, #9AA893 5px 7px)}
+.hero.inside .bld .tp{background:linear-gradient(135deg,#F2FFF4,#B9E8C3);box-shadow:0 0 26px rgba(159,224,174,.6)}
+.hero::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;opacity:.07;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.hero.lockon .zone{animation:lockon 1.1s var(--ease) 1}
+@keyframes lockon{0%{transform:translate(-50%,-50%) scale(1.35);opacity:.3}60%{transform:translate(-50%,-50%) scale(.96);opacity:1}100%{transform:translate(-50%,-50%) scale(1)}}
+.plane .sweep{position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg, rgba(159,224,174,0) 0deg, rgba(159,224,174,0) 320deg, rgba(159,224,174,.16) 354deg, rgba(159,224,174,.42) 360deg);animation:sweep 4.2s linear infinite;mask:radial-gradient(circle, #000 0 45%, transparent 70%);-webkit-mask:radial-gradient(circle, #000 0 45%, transparent 70%)}
+@keyframes sweep{to{transform:rotate(360deg)}}
+.zone{position:absolute;left:50%;top:50%;border-radius:50%;transform:translate(-50%,-50%);transition:width .8s var(--ease),height .8s var(--ease);
+  background:radial-gradient(circle, rgba(242,238,228,.16), rgba(242,238,228,.05) 70%);border:2px solid rgba(242,238,228,.7);box-shadow:0 0 30px rgba(242,238,228,.18) inset}
+.zone::before{content:"";position:absolute;inset:-2px;border-radius:50%;border:2px solid rgba(242,238,228,.5);animation:ripple 3s ease-out infinite}
+@keyframes ripple{from{transform:scale(1);opacity:.7}to{transform:scale(1.55);opacity:0}}
+.hero.inside .zone{border-color:var(--signal);background:radial-gradient(circle, rgba(159,224,174,.28), rgba(159,224,174,.06) 70%);box-shadow:0 0 50px rgba(159,224,174,.35) inset, 0 0 40px rgba(159,224,174,.25)}
+.hero.inside .zone::before{border-color:var(--signal)}
+.hq{position:absolute;left:50%;top:50%;width:0;height:0;transform-style:preserve-3d}
+.me{position:absolute;left:50%;top:50%;width:0;height:0;transform-style:preserve-3d;transition:transform 1s var(--ease)}
+.me .shadow{position:absolute;left:-16px;top:-16px;width:32px;height:32px;border-radius:50%;background:radial-gradient(circle, rgba(0,0,0,.45), transparent 70%)}
+.me .halo{position:absolute;left:-26px;top:-26px;width:52px;height:52px;border-radius:50%;border:2px solid var(--amber);animation:ripple 2s ease-out infinite}
+.hero.inside .me .halo{border-color:var(--signal)}
+.me .pin{position:absolute;left:-19px;bottom:0;width:38px;height:62px;transform-origin:50% 100%;transform:rotateX(-90deg);animation:bob 2.6s ease-in-out infinite}
+@keyframes bob{0%,100%{translate:0 0}50%{translate:0 -6px}}
+.me .pin svg{width:100%;height:100%;filter:drop-shadow(0 6px 6px rgba(0,0,0,.4))}
+.hero-logo{position:absolute;top:8px;inset-inline:0;margin:auto;width:104px;z-index:2;transform:translateZ(90px);filter:drop-shadow(0 16px 18px rgba(0,0,0,.45));pointer-events:none;animation:floaty 6s ease-in-out infinite}
+@keyframes floaty{0%,100%{translate:0 0}50%{translate:0 -5px}}
+.readout{position:absolute;inset-inline:0;bottom:22px;z-index:2;text-align:center;color:var(--cream);padding:0 16px}
+.readout .state{display:inline-flex;align-items:center;gap:8px;font-size:13px;padding:6px 12px;border-radius:999px;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.1)}
+.readout .dot{width:8px;height:8px;border-radius:50%;background:var(--amber);box-shadow:0 0 10px var(--amber)}
+.hero.inside .readout .dot{background:var(--signal);box-shadow:0 0 10px var(--signal)}
+.readout .dist{font-size:44px;font-weight:600;line-height:1.1;margin-top:8px;letter-spacing:-.5px}
+.readout .dist small{font-size:16px;font-weight:400;color:#B9C6B6;margin-inline-start:6px}
+.readout .sub{font-size:13px;color:#AFC0AD}
+
+/* ---------- punch sheet ---------- */
+.sheet{position:relative;z-index:3;background:var(--paper);border-radius:var(--r-l) var(--r-l) 0 0;margin-top:-10px;padding:22px 18px 28px;flex:1;box-shadow:0 -12px 40px rgba(0,0,0,.25)}
+.punchrow{display:flex;align-items:center;gap:18px}
+.punch{position:relative;flex:none;width:132px;height:132px;border-radius:50%;border:0;background:var(--brand);color:var(--cream);display:grid;place-items:center;touch-action:none;user-select:none;-webkit-user-select:none;
+  box-shadow:0 14px 28px rgba(77,109,81,.45), inset 0 -6px 14px rgba(0,0,0,.18), inset 0 6px 12px rgba(255,255,255,.12);transition:transform .15s var(--ease),background-color .3s,box-shadow .3s}
+.punch.out{background:var(--pine-2)}
+.punch.pressing{transform:scale(.94)}
+.punch[aria-disabled="true"]{background:#DCE0D6;box-shadow:inset 0 0 0 1px #C5CBBF;color:#4F5D51;cursor:not-allowed}
+.punch[aria-disabled="true"] svg.ring .track{stroke:transparent}
+.punch svg.ring{position:absolute;inset:-7px;width:142px;height:142px;transform:rotate(-90deg)}
+.punch svg.ring circle{fill:none;stroke-width:5}
+.punch svg.ring .track{stroke:rgba(77,109,81,.16)}
+.punch svg.ring .prog{stroke:var(--brand);stroke-linecap:round;stroke-dasharray:420;stroke-dashoffset:420}
+.punch .lbl{display:flex;flex-direction:column;align-items:center;gap:2px;line-height:1.15;text-align:center;white-space:nowrap}
+.punch .lbl i{font-size:28px}
+.punch .lbl b{font-weight:600;font-size:19px}
+.punch .lbl small{font-weight:400;font-size:11.5px;opacity:.85}
+.punchinfo{flex:1;min-width:0}
+.punchinfo .clock{font-size:34px;font-weight:600;line-height:1.05;letter-spacing:-.5px;color:var(--ink)}
+.punchinfo .clock small{font-size:15px;font-weight:400;color:var(--ink-2);margin-inline-start:4px}
+.punchinfo .date{font-size:12.5px;color:var(--ink-2);margin-bottom:6px}
+.punchinfo h2{margin:0;font-size:16px;font-weight:600;line-height:1.35;text-wrap:balance}
+.punchinfo p{margin:3px 0 0;color:var(--ink-2);font-size:13px;text-wrap:pretty}
+.stamp{position:fixed;inset:0;z-index:60;display:grid;place-items:center;background:rgba(18,28,21,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);animation:fadeIn .2s ease both}
+.stamp .card{background:var(--paper);border-radius:var(--r-l);padding:28px 26px;width:min(88vw,340px);text-align:center;animation:stampIn .55s var(--ease) both}
+@keyframes stampIn{from{transform:scale(.6) rotateX(40deg);opacity:0}to{transform:none;opacity:1}}
+@keyframes fadeIn{from{opacity:0}}
+.stamp .tick{width:84px;height:84px;margin:0 auto 12px;border-radius:50%;background:var(--brand);display:grid;place-items:center;color:var(--cream)}
+.stamp .tick.bad{background:var(--red)}
+.stamp .tick i{font-size:44px;animation:pop .45s .2s var(--ease) both}
+@keyframes pop{from{transform:scale(.3);opacity:0}}
+.stamp h3{margin:0;font-size:20px}
+.stamp .time{font-size:40px;font-weight:600;margin:6px 0 2px;color:var(--brand)}
+.stamp p{margin:0 0 16px;color:var(--ink-2);font-size:14px}
+
+.today{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border-radius:var(--r-m);overflow:hidden;margin-top:22px;border:1px solid var(--line)}
+.today div{background:var(--card);padding:12px 10px}
+.today span{display:block;font-size:12px;color:var(--ink-2)}
+.today b{font-size:18px;font-weight:600;white-space:nowrap}
+.notice{margin-top:14px;font-size:13.5px;padding:10px 12px;border-radius:var(--r-s);background:#FBF3E4;color:#7A5418;border:1px solid #F0DDB6}
+.notice.ok{background:#EAF4EC;color:#2D5A36;border-color:#CFE6D4}
+.timeline{margin:18px 0 0;padding:0;list-style:none}
+.timeline li{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}
+.timeline li:last-child{border-bottom:0}
+.tl-dot{width:10px;height:10px;border-radius:50%;background:var(--brand);flex:none}
+.tl-dot.out{background:var(--pine-3)}
+.tl-dot.review{background:var(--amber)}
+.timeline .t{margin-inline-start:auto;font-weight:600}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:3px 9px;border-radius:999px;background:#EDEAE0;color:var(--ink-2);white-space:nowrap}
+.chip.in{background:#DDEFE0;color:#255B31}
+.chip.late{background:#FBEBD2;color:#8A5A12}
+.chip.absent{background:#F8DED7;color:#8E2F1C}
+.chip.review{background:#FBEBD2;color:#8A5A12}
+.chip.off{background:#ECECEC;color:#666}
+
+/* ---------- light pages ---------- */
+.page{background:var(--paper);flex:1;border-radius:var(--r-l) var(--r-l) 0 0;padding:20px 16px 28px}
+.page h2{font-size:22px;font-weight:600;margin:0 0 4px}
+.page .lead{color:var(--ink-2);margin:0 0 16px;font-size:14px}
+.monthbar{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.monthbar b{flex:1;text-align:center;font-size:16px}
+.monthbar .iconbtn{color:var(--ink);border-color:var(--line);background:var(--card)}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r-m);padding:12px 14px}
+.stat span{font-size:12.5px;color:var(--ink-2)}
+.stat b{display:block;font-size:24px;font-weight:600}
+.daylist{background:var(--card);border:1px solid var(--line);border-radius:var(--r-m);overflow:hidden}
+.day{display:grid;grid-template-columns:56px 1fr auto;gap:10px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
+.day:last-child{border-bottom:0}
+.day .d{text-align:center;line-height:1.1}
+.day .d b{display:block;font-size:20px}
+.day .d span{font-size:11.5px;color:var(--ink-2)}
+.day .io{font-size:14px}
+.day .io small{display:block;color:var(--ink-2);font-size:12px}
+.empty{padding:28px 16px;text-align:center;color:var(--ink-2)}
+.empty i{display:block;font-size:34px;color:var(--brand);margin-bottom:6px}
+.empty b{display:block;color:var(--ink);font-weight:600;margin-bottom:2px}
+.sk{display:block;height:12px;border-radius:6px;background:linear-gradient(90deg,#ECE9E0 0,#F6F4EE 40%,#ECE9E0 80%);background-size:300% 100%;animation:shimmer 1.2s linear infinite}
+@keyframes shimmer{from{background-position:100% 0}to{background-position:-50% 0}}
+.row .sk{margin:4px 0}
+
+/* ---------- admin ---------- */
+.adm{display:flex;flex-direction:column;flex:1;background:var(--paper);border-radius:var(--r-l) var(--r-l) 0 0}
+.adm-nav{display:flex;gap:6px;overflow-x:auto;padding:14px 14px 6px;scrollbar-width:none}
+.adm-nav::-webkit-scrollbar{display:none}
+.adm-nav button{flex:none;height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-size:13.5px;color:var(--ink-2);transition:transform .12s var(--ease)}
+.adm-nav button:active{transform:scale(.95)}
+.adm-nav button[aria-current="page"]{background:var(--pine);color:var(--cream);border-color:var(--pine)}
+.adm-nav .badge{display:inline-grid;place-items:center;min-width:18px;height:18px;border-radius:9px;background:var(--amber);color:#fff;font-size:11px;margin-inline-start:6px;padding:0 5px}
+.adm-body{padding:8px 14px 28px;flex:1}
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:8px 0 16px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--r-m);padding:12px 14px;position:relative;overflow:hidden}
+.kpi span{font-size:12.5px;color:var(--ink-2)}
+.kpi b{display:block;font-size:30px;font-weight:600;line-height:1.15}
+.kpi.lead-k{grid-column:1/-1;background:var(--pine);color:var(--cream);border-color:var(--pine)}
+.kpi.lead-k span{color:#AFC0AD}
+.kpi .bar{height:6px;border-radius:3px;background:rgba(255,255,255,.12);margin-top:10px;overflow:hidden}
+.kpi .bar i{display:block;height:100%;background:var(--signal);border-radius:3px;transition:width .8s var(--ease)}
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.toolbar input,.toolbar select{height:40px;border:1px solid var(--line);border-radius:var(--r-s);background:var(--card);padding:0 12px;min-width:0}
+.toolbar .grow{flex:1;min-width:150px}
+.list{background:var(--card);border:1px solid var(--line);border-radius:var(--r-m);overflow:hidden}
+.row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row.click{cursor:pointer;transition:background-color .15s}
+.row.click:hover{background:#FAF9F5}
+.av{width:38px;height:38px;border-radius:50%;background:#E4E9E1;color:var(--brand);display:grid;place-items:center;font-weight:600;flex:none}
+.row .main{flex:1;min-width:0}
+.row .main b{display:block;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .main small{color:var(--ink-2);font-size:12.5px}
+.row .end{text-align:end;font-size:13px}
+.row .end small{display:block;color:var(--ink-2)}
+table.tbl{width:100%;border-collapse:collapse;background:var(--card);font-size:13.5px}
+.tblwrap{border:1px solid var(--line);border-radius:var(--r-m);overflow:auto}
+.tbl th,.tbl td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:start;white-space:nowrap}
+.tbl th{font-weight:500;color:var(--ink-2);background:#FAF9F5;position:sticky;top:0}
+.tbl td.n{text-align:end}
+.form{display:grid;gap:12px}
+.form .field label{color:var(--ink-2)}
+.form input,.form select,.form textarea{width:100%;height:46px;border:1px solid var(--line);border-radius:var(--r-s);background:var(--card);padding:0 12px}
+.form textarea{height:80px;padding:10px 12px}
+.form .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.checks{display:flex;flex-wrap:wrap;gap:8px}
+.checks label{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 12px;border:1px solid var(--line);border-radius:999px;background:var(--card);font-size:13.5px;color:var(--ink)}
+.drawer{position:fixed;inset:0;z-index:50;display:flex;justify-content:flex-end;align-items:flex-end;background:rgba(18,28,21,.45);animation:fadeIn .18s ease both}
+.drawer .panel{background:var(--paper);width:100%;max-height:92dvh;overflow:auto;border-radius:var(--r-l) var(--r-l) 0 0;padding:20px 18px calc(24px + env(safe-area-inset-bottom));animation:up .32s var(--ease) both}
+@keyframes up{from{transform:translateY(40px);opacity:0}}
+.drawer h3{margin:0 0 14px;font-size:19px}
+.btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+.btn-dark{background:var(--pine);color:var(--cream)}
+.btn-line{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.btn-danger{background:#FBE9E4;color:#8E2F1C}
+.code{font-size:34px;font-weight:600;letter-spacing:3px;text-align:center;padding:16px;border-radius:var(--r-m);background:var(--pine);color:var(--cream);direction:ltr;margin:6px 0 10px}
+#map{height:320px;border-radius:var(--r-m);border:1px solid var(--line);overflow:hidden;z-index:0}
+.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:80;background:var(--ink);color:var(--cream);padding:10px 16px;border-radius:12px;font-size:14px;max-width:90vw;animation:up .25s var(--ease) both}
+.loader{position:fixed;top:0;inset-inline:0;height:3px;z-index:90;overflow:hidden}
+.loader i{display:block;height:100%;width:40%;background:var(--signal);animation:load 1s ease-in-out infinite}
+@keyframes load{from{transform:translateX(-100%)}to{transform:translateX(260%)}}
+[dir="rtl"] .loader i{animation-name:loadr}
+@keyframes loadr{from{transform:translateX(100%)}to{transform:translateX(-260%)}}
+
+.gate-brand,.gate-form{display:contents}
+.gate{position:relative;overflow:hidden;isolation:isolate}
+.gate > *{position:relative;z-index:1}
+.gate .aurora{z-index:0}
+.splash{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;position:relative;overflow:hidden;isolation:isolate;
+  background:radial-gradient(120% 70% at 50% 10%, var(--pine-3) 0%, var(--pine) 65%);color:var(--cream);text-align:center;padding:24px}
+.splash > *{position:relative;z-index:1}
+.splash .aurora{z-index:0}
+.splash .b3d{width:min(72vw,340px)}
+.splash .wm-ar{font-size:clamp(28px,7vw,44px)}
+.splash .wm-en{font-size:clamp(12px,2.6vw,15px)}
+.splash .tagline{opacity:0;animation:letterIn .8s 2.9s var(--ease) forwards;color:#C9D3C6;max-width:34ch;margin:0}
+.splash .bar{width:120px;height:3px;border-radius:2px;background:rgba(242,238,228,.12);overflow:hidden;opacity:0;animation:letterIn .4s 1s forwards}
+.splash .bar i{display:block;height:100%;width:40%;background:var(--signal);border-radius:2px;animation:load 1.1s ease-in-out infinite}
+.splash.leave{animation:splashOut .55s var(--ease) forwards}
+@keyframes splashOut{to{opacity:0;transform:scale(1.04);filter:blur(6px)}}
+.splash-skip{position:absolute;bottom:calc(20px + env(safe-area-inset-bottom));inset-inline:0;margin:auto;width:max-content;z-index:2;background:none;border:0;color:#8FA38D;font-size:13px;padding:8px 14px}
+.gb-scene,.gate-tag{display:none}
+@media (min-width:1024px){
+  /* sign-in: brand scene beside the form */
+  .gate{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(380px,440px);column-gap:clamp(40px,6vw,96px);align-content:center;justify-content:center;
+    text-align:start;padding:48px clamp(32px,6vw,96px);row-gap:14px}
+  .gate-form{display:flex;flex-direction:column;align-items:stretch;gap:14px;grid-column:2;grid-row:1;align-self:center}
+  .gate-form > .logo3d{display:none}
+  .gate .aurora{position:absolute}
+  /* no panel: the medallion, particles and name float straight on the page's glow */
+  .gate-brand{display:flex;grid-column:1;grid-row:1;flex-direction:column;align-items:center;justify-content:center;gap:26px;position:static;
+    min-height:min(78vh,720px);perspective:1000px;background:none;border:0;box-shadow:none}
+  .gate-brand .gb-scene{-webkit-mask-image:radial-gradient(closest-side, #000 55%, transparent);mask-image:radial-gradient(closest-side, #000 55%, transparent);left:30%;bottom:-10%;width:90%}
+  .gb-scene{display:block;position:absolute;left:50%;bottom:-38%;width:150%;aspect-ratio:1;transform:translateX(-50%) rotateX(64deg);transform-style:preserve-3d}
+  .gb-scene i{position:absolute;inset:0;border-radius:50%;border:1.5px solid rgba(159,224,174,.22)}
+  .gb-scene i:nth-child(2){inset:18%;border-color:rgba(159,224,174,.3)}
+  .gb-scene i:nth-child(3){inset:36%;border:2px solid rgba(242,238,228,.55);background:radial-gradient(circle, rgba(159,224,174,.18), transparent 70%);animation:ripple 3.2s ease-out infinite}
+  .gate-brand .brand3d{position:relative;z-index:1}
+  .gate-brand .b3d{width:min(30vw,380px)}
+  .gate-brand .wm-ar{font-size:38px}
+  .gate-brand .wm-en{font-size:14px}
+  .gate-tag{display:block;position:relative;z-index:1;max-width:30ch;margin:0;text-align:center;color:#C9D3C6;font-size:17px;line-height:1.6}
+  .gate h1{font-size:30px;margin:0}
+  .gate p{max-width:40ch}
+  .gate form{max-width:none}
+  .gate .bio-icon{margin:6px 0}
+  .gate .linkish{justify-self:start;padding-inline:0}
+  .langsw{top:20px;inset-inline-end:24px}
+
+  /* app shell: labelled side rail */
+  .app{padding-inline-start:112px}
+  .tabs{position:fixed;top:0;bottom:0;inset-inline-start:0;width:112px;flex-direction:column;justify-content:flex-start;gap:6px;
+    padding:92px 10px 20px;border-top:0;border-inline-end:1px solid rgba(255,255,255,.06);background:rgba(18,28,21,.96)}
+  .tabs button{flex:none;padding:10px 0;font-size:12.5px}
+  .tabs button:hover{color:var(--cream)}
+  .topbar{max-width:1440px;width:100%;margin:0 auto;padding:18px 28px}
+  .topbar img{position:fixed;top:18px;inset-inline-start:34px;height:44px;visibility:visible!important;z-index:21}
+  .topbar .who b{font-size:17px}
+
+  /* check-in: radar stage + control panel */
+  .home-wide{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(400px,470px);gap:24px;max-width:1440px;width:100%;margin:0 auto;padding:0 28px 28px;flex:1}
+  .home-wide .hero{height:auto;min-height:calc(100dvh - 120px);border-radius:32px;background:radial-gradient(80% 60% at 50% 55%, rgba(77,109,81,.35), rgba(28,42,31,0) 70%), var(--pine-2);box-shadow:inset 0 0 0 1px rgba(242,238,228,.06)}
+  .home-wide .hero::after{display:none}
+  .home-wide .plane{width:min(64vw,760px);margin-left:calc(min(64vw,760px) / -2);margin-top:calc(min(64vw,760px) / -2);top:56%}
+  .home-wide .hero-logo{width:130px;top:28px}
+  .home-wide .readout{bottom:34px}
+  .home-wide .readout .dist{font-size:60px}
+  .home-wide .sheet{margin:0;border-radius:32px;padding:32px 28px;box-shadow:none;display:flex;flex-direction:column}
+  .home-wide .punchrow{flex-direction:column-reverse;align-items:stretch;gap:26px}
+  .home-wide .punch{align-self:center;width:176px;height:176px}
+  .home-wide .punch svg.ring{inset:-8px;width:192px;height:192px}
+  .home-wide .punch .lbl b{font-size:24px}
+  .home-wide .punch .lbl i{font-size:34px}
+  .home-wide .punchinfo .clock{font-size:56px}
+  .home-wide .punchinfo h2{font-size:19px}
+
+  /* reading pages and the HR workspace */
+  .page{max-width:960px;width:calc(100% - 56px);margin:0 auto 28px;border-radius:32px;padding:32px}
+  .stats{grid-template-columns:repeat(4,1fr)}
+  .adm{max-width:1440px;width:calc(100% - 56px);margin:0 auto 28px;border-radius:32px}
+  .adm-nav{padding:22px 28px 10px}
+  .adm-body{padding:8px 28px 32px}
+  .kpis{grid-template-columns:repeat(6,1fr)}
+  .kpi.lead-k{grid-column:span 2}
+  .adm .list{display:grid;grid-template-columns:1fr 1fr;column-gap:0}
+  .adm .list .row{border-inline-end:1px solid var(--line)}
+  .adm .list .row:nth-child(2n){border-inline-end:0}
+  .adm .list .row:last-child{border-bottom:1px solid var(--line)}
+  .toolbar .grow{max-width:420px}
+  .drawer{align-items:stretch}
+  .drawer .panel{width:500px;max-height:none;border-radius:0;height:100%;padding:28px}
+  #map{height:440px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div id="loader" class="loader hidden"><i></i></div>
+
+<script>
+'use strict';
+// Apps Script /exec URL. The local preview server overrides it with window.BG_API.
+var API_URL = window.BG_API || 'https://script.google.com/macros/s/AKfycbz1XJ-WF6qnXiGtieQev6g53pAMThwCWhpp7r-pwbWtQi-ShJrpQIJUFHr17E3AryKG/exec';
+var BUILD = '2026.09.30b';
+// Brand artwork, embedded so the page never shows a broken image.
+var LOGO = 'data:image/png;base64,iVBORw0KGgoAAAAN' +
+  'SUhEUgAAAZIAAAFgCAYAAACR2P/oAAAAAXNSR0' +
+  'IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZ' +
+  'cwAADsMAAA7DAcdvqGQAAC4USURBVHhe7d2/8e' +
+  'TKud7xGwIzECNQMYBrMAR6cpmBGAK96zIAGcxA' +
+  'jEDFDMQArkFjq+Qtq9a4lkpUPXu2z+3zvP0XwM' +
+  'x0A1/jU+dsD4AB+t/b3cDg9y/fvn75FwAAjgoJ' +
+  'AADMCAkAAMwICQAAzAgJAADMCAkAAMwICQAAzA' +
+  'gJAADMCAkAAMwICQAAzAgJAADMCAkAAMwICQAA' +
+  'zAgJAADMCAkAAMwICQAAzAgJAADMCAkAAMwICQ' +
+  'AAzAgJAADMCAkAAMwICQAAzAgJAADMCAkAAMwI' +
+  'CQAAzAgJAADMCAkAAMwICQAAzAgJAADMCAkAAM' +
+  'wICQAAzAgJAADMCAkAfvbbgt8UtgMeLSQAN/ar' +
+  'H8Hg99++fvnjt69f/vLt65e//vDPE/6RHUfH1L' +
+  'F/9+O7/ByA2wkJwA0oYKgjV4f+5wsCxVkp0Ohc' +
+  'dE4EGNxKSAA2lALHn759/fK3Qke+KgUXAgu2Fx' +
+  'KADewaOHoILNhSSAAWpuCh5SEtFXknfDe6RgVK' +
+  'bu5jeSEBWIw6UnWoTwgeNX//MVP5dSF/gI8LCc' +
+  'AC1GGq41QH6p3q02kp7w8/lvc834CPCAnAB+ne' +
+  'gB6f9c4TZVrmY5aCjwsJwAcogHz6Ed2dKaBwLw' +
+  'UfExKAN9IPA+/01NWnKRjzxBfeLiQAb6AAwv2P' +
+  '1yGg4K1CAvBC6twIIO+jgMKSF14uJAAvoBvC3E' +
+  'T/HD0+zVNeeJmQAFxInZce433yb0BWoTLQkqKX' +
+  'EXBaSAAuol+hs4y1Hu6f4HIhAThJy1g8yrs+lr' +
+  'twmZAAnKBZCMtY+9Cj19yMx2khAThAI1uNcL2j' +
+  'wh70yhUvU2BYSAAmaUS7848K879uWJL+GJUoWP' +
+  'rnuZ3zQU/VsdSFQ0ICMEEj2ZWXsnSzPw8GOt/0' +
+  't9df3Wmm70l/1jcFoZWDjcqSG/GYFhKAAeqEV/' +
+  'tdSJpZpL+X/upAcZY6bAU25eNqT7cp6Pn5AlUh' +
+  'AehQB73KqFrnoRH/Hd6Am/7qo2ZPfp2fwFIXho' +
+  'UEoEH3Q1ZYyrr769NX+SGnAjXBBF0hAajQUsyn' +
+  'OzZ9/9WPq+p46X5GWm5KN9dH5PtefW7qxLVc5/' +
+  'nwTjwijK6QABRo+cg7mE8485iqZjC6Ds1m3rE0' +
+  'p+/QvYaz92vUifux3+0VARw3EhIAo87bO5ZP0Q' +
+  'zAz2+EOnM/1jupIz66FKeZjh/vE3hXF6pCApBZ' +
+  '5cZvTsFkdoT/6bcPH30diTruTy8nOoIJgpAA/L' +
+  'BiEEnUuer8NFuaGemnJ6MUjF7xI8L8x4np/omf' +
+  'Q486agWe1R4JzhFM8AshAdjsdSeaafj572rl4O' +
+  '0IJvhZSMDjrXJjfZRG7n4Nu/r0E1qzNLvza8AD' +
+  'hQQ82m5BJPHr2NVugYSnufBdSMBj7RpExK9lV7' +
+  'sFEiGYgECC73YOIuLXk8tvWqeXOIrurRy9IV6T' +
+  'XtCoY6fvyb9f//Z9cjsGEiGYPFxIwOOs8IO3s/' +
+  'yacr6tO/rblJJeILhrIBEFkyOPOOMGQgIeRQ1/' +
+  '5cdMR/l15Xxb1+vcZ/QCQe+7evuvrnd9uKmQgE' +
+  'fZveNK/Lpyvq27svPr5Wfvu3r774BX0D9QSMBj' +
+  'aEnHO4Fd+bXlfFvX69xn+LFd77vuEEiEx4IfJi' +
+  'TgET797qmr+fXlfNuSK24Uj+TpUwIJN98fJiTg' +
+  '9vRKkdXe33SWX2POty3RfaKjbxbWfSYt54zk6V' +
+  'MCifC3TB4kJODWVvrrhlfy68zNPEygjnym85vN' +
+  'zycFErnT62vQEBJwazu9Q2uGX2dutnMeHUkf+W' +
+  'uRTwskcnSmh42EBNzWKn/X4hX8WnMjnXP6caLu' +
+  'cyifRt4orG20bf4jRD+ue2IgOfO3WLCJkIBbus' +
+  'vvRWr8enO9zln5MjID6Rn5YecTA4mwxHVzIQG3' +
+  'dKdHfUv8enMjnfPoclaN9h1Z5ur9in7kXHfFI8' +
+  'E3FhJwOyMj5d35NedGO2f9LZAjwWTmhvuTAwmv' +
+  'ULmxkIDbGe3kdubXnJvtnH3/ltn7Tk8OJMKv3m' +
+  '8qJOBW9MSMN+Y78uvOzXbOvn8LgWTelW9bxiJC' +
+  'Am7jjj88rPFrz812zjPLLwSSeVc93ICFhATcxk' +
+  '5///ssv/bcbOc8M2ImkBzTywdsJiTgFjQb8cZ7' +
+  'Z379udnOeSaQzP5BsF4HOnuuu+LG+82EBNzCk2' +
+  'Yj4tefm+2cZwLJ7GPVBJL/1MsLbCQkYHtPm42I' +
+  '50FupHPWur2Cr2YYMyNl5bX20dNII0/H9TrPkX' +
+  'O9C2YlNxISsL0ndUaJ50Gu9H6xPHBc+fqOFFj0' +
+  'S+7Sgw69QFI61zvr5Qc2ERKwtdmbv3fh+ZBT56' +
+  '4OS64OHD36MWh6F5f0vnt2qWx3zEpuIiRga0+c' +
+  'jWh24fmwq6cFEmFWcgMhAdt66mxES1SeF7uafQ' +
+  'rsDpiV3EBIwLZGXmN+J5p9zTxhtQstfz3tqTtm' +
+  'JZsLCdjSk57U0lLWHQOIU5k+ZanyTsuTjxQSsK' +
+  'WnrK3rqaanLYPo9et3/lsyCa+Z31hIwJbu3tE8' +
+  'ZRZSo+B596VL/vjVxkICtnP3m+xa3nnaLKTm7r' +
+  '8z6T0ejUWFBGznzjdm7/RE1lXu/KcBuOm+qZCA' +
+  'rWik7o3xLggidXcdPHDTfVMhAVu56+iUv1nRN/' +
+  'Jurx09+V7YtkICtnLXm+z6YZ5fK37prk/qMRPd' +
+  'UEjANu782xFGpW2ard11EKFfuvv1YnEhAdu467' +
+  'KWaNlGLzz0a8ZP5V56s/CdMJDYTEjANu7+uwJR' +
+  'QJn9GyF39aRfuusxZ79+LCwkYAt3e1pLI2wFxt' +
+  'pyjT7X2vkTZym9d28p2Nb+/smudE2eD1hYSMAW' +
+  '9DoJb3y7UqeRzzg0A6kFlLS9lnfuPktR0GwFEH' +
+  '9ppba/UzDhx4kbCQnYQquD2U1tPbwXUERBRcsg' +
+  'd3lPk4KjgmTr0V4PILk7vYaeJ/c2EhKwhV4Huw' +
+  't1in5tTh3K6L0BbafHYndaAtPIW8Gjd89Lg4da' +
+  'AMndpW7w7q2NhAQsT52kN7pdzcwk1OFq9jG6fK' +
+  'PtUmBRMFInvMJymM5D56Nr6XX6+lznP3Ped/l9' +
+  'CY8BbyQkYHl3euzXr22UgulIR1ySAoz2V16qY7' +
+  '96BqOOPwUMdez6vtFzTfeAjp7TnQYaIzMwLCAk' +
+  'YHl3uT9y1dJFWhoaXf4akYJNonNVQEjyz3Kjsy' +
+  'X/Lh3/ysecj5zHilSufm1YUEjA8lo3Ynfyije9' +
+  'qiNWh6xgu3I+KejoHGeW9mb07rfsgtelbCIkYH' +
+  'ne2Hb1rmULLfWow1bgav1W5RXSbzz03TqHdz3S' +
+  'epf7JPyeZBMhAUu70/r30XsAV8nvYbSWrfJlIg' +
+  'Uh/9z3V8D49LXd6XdGfm1YUEjA0u70OwG/Nlzn' +
+  'Tn8189NBGQNCApZ2lz+1yh8wej3P813xw8QNhA' +
+  'QsTUsp3tB2pOvwa8O17vLkFi9w3EBIwNLu0jm8' +
+  '4okt/BKDDrxNSMCy7vSHrAgkr3eXQMIv3DcQEr' +
+  'CsO91A3fWHZuqcdzn3uzwCLH5tWExIwLLuFEje' +
+  '9RuSq/3PH+f/79++fvnXwucruVMgueoX/3iRkI' +
+  'Bl3enR310DyX+x61g5oNwpkOxaXx4jJGBZdAxr' +
+  'UPDIr+X//Zip+HafxsADbxMSsKw7BRK9NkSdw6' +
+  'paP4KrvX35//yYsfj2zr/rFfTL9pXfNTbrVe8k' +
+  'w0VCApZ1lxfx7aD1jidf3sr934Gb8Xd5e/M78Z' +
+  'Tf4kIClnWXxzl34fmf823d/yjsk2NQMIdAsriQ' +
+  'gGURSN6rtbw18sPQVjDRU0h3Wnp6NV4nv7iQgG' +
+  'WNdF64Ru9HcL59zb8V9k0UTCjTMfy6fXEhAcvy' +
+  'G6p4ndZspHazvURPdP23wjESva3AvxtRqzywgJ' +
+  'AAoElPZ3nAaOnNboDthQQAVUfvU7WWuIDthQQA' +
+  'RTNLWk6PBfvxgNsICQACPYHlwWFW7/clwLZCAo' +
+  'Bf+N+FoHCEXq3ixwZuISQA+E6/YJ+9sd7C8hZu' +
+  'KyQA+P7I7n8UgsFZI+/iArYTEoCH0xNW+v2HB4' +
+  'ErcJ8EtxQSgAe74qZ6S+u1KcC2QgK2ccXfcK+9' +
+  'euJPhW1H1I535nUgpR/0HX2lfuutvlrO8u2vVs' +
+  'uf3NlyLeVXor9RcrQcpPbOK53z0eP+vXA8bCYk' +
+  'YBtnfteQ1DoGNW7fdkRt6ebMH1kqnePRFx4qQP' +
+  'qxREHkVctZuZFAcjSIJ6X8kjPBPKn9XZCryxeb' +
+  'CQnYRu1V5Oqs8vcUtRq5PvPj6r1Gvl2iQOHvQc' +
+  'rV/rZ2awahjsSPk3d4pc4r37Z1bF1f7/x0A/wV' +
+  'N9ZLRgJJLUj+r04+JaUylVY9UB6nY9b+Xkprpl' +
+  'PbRxQY/bz9u/142ExIwBbUIXqDTdRh6PPUaGsj' +
+  'XHUMpY61tr14h5DT8oYfK2l1NKKgmJ+LgkPix3' +
+  'K18x1dMnn1fZFcbcaWtJa1/nth+xm1gYcv99UC' +
+  'mfb3YyYz5av/zpQvNhASsIXW6FKd0ciyV23ken' +
+  'RZq3Y80TnVOqhEge3I6LR2vrVlLKffd/i+r/Kv' +
+  'he/P1crNZwMexHvBvDXw0Cwp79j98+RT5YsNhA' +
+  'RsoTe6HGnUfkxpjYh7SrMb1+qoEp+dtLSW4UY6' +
+  'rXfcYE9GfpBYK7d8NtAKCrXOvjXwGDVSJleXLz' +
+  'YRErAFb5yJL520OhA/ptRGxLXte/T9aaSrEbPS' +
+  '1PnXOsxEgW7kb1DUlrVqgdIdfZvvEb37I60gng' +
+  'eIVpnWOuja0pPySeeVlO65SG1ZKy/fNBs6U74K' +
+  '/vnsqBYYsZiQgOWpsXnDTPzmcq2jrHVqtQ5A6b' +
+  '6Mkqt1YPkx/EZ97dySkfXz2rLW6JNAV74Cpefo' +
+  'spbkN8Nr+eb3OnK1AJHn8exMx7cfrXul7068PE' +
+  'fLER8WErC82uhyRqljaI2Ie2qjS99uhs+u3Nll' +
+  'Lal1sFerBe5cbblyVC2/WuWQl1trplO699Lafo' +
+  'TXwdJ5KiD592JBIQHLO9v51UZ5arS+7Yja01Fn' +
+  'Ap6usdR55VojeN+25mxejhhdZjvbMdfyq1YOXm' +
+  '61QFab6dS2H1F6YtCP5+eHhYUE4EFeHUj0+xRe' +
+  '1IjbCwnAg7wykBBE8BghAXiQ3g3hoxSgCCJ4jJ' +
+  'AAPMgrftWuv6jo3wPcWkgAHkSP5HogOEovfeQ1' +
+  '8XikkAA8zBWvSFEQ0a/k/djAI4QE4GHO3ifhpj' +
+  'oeLyQAD3NmeYsgAhBIgO90g9yDRI+Ws3qvPQEe' +
+  'ISRgC/oVs7/vCm2l17gkmlXM/oXEfysch/K5jv' +
+  '/yHQsLCdhC6z1TqGsFEwUG376m90r42ssvMY5A' +
+  'spGQgG288lfZd9V7eeLojffWb0U0mvbtMaf22n' +
+  'osKiRgG7WX8aGt9tLK5N8L+7hWQBr5405o8zcD' +
+  'Y3EhAdsovXYbY3odVe/mu/6Oie9DuVyHZa3NhA' +
+  'RsZfflLf9jV+/SuleS6J5J7Qa8Hvv17RN1gv59' +
+  '77T7jIhlrQ2FBGxl9+Wt0T9A9Sl6vLcWrH3bVd' +
+  'T+/PAuerNFLCgkYCu7L6PsMvos3YRf9b1atcC3' +
+  'C5a1NhQSsJ3dO47aX/ZbjWYn+Y341vLWp5z9K4' +
+  'uftsvAAiYkYDu7r4n3nqJajV7OmIL3ai9q1J+n' +
+  '9fzdCctamwoJ2I5G9N4gd7PLrCSnBwXE0z+l9T' +
+  'fsd8DfaN9YSMCWdr/pvtusZDW6r7D7Eqdm1n5d' +
+  '2ERIwJb02Kc3zN3sOCtZxe7Lm8JN9o2FBGxr9/' +
+  'VxRqTH7T4bYUa6uZCAbe3+xA5r5MfcYTY68gNR' +
+  'LCwkYFt3WCenQ5m3+w8QW+8twyZCAra2+1q5Ok' +
+  'W/JrTtvqSpGZVfEzYTErC13WcljE7neR7uhPK+' +
+  'iZCA7e18r0RB0K8HdbvfH2E2chMhAbew83KHXw' +
+  'vqdh40MBu5kZCAW9i5g2GUOm7nG+2U842EBNzG' +
+  'rrOSlV47srpd/zY8vxu5mZCA29j1FfO8AXaMHq' +
+  'zwvNsFbzG4mZCAWyn9HY3VccN9zK4DBd5gcEMh' +
+  'Abeikd+OjwOv/pcTV7Djizp5e8FNhQTczo6vF+' +
+  'eJnrZdfy/EDfabCgm4pR1vyrKOXrfj4IAb7DcW' +
+  'EnBLeoeVN+zVMSsp23E2ovPlNfE3FhJwWzv+5o' +
+  'BRbKSn2jyfVsef0L25kIDb0ohwxyUuBUBGsz/Z' +
+  '8QY7j3M/QEjArWmJa7dlEVEAfPKNWl37jj8w1T' +
+  'kzCHiAkIDb2/n1Kbpv8pRlEgV9zcZ2DCAJf1/m' +
+  'IUICHmHHJRKnJRM9vXSnp7t0LfrB3s7BI+FVNw' +
+  '8SEvAIu94vqVHHq9H7bj9kVODQDEuB/Q7BI+G+' +
+  'yMOEBDzGjvdLRoOflsAUWNRJr7S8onNRsBsNHC' +
+  'qfke1Wwn2RBwoJeJTd7pfonNVJ6bxHg4qoQ1Zw' +
+  '0bKR6Ob1K2/eK2Do+Poujc5nzlW0T7oXtNMfr1' +
+  'I+rxS48SYhAY+z06+k/dzTDekzM6sUZBIdLwWc' +
+  'Hm2b9js7c9D+Oqbf89G/fdtVvTI4Y2EhAY+0y8' +
+  '13P+/cjvca0r2dVge8SyB5ytN0KAgJeKwdfjHt' +
+  'o/UabaeZlq7pzGzlagocCnbqdEevZYfXxfNq+I' +
+  'cLCXisHZ7kOvpUlpbAFFjU4V2xDDVCeZnuy8wE' +
+  'Dqf9/dgr4TU2IJDgF1YPJld3WukpqtI9jyTPD/' +
+  '8sv4EvWqI6GjBqVi4PXb+fLx4oJODxVg4mT/vr' +
+  'iSu/tVl1hMd88V1IABYPJk9aj1/1vpVmhgQR/C' +
+  'wkAD+sHExaTzndxaqPZV+9vIgbCAlAZtVgcvdf' +
+  'T6/61gGCCIpCAmBWDSZ3XaNXEHnHU2WzCCKoCg' +
+  'lAgTrsFdfr7/ZKDj0mvOJMRE+z+bkCPwsJQMOK' +
+  'f65XHe/uryxXoF719yL8Yh1dIQHoWPVFj1oO2r' +
+  'HTUxBccRZyt9keXigkAANWvRks+pGcAsrK90/S' +
+  'K1xWvBciuv909Q8rcWMhARikjmbFm/C59Dr2FY' +
+  'JK+iNWCnR+nitRnq2QX9hISAAmqMNZ8b5JiYJe' +
+  'emHiO5Zs9FsXzTp2eiPx7vea8CEhAThAneaqS1' +
+  '0t6W+RqLP3vzWiTjX9ASzn24pG8jrWjvmgIPuO' +
+  '4IqbCgnAQas+Iow2Hu3FaSEBOGnVp5DwSyqjJ7' +
+  'xqBm8QEoAL6Mby6jeVn4yXLuJSIQG4kP7Wxy43' +
+  'mp9AwZ1ZCC4XEoCLpV9ts9z1Ocr7HX+siU2EBO' +
+  'BFtNzFzfj30810lrHwUiEBeDEtrXD/5PV0H4Rf' +
+  'p+MtQgLwJgSU1yCA4O1CAvBmBJRrEEDwMSEB+B' +
+  'AFFHWG3kGiTjfRCSD4uJAAfJhuDK/8ZtwV7PCG' +
+  'YzxISAAWkmYpPDr8Ux7oCSxmH1hOSAAWpJG3Ru' +
+  'BPe3w4LV3xGxAsLSQAG9Av5nd6PfsMXZNmHvwC' +
+  'HdsICcBm9Ppz/XJ+1ye/0qvsdV+IZStsKSQAm1' +
+  'Ng0VKQZiwr/gVHBQ3NOHSOBA7cQkgAbkjLROq4' +
+  'NXNRgFFn/splMR07/4NZ7/qrjMBHhATgYdTBp7' +
+  '98qHsv/pcPRTMIT0vyv5zIDAOPFBIAAJgREgAA' +
+  'mBESAACYERIAAJgREgAAmBESAACYERIAAJgREg' +
+  'AAmBESAACYERIAAJgREgAAmBESAACYERIAAJgR' +
+  'EgAAmBESAACYERIAAJgREgAAmBESAACYERIAAJ' +
+  'gREgAAmBESAACYERIAAJgREgAAmBESAACYERIA' +
+  'AJgREgAAmBESAACYERIAAJgREgAAmBESAACYER' +
+  'IAAJgREgAAmBESAOCA33/7+uXP375++U3hM4z5' +
+  '07evX/757euXvxY+W1pIAIBBv/r29csfvn398v' +
+  'cfHaD8sbAd+n6X5aEoX32bZYUEPIo6AvH0q6mR' +
+  'qGH8uvAZ1jBaNtpOs4+/WMdHIDlObfAfO+djSM' +
+  'BjpMqr6bR/dqUrRlo6hqb72vcdge9pfvujbJTP' +
+  '/lmiZSvv7EoUZHxftClvt87HkIDH0IhHFVadg3' +
+  '92Je98tAzi27RoBJwfQ/9/NpjomGq8o6Pwu1OQ' +
+  'Vt4qT/yzJF++qtE2Z8vmaVIQd1vVzZCAx/hbVm' +
+  'n9s6toVOUNpNVZlZRGa2du6Kqj07XT6f1EHVbK' +
+  '19ZNXuVVa1ZCYJ6nPC0F6FevElwuJGCqMWjbHT' +
+  'sjnXNecTUq8m2uUFpHn5my+3nK2RlUOqfWMs6T' +
+  '5MF+NG8VyFVnkpk2g5+kAY3Xb6Vt16eEhMVolP' +
+  'POBp+We0YaRlpymR1hr8Cn068KJD4jmZ0F+HmK' +
+  'AoFvN0odYOowz8xq7iTV+cQ/v9Ir27Pq2k4j+d' +
+  'JMe9t6GRIWkir4mY5DHdFox5VP8UduCKeKMLvm' +
+  'vwK/Af7KJ0T0XSpDOdJIfNR25BhJ3mmOjr7vzj' +
+  'u0M/nbckV7rsnb7sgg8NM8z5NXBdmXCwkLSWux' +
+  'Rxt86oBGn0xS8EgFOtKx5mvF/tnqfBQ6cr2foo' +
+  'GAykbneLaTU0M9W6/uJt1oT141O31lvudt91Xn' +
+  'f4XacpbMLPkuJyQswkfM/nmPd5TS64TyAm7ddJ' +
+  'R8BCQ7jIJyecOTkUB7F6luXHnN6gRWDsYtRwOJ' +
+  'rldtRoFBs4xWGzjbnnvya2h1yDqPK8t9hvqfUh' +
+  'D59HKWgpvy7NSj9SFhER4IRit3UnoSwrdx+bYq' +
+  'cP8852v/s+f3aX7voRc470BlljqcK29o6jhptH' +
+  '3VMd/J29pIQCwtzSgPasHEv+Pq9pKvDrTOP233' +
+  '7o5b35efY6L6WMuzd8hn6KJ+89D5hIRFeMWbWT' +
+  'v00U8qMN/O+T7+eS69E+fI+a3g04FE+ZUeJVXl' +
+  '1fdf3bnkUgDRd7U6mhKdV+ueWT67260eiLe1Xv' +
+  '543cnV7n/4d1yZT+kBiqT28EveL7TK82reWYv+' +
+  '/c5zKPHBcHKoLwgJb6KKpc64NjLwiter3Dlfdp' +
+  'LWdDfxwvbPc2fObwX+WO27HhhQ2fhSSu7KDuYK' +
+  '+WyjNlLLH3HerR6Idyi1jjgpzfZzpQHBK9uLB7' +
+  'ZaR5gP/moB72qet6pLuvZPz1z9vJxv3xUS3sAr' +
+  'VamT921mK546pFThR9dEvYMrNYjk7PmtID9/8c' +
+  '+vVhqZudqNWDU8NX59LurszjRGHavXYUo+2yjV' +
+  'U8k71lontrLRjjjxMnOltjDbXjTAVBmp7dYCeD' +
+  'J6/nn77i1dXyGfKamO1OrPu/kMztXaYFNIeLHS' +
+  'bKFU8L48NdLoz5oJJH5+7xrhXMk7df/8Sr4U2O' +
+  'IBovaky9HOIC87/8zls41aHczP6V0zuyuNdsTS' +
+  '64Rq+eTtpbRNovLOg7Pqaast+uxafBvx9u2fX0' +
+  '15pXq/SgCR9Nu3lK8qB5+d9IJ8UUh4MR+Z1E58' +
+  'pnJfxW8gtpZZPnF+V/OG1WqsR6mR+/f0+HmU6k' +
+  'xSqjs9eXDw73J5sK2VsZ+Tf76D/PxbI1Kv9yWl' +
+  'fPL9StskpfJutUXx7f1z8SW53kznSmoHygPNcE' +
+  'X/7wOmd0htUWWc31bQ+ShtdPUmCAkvVupUSo3Z' +
+  'Rz6tincVr8CtTspnVkdHx5/kZVEqhzNqMwkFbO' +
+  'Vt3qHn8mN4PjtV/tkGme8/U8a1DtbPqXbfb2V+' +
+  'Df55Uhr9u1JbnWnP3uFLr4x9n1KQuLq+65pUf0' +
+  'rflegzH6Am717uSrNCDyKXCAkv5r9faFWofLta' +
+  'I77STCARrxj++dVU8Wt82xG+3NQb9eXUsFuNoB' +
+  'RE9G9vdN7IvJx9JFsyc/0eHFpLkqVO07eRqzuo' +
+  'njS6LTnaQXhH7J/nvN642qg238bLOfGAIyODtJ' +
+  'Ey8G2OPjWlY+fHqvUTah++fFzSakdXSuX2ku8L' +
+  'CW+QHv3UhbVGGp7h/vnVvNNqreOKVxL//IzUUe' +
+  'scvEOu0Xa9EVJuNnAmauyp4/HPpBRE/Oa4zrHU' +
+  'Ifk5+MCjZCYAehm3BjLiZVyqr95B+TWcpbxSPi' +
+  'joeYdfonPWtjM/MPNrKHXEufSmAf3Xg3Otg/bz' +
+  '9M8Tn6n2zkV8QFLax+vbTDml+x2l/C8dx+87tK' +
+  'i8RtvsGWmw4emXCAkL8ULzz1tU8KrQaiAq6JGR' +
+  '2mwnM9v4RugY3iiOqI0Kc95JlxqEy0dZpVFlLY' +
+  'joMzUW7e8dRVJqUB7sSkbOOz8//07fJjdSxmc6' +
+  'qBbllX//LF3fyAjUv6d0nSXKT6+vtX1n2rPOWf' +
+  'lYO5bzelIqA9+m175H89/z1x8sGFE6362EhIV4' +
+  'IY5WqtpooNe5+rS6V9G8Qxw9vxJ1oH69s9SBp8' +
+  'BZGxXmZgKnGodfr6+1loKI/q2OxjuRktLMws+x' +
+  'ZLYR+v7+ec47n1IZ+zatfByh7xjJrxadg8prtD' +
+  'P2a+jlaRrw+Iyt9dSa1++R8xo1MijyfqFXTh4g' +
+  'S3T9Puvz6xzRWmLdQkhYiBfISMXrjQZ6wSTftj' +
+  'da9cY3cn4lPqKtSUsWKVDo+45+p5Q6aZ2L8lCf' +
+  '6Xv0b+8snDoPldWZzs9HdTkPTm42D7xe+Swo55' +
+  '3PFR1UjTokP7ca5XV6aEHfrzwYmXXXeF1Wmacg' +
+  'JGkpywcTrjQYSPzaZsutxetyqZx8m1bQE5WHjl' +
+  'Or17qeUp77diqnVEZpudq3OVpnlhESFuIdbKuS' +
+  'JrVCz/k+uZltvfH5yKSn13Hos9Sxtzq7M/w730' +
+  '0dVq9DUT6ljkx54R33bL57nre+f2T93zuokZvD' +
+  'Lr/v5JRHOufUsc9e74jeAGxEb5B2pD2P8tWEUi' +
+  'DxbcS3qVE9SEFVau0xry+lh0sSr8MEkhfyjrpU' +
+  'OXJeODW+X85Hv/55zjsQ/7yltAwkqlC6jld0Fi' +
+  'X+/e/kN+BHKG/yGdKRBuj1qhVIJP++0rYebMS3' +
+  'adExfdanfyt/ruxsW7wuz+oFEfF877XnWfmxaz' +
+  'NcP2///Aqp7Dzd5bO7q/PiarWA+LOQsJCRdc+c' +
+  'jzRLemuRfoxSx5Hkja+3DOY8iOh7W9/1Kn4ePd' +
+  'reO70ZGnWr0+lWTKPRpJeNlJYWenzA0TtGPlOo' +
+  'bevn5Z/XKB88P9UJzebPWf4Qwiide63TdrPtOa' +
+  'eAWsv7JD92rS35rK93zCNGyy5ve6N5+C7pYSX1' +
+  'l6l+1vL0u5DwZsrAWmH6KKkX5b1BlvQK2TurVu' +
+  'bljW9mZJxP8XXO7xp1lvj1tui8dc0qr5G8FjXc' +
+  '9ChqKy9rVD9q6/K9+lDj9co/z+VBpzVY8Hz0z2' +
+  'vyzqS1FPIOnr8tygsFgpkZpef7SPnp+Km99AJP' +
+  'Xga1PsXL6UidvILXq5l8fAXlg/LX8yfXrJsh4Y' +
+  '3STafaLMErXq+z9gt3vahfWmIorYkn+QirV8mT' +
+  'PPjou2oV/l183Tqn86v9HkGVSumlJ7L07zP3dV' +
+  'QOvZv86nT9nGbk1+ifJT5zaS3f+A1U/7wkvy9x' +
+  '9nqu4OXodI7pnt2Rc51tz6o/eaDttbH8/P2zxJ' +
+  'fX/PNXywNjMhJQr6Q+R3Vb59EKHLnufb+Q8CZ5' +
+  'w6tVqJm1Z1XuVkOofYcKVh1ibYnH99P2KgTffr' +
+  'Rh5RX53RWoJD8f/b/yfPRaSsfIjzV6nJHRUO6K' +
+  'TjeVn5evlBq7tAKj54F/XpJfb2+Q8w75+ahMrh' +
+  '7kjLZnfa/ahg8kanmkc81nrbWBqfjgwD8/S+dS' +
+  'muUorXRN+nerXvVo3/SdfpyUrrqZ2pd//6ha3v' +
+  '8sJLyYjzKk1aH6BWlbZU56iqdUOC1HHlXV+bYK' +
+  'oXX+Lm+srRHuu+QBvTX7avFONFF+6Xr1Hakyix' +
+  'q60kcDR+6qPEsdT37NCiA6v1I59743H22XglNJ' +
+  'fvxPLm8mI/eCzvJ8Vd3Qtae23GqX+iwtkaa6VN' +
+  'q+1enlT25pX//8CPVpteXXnqNtTnyG9ypD+RQS' +
+  'XqTVSJXu2ye+7YpKI5Ca/Po/vTbq9zpmriNXCy' +
+  'RXUud89PxK1IDTaLA2Ak6603obbfeCjuQdWro+' +
+  '3+adXj1STzxvrzaSj2nb1sxllIJgrd70zAxAne' +
+  'rb0e+d1QrMPwsJF0tLQaWRQ+JTstyRUesZpSWN' +
+  'ltkRhe9/xTLNEd4AhkYdFaUli6sof14xWv+vP8' +
+  'q6VS9lZukh7TMymi+NJkcC0Cv4QOBMB9fzyvas' +
+  'shrJ+7QicrZeefCdcSaPS6s6V1DZqC7kfcNwvx' +
+  'ASLlJbE3S9EcTslFEZnC/XjNJ5psjb61yS1kyq' +
+  'xo8hOueRBnAFlUupMZ9tVLMBuEVloeNdnSdqgK' +
+  '37YW42yOvYowOLUiAR1d2Z7zyjNMCbCZxHzLTn' +
+  '0XJKRutwWkrz9Bk+oxyl/B4a4RvVCZ13qe0eof' +
+  'NQXVN99XaW183hcw0JJ6gC1tYtS0ZGEKNRP907' +
+  'yc9lJNN1Dto3bzw6TisA6ri9865pNQ4/j6ukNe' +
+  'VauZwZHeV8ZDtKeZ2eDjuarzWzwSNRGb+yQ2/N' +
+  '4pQfysurvz91Rq0n4oY7joNG2nO6fm0/EnjeOR' +
+  'AT5WOtLdUcCSAqq959oxblY7oXqTJPs41evUqD' +
+  'wt4g/xdCwiQVoL54tqHKaMb6vZWUQfpedRKtzl' +
+  'efpY5U2+c3flsjmBQUtX0qBJ1v67tGjIzc0xTz' +
+  'aOPQfsqX/MdENVcFkSQtZaYb6ul78kqtz3R9rw' +
+  'gccjR4iBrtlfdiWnrnlwLsmXqX6n7vu2S0PZ7V' +
+  'a895R6f/L61spBF1qw2/ig9QVUapzqg+6/+Vl/' +
+  'rvbP3W9qXrrVG56nvSQwhytK4k6fqmzj0kDNIJ' +
+  'n4mU76q0q2mNRFuU1z66yJ9+OlIWn1qTf4UzwU' +
+  'OOjBjPGhmdl+gaU7mnQVH6t4x2Qom2/0SHvCPl' +
+  'U553V9YZP3aPyu1s0ChRIJu+rpAwQKMEv6hR75' +
+  '6GrkgdnufLO92l41A9PBM8JI34e9P9VxlZunkl' +
+  '2uM4X9Ka7mw7ZgcWV3//KSFh0GwD+MSIb2UaRX' +
+  'oevVpae/5Up3klXcPsyDvlwaeWREp0Hb5U8g60' +
+  'x3l5m33VbF4Do169Vn1ZLviHhAlpLdwvNK15pr' +
+  'Xw5S56Efljdq+UOs87BJBk5GGKVA/T/a2V6+G7' +
+  'BhYKIKNPluE/qb6ltqo8fHVbSk+WKWBdeY/2ZU' +
+  'LCCe+6SXknqpCqJEfucbSsNvJ+BzWylYNFj85/' +
+  '5kbrKNWtVzxO/SQql5Sf9HMFIQEfo4aebpzOBJ' +
+  'Y08lZnkZ4W8WNjL+kx3dmb5+mhDNUjHYPgcV5+' +
+  'T/hVS1rbCwlYSnp82S07xcXLpEdL3auXWZ4uLT' +
+  'u+Y0lrWyEBAPBd/lAHM/2GkAAA+C7NRljS6ggJ' +
+  'AIDv9IQbj0kPCAkAAMwICQAAzAgJAADMCAkAAM' +
+  'wICQAAzAgJAADMCAkAAMwICQAAzAgJAADMCAkA' +
+  'AMwICQAAzAgJAADMCAkAAMwICQAAzAgJAADMCA' +
+  'kAAMwICQAAzAgJAADMCAkAAMwICQAAzAgJAADM' +
+  'CAkAAMwICQN+/e3rlz82/P7b1y+//bGd79vix+' +
+  'nx/Vt0Lr8rHENpvm1N77pLlA9+nKvofHT8P/z4' +
+  'rj9l3/ubwvYzatc6W6a5X/04Xz+mykCf+favon' +
+  'Mo1YWrykrX4sc+k3dqT34sP++j5+7Hyh1tx/80' +
+  '/nmNf3+Lzs33d6W6llMd0DbvrHtql6XzuuI8Uv' +
+  'vy+nKmfgwLCQN0Ul5Zav460an5vj2+f4ky9y+F' +
+  'fXP/+NEJ+75u5roTFaQf5yw17D8Xvsv9/UeQ8f' +
+  '1H1I4/kk9OZVA73tljz1ADU5749+ZUF1RmZxq1' +
+  '9vfjivLAtx2hNuTHKtG1zdY3P0bNmXbsn9f4fi' +
+  '06H9/f1crBqcxVNmfKvEd9R68cj55H6g+0vx8z' +
+  'p/oxEoAPCQkDZjtUXaAfo8T36/H9nQrkb4X9an' +
+  'od2ex1y2zD7lFF8O/ome3AlG+1Sqn02Yo+UwYj' +
+  'HcSs2Xog2n72OpNa3sns6F56HZCbqXO+b4uua+' +
+  'T8fT//vMb3axmpJ6OBJFGZ+zHOGhnIOp3HSD7L' +
+  'kf5g5vjDQsKAUoeapk9p2lb63I/jfB91gD4FzP' +
+  'n+zjNZGZim61Iq4FbnUVru8f39nEeue1Qp39Ns' +
+  'SteVlmtKnebMEl7punIzsxw/Z51vXgY6dz/+1Z' +
+  'W8lB/qiHSdrTwbqWPO65wHlSPH9ECiOpa3NZ9l' +
+  '6d9+jBq/5nRcXUdpFjlS9r6Pf17j+3lby42MrL' +
+  '0eq4zT9ek6PF9ldNY1qtTHpJljqnul8xgZ/Gl/' +
+  '3y/1B7q+dHyvH3JmoFQUEgZ45yC+jTfMkc7Bj3' +
+  'm2E/aKpALzY6b7C8nIeeauPucWr3CtEaJXYP3b' +
+  't6nJK56+Q3mUH2umoyrt63l0tgxaSo2t1hl6ns' +
+  '1cZ+KN1q9/dHae83JXHuWfK7/8Gv0YNb39PNCP' +
+  '1KPeMWuO7ldTav++jfdTXjfPKJVLLUB4PZFeR+' +
+  '/n3goOXo4yM7jsCgkDSoFEhZT4BZYKsMSPqePk' +
+  'x016S1CJjw5dOp4K8Wjn5ce8siI6/65LK8IPnm' +
+  'fK69JS1+h3l+pKLpXx1QEk8QbUWr7QdaYRa+Lb' +
+  'tPi1pk7D825kNJ3rBRL/XvFj1PT28+Dq313SO2' +
+  'aN7+ftfrb99wJJqV7PlnmLtyWpdfSlulfbNm3v' +
+  'x+61Se+XR/NxSEgYUKq4NSq8VobkfN8arxA1s2' +
+  'vjtdFCix/jyoqYK+W5d7ylbWbPzTut9B2+zDFa' +
+  'BqV9W46UQYtfz9XHz3mnm5ZJPJjNznT8GrR/6l' +
+  'RL9XvmGn3fvMP2TlZG6pDv45/X+H41o3XPA4mu' +
+  'J78+P67ydbSvGuH1fvS8R5Taum/jvB5eeT4vDy' +
+  'SiAhxZe/T9amYyQBVDMw5fcqiZHS36/iMN7Qjl' +
+  'X++7euXi2zvfP1/GKH2/B7IW5Wup0yupLT0d4R' +
+  '3GTN2Z4csY+ff4Z9Iri5xfQ4u2nekMff+adG/L' +
+  '9y/xff3zGt+vZrQMPZC0qH8Y6aNmeMc9O4Bo8b' +
+  'YqvfboA52RZcphIWFA6SLyz3VBftIjhe/HnGls' +
+  'o/LnuFXQPuqane6945wT/y5fZtC1tUZcvQ7GR1' +
+  'A9MyPfXCoDBYxSGVxZwb0zad1XUv7k+Se1bd1s' +
+  '3s1cY6ksS46MqP0YNTPB3ff1z2uO7lfjZd9ydR' +
+  'CR0v25Vv+gOpHXvda24sf2/iCn6/N2NlOmXSFh' +
+  'QC+QiBdia2068WP2MrJnJON81DDbOV59zi0enK' +
+  'VWefy6evlfGjWP6HVcPgsplYHfaBwZdIwq1VWd' +
+  'k5eT/u0d9ugIsrTWPmI0SPl5pae21FH5915Rf6' +
+  'UUGEc7W9/PP685ul9NqQ9K1+f18kgQ7im1qdLM' +
+  'Tvnq+a3teudT6w98v9L1Sq/+6Tg616F7yCFhQK' +
+  'lx6gISr/gyMgLzfWo325NexfbCScdUJ6vPSufp' +
+  'hdzj+3sHdSUVpncckq/9liqM9G7ElQKP57f499' +
+  'cCWeJBIh27VQalYHNGqR4krSXPXp4lpQ7L862U' +
+  'd6OzX8+jPM9LN3Rn6rDvm9JL9xdHO9vaMXt8P8' +
+  '8/12v/Xi7aJ31WGqGP9FGz/Bxynr+5kbpRuoYk' +
+  '5ZGnJ712K/n+3cAWEgaUAkmLTqJX6OL79fQ67V' +
+  'JjaJkdzYkfo3dOZ6XlK//ell7H4iPqVqXxgDMy' +
+  'am915O5IGYzw8+7p5VnOg1Ft9OZBtZXPOS9v7w' +
+  'Q8f0fbm/h155+VBi4jnW3rmC2+X0+vrXknngcS' +
+  'KQXhqwcxovPwfGyZaQOz/YHOY/Qa/ZybdSokDB' +
+  'gJJGmUrEysNSznx+jpVSRJ07NWZqtxjI4+nR9r' +
+  '5JyuoO/ReXsnliiAlqa5Jd7BtSpyabo+0ulqm9' +
+  'JUPFH5jBznDJ27rq2WZ6qzCjij9VW8M2rlncrC' +
+  'v3OkUXvd9UBSGjCNBHjx8/HPS+v8/v3Ot/fPa3' +
+  'y/nl5b6wUSKQ0wmh3mQSojnY+XU6K6p7pz9Ltb' +
+  '/UHqi1VXR/qDJM+/7gAiJDyACutoga1K19NrWC' +
+  'tRZ/3p81Wj0jnMNC7gCqnuzQxaZlzVx+k8h84x' +
+  'JAAAMCMkAAAwIyQAADAjJAAAMCMkAAAwIyQAAD' +
+  'AjJAAAMCMkAAAwIyQAADAjJAAAMCMkAAAwIyQA' +
+  'ADAjJAAAMCMkAAAw4/8DVbT1LApBwJ4AAAAASU' +
+  'VORK5CYII=';
+var MARK = 'data:image/png;base64,iVBORw0KGgoAAAAN' +
+  'SUhEUgAAAGkAAAB3CAYAAAAAXm7RAAAAAXNSR0' +
+  'IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZ' +
+  'cwAADsMAAA7DAcdvqGQAABmuSURBVHhe7V0JlG' +
+  'RVecYNkWjcMBLiFsUlKu4aFRWGCKiISwRjVFB2' +
+  'TUTBBTQuA6ioaMRAjEs8CgocGR3RUdHEOAMuoO' +
+  'MMsowIM8x017v3LdX17vreq73r5nz31eupvt09' +
+  'vVRVd89Q3zn/6dNVt+723+W////f/+633wgjjD' +
+  'DCCCOMMMIII4wwwggjjDDCCF1s2bLlAYzRxybM' +
+  'O4zz0strSbgmZcGrVeydqgQ9VTJ6YiLCNaJC1k' +
+  'gZPF9V6FM7nfgv3XxGGBCM7x8oK6UX1HR0umb0' +
+  'S5rT6zMZbFWMBprTaiObMKYpTachTAd/LQn7/2' +
+  'SdG8VoW3MiE0H/rBi5QTP67VQGH00kfWUce3/j' +
+  'ljfCAqEmyJNrIjpDC3pNpqI7FCOTpq2NaSljJr' +
+  'VlQrNaMbUkMqkMTCL8OamqQ1NPJ0y7zo3No63s' +
+  '31YtNokMqGLkF1UdreUT3iswQ926jNCDLKscUp' +
+  'XR2zTzN2Q65JYhbW0mG9xUVWg0pwMlMLBZjXPG' +
+  'TWpT1ZFJJN0KhglBn+vW716NJAmfWdcTl9eTMj' +
+  'EtaTsNI1+LmR07TMpUYGeomUxMqsJmKv2NktE3' +
+  'm23b9nfrfK+BYvQlNR1dWdVRYkxqRzVGt9t5K0' +
+  'GYVZhdrRozCQ+2aOafEYbhX7ht2GdRqYw9rZ6W' +
+  'v1PTUct0UlNLyjM6abUQ9js7u5vSZDK4TXFykt' +
+  'uefQpCjD0slcEnqthvTGpHq9spq5Uww8EsCB+1' +
+  'JPqxrJSe77Zvr4fm/uszGd5pOolpZJUZnbBYKi' +
+  'Q3jPSajizDQdjLcqmvPPUZKJW7pT03r8WQnVmT' +
+  'iamnlVQx+hnf9w9027rXYcuWLQeq2PtsI620MR' +
+  'LdRi+E0DHNrJKL3xCf8RdLUEsWS2VNc1qXjDQ1' +
+  'o1xzCrE6U5w2FKN1xWijBSlu6ne51AghAb9fCu' +
+  'MwGLAaZDr8bcLJs9x27zVg0T2H1ZLoBswenGcU' +
+  'IzMaOxdh5FtJq63ymSf8QDHya83IFYqRizSj78' +
+  'pUeLzW/uHopJSTZwtBn4PzFQ6oCQufgf9593PN' +
+  'gyOqMnyLEuRcHZMvJJx+P5H+LZrTBIdeMA2Ci1' +
+  'uPPZFdAietJMokK73Lbf+qh2LkuKoKK2DQYkaq' +
+  'Yrlk1e2wLakIz9faf3mV0ce6ZfQLY1VLpWcoFh' +
+  '6XiuDymo4ozmRunfZEGHg4FGN2Joz8115zGE4F' +
+  'PbWeTjTQYHS627A9EbQDtaScaUbO3LTJ3N/NGz' +
+  'DG3E+WvUNFhRyZ6eAEJeg7laAfUIxcKGNvbUGJ' +
+  '8C+QrPTulJOTaik7FqolUy4/2M2vQKVSOqSmwy' +
+  'vadTajXvNRpkJjTGaqSfS9ePv21a0j1Jz8GxqJ' +
+  'zXsxy1tB0MNlMihLWXqSmzewbdu2/SXzvt2sxk' +
+  '1jmsaYjjFmsvt3Lup+n2sV7k7FxJzaBBWTcyBu' +
+  'L2b2F2SXP5OZelq+kfOdj3PzXhXQnFwCyQeb8V' +
+  'IYVFA938xpPYm+rGLy9245EH+bWXy24vTripEf' +
+  'aO5v0pxunI0yFeDvz6BUzVR0seL0+DiePtI9z3' +
+  'uQEvSUVAY/TGXQyGQwo06LIWOqmFG3rDpGKUY/' +
+  'hE1+EGcfMBgzEdCM/sQta9CAucOK1qZql61+Bl' +
+  'hBmFGpDv9AKX2kW96KQMWlc9s1NnDNAZYnGZMb' +
+  'e8tKmPfMVq2yJhX0uaqy66mdjveg3u9nA/awLC' +
+  'aPYZF3GFRRsDH17k2QDCHC47zl1qEfsiK6Cn6x' +
+  '4nYsybx/hoCAc8MgRmAvgUmK0Y295amY3GhMC2' +
+  'W1WjWmNScf6f1+NsDgpxkZq6rI2p7qadmICf95' +
+  'xfcQ4XHWGjST8j2qZjQjP8ZAmV6rZYIojz2nqk' +
+  'OJWTRoBoFmZRLzNhqT5ApQUzeSkSt6v58NCSs9' +
+  'A7McB9qutqMhyvQ5U98PiUmgnFGpURX66em1Wg' +
+  'bIUunhifRvxSHQrdigaE4mTeZlQopMZLA1iXY+' +
+  'ujeNC83px3Awzg2AlhH15WISCAOknk105ETpxO' +
+  'k1GzIUI1dhc3QrNEianUl0fTEwMHvR+VUdlUXF' +
+  'e0NvOiCrlA5JZbgeEmchUq8Ek1BPDKiqjmLGvM' +
+  'Om13JIULF3Ck7YkITcCg2S5mDSNyBF4nu7D8Ze' +
+  'qZFVLtTCe+O6deumrft1RZ9aTcvnJ9xfb42Iu5' +
+  'nUEBO7La/DZlJBdtlj5IZ1Zno9Bw5ISZkMAqjs' +
+  '3UoMmmZjkmbkm71MqqowLNOxqVkxG1RMvjvZFP' +
+  'Y3EBwUIxNChH9bfL9cTLJiflsbXh4/e3oNBwwZ' +
+  'e98Z9jJX0HxMKvRmrTqbSFPy7N50gDFbHqA4/V' +
+  '6uP8zz7GpCaK+X0HIxCQRLbybDioxKT5xe2wGB' +
+  'TYwfV08nOsNe5gqaj0lT6SDmCvKm3nSAMdv214' +
+  'zcDTVPkbbLJD+OyWOKdMvJJBCs0TIuXWeMuc/0' +
+  'GvcJY8x9JfNuxnRdrNJ0qTQHk64AkyAIWJsO7E' +
+  'umY2Sl9O7edICU3iPgm4dzFY4J1i41C5OGdZid' +
+  'izDIoeWXcemY6TXuE5KV3txucNtQt9BhUZdJm3' +
+  'rroRn5FtRFcIBMBJWa0d/VdXSZUvQpvekAaCMk' +
+  'I2elIvhupsMduaGuYRTzNLxfi3R1HTxdc5IOWm' +
+  'OyJ0LbRMX7xcBmExqrYnJH77KxHITDquLkN711' +
+  'UYy+tJFVLoKrFTQJvd/tCZhVtSQ8slmtfEDF5N' +
+  'xedRIYphkRyyEMFYTZhK1jYLNJcfoOmJ2Xor5f' +
+  'CuV+BBpOH6li3ofc+gwanO98KBS5uSNmLgUuBx' +
+  'WzyT06LBrWwBZ7N7mb9TAo137Hue+Bitbz8kyJ' +
+  'bVgwxjxAcu9tqQj+jM5bjmUdBs6qDjtYHdz6LA' +
+  'pShi/KZDg5CBPEnggMwiiGLlAzcpZbj+WClKWH' +
+  'J8L/SleTMaOegyYcD1Tsfc2tx6KgOb0UIqOb+S' +
+  'ApP+8weN54MCW4dVgJwPTequcSoVvfQRJWDsVI' +
+  'OUmiPeof54QOgkdBXMWB0c18kIQRW0vKqaiMHe' +
+  'nWYSWhYnJNZ4luaAul3OlSGfiFuOUvCCImbxq2' +
+  'wFBUUsXeWLm8bU4nkeWG7991UCqDDdiLh3147y' +
+  'qMf+rWYUFQsff1wiwwLIJ9RzHSts4f3N+RquCD' +
+  'NRkNR2WyABiz7n6y4r01kUHJmDbqNoklD5v8MG' +
+  'xmIPSBjL0YelG3PntEuVx+sGTe3bgp52Y6KLIe' +
+  'rYxsgGNJIvxzMhXAkmequlxPRXA1r5ReXxPhE9' +
+  'y6DQNaB49SMTk5kcEWaDDqSbmTcPqNTAYv0Mw/' +
+  'vaqi1rBmFFYT6+8n/De69dojIBZmKpwcVsW6vt' +
+  'pZwsJnFmVq/66DEuWfo4V/K/RxGMmJCGqK0Rs1' +
+  'p5/QPHgFPHCMmd0fbzGAmqtc3nGoFuQEzejVVR' +
+  '0xlFdLy7Kqo/9MeDTNdVgxct0wjyFWuxJ7X+kt' +
+  'c14oAe+f4S11aLCMvf9zywVwuKsy//BMBp8Fwy' +
+  'D55agZqG9S6f9Jxt71MiaXpMI/LZX+MYkga1Lh' +
+  'Pw+eP9Ag8GDX46GT45w8S+BzfM+DkxQnn8P1y1' +
+  'T42zWnLWj0a7pcVpz+oCr9t8bx3bPeoZWMvmWY' +
+  '+7M1pTB6qxkbO8Ate05oTq8ZKpNalkmfcMudDf' +
+  'DlriXls2GVzVRwm+ZUoXNzx8d2l1r2WkrXIaaK' +
+  'C8/2dkVatuI9vofernu/1tec3qwFvSyR/tFGlh' +
+  '7ulumiUvGflgg/GZZ+L6+3p+DL7pY9KzaZTfdX' +
+  'jGwZlvhZSHRaBCe4ZS8E0GBjOa6q8kmKkQvgXp' +
+  'xw/6ua0as0Jz9POPlNwuk6/C+Z90XFvE8nKnwv' +
+  '9GRwSsF+6+Y5HyqVykMk8+4a1h6dCr/rs0Ff6Z' +
+  'Y9K6rcfxysl4O4RzQbYZ+r6gjqkFVxcF0IjNnv' +
+  'PtDID2tfsgM3N8Gc45Y9K/iEdwR804Z12oYJW8' +
+  'ZepdeEvTdAxeSqYR5J7ABg9Eq33FmhePB2e5Vj' +
+  'SJukvbXAyD1qSC64Orb2oY/wnTsf6n7XDxSjFw' +
+  '9TeJjNfjYnFCfvW+rNgoUQDHaakVvccgcFmB4U' +
+  'I2OT7eQuWRmcshZ2qGEO3m6/bMW9KbfsGVDMG+' +
+  'qIsRISI7GKyftUZfyk7v2iJVMq6CmKk5OllFNS' +
+  'mubkw1bqwy0PHV1bLm87uLeNiSBHtZvyLBWXZu' +
+  'Q3g5AmJicrTn4OidFtz6Cou8LczTmffwWAVIQG' +
+  'wnQwFLLhY+CbgPtFgyCI4MaknL52dxv8w+HX0H' +
+  'O56y64RRffJyI8MlNRIz9/ufnNRVWrGZjRngER' +
+  '6qmYly5or9aMXtppy9s1o7cNkxSjtw+CUunf3q' +
+  'zGt2tWPrxoQxL7R2MwFKsB7DaZDneWy96hRRrO' +
+  'x1/bqsW3akHvcPOcnchQ+yRTIcrYvKCz0tjY2A' +
+  'G4WIXT715BZuyA7du3P7CoP5w7JPeuh+GudzmB' +
+  'xkLG3k+gEirSbtu2bv9V1VZjQFP122ehBPnkbH' +
+  'sqlj4Y8mRcOtr9zQjLBM+76UGZCv4bUtJciuHc' +
+  'ykyucX87wjIgikpPrKflX2Jz39MhvKvq2rrXXO' +
+  'WfD3DK6LTEGqtBlv4xitPXKUZejeuMCKeJz+M4' +
+  'v2pow22Wxw/HVclE0H9QFXo8LhEjIEbKyHE4ux' +
+  'T5Jiw6rNNJ8tCbzDu2m+9xnZY4CqE4kabT6TwQ' +
+  'm3+rxl6FdDZtTF+J/JCvEeJhu+vpHVpNoh2Qjt' +
+  'wlzqXu7Qrubs6IezRLW4+DqN7pJEfJSl6vApWg' +
+  '9IJWTayBrg1pU+Yf29MvR/bqB+HGXLQX6bp5vw' +
+  'bt7TuuHnzerPY4V4U0NaebFfNILj5DXCSdStdB' +
+  'MZPhi2zQiW5HKUZv1ZxsrScTf1SM/ir2cgd5MF' +
+  '4zOg6NNPJRjCDMzGbNaTm/yEy+ZctW5MmK0dtq' +
+  'SRQX4WrQwfWkvEsxcosIx62YqrU+KFXh5oU6y9' +
+  'hlkJE2Onl6W8mFVpS3btRkMuH0Ts2pn9u1bL2m' +
+  'bhTCrlVPJianBkUunfG8X+AhSymcMZEWZnjFkE' +
+  '+9MM/Eth85sTe3Faff6K3HorB27dr7FrfqsAkr' +
+  'Rj6JO0DVJFqXR1uEnolsKO6Cqor3aXSU9X7hpK' +
+  'yFd55m5PxmNf6oUuTFRb6WSZwSNB4K3EyFO1MV' +
+  'vLpcHju4kbGLtA7+Dulg2IPDvZwofaGI7JjfPf' +
+  'UP7DX6Ke59Fh3jMmMuyutHfQTWKPLo9XO35hlG' +
+  'zsfnnPuPw9mr01Kv7XVLtm4FMJXk/fI/nO96vG' +
+  'L0+x0MJtxB4t5Xi7Ra+wcpTsOe9u7AasTYjsc2' +
+  'amKqvUsCRnImg8Sqz7nPMXq0oFdVddSw91XzCr' +
+  '4GadFIxcjv8Vm+YZPfIpgt4id0muJ/sfx1090H' +
+  'ncN56WVVHV0Pyy9sPYiekkj/ku3XXz8lRhfpNS' +
+  'ObsY/kneef0ft97pBPdi3GPRgaCMWnXwKAvSpT' +
+  'YX0SbRU+xxEEN/I6DfH7dp3dqJl35aZNm+zA6H' +
+  'QqD1GM3IMy0Q9wx8KMV4zU8X+rFnewTCKtbW/p' +
+  'z4fI2HtR0V4csKfau313e9PytoMRmqfT2X2UmB' +
+  'eJoB/IT+MNzAydcP89GGFY4rAsgBmwzSAtTA42' +
+  'WBOmdCcBky6BOqVdY2di/S3ylCx4VaupUsW9r6' +
+  't4/L3FCCuWFNcIiP0BIxNLrhZ+03VQgU0JKqY9' +
+  'CQq9lMdqyMDs06fng6Wu21YsvzI4EwMt/8wYyb' +
+  'wf96R9TWHah5FOc/9lktOPF8ZHtAn7G9JmnL4O' +
+  '7dWC/gefpb2a048iXZKQNc2aUBhwi3JGgXNgp6' +
+  '02YsmDZlZz+nsQrhNONvhGGXsfLw5d2PxNQ96A' +
+  'ayoy9jZqTm5C2smW2KwZuRy2GKTTwj+905I3Jd' +
+  'z/neb+bxWjv8RvNPc3tutsI5jYWwcRkxM6bblp' +
+  'sik3igq5bL/9pt9AwOxuVeMFM8neVo/Jj4wx02' +
+  'KqIhpKpynRzqKtm9EG/I+2FiuBLVP4p3XaapPt' +
+  'm5h+xv6ek5Pwv/1MkIum0nL6L522tH0xW3sxCJ' +
+  'FOMvquTqd9s2LkMrN27b51kIV+DiFu5mNSPoNq' +
+  'cMv6+VKssiP0AWtB5nNbkOEnZ+8k5YGfvhmGt9' +
+  '57At2uJmAJMZ2Z1tIiPlEjqzQVo+93fzfCMkIw' +
+  '73TMFPcQC8GmUa20EFbH/c0+A4icuCzcqMWnzD' +
+  'CCrSC1a/GpvQpSiKxW/DcpzjdTTMIBWFS8i4t0' +
+  '2It4hbw9VeGqak9BjRo7XS7WvdqeUTjdBN82+z' +
+  'jH1EMdg6I8vupMw9p8ZKwfnajslrjgFFnVkSg8' +
+  'eTCLUum34RhZpBGMnJEL1BCV3TznI/jsVbsPlg' +
+  'y+LzDAsHeKifGpoFQLBi5z4RCJpWTQhI60Towi' +
+  'N3jNNLDNReT2doP/SXP/WmN2S2qiMramqiNaxB' +
+  'vHwRHhPIvvcaW005R3aOHmtxAif1SMlOzZcJa2' +
+  '9EtdddGvlmRHEiJ8QiKoKkK+DJIwGxQjOwMdPA' +
+  'pL1gzj1x4IGgEodl2f8CDY9fhaUv5RfgBumkwE' +
+  '/1h8h5UBpgw3rwURjIgx1FPD8bnLb/uRc3vbsi' +
+  'hI5m2AKsXNuF/KYyqwSQR1d8vsB7kqib57sq3H' +
+  'cYhEzFY3zWKBNyo0IztgMHTb0S9BY5KpMIvj8a' +
+  'e75S4YuH4CfdR8B8alkHU1ZvTmYdh2omjno3Hi' +
+  'x1/3u8VCM++82STIQRAmgIw9KKqXHs9hzIwdIG' +
+  'OyDd4sbgH9EhhvlaPCnxEGbbUgLZcP1pyGWJ7d' +
+  '+vdLefuZ4ZXS8W65i0Yqgg8u1F6zWLLrMaPr3T' +
+  'JXC1RMTxnGcg+Cdh9CiatLXBImJsb/OhH+UEZT' +
+  'N9bPRG+sn9UEFZNrh8EkK9VhuY/909wylwzFvA' +
+  '/2RmAcFGHKW90b86d85lYLYHTESMdZxq13v4Q8' +
+  'FSN/wqOSbrlLhhgbe5hmdGyxbznMR8WIwlMFbp' +
+  'krDShwYe7GLRC33v0QBqZlUkzf6ZbZNyDaDmM2' +
+  'Wb+Cxd4XXQakMnhVHoJtcO2F4heSosyNiv3FFJ' +
+  'oNiMSIYOqDvqPTsuZvcvdqs/VoRr846LbiXFRL' +
+  'yq2+4wntCdAvVXVUH6QWAjMT018y/61ueSsFSu' +
+  '98ZCIDrzngaDAw38uK9yW3vIFDTIxfnLszzazE' +
+  'UglePFUdUjEx1p8f2oCQCPq1QV7ststcU5pUBD' +
+  'uUGs7luWmAg7yMya9zp5OZFVoKFVG6tKCRluQs' +
+  '0eP8uFyALrCq6EtSFVyLQ+YgtSy43oplTlTGp7' +
+  'T3Q4dCzG0dlaExGFQ4F2tNxdt9MHerMEq4/y0R' +
+  'j58wtMi/Xc9VPP+TqfCCRPh3QXrNAzINTliwPh' +
+  'YdqH9K1jtoWYG4rFim4AziVmyp1H37L4RLFUYz' +
+  '7FmJCKqa+7+UMflcIumbYSdCBLHF6rvwkqXW/t' +
+  'NEhRyVyfA9innrU+mPF25juMIJP/G5nP2XSrBF' +
+  'KUZ+uCRTxCAgY+9jGPmDalh3Cf0Z8oafdE0Hl2' +
+  'Qq2JV3JDBpR6bilCTC/4Nm5Eea+d/UnHwe/m+9' +
+  'z8XZGA+cfEUxel0q/U2KkzvxYqZ1ce6+UAYNdK' +
+  'qC6yQrnQhtt2T+scW7Fm7dlkJQp1VVuLlwO14x' +
+  'iNj7an6bof+GWVUJJzf15g+vUbtX6PA8MBCj3x' +
+  '6CrcUUcJ+Hm4NwZ4lTnsAPjtHL4ddXc64+itg7' +
+  'DZJmv0yyggKeitDRrt7bhSsG2GwUJ9fY17f6ZB' +
+  'REe7j6wg/bLacARqV9tjT2j4FnrWLkU3g6Ds/0' +
+  'KE7XIyoKHP+18K/UMfm8jMlHMuG/EZ628Nt28+' +
+  'uFiktX9yvVFZJcNYmECmc+d7diyJ8cKBjVn1TU' +
+  'vdnwKbeMYQNv08JXop8zYDGDajry+MSuI9wyVh' +
+  'y7GZW/jec2YKEE4cGeyifG7IWA5QCiViYi+E2/' +
+  'JvJuSAKvEqzit9HBKDyKW9wnWop4XoSerqdlnS' +
+  'pyslvGoGEvoeloU74fzqzPQijfI20ogjt7QxGs' +
+  'aiSCvr+Zxc2lWnQLRiEUWlWF35MyeKFbRr9I0/' +
+  'LBqfQ/XNORX3hFufWYj/Bux1SsCB39DPes3HJW' +
+  'NWAWtyE7O+nSOqB4CRlP60gbQXJjloTvlRXvhQ' +
+  'uJUefChojDI4zCewNu2NV0VMLsyZ/wXvyMhzMm' +
+  'znI4ACeMfBleTG6ZewVkafuTakl5A85ScznWL4' +
+  'SwTxXXMnFHKuF0u71Gkj9Yf6E9E+Fp7bj0DoSw' +
+  'wQP2iSAXaE4/rgX9Em4lZjLYojmRVqvQ1vYhRr' +
+  'echVJ+UyPF69IhynPbvddhrVl7Xy3882pJWWFW' +
+  '9SNUgPB7q42w1yeVPf8UlHuY5l6muz8Hc7X9vC' +
+  'viz8hzMZSrjiSEmw3DVFmtCHi081m1JFqPGTVb' +
+  'MIylErTxObneoflnbvqlEiy0ufY/uEczD7cFF6' +
+  'WW2qugY3JCVYV/xAgfpApmWJQzx/prs1oSfQbh' +
+  'qd027ZPAuUQzcmYq/NvtkmTfTe9vGRwkYeDAdA' +
+  '7m1JIya6SVf5erQb2zEgCzEK8ulcHGVAaTkOQG' +
+  'bctZKCVduw/2L+w7mQ7vqSXR5++1zJkNKiYvru' +
+  'rw0lQG223gjsl8sx/mEzkYDLasrhCSqVAlwv8p' +
+  '4oAPK/zoPgEE5EB46FQGlypGtmruN20ndkXwbi' +
+  'wE28G9goLLAFDv92A2nDGt5AepsK2skTFV4Xgi' +
+  '/e/XVHgK7E1ufUaYB3B7SgV9bqM68U94ywlX+B' +
+  'PhI6qIKIJ+QOM8JWrPoPw7LF+K0QZC0VR19AfF' +
+  'yNWZDM/WPDgiScK/cssdoU9Iz3uEmqBPqSr60m' +
+  'oSnoj4EAhcoRi5COF1uoSg7hclnP4rnj+QsX90' +
+  'isgnMXnMillIRxhhhBFGGGGEEUYYYYQRRhhhhB' +
+  'FGGGGEfQr/D5dc7jIt4VYfAAAAAElFTkSuQmCC';
+
+// ---------------- i18n ----------------
+var T = {
+  ar: {
+    appName:'حضور الناقل الأفضل', company:'شركة الناقل الأفضل للغاز', gateTag:'سجّل حضورك من مقر الشركة بلمسة واحدة، محمية برمزك السري.',
+    pwLogin:'الدخول بكلمة المرور', pwTitle:'الدخول بكلمة المرور', pwLead:'أدخل رقمك الوظيفي وكلمة المرور. تعمل من أي جهاز.', password:'كلمة المرور', signIn:'دخول', backToPin:'الرجوع للرمز السري',
+    pwSection:'كلمة المرور', pwSectionLead:'للدخول من أي جهاز. 8 أحرف على الأقل، فيها حروف وأرقام.', pwCurrent:'كلمة المرور الحالية', pwNew:'كلمة المرور الجديدة', pwAgain:'أعد كتابة كلمة المرور', pwSave:'حفظ كلمة المرور', pwSaved:'تم حفظ كلمة المرور', pwMode:'كلمة المرور', showPw:'إظهار',
+    allowPwPunch:'السماح بتسجيل الحضور من جلسة كلمة المرور (داخل النطاق فقط، يُعلَّم للمراجعة)',
+    e_bad_login:'الرقم الوظيفي أو كلمة المرور غير صحيحة', e_password_locked:'أُوقف الدخول بكلمة المرور 15 دقيقة بعد 5 محاولات خاطئة', e_weak_password:'كلمة المرور ضعيفة: 8 أحرف على الأقل، فيها حروف وأرقام، و5 رموز مختلفة، ولا تحتوي رقمك الوظيفي', e_bad_current_password:'كلمة المرور الحالية غير صحيحة', e_pw_mismatch:'كلمتا المرور غير متطابقتين', e_password_punch_disabled:'التسجيل بكلمة المرور موقوف، استخدم جهازك المفعّل', f_password_login:'بكلمة المرور (جهاز غير مسجل)',
+    pin:'الرمز السري (6 أرقام)', activatePin:'تفعيل الجهاز', pinMode:'رمز سري', pinPadLead:'أدخل رمزك السري', del:'حذف', bgLocked:'قُفل التطبيق لأنه بقي في الخلفية', pinNew:'اختر رمزاً سرياً من 6 أرقام', pinAgain:'أعد كتابة الرمز', pinLead:'أدخل رمزك السري لفتح التطبيق على هذا الجهاز', activateLaptop:'تفعيل هذا الجهاز', laptopMode:'جهاز كمبيوتر',
+    devices:'الأجهزة المربوطة', unlink:'فصل', locked:'مقفل', tapHintDesk:'اضغط الزر للتسجيل، يعمل فقط داخل المقر', autoLocked:'قُفل التطبيق بعد 15 دقيقة دون استخدام',
+    allowDesk:'السماح بالتسجيل من أجهزة الكمبيوتر برمز سري (داخل النطاق فقط)', maxAccDesk:'أقصى خطأ مسموح للكمبيوتر (م)', confirmUnlink:'فصل هذا الجهاز؟ سيحتاج الموظف رمز تفعيل جديداً لإعادة ربطه.',
+    e_bad_pin:'الرمز السري غير صحيح', e_device_locked:'قُفل هذا الجهاز بعد 5 محاولات خاطئة. تواصل مع الموارد البشرية', e_weak_pin:'اختر رمزاً أصعب من 123456 أو 111111', e_bad_pin_format:'الرمز السري 6 أرقام', e_pin_mismatch:'الرمزان غير متطابقين', e_desktop_disabled:'التسجيل من الكمبيوتر موقوف، تواصل مع الموارد البشرية', f_laptop:'من جهاز كمبيوتر', langBtn:'English',
+    setupTitle:'تهيئة النظام', setupLead:'أنشئ حساب المسؤول الأول، ثم فعّل هذا الجهاز برمز سري من 6 أرقام.',
+    setupKey:'مفتاح التهيئة', fullName:'الاسم الكامل', empNo:'الرقم الوظيفي', createAdmin:'إنشاء المسؤول',
+    activateTitle:'فعّل جهازك', activateLead:'أدخل رقمك الوظيفي ورمز التفعيل من الموارد البشرية، ثم اختر رمزاً سرياً من 6 أرقام.',
+    actCode:'رمز التفعيل', activate:'تفعيل وربط Face ID / البصمة',
+    unlockTitle:'مرحباً', unlockLead:'افتح التطبيق بـ Face ID أو البصمة', unlock:'افتح بـ Face ID / البصمة', notMe:'تسجيل موظف آخر على هذا الجهاز',
+    tabHome:'الحضور', btnIn:'حضور', btnOut:'انصراف', recordedAt:'سيُسجَّل بهذا الوقت', emptyEmp:'لا يوجد موظفون بعد', emptyEmpLead:'أضف أول موظف لتصله رسالة التفعيل.', emptyDay:'لا حركات في هذا الشهر', tabHistory:'سجلي', tabAdmin:'الإدارة', tabMe:'حسابي',
+    locating:'جارٍ تحديد موقعك…', inside:'داخل نطاق', outside:'خارج النطاق', m:'م', km:'كم', fromZone:'من مركز', accuracy:'دقة الموقع',
+    noLoc:'فعّل خدمة الموقع للتطبيق حتى تتمكن من التسجيل', noZone:'لم يُحدَّد نطاق عمل لك بعد. تواصل مع الموارد البشرية.',
+    checkIn:'تسجيل الحضور', checkOut:'تسجيل الانصراف', hold:'اضغط للتسجيل', holdHint:'اضغط الزر ثم أكّد بـ Face ID أو البصمة', tapHint:'اضغط الزر للتسجيل، يعمل فقط داخل المقر',
+    oldPhone:'هاتفي لا يدعم Face ID / البصمة', tapMode:'تسجيل بالنقر', bioMode:'Face ID / بصمة', unlockTap:'دخول', allowDk:'السماح للأجهزة القديمة بالتسجيل بالنقر (بدون بصمة، داخل النطاق فقط)', f_no_biometric:'جهاز بدون بصمة (تسجيل بالنقر)', e_device_key_disabled:'التسجيل بالنقر موقوف، تواصل مع الموارد البشرية', e_no_devicekey:'هذا المتصفح قديم جداً، حدّث المتصفح',
+    readyIn:'جاهز لتسجيل الحضور', readyOut:'جاهز لتسجيل الانصراف', moveCloser:'اقترب من المقر لتفعيل الزر', weakGps:'إشارة الموقع ضعيفة، اقترب من نافذة أو انتظر قليلاً',
+    firstIn:'الحضور', lastOut:'الانصراف', worked:'ساعات العمل', shift:'الدوام', late:'تأخير', min:'د', h:'س',
+    doneIn:'تم تسجيل الحضور', doneOut:'تم تسجيل الانصراف', reviewNote:'سُجّل وسيُراجع من الموارد البشرية', close:'تم',
+    punchFailed:'لم يتم التسجيل', todayTitle:'اليوم',
+    histTitle:'سجل الحضور', present:'أيام الحضور', totalHours:'مجموع الساعات', lateDays:'أيام التأخير', absent:'غياب',
+    st_in:'داخل الدوام', st_present:'حاضر', st_absent:'غائب', st_off:'عطلة', st_upcoming:'لم يحضر بعد', st_missing_out:'بلا انصراف',
+    admBoard:'اللوحة المباشرة', admEmp:'الموظفون', admZones:'النطاقات', admReports:'التقارير', admReview:'المراجعة', admSettings:'الإعدادات', admAudit:'السجل الأمني',
+    kIn:'داخل الآن', kTotal:'الموظفون', kLate:'متأخرون', kAbsent:'غائبون', kUpcoming:'لم يصلوا بعد', kReview:'للمراجعة', presentNow:'نسبة الحضور الآن',
+    search:'بحث بالاسم أو الرقم', addEmp:'إضافة موظف', editEmp:'تعديل موظف', save:'حفظ', cancel:'إلغاء',
+    nameEn:'الاسم بالإنجليزية', dept:'الإدارة', title:'المسمى', phone:'الجوال', email:'البريد', role:'الصلاحية', status:'الحالة',
+    r_employee:'موظف', r_hr:'موارد بشرية', r_admin:'مسؤول النظام', s_active:'نشط', s_disabled:'موقوف',
+    zonesFor:'النطاقات المسموحة (بدون تحديد = كل النطاقات)', shiftOverride:'دوام خاص (اختياري)', from:'من', to:'إلى',
+    enrolled:'جهاز مربوط', notEnrolled:'لم يُفعّل', newCode:'رمز تفعيل جديد', resetDevice:'فصل الجهاز', manual:'تصحيح يدوي',
+    codeTitle:'رمز التفعيل', codeLead:'أرسل الرمز للموظف. صالح لمدة 72 ساعة ولمرة واحدة.', copy:'نسخ الرسالة', copied:'تم النسخ',
+    codeMsg:'رابط تطبيق الحضور: {url}\nالرقم الوظيفي: {no}\nرمز التفعيل: {code}',
+    confirmReset:'فصل الجهاز الحالي؟ لن يتمكن الموظف من التسجيل حتى يفعّل جهازاً جديداً.',
+    zoneName:'اسم النطاق', radius:'نصف القطر', useMyLoc:'استخدم موقعي الحالي', mapHint:'اضغط على الخريطة لتحديد مركز النطاق', addZone:'نطاق جديد', disable:'إيقاف',
+    lat:'خط العرض', lng:'خط الطول',
+    runReport:'عرض', exportCsv:'تصدير CSV', employee:'الموظف', days:'حضور', hours:'ساعات', lateMin:'دقائق التأخير', overtime:'إضافي', missingOut:'بلا انصراف', early:'خروج مبكر', allEmp:'كل الموظفين',
+    toReview:'بانتظار المراجعة', rejectedTab:'محاولات مرفوضة', approve:'اعتماد', reject:'رفض', noReview:'لا توجد حركات بانتظار المراجعة', risk:'درجة الخطورة', openMap:'عرض على الخريطة',
+    manualTitle:'تصحيح حضور', type:'النوع', date:'التاريخ', time:'الوقت', reason:'السبب',
+    setShift:'الدوام الافتراضي', grace:'فترة السماح (دقيقة)', workdays:'أيام العمل', maxAcc:'أقصى خطأ مسموح في الموقع (م)', riskTh:'حد المراجعة', allowOut:'السماح بالانصراف من خارج النطاق (يُحال للمراجعة)', minGap:'أقل فاصل بين حركتين (دقيقة)',
+    dows:['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'],
+    saved:'تم الحفظ', device:'الجهاز', since:'منذ', signOut:'قفل التطبيق', forgetDevice:'إزالة الحساب من هذا الجهاز', installHint:'لتثبيت التطبيق: شارك ← أضف إلى الشاشة الرئيسية',
+    f_static_samples:'إحداثيات ثابتة تماماً (احتمال موقع وهمي)', f_zero_accuracy:'دقة غير واقعية', f_stale_fix:'موقع قديم', f_clock_drift:'ساعة الجهاز غير مضبوطة', f_impossible_travel:'انتقال مستحيل', f_new_device:'جهاز جديد', f_few_samples:'قراءة موقع واحدة', f_off_hours:'خارج الأوقات', f_edge:'على حافة النطاق', f_outside_checkout:'انصراف من خارج النطاق',
+    e_outside_zone:'أنت خارج نطاق المقر', e_accuracy_too_low:'دقة الموقع ضعيفة جداً، حاول مجدداً', e_no_location:'تعذّر تحديد موقعك', e_no_zone:'لا يوجد نطاق عمل محدد لك',
+    e_too_soon:'سُجّلت حركتك للتو', e_state_changed:'تغيّرت حالتك، حدّث الشاشة', e_bad_activation:'الرقم الوظيفي أو رمز التفعيل غير صحيح', e_activation_expired:'انتهت صلاحية رمز التفعيل، اطلب رمزاً جديداً',
+    e_activation_locked:'تم إيقاف الرمز بعد محاولات خاطئة، اطلب رمزاً جديداً', e_too_many_attempts:'محاولات كثيرة، انتظر قليلاً', e_no_device:'لا يوجد جهاز مفعّل لهذا الرقم', e_unknown_employee:'الرقم الوظيفي غير معروف',
+    e_device_not_recognised:'هذا الجهاز غير مربوط بحسابك', e_bad_signature:'تعذّر التحقق من البصمة', e_challenge_expired:'انتهت المهلة، حاول مجدداً', e_session_expired:'انتهت الجلسة', e_network:'تعذّر الاتصال بالخادم',
+    e_bad_setup_key:'مفتاح التهيئة غير صحيح', e_duplicate_emp_no:'الرقم الوظيفي مستخدم', e_forbidden:'ليست لديك صلاحية', e_no_user_verification:'يلزم Face ID أو البصمة',
+    e_cancelled:'أُلغيت عملية التحقق', e_no_passkey:'هذا المتصفح لا يدعم Face ID / البصمة. استخدم Safari أو Chrome حديثاً.', e_cannot_correct_self:'لا يمكنك تصحيح حضورك بنفسك', e_cannot_review_self:'لا يمكنك مراجعة حركتك بنفسك',
+    e_future_time:'لا يمكن التسجيل في وقت لاحق', e_bad_zone:'بيانات النطاق غير صحيحة', e_bad_radius:'نصف القطر بين 20 و 5000 م', e_missing_fields:'أكمل الحقول المطلوبة', e_server_error:'خطأ في الخادم', e_generic:'حدث خطأ'
+  },
+  en: {
+    appName:'Best Gas Attendance', company:'Best Gas Carrier Co.', gateTag:'Check in at head office with one tap, protected by your PIN.',
+    pwLogin:'Sign in with password', pwTitle:'Sign in with password', pwLead:'Enter your employee number and password. Works from any device.', password:'Password', signIn:'Sign in', backToPin:'Back to PIN',
+    pwSection:'Password', pwSectionLead:'For signing in from any device. At least 8 characters with letters and numbers.', pwCurrent:'Current password', pwNew:'New password', pwAgain:'Type the new password again', pwSave:'Save password', pwSaved:'Password saved', pwMode:'Password', showPw:'Show',
+    allowPwPunch:'Allow check-in from a password session (inside the zone only, flagged for review)',
+    e_bad_login:'Employee number or password is wrong', e_password_locked:'Password sign-in is paused for 15 minutes after 5 wrong attempts', e_weak_password:'Weak password: at least 8 characters, letters and numbers, 5 different characters, and not your employee number', e_bad_current_password:'The current password is wrong', e_pw_mismatch:'The two passwords do not match', e_password_punch_disabled:'Password check-in is switched off. Use your activated device.', f_password_login:'Password (unregistered device)',
+    pin:'PIN (6 digits)', activatePin:'Activate this device', pinMode:'PIN', pinPadLead:'Enter your PIN', del:'Delete', bgLocked:'Locked because the app was in the background', pinNew:'Choose a 6-digit PIN', pinAgain:'Type the PIN again', pinLead:'Enter your PIN to open the app on this computer', activateLaptop:'Activate this computer', laptopMode:'Computer',
+    devices:'Linked devices', unlink:'Unlink', locked:'Locked', tapHintDesk:'Click the button to record. Works only inside HQ', autoLocked:'Locked after 15 minutes without use',
+    allowDesk:'Allow check-in from computers with a PIN (inside the zone only)', maxAccDesk:'Largest location error allowed for computers (m)', confirmUnlink:'Unlink this device? The employee needs a new activation code to link it again.',
+    e_bad_pin:'Wrong PIN', e_device_locked:'This device was locked after 5 wrong PINs. Contact HR.', e_weak_pin:'Choose something harder than 123456 or 111111', e_bad_pin_format:'The PIN is 6 digits', e_pin_mismatch:'The two PINs do not match', e_desktop_disabled:'Computer check-in is switched off. Contact HR.', f_laptop:'From a computer', langBtn:'العربية',
+    setupTitle:'Set up the system', setupLead:'Create the first administrator, then activate this device with a 6-digit PIN.',
+    setupKey:'Setup key', fullName:'Full name', empNo:'Employee number', createAdmin:'Create administrator',
+    activateTitle:'Activate your device', activateLead:'Enter your employee number and HR\'s activation code, then choose a 6-digit PIN.',
+    actCode:'Activation code', activate:'Activate with Face ID / fingerprint',
+    unlockTitle:'Welcome', unlockLead:'Open the app with Face ID or fingerprint', unlock:'Unlock with Face ID / fingerprint', notMe:'Register a different employee on this device',
+    tabHome:'Attendance', btnIn:'Check in', btnOut:'Check out', recordedAt:'This is the time that will be recorded', emptyEmp:'No employees yet', emptyEmpLead:'Add the first employee to send their activation code.', emptyDay:'Nothing recorded this month', tabHistory:'My record', tabAdmin:'Admin', tabMe:'Account',
+    locating:'Finding your location…', inside:'Inside', outside:'Outside the zone', m:'m', km:'km', fromZone:'from', accuracy:'Accuracy',
+    noLoc:'Allow location access so you can check in', noZone:'No work zone is set for you yet. Contact HR.',
+    checkIn:'Check in', checkOut:'Check out', hold:'Tap to record', holdHint:'Tap the button, then confirm with Face ID or fingerprint', tapHint:'Tap the button to record. Works only inside HQ',
+    oldPhone:'My phone has no Face ID / fingerprint', tapMode:'Tap check-in', bioMode:'Face ID / fingerprint', unlockTap:'Sign in', allowDk:'Let older phones check in with a tap (no biometric, inside the zone only)', f_no_biometric:'No biometric (tap check-in)', e_device_key_disabled:'Tap check-in is switched off. Contact HR.', e_no_devicekey:'This browser is too old. Update it.',
+    readyIn:'Ready to check in', readyOut:'Ready to check out', moveCloser:'Move closer to HQ to enable the button', weakGps:'Weak location signal. Move near a window or wait a moment',
+    firstIn:'In', lastOut:'Out', worked:'Worked', shift:'Shift', late:'Late', min:'m', h:'h',
+    doneIn:'Checked in', doneOut:'Checked out', reviewNote:'Recorded, HR will review it', close:'Done',
+    punchFailed:'Not recorded', todayTitle:'Today',
+    histTitle:'Attendance record', present:'Days present', totalHours:'Total hours', lateDays:'Late days', absent:'Absent',
+    st_in:'On shift', st_present:'Present', st_absent:'Absent', st_off:'Day off', st_upcoming:'Not in yet', st_missing_out:'No check-out',
+    admBoard:'Live board', admEmp:'Employees', admZones:'Zones', admReports:'Reports', admReview:'Review', admSettings:'Settings', admAudit:'Security log',
+    kIn:'In now', kTotal:'Employees', kLate:'Late', kAbsent:'Absent', kUpcoming:'Not arrived', kReview:'To review', presentNow:'Present right now',
+    search:'Search name or number', addEmp:'Add employee', editEmp:'Edit employee', save:'Save', cancel:'Cancel',
+    nameEn:'Name in English', dept:'Department', title:'Job title', phone:'Mobile', email:'Email', role:'Access', status:'Status',
+    r_employee:'Employee', r_hr:'HR', r_admin:'Administrator', s_active:'Active', s_disabled:'Suspended',
+    zonesFor:'Allowed zones (none selected = all zones)', shiftOverride:'Custom shift (optional)', from:'From', to:'To',
+    enrolled:'Device linked', notEnrolled:'Not activated', newCode:'New activation code', resetDevice:'Unlink device', manual:'Manual correction',
+    codeTitle:'Activation code', codeLead:'Send this to the employee. Valid for 72 hours, one use.', copy:'Copy message', copied:'Copied',
+    codeMsg:'Attendance app: {url}\nEmployee number: {no}\nActivation code: {code}',
+    confirmReset:'Unlink the current device? The employee cannot check in until they activate a new one.',
+    zoneName:'Zone name', radius:'Radius', useMyLoc:'Use my current location', mapHint:'Tap the map to set the zone centre', addZone:'New zone', disable:'Disable',
+    lat:'Latitude', lng:'Longitude',
+    runReport:'Show', exportCsv:'Export CSV', employee:'Employee', days:'Present', hours:'Hours', lateMin:'Late min', overtime:'Overtime', missingOut:'No check-out', early:'Left early', allEmp:'All employees',
+    toReview:'Awaiting review', rejectedTab:'Refused attempts', approve:'Approve', reject:'Reject', noReview:'Nothing is waiting for review', risk:'Risk score', openMap:'Show on map',
+    manualTitle:'Attendance correction', type:'Type', date:'Date', time:'Time', reason:'Reason',
+    setShift:'Default shift', grace:'Grace period (min)', workdays:'Work days', maxAcc:'Largest location error allowed (m)', riskTh:'Review threshold', allowOut:'Allow check-out outside the zone (sent to review)', minGap:'Minimum gap between punches (min)',
+    dows:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
+    saved:'Saved', device:'Device', since:'since', signOut:'Lock app', forgetDevice:'Remove account from this device', installHint:'To install: Share → Add to Home Screen',
+    f_static_samples:'Perfectly frozen coordinates (possible fake GPS)', f_zero_accuracy:'Unrealistic accuracy', f_stale_fix:'Old location fix', f_clock_drift:'Device clock is wrong', f_impossible_travel:'Impossible travel', f_new_device:'New device', f_few_samples:'Single location reading', f_off_hours:'Off hours', f_edge:'At zone edge', f_outside_checkout:'Checked out outside zone',
+    e_outside_zone:'You are outside the HQ zone', e_accuracy_too_low:'Location is too imprecise, try again', e_no_location:'Could not get your location', e_no_zone:'No work zone is set for you',
+    e_too_soon:'You just punched', e_state_changed:'Your status changed, refresh', e_bad_activation:'Employee number or activation code is wrong', e_activation_expired:'The activation code expired, ask for a new one',
+    e_activation_locked:'The code was locked after wrong attempts, ask for a new one', e_too_many_attempts:'Too many attempts, wait a little', e_no_device:'No device is activated for this number', e_unknown_employee:'Unknown employee number',
+    e_device_not_recognised:'This device is not linked to your account', e_bad_signature:'Biometric check could not be verified', e_challenge_expired:'Timed out, try again', e_session_expired:'Session ended', e_network:'Cannot reach the server',
+    e_bad_setup_key:'Setup key is wrong', e_duplicate_emp_no:'Employee number already used', e_forbidden:'You do not have access', e_no_user_verification:'Face ID or fingerprint is required',
+    e_cancelled:'Verification was cancelled', e_no_passkey:'This browser cannot use Face ID / fingerprint. Use an up-to-date Safari or Chrome.', e_cannot_correct_self:'You cannot correct your own attendance', e_cannot_review_self:'You cannot review your own punch',
+    e_future_time:'That time is in the future', e_bad_zone:'Zone details are invalid', e_bad_radius:'Radius must be 20 to 5000 m', e_missing_fields:'Fill in the required fields', e_server_error:'Server error', e_generic:'Something went wrong'
+  }
+};
+
+// ---------------- state and storage ----------------
+function store(k, v){ try{ if (v === undefined) return localStorage.getItem('bgatt.' + k); if (v === null) localStorage.removeItem('bgatt.' + k); else localStorage.setItem('bgatt.' + k, v); }catch(e){ return null; } }
+var S = {
+  lang: store('lang') || 'ar', token: store('token'), empNo: store('empNo'), kind: store('kind') || 'passkey', dkId: store('dkId'), platform: store('platform') || '', pin: null, hasPin: store('hasPin') === '1', loginPromise: null, auth: 'dev', pwOnly: store('pwOnly') === '1', me: null, zones: [], today: null, shift: null, rules: null,
+  tab: 'home', adm: 'board', fix: null, samples: [], watchId: null, punchOpts: null, punchOptsAt: 0, loginOpts: null, busy: false
+};
+function t(k){ var v = T[S.lang][k]; return v === undefined ? k : v; }
+function errText(code){ var k = 'e_' + code; return T[S.lang][k] || t('e_generic'); }
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function $(sel, el){ return (el || document).querySelector(sel); }
+function $$(sel, el){ return Array.prototype.slice.call((el || document).querySelectorAll(sel)); }
+function applyLang(){ document.documentElement.lang = S.lang; document.documentElement.dir = S.lang === 'ar' ? 'rtl' : 'ltr'; document.title = t('appName'); }
+var LOCALE = function(){ return S.lang === 'ar' ? 'ar-SA-u-nu-latn-ca-gregory' : 'en-GB'; };
+function fmtTime(iso){ if (!iso) return '--:--'; return new Date(iso).toLocaleTimeString(LOCALE(), { hour:'2-digit', minute:'2-digit', timeZone:'Asia/Riyadh' }); }
+function fmtDur(min){ min = Math.max(0, Math.round(min || 0)); var h = Math.floor(min / 60), m = min % 60; if (!h) return m + ' ' + t('min'); return h + ' ' + t('h') + ' ' + m + ' ' + t('min'); }
+function fmtDist(m){ if (m == null) return '--'; return m >= 1000 ? (m / 1000).toFixed(m >= 10000 ? 0 : 1) + '<small>' + t('km') + '</small>' : Math.round(m) + '<small>' + t('m') + '</small>'; }
+function toast(msg){ var d = document.createElement('div'); d.className = 'toast'; d.setAttribute('role','status'); d.textContent = msg; document.body.appendChild(d); setTimeout(function(){ d.remove(); }, 2600); }
+function riyadhToday(){ return new Date(Date.now() + 180 * 60000).toISOString().slice(0, 10); }
+
+// ---------------- API ----------------
+var inflight = 0;
+function api(action, payload, quiet){
+  payload = payload || {}; payload.action = action; if (S.token) payload.token = S.token;
+  if (!quiet) { inflight++; $('#loader').classList.remove('hidden'); }
+  return fetch(API_URL, { method:'POST', headers:{ 'Content-Type':'text/plain;charset=utf-8' }, body: JSON.stringify(payload) })
+    .then(function(r){ return r.json(); })
+    .catch(function(){ return { ok:false, error:'network' }; })
+    .then(function(res){
+      if (!quiet && --inflight <= 0) { inflight = 0; $('#loader').classList.add('hidden'); }
+      if (res && res.token) { S.token = res.token; store('token', res.token); }
+      if (res && res.error === 'session_expired' && action !== 'me') { S.token = null; store('token', null); renderLock(); }
+      return res;
+    });
+}
+
+// ---------------- WebAuthn ----------------
+function b64uToBuf(s){ s = s.replace(/-/g,'+').replace(/_/g,'/'); while (s.length % 4) s += '='; var b = atob(s), u = new Uint8Array(b.length); for (var i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u.buffer; }
+function bufToB64u(buf){ var u = new Uint8Array(buf), s = ''; for (var i = 0; i < u.length; i++) s += String.fromCharCode(u[i]); return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+function hasPasskeys(){ return !!(window.PublicKeyCredential && navigator.credentials && navigator.credentials.create); }
+function createPasskey(o){
+  var pk = { challenge: b64uToBuf(o.challenge), rp: o.rp, user: { id: b64uToBuf(o.user.id), name: o.user.name, displayName: o.user.displayName },
+    pubKeyCredParams: o.pubKeyCredParams, authenticatorSelection: o.authenticatorSelection, attestation: o.attestation, timeout: o.timeout };
+  return navigator.credentials.create({ publicKey: pk }).then(function(c){
+    return { id: c.id, rawId: bufToB64u(c.rawId), type: c.type, response: { clientDataJSON: bufToB64u(c.response.clientDataJSON), attestationObject: bufToB64u(c.response.attestationObject) } };
+  });
+}
+function getPasskey(o){
+  var pk = { challenge: b64uToBuf(o.challenge), rpId: o.rpId, userVerification: o.userVerification, timeout: o.timeout,
+    allowCredentials: (o.allowCredentials || []).map(function(c){ return { type: c.type, id: b64uToBuf(c.id), transports: c.transports }; }) };
+  return navigator.credentials.get({ publicKey: pk }).then(function(c){
+    return { id: c.id, rawId: bufToB64u(c.rawId), type: c.type, response: { clientDataJSON: bufToB64u(c.response.clientDataJSON), authenticatorData: bufToB64u(c.response.authenticatorData), signature: bufToB64u(c.response.signature) } };
+  });
+}
+function passkeyError(e){ return e && (e.name === 'NotAllowedError' || e.name === 'AbortError') ? 'cancelled' : 'no_passkey'; }
+// ---------- device key: older phones without Face ID / fingerprint ----------
+// A P-256 key made by the browser at activation, kept in IndexedDB as a
+// non-extractable CryptoKey (JWK in localStorage only if IndexedDB fails).
+function hasDeviceKeySupport(){ return !!(window.crypto && crypto.subtle && window.TextEncoder); }
+function idb(){ return new Promise(function(res, rej){ var r = indexedDB.open('bgatt', 1); r.onupgradeneeded = function(){ r.result.createObjectStore('k'); }; r.onsuccess = function(){ res(r.result); }; r.onerror = rej; }); }
+function dkSave(key){ return idb().then(function(db){ return new Promise(function(res, rej){ var tx = db.transaction('k', 'readwrite'); tx.objectStore('k').put(key, 'dk'); tx.oncomplete = res; tx.onerror = rej; }); }); }
+function dkLoad(){
+  return idb().then(function(db){ return new Promise(function(res, rej){ var q = db.transaction('k').objectStore('k').get('dk'); q.onsuccess = function(){ res(q.result || null); }; q.onerror = rej; }); })
+    .catch(function(){ return null; }).then(function(k){
+      if (k) return k; var j = store('dkJwk'); if (!j) return null;
+      return crypto.subtle.importKey('jwk', JSON.parse(j), { name:'ECDSA', namedCurve:'P-256' }, false, ['sign']);
+    });
+}
+function dkSign(type, challenge, key){
+  var enc = new TextEncoder();
+  var cd = enc.encode(JSON.stringify({ type: type, challenge: challenge, origin: location.origin }));
+  return Promise.all([crypto.subtle.digest('SHA-256', enc.encode(location.hostname)), crypto.subtle.digest('SHA-256', cd)]).then(function(h){
+    var ad = new Uint8Array(37); ad.set(new Uint8Array(h[0]), 0); ad[32] = 0x01;
+    var msg = new Uint8Array(69); msg.set(ad, 0); msg.set(new Uint8Array(h[1]), 37);
+    return crypto.subtle.sign({ name:'ECDSA', hash:'SHA-256' }, key, msg).then(function(sig){
+      return { clientDataJSON: bufToB64u(cd), authenticatorData: bufToB64u(ad), signature: bufToB64u(sig) };
+    });
+  });
+}
+function dkCreate(challenge){
+  var kp, pub, id = bufToB64u(crypto.getRandomValues(new Uint8Array(16)));
+  return crypto.subtle.generateKey({ name:'ECDSA', namedCurve:'P-256' }, false, ['sign', 'verify'])
+    .then(function(k){ kp = k; return crypto.subtle.exportKey('jwk', k.publicKey); })
+    .then(function(p){ pub = p; return dkSave(kp.privateKey); })
+    .catch(function(){
+      // IndexedDB unavailable: fall back to an extractable key kept in localStorage.
+      return crypto.subtle.generateKey({ name:'ECDSA', namedCurve:'P-256' }, true, ['sign', 'verify'])
+        .then(function(k2){ kp = k2; return Promise.all([crypto.subtle.exportKey('jwk', k2.privateKey), crypto.subtle.exportKey('jwk', k2.publicKey)]); })
+        .then(function(j){ store('dkJwk', JSON.stringify(j[0])); pub = j[1]; });
+    })
+    .then(function(){ return dkSign('devicekey.create', challenge, kp.privateKey); })
+    .then(function(resp){ return { id: id, x: pub.x, y: pub.y, response: resp }; });
+}
+// One call for both kinds, so sign-in and punch code does not care which the phone has.
+function getAssertion(o){
+  if (S.kind !== 'devicekey') return getPasskey(o);
+  return dkLoad().then(function(k){
+    if (!k) throw Object.assign(new Error('no key'), { name:'NotAllowedError' });
+    return dkSign('devicekey.get', o.challenge, k).then(function(resp){ return { id: S.dkId, response: resp }; });
+  });
+}
+// Laptops and desktops are told apart from phones only to choose layout and location accuracy; both sign in with a PIN.
+function isDesktopDevice(){
+  var ua = navigator.userAgent;
+  if (/Android|iPhone|iPad|iPod|Mobile/i.test(ua)) return false;
+  if (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1) return false; // iPadOS reports as a Mac
+  return true;
+}
+function onDesktopKey(){ return S.platform === 'desktop'; }
+// Phones and laptops activated with a device key open with a 6-digit PIN (older Face ID activations keep working).
+function usesPin(){ return S.kind === 'devicekey' && (S.hasPin || onDesktopKey()); }
+function validPin(p){ return /^\d{6}$/.test(p); }
+
+function canBiometric(){
+  if (!hasPasskeys() || !window.PublicKeyCredential || !PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable) return Promise.resolve(false);
+  return PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().catch(function(){ return false; });
+}
+
+function deviceLabel(){ var ua = navigator.userAgent; if (/iPhone/.test(ua)) return 'iPhone'; if (/iPad/.test(ua)) return 'iPad'; if (/Android/.test(ua)) return 'Android'; if (/Mac/.test(ua)) return 'Mac'; if (/Windows/.test(ua)) return 'Windows'; return 'Device'; }
+
+// ---------------- icons ----------------
+var ph = function(n, cls){ return '<i class="ph' + (cls ? '-' + cls : '') + ' ph-' + n + '" aria-hidden="true"></i>'; };
+var I = {
+  face: ph('scan-smiley'), finger: ph('fingerprint'), home: ph('crosshair'), cal: ph('calendar-dots'), admin: ph('chart-bar'),
+  user: ph('user-circle'), lock: ph('lock-simple'), chev: ph('caret-right'), chevb: ph('caret-left'), tap: ph('hand-tap'), click: ph('cursor-click'), desk: ph('laptop'), phone: ph('device-mobile'),
+  pin:'<svg viewBox="0 0 38 62"><defs><linearGradient id="pg" x1="0" x2="1"><stop offset="0" stop-color="#FFE3A8"/><stop offset=".55" stop-color="#E0A043"/><stop offset="1" stop-color="#9E6A1F"/></linearGradient><linearGradient id="pgi" x1="0" x2="1"><stop offset="0" stop-color="#DFF7E4"/><stop offset=".55" stop-color="#9FE0AE"/><stop offset="1" stop-color="#4E9A61"/></linearGradient></defs><path class="pinbody" d="M19 61C19 61 3 36 3 19a16 16 0 0 1 32 0c0 17-16 42-16 42z" fill="url(#pg)"/><circle cx="19" cy="19" r="6.5" fill="#1C2A1F"/></svg>',
+  check: ph('check', 'bold'), x: ph('x', 'bold'), users: ph('users-three'), cal0: ph('calendar-blank')
+};
+
+// ---------------- 3D medallion (three.js, loaded on demand) ----------------
+// The logo's circle (x 106-297, y 33-224 of the 402x352 artwork, measured from the file)
+// is mapped 1:1 onto the face of a turned metal coin. Nothing in the artwork is redrawn.
+var Brand3D = (function(){
+  var cur = null, loading = null, face = null;
+  var REDUCED = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function lib(){
+    if (window.THREE) return Promise.resolve();
+    if (loading) return loading;
+    loading = new Promise(function(res, rej){
+      var sc = document.createElement('script');
+      sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+      sc.onload = res; sc.onerror = rej; document.head.appendChild(sc);
+    });
+    return loading;
+  }
+  function faceCanvas(){
+    if (face) return Promise.resolve(face);
+    return new Promise(function(res){
+      var img = new Image();
+      img.onload = function(){
+        var c = document.createElement('canvas'); c.width = c.height = 1024;
+        var g = c.getContext('2d');
+        g.fillStyle = '#4D6D51'; g.fillRect(0, 0, 1024, 1024);
+        g.imageSmoothingQuality = 'high';
+        // The cylinder cap maps the texture a quarter-turn round; turn it back so the logo stands upright.
+        g.translate(512, 512); g.rotate(-Math.PI / 2);
+        g.drawImage(img, 106, 33, 192, 192, -512, -512, 1024, 1024);
+        face = c; res(c);
+      };
+      img.src = LOGO;
+    });
+  }
+  function glowTexture(){
+    var c = document.createElement('canvas'); c.width = c.height = 256;
+    var g = c.getContext('2d'), gr = g.createRadialGradient(128, 128, 0, 128, 128, 128);
+    gr.addColorStop(0, 'rgba(159,224,174,.55)'); gr.addColorStop(.45, 'rgba(94,130,98,.22)'); gr.addColorStop(1, 'rgba(28,42,31,0)');
+    g.fillStyle = gr; g.fillRect(0, 0, 256, 256);
+    return new THREE.CanvasTexture(c);
+  }
+  function destroy(){
+    if (!cur) return;
+    cancelAnimationFrame(cur.raf); cur.ro && cur.ro.disconnect();
+    window.removeEventListener('pointermove', cur.onMove);
+    cur.renderer.dispose(); cur.renderer.forceContextLoss && cur.renderer.forceContextLoss();
+    if (cur.renderer.domElement.parentNode) cur.renderer.domElement.remove();
+    cur = null;
+  }
+  function build(host, fc){
+    var hero = host.dataset.b3d === 'hero';
+    var renderer;
+    try { renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' }); }
+    catch (e) { host.classList.add('no-webgl'); return; }
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, hero ? 2 : 1.75));
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
+    host.appendChild(renderer.domElement);
+    var scene = new THREE.Scene();
+    var cam = new THREE.PerspectiveCamera(30, 1, 0.1, 100); cam.position.set(0, 0, hero ? 10.6 : 15);
+
+    scene.add(new THREE.HemisphereLight(0xF2EEE4, 0x1C2A1F, 0.75));
+    var key = new THREE.DirectionalLight(0xFFF6E6, 1.25); key.position.set(3.5, 4, 6); scene.add(key);
+    var rim = new THREE.DirectionalLight(0x9FE0AE, 1.1); rim.position.set(-5, -2, -3); scene.add(rim);
+    var spec = new THREE.PointLight(0xFFFFFF, 0.9, 30); scene.add(spec);
+
+    var tex = new THREE.CanvasTexture(fc); tex.encoding = THREE.sRGBEncoding; tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    var metal = new THREE.MeshStandardMaterial({ color: 0xE9E2CF, metalness: 0.82, roughness: 0.26 });
+    var faceMat = new THREE.MeshStandardMaterial({ map: tex, metalness: 0.12, roughness: 0.42 });
+    var coin = new THREE.Group();
+    var body = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.6, 0.28, 160, 1), [metal, faceMat, faceMat]);
+    body.rotation.x = Math.PI / 2;
+    coin.add(body);
+    [0.14, -0.14].forEach(function(z){
+      var ring = new THREE.Mesh(new THREE.TorusGeometry(1.6, 0.045, 20, 160), metal);
+      ring.position.z = z; coin.add(ring);
+    });
+    scene.add(coin);
+
+    var glow = new THREE.Mesh(new THREE.PlaneGeometry(7, 7), new THREE.MeshBasicMaterial({ map: glowTexture(), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+    glow.position.z = -1.2; scene.add(glow);
+
+    // gas particles orbiting the medallion
+    var N = hero ? 260 : 900, pos = new Float32Array(N * 3), col = new Float32Array(N * 3);
+    var c1 = new THREE.Color(0x9FE0AE), c2 = new THREE.Color(0xF2EEE4);
+    for (var i = 0; i < N; i++) {
+      var a = Math.random() * Math.PI * 2, r = 2.2 + Math.random() * (hero ? 0.45 : 0.85), h = (Math.random() - 0.5) * 0.35;
+      pos[i * 3] = Math.cos(a) * r; pos[i * 3 + 1] = h; pos[i * 3 + 2] = Math.sin(a) * r;
+      var cc = Math.random() < 0.7 ? c1 : c2; col[i * 3] = cc.r; col[i * 3 + 1] = cc.g; col[i * 3 + 2] = cc.b;
+    }
+    var pg = new THREE.BufferGeometry(); pg.setAttribute('position', new THREE.BufferAttribute(pos, 3)); pg.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    var dots = new THREE.Points(pg, new THREE.PointsMaterial({ size: hero ? 0.05 : 0.045, vertexColors: true, transparent: true, opacity: 0.85, depthWrite: false, blending: THREE.AdditiveBlending }));
+    var orbit = new THREE.Group(); orbit.add(dots); orbit.rotation.x = 1.15; orbit.rotation.z = -0.25; scene.add(orbit);
+
+    var target = { x: 0, y: 0 }, tilt = { x: 0, y: 0 }, t0 = performance.now();
+    function onMove(e){ target.x = (e.clientY / innerHeight - 0.5) * 0.5; target.y = (e.clientX / innerWidth - 0.5) * 0.7; }
+    window.addEventListener('pointermove', onMove, { passive: true });
+    function size(){ var w = Math.round((host.clientWidth || 200) * 1.44); renderer.setSize(w, w, false); cam.aspect = 1; cam.updateProjectionMatrix(); }
+    size();
+    var ro = window.ResizeObserver ? new ResizeObserver(size) : null; ro && ro.observe(host);
+    var ease = function(x){ return 1 - Math.pow(1 - x, 3); };
+    function frame(now){
+      var t = (now - t0) / 1000, intro = REDUCED ? 1 : Math.min(1, t / 1.8), e = ease(intro);
+      tilt.x += (target.x - tilt.x) * 0.06; tilt.y += (target.y - tilt.y) * 0.06;
+      coin.rotation.y = (1 - e) * -Math.PI * 1.35 + (REDUCED ? 0.35 : Math.sin(t * 0.55) * 0.5) + tilt.y;
+      coin.rotation.x = tilt.x + (REDUCED ? 0 : Math.sin(t * 0.8) * 0.05);
+      coin.position.y = REDUCED ? 0 : Math.sin(t * 1.1) * 0.07;
+      coin.scale.setScalar(0.62 + 0.38 * e);
+      orbit.rotation.y = t * 0.18; dots.material.opacity = 0.85 * e;
+      spec.position.set(Math.cos(t * 0.7) * 4, 2.2, 4 + Math.sin(t * 0.7));
+      glow.material.opacity = 0.75 + Math.sin(t * 1.6) * 0.15;
+      renderer.render(scene, cam);
+      if (!REDUCED && cur) cur.raf = requestAnimationFrame(frame);
+    }
+    cur = { renderer: renderer, onMove: onMove, ro: ro, raf: 0 };
+    cur.raf = requestAnimationFrame(frame);
+  }
+  function mount(){
+    destroy();
+    var host = document.querySelector('[data-b3d]');
+    if (!host) return;
+    Promise.all([lib(), faceCanvas()]).then(function(r){
+      if (!document.body.contains(host) || cur) return;
+      build(host, r[1]);
+    }).catch(function(){ host.classList.add('no-webgl'); });
+  }
+  document.addEventListener('visibilitychange', function(){ if (document.hidden && cur) cancelAnimationFrame(cur.raf); else if (!document.hidden && cur && !REDUCED) { var h = document.querySelector('[data-b3d]'); destroy(); if (h) mount(); } });
+  return { mount: mount, destroy: destroy };
+})();
+
+// ---------------- gate screens ----------------
+function langBtn(){ return '<button class="langsw" type="button" onclick="toggleLang()">' + t('langBtn') + '</button>'; }
+function toggleLang(){ S.lang = S.lang === 'ar' ? 'en' : 'ar'; store('lang', S.lang); applyLang(); rerender(); }
+var rerender = function(){};
+function root(html){
+  $('#root').innerHTML = html;
+  // Sign-in screens: everything except the brand panel goes into one column, so desktop can centre it beside the panel.
+  Brand3D.mount();
+  var g = $('.gate');
+  if (g && g.querySelector('.gate-brand')) {
+    var col = document.createElement('section'); col.className = 'gate-form';
+    Array.prototype.slice.call(g.children).forEach(function(c){ if (!c.classList.contains('gate-brand')) col.appendChild(c); });
+    g.appendChild(col);
+  }
+}
+
+function gateBrand(){
+  return '<aside class="gate-brand"><div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div><div class="gb-scene" aria-hidden="true"><i></i><i></i><i></i></div>' +
+    brand3dHtml('gate') + '<p class="gate-tag">' + t('gateTag') + '</p></aside>';
+}
+
+// The company name arrives word by word (Arabic), then letter by letter (English).
+function wordmarkHtml(){
+  var ar = 'شركة الناقل الأفضل للغاز'.split(' '), en = 'BEST GAS CARRIER CO.'.split('');
+  return '<div class="wordmark" role="img" aria-label="شركة الناقل الأفضل للغاز - Best Gas Carrier Co.">' +
+    '<span class="wm-ar" aria-hidden="true">' + ar.map(function(w, i){ return '<span class="w" style="--i:' + i + '">' + w + '</span>'; }).join('') + '</span>' +
+    '<span class="sweep-line" aria-hidden="true"></span>' +
+    '<span class="wm-en" aria-hidden="true">' + en.map(function(c, i){ return '<span class="l" style="--i:' + i + '">' + (c === ' ' ? '&nbsp;' : c) + '</span>'; }).join('') + '</span></div>';
+}
+function brand3dHtml(where){
+  return '<div class="brand3d"><div class="b3d" data-b3d="' + where + '"><img class="b3d-fallback" src="' + MARK + '" alt=""></div>' + (where === 'hero' ? '' : wordmarkHtml()) + '</div>';
+}
+
+// Opening moment: the medallion spins in and the name arrives word by word, then the app continues.
+function splash(next){
+  var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  root('<div class="splash" id="splash"><div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>' + brand3dHtml('splash') +
+    '<p class="tagline">' + t('gateTag') + '</p><div class="bar" aria-hidden="true"><i></i></div>' +
+    '<button class="splash-skip" type="button" id="skip">' + (S.lang === 'ar' ? 'تخطي' : 'Skip') + '</button></div>');
+  var done = false;
+  function go(){ if (done) return; done = true; var el = $('#splash'); if (!el || reduced) return next(); el.classList.add('leave'); setTimeout(next, 500); }
+  $('#skip').onclick = go;
+  setTimeout(go, reduced ? 400 : 2200);
+}
+
+function boot(){
+  applyLang();
+  if (!window.__splashed) {
+    window.__splashed = true;
+    // Warm the server and fetch the sign-in challenge during the animation.
+    if (S.empNo) S.loginPromise = api('authBegin', { empNo: S.empNo }, true);
+    else S.bootPromise = api('bootstrapStatus', {}, true);
+    return splash(boot);
+  }
+  if (!S.empNo) {
+    root('<div class="gate">' + gateBrand() + '</div>');
+    (S.bootPromise || api('bootstrapStatus', {}, true)).then(function(r){ S.bootPromise = null; if (r.ok && r.needsSetup) renderSetup(); else renderActivate(); });
+  } else renderLock();
+}
+
+function renderSetup(){
+  rerender = renderSetup;
+  root(langBtn() + '<div class="gate">' + gateBrand() + '' +
+    '<h1>' + t('setupTitle') + '</h1><p>' + t('setupLead') + '</p>' +
+    '<form id="f" autocomplete="off"><div class="field"><label for="sk">' + t('setupKey') + '</label><input id="sk" required></div>' +
+    '<div class="field"><label for="nm">' + t('fullName') + '</label><input id="nm" required></div>' +
+    '<div class="field"><label for="no">' + t('empNo') + '</label><input id="no" inputmode="numeric" required></div>' +
+    '<div class="err" id="err" role="alert"></div><button class="btn btn-primary">' + t('createAdmin') + '</button></form></div>');
+  $('#f').onsubmit = function(e){ e.preventDefault();
+    api('bootstrap', { setupKey: $('#sk').value, name: $('#nm').value, empNo: $('#no').value }).then(function(r){
+      if (!r.ok) return $('#err').textContent = errText(r.error);
+      renderActivate(r.empNo, r.activationCode);
+    });
+  };
+}
+
+function renderActivate(prefNo, prefCode){
+  rerender = function(){ renderActivate($('#no') && $('#no').value, $('#cd') && $('#cd').value); };
+  root(langBtn() + '<div class="gate">' + gateBrand() + '' +
+    '<h1>' + t('activateTitle') + '</h1><p>' + t('activateLead') + '</p>' +
+    '<form id="f" autocomplete="off"><div class="field"><label for="no">' + t('empNo') + '</label><input id="no" inputmode="numeric" required value="' + esc(prefNo || '') + '"></div>' +
+    '<div class="field"><label for="cd">' + t('actCode') + '</label><input id="cd" required autocapitalize="characters" placeholder="XXXX-XXXX" dir="ltr" value="' + esc(prefCode || '') + '"></div>' +
+    '<div class="field"><label for="p1">' + t('pinNew') + '</label><input id="p1" class="pinin" type="password" inputmode="numeric" pattern="\\d{6}" maxlength="6" autocomplete="new-password" required dir="ltr"></div>' +
+    '<div class="field"><label for="p2">' + t('pinAgain') + '</label><input id="p2" class="pinin" type="password" inputmode="numeric" pattern="\\d{6}" maxlength="6" autocomplete="new-password" required dir="ltr"></div>' +
+    '<div class="err" id="err" role="alert"></div>' +
+    '<button class="btn btn-primary" id="go">' + I.lock + t('activatePin') + '</button></form>' +
+    '<button class="linkish" type="button" id="pwl">' + t('pwLogin') + '</button></div>');
+  $('#pwl').onclick = function(){ renderPwLogin($('#no').value); };
+  $('#f').onsubmit = function(e){
+    e.preventDefault();
+    var a = $('#p1').value, b = $('#p2').value;
+    if (!validPin(a)) return $('#err').textContent = t('e_bad_pin_format');
+    if (a !== b) return $('#err').textContent = t('e_pin_mismatch');
+    doActivate('devicekey', a);
+  };
+}
+
+function doActivate(mode, pin){
+  var desk = !!pin;
+  var no = $('#no').value.trim(), code = $('#cd').value.trim();
+  $('#err').textContent = '';
+  if (mode === 'devicekey' && !hasDeviceKeySupport()) return $('#err').textContent = t('e_no_devicekey');
+  api('enrollBegin', { empNo: no, code: code }).then(function(r){
+    if (!r.ok) return $('#err').textContent = errText(r.error);
+    var made = mode === 'passkey'
+      ? createPasskey(r.options).then(function(cred){ return { credential: cred }; }, function(e){
+          // A phone that reports Face ID but cannot make a passkey falls back to the device key.
+          if (passkeyError(e) === 'cancelled' || !hasDeviceKeySupport()) throw e;
+          mode = 'devicekey'; return dkCreate(r.options.challenge).then(function(dk){ return { deviceKey: dk }; });
+        })
+      : dkCreate(r.options.challenge).then(function(dk){ return { deviceKey: dk }; });
+    return made.then(function(body){ body.label = deviceLabel(); body.platform = isDesktopDevice() ? 'desktop' : 'mobile'; if (pin) body.pin = pin; return api('enrollFinish', body); },
+      function(e){ $('#err').textContent = errText(passkeyError(e)); return null; }).then(function(f){
+      if (!f) return;
+      if (!f.ok) return $('#err').textContent = errText(f.error);
+      S.empNo = no; store('empNo', no); S.kind = f.kind || mode; store('kind', S.kind);
+      S.platform = f.platform || 'mobile'; store('platform', S.platform); S.pin = pin || null;
+      if (pin) { S.hasPin = true; store('hasPin', '1'); }
+      if (S.kind === 'devicekey') { S.dkId = f.credId; store('dkId', f.credId); }
+      S.me = f.me; enterApp(f.home);
+    });
+  });
+}
+
+function pinPadHtml(){
+  var keys = ['1','2','3','4','5','6','7','8','9','', '0', 'del'];
+  return '<div class="pinpad" id="pinpad" role="group" aria-label="' + t('pinPadLead') + '"><div class="pindots" aria-hidden="true">' + '<i></i><i></i><i></i><i></i><i></i><i></i>' + '</div>' +
+    '<div class="pinkeys">' + keys.map(function(k){
+      if (!k) return '<span></span>';
+      if (k === 'del') return '<button type="button" class="fn" data-k="del" aria-label="' + t('del') + '">' + t('del') + '</button>';
+      return '<button type="button" data-k="' + k + '">' + k + '</button>';
+    }).join('') + '</div></div>';
+}
+
+function renderLock(){
+  if (S.pwOnly) { S.auth = 'dev'; S.token = null; store('token', null); return renderPwLogin(S.empNo); }
+  rerender = renderLock;
+  stopWatch(); clearTimeout(prefetchTimer); clearInterval(clockTimer); clearInterval(boardTimer);
+  var name = store('name') || '';
+  S.pin = null; clearTimeout(idleTimer);
+  var pinMode = usesPin();
+  root(langBtn() + '<div class="gate">' + gateBrand() + '' +
+    '<h1>' + t('unlockTitle') + (name ? ' ' + esc(name.split(' ')[0]) : '') + '</h1>' +
+    (pinMode ? '<p>' + t('pinPadLead') + '</p>' : S.kind === 'devicekey' ? '' : '<p>' + t('unlockLead') + '</p><div class="bio-icon" aria-hidden="true">' + I.face + '</div>') +
+    '<div class="err" id="err" role="alert">' + (S.lockMsg ? esc(S.lockMsg) : '') + '</div>' +
+    (pinMode ? pinPadHtml() : '<form id="f" style="align-items:stretch"><button class="btn btn-primary" id="go">' + (S.kind === 'devicekey' ? t('unlockTap') : t('unlock')) + '</button></form>') +
+    '<button class="linkish" type="button" id="pwl">' + t('pwLogin') + '</button>' +
+    '<button class="linkish" type="button" id="other">' + t('notMe') + '</button></div>');
+  $('#pwl').onclick = function(){ renderPwLogin(S.empNo); };
+  S.lockMsg = '';
+  S.loginOpts = null;
+  (S.loginPromise || api('authBegin', { empNo: S.empNo }, true)).then(function(r){
+    S.loginPromise = null;
+    if (r.ok) { S.loginOpts = r.options; if (S.kind === 'devicekey' && !pinMode) doUnlock(); if (S.pendingPin) { var p = S.pendingPin; S.pendingPin = null; doUnlock(p); } }
+    else if (r.error === 'no_device' || r.error === 'unknown_employee') { forget(); }
+    else $('#err').textContent = errText(r.error);
+  });
+  if (pinMode) wirePinPad(function(pin){ doUnlock(pin); });
+  else $('#f').onsubmit = function(e){ e.preventDefault(); doUnlock(); };
+  $('#other').onclick = function(){ forget(); };
+}
+
+function wirePinPad(done){
+  var pad = $('#pinpad'), val = '';
+  function paint(){ $$('.pindots i', pad).forEach(function(d, i){ d.classList.toggle('on', i < val.length); }); }
+  function press(k){
+    if (pad.classList.contains('busy')) return;
+    if (k === 'del') val = val.slice(0, -1);
+    else if (/^\d$/.test(k) && val.length < 6) val += k;
+    paint();
+    if (val.length === 6) { var v = val; pad.classList.add('busy'); setTimeout(function(){ done(v); }, 60); }
+  }
+  pad.addEventListener('click', function(e){ var b = e.target.closest('button[data-k]'); if (b) press(b.dataset.k); });
+  document.onkeydown = function(e){ if (!document.body.contains(pad)) { document.onkeydown = null; return; } if (/^\d$/.test(e.key)) press(e.key); else if (e.key === 'Backspace') press('del'); };
+  pad.reset = function(bad){ val = ''; paint(); pad.classList.remove('busy'); if (bad) { pad.classList.remove('bad'); void pad.offsetWidth; pad.classList.add('bad'); if (navigator.vibrate && navigator.userActivation && navigator.userActivation.hasBeenActive) navigator.vibrate([30, 40, 30]); } };
+}
+
+function renderPwLogin(prefNo){
+  rerender = function(){ renderPwLogin($('#pno') && $('#pno').value); };
+  stopWatch(); clearTimeout(prefetchTimer); clearInterval(clockTimer); clearInterval(boardTimer);
+  var hasDevice = !!S.empNo && !S.pwOnly;
+  root(langBtn() + '<div class="gate">' + gateBrand() + '' +
+    '<h1>' + t('pwTitle') + '</h1><p>' + t('pwLead') + '</p>' +
+    '<form id="pf" autocomplete="on"><div class="field"><label for="pno">' + t('empNo') + '</label><input id="pno" name="username" autocomplete="username" inputmode="numeric" required value="' + esc(prefNo || S.empNo || '') + '"></div>' +
+    '<div class="field"><label for="ppw">' + t('password') + '</label><input id="ppw" name="password" type="password" autocomplete="current-password" required minlength="8" dir="ltr"></div>' +
+    '<div class="err" id="err" role="alert">' + (S.lockMsg ? esc(S.lockMsg) : '') + '</div>' +
+    '<button class="btn btn-primary" id="pgo">' + I.lock + t('signIn') + '</button></form>' +
+    (hasDevice ? '<button class="linkish" type="button" id="back">' + t('backToPin') + '</button>' : '<button class="linkish" type="button" id="back">' + t('activateTitle') + '</button>') + '</div>');
+  S.lockMsg = '';
+  $('#back').onclick = function(){ if (hasDevice) renderLock(); else { S.pwOnly = false; store('pwOnly', null); renderActivate(); } };
+  $('#pf').onsubmit = function(e){
+    e.preventDefault();
+    var no = $('#pno').value.trim(), pw = $('#ppw').value;
+    $('#pgo').disabled = true; $('#err').textContent = '';
+    api('pwLogin', { empNo: no, password: pw }).then(function(r){
+      $('#pgo').disabled = false;
+      if (!r.ok) { $('#err').textContent = errText(r.error); $('#ppw').value = ''; $('#ppw').focus(); return; }
+      S.auth = 'pw';
+      if (!S.empNo || S.pwOnly) { S.empNo = no; store('empNo', no); S.pwOnly = true; store('pwOnly', '1'); }
+      S.me = r.me; enterApp(r.home);
+    });
+  };
+  $('#pno').value ? $('#ppw').focus() : $('#pno').focus();
+}
+
+function forget(){ ['empNo', 'token', 'name', 'kind', 'dkId', 'dkJwk', 'platform', 'hasPin', 'pwOnly'].forEach(function(k){ store(k, null); }); S.hasPin = false; S.pwOnly = false; S.auth = 'dev'; S.empNo = null; S.token = null; S.kind = 'passkey'; S.dkId = null; S.platform = ''; S.pin = null; renderActivate(); }
+
+function doUnlock(padPin){
+  $('#err').textContent = '';
+  var pad = $('#pinpad');
+  var pin = usesPin() ? padPin : null;
+  if (usesPin() && !validPin(pin)) { if (pad) pad.reset(true); return; }
+  if (!S.loginOpts) {
+    // The challenge is still on its way (slow network): use it the moment it lands.
+    if (usesPin()) { S.pendingPin = pin; return; }
+    api('authBegin', { empNo: S.empNo }).then(function(r){ if (r.ok) { S.loginOpts = r.options; } else $('#err').textContent = errText(r.error); });
+    return;
+  }
+  var o = S.loginOpts; S.loginOpts = null;
+  // credentials.get runs straight from the tap: Safari refuses it after an await.
+  getAssertion(o).then(function(cred){ return api('authFinish', { credential: cred, pin: pin }); }, function(e){ return { ok:false, error: passkeyError(e) }; })
+    .then(function(r){
+      if (!r.ok) {
+        $('#err').textContent = errText(r.error);
+        if (pad) pad.reset(true);
+        return api('authBegin', { empNo: S.empNo }, true).then(function(b){ if (b.ok) S.loginOpts = b.options; });
+      }
+      S.pin = pin; S.me = r.me; enterApp(r.home);
+    });
+}
+
+// Computers are often shared or left open: lock after 15 idle minutes.
+var idleTimer = null;
+function armIdleLock(){
+  if (!usesPin() && S.auth !== 'pw') return;
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(function(){ if (S.me) { S.lockMsg = t('autoLocked'); renderLock(); } }, 15 * 60000);
+}
+['pointerdown', 'keydown', 'wheel'].forEach(function(ev){ document.addEventListener(ev, function(){ if (S.me && S.pin) armIdleLock(); }, { passive: true }); });
+var hiddenAt = 0;
+document.addEventListener('visibilitychange', function(){
+  if (document.hidden) { hiddenAt = Date.now(); return; }
+  if (S.me && usesPin() && hiddenAt && Date.now() - hiddenAt > 5 * 60000) { S.lockMsg = t('bgLocked'); renderLock(); }
+});
+
+// ---------------- app shell ----------------
+function isHr(){ return S.me && (S.me.role === 'hr' || S.me.role === 'admin'); }
+function isAdmin(){ return S.me && S.me.role === 'admin'; }
+
+function applyHome(r){
+  S.hasPassword = !!r.hasPassword;
+  S.me = r.me; S.zones = r.zones; S.today = r.today; S.shift = r.shift; S.rules = r.rules; S.devices = r.devices || [];
+  if (r.punch && r.punch.options) { S.punchOpts = r.punch.options; S.punchType = r.punch.type; S.punchOptsAt = Date.now(); }
+}
+function enterApp(home){
+  store('name', S.me ? S.me.name : '');
+  function go(r){
+    applyHome(r); armIdleLock();
+    S.tab = 'home'; renderShell(); startWatch(); schedulePunchPrefetch(true);
+  }
+  if (home && home.me) return go(home);
+  api('me', {}).then(function(r){ if (!r.ok) return renderLock(); go(r); });
+}
+
+function renderShell(){
+  rerender = renderShell;
+  var wide = S.tab === 'admin';
+  var tabs = [['home', I.home, t('tabHome')], ['history', I.cal, t('tabHistory')]];
+  if (isHr()) tabs.push(['admin', I.admin, t('tabAdmin')]);
+  tabs.push(['me', I.user, t('tabMe')]);
+  root('<div class="app' + (wide ? ' admin-wide' : '') + (S.tab === 'home' ? ' on-home' : '') + '">' +
+    '<header class="topbar"><img src="' + MARK + '" alt="Best Gas"><div class="who"><b>' + esc(S.me.name) + '</b><span>' + esc(S.me.title || S.me.department || t('company')) + ' · ' + esc(S.me.empNo) + '</span></div>' +
+    '<button class="iconbtn" type="button" onclick="toggleLang()" aria-label="language" style="font-size:12px;width:auto;padding:0 10px">' + t('langBtn') + '</button>' +
+    '<button class="iconbtn" type="button" onclick="renderLock()" aria-label="' + t('signOut') + '">' + I.lock + '</button></header>' +
+    '<main id="main"></main>' +
+    '<nav class="tabs" aria-label="' + t('appName') + '">' + tabs.map(function(x){ return '<button type="button" data-tab="' + x[0] + '"' + (S.tab === x[0] ? ' aria-current="page"' : '') + '>' + x[1] + '<span>' + x[2] + '</span></button>'; }).join('') + '</nav></div>');
+  $$('.tabs button').forEach(function(b){ b.onclick = function(){ S.tab = b.dataset.tab; renderShell(); }; });
+  if (S.tab === 'home') renderHome();
+  else if (S.tab === 'history') renderHistory();
+  else if (S.tab === 'admin') renderAdmin();
+  else renderMe();
+}
+
+// ---------------- location ----------------
+function startWatch(){
+  if (!navigator.geolocation || S.watchId !== null) return;
+  S.watchId = navigator.geolocation.watchPosition(function(p){
+    var s = { lat: p.coords.latitude, lng: p.coords.longitude, acc: p.coords.accuracy, t: p.timestamp || Date.now() };
+    S.fix = s; S.locErr = null;
+    S.samples.push(s); if (S.samples.length > 8) S.samples.shift();
+    updateRadar();
+  }, function(err){ S.locErr = err.code; updateRadar(); }, { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 });
+}
+function stopWatch(){ if (S.watchId !== null && navigator.geolocation) navigator.geolocation.clearWatch(S.watchId); S.watchId = null; }
+
+function haversine(a, b, c, d){ var R = 6371008.8, r = Math.PI / 180, x = (c - a) * r, y = (d - b) * r; var h = Math.sin(x/2)*Math.sin(x/2) + Math.cos(a*r)*Math.cos(c*r)*Math.sin(y/2)*Math.sin(y/2); return 2 * R * Math.asin(Math.min(1, Math.sqrt(h))); }
+function bearing(a, b, c, d){ var r = Math.PI / 180, y = Math.sin((d - b) * r) * Math.cos(c * r), x = Math.cos(a * r) * Math.sin(c * r) - Math.sin(a * r) * Math.cos(c * r) * Math.cos((d - b) * r); return Math.atan2(y, x); }
+function nearestZone(){
+  if (!S.fix || !S.zones.length) return null;
+  var best = null;
+  S.zones.forEach(function(z){ var d = haversine(S.fix.lat, S.fix.lng, z.lat, z.lng); if (!best || d - z.radius < best.d - best.z.radius) best = { z: z, d: d }; });
+  return best;
+}
+function geoState(){
+  if (!S.zones.length) return { kind:'nozone' };
+  if (S.locErr && !S.fix) return { kind:'noloc' };
+  if (!S.fix) return { kind:'locating' };
+  var n = nearestZone();
+  var maxAcc = onDesktopKey() ? ((S.rules && S.rules.maxAccuracyDesktop) || 150) : ((S.rules && S.rules.maxAccuracy) || 100);
+  return { kind: n.d <= n.z.radius ? 'inside' : 'outside', zone: n.z, d: n.d, acc: S.fix.acc, weak: S.fix.acc > maxAcc };
+}
+
+// ---------------- home: 3D radar + punch ----------------
+function renderHome(){
+  var next = S.today ? S.today.next : 'in';
+  $('#main').innerHTML = '<div class="home-wide">' +
+    '<section class="hero" id="hero" aria-label="geofence"><div class="tilt" id="tilt">' +
+      '<div class="plane"><div class="grid"></div><div class="sweep"></div><div class="zone" id="zone"></div>' +
+        '<div class="ringlbl" id="rl1"><span></span></div><div class="ringlbl" id="rl2"><span></span></div><div class="ringlbl" id="rl3"><span></span></div>' +
+        '<div class="north"><span>' + (S.lang === 'ar' ? 'ش' : 'N') + '</span></div>' +
+        '<div class="hq"><div class="bld"><i class="sn"></i><i class="sw"></i><i class="se"></i><i class="ss"></i><i class="tp"></i></div></div>' +
+        '<div class="me hidden" id="mepin"><div class="shadow"></div><div class="halo"></div><div class="pin">' + I.pin + '</div></div></div>' +
+      '<div class="hero-logo b3d-host">' + brand3dHtml('hero') + '</div>' +
+    '</div>' +
+    '<div class="readout" aria-live="polite"><span class="state"><i class="dot"></i><span id="stateTxt">' + t('locating') + '</span></span>' +
+      '<div class="dist num" id="distTxt">--</div><div class="sub" id="subTxt"></div></div></section>' +
+    '<section class="sheet"><div class="punchrow">' +
+      '<button class="punch' + (next === 'out' ? ' out' : '') + '" id="punch" type="button" aria-disabled="true">' +
+        '<svg class="ring" viewBox="0 0 142 142"><circle class="track" cx="71" cy="71" r="66"/><circle class="prog" id="prog" cx="71" cy="71" r="66"/></svg>' +
+        '<span class="lbl">' + (onDesktopKey() ? I.click : S.kind === 'devicekey' ? I.tap : I.finger) + '<b>' + (next === 'out' ? t('btnOut') : t('btnIn')) + '</b><small>' + t('hold') + '</small></span></button>' +
+      '<div class="punchinfo"><div class="clock num" id="clock" title="' + t('recordedAt') + '"></div><div class="date" id="cdate"></div><h2 id="pTitle">' + t('locating') + '</h2><p id="pHint">' + hintText() + '</p></div></div>' +
+      '<div id="todayBox"></div></section></div>';
+  renderToday();
+  Brand3D.mount();
+  tickClock();
+  wirePunch();
+  wireTilt();
+  updateRadar();
+}
+
+function hintText(){ return S.auth === 'pw' ? t('tapHintDesk') : onDesktopKey() ? t('tapHintDesk') : S.kind === 'devicekey' ? t('tapHint') : t('holdHint'); }
+
+function renderToday(){
+  var d = S.today || {}, sh = S.shift || {};
+  var html = '<div class="today"><div><span>' + t('firstIn') + '</span><b class="num">' + fmtTime(d.firstIn) + '</b></div>' +
+    '<div><span>' + t('lastOut') + '</span><b class="num">' + fmtTime(d.lastOut) + '</b></div>' +
+    '<div><span>' + t('worked') + '</span><b class="num" id="workedLive">' + fmtDur(d.workedMin) + '</b></div></div>';
+  if (d.lateMin) html += '<div class="notice">' + t('late') + ': <b class="num">' + fmtDur(d.lateMin) + '</b> · ' + t('shift') + ' <span class="num">' + esc(sh.start) + ' - ' + esc(sh.end) + '</span></div>';
+  else html += '<div class="notice ok">' + t('shift') + ' <span class="num">' + esc(sh.start || '') + ' - ' + esc(sh.end || '') + '</span></div>';
+  if (d.list && d.list.length) {
+    html += '<ul class="timeline">' + d.list.map(function(p){
+      return '<li><i class="tl-dot ' + (p.status === 'review' ? 'review' : p.type) + '"></i>' + (p.type === 'in' ? t('checkIn') : t('checkOut')) +
+        (p.status === 'review' ? ' <span class="chip review">' + t('admReview') + '</span>' : '') + '<span class="t num">' + fmtTime(p.ts) + '</span></li>';
+    }).join('') + '</ul>';
+  }
+  var box = $('#todayBox'); if (box) box.innerHTML = html;
+}
+
+var clockTimer = null;
+function tickClock(){
+  clearInterval(clockTimer);
+  function draw(){
+    var c = $('#clock'); if (!c) return clearInterval(clockTimer);
+    var now = new Date(), o = { timeZone:'Asia/Riyadh' };
+    var hm = now.toLocaleTimeString(LOCALE(), Object.assign({ hour:'2-digit', minute:'2-digit' }, o));
+    c.innerHTML = esc(hm).replace(/\s?(ص|م|AM|PM|am|pm)$/, '<small>$1</small>');
+    $('#cdate').textContent = now.toLocaleDateString(LOCALE(), Object.assign({ weekday:'long', day:'numeric', month:'long' }, o));
+  }
+  draw(); clockTimer = setInterval(draw, 1000);
+}
+
+var workedTimer = null;
+function tickWorked(){
+  clearInterval(workedTimer);
+  workedTimer = setInterval(function(){
+    if (!S.today || S.today.status !== 'in' || !$('#workedLive')) return;
+    S.today.workedMin += 1 / 2; $('#workedLive').textContent = fmtDur(S.today.workedMin);
+  }, 30000);
+}
+
+function updateRadar(){
+  var hero = $('#hero'); if (!hero) return;
+  var g = geoState(), zoneEl = $('#zone'), pin = $('#mepin'), btn = $('#punch');
+  var stateTxt = $('#stateTxt'), distTxt = $('#distTxt'), subTxt = $('#subTxt'), pTitle = $('#pTitle'), pHint = $('#pHint');
+  hero.classList.toggle('inside', g.kind === 'inside');
+  var next = S.today ? S.today.next : 'in';
+  var canOutside = next === 'out' && S.rules && S.rules.allowCheckoutOutside;
+  var enabled = (g.kind === 'inside' && !g.weak) || (canOutside && (g.kind === 'inside' || g.kind === 'outside'));
+  btn.setAttribute('aria-disabled', enabled ? 'false' : 'true');
+  if (g.kind === 'nozone') { stateTxt.textContent = t('outside'); distTxt.innerHTML = '--'; subTxt.textContent = ''; pTitle.textContent = t('noZone'); pHint.textContent = ''; zoneEl.style.width = zoneEl.style.height = '40%'; return; }
+  if (g.kind === 'noloc') { stateTxt.textContent = t('outside'); distTxt.innerHTML = '--'; subTxt.textContent = ''; pTitle.textContent = t('noLoc'); pHint.textContent = ''; zoneEl.style.width = zoneEl.style.height = '40%'; return; }
+  if (g.kind === 'locating') { zoneEl.style.width = zoneEl.style.height = '40%'; return; }
+  var zname = S.lang === 'en' && g.zone.nameEn ? g.zone.nameEn : g.zone.name;
+  // Scale: the plane's radius shows 2.4x the zone; far away, distance is compressed logarithmically.
+  var span = g.zone.radius * 2.4;
+  [['#rl1', .5], ['#rl2', .75], ['#rl3', .99]].forEach(function(x){
+    var el = $(x[0]), pw = hero.querySelector('.plane').offsetWidth / 2, m = span * x[1];
+    el.style.transform = 'translateX(' + (x[1] * pw * (S.lang === 'ar' ? -1 : 1)).toFixed(1) + 'px)';
+    el.firstChild.textContent = m >= 1000 ? (m / 1000).toFixed(1) + ' ' + t('km') : Math.round(m / 10) * 10 + ' ' + t('m');
+  });
+  // One pulse and a short buzz the moment the employee walks into the zone.
+  var inNow = g.kind === 'inside';
+  if (inNow && S.wasInside === false) { hero.classList.remove('lockon'); void hero.offsetWidth; hero.classList.add('lockon'); if (navigator.vibrate && navigator.userActivation && navigator.userActivation.hasBeenActive) navigator.vibrate([12, 40, 12]); }
+  S.wasInside = inNow;
+  var zoneFrac = g.zone.radius / span;
+  var r = g.d <= span ? g.d / span : Math.min(0.92, 1 - (1 - 0.8) * Math.pow(span / g.d, 0.35));
+  zoneEl.style.width = zoneEl.style.height = (zoneFrac * 100 * 2 * 0.5) + '%';
+  var ang = bearing(g.zone.lat, g.zone.lng, S.fix.lat, S.fix.lng);
+  var planeW = hero.querySelector('.plane').offsetWidth / 2;
+  var x = Math.sin(ang) * r * planeW, y = -Math.cos(ang) * r * planeW;
+  pin.classList.remove('hidden');
+  pin.style.transform = 'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px)';
+  stateTxt.textContent = g.kind === 'inside' ? t('inside') + ' ' + zname : t('outside');
+  distTxt.innerHTML = fmtDist(g.d);
+  subTxt.textContent = t('fromZone') + ' ' + zname + ' · ' + t('accuracy') + ' ±' + Math.round(g.acc) + t('m');
+  if (g.weak && g.kind === 'inside') { pTitle.textContent = t('weakGps'); pHint.textContent = hintText(); }
+  else if (enabled) { pTitle.textContent = next === 'out' ? t('readyOut') : t('readyIn'); pHint.textContent = hintText(); }
+  else { pTitle.textContent = t('moveCloser'); pHint.textContent = t('outside') + ' · ' + (g.d >= 1000 ? (g.d / 1000).toFixed(1) + ' ' + t('km') : Math.round(g.d) + ' ' + t('m')); }
+}
+
+function wireTilt(){
+  var tilt = $('#tilt'); if (!tilt || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  function set(rx, ry){ tilt.style.transform = 'rotateX(' + rx.toFixed(2) + 'deg) rotateY(' + ry.toFixed(2) + 'deg)'; }
+  var hero = $('#hero');
+  hero.onpointermove = function(e){ var b = hero.getBoundingClientRect(); set(((e.clientY - b.top) / b.height - .5) * -8, ((e.clientX - b.left) / b.width - .5) * 10); };
+  hero.onpointerleave = function(){ set(0, 0); };
+  if (window.DeviceOrientationEvent && !window.__tiltBound) {
+    window.__tiltBound = true;
+    window.addEventListener('deviceorientation', function(e){
+      var tt = $('#tilt'); if (!tt || e.beta == null) return;
+      var rx = Math.max(-8, Math.min(8, (e.beta - 45) * -0.25)), ry = Math.max(-10, Math.min(10, e.gamma * 0.3));
+      tt.style.transform = 'rotateX(' + rx.toFixed(2) + 'deg) rotateY(' + ry.toFixed(2) + 'deg)';
+    });
+  }
+}
+
+// The punch challenge is fetched ahead of time so the Face ID prompt can open
+// straight from the finger lifting off the button (Safari needs a live gesture).
+var prefetchTimer = null;
+function schedulePunchPrefetch(onlyTimer){
+  clearTimeout(prefetchTimer);
+  if (S.auth === 'pw') return; // no device challenge: a password session checks in with punchPw
+  if (onlyTimer && S.punchOpts && Date.now() - S.punchOptsAt < 120000) { prefetchTimer = setTimeout(schedulePunchPrefetch, 140000 - (Date.now() - S.punchOptsAt)); return; }
+  var next = S.today ? S.today.next : 'in';
+  api('punchBegin', { empNo: S.empNo, type: next }, true).then(function(r){
+    if (r.ok) { S.punchOpts = r.options; S.punchType = r.type; S.punchOptsAt = Date.now(); }
+    else if (r.error === 'state_changed') refreshMe();
+  });
+  prefetchTimer = setTimeout(schedulePunchPrefetch, 140000);
+}
+function refreshMe(){ return api('me', {}, true).then(function(r){ if (r.ok) { applyHome(r); if (S.tab === 'home') { renderHome(); } } }); }
+
+// One tap. The server refuses a second punch within minPunchGapMin, so a double tap cannot record twice.
+function wirePunch(){
+  var btn = $('#punch'), prog = $('#prog');
+  btn.addEventListener('pointerdown', function(){ if (btn.getAttribute('aria-disabled') !== 'true') btn.classList.add('pressing'); });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(function(ev){ btn.addEventListener(ev, function(){ btn.classList.remove('pressing'); }); });
+  btn.addEventListener('click', function(){
+    if (btn.getAttribute('aria-disabled') === 'true' || S.busy) return;
+    prog.style.transition = 'stroke-dashoffset .6s cubic-bezier(.2,.8,.2,1)'; prog.style.strokeDashoffset = 0;
+    if (navigator.vibrate) navigator.vibrate(15);
+    doPunch();
+  });
+}
+
+function freshSamples(){
+  var now = Date.now();
+  return S.samples.filter(function(s){ return now - s.t < 30000; }).slice(-6);
+}
+
+function doPunch(){
+  if (S.busy) return;
+  if (S.auth === 'pw') {
+    S.busy = true;
+    var ptype = S.today ? S.today.next : 'in';
+    api('punchPw', { type: ptype, geo: { samples: freshSamples() }, deviceTime: Date.now(), ua: navigator.userAgent }).then(function(r){
+      S.busy = false;
+      if (r.ok) { S.today = r.today; showStamp(true, ptype, r.punch); } else showStamp(false, ptype, null, r.error);
+      if (S.tab === 'home') renderHome();
+    });
+    return;
+  }
+  var o = S.punchOpts;
+  if (!o || Date.now() - S.punchOptsAt > 170000) { toast(t('e_challenge_expired')); schedulePunchPrefetch(); return; }
+  S.busy = true; S.punchOpts = null;
+  var type = S.punchType;
+  getAssertion(o).then(function(cred){
+    return api('punchFinish', { credential: cred, pin: usesPin() ? S.pin : undefined, geo: { samples: freshSamples() }, deviceTime: Date.now(), ua: navigator.userAgent });
+  }, function(e){ return { ok:false, error: passkeyError(e), silent: true }; }).then(function(r){
+    S.busy = false;
+    if (r.ok) { S.today = r.today; showStamp(true, type, r.punch); }
+    else if (r.error === 'cancelled') toast(errText('cancelled'));
+    else showStamp(false, type, null, r.error);
+    if (r.next && r.next.options) { S.punchOpts = r.next.options; S.punchType = r.next.type; S.punchOptsAt = Date.now(); schedulePunchPrefetch(true); }
+    else schedulePunchPrefetch();
+    if (S.tab === 'home') { renderHome(); }
+  });
+}
+
+function showStamp(ok, type, punch, err){
+  var d = document.createElement('div'); d.className = 'stamp'; d.setAttribute('role', 'dialog');
+  d.innerHTML = '<div class="card"><div class="tick' + (ok ? '' : ' bad') + '">' + (ok ? I.check : I.x) + '</div>' +
+    '<h3>' + (ok ? (type === 'out' ? t('doneOut') : t('doneIn')) : t('punchFailed')) + '</h3>' +
+    (ok ? '<div class="time num">' + fmtTime(punch.ts) + '</div><p>' + (punch.status === 'review' ? t('reviewNote') : (S.auth === 'pw' ? t('pwMode') : usesPin() ? t('pinMode') : S.kind === 'devicekey' ? t('tapMode') : t('bioMode')) + ' ✓ · ' + (punch.distance != null ? punch.distance + ' ' + t('m') : '')) + '</p>'
+        : '<p>' + errText(err) + '</p>') +
+    '<button class="btn btn-dark" style="width:100%">' + t('close') + '</button></div>';
+  document.body.appendChild(d);
+  if (ok && navigator.vibrate) navigator.vibrate([20, 60, 30]);
+  d.setAttribute('aria-modal', 'true'); d.querySelector('button').focus();
+  d.addEventListener('keydown', function(e){ if (e.key === 'Escape') d.remove(); });
+  d.querySelector('button').onclick = function(){ d.remove(); };
+  d.onclick = function(e){ if (e.target === d) d.remove(); };
+}
+
+// ---------------- history ----------------
+S.month = riyadhToday().slice(0, 7);
+function renderHistory(){
+  $('#main').innerHTML = '<section class="page"><h2>' + t('histTitle') + '</h2>' +
+    '<div class="monthbar"><button class="iconbtn" id="mPrev" aria-label="previous">' + (S.lang === 'ar' ? I.chev : I.chevb) + '</button><b id="mLbl"></b>' +
+    '<button class="iconbtn" id="mNext" aria-label="next">' + (S.lang === 'ar' ? I.chevb : I.chev) + '</button></div><div id="hBody"><div class="daylist">' + [0,1,2,3].map(function(){ return '<div class="day"><span class="sk"></span><span class="sk"></span><span class="sk"></span></div>'; }).join('') + '</div></div></section>';
+  function lbl(){ var p = S.month.split('-'); $('#mLbl').textContent = new Date(Date.UTC(+p[0], +p[1] - 1, 15)).toLocaleDateString(LOCALE(), { month:'long', year:'numeric' }); }
+  function shift(n){ var p = S.month.split('-'), d = new Date(Date.UTC(+p[0], +p[1] - 1 + n, 1)); var m = d.toISOString().slice(0, 7); if (m > riyadhToday().slice(0, 7)) return; S.month = m; lbl(); load(); }
+  $('#mPrev').onclick = function(){ shift(-1); }; $('#mNext').onclick = function(){ shift(1); };
+  lbl();
+  function load(){
+    api('myHistory', { month: S.month }).then(function(r){
+      if (!r.ok) return;
+      var tt = r.totals;
+      var html = '<div class="stats"><div class="stat"><span>' + t('present') + '</span><b class="num">' + tt.present + '</b></div>' +
+        '<div class="stat"><span>' + t('totalHours') + '</span><b class="num">' + fmtDur(tt.workedMin) + '</b></div>' +
+        '<div class="stat"><span>' + t('lateDays') + '</span><b class="num">' + tt.lateDays + '</b></div>' +
+        '<div class="stat"><span>' + t('absent') + '</span><b class="num">' + tt.absent + '</b></div></div>';
+      html += r.days.length ? '<div class="daylist">' + r.days.map(dayRow).join('') + '</div>' : '<div class="empty">' + I.cal0 + '<b>' + t('emptyDay') + '</b></div>';
+      $('#hBody').innerHTML = html;
+    });
+  }
+  load();
+}
+function statusChip(d){
+  var cls = { in:'in', present:'in', absent:'absent', off:'off', upcoming:'off', missing_out:'late' }[d.status] || '';
+  var html = '<span class="chip ' + cls + '">' + t('st_' + d.status) + '</span>';
+  if (d.lateMin) html += ' <span class="chip late num">' + t('late') + ' ' + d.lateMin + t('min') + '</span>';
+  return html;
+}
+function dayRow(d){
+  var dt = new Date(d.date + 'T12:00:00Z');
+  return '<div class="day"><div class="d"><b class="num">' + dt.getUTCDate() + '</b><span>' + t('dows')[dt.getUTCDay()] + '</span></div>' +
+    '<div class="io num">' + fmtTime(d.firstIn) + ' - ' + fmtTime(d.lastOut) + '<small>' + (d.workedMin ? fmtDur(d.workedMin) : '') + '</small></div>' +
+    '<div>' + statusChip(d) + '</div></div>';
+}
+
+// ---------------- account ----------------
+function deviceKindLabel(d){ return d.platform === 'desktop' ? t('laptopMode') : d.kind === 'devicekey' ? t('tapMode') : t('bioMode'); }
+
+function renderMe(){
+  $('#main').innerHTML = '<section class="page"><h2>' + esc(S.me.name) + '</h2><p class="lead">' + esc(S.me.empNo) + ' · ' + t('r_' + S.me.role) + '</p>' +
+    '<div class="list">' + (S.devices || []).map(function(d){ return '<div class="row"><div class="av">' + (d.platform === 'desktop' ? I.desk : I.phone) + '</div><div class="main"><b>' + esc(d.label || '') + '</b><small>' + deviceKindLabel(d) + ' · ' + t('since') + ' ' + new Date(d.since).toLocaleDateString(LOCALE()) + '</small></div></div>'; }).join('') +
+    '<div class="row"><div class="main"><b>' + t('shift') + '</b><small class="num">' + esc(S.shift.start) + ' - ' + esc(S.shift.end) + ' · ' + S.shift.workdays.map(function(i){ return t('dows')[i]; }).join('، ') + '</small></div></div>' +
+    '<div class="row"><div class="main"><b>' + t('admZones') + '</b><small>' + S.zones.map(function(z){ return esc(S.lang === 'en' && z.nameEn ? z.nameEn : z.name) + ' (' + z.radius + t('m') + ')'; }).join('، ') + '</small></div></div></div>' +
+    '<h3 style="margin:22px 0 4px;font-size:17px">' + t('pwSection') + '</h3><p class="lead" style="margin:0 0 10px">' + t('pwSectionLead') + '</p>' +
+    '<form class="form" id="pwf" style="max-width:420px" autocomplete="on"><input type="text" name="username" autocomplete="username" value="' + esc(S.me.empNo) + '" hidden>' +
+    (S.hasPassword ? '<div class="field"><label for="pwc">' + t('pwCurrent') + '</label><input id="pwc" type="password" autocomplete="current-password" dir="ltr" required></div>' : '') +
+    '<div class="field"><label for="pw1">' + t('pwNew') + '</label><input id="pw1" type="password" autocomplete="new-password" minlength="8" dir="ltr" required></div>' +
+    '<div class="field"><label for="pw2">' + t('pwAgain') + '</label><input id="pw2" type="password" autocomplete="new-password" minlength="8" dir="ltr" required></div>' +
+    '<div class="err" id="pwerr" style="color:var(--red)"></div><div class="btnrow"><button class="btn btn-dark btn-sm">' + t('pwSave') + '</button></div></form>' +
+    '<p class="lead" style="margin-top:16px">' + t('installHint') + '</p>' +
+    '<div class="btnrow"><button class="btn btn-dark btn-sm" onclick="renderLock()">' + t('signOut') + '</button><button class="btn btn-danger btn-sm" id="fg">' + t('forgetDevice') + '</button></div>' +
+    '<p class="lead" style="margin-top:20px;font-size:12px">v' + BUILD + '</p></section>';
+  $('#fg').onclick = function(){ forget(); };
+  $('#pwf').onsubmit = function(e){
+    e.preventDefault();
+    var a = $('#pw1').value, b = $('#pw2').value;
+    if (a !== b) return $('#pwerr').textContent = t('e_pw_mismatch');
+    if (a.length < 8 || !/\d/.test(a) || !/[A-Za-z\u0600-\u06FF]/.test(a)) return $('#pwerr').textContent = t('e_weak_password');
+    api('passwordSet', { password: a, current: $('#pwc') ? $('#pwc').value : '' }).then(function(r){
+      if (!r.ok) return $('#pwerr').textContent = errText(r.error);
+      S.hasPassword = true; toast(t('pwSaved')); renderMe();
+    });
+  };
+}
+
+// ---------------- admin ----------------
+function renderAdmin(){
+  var sections = [['board', t('admBoard')], ['emp', t('admEmp')], ['review', t('admReview')], ['reports', t('admReports')]];
+  if (isAdmin()) sections.splice(2, 0, ['zones', t('admZones')]);
+  if (isAdmin()) sections.push(['settings', t('admSettings')]);
+  sections.push(['audit', t('admAudit')]);
+  $('#main').innerHTML = '<section class="adm"><nav class="adm-nav">' + sections.map(function(s){
+    return '<button type="button" data-s="' + s[0] + '"' + (S.adm === s[0] ? ' aria-current="page"' : '') + '>' + s[1] + (s[0] === 'review' ? '<span class="badge hidden" id="revBadge"></span>' : '') + '</button>';
+  }).join('') + '</nav><div class="adm-body" id="admBody"></div></section>';
+  $$('.adm-nav button').forEach(function(b){ b.onclick = function(){ S.adm = b.dataset.s; renderAdmin(); }; });
+  ({ board: admBoard, emp: admEmp, zones: admZones, review: admReview, reports: admReports, settings: admSettings, audit: admAudit })[S.adm]();
+}
+function setBadge(n){ var b = $('#revBadge'); if (!b) return; b.textContent = n; b.classList.toggle('hidden', !n); }
+function initials(n){ return String(n || '?').trim().split(/\s+/).slice(0, 2).map(function(w){ return w[0]; }).join(''); }
+
+var boardTimer = null;
+function admBoard(){
+  clearInterval(boardTimer);
+  function load(){
+    if (S.adm !== 'board' || !$('#admBody')) return clearInterval(boardTimer);
+    api('board', {}, true).then(function(r){
+      if (!r.ok || !$('#admBody')) return;
+      var k = r.kpi, pct = k.total ? Math.round((k.in + k.out) / k.total * 100) : 0;
+      setBadge(k.review);
+      var q = S.boardQ || '';
+      var rows = r.rows.filter(function(x){ return !q || (x.emp.name + ' ' + x.emp.empNo).toLowerCase().indexOf(q.toLowerCase()) >= 0; });
+      var order = { in:0, present:1, missing_out:2, absent:3, upcoming:4, off:5 };
+      rows.sort(function(a, b){ return (order[a.day.status] - order[b.day.status]) || String(a.emp.name).localeCompare(b.emp.name); });
+      $('#admBody').innerHTML =
+        '<div class="kpis"><div class="kpi lead-k"><span>' + t('presentNow') + '</span><b class="num">' + pct + '%</b><div class="bar"><i style="width:' + pct + '%"></i></div></div>' +
+        '<div class="kpi"><span>' + t('kIn') + '</span><b class="num">' + k.in + '</b></div><div class="kpi"><span>' + t('kLate') + '</span><b class="num">' + k.late + '</b></div>' +
+        '<div class="kpi"><span>' + t('kAbsent') + '</span><b class="num">' + k.absent + '</b></div><div class="kpi"><span>' + t('kUpcoming') + '</span><b class="num">' + k.upcoming + '</b></div></div>' +
+        '<div class="toolbar"><input class="grow" id="bq" type="search" aria-label="' + t('search') + '" placeholder="' + t('search') + '" value="' + esc(q) + '"></div>' +
+        '<div class="list">' + (rows.length ? rows.map(function(x){
+          return '<div class="row"><div class="av">' + esc(initials(x.emp.name)) + '</div><div class="main"><b>' + esc(x.emp.name) + '</b><small>' + esc(x.emp.empNo) + (x.emp.department ? ' · ' + esc(x.emp.department) : '') + (x.lastZone ? ' · ' + esc(x.lastZone) : '') + '</small></div>' +
+            '<div class="end">' + statusChip(x.day) + '<small class="num">' + (x.day.firstIn ? fmtTime(x.day.firstIn) + ' - ' + fmtTime(x.day.lastOut) : (x.enrolled ? '' : t('notEnrolled'))) + '</small></div></div>';
+        }).join('') : '<div class="empty">--</div>') + '</div>';
+      var bq = $('#bq'); bq.oninput = function(){ S.boardQ = bq.value; load(); };
+      if (q) { bq.focus(); bq.setSelectionRange(q.length, q.length); }
+    });
+  }
+  $('#admBody').innerHTML = '<div class="list">' + [0,1,2,3,4].map(function(){ return '<div class="row"><div class="av"></div><div class="main"><span class="sk" style="width:48%"></span><span class="sk" style="width:30%"></span></div></div>'; }).join('') + '</div>';
+  load(); boardTimer = setInterval(load, 60000);
+}
+
+function admEmp(){
+  $('#admBody').innerHTML = '<div class="list">' + [0,1,2,3,4].map(function(){ return '<div class="row"><div class="av"></div><div class="main"><span class="sk" style="width:48%"></span><span class="sk" style="width:30%"></span></div></div>'; }).join('') + '</div>';
+  Promise.all([api('empList'), api('zoneList', {}, true)]).then(function(res){
+    var r = res[0]; S.zoneRows = res[1].ok ? res[1].rows : [];
+    if (!r.ok) return;
+    S.empRows = r.rows;
+    function draw(){
+      var q = (S.empQ || '').toLowerCase();
+      var rows = r.rows.filter(function(e){ return !q || (e.name + ' ' + e.empNo + ' ' + (e.department || '')).toLowerCase().indexOf(q) >= 0; });
+      $('#admBody').innerHTML = '<div class="toolbar"><input class="grow" id="eq" type="search" aria-label="' + t('search') + '" placeholder="' + t('search') + '" value="' + esc(S.empQ || '') + '"><button class="btn btn-dark btn-sm" id="add">+ ' + t('addEmp') + '</button></div>' +
+        (rows.length ? '' : '<div class="empty">' + I.users + '<b>' + t('emptyEmp') + '</b>' + t('emptyEmpLead') + '</div>') + '<div class="list' + (rows.length ? '' : ' hidden') + '">' + rows.map(function(e){
+          return '<div class="row click" data-id="' + e.id + '" tabindex="0"><div class="av">' + esc(initials(e.name)) + '</div><div class="main"><b>' + esc(e.name) + '</b><small>' + esc(e.empNo) + ' · ' + t('r_' + e.role) + (e.department ? ' · ' + esc(e.department) : '') + '</small></div>' +
+            '<div class="end">' + (e.status === 'disabled' ? '<span class="chip absent">' + t('s_disabled') + '</span>' : e.device ? '<span class="chip in">' + (e.device.kind === 'devicekey' ? t('tapMode') : t('bioMode')) + '</span>' : '<span class="chip late">' + t('notEnrolled') + '</span>') + '</div></div>';
+        }).join('') + '</div>';
+      var eq = $('#eq'); eq.oninput = function(){ S.empQ = eq.value; draw(); var n = $('#eq'); n.focus(); n.setSelectionRange(n.value.length, n.value.length); };
+      $('#add').onclick = function(){ empDrawer(null); };
+      $$('.row.click').forEach(function(el){ el.onclick = function(){ empDrawer(r.rows.filter(function(x){ return x.id === el.dataset.id; })[0]); }; });
+    }
+    draw();
+  });
+}
+
+function drawer(html){
+  var d = document.createElement('div'); d.className = 'drawer';
+  d.innerHTML = '<div class="panel" role="dialog">' + html + '</div>';
+  d.onclick = function(e){ if (e.target === d) d.remove(); };
+  d.addEventListener('keydown', function(e){ if (e.key === 'Escape') d.remove(); });
+  document.body.appendChild(d);
+  d.querySelector('.panel').setAttribute('aria-modal', 'true');
+  var first = d.querySelector('input,select,textarea,button'); if (first) first.focus();
+  return d;
+}
+
+function empDrawer(e){
+  var z = S.zoneRows || [], ids = e ? String(e.zoneIds || '').split(',') : [];
+  var wd = e && e.workdays ? e.workdays.split(',') : [];
+  var roles = isAdmin() ? ['employee', 'hr', 'admin'] : ['employee'];
+  var d = drawer('<h3>' + (e ? t('editEmp') : t('addEmp')) + '</h3><form class="form" id="ef">' +
+    '<div class="two"><div class="field"><label>' + t('empNo') + '</label><input name="empNo" required inputmode="numeric" value="' + esc(e ? e.empNo : '') + '"></div>' +
+    '<div class="field"><label>' + t('role') + '</label><select name="role">' + roles.map(function(x){ return '<option value="' + x + '"' + (e && e.role === x ? ' selected' : '') + '>' + t('r_' + x) + '</option>'; }).join('') + '</select></div></div>' +
+    '<div class="field"><label>' + t('fullName') + '</label><input name="name" required value="' + esc(e ? e.name : '') + '"></div>' +
+    '<div class="field"><label>' + t('nameEn') + '</label><input name="nameEn" dir="ltr" value="' + esc(e ? e.nameEn : '') + '"></div>' +
+    '<div class="two"><div class="field"><label>' + t('dept') + '</label><input name="department" value="' + esc(e ? e.department : '') + '"></div>' +
+    '<div class="field"><label>' + t('title') + '</label><input name="title" value="' + esc(e ? e.title : '') + '"></div></div>' +
+    '<div class="two"><div class="field"><label>' + t('phone') + '</label><input name="phone" dir="ltr" inputmode="tel" value="' + esc(e ? e.phone : '') + '"></div>' +
+    '<div class="field"><label>' + t('email') + '</label><input name="email" dir="ltr" type="email" value="' + esc(e ? e.email : '') + '"></div></div>' +
+    '<div class="field"><label>' + t('zonesFor') + '</label><div class="checks">' + z.filter(function(x){ return x.status === 'active'; }).map(function(x){ return '<label><input type="checkbox" name="zone" value="' + x.id + '"' + (ids.indexOf(x.id) >= 0 ? ' checked' : '') + '>' + esc(x.name) + '</label>'; }).join('') + '</div></div>' +
+    '<div class="field"><label>' + t('shiftOverride') + '</label><div class="two"><input name="shiftStart" type="time" value="' + esc(e ? e.shiftStart : '') + '"><input name="shiftEnd" type="time" value="' + esc(e ? e.shiftEnd : '') + '"></div></div>' +
+    '<div class="field"><label>' + t('workdays') + '</label><div class="checks">' + t('dows').map(function(n, i){ return '<label><input type="checkbox" name="wd" value="' + i + '"' + (wd.indexOf(String(i)) >= 0 ? ' checked' : '') + '>' + n + '</label>'; }).join('') + '</div></div>' +
+    (e ? '<div class="field"><label>' + t('status') + '</label><select name="status"><option value="active">' + t('s_active') + '</option><option value="disabled"' + (e.status === 'disabled' ? ' selected' : '') + '>' + t('s_disabled') + '</option></select></div>' : '') +
+    (e && e.devices && e.devices.length ? '<div class="field"><label>' + t('devices') + '</label><div class="list">' + e.devices.map(function(dv){
+      return '<div class="row"><div class="av">' + (dv.platform === 'desktop' ? I.desk : I.phone) + '</div><div class="main"><b>' + esc(dv.label || '') + '</b><small>' + deviceKindLabel(dv) + (dv.status === 'locked' ? ' · <span class="chip absent">' + t('locked') + '</span>' : '') + '</small></div>' +
+        (isAdmin() ? '<button type="button" class="btn btn-line btn-sm" data-unlink="' + esc(dv.credId) + '">' + t('unlink') + '</button>' : '') + '</div>';
+    }).join('') + '</div></div>' : '') +
+    '<div class="err" id="eerr" style="color:var(--red)"></div>' +
+    '<div class="btnrow"><button class="btn btn-dark">' + t('save') + '</button><button type="button" class="btn btn-line" id="ecancel">' + t('cancel') + '</button></div>' +
+    (e ? '<div class="btnrow" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line)"><button type="button" class="btn btn-line btn-sm" id="ecode">' + t('newCode') + '</button>' +
+      '<button type="button" class="btn btn-line btn-sm" id="eman">' + t('manual') + '</button>' +
+      (isAdmin() && e.device ? '<button type="button" class="btn btn-danger btn-sm" id="ereset">' + t('resetDevice') + '</button>' : '') + '</div>' : '') +
+    '</form>');
+  $('#ecancel', d).onclick = function(){ d.remove(); };
+  $('#ef', d).onsubmit = function(ev){
+    ev.preventDefault(); var f = ev.target;
+    var emp = { id: e ? e.id : '', empNo: f.empNo.value, name: f.name.value, nameEn: f.nameEn.value, department: f.department.value, title: f.title.value,
+      phone: f.phone.value, email: f.email.value, role: f.role.value, shiftStart: f.shiftStart.value, shiftEnd: f.shiftEnd.value,
+      zoneIds: $$('input[name=zone]:checked', f).map(function(x){ return x.value; }).join(','), workdays: $$('input[name=wd]:checked', f).map(function(x){ return x.value; }).join(','),
+      status: f.status ? f.status.value : 'active' };
+    api('empSave', { emp: emp }).then(function(r){
+      if (!r.ok) return $('#eerr', d).textContent = errText(r.error);
+      d.remove(); toast(t('saved'));
+      if (r.activationCode) showCode(r.emp, r.activationCode);
+      admEmp();
+    });
+  };
+  if (e) {
+    $('#ecode', d).onclick = function(){ api('empActivation', { id: e.id }).then(function(r){ if (r.ok) { d.remove(); showCode(e, r.activationCode); } else toast(errText(r.error)); }); };
+    $('#eman', d).onclick = function(){ d.remove(); manualDrawer(e); };
+    $('[data-unlink]', d).forEach(function(bt){ bt.onclick = function(){
+      if (!window.confirm(t('confirmUnlink'))) return;
+      api('empResetDevice', { id: e.id, credId: bt.dataset.unlink }).then(function(r){ if (r.ok) { d.remove(); showCode(e, r.activationCode); admEmp(); } else toast(errText(r.error)); });
+    }; });
+    var rs = $('#ereset', d);
+    if (rs) rs.onclick = function(){ if (!window.confirm(t('confirmReset'))) return; api('empResetDevice', { id: e.id }).then(function(r){ if (r.ok) { d.remove(); showCode(e, r.activationCode); admEmp(); } else toast(errText(r.error)); }); };
+  }
+}
+
+function appUrl(){ return location.origin + location.pathname; }
+function showCode(e, code){
+  var msg = t('codeMsg').replace('{url}', appUrl()).replace('{no}', e.empNo).replace('{code}', code);
+  var d = drawer('<h3>' + t('codeTitle') + ' · ' + esc(e.name) + '</h3><p class="lead">' + t('codeLead') + '</p><div class="code num">' + esc(code) + '</div>' +
+    '<div class="btnrow"><button class="btn btn-dark" id="cp">' + t('copy') + '</button>' +
+    (e.phone ? '<a class="btn btn-line" target="_blank" rel="noopener" href="https://wa.me/' + encodeURIComponent(String(e.phone).replace(/\D/g, '').replace(/^0/, '966')) + '?text=' + encodeURIComponent(msg) + '">WhatsApp</a>' : '') +
+    '<button class="btn btn-line" id="cc">' + t('close') + '</button></div>');
+  $('#cp', d).onclick = function(){ (navigator.clipboard ? navigator.clipboard.writeText(msg) : Promise.reject()).then(function(){ toast(t('copied')); }, function(){ toast(msg); }); };
+  $('#cc', d).onclick = function(){ d.remove(); };
+}
+
+function manualDrawer(e){
+  var d = drawer('<h3>' + t('manualTitle') + ' · ' + esc(e.name) + '</h3><form class="form" id="mf">' +
+    '<div class="field"><label>' + t('type') + '</label><select name="type"><option value="in">' + t('checkIn') + '</option><option value="out">' + t('checkOut') + '</option></select></div>' +
+    '<div class="two"><div class="field"><label>' + t('date') + '</label><input name="date" type="date" required value="' + riyadhToday() + '" max="' + riyadhToday() + '"></div>' +
+    '<div class="field"><label>' + t('time') + '</label><input name="time" type="time" required></div></div>' +
+    '<div class="field"><label>' + t('reason') + '</label><textarea name="reason" required></textarea></div><div class="err" id="merr" style="color:var(--red)"></div>' +
+    '<div class="btnrow"><button class="btn btn-dark">' + t('save') + '</button><button type="button" class="btn btn-line" id="mc">' + t('cancel') + '</button></div></form>');
+  $('#mc', d).onclick = function(){ d.remove(); };
+  $('#mf', d).onsubmit = function(ev){ ev.preventDefault(); var f = ev.target;
+    api('manualPunch', { empId: e.id, type: f.type.value, date: f.date.value, time: f.time.value, reason: f.reason.value }).then(function(r){
+      if (!r.ok) return $('#merr', d).textContent = errText(r.error);
+      d.remove(); toast(t('saved'));
+    });
+  };
+}
+
+// ---------- zones (Leaflet, loaded on demand) ----------
+function loadLeaflet(){
+  if (window.L) return Promise.resolve();
+  return new Promise(function(res, rej){
+    var c = document.createElement('link'); c.rel = 'stylesheet'; c.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'; document.head.appendChild(c);
+    var s = document.createElement('script'); s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'; s.onload = res; s.onerror = rej; document.head.appendChild(s);
+  });
+}
+function admZones(){
+  $('#admBody').innerHTML = '<div id="map"></div><p class="lead" style="margin:8px 0 12px">' + t('mapHint') + '</p><div id="zform"></div><div id="zlist" style="margin-top:16px"></div>';
+  Promise.all([api('zoneList'), loadLeaflet().catch(function(){})]).then(function(res){
+    var r = res[0]; if (!r.ok) return;
+    var zones = r.rows, sel = zones.filter(function(z){ return z.status === 'active'; })[0] || null;
+    var center = sel ? [sel.lat, sel.lng] : (S.fix ? [S.fix.lat, S.fix.lng] : [24.7136, 46.6753]);
+    var map = null, circle = null, marker = null;
+    if (window.L) {
+      map = L.map('map', { zoomControl: true }).setView(center, 17);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(map);
+      zones.forEach(function(z){ if (z.status === 'active') L.circle([z.lat, z.lng], { radius: z.radius, color: '#4D6D51', weight: 1, fillOpacity: .08 }).addTo(map); });
+    }
+    var draft = sel ? JSON.parse(JSON.stringify(sel)) : { name: 'المقر الرئيسي', nameEn: 'HQ', lat: center[0], lng: center[1], radius: 150 };
+    function paint(){
+      if (!map) return;
+      if (circle) circle.remove(); if (marker) marker.remove();
+      circle = L.circle([draft.lat, draft.lng], { radius: draft.radius, color: '#1C2A1F', weight: 2, fillColor: '#4D6D51', fillOpacity: .25 }).addTo(map);
+      marker = L.circleMarker([draft.lat, draft.lng], { radius: 6, color: '#1C2A1F', fillColor: '#F2EEE4', fillOpacity: 1 }).addTo(map);
+    }
+    function form(){
+      $('#zform').innerHTML = '<form class="form" id="zf"><div class="two"><div class="field"><label>' + t('zoneName') + '</label><input name="name" required value="' + esc(draft.name) + '"></div>' +
+        '<div class="field"><label>' + t('nameEn') + '</label><input name="nameEn" dir="ltr" value="' + esc(draft.nameEn || '') + '"></div></div>' +
+        '<div class="field"><label>' + t('radius') + ': <b class="num" id="rv">' + draft.radius + '</b> ' + t('m') + '</label><input name="radius" type="range" min="20" max="1000" step="10" value="' + draft.radius + '" style="height:32px;padding:0"></div>' +
+        '<div class="two"><div class="field"><label>' + t('lat') + '</label><input name="lat" dir="ltr" inputmode="decimal" value="' + draft.lat.toFixed(6) + '"></div><div class="field"><label>' + t('lng') + '</label><input name="lng" dir="ltr" inputmode="decimal" value="' + draft.lng.toFixed(6) + '"></div></div>' +
+        '<div class="err" id="zerr" style="color:var(--red)"></div><div class="btnrow"><button class="btn btn-dark">' + t('save') + '</button><button type="button" class="btn btn-line" id="zme">' + t('useMyLoc') + '</button>' +
+        '<button type="button" class="btn btn-line" id="znew">+ ' + t('addZone') + '</button>' + (draft.id ? '<button type="button" class="btn btn-danger" id="zdel">' + t('disable') + '</button>' : '') + '</div></form>';
+      var f = $('#zf');
+      f.radius.oninput = function(){ draft.radius = +f.radius.value; $('#rv').textContent = draft.radius; paint(); };
+      f.lat.onchange = f.lng.onchange = function(){ draft.lat = +f.lat.value; draft.lng = +f.lng.value; paint(); if (map) map.panTo([draft.lat, draft.lng]); };
+      $('#zme').onclick = function(){ navigator.geolocation.getCurrentPosition(function(p){ draft.lat = p.coords.latitude; draft.lng = p.coords.longitude; form(); paint(); if (map) map.setView([draft.lat, draft.lng], 18); }, function(){ toast(t('noLoc')); }, { enableHighAccuracy: true }); };
+      $('#znew').onclick = function(){ draft = { name: '', nameEn: '', lat: draft.lat, lng: draft.lng, radius: 150 }; form(); paint(); };
+      var del = $('#zdel'); if (del) del.onclick = function(){ api('zoneDelete', { id: draft.id }).then(function(){ admZones(); }); };
+      f.onsubmit = function(ev){ ev.preventDefault(); draft.name = f.name.value; draft.nameEn = f.nameEn.value;
+        api('zoneSave', { zone: draft }).then(function(res){ if (!res.ok) return $('#zerr').textContent = errText(res.error); toast(t('saved')); admZones(); refreshMe(); });
+      };
+    }
+    if (map) map.on('click', function(ev){ draft.lat = ev.latlng.lat; draft.lng = ev.latlng.lng; form(); paint(); });
+    form(); paint();
+    $('#zlist').innerHTML = zones.length ? '<div class="list">' + zones.map(function(z){ return '<div class="row click" data-id="' + z.id + '"><div class="main"><b>' + esc(z.name) + '</b><small class="num">' + z.lat.toFixed(5) + ', ' + z.lng.toFixed(5) + ' · ' + z.radius + t('m') + '</small></div><div class="end"><span class="chip ' + (z.status === 'active' ? 'in' : 'off') + '">' + t('s_' + z.status) + '</span></div></div>'; }).join('') + '</div>' : '';
+    $$('#zlist .row').forEach(function(el){ el.onclick = function(){ draft = JSON.parse(JSON.stringify(zones.filter(function(z){ return z.id === el.dataset.id; })[0])); form(); paint(); if (map) map.setView([draft.lat, draft.lng], 17); $('#main').scrollTo({ top: 0, behavior: 'smooth' }); }; });
+  });
+}
+
+// ---------- review queue ----------
+function admReview(){
+  var scope = S.revScope || 'review';
+  $('#admBody').innerHTML = '<div class="toolbar"><div class="checks"><label><input type="radio" name="sc" value="review"' + (scope === 'review' ? ' checked' : '') + '>' + t('toReview') + '</label><label><input type="radio" name="sc" value="rejected"' + (scope === 'rejected' ? ' checked' : '') + '>' + t('rejectedTab') + '</label></div></div><div id="rl"><div class="empty">…</div></div>';
+  $$('input[name=sc]').forEach(function(x){ x.onchange = function(){ S.revScope = x.value; admReview(); }; });
+  api('reviewList', { scope: scope }).then(function(r){
+    if (!r.ok) return;
+    if (scope === 'review') setBadge(r.rows.length);
+    $('#rl').innerHTML = r.rows.length ? '<div class="list">' + r.rows.map(function(p){
+      var flags = String(p.flags || '').split(',').filter(String).map(function(f){ return '<span class="chip late">' + (T[S.lang]['f_' + f] || f) + '</span>'; }).join(' ');
+      return '<div class="row" style="flex-wrap:wrap"><div class="main"><b>' + esc(p.emp ? p.emp.name : '') + ' · ' + (p.type === 'in' ? t('checkIn') : t('checkOut')) + '</b>' +
+        '<small class="num">' + esc(p.date) + ' ' + fmtTime(p.ts) + (p.distance != null ? ' · ' + p.distance + t('m') : '') + (p.acc != null ? ' · ±' + p.acc + t('m') : '') + (scope === 'review' ? ' · ' + t('risk') + ' ' + p.risk : ' · ' + errText(p.note)) + '</small>' +
+        '<div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">' + flags + (p.lat != null ? '<a class="chip" target="_blank" rel="noopener" href="https://www.google.com/maps?q=' + p.lat + ',' + p.lng + '">' + t('openMap') + '</a>' : '') + '</div></div>' +
+        (scope === 'review' ? '<div class="btnrow"><button class="btn btn-brand btn-sm" data-a="approve" data-id="' + p.id + '">' + t('approve') + '</button><button class="btn btn-danger btn-sm" data-a="reject" data-id="' + p.id + '">' + t('reject') + '</button></div>' : '') + '</div>';
+    }).join('') + '</div>' : '<div class="empty">' + t('noReview') + '</div>';
+    $$('#rl button[data-a]').forEach(function(b){ b.onclick = function(){ api('reviewDecide', { id: b.dataset.id, decision: b.dataset.a }).then(function(x){ if (!x.ok) toast(errText(x.error)); admReview(); }); }; });
+  });
+}
+
+// ---------- reports ----------
+function admReports(){
+  var today = riyadhToday();
+  var from = S.repFrom || today.slice(0, 8) + '01', to = S.repTo || today;
+  $('#admBody').innerHTML = '<div class="toolbar"><label>' + t('from') + ' <input type="date" id="rf" value="' + from + '" max="' + today + '"></label><label>' + t('to') + ' <input type="date" id="rt" value="' + to + '" max="' + today + '"></label>' +
+    '<button class="btn btn-dark btn-sm" id="rgo">' + t('runReport') + '</button><button class="btn btn-line btn-sm" id="rcsv" disabled>' + t('exportCsv') + '</button></div><div id="rb"></div>';
+  var last = null;
+  function run(){
+    S.repFrom = $('#rf').value; S.repTo = $('#rt').value;
+    api('report', { from: S.repFrom, to: S.repTo }).then(function(r){
+      if (!r.ok) return toast(errText(r.error));
+      last = r; $('#rcsv').disabled = false;
+      $('#rb').innerHTML = '<div class="tblwrap"><table class="tbl"><thead><tr><th>' + t('employee') + '</th><th>' + t('empNo') + '</th><th class="n">' + t('days') + '</th><th class="n">' + t('absent') + '</th><th class="n">' + t('hours') + '</th><th class="n">' + t('lateDays') + '</th><th class="n">' + t('lateMin') + '</th><th class="n">' + t('early') + '</th><th class="n">' + t('overtime') + '</th><th class="n">' + t('missingOut') + '</th></tr></thead><tbody>' +
+        r.totals.map(function(x){ return '<tr><td>' + esc(x.emp.name) + '</td><td class="num">' + esc(x.emp.empNo) + '</td><td class="n num">' + x.present + '</td><td class="n num">' + x.absent + '</td><td class="n num">' + fmtDur(x.workedMin) + '</td><td class="n num">' + x.lateDays + '</td><td class="n num">' + x.lateMin + '</td><td class="n num">' + x.earlyMin + '</td><td class="n num">' + fmtDur(x.overtimeMin) + '</td><td class="n num">' + x.missingOut + '</td></tr>'; }).join('') +
+        '</tbody></table></div>';
+    });
+  }
+  $('#rgo').onclick = run;
+  $('#rcsv').onclick = function(){
+    if (!last) return;
+    var names = {}; last.totals.forEach(function(x){ names[x.emp.id] = x.emp; });
+    var lines = [['empNo', 'name', 'date', 'status', 'firstIn', 'lastOut', 'workedMin', 'lateMin', 'earlyMin', 'overtimeMin'].join(',')];
+    last.rows.forEach(function(d){ var e = names[d.empId]; lines.push([e.empNo, '"' + String(e.name).replace(/"/g, '""') + '"', d.date, d.status, d.firstIn ? fmtTime(d.firstIn) : '', d.lastOut ? fmtTime(d.lastOut) : '', d.workedMin, d.lateMin, d.earlyMin, d.overtimeMin].join(',')); });
+    var blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+    var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'attendance_' + last.from + '_' + last.to + '.csv'; a.click();
+  };
+  run();
+}
+
+// ---------- settings ----------
+function admSettings(){
+  api('settingsGet').then(function(r){
+    if (!r.ok) return; var s = r.settings, wd = String(s.workdays).split(',');
+    $('#admBody').innerHTML = '<form class="form" id="sf" style="max-width:560px"><div class="field"><label>' + t('setShift') + '</label><div class="two"><input name="shiftStart" type="time" value="' + s.shiftStart + '"><input name="shiftEnd" type="time" value="' + s.shiftEnd + '"></div></div>' +
+      '<div class="field"><label>' + t('workdays') + '</label><div class="checks">' + t('dows').map(function(n, i){ return '<label><input type="checkbox" name="wd" value="' + i + '"' + (wd.indexOf(String(i)) >= 0 ? ' checked' : '') + '>' + n + '</label>'; }).join('') + '</div></div>' +
+      '<div class="two"><div class="field"><label>' + t('grace') + '</label><input name="graceMin" type="number" min="0" max="120" value="' + s.graceMin + '"></div><div class="field"><label>' + t('minGap') + '</label><input name="minPunchGapMin" type="number" min="0" max="60" value="' + s.minPunchGapMin + '"></div></div>' +
+      '<div class="two"><div class="field"><label>' + t('maxAcc') + '</label><input name="maxAccuracy" type="number" min="10" max="500" value="' + s.maxAccuracy + '"></div><div class="field"><label>' + t('riskTh') + '</label><input name="reviewRiskThreshold" type="number" min="10" max="100" value="' + s.reviewRiskThreshold + '"></div></div>' +
+      '<div class="field"><label>' + t('maxAccDesk') + '</label><input name="maxAccuracyDesktop" type="number" min="20" max="1000" value="' + s.maxAccuracyDesktop + '"></div>' +
+      '<div class="checks" style="flex-direction:column;align-items:flex-start"><label><input type="checkbox" name="allowPasswordPunch"' + (s.allowPasswordPunch ? ' checked' : '') + '>' + t('allowPwPunch') + '</label><label><input type="checkbox" name="allowDesktop"' + (s.allowDesktop ? ' checked' : '') + '>' + t('allowDesk') + '</label><label><input type="checkbox" name="allowDeviceKey"' + (s.allowDeviceKey ? ' checked' : '') + '>' + t('allowDk') + '</label><label><input type="checkbox" name="allowCheckoutOutside"' + (s.allowCheckoutOutside ? ' checked' : '') + '>' + t('allowOut') + '</label></div>' +
+      '<div class="btnrow"><button class="btn btn-dark">' + t('save') + '</button></div></form>';
+    $('#sf').onsubmit = function(ev){ ev.preventDefault(); var f = ev.target;
+      api('settingsSave', { settings: { shiftStart: f.shiftStart.value, shiftEnd: f.shiftEnd.value, graceMin: f.graceMin.value, minPunchGapMin: f.minPunchGapMin.value, maxAccuracy: f.maxAccuracy.value, reviewRiskThreshold: f.reviewRiskThreshold.value,
+        workdays: $$('input[name=wd]:checked', f).map(function(x){ return x.value; }).join(',') || '0,1,2,3,4', allowCheckoutOutside: f.allowCheckoutOutside.checked, allowDeviceKey: f.allowDeviceKey.checked, allowDesktop: f.allowDesktop.checked, allowPasswordPunch: f.allowPasswordPunch.checked, maxAccuracyDesktop: f.maxAccuracyDesktop.value } })
+        .then(function(x){ toast(x.ok ? t('saved') : errText(x.error)); });
+    };
+  });
+}
+
+// ---------- audit ----------
+function admAudit(){
+  api('auditList').then(function(r){
+    if (!r.ok) return;
+    $('#admBody').innerHTML = '<div class="tblwrap"><table class="tbl"><thead><tr><th>' + t('date') + '</th><th>' + t('employee') + '</th><th>' + t('type') + '</th><th></th></tr></thead><tbody>' +
+      r.rows.map(function(a){ return '<tr><td class="num">' + new Date(a.ts).toLocaleString(LOCALE(), { timeZone:'Asia/Riyadh', dateStyle:'short', timeStyle:'short' }) + '</td><td>' + esc(a.actor) + '</td><td>' + esc(a.action) + '</td><td>' + esc(a.target || '') + '</td></tr>'; }).join('') + '</tbody></table></div>';
+  });
+}
+
+// ---------------- start ----------------
+if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(function(){});
+document.addEventListener('visibilitychange', function(){ if (!document.hidden && S.me && S.tab === 'home') { refreshMe(); schedulePunchPrefetch(); } });
+tickWorked();
+boot();
+</script>
+</body>
+</html>
