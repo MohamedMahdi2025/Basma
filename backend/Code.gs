@@ -54,7 +54,7 @@ var HEADERS = {
   documents: ['id', 'empId', 'type', 'number', 'issueDate', 'expiryDate', 'note', 'status', 'createdAt', 'updatedAt', 'ref'],
   requests: ['id', 'ref', 'empId', 'type', 'subtype', 'fromDate', 'toDate', 'days', 'amount', 'months', 'payloadJson', 'reason', 'docNo',
     'status', 'step', 'stepsJson', 'effectJson', 'createdAt', 'updatedAt', 'decidedAt'],
-  holidays: ['id', 'date', 'toDate', 'nameAr', 'nameEn', 'createdBy', 'createdAt']
+  holidays: ['id', 'date', 'toDate', 'nameAr', 'nameEn', 'createdBy', 'createdAt', 'status']
 };
 
 var ROLES = { employee: 1, hr: 2, admin: 3 };

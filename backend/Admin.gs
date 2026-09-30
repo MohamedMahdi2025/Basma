@@ -24,21 +24,23 @@ function api_board(req, me) {
     if (p.status === 'rejected') { rejected[p.empId] = (rejected[p.empId] || 0) + 1; return; }
     if (isCounted_(p)) (today[p.empId] = today[p.empId] || []).push(p);
   });
+  var off = offIndex_(date, date);
   var rows = emps.map(function (e) {
     var ps = (today[e.id] || []).sort(function (a, b) { return a.ts < b.ts ? -1 : 1; });
-    var sum = summarizeDay_(e, date, ps, s, now);
+    var sum = summarizeDay_(e, date, ps, s, now, off(e.id, date));
     var last = ps[ps.length - 1];
     return { emp: publicEmp_(e), day: sum, lastZone: last ? zones[last.zoneId] || '' : '', lastTs: last ? last.ts : null,
       rejected: rejected[e.id] || 0, enrolled: !!creds[e.id] };
   });
-  var k = { total: rows.length, in: 0, out: 0, late: 0, absent: 0, upcoming: 0, off: 0, review: reviewCount };
+  var k = { total: rows.length, in: 0, out: 0, late: 0, absent: 0, upcoming: 0, off: 0, leave: 0, review: reviewCount };
   rows.forEach(function (r) {
     var st = r.day.status;
     if (st === 'in') k.in++;
     else if (st === 'present') k.out++;
     else if (st === 'absent') k.absent++;
     else if (st === 'upcoming') k.upcoming++;
-    else if (st === 'off') k.off++;
+    else if (st === 'off' || st === 'holiday') k.off++;
+    else if (st === 'leave') k.leave++;
     if (r.day.lateMin) k.late++;
   });
   return { ok: true, date: date, kpi: k, rows: rows, serverTime: now.toISOString() };
@@ -212,15 +214,16 @@ function api_report(req, me) {
     var k = p.empId + '|' + p.date;
     (by[k] = by[k] || []).push(p);
   });
-  var rows = [], totals = [];
+  var rows = [], totals = [], off = offIndex_(from, to);
   emps.forEach(function (e) {
-    var t = { emp: publicEmp_(e), workedMin: 0, lateMin: 0, earlyMin: 0, overtimeMin: 0, present: 0, absent: 0, lateDays: 0, missingOut: 0 };
+    var t = { emp: publicEmp_(e), workedMin: 0, lateMin: 0, earlyMin: 0, overtimeMin: 0, present: 0, absent: 0, lateDays: 0, missingOut: 0, leave: 0 };
     var joined = joinedDate_(e);
     for (var d = from; d <= to; d = addDays_(d, 1)) {
       if (d < joined) continue;
       var ps = (by[e.id + '|' + d] || []).sort(function (a, b) { return a.ts < b.ts ? -1 : 1; });
-      var sum = summarizeDay_(e, d, ps, s, now);
+      var sum = summarizeDay_(e, d, ps, s, now, off(e.id, d));
       sum.empId = e.id;
+      if (sum.status === 'leave') t.leave++;
       rows.push(sum);
       t.workedMin += sum.workedMin; t.lateMin += sum.lateMin; t.earlyMin += sum.earlyMin; t.overtimeMin += sum.overtimeMin;
       if (sum.firstIn) t.present++;

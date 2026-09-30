@@ -591,11 +591,13 @@ function shiftOf_(emp, s) {
  * One employee-day. punches: that day's counted punches, time-sorted.
  * status: present | in | absent | off | upcoming | missing_out
  */
-function summarizeDay_(emp, date, punches, s, now) {
+/** off: from offIndex_ (Leave.gs), or null where the caller does not read leave (the home screen, to keep sign-in fast). */
+function summarizeDay_(emp, date, punches, s, now, off) {
   var sh = shiftOf_(emp, s);
   var lpNow = localParts_(now);
   var dow = new Date(date + 'T00:00:00Z').getUTCDay();
   var workday = sh.workdays.indexOf(dow) >= 0;
+  if (off && off.holiday) workday = false; // work on a public holiday is overtime (Art. 107)
   var startM = hmToMin_(sh.start), endM = hmToMin_(sh.end);
   var out = { date: date, workday: workday, shiftStart: sh.start, shiftEnd: sh.end, firstIn: null, lastOut: null,
     workedMin: 0, lateMin: 0, earlyMin: 0, overtimeMin: 0, status: '', punches: punches.length, review: 0 };
@@ -625,6 +627,11 @@ function summarizeDay_(emp, date, punches, s, now) {
   } else if (!workday) out.status = 'off';
   else if (date > lpNow.date || (isToday && lpNow.minutes <= startM + sh.grace)) out.status = 'upcoming';
   else out.status = 'absent';
+  if (off) {
+    if (off.holiday) out.holiday = off.holiday;
+    if (off.leave) out.leaveType = off.leave;
+    if (!out.firstIn) out.status = off.leave ? 'leave' : 'holiday'; // never 'absent' on an approved leave day or a public holiday
+  }
   return out;
 }
 
@@ -669,8 +676,9 @@ function api_myHistory(req, me) {
   var days = [], d = month + '-01', today = localParts_(now).date;
   var joined = joinedDate_(me);
   if (joined > d) d = joined;
+  var off = offIndex_(month + '-01', today);
   while (d.slice(0, 7) === month && d <= today) {
-    var sum = summarizeDay_(me, d, byDate[d] || [], s, now);
+    var sum = summarizeDay_(me, d, byDate[d] || [], s, now, off(me.id, d));
     sum.list = (byDate[d] || []).map(publicPunch_);
     days.push(sum);
     d = addDays_(d, 1);
@@ -679,10 +687,11 @@ function api_myHistory(req, me) {
   var tot = days.reduce(function (t, x) {
     t.workedMin += x.workedMin; t.lateMin += x.lateMin; t.overtimeMin += x.overtimeMin;
     if (x.status === 'absent') t.absent++;
+    if (x.status === 'leave') t.leave++;
     if (x.firstIn) t.present++;
     if (x.lateMin) t.lateDays++;
     return t;
-  }, { workedMin: 0, lateMin: 0, overtimeMin: 0, absent: 0, present: 0, lateDays: 0 });
+  }, { workedMin: 0, lateMin: 0, overtimeMin: 0, absent: 0, present: 0, lateDays: 0, leave: 0 });
   return { ok: true, month: month, days: days, totals: tot };
 }
 
