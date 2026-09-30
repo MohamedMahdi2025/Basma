@@ -23,7 +23,7 @@ var CONFIG = {
 
 var SHEETS = { EMP: 'employees', CRED: 'credentials', ZONES: 'zones', PUNCH: 'punches', AUDIT: 'audit', SET: 'settings',
   DEPT: 'departments', POS: 'positions', PRIV: 'empPrivate', COMP: 'compensation', JOBH: 'jobHistory', DOCS: 'documents',
-  REQ: 'requests', HOL: 'holidays' };
+  REQ: 'requests', HOL: 'holidays', RUN: 'payrollRuns', SLIP: 'payslips', ADJ: 'adjustments' };
 
 var HEADERS = {
   employees: ['id', 'empNo', 'name', 'nameEn', 'email', 'phone', 'department', 'title', 'role', 'status',
@@ -54,7 +54,11 @@ var HEADERS = {
   documents: ['id', 'empId', 'type', 'number', 'issueDate', 'expiryDate', 'note', 'status', 'createdAt', 'updatedAt', 'ref'],
   requests: ['id', 'ref', 'empId', 'type', 'subtype', 'fromDate', 'toDate', 'days', 'amount', 'months', 'payloadJson', 'reason', 'docNo',
     'status', 'step', 'stepsJson', 'effectJson', 'createdAt', 'updatedAt', 'decidedAt'],
-  holidays: ['id', 'date', 'toDate', 'nameAr', 'nameEn', 'createdBy', 'createdAt', 'status']
+  holidays: ['id', 'date', 'toDate', 'nameAr', 'nameEn', 'createdBy', 'createdAt', 'status'],
+  payrollRuns: ['id', 'ref', 'month', 'status', 'preparedBy', 'preparedAt', 'approvedBy', 'approvedAt', 'totalsJson', 'note', 'emailedAt', 'createdAt', 'updatedAt'],
+  payslips: ['id', 'ref', 'runId', 'month', 'empId', 'status', 'linesJson', 'gross', 'deductions', 'net', 'gosiEmployee', 'gosiEmployer',
+    'paidDays', 'absentDays', 'infoJson', 'emailedAt', 'createdAt', 'updatedAt'],
+  adjustments: ['id', 'ref', 'empId', 'month', 'kind', 'code', 'amount', 'reason', 'enteredBy', 'status', 'createdAt']
 };
 
 var ROLES = { employee: 1, hr: 2, admin: 3 };
@@ -115,7 +119,7 @@ function forget_(name) { delete READ_MEMO_[name]; }
  */
 // Every small tab can be served from the copy; punches and audit grow without end and are always read.
 var CACHED_TABS_ = { employees: 1, zones: 1, credentials: 1, departments: 1, positions: 1, empPrivate: 1, compensation: 1,
-  jobHistory: 1, documents: 1, requests: 1, holidays: 1 };
+  jobHistory: 1, documents: 1, requests: 1, holidays: 1, payrollRuns: 1, adjustments: 1 };
 var USE_TAB_CACHE_ = false; // true: every cached tab; an object: only those tabs (sign-in writes credentials)
 // Version tags make app writes and hand edits visible at once; the expiry only bounds what Sheets
 // never reports to onEdit (deleting or sorting rows by hand).
@@ -300,6 +304,10 @@ var DEFAULT_SETTINGS = {
   allowNegativeLeave: 0,     // days of annual leave that may be taken ahead of accrual
   maxAdvanceSalaries: 1,     // a salary advance is at most this many monthly wages
   advanceMaxMonths: 12,
+  deductAbsence: true,              // unexcused absent working days are not paid
+  deductLateMinutes: false,         // pay for minutes late: only with an approved work regulation
+  payOvertimeFromAttendance: false, // overtime hours from punches; off = HR enters approved hours
+  eosWageBasis: 'total',            // end of service on the total wage, or 'basic_housing'
   refPrefixes: '',           // JSON to rename prefixes, e.g. {"leave":"VAC"}; empty keeps the defaults
   shiftStart: '08:00',
   shiftEnd: '17:00',
@@ -375,7 +383,8 @@ function randomBytes_(n) {
  */
 var REF_DEFAULTS = {
   leave: 'LV', letter: 'LT', advance: 'AD', correction: 'AC', data_change: 'DC', resignation: 'RS',
-  salary: 'SAL', document: 'DOC', import: 'IMP', department: 'DEP', position: 'POS'
+  salary: 'SAL', document: 'DOC', import: 'IMP', department: 'DEP', position: 'POS',
+  payroll: 'PR', payslip: 'PS', adjustment: 'ADJ'
 };
 var REF_YEARLY = { department: false, position: false };
 
@@ -495,7 +504,9 @@ var PUBLIC_ACTIONS = {
 };
 var EMP_ACTIONS = { me: 1, myHistory: 1, passwordSet: 1, punchPw: 1,
   myFile: 1, hrEmpFile: 1, hrTeam: 1, hrCompList: 1, hrCompPropose: 1, hrCompDecide: 1,
-  myRequests: 1, requestQuote: 1, requestCreate: 1, requestCancel: 1, reqInbox: 1, reqDecide: 1, holidayList: 1, leaveTeam: 1 };
+  myRequests: 1, requestQuote: 1, requestCreate: 1, requestCancel: 1, reqInbox: 1, reqDecide: 1, holidayList: 1, leaveTeam: 1,
+  mySlips: 1, payrollList: 1, payrollGet: 1, payrollCreate: 1, payrollRecalc: 1, payrollApprove: 1, payrollDelete: 1, payrollAdjSave: 1,
+  payrollAdjDelete: 1, payrollExport: 1, payrollEmail: 1, eosQuote: 1 };
 var HR_ACTIONS = { hrBootstrap: 1, holidaySave: 1, holidayDelete: 1, leaveBalances: 1, leaveOpeningSave: 1, hrDirectory: 1, hrDeptList: 1, hrDeptSave: 1, hrPositionList: 1, hrPositionSave: 1, hrEmpSave: 1,
   hrPrivateSave: 1, hrImportValidate: 1, hrImportCommit: 1, hrDocList: 1, hrDocSave: 1, hrExpiring: 1, empPasswordReset: 1, board: 1, empList: 1, zoneList: 1, report: 1, reviewList: 1, reviewDecide: 1, manualPunch: 1, auditList: 1, settingsGet: 1, empSave: 1, empActivation: 1 };
 /**
@@ -504,7 +515,8 @@ var HR_ACTIONS = { hrBootstrap: 1, holidaySave: 1, holidayDelete: 1, leaveBalanc
  */
 var READ_ONLY_ACTIONS = { me: 1, myHistory: 1, myFile: 1, hrEmpFile: 1, hrTeam: 1, hrCompList: 1, hrDirectory: 1, hrDeptList: 1,
   hrPositionList: 1, hrDocList: 1, hrExpiring: 1, hrBootstrap: 1, hrImportValidate: 1, board: 1, empList: 1, zoneList: 1, report: 1,
-  reviewList: 1, auditList: 1, settingsGet: 1, myRequests: 1, requestQuote: 1, reqInbox: 1, holidayList: 1, leaveTeam: 1, leaveBalances: 1 };
+  reviewList: 1, auditList: 1, settingsGet: 1, myRequests: 1, requestQuote: 1, reqInbox: 1, holidayList: 1, leaveTeam: 1, leaveBalances: 1,
+  mySlips: 1, payrollList: 1, payrollGet: 1, eosQuote: 1 };
 
 var ADMIN_ACTIONS = { hrRolesSave: 1, empResetDevice: 1, zoneSave: 1, zoneDelete: 1, settingsSave: 1 };
 
