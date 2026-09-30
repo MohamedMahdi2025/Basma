@@ -294,7 +294,7 @@ function daysChip(n){
   return '<span class="chip ' + (n <= 30 ? 'late' : '') + ' num">' + t('exIn') + ' ' + plural(n, 'days') + '</span>';
 }
 function deptName(id){ var d = (H.depts || []).filter(function(x){ return x.id === id; })[0]; return d ? lang(d.nameAr, d.nameEn) : ''; }
-function roles(){ return S.fileRoles || { hr: isHr(), payroll: false, manager: false }; }
+function roles(){ return S.fileRoles || { hr: isHr(), payroll: false, executive: false, manager: false }; }
 function empOpts(excludeId){ return (H.dir || []).filter(function(e){ return e.status === 'active' && e.id !== excludeId; }).map(function(e){ return [e.id, e.name + ' (' + e.empNo + ')']; }); }
 function loading(el){ el.innerHTML = '<div class="list">' + [0, 1, 2, 3].map(function(){ return '<div class="row"><div class="main"><span class="sk" style="width:45%"></span><span class="sk" style="width:70%"></span></div></div>'; }).join('') + '</div>'; }
 function failed(el, retry){ el.innerHTML = '<div class="empty">' + ph('wifi-slash') + '<b>' + t('loadFail') + '</b><div class="btnrow" style="justify-content:center;margin-top:10px"><button class="btn btn-dark btn-sm" type="button">' + t('mfRetry') + '</button></div></div>'; el.querySelector('button').onclick = retry; }
@@ -310,6 +310,7 @@ function orgThen(fn){
 // ---------------- shell ----------------
 function sections(){
   var r = roles(), s = [];
+  if (r.hr || r.payroll || r.executive) s.push(['dashboard', ph('chart-line-up'), t('dbTitle')]);
   if (r.hr || r.payroll || r.manager) s.push(['inbox', ph('tray'), t('hrInbox')]);
   if (r.hr) s.push(['people', ph('users-three'), t('hrPeople')]);
   if (r.manager) s.push(['team', ph('users'), t('hrTeamSec')]);
@@ -335,7 +336,7 @@ function render(main){
   }).join('') + '</nav><div class="hr-body" id="hrBody"></div></div>';
   $$('.hr-rail button').forEach(function(b){ b.onclick = function(){ S.hrSec = b.dataset.s; render(main); }; });
   var body = $('#hrBody');
-  ({ performance: function(b){ Perf.section(b, roles()); }, payroll: function(b){ Payroll.section(b); }, inbox: inbox, leave: leaveSec, holidays: holidaysSec, people: people, team: team, org: org, positions: positions, approvals: approvals, expiring: expiring, import: importer })[S.hrSec](body);
+  ({ dashboard: function(b){ Dash.section(b); }, performance: function(b){ Perf.section(b, roles()); }, payroll: function(b){ Payroll.section(b); }, inbox: inbox, leave: leaveSec, holidays: holidaysSec, people: people, team: team, org: org, positions: positions, approvals: approvals, expiring: expiring, import: importer })[S.hrSec](body);
   apiFresh('reqInbox', {}, function(r){ if (r.ok) setBadge('inBadge', r.rows.length); }, true);
   if (roles().hr || roles().payroll) api('hrCompList', { status: 'pending' }, true).then(function(r){ if (r.ok) setApBadge(r.rows.filter(function(x){ return !x.mine; }).length); });
 }

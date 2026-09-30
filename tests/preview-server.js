@@ -59,6 +59,18 @@ const B = load({ props: { RP_ID: 'localhost', ORIGINS: ORIGIN }, setupKeyHash: c
   rq('R2', 'LV-2026-00002', 'E2003', 'leave', 'sick', addDays(-2), addDays(-1), 2, 'hr', { docNo: 'SEHA-1', stepsJson: JSON.stringify([{ step: 'manager', by: 'E2004', decision: 'approve', note: '', at: now }]) });
   rq('R3', 'LT-2026-00001', 'E2001', 'letter', 'salary_certificate', '', '', '', 'hr', { payloadJson: JSON.stringify({ addressee: 'بنك الراجحي', lang: 'ar' }) });
   rq('R4', 'LV-2026-00003', 'E2006', 'leave', 'annual', addDays(3), addDays(5), 3, 'done', { status: 'approved' });
+  // Dashboard demo: 45 days of check-ins (a few late, a few absent) for the staff, who joined 60 days ago
+  B.ctx.readAll_('employees').forEach(e => { e.createdAt = new Date(Date.now() - 60 * 86400000).toISOString(); B.ctx.update_('employees', e); });
+  const hist = [];
+  B.ctx.readAll_('employees').forEach((e, idx) => {
+    for (let back = 1; back <= 45; back++) {
+      const ds = new Date(Date.now() + 3 * 3600000 - back * 86400000).toISOString().slice(0, 10), dow = new Date(ds + 'T00:00:00Z').getUTCDay();
+      if (dow > 4 || (back * (idx + 3)) % 17 === 0) continue;
+      const inAt = (back + idx) % 6 === 0 ? '08:3' + (idx % 10) : (back + idx) % 4 === 0 ? '08:1' + (idx % 5) : '07:5' + (idx % 10);
+      [['in', inAt], ['out', (back + idx) % 5 === 0 ? '18:40' : '17:0' + (idx % 10)]].forEach(([ty, hm]) => hist.push({ id: 'H' + e.id + ds + ty, empId: e.id, type: ty, ts: new Date(ds + 'T' + hm + ':00+03:00').toISOString(), date: ds, lat: HQ.lat, lng: HQ.lng, acc: 12, zoneId: 'ZHQ', distance: 20, status: 'ok', risk: 0, flags: '', source: 'app', note: '', reviewBy: '', reviewAt: '', credId: '', ua: '', createdAt: now }));
+    }
+  });
+  B.ctx.appendMany_('punches', hist);
   // Phase 4 demo: a 2026 cycle in the review stage with KPIs for 2001 and a 360 request to 2001
   B.ctx.append_('perfCycles', { id: 'Y1', ref: 'PC-2026-00001', year: 2026, nameAr: 'تقييم الأداء 2026', nameEn: 'Performance 2026', type: 'annual', status: 'review', kpiWeight: 70, compWeight: 30, goalsDue: '', midDue: '', reviewDue: '', createdBy: 'E2002', createdAt: now, updatedAt: now });
   [['تحقيق خطة التحصيل الشهرية', '95', '%', 40, 'on_track'], ['مطابقة البنوك قبل اليوم الخامس', '12', 'مرة', 30, 'at_risk'], ['تقليل القيود المرفوضة', '2', '%', 30, 'on_track']].forEach((k, i) =>

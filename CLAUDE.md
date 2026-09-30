@@ -185,3 +185,16 @@ Plan: docs/superpowers/plans/2026-09-30-hr-phase4-performance.md.
 - The employee sees manager scores and the final rating only when closed. 360: groups of peers or reports
   appear only with 3+ answers, comments never carry names, raw answers are never returned by the API.
 - Action names must be letters only (handle_ regex), so 360 actions are feedbackLaunch / Submit / Results.
+
+## Management dashboard (live 2026-09-30)
+
+`backend/Dashboard.gs` (`api_dashboard`: one call, parts wrapped in `dashSafe_` so one failing block
+does not blank the page), `js/dashboard.js` (section "لوحة الإدارة", first in the HR console), tests
+`tests/dashboard.js`. Access: HR, admin, payroll, and the new extra role `executive` (admin grants it
+with hrRolesSave). Money blocks (payroll cost, leave and end-of-service liabilities, advances) only for
+hr, payroll, executive; admin alone sees none; no individual salary or IBAN leaves the server.
+Periods up to 92 days, compared with the previous period of the same length.
+Chart colours validated with the dataviz validator on the white card: #2E7D4F / #C98500 / #2a78d6
+(the brand #4D6D51 fails the chroma floor as a series colour). Charts are plain SVG/CSS, LTR inside,
+with hover tooltips and a table view per card. `saudizationTarget` setting draws the Nitaqat target.
+Trap: never name a dashboard class `.hero` (index.html uses it for the check-in radar).

@@ -1956,7 +1956,7 @@ function renderShell(){
   if (S.tab === 'home') renderHome();
   else if (S.tab === 'history') renderHistory();
   else if (S.tab === 'file') lazyScreen(['js/my-file.js', 'js/requests.js', 'js/payroll.js', 'js/performance.js'], function(m){ MyFile.render(m); });
-  else if (S.tab === 'hr') lazyScreen(['js/my-file.js', 'js/requests.js', 'js/payroll.js', 'js/performance.js', 'js/hr-console.js'], function(m){ HrConsole.render(m); });
+  else if (S.tab === 'hr') lazyScreen(['js/my-file.js', 'js/requests.js', 'js/payroll.js', 'js/performance.js', 'js/dashboard.js', 'js/hr-console.js'], function(m){ HrConsole.render(m); });
   else if (S.tab === 'admin') renderAdmin();
   else renderMe();
 }
