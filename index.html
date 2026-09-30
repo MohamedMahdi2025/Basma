@@ -1335,7 +1335,7 @@ function api(action, payload, quiet){
 var READ_CACHE = {};
 var CLIENT_READS = { myFile: 1, myRequests: 1, hrBootstrap: 1, hrCompList: 1, hrExpiring: 1, hrTeam: 1, hrEmpFile: 1, reqInbox: 1,
   leaveTeam: 1, holidayList: 1, leaveBalances: 1, myHistory: 1, me: 1, board: 1, empList: 1, zoneList: 1, report: 1, reviewList: 1,
-  auditList: 1, settingsGet: 1, requestQuote: 1, mySlips: 1, payrollList: 1, eosQuote: 1, myPerformance: 1, perfTeam: 1, perfEmp: 1, feedbackResults: 1, perfCycleList: 1, perfOverview: 1, hrDirectory: 1, hrDeptList: 1, hrPositionList: 1, hrDocList: 1, hrImportValidate: 1,
+  auditList: 1, settingsGet: 1, requestQuote: 1, dashboard: 1, mySlips: 1, payrollList: 1, eosQuote: 1, myPerformance: 1, perfTeam: 1, perfEmp: 1, feedbackResults: 1, perfCycleList: 1, perfOverview: 1, hrDirectory: 1, hrDeptList: 1, hrPositionList: 1, hrDocList: 1, hrImportValidate: 1,
   authBegin: 1, punchBegin: 1, bootstrapStatus: 1, ping: 1 };
 /** onData(result, fromMemory) runs once from memory (if any) and again only when the fresh answer differs. */
 function apiFresh(action, payload, onData, quiet){
@@ -1460,13 +1460,13 @@ function hrAccessFromStore(){
   try { var v = JSON.parse(store('hrAccess') || 'null'); return v && S.me && v.id === S.me.id ? v.r : null; } catch (e) { return null; }
 }
 function setHrAccess(file){
-  var r = { hr: !!(file.roles && file.roles.hr), payroll: !!(file.roles && file.roles.payroll), manager: !!file.isManager };
+  var r = { hr: !!(file.roles && file.roles.hr), payroll: !!(file.roles && file.roles.payroll), executive: !!(file.roles && file.roles.executive), manager: !!file.isManager };
   var had = hasHrTab();
   S.fileRoles = r;
   store('hrAccess', JSON.stringify({ id: S.me.id, r: r }));
   if (had !== hasHrTab()) renderShell();
 }
-function hasHrTab(){ var r = S.fileRoles; return isHr() || !!(r && (r.hr || r.payroll || r.manager)); }
+function hasHrTab(){ var r = S.fileRoles; return isHr() || !!(r && (r.hr || r.payroll || r.manager || r.executive)); }
 function lazyScreen(files, run){
   var main = $('#main');
   main.innerHTML = '<section class="page"><span class="sk" style="width:40%"></span><span class="sk" style="margin-top:12px"></span><span class="sk" style="width:70%;margin-top:12px"></span></section>';
