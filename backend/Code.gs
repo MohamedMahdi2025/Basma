@@ -24,7 +24,7 @@ var CONFIG = {
 var SHEETS = { EMP: 'employees', CRED: 'credentials', ZONES: 'zones', PUNCH: 'punches', AUDIT: 'audit', SET: 'settings',
   DEPT: 'departments', POS: 'positions', PRIV: 'empPrivate', COMP: 'compensation', JOBH: 'jobHistory', DOCS: 'documents',
   REQ: 'requests', HOL: 'holidays', RUN: 'payrollRuns', SLIP: 'payslips', ADJ: 'adjustments',
-  CYC: 'perfCycles', KPI: 'kpis', REV: 'reviews', FB: 'feedback360' };
+  CYC: 'perfCycles', KPI: 'kpis', REV: 'reviews', FB: 'feedback360', RLOG: 'reportLog' };
 
 var HEADERS = {
   employees: ['id', 'empNo', 'name', 'nameEn', 'email', 'phone', 'department', 'title', 'role', 'status',
@@ -65,7 +65,8 @@ var HEADERS = {
     'selfScore', 'selfComment', 'mgrScore', 'mgrComment', 'setBy', 'createdAt', 'updatedAt'],
   reviews: ['id', 'ref', 'cycleId', 'empId', 'stage', 'selfCompJson', 'selfComment', 'selfAt', 'mgrCompJson', 'mgrComment', 'mgrBy', 'mgrAt',
     'kpiScore', 'compScore', 'overall', 'finalRating', 'calibratedBy', 'calibrationNote', 'employeeComment', 'acknowledgedAt', 'createdAt', 'updatedAt'],
-  feedback360: ['id', 'ref', 'cycleId', 'subjectId', 'raterId', 'relation', 'status', 'answersJson', 'comment', 'createdAt', 'submittedAt']
+  feedback360: ['id', 'ref', 'cycleId', 'subjectId', 'raterId', 'relation', 'status', 'answersJson', 'comment', 'createdAt', 'submittedAt'],
+  reportLog: ['id', 'ref', 'reportId', 'paramsJson', 'rows', 'format', 'hash', 'by', 'at', 'reviewedBy', 'reviewedAt', 'reviewNote']
 };
 
 var ROLES = { employee: 1, hr: 2, admin: 3 };
@@ -392,7 +393,7 @@ function randomBytes_(n) {
 var REF_DEFAULTS = {
   leave: 'LV', letter: 'LT', advance: 'AD', correction: 'AC', data_change: 'DC', resignation: 'RS',
   salary: 'SAL', document: 'DOC', import: 'IMP', department: 'DEP', position: 'POS',
-  payroll: 'PR', payslip: 'PS', adjustment: 'ADJ', perf_cycle: 'PC', kpi: 'KPI', review: 'PE', feedback: 'FB'
+  payroll: 'PR', payslip: 'PS', adjustment: 'ADJ', perf_cycle: 'PC', kpi: 'KPI', review: 'PE', feedback: 'FB', report: 'RPT'
 };
 var REF_YEARLY = { department: false, position: false };
 
@@ -515,7 +516,8 @@ var EMP_ACTIONS = { me: 1, myHistory: 1, passwordSet: 1, punchPw: 1,
   myRequests: 1, requestQuote: 1, requestCreate: 1, requestCancel: 1, reqInbox: 1, reqDecide: 1, holidayList: 1, leaveTeam: 1,
   mySlips: 1, payrollList: 1, payrollGet: 1, payrollCreate: 1, payrollRecalc: 1, payrollApprove: 1, payrollDelete: 1, payrollAdjSave: 1,
   payrollAdjDelete: 1, payrollExport: 1, payrollEmail: 1, eosQuote: 1,
-  dashboard: 1, myPerformance: 1, perfTeam: 1, perfEmp: 1, kpiSave: 1, kpiMid: 1, reviewSelf: 1, reviewManager: 1, reviewAck: 1, feedbackSubmit: 1, feedbackResults: 1 };
+  dashboard: 1, myPerformance: 1, perfTeam: 1, perfEmp: 1, kpiSave: 1, kpiMid: 1, reviewSelf: 1, reviewManager: 1, reviewAck: 1, feedbackSubmit: 1, feedbackResults: 1,
+  reportCatalog: 1, reportRun: 1, reportExport: 1, reportLog: 1, reportReview: 1, reportVerify: 1 };
 var HR_ACTIONS = { perfCycleSave: 1, perfCycleList: 1, perfCycleStage: 1, perfOverview: 1, perfCalibrate: 1, feedbackLaunch: 1, hrBootstrap: 1, holidaySave: 1, holidayDelete: 1, leaveBalances: 1, leaveOpeningSave: 1, hrDirectory: 1, hrDeptList: 1, hrDeptSave: 1, hrPositionList: 1, hrPositionSave: 1, hrEmpSave: 1,
   hrPrivateSave: 1, hrImportValidate: 1, hrImportCommit: 1, hrDocList: 1, hrDocSave: 1, hrExpiring: 1, empPasswordReset: 1, board: 1, empList: 1, zoneList: 1, report: 1, reviewList: 1, reviewDecide: 1, manualPunch: 1, auditList: 1, settingsGet: 1, empSave: 1, empActivation: 1 };
 /**
@@ -525,7 +527,8 @@ var HR_ACTIONS = { perfCycleSave: 1, perfCycleList: 1, perfCycleStage: 1, perfOv
 var READ_ONLY_ACTIONS = { me: 1, myHistory: 1, myFile: 1, hrEmpFile: 1, hrTeam: 1, hrCompList: 1, hrDirectory: 1, hrDeptList: 1,
   hrPositionList: 1, hrDocList: 1, hrExpiring: 1, hrBootstrap: 1, hrImportValidate: 1, board: 1, empList: 1, zoneList: 1, report: 1,
   reviewList: 1, auditList: 1, settingsGet: 1, myRequests: 1, requestQuote: 1, reqInbox: 1, holidayList: 1, leaveTeam: 1, leaveBalances: 1,
-  dashboard: 1, mySlips: 1, payrollList: 1, payrollGet: 1, eosQuote: 1, myPerformance: 1, perfTeam: 1, perfEmp: 1, feedbackResults: 1, perfCycleList: 1, perfOverview: 1 };
+  dashboard: 1, mySlips: 1, payrollList: 1, payrollGet: 1, eosQuote: 1, myPerformance: 1, perfTeam: 1, perfEmp: 1, feedbackResults: 1, perfCycleList: 1, perfOverview: 1,
+  reportCatalog: 1, reportRun: 1, reportLog: 1 };
 
 var ADMIN_ACTIONS = { hrRolesSave: 1, empResetDevice: 1, zoneSave: 1, zoneDelete: 1, settingsSave: 1 };
 

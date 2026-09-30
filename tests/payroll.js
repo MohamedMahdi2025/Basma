@@ -168,6 +168,18 @@ r = call('3002', 'eosQuote', { empId: ids['5003'], lastDay: '2026-12-31', reason
 ok(r.ok && near(r.eos.factor, 1 / 3), 'resigning after 2 to 5 years: a third', r.eos);
 r = call('3002', 'eosQuote', { empId: ids['5003'], lastDay: '2026-12-31', reason: 'termination' });
 ok(r.ok && r.eos.factor === 1 && r.eos.award > 0, 'ended by the employer: the full award', r.eos);
+r = call('3002', 'eosQuote', { empId: ids['5003'], lastDay: '2026-06-30', reason: 'art87_marriage' });
+ok(r.ok && r.eos.factor === 1, 'Art. 87: a woman leaving within 6 months of marriage gets the full award even when resigning', r.eos);
+r = call('3002', 'eosQuote', { empId: ids['5002'], lastDay: '2026-12-31', reason: 'art80' });
+ok(r.ok && r.eos.award === 0 && r.eos.leavePay > 0, 'Art. 80 dismissal: no award, but unused leave is still paid', r.eos);
+direct(() => B.ctx.append_('requests', { id: 'RUL', ref: 'LV-2026-09999', empId: ids['5004'], type: 'leave', subtype: 'unpaid', fromDate: '2025-02-01', toDate: '2025-03-12', days: 40, amount: '', months: '', payloadJson: '{}', reason: '', docNo: '', status: 'approved', step: 'done', stepsJson: '[]', effectJson: '{}', createdAt: '2025-01-20T00:00:00Z', updatedAt: '', decidedAt: '2025-01-21T00:00:00Z' }));
+r = call('3002', 'eosQuote', { empId: ids['5004'], lastDay: '2026-12-31', reason: 'termination' });
+const svc5004 = (Date.parse('2026-12-31') - Date.parse('2023-01-01')) / 86400000 + 1 - 20;
+ok(r.ok && r.eos.unpaidExcluded === 20 && r.eos.serviceDays === svc5004, '40 days unpaid leave: the 20 beyond the first 20 are not service (Art. 116)', r.eos);
+ok(near(r.eos.gross, r.eos.award + r.eos.leavePay + r.eos.lastMonthPay) && near(r.eos.net, r.eos.gross - r.eos.advances) && r.eos.dueBy === '2027-01-07',
+  'final settlement: award + leave + final month days - advances, due within a week (Art. 88)', r.eos);
+r = call('3002', 'eosQuote', { empId: ids['5003'], lastDay: '2026-12-31', reason: 'resignation' });
+ok(r.ok && r.eos.advances === 2000 && r.eos.dueBy === '2027-01-14', 'the 2,000 of the advance still owed (one instalment locked) comes off the settlement; resignation is paid within two weeks', r.eos);
 r = call('3002', 'payrollEmail', { id: runId });
 ok(!r.ok && r.error === 'email_not_configured', 'email says it is not configured yet, and sends nothing', r);
 const sent = [];

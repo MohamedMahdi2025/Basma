@@ -194,9 +194,9 @@ function dashCost_(emps, ctx, reqs, t, s) {
     monthly += c.total;
     var bal = annualBalance_(e, t, reqs.filter(function (r) { return r.empId === e.id; }), null);
     leaveLiab += Math.max(0, bal.balance) * c.total / 30;
-    if (e.hireDate) {
-      var y = (daysBetween_(String(e.hireDate).slice(0, 10), t) + 1) / 365, w = s.eosWageBasis === 'basic_housing' ? c.basic + c.housing : c.total;
-      eosLiab += Math.min(y, 5) * w / 2 + Math.max(0, y - 5) * w;
+    if (e.hireDate) { // as if everyone left today on the full award (Art. 84), service net of Art. 116 exclusions
+      var svc = eosService_(e, String(e.hireDate).slice(0, 10), t, reqs), w = s.eosWageBasis === 'basic_housing' ? c.basic + c.housing : c.total;
+      eosLiab += eosAward_(svc.years, w, 'termination').award;
     }
   });
   var advDone = {};

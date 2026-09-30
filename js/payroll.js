@@ -22,6 +22,11 @@ Object.assign(T.ar, {
   prDays:'أيام مدفوعة', prAbsent:'أيام غياب', prLeaveBal:'رصيد الإجازة', prEarnings:'الاستحقاقات', prDeductions:'الاستقطاعات', prRef:'المرجع', prIban:'الحساب',
   prEos:'مكافأة نهاية الخدمة', prEosEmp:'الموظف', prEosLast:'آخر يوم عمل', prEosReason:'سبب انتهاء العلاقة', prEosCalc:'احسب',
   eos_resignation:'استقالة', eos_termination:'إنهاء من الشركة', eos_contract_end:'انتهاء العقد', eos_art87:'حالات المادة 87 (مكافأة كاملة)', eos_art80:'فصل حسب المادة 80 (بلا مكافأة)',
+  eos_art81:'ترك العمل لإخلال صاحب العمل (المادة 81)', eos_art87_force_majeure:'قوة قاهرة (المادة 87)', eos_art87_marriage:'موظفة خلال 6 أشهر من الزواج (المادة 87)',
+  eos_art87_childbirth:'موظفة خلال 3 أشهر من الولادة (المادة 87)', prEosPrint:'طباعة المخالصة', prEosService:'مدة الخدمة', prEosPeriod:'من - إلى', prEosExcluded:'إجازة بدون راتب لا تحتسب',
+  prEosBasisT:'الأجر الإجمالي', prEosBasisBH:'الأساسي والسكن', prEosFirst5:'السنوات الخمس الأولى: نصف شهر عن كل سنة', prEosAfter5:'ما بعدها: شهر عن كل سنة',
+  prEosSettlement:'المخالصة النهائية', prEosLastMonth:'أيام الشهر الأخير', prEosLastLocked:'مدفوعة في مسير معتمد', prEosAdvances:'سلف غير مسددة', prEosNet:'صافي المستحق',
+  prEosDue:'يدفع في موعد أقصاه',
   prEosYears:'مدة الخدمة', prEosWage:'الأجر المعتمد للحساب', prEosFull:'المكافأة الكاملة', prEosFactor:'النسبة المستحقة', prEosAward:'المكافأة المستحقة', prEosLeave:'بدل رصيد الإجازة', prEosTotal:'الإجمالي المستحق', prYears:'سنة',
   pw_no_iban:'لا يوجد آيبان', pw_no_package:'لا يوجد راتب معتمد', pw_gosi_cohort_missing:'فئة التأمينات غير محددة', pw_fine_capped:'الجزاء خفض إلى 5 أيام', pw_advance_deferred:'أجل جزء من السلفة (50%)',
   pw_deductions_capped:'خفضت الخصومات إلى نصف الأجر', pw_net_negative:'الصافي سالب', e_run_exists:'يوجد مسير لهذا الشهر.', e_future_month:'لا يمكن إعداد مسير لشهر لم يأت.',
@@ -39,6 +44,11 @@ Object.assign(T.en, {
   prDays:'Paid days', prAbsent:'Absent days', prLeaveBal:'Leave balance', prEarnings:'Earnings', prDeductions:'Deductions', prRef:'Ref', prIban:'Account',
   prEos:'End of service', prEosEmp:'Employee', prEosLast:'Last working day', prEosReason:'How it ends', prEosCalc:'Calculate',
   eos_resignation:'Resignation', eos_termination:'Ended by the company', eos_contract_end:'Contract end', eos_art87:'Article 87 cases (full award)', eos_art80:'Dismissal under Article 80 (no award)',
+  eos_art81:'Left for the employer\'s breach (Article 81)', eos_art87_force_majeure:'Force majeure (Article 87)', eos_art87_marriage:'Woman within 6 months of marriage (Article 87)',
+  eos_art87_childbirth:'Woman within 3 months of childbirth (Article 87)', prEosPrint:'Print settlement', prEosService:'Service', prEosPeriod:'From - to', prEosExcluded:'Unpaid leave not counted',
+  prEosBasisT:'Total wage', prEosBasisBH:'Basic and housing', prEosFirst5:'First five years: half a month per year', prEosAfter5:'After that: a month per year',
+  prEosSettlement:'Final settlement', prEosLastMonth:'Final month days', prEosLastLocked:'paid in an approved payroll', prEosAdvances:'Advances still owed', prEosNet:'Net due',
+  prEosDue:'Pay no later than',
   prEosYears:'Service', prEosWage:'Wage used', prEosFull:'Full award', prEosFactor:'Share due', prEosAward:'Award due', prEosLeave:'Unused leave pay', prEosTotal:'Total due', prYears:'years',
   pw_no_iban:'No IBAN', pw_no_package:'No approved salary', pw_gosi_cohort_missing:'GOSI group not set', pw_fine_capped:'Fine cut to 5 days', pw_advance_deferred:'Part of the advance deferred (50%)',
   pw_deductions_capped:'Deductions cut to half the wage', pw_net_negative:'Net below zero', e_run_exists:'This month already has a run.', e_future_month:'That month has not come yet.',
@@ -218,7 +228,7 @@ function exportXls(run){
 function eosBox(el){
   el.innerHTML = '<form class="form" id="eosF"><div class="two"><div class="field"><label>' + t('prEosEmp') + '</label><select name="empId" id="eosEmp"></select></div>' +
     '<div class="field"><label>' + t('prEosLast') + '</label><input type="date" name="lastDay" value="' + riyadhToday() + '" required></div></div>' +
-    '<div class="field"><label>' + t('prEosReason') + '</label><select name="reason">' + ['resignation', 'termination', 'contract_end', 'art87', 'art80'].map(function(x){ return '<option value="' + x + '">' + t('eos_' + x) + '</option>'; }).join('') + '</select></div>' +
+    '<div class="field"><label>' + t('prEosReason') + '</label><select name="reason">' + ['resignation', 'termination', 'contract_end', 'art81', 'art87_force_majeure', 'art87_marriage', 'art87_childbirth', 'art80'].map(function(x){ return '<option value="' + x + '">' + t('eos_' + x) + '</option>'; }).join('') + '</select></div>' +
     '<div class="btnrow"><button class="btn btn-line btn-sm">' + ph('calculator') + t('prEosCalc') + '</button></div><div id="eosOut"></div></form>';
   apiFresh('hrBootstrap', {}, function(r){
     var sel = $('#eosEmp', el); if (!sel) return;
@@ -229,14 +239,44 @@ function eosBox(el){
     ev.preventDefault(); var f = this, out = $('#eosOut', el);
     api('eosQuote', { empId: f.elements.empId ? f.elements.empId.value : '', empNo: f.elements.empNo ? f.elements.empNo.value : '', lastDay: f.elements.lastDay.value, reason: f.elements.reason.value }).then(function(r){
       if (!r.ok) { out.innerHTML = '<p class="hr-bad">' + errText(r.error) + '</p>'; return; }
-      var q = r.eos;
-      out.innerHTML = '<div class="pr-slip"><dl><dt>' + t('prEosYears') + '</dt><dd>' + q.years + ' ' + t('prYears') + '</dd><dt>' + t('prEosWage') + '</dt><dd>' + money(q.wage) + '</dd>' +
-        '<dt>' + t('prEosFull') + '<small>½ × ' + Math.min(q.years, 5).toFixed(2) + (q.years > 5 ? ' + 1 × ' + (q.years - 5).toFixed(2) : '') + '</small></dt><dd>' + money(q.fullAward) + '</dd>' +
-        '<dt>' + t('prEosFactor') + '</dt><dd>' + Math.round(q.factor * 100) + '%</dd><dt>' + t('prEosAward') + '</dt><dd>' + money(q.award) + '</dd>' +
-        '<dt>' + t('prEosLeave') + '<small>' + plural(Math.round(q.leaveDays * 10) / 10, 'days') + '</small></dt><dd>' + money(q.leavePay) + '</dd></dl>' +
-        '<dl class="tot"><dt>' + t('prEosTotal') + '</dt><dd>' + money(q.total) + ' ' + t('mfSar') + '</dd></dl></div>';
+      var q = r.eos, name = f.elements.empId && f.elements.empId.selectedOptions && f.elements.empId.selectedOptions[0] ? f.elements.empId.selectedOptions[0].textContent : (f.elements.empNo ? f.elements.empNo.value : '');
+      out.innerHTML = eosHtml(q) + '<div class="btnrow"><button type="button" class="btn btn-dark btn-sm" id="eosPrint">' + ph('printer') + t('prEosPrint') + '</button></div>';
+      $('#eosPrint', out).onclick = function(){ printEos(q, name); };
     });
   };
+}
+
+/** The settlement statement: every figure with the article it comes from. */
+function eosHtml(q){
+  var row = function(label, note, val, neg){ return '<dt>' + label + (note ? '<small>' + note + '</small>' : '') + '</dt><dd>' + (neg ? '- ' : '') + money(val) + '</dd>'; };
+  return '<div class="pr-slip"><h4>' + t('prEosService') + '</h4><dl>' +
+    '<dt>' + t('prEosPeriod') + '</dt><dd>' + esc(q.hireDate) + ' - ' + esc(q.lastDay) + '</dd>' +
+    '<dt>' + t('prEosYears') + (q.unpaidExcluded ? '<small>' + t('prEosExcluded') + ': ' + plural(q.unpaidExcluded, 'days') + ' (116)</small>' : '') + '</dt><dd>' + plural(q.serviceDays, 'days') + '، ' + q.years + ' ' + t('prYears') + '</dd>' +
+    '<dt>' + t('prEosWage') + '<small>' + (q.basis === 'basic_housing' ? t('prEosBasisBH') : t('prEosBasisT')) + '</small></dt><dd>' + money(q.wage) + '</dd></dl>' +
+    '<h4>' + t('prEosAward') + '</h4><dl>' + row(t('prEosFirst5'), '½ × ' + Math.min(q.years, 5).toFixed(2) + ' (84)', q.first5) +
+    (q.after5 ? row(t('prEosAfter5'), '1 × ' + (q.years - 5).toFixed(2) + ' (84)', q.after5) : '') +
+    row(t('prEosFull'), '', q.fullAward) + '<dt>' + t('prEosFactor') + '<small>' + t('eos_' + q.reason) + '</small></dt><dd>' + Math.round(q.factor * 100) + '%</dd>' +
+    '<dt style="font-weight:600">' + t('prEosAward') + '</dt><dd style="font-weight:600">' + money(q.award) + '</dd></dl>' +
+    '<h4>' + t('prEosSettlement') + '</h4><dl>' + row(t('prEosAward'), '', q.award) + row(t('prEosLeave'), plural(Math.round(q.leaveDays * 10) / 10, 'days') + ' (111)', q.leavePay) +
+    row(t('prEosLastMonth'), q.lastMonthLocked ? t('prEosLastLocked') : plural(q.lastMonthDays, 'days'), q.lastMonthPay) +
+    (q.advances ? row(t('prEosAdvances'), '', q.advances, true) : '') + '</dl>' +
+    '<dl class="tot"><dt>' + t('prEosNet') + '</dt><dd>' + money(q.net) + ' ' + t('mfSar') + '</dd></dl>' +
+    '<p class="hr-hint">' + t('prEosDue') + ' ' + esc(q.dueBy) + ' (' + plural(q.dueDays, 'days') + '، 88)</p></div>';
+}
+function printEos(q, name){
+  var en = S.lang === 'en';
+  var html = '<!doctype html><html lang="' + (en ? 'en' : 'ar') + '" dir="' + (en ? 'ltr' : 'rtl') + '"><head><meta charset="utf-8"><title>EOS</title>' +
+    '<link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;600&display=swap" rel="stylesheet"><style>@page{size:A4;margin:16mm}body{font-family:"Readex Pro",Tahoma,sans-serif;color:#17221A;font-size:13px}' +
+    'header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #4D6D51;padding-bottom:10px}header img{height:54px}h1{font-size:19px;margin:14px 0 4px}' +
+    '.pr-slip h4{margin:14px 0 4px;font-size:13px;color:#4A5A4D}.pr-slip dl{display:grid;grid-template-columns:1fr auto;margin:0}.pr-slip dt,.pr-slip dd{padding:5px 0;border-bottom:1px solid #E5E1D6;margin:0}' +
+    '.pr-slip dd{text-align:end;font-variant-numeric:tabular-nums}.pr-slip dt small{color:#6B786D;margin-inline-start:8px}.tot dt,.tot dd{font-weight:600;font-size:15px;border:0}.hr-hint{color:#4A5A4D}' +
+    '.sign{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-top:40px}.sign div{border-top:1px solid #999;padding-top:6px;font-size:12px;color:#4A5A4D}</style></head><body>' +
+    '<header><img src="' + LOGO + '" alt=""><div style="text-align:end;font-size:12px;color:#4A5A4D">' + (en ? 'Best Gas Carrier Co.<br>Final settlement' : 'شركة الناقل الأفضل للغاز<br>مخالصة نهائية') + '</div></header>' +
+    '<h1>' + (en ? 'End-of-service and final settlement' : 'مكافأة نهاية الخدمة والمخالصة النهائية') + '</h1><p>' + esc(name || '') + '</p>' + eosHtml(q) +
+    '<div class="sign"><div>' + (en ? 'Prepared by (HR)' : 'أعده (الموارد البشرية)') + '</div><div>' + (en ? 'Approved by (Finance)' : 'اعتمده (المالية)') + '</div><div>' + (en ? 'Received by the employee' : 'استلمه الموظف') + '</div></div>' +
+    '<script>window.onload=function(){setTimeout(function(){window.print()},400)}<\/script></body></html>';
+  var w = window.open('', '_blank'); if (!w) return toast(t('e_generic'));
+  w.document.open(); w.document.write(html); w.document.close();
 }
 
 window.Payroll = { section: section, myCard: myCard, openSlip: openSlip, printSlip: printSlip };

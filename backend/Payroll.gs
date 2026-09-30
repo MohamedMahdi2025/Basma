@@ -395,6 +395,45 @@ function api_payrollExport(req, me) {
 
 // ---------------- end of service (Art. 84, 85, 87) ----------------
 
+/** Reasons and the share of the award they carry (Labour Law Art. 80, 81, 84, 85, 87). */
+var EOS_REASONS = {
+  resignation: 'scale',          // Art. 85: under 2 years none, 2-5 a third, 5-10 two thirds, 10+ full
+  termination: 'full',           // ended by the employer (not Art. 80)
+  contract_end: 'full',          // fixed term ended
+  art81: 'full',                 // the employee leaves because of the employer's breach (Art. 81)
+  art87_force_majeure: 'full',   // Art. 87: force majeure beyond the employee's control
+  art87_marriage: 'full',        // Art. 87: a woman leaving within 6 months of marriage
+  art87_childbirth: 'full',      // Art. 87: a woman leaving within 3 months of giving birth
+  art87: 'full',                 // older key, same as above
+  art80: 'none'                  // dismissal under Art. 80: no award
+};
+
+/** Service counted for the award: calendar days from hire to last day, less unpaid leave beyond 20 days (Art. 116). */
+function eosService_(emp, hire, last, reqs) {
+  var excluded = 0;
+  reqs.forEach(function (r) {
+    if (r.empId !== emp.id || r.type !== 'leave' || r.subtype !== 'unpaid' || r.status !== 'approved') return;
+    var a = maxDate_(String(r.fromDate).slice(0, 10), hire), b = minDate_(String(r.toDate).slice(0, 10), last);
+    if (a > b) return;
+    excluded += Math.max(0, daysBetween_(a, b) + 1 - 20);
+  });
+  var days = daysBetween_(hire, last) + 1 - excluded;
+  return { days: days, excluded: excluded, years: days / 365 };
+}
+
+/** The award alone, used by the calculator and by the liability report. */
+function eosAward_(years, wage, reason) {
+  var first5 = Math.min(years, 5) * wage / 2, after5 = Math.max(0, years - 5) * wage, full = first5 + after5;
+  var kind = EOS_REASONS[reason] || 'scale';
+  var factor = kind === 'none' ? 0 : kind === 'full' ? 1 : years < 2 ? 0 : years < 5 ? 1 / 3 : years < 10 ? 2 / 3 : 1;
+  return { first5: first5, after5: after5, full: full, factor: factor, award: full * factor };
+}
+
+/**
+ * The final settlement on a last working day: the end-of-service award, unused annual leave (Art. 111),
+ * the unpaid days of the final month, less advances still owed. Due within a week when the employer ends
+ * the contract, within two weeks on resignation (Art. 88).
+ */
 function api_eosQuote(req, me) {
   if (!canPayroll_(me)) fail_('forbidden');
   var emp = req.empId ? findBy_(SHEETS.EMP, 'id', req.empId) : empByNo_(req.empNo);
@@ -403,18 +442,30 @@ function api_eosQuote(req, me) {
   var hire = String(emp.hireDate || '').slice(0, 10);
   if (!hire) fail_('missing_hire_date');
   if (last < hire) fail_('bad_date');
-  var reason = ['resignation', 'termination', 'contract_end', 'art87', 'art80'].indexOf(req.reason) >= 0 ? req.reason : 'resignation';
+  var reason = EOS_REASONS[req.reason] ? req.reason : 'resignation';
   var comp = compOn_(emp.id, last, readAll_(SHEETS.COMP));
   if (!comp) fail_('no_package');
-  var s = settings_(), wage = s.eosWageBasis === 'basic_housing' ? comp.basic + comp.housing : comp.total;
-  var years = (daysBetween_(hire, last) + 1) / 365;
-  var first5 = Math.min(years, 5) * wage / 2, after5 = Math.max(0, years - 5) * wage, full = first5 + after5;
-  var factor = reason === 'art80' ? 0 : reason !== 'resignation' ? 1 : years < 2 ? 0 : years < 5 ? 1 / 3 : years < 10 ? 2 / 3 : 1;
-  var bal = annualBalance_(emp, last, readAll_(SHEETS.REQ).filter(function (r) { return r.empId === emp.id; }), null);
-  var leaveDays = Math.max(0, bal.balance), leavePay = leaveDays * comp.total / 30; // unused leave is paid at exit (Art. 111)
-  audit_(me.id, 'salary_view', emp.id, { eos: true });
-  return { ok: true, eos: { hireDate: hire, lastDay: last, reason: reason, years: r2_(years), wage: r2_(wage), fullAward: r2_(full), factor: r2_(factor),
-    award: r2_(full * factor), first5: r2_(first5), after5: r2_(after5), leaveDays: r2_(leaveDays), leavePay: r2_(leavePay), total: r2_(full * factor + leavePay) } };
+  var s = settings_(), reqs = readAll_(SHEETS.REQ).filter(function (r) { return r.empId === emp.id; });
+  var wage = s.eosWageBasis === 'basic_housing' ? comp.basic + comp.housing : comp.total;
+  var svc = eosService_(emp, hire, last, reqs), aw = eosAward_(svc.years, wage, reason);
+  var bal = annualBalance_(emp, last, reqs, null);
+  var leaveDays = Math.max(0, bal.balance), leavePay = leaveDays * comp.total / 30;
+  // salary for the final month's days, unless that month is already in a locked payroll
+  var m = last.slice(0, 7), locked = readAll_(SHEETS.RUN).some(function (r) { return r.month === m && r.status === 'locked'; });
+  var lastDays = locked ? 0 : Math.min(30, daysBetween_(maxDate_(m + '-01', hire), last) + 1), lastPay = lastDays * comp.total / 30;
+  // advances still owed
+  var done = {};
+  readAll_(SHEETS.SLIP).forEach(function (sl) { if (sl.status === 'locked') lines_(sl).forEach(function (l) { if (l.code === 'advance' && l.ref) done[l.ref] = (done[l.ref] || 0) + l.amount; }); });
+  var advances = 0;
+  reqs.forEach(function (r) { if (r.type === 'advance' && r.status === 'approved') advances += Math.max(0, Number(r.amount) - (done[r.ref] || 0)); });
+  var gross = aw.award + leavePay + lastPay, net = gross - advances;
+  var dueDays = reason === 'resignation' ? 14 : 7;
+  audit_(me.id, 'salary_view', emp.id, { eos: true, lastDay: last, reason: reason });
+  return { ok: true, eos: { hireDate: hire, lastDay: last, reason: reason, basis: s.eosWageBasis === 'basic_housing' ? 'basic_housing' : 'total',
+    serviceDays: svc.days, unpaidExcluded: svc.excluded, years: r2_(svc.years), wage: r2_(wage),
+    first5: r2_(aw.first5), after5: r2_(aw.after5), fullAward: r2_(aw.full), factor: r2_(aw.factor), award: r2_(aw.award),
+    leaveDays: r2_(leaveDays), leavePay: r2_(leavePay), lastMonthDays: lastDays, lastMonthPay: r2_(lastPay), lastMonthLocked: locked,
+    advances: r2_(advances), gross: r2_(gross), net: r2_(net), total: r2_(aw.award + leavePay), dueBy: addDays_(last, dueDays), dueDays: dueDays } };
 }
 
 // ---------------- payslip email (Microsoft 365, switched on later) ----------------

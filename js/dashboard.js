@@ -199,7 +199,7 @@ function section(body){
   $$('[data-r]', body).forEach(function(b){ b.onclick = function(){ S.dbRange = b.dataset.r; section(body); }; });
   $('#dbPrint', body).onclick = function(){ window.print(); };
   var el = $('#dbBody', body), rg = range(k);
-  el.innerHTML = '<div class="db-tiles">' + [0, 1, 2, 3, 4, 5].map(function(i){ return '<div class="db-tile' + (i ? '' : ' hero') + '"><span class="sk" style="width:60%"></span><span class="sk" style="margin-top:10px;height:22px"></span></div>'; }).join('') + '</div>';
+  el.innerHTML = '<div class="db-tiles">' + [0, 1, 2, 3, 4, 5].map(function(i){ return '<div class="db-tile' + (i ? '' : ' lead') + '"><span class="sk" style="width:60%"></span><span class="sk" style="margin-top:10px;height:22px"></span></div>'; }).join('') + '</div>';
   apiFresh('dashboard', { from: rg[0], to: rg[1] }, function(r){
     if (!el.isConnected) return;
     if (!r.ok) { el.innerHTML = '<p class="hr-bad">' + errText(r.error) + '</p>'; return; }
@@ -276,4 +276,7 @@ function draw(r){
 function lang(ar, en){ return S.lang === 'en' && en ? en : ar; }
 
 window.Dash = { section: section };
+// Shared chart kit: every other screen draws its own mini dashboard with these, so all charts look and behave alike.
+window.Viz = { tile: tile, card: card, tbl: tbl, lineChart: lineChart, cols: cols, grouped: grouped, hbars: hbars, wireLines: wireLines, wireTips: wireTips,
+  n1: n1, sar: sar, shortDate: shortDate, monthShort: monthShort, range: range, showTip: showTip, hideTip: hideTip };
 })();

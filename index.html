@@ -381,6 +381,10 @@ table.tbl{width:100%;border-collapse:collapse;background:var(--card);font-size:1
 .drawer .panel{background:var(--paper);width:100%;max-height:92dvh;overflow:auto;border-radius:var(--r-l) var(--r-l) 0 0;padding:20px 18px calc(24px + env(safe-area-inset-bottom));animation:up .32s var(--ease) both}
 @keyframes up{from{transform:translateY(40px);opacity:0}}
 .drawer h3{margin:0 0 14px;font-size:19px}
+.drawer .panel{position:relative}
+.dr-x{position:sticky;top:0;float:inline-end;margin-block:-6px 4px;margin-inline:10px -6px;width:40px;height:40px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);display:grid;place-items:center;font-size:20px;z-index:2;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.dr-x:hover{background:#EDEAE0}.dr-x:active{transform:scale(.96)}.dr-x:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+@media print{.dr-x{display:none}}
 .btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
 .btn-dark{background:var(--pine);color:var(--cream)}
 .btn-line{background:var(--card);color:var(--ink);border:1px solid var(--line)}
@@ -389,11 +393,27 @@ table.tbl{width:100%;border-collapse:collapse;background:var(--card);font-size:1
 #map{height:320px;border-radius:var(--r-m);border:1px solid var(--line);overflow:hidden;z-index:0}
 .update-bar{position:fixed;top:calc(10px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:90;background:var(--brand);color:#fff;border:0;border-radius:999px;padding:10px 18px;font:inherit;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.25);cursor:pointer;max-width:92vw}
 .toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:80;background:var(--ink);color:var(--cream);padding:10px 16px;border-radius:12px;font-size:14px;max-width:90vw;animation:up .25s var(--ease) both}
-.loader{position:fixed;top:0;inset-inline:0;height:3px;z-index:90;overflow:hidden}
-.loader i{display:block;height:100%;width:40%;background:var(--signal);animation:load 1s ease-in-out infinite}
-@keyframes load{from{transform:translateX(-100%)}to{transform:translateX(260%)}}
-[dir="rtl"] .loader i{animation-name:loadr}
-@keyframes loadr{from{transform:translateX(100%)}to{transform:translateX(-260%)}}
+/* progress: a bar that knows how far along it is (Progress in the script) */
+.loader{position:fixed;top:0;inset-inline:0;height:3px;z-index:95;pointer-events:none;opacity:1;transition:opacity .35s ease .15s}
+.loader.hidden{display:block!important;opacity:0}
+.loader .fill{position:absolute;inset-block:0;inset-inline-start:0;width:0;border-radius:0 3px 3px 0;
+  background:linear-gradient(90deg,#2E7D4F,#4D6D51 45%,#9FE0AE);box-shadow:0 0 10px rgba(159,224,174,.75),0 0 3px rgba(159,224,174,.9);transition:width .25s cubic-bezier(.2,.8,.2,1)}
+[dir="rtl"] .loader .fill{background:linear-gradient(270deg,#2E7D4F,#4D6D51 45%,#9FE0AE);border-radius:3px 0 0 3px}
+.loader .fill::after{content:"";position:absolute;inset-inline-end:-2px;top:-3px;width:14px;height:9px;border-radius:50%;background:#C9F2D3;filter:blur(3px);opacity:.9}
+.loader .pct{position:absolute;top:6px;inset-inline-start:0;transform:translateX(-50%);font:600 11px/1 var(--font);color:var(--cream);background:rgba(28,42,31,.92);
+  border:1px solid rgba(159,224,174,.45);padding:4px 7px;border-radius:999px;font-variant-numeric:tabular-nums;box-shadow:0 4px 12px rgba(0,0,0,.25);transition:inset-inline-start .25s cubic-bezier(.2,.8,.2,1)}
+[dir="rtl"] .loader .pct{transform:translateX(50%)}
+.pg-wrap{display:flex;align-items:center;justify-content:center;min-height:46vh;padding:24px}
+.pg-card{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
+.pg-ring{position:relative;width:112px;height:112px}
+.pg-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.pg-ring circle{fill:none;stroke-width:8}
+.pg-ring .tr{stroke:#E7E3D8}.pg-ring .fl{stroke:url(#pgGrad);stroke-linecap:round;transition:stroke-dashoffset .3s cubic-bezier(.2,.8,.2,1);filter:drop-shadow(0 0 4px rgba(46,125,79,.45))}
+.pg-ring b{position:absolute;inset:0;display:grid;place-items:center;font-size:26px;font-weight:600;color:var(--pine);font-variant-numeric:tabular-nums}
+.pg-ring b small{font-size:13px;font-weight:500;margin-inline-start:1px}
+.pg-card p{margin:0;color:var(--ink-2);font-size:14px}
+.pg-card .pg-steps{display:flex;gap:6px}.pg-card .pg-steps i{width:22px;height:4px;border-radius:2px;background:#E7E3D8;transition:background .3s}.pg-card .pg-steps i.on{background:#2E7D4F}
+@media (prefers-reduced-motion:reduce){.loader .fill,.loader .pct,.pg-ring .fl{transition:none}.loader .fill::after{display:none}}
 
 .gate-brand,.gate-form{display:contents}
 .gate{position:relative;overflow:hidden;isolation:isolate}
@@ -492,7 +512,7 @@ table.tbl{width:100%;border-collapse:collapse;background:var(--card);font-size:1
 </head>
 <body>
 <div id="root"></div>
-<div id="loader" class="loader hidden"><i></i></div>
+<div id="loader" class="loader hidden" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="fill"></div><span class="pct">0%</span></div>
 
 <script>
 'use strict';
@@ -1178,14 +1198,14 @@ var T = {
     activateTitle:'فعّل جهازك', activateLead:'أدخل رقمك الوظيفي ورمز التفعيل من الموارد البشرية، ثم اختر رمزاً سرياً من 6 أرقام.',
     actCode:'رمز التفعيل', activate:'تفعيل وربط Face ID / البصمة',
     unlockTitle:'مرحباً', unlockLead:'افتح التطبيق بـ Face ID أو البصمة', unlock:'افتح بـ Face ID / البصمة', notMe:'تسجيل موظف آخر على هذا الجهاز',
-    tabHome:'الحضور', btnIn:'حضور', btnOut:'انصراف', recordedAt:'سيُسجَّل بهذا الوقت', emptyEmp:'لا يوجد موظفون بعد', emptyEmpLead:'أضف أول موظف لتصله رسالة التفعيل.', emptyDay:'لا حركات في هذا الشهر', tabHistory:'سجلي', tabFile:'ملفي', tabHr:'الموارد', retry:'إعادة المحاولة', tabAdmin:'الإدارة', tabMe:'حسابي',
+    tabHome:'الحضور', btnIn:'حضور', btnOut:'انصراف', recordedAt:'سيُسجَّل بهذا الوقت', emptyEmp:'لا يوجد موظفون بعد', emptyEmpLead:'أضف أول موظف لتصله رسالة التفعيل.', emptyDay:'لا حركات في هذا الشهر', tabHistory:'سجلي', tabFile:'ملفي', tabHr:'الموارد', retry:'إعادة المحاولة', loadingNow:'جار التحميل', loadingScreen:'جار تجهيز الشاشة', tabAdmin:'الإدارة', tabMe:'حسابي',
     locating:'جارٍ تحديد موقعك…', inside:'داخل نطاق', outside:'خارج النطاق', m:'م', km:'كم', fromZone:'من مركز', accuracy:'دقة الموقع',
     noLoc:'فعّل خدمة الموقع للتطبيق حتى تتمكن من التسجيل', noZone:'لم يُحدَّد نطاق عمل لك بعد. تواصل مع الموارد البشرية.',
     checkIn:'تسجيل الحضور', checkOut:'تسجيل الانصراف', hold:'اضغط للتسجيل', holdHint:'اضغط الزر ثم أكّد بـ Face ID أو البصمة', tapHint:'اضغط الزر للتسجيل، يعمل فقط داخل المقر',
     oldPhone:'هاتفي لا يدعم Face ID / البصمة', tapMode:'تسجيل بالنقر', bioMode:'Face ID / بصمة', unlockTap:'دخول', allowDk:'السماح للأجهزة القديمة بالتسجيل بالنقر (بدون بصمة، داخل النطاق فقط)', f_no_biometric:'جهاز بدون بصمة (تسجيل بالنقر)', e_device_key_disabled:'التسجيل بالنقر موقوف، تواصل مع الموارد البشرية', e_no_devicekey:'هذا المتصفح قديم جداً، حدّث المتصفح',
     readyIn:'جاهز لتسجيل الحضور', readyOut:'جاهز لتسجيل الانصراف', moveCloser:'اقترب من المقر لتفعيل الزر', weakGps:'إشارة الموقع ضعيفة، اقترب من نافذة أو انتظر قليلاً',
     firstIn:'الحضور', lastOut:'الانصراف', worked:'ساعات العمل', shift:'الدوام', late:'تأخير', min:'د', h:'س',
-    doneIn:'تم تسجيل الحضور', doneOut:'تم تسجيل الانصراف', reviewNote:'سُجّل وسيُراجع من الموارد البشرية', close:'تم',
+    doneIn:'تم تسجيل الحضور', doneOut:'تم تسجيل الانصراف', reviewNote:'سُجّل وسيُراجع من الموارد البشرية', close:'تم', closeX:'إغلاق',
     punchFailed:'لم يتم التسجيل', todayTitle:'اليوم',
     histTitle:'سجل الحضور', present:'أيام الحضور', totalHours:'مجموع الساعات', lateDays:'أيام التأخير', absent:'غياب',
     st_in:'داخل الدوام', st_present:'حاضر', st_absent:'غائب', st_leave:'في إجازة', st_holiday:'عطلة رسمية', kLeave:'في إجازة', st_off:'عطلة', st_upcoming:'لم يحضر بعد', st_missing_out:'بلا انصراف',
@@ -1237,14 +1257,14 @@ var T = {
     activateTitle:'Activate your device', activateLead:'Enter your employee number and HR\'s activation code, then choose a 6-digit PIN.',
     actCode:'Activation code', activate:'Activate with Face ID / fingerprint',
     unlockTitle:'Welcome', unlockLead:'Open the app with Face ID or fingerprint', unlock:'Unlock with Face ID / fingerprint', notMe:'Register a different employee on this device',
-    tabHome:'Attendance', btnIn:'Check in', btnOut:'Check out', recordedAt:'This is the time that will be recorded', emptyEmp:'No employees yet', emptyEmpLead:'Add the first employee to send their activation code.', emptyDay:'Nothing recorded this month', tabHistory:'My record', tabFile:'My file', tabHr:'HR', retry:'Try again', tabAdmin:'Admin', tabMe:'Account',
+    tabHome:'Attendance', btnIn:'Check in', btnOut:'Check out', recordedAt:'This is the time that will be recorded', emptyEmp:'No employees yet', emptyEmpLead:'Add the first employee to send their activation code.', emptyDay:'Nothing recorded this month', tabHistory:'My record', tabFile:'My file', tabHr:'HR', retry:'Try again', loadingNow:'Loading', loadingScreen:'Preparing the screen', tabAdmin:'Admin', tabMe:'Account',
     locating:'Finding your location…', inside:'Inside', outside:'Outside the zone', m:'m', km:'km', fromZone:'from', accuracy:'Accuracy',
     noLoc:'Allow location access so you can check in', noZone:'No work zone is set for you yet. Contact HR.',
     checkIn:'Check in', checkOut:'Check out', hold:'Tap to record', holdHint:'Tap the button, then confirm with Face ID or fingerprint', tapHint:'Tap the button to record. Works only inside HQ',
     oldPhone:'My phone has no Face ID / fingerprint', tapMode:'Tap check-in', bioMode:'Face ID / fingerprint', unlockTap:'Sign in', allowDk:'Let older phones check in with a tap (no biometric, inside the zone only)', f_no_biometric:'No biometric (tap check-in)', e_device_key_disabled:'Tap check-in is switched off. Contact HR.', e_no_devicekey:'This browser is too old. Update it.',
     readyIn:'Ready to check in', readyOut:'Ready to check out', moveCloser:'Move closer to HQ to enable the button', weakGps:'Weak location signal. Move near a window or wait a moment',
     firstIn:'In', lastOut:'Out', worked:'Worked', shift:'Shift', late:'Late', min:'m', h:'h',
-    doneIn:'Checked in', doneOut:'Checked out', reviewNote:'Recorded, HR will review it', close:'Done',
+    doneIn:'Checked in', doneOut:'Checked out', reviewNote:'Recorded, HR will review it', close:'Done', closeX:'Close',
     punchFailed:'Not recorded', todayTitle:'Today',
     histTitle:'Attendance record', present:'Days present', totalHours:'Total hours', lateDays:'Late days', absent:'Absent',
     st_in:'On shift', st_present:'Present', st_absent:'Absent', st_leave:'On leave', st_holiday:'Public holiday', kLeave:'On leave', st_off:'Day off', st_upcoming:'Not in yet', st_missing_out:'No check-out',
@@ -1312,16 +1332,72 @@ function plural(n, key){
 }
 function riyadhToday(){ return new Date(Date.now() + 180 * 60000).toISOString().slice(0, 10); }
 
+// ---------------- progress ----------------
+/**
+ * The loading bar shows a percentage. A fetch cannot report its own progress, so each kind of
+ * request remembers how long it usually takes on this device (a running average) and the bar moves
+ * towards 95% on that clock; it jumps to 100% the moment the answer lands, then fades.
+ */
+var Progress = (function(){
+  var tasks = {}, seq = 0, raf = 0, shown = 0, listeners = [], hideT = 0;
+  var avg = {}; try { avg = JSON.parse(localStorage.getItem('bgatt.dur') || '{}') || {}; } catch (e) { avg = {}; }
+  function expected(key){ return Math.max(800, avg[key] || (/^script:/.test(key) ? 900 : 2600)); }
+  function learn(key, ms){ avg[key] = Math.round(avg[key] ? avg[key] * 0.7 + ms * 0.3 : ms); try { localStorage.setItem('bgatt.dur', JSON.stringify(avg)); } catch (e) {} }
+  // Up to the usual time: to about 89%. Slower than usual: keeps creeping towards 97%, never stalls, never lies about being done.
+  function valueOf(tk, now){ if (tk.done) return 1; var x = (now - tk.start) / tk.exp; return x <= 1 ? 0.89 * (1 - Math.exp(-2.2 * x)) / (1 - Math.exp(-2.2)) : 0.89 + 0.08 * (1 - Math.exp(-(x - 1) / 2)); }
+  function overall(){ var ids = Object.keys(tasks), now = Date.now(); if (!ids.length) return 1; var sum = 0; ids.forEach(function(k){ sum += valueOf(tasks[k], now); }); return sum / ids.length; }
+  function paint(){
+    raf = 0;
+    var p = overall(), el = document.getElementById('loader');
+    shown = Math.max(shown, p);
+    var pc = Math.round(shown * 100);
+    if (el) {
+      el.querySelector('.fill').style.width = pc + '%';
+      var pl = el.querySelector('.pct'); pl.textContent = pc + '%'; pl.style.insetInlineStart = Math.max(4, Math.min(96, pc)) + '%';
+      el.setAttribute('aria-valuenow', pc);
+    }
+    listeners.forEach(function(fn){ try { fn(pc); } catch (e) {} });
+    var busy = Object.keys(tasks).some(function(k){ return !tasks[k].done; });
+    if (busy) raf = requestAnimationFrame(paint);
+    else { clearTimeout(hideT); hideT = setTimeout(function(){ if (Object.keys(tasks).every(function(k){ return tasks[k].done; })) { tasks = {}; if (el) el.classList.add('hidden'); setTimeout(function(){ if (!Object.keys(tasks).length) { shown = 0; if (el) { el.querySelector('.fill').style.width = '0'; } } }, 400); } }, 250); }
+  }
+  return {
+    start: function(key, bar){
+      var id = ++seq;
+      if (!Object.keys(tasks).some(function(k){ return !tasks[k].done; })) { tasks = {}; shown = 0; }
+      tasks[id] = { key: key, start: Date.now(), exp: expected(key), done: false, bar: bar !== false };
+      clearTimeout(hideT);
+      var el = document.getElementById('loader'); if (el && bar !== false) el.classList.remove('hidden');
+      if (!raf) raf = requestAnimationFrame(paint);
+      return id;
+    },
+    done: function(id, ok){ var tk = tasks[id]; if (!tk || tk.done) return; tk.done = true; if (ok !== false) learn(tk.key, Date.now() - tk.start); if (!raf) raf = requestAnimationFrame(paint); },
+    on: function(fn){ listeners.push(fn); return function(){ listeners = listeners.filter(function(x){ return x !== fn; }); }; }
+  };
+})();
+/** A centred ring for a screen that is still loading; label says what is loading. Returns a stop function. */
+function progressCard(el, label){
+  el.innerHTML = '<div class="pg-wrap"><div class="pg-card" role="status" aria-live="polite"><div class="pg-ring"><svg viewBox="0 0 120 120"><defs><linearGradient id="pgGrad" x1="0" x2="1"><stop offset="0" stop-color="#2E7D4F"/><stop offset="1" stop-color="#9FE0AE"/></linearGradient></defs>' +
+    '<circle class="tr" cx="60" cy="60" r="52"/><circle class="fl" cx="60" cy="60" r="52" stroke-dasharray="326.7" stroke-dashoffset="326.7"/></svg><b>0<small>%</small></b></div>' +
+    '<p>' + esc(label || t('loadingNow')) + '</p><div class="pg-steps"><i></i><i></i><i></i><i></i><i></i></div></div></div>';
+  var fl = el.querySelector('.fl'), num = el.querySelector('.pg-ring b'), steps = el.querySelectorAll('.pg-steps i');
+  return Progress.on(function(pc){
+    if (!fl.isConnected) return;
+    fl.setAttribute('stroke-dashoffset', (326.7 * (1 - pc / 100)).toFixed(1));
+    num.innerHTML = pc + '<small>%</small>';
+    for (var i = 0; i < steps.length; i++) steps[i].classList.toggle('on', pc >= (i + 1) * 20);
+  });
+}
+
 // ---------------- API ----------------
-var inflight = 0;
 function api(action, payload, quiet){
   payload = payload || {}; payload.action = action; if (S.token) payload.token = S.token;
-  if (!quiet) { inflight++; $('#loader').classList.remove('hidden'); }
+  var pid = quiet ? 0 : Progress.start(action);
   return fetch(API_URL, { method:'POST', headers:{ 'Content-Type':'text/plain;charset=utf-8' }, body: JSON.stringify(payload) })
     .then(function(r){ return r.json(); })
     .catch(function(){ return { ok:false, error:'network' }; })
     .then(function(res){
-      if (!quiet && --inflight <= 0) { inflight = 0; $('#loader').classList.add('hidden'); }
+      if (pid) Progress.done(pid, !!(res && res.ok !== undefined));
       if (res && res.token) { S.token = res.token; store('token', res.token); }
       if (res && res.ok && !CLIENT_READS[action]) READ_CACHE = {};
       if (res && res.error === 'session_expired' && action !== 'me') { S.token = null; store('token', null); renderLock(); }
@@ -1469,8 +1545,14 @@ function setHrAccess(file){
 function hasHrTab(){ var r = S.fileRoles; return isHr() || !!(r && (r.hr || r.payroll || r.manager || r.executive)); }
 function lazyScreen(files, run){
   var main = $('#main');
-  main.innerHTML = '<section class="page"><span class="sk" style="width:40%"></span><span class="sk" style="margin-top:12px"></span><span class="sk" style="width:70%;margin-top:12px"></span></section>';
-  files.reduce(function(p, f){ return p.then(function(){ return loadScript(f); }); }, Promise.resolve()).then(function(){ if ($('#main') === main) run(main); }, function(){
+  var need = files.filter(function(f){ return !loadedScripts[f]; });
+  var stop = need.length ? progressCard(main, t('loadingScreen')) : null;
+  if (!need.length) main.innerHTML = '<section class="page"><span class="sk" style="width:40%"></span><span class="sk" style="margin-top:12px"></span></section>';
+  files.reduce(function(p, f){ return p.then(function(){
+    if (loadedScripts[f]) return loadedScripts[f];
+    var id = Progress.start('script:' + f); return loadScript(f).then(function(){ Progress.done(id); }, function(e){ Progress.done(id, false); throw e; });
+  }); }, Promise.resolve()).then(function(){ if (stop) stop(); if ($('#main') === main) run(main); }, function(){
+    if (stop) stop();
     main.innerHTML = '<section class="page"><div class="empty">' + ph('wifi-slash') + '<b>' + t('e_network') + '</b><div class="btnrow" style="justify-content:center;margin-top:12px"><button class="btn btn-dark btn-sm" type="button" id="lzRetry">' + t('retry') + '</button></div></div></section>';
     $('#lzRetry').onclick = function(){ lazyScreen(files, run); };
   });
@@ -2344,14 +2426,20 @@ function admEmp(){
   });
 }
 
+/** Every panel: a close (x) button in the corner, Escape, and a tap outside all close it. */
 function drawer(html){
   var d = document.createElement('div'); d.className = 'drawer';
-  d.innerHTML = '<div class="panel" role="dialog">' + html + '</div>';
-  d.onclick = function(e){ if (e.target === d) d.remove(); };
-  d.addEventListener('keydown', function(e){ if (e.key === 'Escape') d.remove(); });
+  d.innerHTML = '<div class="panel" role="dialog" aria-modal="true"><button type="button" class="dr-x" aria-label="' + t('closeX') + '" title="' + t('closeX') + '">' + ph('x') + '</button>' + html + '</div>';
+  var back = document.activeElement;
+  function close(){ if (d.isConnected) d.remove(); }
+  var mo = new MutationObserver(function(){ if (!d.isConnected) { mo.disconnect(); document.removeEventListener('keydown', onKey); if (back && back.isConnected && back.focus) back.focus(); } });
+  function onKey(e){ if (e.key === 'Escape' && document.querySelector('.drawer:last-of-type') === d) close(); }
+  d.onclick = function(e){ if (e.target === d) close(); };
+  d.querySelector('.dr-x').onclick = close;
+  document.addEventListener('keydown', onKey);
   document.body.appendChild(d);
-  d.querySelector('.panel').setAttribute('aria-modal', 'true');
-  var first = d.querySelector('input,select,textarea,button'); if (first) first.focus();
+  mo.observe(document.body, { childList: true });
+  var first = d.querySelector('.panel input:not([type=hidden]),.panel select,.panel textarea'); (first || d.querySelector('.dr-x')).focus();
   return d;
 }
 
