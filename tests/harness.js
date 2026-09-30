@@ -11,6 +11,11 @@ function makeSheet(name) {
   return {
     _rows: rows,
     getLastRow: () => rows.length,
+    getLastColumn: () => rows.reduce((m, r) => Math.max(m, r ? r.length : 0), 0),
+    getDataRange() {
+      const nr = Math.max(1, rows.length), nc = Math.max(1, rows.reduce((m, r) => Math.max(m, r ? r.length : 0), 0));
+      return this.getRange(1, 1, nr, nc);
+    },
     getRange(r, c, nr, nc) {
       return {
         setValues(vals) { for (let i = 0; i < nr; i++) { rows[r - 1 + i] = rows[r - 1 + i] || []; for (let j = 0; j < nc; j++) rows[r - 1 + i][c - 1 + j] = vals[i][j]; } },

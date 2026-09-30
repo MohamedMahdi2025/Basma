@@ -69,6 +69,10 @@ var SHEET_CACHE_ = {};
 
 function ss_() { return SpreadsheetApp.getActiveSpreadsheet(); }
 
+// Every call into SpreadsheetApp costs 70-200 ms on Google's side whatever the size of the tab,
+// so the number of calls, not the data, decides how fast a request is.
+var HEADER_OK_ = {};
+
 function sheet_(name) {
   if (SHEET_CACHE_[name]) return SHEET_CACHE_[name];
   var ss = ss_();
@@ -77,10 +81,17 @@ function sheet_(name) {
     sh = ss.insertSheet(name);
     sh.getRange(1, 1, 1, HEADERS[name].length).setValues([HEADERS[name]]);
     sh.setFrozenRows(1);
+    HEADER_OK_[name] = true;
   }
-  else if (sh.getLastColumn() < HEADERS[name].length) sh.getRange(1, 1, 1, HEADERS[name].length).setValues([HEADERS[name]]);
   SHEET_CACHE_[name] = sh;
   return sh;
+}
+
+/** New columns added in code get their header written once, the first time the tab is touched. */
+function ensureHeader_(name, sh, width) {
+  if (HEADER_OK_[name]) return;
+  if ((width === undefined ? sh.getLastColumn() : width) < HEADERS[name].length) sh.getRange(1, 1, 1, HEADERS[name].length).setValues([HEADERS[name]]);
+  HEADER_OK_[name] = true;
 }
 
 // Each sheet is read once per request. Apps Script sheet reads cost 100-600 ms each,
@@ -91,18 +102,20 @@ function forget_(name) { delete READ_MEMO_[name]; }
 function readAll_(name) {
   if (READ_MEMO_[name]) return READ_MEMO_[name];
   var sh = sheet_(name);
-  var last = sh.getLastRow();
   var cols = HEADERS[name];
-  if (last < 2) return (READ_MEMO_[name] = []);
-  var vals = sh.getRange(2, 1, last - 1, cols.length).getValues();
+  // One call for header and rows together (was three: last column, last row, values).
+  var vals = sh.getDataRange().getValues();
+  ensureHeader_(name, sh, vals.length ? vals[0].length : 0);
   var out = [];
-  for (var i = 0; i < vals.length; i++) {
-    var o = { _row: i + 2 };
+  for (var i = 1; i < vals.length; i++) {
+    var o = { _row: i + 1 }, blank = true;
     for (var c = 0; c < cols.length; c++) {
       var v = vals[i][c];
+      if (v === undefined) v = '';
+      if (v !== '') blank = false;
       o[cols[c]] = (v instanceof Date) ? v.toISOString() : v;
     }
-    out.push(o);
+    if (!blank) out.push(o);
   }
   READ_MEMO_[name] = out;
   return out;
@@ -120,6 +133,7 @@ function toRow_(name, obj) {
 function append_(name, obj) {
   forget_(name);
   var sh = sheet_(name);
+  ensureHeader_(name, sh);
   sh.appendRow(toRow_(name, obj));
 }
 
@@ -128,13 +142,18 @@ function appendMany_(name, objs) {
   if (!objs.length) return;
   forget_(name);
   var sh = sheet_(name);
+  ensureHeader_(name, sh);
   sh.getRange(sh.getLastRow() + 1, 1, objs.length, HEADERS[name].length).setValues(objs.map(function (o) { return toRow_(name, o); }));
 }
 
 function update_(name, obj) {
   if (!obj._row) throw new Error('update_ without _row');
-  forget_(name);
-  sheet_(name).getRange(obj._row, 1, 1, HEADERS[name].length).setValues([toRow_(name, obj)]);
+  // The row object read this request is the one written, so the memo stays true; only a foreign copy forces a re-read.
+  var memo = READ_MEMO_[name];
+  if (!memo || memo.indexOf(obj) < 0) forget_(name);
+  var sh = sheet_(name);
+  ensureHeader_(name, sh);
+  sh.getRange(obj._row, 1, 1, HEADERS[name].length).setValues([toRow_(name, obj)]);
 }
 
 function findBy_(name, key, value) {
@@ -234,14 +253,16 @@ function sha256Hex_(str) {
 
 // ---------------- signed session tokens ----------------
 
+var TOKEN_SECRET_ = null; // one properties read per request, not one per token
 function tokenSecret_() {
+  if (TOKEN_SECRET_) return TOKEN_SECRET_;
   var p = PropertiesService.getScriptProperties();
   var s = p.getProperty('TOKEN_SECRET');
   if (!s) {
     s = bytesToB64u_(randomBytes_(32));
     p.setProperty('TOKEN_SECRET', s);
   }
-  return s;
+  return (TOKEN_SECRET_ = s);
 }
 
 function hmac_(msg) {
