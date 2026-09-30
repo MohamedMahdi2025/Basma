@@ -242,8 +242,8 @@ var PIN_ROUNDS = 400, PIN_MAX_TRIES = 5;
 
 /** Salted, iterated SHA-256. A 6-digit PIN is weak on its own; the lockout and the device key carry the weight. */
 function pinHash_(pin, salt) {
-  var h = utf8Bytes_(salt + ':' + pin);
-  for (var i = 0; i < PIN_ROUNDS; i++) h = sha256_(h.concat(utf8Bytes_(salt)));
+  var h = utf8Bytes_(salt + ':' + pin), sb = utf8Bytes_(salt);
+  for (var i = 0; i < PIN_ROUNDS; i++) h = sha256Js_(h.concat(sb));
   return bytesToB64u_(h);
 }
 
@@ -344,11 +344,44 @@ function api_authBegin(req) {
 }
 
 function api_authFinish(req) {
-  return withLock_(function () {
-    var r = finishFor_(req, 'login');
-    audit_(r.emp.id, 'login', r.emp.id, null);
-    return { ok: true, token: issueToken_(r.emp), me: publicEmp_(r.emp), home: homePayload_(r.emp) };
+  var r = withLock_(function () { return finishFor_(req, 'login'); });
+  // Reading the home screen and writing the audit line do not need the lock: others sign in meanwhile.
+  var out = { ok: true, token: issueToken_(r.emp), me: publicEmp_(r.emp), home: homePayload_(r.emp) };
+  audit_(r.emp.id, 'login', r.emp.id, null);
+  return out;
+}
+
+/**
+ * Live timing of each server step (owner only: needs the setup key). Writes nothing but one audit line.
+ * Used to find where sign-in time goes on Google's servers, which the local tests cannot show.
+ */
+function api_diag(req) {
+  var expected = (typeof SETUP_KEY_HASH === 'string') ? SETUP_KEY_HASH : '';
+  if (!expected || !safeEqual_(sha256Hex_(String(req.setupKey || '').trim()), expected)) {
+    if (!rateLimit_('diagFail', 10, 3600)) fail_('too_many_attempts');
+    fail_('bad_setup_key');
+  }
+  var out = {}, rows = {};
+  function time(name, fn) { var t = Date.now(); var v = fn(); out[name] = Date.now() - t; return v; }
+  time('lock', function () { return withLock_(function () { return 0; }); });
+  [SHEETS.EMP, SHEETS.CRED, SHEETS.PUNCH, SHEETS.ZONES, SHEETS.SET, SHEETS.AUDIT].forEach(function (n) {
+    rows[n] = time('read_' + n, function () { forget_(n); return readAll_(n).length; });
   });
+  time('settings', function () { return settings_(); });
+  time('pin_js', function () { return pinHash_('482915', 'c2FsdHNhbHRzYWx0c2FsdA'); });
+  time('pin_old_service', function () {
+    var h = utf8Bytes_('s:482915');
+    for (var i = 0; i < PIN_ROUNDS; i++) h = sha256_(h.concat(utf8Bytes_('s')));
+    return h;
+  });
+  var hx = function (s) { var b = []; for (var i = 0; i < s.length; i += 2) b.push(parseInt(s.substr(i, 2), 16)); return b; };
+  out.ecdsa_ok = time('ecdsa', function () { return ecdsaVerifyP256_(hx('6318e6764ee2e5c38008886a7adc30b0ea77ee448721c89eefad520d6dab931f'), hx('1638944fddefbe8bfbb63b1a0463226689a0c2f57ca8838cb80a170e37c72746bdaedc5ef7e97272d2022c8448b4b5b76dadcb76ff4668097e712aefcfdfc24b'), hx('16444adae39d0e29fb8bb449de7e0cde8bf18906cccc221617dc283b34416be1'), hx('097a9783017ea068de342a2fead02d394a7dacc960b60f081e614ef538ecac78'), true); });
+  time('cache', function () { var ch = newChallenge_({ purpose: 'diag' }); return takeChallenge_(ch); });
+  time('token', function () { return readToken_(issueToken_({ id: 'diag', role: 'employee', tokenVer: 0 })); });
+  var emp = req.empNo ? empByNo_(req.empNo) : null;
+  if (emp) time('home', function () { return homePayload_(emp); });
+  time('audit_append', function () { audit_('', 'diag', '', out); });
+  return { ok: true, ms: out, rows: rows };
 }
 
 function api_punchBegin(req) {

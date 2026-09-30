@@ -21,19 +21,34 @@ var CONFIG = {
   ACTIVATION_MAX_TRIES: 5
 };
 
-var SHEETS = { EMP: 'employees', CRED: 'credentials', ZONES: 'zones', PUNCH: 'punches', AUDIT: 'audit', SET: 'settings' };
+var SHEETS = { EMP: 'employees', CRED: 'credentials', ZONES: 'zones', PUNCH: 'punches', AUDIT: 'audit', SET: 'settings',
+  DEPT: 'departments', POS: 'positions', PRIV: 'empPrivate', COMP: 'compensation', JOBH: 'jobHistory', DOCS: 'documents' };
 
 var HEADERS = {
   employees: ['id', 'empNo', 'name', 'nameEn', 'email', 'phone', 'department', 'title', 'role', 'status',
     'zoneIds', 'shiftStart', 'shiftEnd', 'workdays', 'tokenVer', 'actHash', 'actExp', 'actTries', 'createdAt', 'updatedAt',
-    'pwHash', 'pwSalt', 'pwTries', 'pwLockUntil', 'actIssuedBy', 'pwMustChange'],
+    'pwHash', 'pwSalt', 'pwTries', 'pwLockUntil', 'actIssuedBy', 'pwMustChange',
+    // HR (Phase 1): job placement and the Qiwa unified-contract terms
+    'extraRoles', 'departmentId', 'positionId', 'managerId', 'hireDate', 'contractType', 'contractEnd', 'probationEnd',
+    'nationality', 'isSaudi', 'gender', 'workLocation', 'contractNo', 'occupationCode', 'employmentType',
+    'workDaysPerWeek', 'dailyHours', 'annualLeaveDays', 'noticeDays'],
   credentials: ['credId', 'empId', 'x', 'y', 'signCount', 'label', 'status', 'createdAt', 'lastUsedAt', 'aaguid', 'kind',
     'platform', 'pinHash', 'pinSalt', 'pinTries'],
   zones: ['id', 'name', 'nameEn', 'lat', 'lng', 'radius', 'status', 'createdAt', 'updatedAt'],
   punches: ['id', 'empId', 'type', 'ts', 'date', 'lat', 'lng', 'acc', 'zoneId', 'distance', 'status', 'risk', 'flags',
     'source', 'note', 'reviewBy', 'reviewAt', 'credId', 'ua', 'createdAt'],
   audit: ['ts', 'actorId', 'action', 'targetId', 'detail'],
-  settings: ['key', 'value']
+  settings: ['key', 'value'],
+  departments: ['id', 'code', 'nameAr', 'nameEn', 'parentId', 'headEmpId', 'costCenter', 'status', 'createdAt', 'updatedAt'],
+  positions: ['id', 'code', 'titleAr', 'titleEn', 'departmentId', 'grade', 'purposeAr', 'purposeEn', 'dutiesAr', 'dutiesEn',
+    'requirementsAr', 'requirementsEn', 'status', 'createdAt', 'updatedAt'],
+  empPrivate: ['empId', 'nationalId', 'idExpiry', 'birthDate', 'maritalStatus', 'iban', 'bankName', 'gosiNumber', 'gosiCohort',
+    'address', 'emergencyName', 'emergencyPhone', 'updatedAt', 'borderNo', 'passportNo', 'passportExpiry', 'nationalAddress',
+    'personalEmail', 'nameEnOfficial'],
+  compensation: ['id', 'empId', 'effectiveFrom', 'basic', 'housing', 'transport', 'otherJson', 'currency', 'reason',
+    'enteredBy', 'approvedBy', 'approvedAt', 'status', 'createdAt', 'batchId'],
+  jobHistory: ['id', 'empId', 'effectiveFrom', 'departmentId', 'positionId', 'managerId', 'grade', 'reason', 'enteredBy', 'createdAt'],
+  documents: ['id', 'empId', 'type', 'number', 'issueDate', 'expiryDate', 'note', 'status', 'createdAt', 'updatedAt']
 };
 
 var ROLES = { employee: 1, hr: 2, admin: 3 };
@@ -108,6 +123,14 @@ function append_(name, obj) {
   sh.appendRow(toRow_(name, obj));
 }
 
+/** One write for many rows: appendRow per row is far too slow for an import. */
+function appendMany_(name, objs) {
+  if (!objs.length) return;
+  forget_(name);
+  var sh = sheet_(name);
+  sh.getRange(sh.getLastRow() + 1, 1, objs.length, HEADERS[name].length).setValues(objs.map(function (o) { return toRow_(name, o); }));
+}
+
 function update_(name, obj) {
   if (!obj._row) throw new Error('update_ without _row');
   forget_(name);
@@ -165,7 +188,7 @@ function settings_() {
     else v = String(v);
     s[r.key] = v;
   });
-  try { CacheService.getScriptCache().put(SETTINGS_CACHE_KEY, JSON.stringify(s), 600); } catch (e) {}
+  try { CacheService.getScriptCache().put(SETTINGS_CACHE_KEY, JSON.stringify(s), 120); } catch (e) {}
   return s;
 }
 
@@ -284,10 +307,12 @@ function doPost(e) {
 
 var PUBLIC_ACTIONS = {
   ping: 1, bootstrapStatus: 1, bootstrap: 1, enrollBegin: 1, enrollFinish: 1,
-  authBegin: 1, authFinish: 1, punchBegin: 1, punchFinish: 1, adminRecover: 1, pwLogin: 1, pinChange: 1
+  authBegin: 1, authFinish: 1, punchBegin: 1, punchFinish: 1, adminRecover: 1, pwLogin: 1, pinChange: 1, diag: 1
 };
-var EMP_ACTIONS = { me: 1, myHistory: 1, passwordSet: 1, punchPw: 1 };
-var HR_ACTIONS = { empPasswordReset: 1, board: 1, empList: 1, zoneList: 1, report: 1, reviewList: 1, reviewDecide: 1, manualPunch: 1, auditList: 1, settingsGet: 1, empSave: 1, empActivation: 1 };
+var EMP_ACTIONS = { me: 1, myHistory: 1, passwordSet: 1, punchPw: 1,
+  myFile: 1, hrEmpFile: 1, hrTeam: 1, hrCompList: 1, hrCompPropose: 1, hrCompDecide: 1 };
+var HR_ACTIONS = { hrDirectory: 1, hrDeptList: 1, hrDeptSave: 1, hrPositionList: 1, hrPositionSave: 1, hrEmpSave: 1,
+  hrPrivateSave: 1, hrImportValidate: 1, hrImportCommit: 1, hrDocList: 1, hrDocSave: 1, hrExpiring: 1, empPasswordReset: 1, board: 1, empList: 1, zoneList: 1, report: 1, reviewList: 1, reviewDecide: 1, manualPunch: 1, auditList: 1, settingsGet: 1, empSave: 1, empActivation: 1 };
 var ADMIN_ACTIONS = { empResetDevice: 1, zoneSave: 1, zoneDelete: 1, settingsSave: 1 };
 
 function handle_(req) {

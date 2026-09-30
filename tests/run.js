@@ -60,6 +60,13 @@ console.log('P-256 ECDSA against Node crypto');
   ok(hit === 5 && okCount === 5, 'raw signatures that start with 0x30 verify (1 in 256 used to fail)', { hit, okCount });
 }
 
+{
+  // The PIN rounds use a plain-JS SHA-256; it must match the service one byte for byte or every stored PIN breaks.
+  let bad = 0;
+  for (let n = 0; n < 200; n++) { const b = Array.from(crypto.randomBytes(n)); if (JSON.stringify(B0.ctx.sha256Js_(b)) !== JSON.stringify(B0.ctx.sha256_(b).map(x => x & 255))) bad++; }
+  ok(bad === 0, 'plain-JS SHA-256 matches the service SHA-256 for 200 lengths', bad);
+}
+
 console.log('Bootstrap, enrollment, sign-in');
 const SETUP = 'test-setup-key-1234';
 const B = load({ setupKeyHash: sha(SETUP), now: T0 });

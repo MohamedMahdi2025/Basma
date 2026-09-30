@@ -981,3 +981,23 @@ In `renderShell` tabs: insert `['file', I.idcard, t('tabFile')]` after `home`; m
 - [ ] **Step 4:** `git push origin main`; poll the Pages URL until `js/hr-console.js` returns 200.
 - [ ] **Step 5:** In the browser pane on the live site: "ملفي" loads for the admin account; `#hr` opens the console; the Import screen downloads the template.
 - [ ] **Step 6:** Update `CLAUDE.md` (HR files, actions, roles, Review Focus traps) and commit.
+
+---
+
+## Addendum (2026-09-30): KSA research folded in before execution
+
+Sources: `../docs/ksa-compliance-research-2026-09-30.md` (Qiwa / Mudad / GOSI / Muqeem / IR-2025) and
+`../docs/ksa-hr-products-research-2026-09-30.md` (Jisr, ZenHR, Menaitech, Bayzat).
+
+- **empPrivate** gains `borderNo, passportNo, passportExpiry, nationalAddress, personalEmail, nameEnOfficial`
+  (English name exactly as on the ID and bank; WPS rejects mismatches).
+- **employees** gains the Qiwa unified-contract terms: `contractNo, occupationCode, employmentType,
+  workDaysPerWeek, dailyHours, annualLeaveDays, noticeDays` (contractType / contractEnd / probationEnd already planned).
+- New tab **documents** `id, empId, type (iqama|passport|work_permit|medical_insurance|contract|other), number,
+  issueDate, expiryDate, note, status, createdAt, updatedAt` with actions `hrDocList`, `hrDocSave`, and
+  `hrExpiring({days})` which also reads iqama / passport expiry from empPrivate and contractEnd from employees.
+- Rules enforced in `hrEmpSave` and the import: a non-Saudi contract cannot be indefinite (Law Art. 37,
+  `expat_contract_fixed`); probation at most 180 days (Art. 53, `probation_too_long`); annual leave at least 21 days.
+- `hrDirectory` returns a **Saudization summary**: Nitaqat weight per active Saudi from the current package
+  (basic + housing ≥ 4,000 → 1.0; 3,000–3,999 → 0.5; below → 0), total headcount, weighted Saudi %.
+- Import template gains the new columns; unknown occupation codes are stored as given (no official list offline).

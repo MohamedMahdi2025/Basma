@@ -62,7 +62,7 @@ function load(opts = {}) {
   ctx.globalThis = ctx;
   vm.createContext(ctx);
   const dir = path.join(__dirname, '..', 'backend');
-  for (const f of ['Code.gs', 'WebAuthn.gs', 'Attendance.gs', 'Admin.gs']) vm.runInContext(fs.readFileSync(path.join(dir, f), 'utf8'), ctx, { filename: f });
+  for (const f of ['Code.gs', 'WebAuthn.gs', 'Attendance.gs', 'Admin.gs', 'Hr.gs']) vm.runInContext(fs.readFileSync(path.join(dir, f), 'utf8'), ctx, { filename: f });
   if (opts.setupKeyHash) vm.runInContext(`var SETUP_KEY_HASH = ${JSON.stringify(opts.setupKeyHash)};`, ctx);
   return {
     ctx, sheets, props, cache,
