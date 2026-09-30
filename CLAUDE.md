@@ -137,3 +137,21 @@ Import: client parses Excel with SheetJS (cdnjs xlsx 0.18.5), maps Arabic or Eng
 (`COLS` in hr-console.js), skips blank rows and maps server row numbers back to Excel rows.
 Server re-validates everything and commits all or nothing; salaries arrive `pending`.
 Arabic counts go through `plural(n, 'people'|'days'|'rows')`; never "3 موظف".
+
+## HR (Phase 2, live 2026-09-30): leave and requests
+
+`backend/Leave.gs`, `js/requests.js` (form with live `requestQuote`, list, printable letters; loaded
+before hr-console), tests `tests/leave.js`. Tabs `requests`, `holidays`; employees gained
+`leaveOpeningDays/Date`, `resignedOn`, `lastWorkingDay`. Plan: docs/superpowers/plans/2026-09-30-hr-phase2-leave-requests.md.
+- Chains: leave, correction, resignation = manager then hr; letter, data change = hr; advance = hr then
+  payroll (never the line manager). Manager step skipped with no active manager. Nobody acts on their
+  own request or on two steps of one request. Rejecting needs a note. Final approval re-runs `quote_`.
+- Annual balance: opening (carried over) + accrual (21/yr, 30 after 5 years, contract days if higher,
+  paused on approved unpaid) - approved; pending reserved. **Without an opening balance accrual starts at
+  the go-live (createdAt), not the hire date** (`openingMissing` tells the employee), so HR must load the
+  old system's balances (import columns leaveOpeningDays / leaveOpeningDate, or the Leave section).
+- Attendance: `offIndex_` (one read of requests + holidays) feeds `summarizeDay_(..., off)` in board,
+  report and history: approved leave = 'leave', holiday = 'holiday' (work on it is overtime). The home
+  screen passes no `off`, so sign-in reads nothing new.
+- Numbers: LV/LT/AD/AC/DC/RS-YYYY-00001 via `nextRef_(kind, refsOf_(tab))` (never reuses a number already in
+  the sheet). Prefixes renameable with the `refPrefixes` setting (JSON).
