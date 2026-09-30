@@ -72,6 +72,8 @@ function updateMany_(name, objs) {
 
 // ---------------- departments ----------------
 
+function codesOf_(rows) { var o = {}; rows.forEach(function (r) { if (r.code) o[String(r.code).toUpperCase()] = 1; }); return o; }
+
 function publicDept_(d) {
   return { id: d.id, code: d.code, nameAr: d.nameAr, nameEn: d.nameEn, parentId: d.parentId, headEmpId: d.headEmpId,
     costCenter: d.costCenter, status: d.status };
@@ -101,7 +103,7 @@ function api_hrDeptSave(req, me) {
     if (headEmpId && !findBy_(SHEETS.EMP, 'id', headEmpId)) fail_('not_found');
     var now = new Date().toISOString(), created = !row;
     if (!row) row = { id: newId_('D'), createdAt: now };
-    row.code = str_(d.code, 20); row.nameAr = nameAr; row.nameEn = str_(d.nameEn, 80); row.parentId = parentId;
+    row.code = str_(d.code, 20) || row.code || nextRef_('department', codesOf_(all)); row.nameAr = nameAr; row.nameEn = str_(d.nameEn, 80); row.parentId = parentId;
     row.headEmpId = headEmpId; row.costCenter = str_(d.costCenter, 30); row.status = d.status === 'disabled' ? 'disabled' : 'active';
     row.updatedAt = now;
     if (created) append_(SHEETS.DEPT, row); else update_(SHEETS.DEPT, row);
@@ -132,7 +134,7 @@ function api_hrPositionSave(req, me) {
     if (d.departmentId && !findBy_(SHEETS.DEPT, 'id', d.departmentId)) fail_('not_found');
     var now = new Date().toISOString(), created = !row;
     if (!row) row = { id: newId_('J'), createdAt: now };
-    row.code = str_(d.code, 20); row.titleAr = titleAr; row.titleEn = str_(d.titleEn, 80);
+    row.code = str_(d.code, 20) || row.code || nextRef_('position', codesOf_(readAll_(SHEETS.POS))); row.titleAr = titleAr; row.titleEn = str_(d.titleEn, 80);
     row.departmentId = str_(d.departmentId, 40); row.grade = str_(d.grade, 20);
     POS_TEXT.forEach(function (k) { row[k] = str_(d[k], 3000); });
     row.status = d.status === 'disabled' ? 'disabled' : 'active'; row.updatedAt = now;
@@ -434,7 +436,7 @@ function compView_(c) {
   Object.keys(other).forEach(function (k) { total += Number(other[k]) || 0; });
   return { id: c.id, empId: c.empId, effectiveFrom: c.effectiveFrom, basic: Number(c.basic || 0), housing: Number(c.housing || 0),
     transport: Number(c.transport || 0), other: other, total: Math.round(total * 100) / 100, currency: c.currency || 'SAR',
-    status: c.status, reason: c.reason, enteredBy: c.enteredBy, approvedBy: c.approvedBy, batchId: c.batchId || '' };
+    status: c.status, reason: c.reason, enteredBy: c.enteredBy, approvedBy: c.approvedBy, batchId: c.batchId || '', ref: c.ref || '' };
 }
 
 function compRows_(empId) {
@@ -482,7 +484,7 @@ function compRowFrom_(d, enteredBy) {
   if (!eff) fail_('bad_date');
   return { id: newId_('C'), empId: d.empId, effectiveFrom: eff, basic: basic, housing: housing, transport: transport,
     otherJson: JSON.stringify(other), currency: 'SAR', reason: str_(d.reason, 200), enteredBy: enteredBy, approvedBy: '',
-    approvedAt: '', status: 'pending', createdAt: new Date().toISOString(), batchId: d.batchId || '' };
+    approvedAt: '', status: 'pending', createdAt: new Date().toISOString(), batchId: d.batchId || '', ref: d.ref || '' };
 }
 
 function api_hrCompPropose(req, me) {
@@ -491,8 +493,9 @@ function api_hrCompPropose(req, me) {
   return withLock_(function () {
     if (!findBy_(SHEETS.EMP, 'id', req.empId)) fail_('not_found');
     var row = compRowFrom_(req, me.id);
+    row.ref = nextRef_('salary');
     append_(SHEETS.COMP, row);
-    audit_(me.id, 'comp_propose', req.empId, { effectiveFrom: row.effectiveFrom });
+    audit_(me.id, 'comp_propose', req.empId, { ref: row.ref, effectiveFrom: row.effectiveFrom });
     return { ok: true, comp: compView_(row) };
   });
 }
@@ -535,7 +538,7 @@ function api_hrCompList(req, me) {
 var DOC_TYPES = ['iqama', 'passport', 'work_permit', 'medical_insurance', 'contract', 'driving_licence', 'other'];
 
 function publicDoc_(x) {
-  return { id: x.id, empId: x.empId, type: x.type, number: String(x.number || ''), issueDate: x.issueDate, expiryDate: x.expiryDate,
+  return { id: x.id, ref: x.ref || '', empId: x.empId, type: x.type, number: String(x.number || ''), issueDate: x.issueDate, expiryDate: x.expiryDate,
     note: x.note, status: x.status };
 }
 function docRows_(empId) {
@@ -560,7 +563,7 @@ function api_hrDocSave(req, me) {
     var empId = row ? row.empId : d.empId;
     if (!findBy_(SHEETS.EMP, 'id', empId)) fail_('not_found');
     var now = new Date().toISOString(), created = !row;
-    if (!row) row = { id: newId_('F'), empId: empId, createdAt: now };
+    if (!row) row = { id: newId_('F'), empId: empId, createdAt: now, ref: nextRef_('document') };
     row.type = d.type; row.number = str_(d.number, 40); row.issueDate = issue; row.expiryDate = exp;
     row.note = str_(d.note, 300); row.status = d.status === 'deleted' ? 'deleted' : 'active'; row.updatedAt = now;
     if (created) append_(SHEETS.DOCS, row); else update_(SHEETS.DOCS, row);
@@ -707,14 +710,16 @@ function api_hrImportCommit(req, me) {
   return withLock_(function () {
     var ctx = orgCtx_(), v = validateImport_(req.rows, ctx, me);
     if (v.errors.length) return { ok: false, error: 'import_invalid', errors: v.errors };
-    var now = new Date().toISOString(), batch = newId_('B'), t = today_();
+    var now = new Date().toISOString(), batch = nextRef_('import'), t = today_();
     var newDeptRows = [], newPosRows = [];
-    Object.keys(v.newDepts).forEach(function (dn) {
-      var d = { id: newId_('D'), code: '', nameAr: v.newDepts[dn], nameEn: '', parentId: '', headEmpId: '', costCenter: '', status: 'active', createdAt: now, updatedAt: now };
+    var deptCodes = nextRefs_('department', Object.keys(v.newDepts).length, codesOf_(readAll_(SHEETS.DEPT)));
+    var posCodes = nextRefs_('position', Object.keys(v.newPos).length, codesOf_(readAll_(SHEETS.POS)));
+    Object.keys(v.newDepts).forEach(function (dn, i) {
+      var d = { id: newId_('D'), code: deptCodes[i] || '', nameAr: v.newDepts[dn], nameEn: '', parentId: '', headEmpId: '', costCenter: '', status: 'active', createdAt: now, updatedAt: now };
       v.deptNames[dn] = d.id; newDeptRows.push(d);
     });
-    Object.keys(v.newPos).forEach(function (pn) {
-      var p = { id: newId_('J'), code: '', titleAr: v.newPos[pn].title, titleEn: '', departmentId: v.deptNames[v.newPos[pn].dept] || '', grade: '', status: 'active', createdAt: now, updatedAt: now };
+    Object.keys(v.newPos).forEach(function (pn, i) {
+      var p = { id: newId_('J'), code: posCodes[i] || '', titleAr: v.newPos[pn].title, titleEn: '', departmentId: v.deptNames[v.newPos[pn].dept] || '', grade: '', status: 'active', createdAt: now, updatedAt: now };
       POS_TEXT.forEach(function (k) { p[k] = ''; });
       v.posNames[pn] = p.id; newPosRows.push(p);
     });
@@ -764,6 +769,8 @@ function api_hrImportCommit(req, me) {
     updateMany_(SHEETS.PRIV, privUpd);
     appendMany_(SHEETS.PRIV, privNew);
     appendMany_(SHEETS.JOBH, jobRows);
+    var salRefs = nextRefs_('salary', compRows.length);
+    compRows.forEach(function (c, i) { c.ref = salRefs[i]; });
     appendMany_(SHEETS.COMP, compRows);
     audit_(me.id, 'hr_import', batch, { created: newEmps.length, updated: updEmps.length, departments: newDeptRows.length, positions: newPosRows.length, salaries: compRows.length });
     return { ok: true, created: newEmps.length, updated: updEmps.length, departments: newDeptRows.length, positions: newPosRows.length,

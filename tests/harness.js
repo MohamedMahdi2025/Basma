@@ -6,6 +6,18 @@ const path = require('path');
 const vm = require('vm');
 const crypto = require('crypto');
 
+/** What Google Sheets does to a value written with setValues / appendRow. */
+function sheetValue(v) {
+  if (typeof v !== 'string') return v;
+  if (v[0] === "'") return v.slice(1);
+  let m;
+  if ((m = v.match(/^(\d{4})-(\d{2})-(\d{2})$/))) return new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
+  if ((m = v.match(/^(\d{1,2}):(\d{2})$/))) return new Date(Date.UTC(1899, 11, 30, +m[1], +m[2]));
+  if (/^[+-]?\d{1,15}(\.\d+)?$/.test(v)) return Number(v);
+  if (v === 'TRUE' || v === 'FALSE') return v === 'TRUE';
+  return v;
+}
+
 function makeSheet(name) {
   const rows = [];
   return {
@@ -18,12 +30,12 @@ function makeSheet(name) {
     },
     getRange(r, c, nr, nc) {
       return {
-        setValues(vals) { for (let i = 0; i < nr; i++) { rows[r - 1 + i] = rows[r - 1 + i] || []; for (let j = 0; j < nc; j++) rows[r - 1 + i][c - 1 + j] = vals[i][j]; } },
+        setValues(vals) { for (let i = 0; i < nr; i++) { rows[r - 1 + i] = rows[r - 1 + i] || []; for (let j = 0; j < nc; j++) rows[r - 1 + i][c - 1 + j] = sheetValue(vals[i][j]); } },
         getValues() { const o = []; for (let i = 0; i < nr; i++) { const row = []; for (let j = 0; j < nc; j++) { const v = (rows[r - 1 + i] || [])[c - 1 + j]; row.push(v === undefined ? '' : v); } o.push(row); } return o; },
         clearContent() { for (let i = 0; i < nr; i++) for (let j = 0; j < nc; j++) if (rows[r - 1 + i]) rows[r - 1 + i][c - 1 + j] = ''; }
       };
     },
-    appendRow(v) { rows.push(v.slice()); },
+    appendRow(v) { rows.push(v.map(sheetValue)); },
     setFrozenRows() {}
   };
 }
@@ -42,7 +54,7 @@ function load(opts = {}) {
   const ctx = {
     console, Math, JSON, BigInt, Array, Object, String, Number, isFinite, parseInt, Error,
     Date: FakeDate,
-    SpreadsheetApp: { getActiveSpreadsheet: () => ({ getSheetByName: n => sheets[n] || null, insertSheet: n => (sheets[n] = makeSheet(n)) }) },
+    SpreadsheetApp: { getActiveSpreadsheet: () => ({ getSpreadsheetTimeZone: () => 'America/Los_Angeles', getSheetByName: n => sheets[n] || null, insertSheet: n => (sheets[n] = makeSheet(n)) }) },
     PropertiesService: { getScriptProperties: () => ({ getProperty: k => (k in props ? props[k] : null), setProperty: (k, v) => { props[k] = v; } }) },
     CacheService: { getScriptCache: () => ({
       get: k => (cache[k] && cache[k].exp > FakeDate.now() ? cache[k].v : null),
@@ -52,7 +64,14 @@ function load(opts = {}) {
     }) },
     LockService: { getScriptLock: () => ({ waitLock() {}, releaseLock() {} }) },
     ContentService: { createTextOutput: t => ({ setMimeType() { return t; } }), MimeType: { JSON: 'json' } },
+    Session: { getScriptTimeZone: () => 'Asia/Riyadh' },
     Utilities: {
+      formatDate: (d, tz, fmt) => {
+        const p = {}; new Intl.DateTimeFormat('en-GB', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' })
+          .formatToParts(d).forEach(x => { p[x.type] = x.value; });
+        const ms = String(d.getUTCMilliseconds()).padStart(3, '0');
+        return fmt.replace('yyyy', p.year).replace('MM', p.month).replace('dd', p.day).replace('HH', p.hour).replace('mm', p.minute).replace('ss', p.second).replace('SSS', ms);
+      },
       getUuid: () => crypto.randomUUID(),
       base64Decode: s => signed(Buffer.from(s, 'base64')),
       base64EncodeWebSafe: b => Buffer.from(Uint8Array.from(b, x => x & 255)).toString('base64').replace(/\+/g, '-').replace(/\//g, '_'),
@@ -68,7 +87,7 @@ function load(opts = {}) {
   ctx.globalThis = ctx;
   vm.createContext(ctx);
   const dir = path.join(__dirname, '..', 'backend');
-  for (const f of ['Code.gs', 'WebAuthn.gs', 'Attendance.gs', 'Admin.gs', 'Hr.gs']) vm.runInContext(fs.readFileSync(path.join(dir, f), 'utf8'), ctx, { filename: f });
+  for (const f of ['Code.gs', 'WebAuthn.gs', 'Attendance.gs', 'Admin.gs', 'Hr.gs', 'Leave.gs']) vm.runInContext(fs.readFileSync(path.join(dir, f), 'utf8'), ctx, { filename: f });
   if (opts.setupKeyHash) vm.runInContext(`var SETUP_KEY_HASH = ${JSON.stringify(opts.setupKeyHash)};`, ctx);
   return {
     ctx, sheets, props, cache,

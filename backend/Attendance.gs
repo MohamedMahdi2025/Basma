@@ -387,7 +387,15 @@ function api_diag(req) {
   var emp = req.empNo ? empByNo_(req.empNo) : null;
   if (emp) time('home', function () { return homePayload_(emp); });
   time('audit_append', function () { audit_('', 'diag', '', out); });
-  return { ok: true, ms: out, rows: rows };
+  // How the Sheet hands back what we wrote: a date-looking text may come back as a Date.
+  var raw = {};
+  [[SHEETS.PUNCH, ['date', 'ts']], [SHEETS.EMP, ['createdAt', 'hireDate', 'tokenVer', 'status']]].forEach(function (x) {
+    var sh = sheet_(x[0]), vals = sh.getDataRange().getValues(), hdr = HEADERS[x[0]];
+    if (vals.length < 2) return;
+    x[1].forEach(function (k) { var v = vals[vals.length - 1][hdr.indexOf(k)]; raw[x[0] + '.' + k] = (v instanceof Date ? 'Date:' + v.toISOString() : typeof v + ':' + String(v).slice(0, 24)); });
+  });
+  raw.tz = ss_().getSpreadsheetTimeZone();
+  return { ok: true, ms: out, rows: rows, raw: raw };
 }
 
 function api_punchBegin(req) {

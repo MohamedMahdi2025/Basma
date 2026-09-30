@@ -269,6 +269,27 @@ ok(r.errors.some(e => e.code === 'cannot_import_self'), 'HR cannot import a row 
 r = B.call({ action: 'hrImportValidate', token: hrT, rows: [Object.assign({}, selfRow, { empNo: '1000', nameAr: 'تغيير' })] });
 ok(r.errors.some(e => e.code === 'forbidden_row'), 'nor overwrite an administrator record through the import', r.errors);
 
+console.log('Reference numbers');
+{
+  const dl = B.call({ action: 'hrDeptList', token: hrT }).rows;
+  ok(dl.find(d => d.nameAr === 'الحسابات').code === 'DEP-001', 'a department saved without a code gets DEP-001', dl.map(d => d.code));
+  ok(dl.find(d => d.nameAr === 'الإدارة المالية').code === 'FIN', 'a code typed by HR is kept');
+  ok(dl.find(d => d.nameAr === 'المبيعات').code === 'DEP-002', 'the import numbers new departments on from there', dl.map(d => d.code));
+  const pl = B.call({ action: 'hrPositionList', token: hrT }).rows;
+  ok(pl.every(p => /^POS-\d{3}$/.test(p.code)), 'positions get POS-001, POS-002', pl.map(p => p.code));
+  const sal = B.call({ action: 'hrCompList', token: hrT, status: 'approved' }).rows.map(c => c.ref);
+  ok(sal.length >= 5 && sal.every(x => /^SAL-2026-\d{5}$/.test(x)) && new Set(sal).size === sal.length, 'every salary line has its own SAL-2026-00001 number', sal);
+  ok(sal.includes('SAL-2026-00001'), 'numbering starts at 00001 each year');
+  const docs = B.call({ action: 'hrDocList', token: hrT }).rows.map(d => d.ref);
+  ok(docs.length && docs.every(x => /^DOC-2026-\d{5}$/.test(x)), 'documents are numbered DOC-2026-00001', docs);
+  const imp = direct(() => B.ctx.readAll_('compensation').filter(c => c.reason === 'import').map(c => c.batchId));
+  ok(imp.length && imp.every(x => /^IMP-2026-\d{5}$/.test(x)), 'an import batch carries one IMP number', imp);
+  direct(() => B.ctx.append_('settings', { key: 'refPrefixes', value: '{"document":"HRD"}' }));
+  B.ctx.CacheService.getScriptCache().remove('settings:v1');
+  r = B.call({ action: 'hrDocSave', token: hrT, doc: { empId: E5003, type: 'other', number: 'X1', expiryDate: '2027-01-01' } });
+  ok(r.ok && /^HRD-2026-\d{5}$/.test(r.doc.ref), 'a prefix can be renamed in the settings', r.doc && r.doc.ref);
+}
+
 console.log('My file');
 r = B.call({ action: 'myFile', token: tok('5002') });
 ok(r.ok && r.file.emp.empNo === '5002' && r.file.job.manager.empNo === '5001' && r.file.job.head.empNo === '5000' &&

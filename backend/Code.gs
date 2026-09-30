@@ -22,7 +22,8 @@ var CONFIG = {
 };
 
 var SHEETS = { EMP: 'employees', CRED: 'credentials', ZONES: 'zones', PUNCH: 'punches', AUDIT: 'audit', SET: 'settings',
-  DEPT: 'departments', POS: 'positions', PRIV: 'empPrivate', COMP: 'compensation', JOBH: 'jobHistory', DOCS: 'documents' };
+  DEPT: 'departments', POS: 'positions', PRIV: 'empPrivate', COMP: 'compensation', JOBH: 'jobHistory', DOCS: 'documents',
+  REQ: 'requests', HOL: 'holidays' };
 
 var HEADERS = {
   employees: ['id', 'empNo', 'name', 'nameEn', 'email', 'phone', 'department', 'title', 'role', 'status',
@@ -31,7 +32,9 @@ var HEADERS = {
     // HR (Phase 1): job placement and the Qiwa unified-contract terms
     'extraRoles', 'departmentId', 'positionId', 'managerId', 'hireDate', 'contractType', 'contractEnd', 'probationEnd',
     'nationality', 'isSaudi', 'gender', 'workLocation', 'contractNo', 'occupationCode', 'employmentType',
-    'workDaysPerWeek', 'dailyHours', 'annualLeaveDays', 'noticeDays'],
+    'workDaysPerWeek', 'dailyHours', 'annualLeaveDays', 'noticeDays',
+    // HR (Phase 2): leave opening balance carried over from the old system, and resignation
+    'leaveOpeningDays', 'leaveOpeningDate', 'resignedOn', 'lastWorkingDay'],
   credentials: ['credId', 'empId', 'x', 'y', 'signCount', 'label', 'status', 'createdAt', 'lastUsedAt', 'aaguid', 'kind',
     'platform', 'pinHash', 'pinSalt', 'pinTries'],
   zones: ['id', 'name', 'nameEn', 'lat', 'lng', 'radius', 'status', 'createdAt', 'updatedAt'],
@@ -46,9 +49,12 @@ var HEADERS = {
     'address', 'emergencyName', 'emergencyPhone', 'updatedAt', 'borderNo', 'passportNo', 'passportExpiry', 'nationalAddress',
     'personalEmail', 'nameEnOfficial'],
   compensation: ['id', 'empId', 'effectiveFrom', 'basic', 'housing', 'transport', 'otherJson', 'currency', 'reason',
-    'enteredBy', 'approvedBy', 'approvedAt', 'status', 'createdAt', 'batchId'],
+    'enteredBy', 'approvedBy', 'approvedAt', 'status', 'createdAt', 'batchId', 'ref'],
   jobHistory: ['id', 'empId', 'effectiveFrom', 'departmentId', 'positionId', 'managerId', 'grade', 'reason', 'enteredBy', 'createdAt'],
-  documents: ['id', 'empId', 'type', 'number', 'issueDate', 'expiryDate', 'note', 'status', 'createdAt', 'updatedAt']
+  documents: ['id', 'empId', 'type', 'number', 'issueDate', 'expiryDate', 'note', 'status', 'createdAt', 'updatedAt', 'ref'],
+  requests: ['id', 'ref', 'empId', 'type', 'subtype', 'fromDate', 'toDate', 'days', 'amount', 'months', 'payloadJson', 'reason', 'docNo',
+    'status', 'step', 'stepsJson', 'effectJson', 'createdAt', 'updatedAt', 'decidedAt'],
+  holidays: ['id', 'date', 'toDate', 'nameAr', 'nameEn', 'createdBy', 'createdAt']
 };
 
 var ROLES = { employee: 1, hr: 2, admin: 3 };
@@ -157,7 +163,7 @@ function readAll_(name) {
       var v = vals[i][c];
       if (v === undefined) v = '';
       if (v !== '') blank = false;
-      o[cols[c]] = (v instanceof Date) ? v.toISOString() : v;
+      o[cols[c]] = (v && typeof v === 'object' && typeof v.getTime === 'function') ? cellDate_(v) : v;
     }
     if (!blank) out.push(o);
   }
@@ -171,13 +177,37 @@ function readAll_(name) {
   return out;
 }
 
+/**
+ * Google Sheets reads text the way a person typing would: "2026-09-30" becomes a date,
+ * "08:00" a time, "0501234567" the number 501234567, "=..." a formula. A leading apostrophe
+ * tells it "this is text"; it is not stored as part of the value. Numbers and booleans stay typed.
+ */
 function toRow_(name, obj) {
   return HEADERS[name].map(function (k) {
     var v = obj[k];
     if (v === undefined || v === null) return '';
-    if (typeof v === 'object') return JSON.stringify(v);
+    if (typeof v === 'object') v = JSON.stringify(v);
+    if (typeof v === 'string' && v !== '') return "'" + v;
     return v;
   });
+}
+
+/**
+ * Rows written before toRow_ quoted its text may hold real dates and times. Hand them back
+ * the way the code wrote them: 'YYYY-MM-DD' for a date, 'HH:MM' for a time, ISO otherwise.
+ */
+var TZS_ = null;
+function cellDate_(v) {
+  if (!TZS_) {
+    TZS_ = ['UTC'];
+    try { TZS_.push(ss_().getSpreadsheetTimeZone()); } catch (e) {}
+    try { TZS_.push(Session.getScriptTimeZone()); } catch (e) {}
+  }
+  if (v.getUTCFullYear() <= 1900) return Utilities.formatDate(v, 'UTC', 'HH:mm'); // a time-of-day cell (the live probe showed cells come back on UTC)
+  for (var i = 0; i < TZS_.length; i++) {
+    if (Utilities.formatDate(v, TZS_[i], 'HH:mm:ss.SSS') === '00:00:00.000') return Utilities.formatDate(v, TZS_[i], 'yyyy-MM-dd');
+  }
+  return v.toISOString();
 }
 
 function append_(name, obj) {
@@ -232,6 +262,11 @@ function audit_(actorId, action, targetId, detail) {
 // ---------------- settings ----------------
 
 var DEFAULT_SETTINGS = {
+  leaveCountMode: 'working', // annual leave counts working days (rest days and holidays excluded) or 'calendar'
+  allowNegativeLeave: 0,     // days of annual leave that may be taken ahead of accrual
+  maxAdvanceSalaries: 1,     // a salary advance is at most this many monthly wages
+  advanceMaxMonths: 12,
+  refPrefixes: '',           // JSON to rename prefixes, e.g. {"leave":"VAC"}; empty keeps the defaults
   shiftStart: '08:00',
   shiftEnd: '17:00',
   graceMin: 15,
@@ -296,6 +331,46 @@ function randomBytes_(n) {
   var mixed = sha256_(out.concat(utf8Bytes_(String(Date.now()) + Math.random())));
   return out.map(function (b, i) { return b ^ mixed[i % 32]; });
 }
+
+// ---------------- reference numbers (what people read, quote and search) ----------------
+
+/**
+ * Every record people deal with gets a readable number: PREFIX-YEAR-00001 for transactions
+ * (restarting each year), PREFIX-001 for permanent codes. Counters live in script properties
+ * and are only ever taken inside withLock_, so two requests can never get the same number.
+ */
+var REF_DEFAULTS = {
+  leave: 'LV', letter: 'LT', advance: 'AD', correction: 'AC', data_change: 'DC', resignation: 'RS',
+  salary: 'SAL', document: 'DOC', import: 'IMP', department: 'DEP', position: 'POS'
+};
+var REF_YEARLY = { department: false, position: false };
+
+function refPrefix_(kind) {
+  var custom = {};
+  try { custom = JSON.parse(settings_().refPrefixes || '{}') || {}; } catch (e) { custom = {}; }
+  var p = String(custom[kind] || REF_DEFAULTS[kind] || 'REF').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+  return p || REF_DEFAULTS[kind] || 'REF';
+}
+
+/** Reserves n numbers for one kind in a single properties read and write. */
+function nextRefs_(kind, n, taken) {
+  if (n === 0) return [];
+  n = n || 1;
+  var yearly = REF_YEARLY[kind] !== false, prefix = refPrefix_(kind);
+  var year = localParts_(new Date()).date.slice(0, 4);
+  var key = 'seq:' + kind + (yearly ? ':' + year : '');
+  var props = PropertiesService.getScriptProperties();
+  var cur = Number(props.getProperty(key) || 0), out = [];
+  while (out.length < n) {
+    cur++;
+    var ref = yearly ? prefix + '-' + year + '-' + ('0000' + cur).slice(-5) : prefix + '-' + ('00' + cur).slice(-3);
+    if (taken && taken[ref]) continue; // a code typed by hand earlier is never handed out again
+    out.push(ref);
+  }
+  props.setProperty(key, String(cur));
+  return out;
+}
+function nextRef_(kind, taken) { return nextRefs_(kind, 1, taken)[0]; }
 
 function newId_(prefix) {
   return (prefix || '') + bytesToB64u_(randomBytes_(9));
@@ -385,8 +460,9 @@ var PUBLIC_ACTIONS = {
   authBegin: 1, authFinish: 1, punchBegin: 1, punchFinish: 1, adminRecover: 1, pwLogin: 1, pinChange: 1, diag: 1
 };
 var EMP_ACTIONS = { me: 1, myHistory: 1, passwordSet: 1, punchPw: 1,
-  myFile: 1, hrEmpFile: 1, hrTeam: 1, hrCompList: 1, hrCompPropose: 1, hrCompDecide: 1 };
-var HR_ACTIONS = { hrDirectory: 1, hrDeptList: 1, hrDeptSave: 1, hrPositionList: 1, hrPositionSave: 1, hrEmpSave: 1,
+  myFile: 1, hrEmpFile: 1, hrTeam: 1, hrCompList: 1, hrCompPropose: 1, hrCompDecide: 1,
+  myRequests: 1, requestQuote: 1, requestCreate: 1, requestCancel: 1, reqInbox: 1, reqDecide: 1, holidayList: 1, leaveTeam: 1 };
+var HR_ACTIONS = { holidaySave: 1, holidayDelete: 1, leaveBalances: 1, leaveOpeningSave: 1, hrDirectory: 1, hrDeptList: 1, hrDeptSave: 1, hrPositionList: 1, hrPositionSave: 1, hrEmpSave: 1,
   hrPrivateSave: 1, hrImportValidate: 1, hrImportCommit: 1, hrDocList: 1, hrDocSave: 1, hrExpiring: 1, empPasswordReset: 1, board: 1, empList: 1, zoneList: 1, report: 1, reviewList: 1, reviewDecide: 1, manualPunch: 1, auditList: 1, settingsGet: 1, empSave: 1, empActivation: 1 };
 var ADMIN_ACTIONS = { hrRolesSave: 1, empResetDevice: 1, zoneSave: 1, zoneDelete: 1, settingsSave: 1 };
 

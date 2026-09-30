@@ -443,6 +443,37 @@ console.log('Sign-in copy of the employees tab stays live');
   ok(threw, 'a row from the copy can never be written back to the Sheet');
 }
 
+console.log('Google Sheets value conversion');
+{
+  const e = B.ctx.findBy_('employees', 'empNo', '2001');
+  const sh = B.ctx.sheet_('employees'), H = B.ctx.HEADERS.employees;
+  const row = sh._rows[e._row - 1];
+  ok(typeof row[H.indexOf('createdAt')] === 'string', 'text written by the app is stored as text, not converted to a date');
+  const ps = B.ctx.sheet_('punches')._rows.slice(1);
+  ok(ps.length && ps.every(p => typeof p[B.ctx.HEADERS.punches.indexOf('date')] === 'string'), 'a punch day like 2026-10-04 stays text in the sheet');
+  // a cell that Sheets did convert (rows written by the old code) reads back in the app's format
+  B.ctx.READ_MEMO_ = {};
+  const di = B.ctx.HEADERS.punches.indexOf('date');
+  const old = ps[0][di]; ps[0][di] = new Date(Date.UTC(+old.slice(0, 4), +old.slice(5, 7) - 1, +old.slice(8, 10)));
+  B.ctx.READ_MEMO_ = {};
+  ok(B.ctx.readAll_('punches')[0].date === old, 'a converted date cell reads back as YYYY-MM-DD', B.ctx.readAll_('punches')[0].date);
+  ps[0][di] = old;
+  const si = H.indexOf('shiftStart'); const was = row[si]; row[si] = new Date(Date.UTC(1899, 11, 30, 8, 30));
+  B.ctx.READ_MEMO_ = {};
+  ok(B.ctx.findBy_('employees', 'empNo', '2001').shiftStart === '08:30', 'a converted time cell reads back as HH:MM', B.ctx.findBy_('employees', 'empNo', '2001').shiftStart);
+  row[si] = was; B.ctx.READ_MEMO_ = {};
+  const pi = H.indexOf('phone'); const wp = row[pi];
+  B.ctx.withLock_(() => { const x = B.ctx.findBy_('employees', 'empNo', '2001'); x.phone = '0501234567'; B.ctx.update_('employees', x); });
+  B.ctx.READ_MEMO_ = {};
+  ok(B.ctx.findBy_('employees', 'empNo', '2001').phone === '0501234567', 'a mobile number keeps its leading zero');
+  const ni = H.indexOf('name');
+  B.ctx.withLock_(() => { const x = B.ctx.findBy_('employees', 'empNo', '2001'); x.name = '=HYPERLINK("http://x")'; B.ctx.update_('employees', x); });
+  B.ctx.READ_MEMO_ = {};
+  ok(row[ni] === '=HYPERLINK("http://x")' && typeof row[ni] === 'string', 'a name starting with = is stored as text, never run as a formula');
+  B.ctx.withLock_(() => { const x = B.ctx.findBy_('employees', 'empNo', '2001'); x.name = 'موظف تجريبي'; x.phone = wp; B.ctx.update_('employees', x); });
+  B.ctx.READ_MEMO_ = {};
+}
+
 console.log('Tokens');
 r = B.call({ action: 'me', token: adminToken.slice(0, -2) + 'xx' });
 ok(!r.ok && r.error === 'session_expired', 'a forged token is refused', r);
