@@ -74,3 +74,25 @@ are bound to the RP ID. Set script properties `RP_ID` / `ORIGINS` then.
   runs straight from `pointerup`. Adding an `await` before it breaks iPhones.
 - History/report days before `createdAt` are skipped — otherwise a new hire is
   "absent" for the whole month.
+
+## Speed and live data (2026-09-30)
+
+Measured live with `diag` (POST `{action:'diag', setupKey, empNo}`; owner only): every
+SpreadsheetApp read costs 250-900 ms whatever the tab size, a CacheService call ~50 ms,
+the lock ~150 ms, and Google's own round trip ~2 s. So speed = fewer Sheet calls.
+
+- PIN rounds use `sha256Js_` (plain JS). The old `Utilities.computeDigest` loop cost
+  0.9-1.8 s per sign-in. A test pins it byte-equal to the service SHA-256; never change
+  `pinHash_` output or every stored PIN stops working.
+- `readAll_` is one `getDataRange().getValues()` call; `update_` keeps the request memo.
+- Sign-in (`authBegin`, `authFinish`) sets `USE_TAB_CACHE_` and reads **employees and
+  zones only** from a versioned CacheService copy (60 s). Every app write (`append_`,
+  `update_`, `appendMany_`) and every hand edit (`onEdit` simple trigger) sets a new
+  version, so changes show on the very next request. `update_` refuses rows from the copy.
+  Credentials, punches and anything written under the lock are always read fresh.
+  Row deletes/sorts by hand fire no onEdit: the 60 s expiry covers them. Never turn the
+  copy on for an action that writes employees or zones.
+- Settings cache is 120 s (cleared on save and on hand edits of the settings tab).
+- The site: each build stamps `BUILD`, `version.json` and the SW cache name; the page
+  checks `version.json` on open, on resume and every 5 min (reloads when signed out,
+  shows an update banner when signed in). Navigation is fetched `no-store`.
