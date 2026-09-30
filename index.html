@@ -1157,7 +1157,13 @@ var MARK = 'data:image/png;base64,iVBORw0KGgoAAAAN' +
 var T = {
   ar: {
     appName:'حضور الناقل الأفضل', company:'شركة الناقل الأفضل للغاز', gateTag:'سجّل حضورك من مقر الشركة بلمسة واحدة، محمية برمزك السري.',
-    pwLogin:'الدخول بكلمة المرور', pwTitle:'الدخول بكلمة المرور', pwLead:'أدخل رقمك الوظيفي وكلمة المرور. تعمل من أي جهاز.', password:'كلمة المرور', signIn:'دخول', backToPin:'الرجوع للرمز السري',
+    pwLogin:'الدخول بكلمة المرور', forgotPin:'نسيت الرمز السري؟', forgotPw:'نسيت كلمة المرور؟',
+    forgotPinText:'اطلب من الموارد البشرية رمز تفعيل جديد. تفعّل به جهازك مرة أخرى وتختار رمزاً سرياً جديداً.', forgotPwText:'اطلب من الموارد البشرية كلمة مرور مؤقتة. ستُطلب منك كلمة مرور جديدة عند أول دخول.',
+    mustChangeTitle:'اختر كلمة مرور جديدة', mustChangeLead:'دخلت بكلمة مرور مؤقتة. اختر كلمة مرورك الخاصة للمتابعة.', pwTemp:'كلمة المرور المؤقتة', continueBtn:'حفظ والمتابعة',
+    tempPwBtn:'كلمة مرور مؤقتة', tempPwTitle:'كلمة مرور مؤقتة', tempPwLead:'أرسلها للموظف. تعمل مرة واحدة وتُطلب بعدها كلمة مرور جديدة. تنتهي بها أي جلسة قديمة بكلمة المرور.', tempPwMsg:'رابط تطبيق الحضور: {url}\nالرقم الوظيفي: {no}\nكلمة المرور المؤقتة: {pw}\nستُطلب منك كلمة مرور جديدة عند الدخول.',
+    confirmTempPw:'إصدار كلمة مرور مؤقتة؟ تتوقف كلمة المرور الحالية فوراً.', pwStatus:'كلمة المرور', pwNone:'غير محددة', pwSet:'محددة', pwLockedChip:'موقوفة مؤقتاً', pwMustChip:'بانتظار التغيير',
+    pinSection:'الرمز السري لهذا الجهاز', pinSectionLead:'غيّر رمز فتح التطبيق على هذا الجهاز.', pinCurrent:'الرمز الحالي', pinNewLabel:'الرمز الجديد', pinAgainLabel:'أعد كتابة الرمز الجديد', pinSave:'تغيير الرمز', pinSaved:'تم تغيير الرمز السري',
+    e_password_change_required:'اختر كلمة مرور جديدة أولاً', e_password_reused:'اختر كلمة مرور مختلفة عن المؤقتة', e_pin_reused:'اختر رمزاً مختلفاً عن الحالي', e_cannot_reset_own_password:'لا يمكنك إعادة تعيين كلمة مرورك بنفسك', pwTitle:'الدخول بكلمة المرور', pwLead:'أدخل رقمك الوظيفي وكلمة المرور. تعمل من أي جهاز.', password:'كلمة المرور', signIn:'دخول', backToPin:'الرجوع للرمز السري',
     pwSection:'كلمة المرور', pwSectionLead:'للدخول من أي جهاز. 8 أحرف على الأقل، فيها حروف وأرقام.', pwCurrent:'كلمة المرور الحالية', pwNew:'كلمة المرور الجديدة', pwAgain:'أعد كتابة كلمة المرور', pwSave:'حفظ كلمة المرور', pwSaved:'تم حفظ كلمة المرور', pwMode:'كلمة المرور', showPw:'إظهار',
     allowPwPunch:'السماح بتسجيل الحضور من جلسة كلمة المرور (داخل النطاق فقط، يُعلَّم للمراجعة)',
     e_bad_login:'الرقم الوظيفي أو كلمة المرور غير صحيحة', e_password_locked:'أُوقف الدخول بكلمة المرور 15 دقيقة بعد 5 محاولات خاطئة', e_weak_password:'كلمة المرور ضعيفة: 8 أحرف على الأقل، فيها حروف وأرقام، و5 رموز مختلفة، ولا تحتوي رقمك الوظيفي', e_bad_current_password:'كلمة المرور الحالية غير صحيحة', e_pw_mismatch:'كلمتا المرور غير متطابقتين', e_password_punch_disabled:'التسجيل بكلمة المرور موقوف، استخدم جهازك المفعّل', f_password_login:'بكلمة المرور (جهاز غير مسجل)',
@@ -1210,7 +1216,13 @@ var T = {
   },
   en: {
     appName:'Best Gas Attendance', company:'Best Gas Carrier Co.', gateTag:'Check in at head office with one tap, protected by your PIN.',
-    pwLogin:'Sign in with password', pwTitle:'Sign in with password', pwLead:'Enter your employee number and password. Works from any device.', password:'Password', signIn:'Sign in', backToPin:'Back to PIN',
+    pwLogin:'Sign in with password', forgotPin:'Forgot your PIN?', forgotPw:'Forgot your password?',
+    forgotPinText:'Ask HR for a new activation code. Use it to activate this device again and choose a new PIN.', forgotPwText:'Ask HR for a temporary password. You will choose a new one the first time you sign in.',
+    mustChangeTitle:'Choose a new password', mustChangeLead:'You signed in with a temporary password. Choose your own to continue.', pwTemp:'Temporary password', continueBtn:'Save and continue',
+    tempPwBtn:'Temporary password', tempPwTitle:'Temporary password', tempPwLead:'Send it to the employee. It works once, then a new password is required. Any old password session ends.', tempPwMsg:'Attendance app: {url}\nEmployee number: {no}\nTemporary password: {pw}\nYou will choose a new password when you sign in.',
+    confirmTempPw:'Issue a temporary password? The current password stops working immediately.', pwStatus:'Password', pwNone:'Not set', pwSet:'Set', pwLockedChip:'Paused', pwMustChip:'Awaiting change',
+    pinSection:'PIN for this device', pinSectionLead:'Change the PIN that opens the app on this device.', pinCurrent:'Current PIN', pinNewLabel:'New PIN', pinAgainLabel:'Type the new PIN again', pinSave:'Change PIN', pinSaved:'PIN changed',
+    e_password_change_required:'Choose a new password first', e_password_reused:'Choose a password different from the temporary one', e_pin_reused:'Choose a PIN different from the current one', e_cannot_reset_own_password:'You cannot reset your own password', pwTitle:'Sign in with password', pwLead:'Enter your employee number and password. Works from any device.', password:'Password', signIn:'Sign in', backToPin:'Back to PIN',
     pwSection:'Password', pwSectionLead:'For signing in from any device. At least 8 characters with letters and numbers.', pwCurrent:'Current password', pwNew:'New password', pwAgain:'Type the new password again', pwSave:'Save password', pwSaved:'Password saved', pwMode:'Password', showPw:'Show',
     allowPwPunch:'Allow check-in from a password session (inside the zone only, flagged for review)',
     e_bad_login:'Employee number or password is wrong', e_password_locked:'Password sign-in is paused for 15 minutes after 5 wrong attempts', e_weak_password:'Weak password: at least 8 characters, letters and numbers, 5 different characters, and not your employee number', e_bad_current_password:'The current password is wrong', e_pw_mismatch:'The two passwords do not match', e_password_punch_disabled:'Password check-in is switched off. Use your activated device.', f_password_login:'Password (unregistered device)',
@@ -1294,6 +1306,7 @@ function api(action, payload, quiet){
       if (!quiet && --inflight <= 0) { inflight = 0; $('#loader').classList.add('hidden'); }
       if (res && res.token) { S.token = res.token; store('token', res.token); }
       if (res && res.error === 'session_expired' && action !== 'me') { S.token = null; store('token', null); renderLock(); }
+      if (res && res.error === 'password_change_required') renderMustChange('', null);
       return res;
     });
 }
@@ -1670,9 +1683,11 @@ function renderLock(){
     (pinMode ? '<p>' + t('pinPadLead') + '</p>' : S.kind === 'devicekey' ? '' : '<p>' + t('unlockLead') + '</p><div class="bio-icon" aria-hidden="true">' + I.face + '</div>') +
     '<div class="err" id="err" role="alert">' + (S.lockMsg ? esc(S.lockMsg) : '') + '</div>' +
     (pinMode ? pinPadHtml() : '<form id="f" style="align-items:stretch"><button class="btn btn-primary" id="go">' + (S.kind === 'devicekey' ? t('unlockTap') : t('unlock')) + '</button></form>') +
+    (pinMode ? '<button class="linkish" type="button" id="fpin">' + t('forgotPin') + '</button>' : '') +
     '<button class="linkish" type="button" id="pwl">' + t('pwLogin') + '</button>' +
     '<button class="linkish" type="button" id="other">' + t('notMe') + '</button></div>');
   $('#pwl').onclick = function(){ renderPwLogin(S.empNo); };
+  if ($('#fpin')) $('#fpin').onclick = function(){ forgotSheet('pin'); };
   S.lockMsg = '';
   S.loginOpts = null;
   (S.loginPromise || api('authBegin', { empNo: S.empNo }, true)).then(function(r){
@@ -1716,8 +1731,10 @@ function renderPwLogin(prefNo){
     '<div class="field"><label for="ppw">' + t('password') + '</label><input id="ppw" name="password" type="password" autocomplete="current-password" required minlength="8" dir="ltr"></div>' +
     '<div class="err" id="err" role="alert">' + (S.lockMsg ? esc(S.lockMsg) : '') + '</div>' +
     '<button class="btn btn-primary" id="pgo">' + I.lock + t('signIn') + '</button></form>' +
+    '<button class="linkish" type="button" id="fpw">' + t('forgotPw') + '</button>' +
     (hasDevice ? '<button class="linkish" type="button" id="back">' + t('backToPin') + '</button>' : '<button class="linkish" type="button" id="back">' + t('activateTitle') + '</button>') + '</div>');
   S.lockMsg = '';
+  $('#fpw').onclick = function(){ forgotSheet('pw'); };
   $('#back').onclick = function(){ if (hasDevice) renderLock(); else { S.pwOnly = false; store('pwOnly', null); renderActivate(); } };
   $('#pf').onsubmit = function(e){
     e.preventDefault();
@@ -1728,10 +1745,48 @@ function renderPwLogin(prefNo){
       if (!r.ok) { $('#err').textContent = errText(r.error); $('#ppw').value = ''; $('#ppw').focus(); return; }
       S.auth = 'pw';
       if (!S.empNo || S.pwOnly) { S.empNo = no; store('empNo', no); S.pwOnly = true; store('pwOnly', '1'); }
-      S.me = r.me; enterApp(r.home);
+      S.me = r.me;
+      if (r.mustChange) return renderMustChange(pw, r.home);
+      enterApp(r.home);
     });
   };
   $('#pno').value ? $('#ppw').focus() : $('#pno').focus();
+}
+
+function renderMustChange(temp, home){
+  root(langBtn() + '<div class="gate">' + gateBrand() + '<h1>' + t('mustChangeTitle') + '</h1><p>' + t('mustChangeLead') + '</p>' +
+    '<form id="mc" autocomplete="on"><input type="text" name="username" autocomplete="username" value="' + esc(S.empNo) + '" hidden>' +
+    (temp ? '' : '<div class="field"><label for="mct">' + t('pwTemp') + '</label><input id="mct" type="password" autocomplete="current-password" dir="ltr" required></div>') +
+    '<div class="field"><label for="mc1">' + t('pwNew') + '</label><input id="mc1" type="password" autocomplete="new-password" minlength="8" dir="ltr" required></div>' +
+    '<div class="field"><label for="mc2">' + t('pwAgain') + '</label><input id="mc2" type="password" autocomplete="new-password" minlength="8" dir="ltr" required></div>' +
+    '<p class="lead" style="margin:0;font-size:13px">' + t('pwSectionLead') + '</p><div class="err" id="err" role="alert"></div>' +
+    '<button class="btn btn-primary" id="mcgo">' + I.lock + t('continueBtn') + '</button></form></div>');
+  $('#mc1').focus();
+  $('#mc').onsubmit = function(e){
+    e.preventDefault();
+    var a = $('#mc1').value, b = $('#mc2').value, cur = temp || $('#mct').value;
+    if (a !== b) return $('#err').textContent = t('e_pw_mismatch');
+    if (a.length < 8 || !/\d/.test(a) || !/[A-Za-z\u0600-\u06FF]/.test(a)) return $('#err').textContent = t('e_weak_password');
+    $('#mcgo').disabled = true;
+    api('passwordSet', { current: cur, password: a }).then(function(r){
+      $('#mcgo').disabled = false;
+      if (!r.ok) return $('#err').textContent = errText(r.error);
+      S.hasPassword = true; toast(t('pwSaved'));
+      if (home && home.me) enterApp(home); else enterApp();
+    });
+  };
+}
+
+// "Forgot" help: a small sheet with the one thing to do.
+function forgotSheet(kind){
+  var d = document.createElement('div'); d.className = 'stamp'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-modal', 'true');
+  d.innerHTML = '<div class="card"><div class="tick" style="background:var(--pine)">' + ph('lifebuoy') + '</div><h3>' + (kind === 'pin' ? t('forgotPin') : t('forgotPw')) + '</h3>' +
+    '<p style="margin-top:8px">' + (kind === 'pin' ? t('forgotPinText') : t('forgotPwText')) + '</p><button class="btn btn-dark" style="width:100%">' + t('close') + '</button></div>';
+  document.body.appendChild(d);
+  d.querySelector('button').focus();
+  d.querySelector('button').onclick = function(){ d.remove(); };
+  d.onclick = function(e){ if (e.target === d) d.remove(); };
+  d.addEventListener('keydown', function(e){ if (e.key === 'Escape') d.remove(); });
 }
 
 function forget(){ ['empNo', 'token', 'name', 'kind', 'dkId', 'dkJwk', 'platform', 'hasPin', 'pwOnly'].forEach(function(k){ store(k, null); }); S.hasPin = false; S.pwOnly = false; S.auth = 'dev'; S.empNo = null; S.token = null; S.kind = 'passkey'; S.dkId = null; S.platform = ''; S.pin = null; renderActivate(); }
@@ -1789,13 +1844,14 @@ function applyHome(r){
   if (r.punch && r.punch.options) { S.punchOpts = r.punch.options; S.punchType = r.punch.type; S.punchOptsAt = Date.now(); }
 }
 function enterApp(home){
+  if (!home) home = null;
   store('name', S.me ? S.me.name : '');
   function go(r){
     applyHome(r); armIdleLock();
     S.tab = 'home'; renderShell(); startWatch(); schedulePunchPrefetch(true);
   }
   if (home && home.me) return go(home);
-  api('me', {}).then(function(r){ if (!r.ok) return renderLock(); go(r); });
+  api('me', {}).then(function(r){ if (!r.ok) return r.error === 'password_change_required' ? null : renderLock(); go(r); });
 }
 
 function renderShell(){
@@ -2099,10 +2155,28 @@ function renderMe(){
     '<div class="field"><label for="pw1">' + t('pwNew') + '</label><input id="pw1" type="password" autocomplete="new-password" minlength="8" dir="ltr" required></div>' +
     '<div class="field"><label for="pw2">' + t('pwAgain') + '</label><input id="pw2" type="password" autocomplete="new-password" minlength="8" dir="ltr" required></div>' +
     '<div class="err" id="pwerr" style="color:var(--red)"></div><div class="btnrow"><button class="btn btn-dark btn-sm">' + t('pwSave') + '</button></div></form>' +
+    (usesPin() ? '<h3 style="margin:22px 0 4px;font-size:17px">' + t('pinSection') + '</h3><p class="lead" style="margin:0 0 10px">' + t('pinSectionLead') + '</p>' +
+      '<form class="form" id="pinf" style="max-width:420px" autocomplete="off"><div class="field"><label for="pc0">' + t('pinCurrent') + '</label><input id="pc0" type="password" inputmode="numeric" maxlength="6" dir="ltr" required></div>' +
+      '<div class="two"><div class="field"><label for="pc1">' + t('pinNewLabel') + '</label><input id="pc1" type="password" inputmode="numeric" maxlength="6" dir="ltr" required></div><div class="field"><label for="pc2">' + t('pinAgainLabel') + '</label><input id="pc2" type="password" inputmode="numeric" maxlength="6" dir="ltr" required></div></div>' +
+      '<div class="err" id="pinerr" style="color:var(--red)"></div><div class="btnrow"><button class="btn btn-dark btn-sm">' + t('pinSave') + '</button></div></form>' : '') +
     '<p class="lead" style="margin-top:16px">' + t('installHint') + '</p>' +
     '<div class="btnrow"><button class="btn btn-dark btn-sm" onclick="renderLock()">' + t('signOut') + '</button><button class="btn btn-danger btn-sm" id="fg">' + t('forgetDevice') + '</button></div>' +
     '<p class="lead" style="margin-top:20px;font-size:12px">v' + BUILD + '</p></section>';
   $('#fg').onclick = function(){ forget(); };
+  var pinf = $('#pinf');
+  if (pinf) pinf.onsubmit = function(e){
+    e.preventDefault();
+    var cur = $('#pc0').value, a = $('#pc1').value, b = $('#pc2').value;
+    if (!validPin(a)) return $('#pinerr').textContent = t('e_bad_pin_format');
+    if (a !== b) return $('#pinerr').textContent = t('e_pin_mismatch');
+    api('authBegin', { empNo: S.empNo }, true).then(function(r){
+      if (!r.ok) return $('#pinerr').textContent = errText(r.error);
+      return getAssertion(r.options).then(function(cred){ return api('pinChange', { credential: cred, pin: cur, newPin: a }); }).then(function(x){
+        if (!x.ok) return $('#pinerr').textContent = errText(x.error);
+        S.pin = a; toast(t('pinSaved')); renderMe();
+      });
+    });
+  };
   $('#pwf').onsubmit = function(e){
     e.preventDefault();
     var a = $('#pw1').value, b = $('#pw2').value;
@@ -2214,10 +2288,13 @@ function empDrawer(e){
       return '<div class="row"><div class="av">' + (dv.platform === 'desktop' ? I.desk : I.phone) + '</div><div class="main"><b>' + esc(dv.label || '') + '</b><small>' + deviceKindLabel(dv) + (dv.status === 'locked' ? ' · <span class="chip absent">' + t('locked') + '</span>' : '') + '</small></div>' +
         (isAdmin() ? '<button type="button" class="btn btn-line btn-sm" data-unlink="' + esc(dv.credId) + '">' + t('unlink') + '</button>' : '') + '</div>';
     }).join('') + '</div></div>' : '') +
+    (e ? '<div class="field"><label>' + t('pwStatus') + '</label><div>' + (e.hasPassword ? '<span class="chip in">' + t('pwSet') + '</span>' : '<span class="chip">' + t('pwNone') + '</span>') +
+      (e.passwordLocked ? ' <span class="chip absent">' + t('pwLockedChip') + '</span>' : '') + (e.mustChangePassword ? ' <span class="chip late">' + t('pwMustChip') + '</span>' : '') + '</div></div>' : '') +
     '<div class="err" id="eerr" style="color:var(--red)"></div>' +
     '<div class="btnrow"><button class="btn btn-dark">' + t('save') + '</button><button type="button" class="btn btn-line" id="ecancel">' + t('cancel') + '</button></div>' +
     (e ? '<div class="btnrow" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line)"><button type="button" class="btn btn-line btn-sm" id="ecode">' + t('newCode') + '</button>' +
       '<button type="button" class="btn btn-line btn-sm" id="eman">' + t('manual') + '</button>' +
+      ((isAdmin() || e.role === 'employee') && e.id !== S.me.id ? '<button type="button" class="btn btn-line btn-sm" id="etpw">' + t('tempPwBtn') + '</button>' : '') +
       (isAdmin() && e.device ? '<button type="button" class="btn btn-danger btn-sm" id="ereset">' + t('resetDevice') + '</button>' : '') + '</div>' : '') +
     '</form>');
   $('#ecancel', d).onclick = function(){ d.remove(); };
@@ -2237,6 +2314,8 @@ function empDrawer(e){
   if (e) {
     $('#ecode', d).onclick = function(){ api('empActivation', { id: e.id }).then(function(r){ if (r.ok) { d.remove(); showCode(e, r.activationCode); } else toast(errText(r.error)); }); };
     $('#eman', d).onclick = function(){ d.remove(); manualDrawer(e); };
+    var tp = $('#etpw', d);
+    if (tp) tp.onclick = function(){ if (!window.confirm(t('confirmTempPw'))) return; api('empPasswordReset', { id: e.id }).then(function(r){ if (r.ok) { d.remove(); showTempPw(e, r.tempPassword); admEmp(); } else toast(errText(r.error)); }); };
     $('[data-unlink]', d).forEach(function(bt){ bt.onclick = function(){
       if (!window.confirm(t('confirmUnlink'))) return;
       api('empResetDevice', { id: e.id, credId: bt.dataset.unlink }).then(function(r){ if (r.ok) { d.remove(); showCode(e, r.activationCode); admEmp(); } else toast(errText(r.error)); });
@@ -2247,6 +2326,16 @@ function empDrawer(e){
 }
 
 function appUrl(){ return location.origin + location.pathname; }
+function showTempPw(e, pw){
+  var msg = t('tempPwMsg').replace('{url}', appUrl()).replace('{no}', e.empNo).replace('{pw}', pw);
+  var d = drawer('<h3>' + t('tempPwTitle') + ' · ' + esc(e.name) + '</h3><p class="lead">' + t('tempPwLead') + '</p><div class="code num" style="letter-spacing:2px">' + esc(pw) + '</div>' +
+    '<div class="btnrow"><button class="btn btn-dark" id="cp">' + t('copy') + '</button>' +
+    (e.phone ? '<a class="btn btn-line" target="_blank" rel="noopener" href="https://wa.me/' + encodeURIComponent(String(e.phone).replace(/\D/g, '').replace(/^0/, '966')) + '?text=' + encodeURIComponent(msg) + '">WhatsApp</a>' : '') +
+    '<button class="btn btn-line" id="cc">' + t('close') + '</button></div>');
+  $('#cp', d).onclick = function(){ (navigator.clipboard ? navigator.clipboard.writeText(msg) : Promise.reject()).then(function(){ toast(t('copied')); }, function(){ toast(msg); }); };
+  $('#cc', d).onclick = function(){ d.remove(); };
+}
+
 function showCode(e, code){
   var msg = t('codeMsg').replace('{url}', appUrl()).replace('{no}', e.empNo).replace('{code}', code);
   var d = drawer('<h3>' + t('codeTitle') + ' · ' + esc(e.name) + '</h3><p class="lead">' + t('codeLead') + '</p><div class="code num">' + esc(code) + '</div>' +

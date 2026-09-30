@@ -190,10 +190,11 @@ function api_passwordSet(req, me) {
     if (emp.pwHash && !safeEqual_(pwHash_(String(req.current || ''), emp.pwSalt), emp.pwHash)) fail_('bad_current_password');
     emp.pwSalt = bytesToB64u_(randomBytes_(16));
     emp.pwHash = pwHash_(String(req.password), emp.pwSalt);
-    emp.pwTries = 0; emp.pwLockUntil = '';
+    if (req.current && String(req.current) === String(req.password)) fail_('password_reused');
+    emp.pwTries = 0; emp.pwLockUntil = ''; emp.pwMustChange = false;
     emp.updatedAt = new Date().toISOString();
     update_(SHEETS.EMP, emp);
-    audit_(me.id, emp.pwHash ? 'password_set' : 'password_set', me.id, null);
+    audit_(me.id, 'password_set', me.id, null);
     return { ok: true };
   });
 }
@@ -222,7 +223,8 @@ function api_pwLogin(req) {
     if (Number(emp.pwTries || 0) || emp.pwLockUntil) { emp.pwTries = 0; emp.pwLockUntil = ''; update_(SHEETS.EMP, emp); }
     audit_(emp.id, 'login_password', emp.id, null);
     var home = homePayload_(emp, true); // a password session checks in through punchPw, not a device challenge
-    return { ok: true, token: issueToken_(emp, 'pw'), me: publicEmp_(emp), home: home };
+    var must = emp.pwMustChange === true || emp.pwMustChange === 'true' || emp.pwMustChange === 'TRUE';
+    return { ok: true, token: issueToken_(emp, 'pw'), me: publicEmp_(emp), home: home, mustChange: must };
   });
 }
 
@@ -317,6 +319,24 @@ function finishFor_(req, purpose) {
   cred.lastUsedAt = new Date().toISOString();
   update_(SHEETS.CRED, cred);
   return { emp: emp, cred: cred, ch: ch };
+}
+
+/** Change the PIN of this device. The current PIN and a fresh device signature are both required. */
+function api_pinChange(req) {
+  var newPin = String(req.newPin || '');
+  if (!/^\d{6}$/.test(newPin)) fail_('bad_pin_format');
+  if (weakPin_(newPin)) fail_('weak_pin');
+  if (newPin === String(req.pin || '')) fail_('pin_reused');
+  return withLock_(function () {
+    var r = finishFor_(req, 'login');
+    if (!r.cred.pinHash) fail_('bad_request');
+    r.cred.pinSalt = bytesToB64u_(randomBytes_(16));
+    r.cred.pinHash = pinHash_(newPin, r.cred.pinSalt);
+    r.cred.pinTries = 0;
+    update_(SHEETS.CRED, r.cred);
+    audit_(r.emp.id, 'pin_changed', r.emp.id, { credId: r.cred.credId.slice(0, 12) });
+    return { ok: true, token: issueToken_(r.emp) };
+  });
 }
 
 function api_authBegin(req) {

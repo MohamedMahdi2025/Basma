@@ -16,9 +16,10 @@ const near = (dm, acc = 12, t) => ({ lat: HQ.lat + dm / 111320, lng: HQ.lng, acc
 const samples = (dm, acc = 12, t) => (t = t || nowMs(), [near(dm, acc, t - 2000), near(dm + 1.3, acc + 2, t - 1000), near(dm - 0.7, acc, t)]);
 let nowMs = () => T0;
 
+const B0 = load();
 console.log('P-256 ECDSA against Node crypto');
 {
-  const B = load();
+  const B = B0;
   const bytes = b => Array.from(b);
   let good = 0, bad = 0;
   for (let i = 0; i < 25; i++) {
@@ -40,6 +41,23 @@ console.log('P-256 ECDSA against Node crypto');
   const sig = crypto.sign('sha256', Buffer.from('x'), { key: privateKey, dsaEncoding: 'der' });
   for (let i = 0; i < 10; i++) B.ctx.ecdsaVerifyP256_(bytes(crypto.createHash('sha256').update('x').digest()), bytes(sig), bytes(Buffer.from(jwk.x, 'base64url')), bytes(Buffer.from(jwk.y, 'base64url')));
   console.log('      (' + ((Date.now() - t) / 10).toFixed(1) + ' ms per verify)');
+}
+
+{
+  // Raw r||s signatures (device keys) whose first byte is 0x30 must still verify.
+  let tried = 0, hit = 0, okCount = 0;
+  while (hit < 5 && tried < 20000) {
+    tried++;
+    const { privateKey, publicKey } = crypto.generateKeyPairSync('ec', { namedCurve: 'P-256' });
+    const msg = crypto.randomBytes(32);
+    const sig = crypto.sign('sha256', msg, { key: privateKey, dsaEncoding: 'ieee-p1363' });
+    if (sig[0] !== 0x30) continue;
+    hit++;
+    const jwk = publicKey.export({ format: 'jwk' });
+    const h = crypto.createHash('sha256').update(msg).digest();
+    if (B0.ctx.ecdsaVerifyP256_(Array.from(h), Array.from(sig), Array.from(Buffer.from(jwk.x, 'base64url')), Array.from(Buffer.from(jwk.y, 'base64url')), true)) okCount++;
+  }
+  ok(hit === 5 && okCount === 5, 'raw signatures that start with 0x30 verify (1 in 256 used to fail)', { hit, okCount });
 }
 
 console.log('Bootstrap, enrollment, sign-in');
@@ -330,6 +348,61 @@ ok(!r.ok && r.error === 'password_locked', 'unknown numbers lock like real ones,
   ok(!r.ok && r.error === 'session_expired', 'replacing a laptop ends earlier sessions', r);
   r = B.call({ action: 'auditList', token: login(adminDev, '1000') });
   ok(r.rows.some(a => a.action === 'device_enrolled' && /codeIssuedBy/.test(a.detail)), 'the audit shows who issued the code used for each activation');
+}
+
+console.log('Reset tools');
+{
+  const admT = login(adminDev, '1000');
+  const hrTk = login(hrDev, '3001');
+  const e4 = B.call({ action: 'empList', token: admT }).rows.find(e => e.empNo === '4001');
+  const signIn = (pin) => { const b = B.call({ action: 'authBegin', empNo: '4001' }); return B.call({ action: 'authFinish', credential: oldDev.get(b.options), pin }); };
+  // the employee has a password session before the reset
+  const own = signIn(oldDev.pin);
+  B.call({ action: 'passwordSet', token: own.token, password: 'Mine2026pass' });
+  const oldPw = B.call({ action: 'pwLogin', empNo: '4001', password: 'Mine2026pass' });
+  ok(oldPw.ok, 'the employee has a working password');
+  r = B.call({ action: 'empPasswordReset', token: hrTk, id: B.call({ action: 'me', token: hrTk }).me.id });
+  ok(!r.ok && r.error === 'cannot_reset_own_password', 'HR cannot reset their own password', r);
+  r = B.call({ action: 'empPasswordReset', token: hrTk, id: B.call({ action: 'me', token: admT }).me.id });
+  ok(!r.ok && r.error === 'forbidden', 'HR cannot reset an administrator password', r);
+  r = B.call({ action: 'empPasswordReset', token: hrTk, id: e4.id });
+  ok(r.ok && /^[A-Za-z2-9]{10}$/.test(r.tempPassword) && /\d/.test(r.tempPassword), 'HR issues a 10-character temporary password', r);
+  const temp = r.tempPassword;
+  r = B.call({ action: 'me', token: oldPw.token });
+  ok(!r.ok && r.error === 'session_expired', 'the reset ends sessions opened with the old password', r);
+  r = B.call({ action: 'pwLogin', empNo: '4001', password: 'Mine2026pass' });
+  ok(!r.ok && r.error === 'bad_login', 'the old password no longer works', r);
+  r = B.call({ action: 'pwLogin', empNo: '4001', password: temp });
+  ok(r.ok && r.mustChange === true, 'the temporary password signs in and demands a new one', r);
+  const tmpTok = r.token;
+  r = B.call({ action: 'myHistory', token: tmpTok });
+  ok(!r.ok && r.error === 'password_change_required', 'nothing else works until the password is changed', r);
+  r = B.call({ action: 'punchPw', token: tmpTok, geo: { samples: samples(30) } });
+  ok(!r.ok && r.error === 'password_change_required', 'not even check-in', r);
+  r = B.call({ action: 'passwordSet', token: tmpTok, current: temp, password: temp });
+  ok(!r.ok && r.error === 'password_reused', 'the temporary password cannot be kept', r);
+  r = B.call({ action: 'passwordSet', token: tmpTok, current: temp, password: 'Fresh2026pass' });
+  ok(r.ok, 'the employee chooses a new password', r);
+  r = B.call({ action: 'myHistory', token: tmpTok });
+  ok(r.ok, 'and the session works normally', r.error);
+  r = B.call({ action: 'empList', token: admT });
+  ok(r.rows.find(e => e.empNo === '4001').mustChangePassword === false && r.rows.find(e => e.empNo === '4001').hasPassword, 'HR sees the password status in the employee list');
+
+  // PIN change on the device
+  let b = B.call({ action: 'authBegin', empNo: '4001' });
+  r = B.call({ action: 'pinChange', credential: oldDev.get(b.options), pin: '111112', newPin: '905172' });
+  ok(!r.ok && r.error === 'bad_pin', 'changing the PIN needs the current PIN', r);
+  b = B.call({ action: 'authBegin', empNo: '4001' });
+  r = B.call({ action: 'pinChange', credential: oldDev.get(b.options), pin: oldDev.pin, newPin: '123456' });
+  ok(!r.ok && r.error === 'weak_pin', 'the new PIN cannot be an obvious one', r);
+  b = B.call({ action: 'authBegin', empNo: '4001' });
+  r = B.call({ action: 'pinChange', credential: oldDev.get(b.options), pin: oldDev.pin, newPin: '905172' });
+  ok(r.ok, 'the PIN is changed with the current PIN and the device signature', r);
+  r = signIn(oldDev.pin);
+  ok(!r.ok && r.error === 'bad_pin', 'the old PIN stops working', r);
+  oldDev.pin = '905172';
+  r = signIn(oldDev.pin);
+  ok(r.ok, 'the new PIN works', r.error);
 }
 
 console.log('Tokens');

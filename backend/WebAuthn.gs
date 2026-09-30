@@ -104,10 +104,14 @@ function onCurve_(x, y) {
   return mod_(y * y - (x * x % p * x - C.T3 * x + C.b), p) === C.Z;
 }
 
-/** ECDSA P-256 verify. hash, x, y: byte arrays; sigDer: DER byte array. */
-function ecdsaVerifyP256_(hash, sigDer, x, y) {
+/**
+ * ECDSA P-256 verify. hash, x, y: byte arrays. sig: DER (passkeys) or, with raw = true,
+ * the 64-byte r||s that WebCrypto produces (device keys). The format comes from the
+ * credential kind, never from the bytes: a raw r starts with 0x30 one time in 256.
+ */
+function ecdsaVerifyP256_(hash, sig, x, y, raw) {
   var C = p256_();
-  var rs = parseDerSig_(sigDer);
+  var rs = raw ? (sig.length === 64 ? [bytesToBig_(sig.slice(0, 32)), bytesToBig_(sig.slice(32))] : null) : parseDerSig_(sig);
   if (!rs) return false;
   var r = rs[0], s = rs[1];
   if (r <= C.Z || r >= C.n || s <= C.Z || s >= C.n) return false;
@@ -133,8 +137,6 @@ function ecdsaVerifyP256_(hash, sigDer, x, y) {
 }
 
 function parseDerSig_(d) {
-  // WebCrypto signs in raw r||s form; passkeys in DER.
-  if (d.length === 64 && d[0] !== 0x30) return [bytesToBig_(d.slice(0, 32)), bytesToBig_(d.slice(32))];
   try {
     var o = 0;
     if (d[o++] !== 0x30) return null;
@@ -223,7 +225,7 @@ function verifyDeviceKeyRegistration_(d) {
   var x = b64uToBytes_(d.x), y = b64uToBytes_(d.y);
   if (x.length !== 32 || y.length !== 32 || !onCurve_(bytesToBig_(x), bytesToBig_(y))) fail_('unsupported_key');
   var hash = sha256_(ad.concat(sha256_(b64uToBytes_(d.response.clientDataJSON))));
-  if (!ecdsaVerifyP256_(hash, b64uToBytes_(d.response.signature), x, y)) fail_('bad_signature');
+  if (!ecdsaVerifyP256_(hash, b64uToBytes_(d.response.signature), x, y, true)) fail_('bad_signature');
   if (!/^[A-Za-z0-9_-]{16,64}$/.test(String(d.id))) fail_('bad_credential');
   return { challenge: cd.challenge, credId: 'dk_' + d.id, x: d.x, y: d.y, signCount: info.signCount, aaguid: 'devicekey' };
 }
@@ -236,7 +238,7 @@ function verifyAssertion_(cred, stored) {
   var info = checkAuthData_(ad, !dk);
   var cdHash = sha256_(b64uToBytes_(cred.response.clientDataJSON));
   var hash = sha256_(ad.concat(cdHash));
-  if (!ecdsaVerifyP256_(hash, b64uToBytes_(cred.response.signature), b64uToBytes_(stored.x), b64uToBytes_(stored.y))) fail_('bad_signature');
+  if (!ecdsaVerifyP256_(hash, b64uToBytes_(cred.response.signature), b64uToBytes_(stored.x), b64uToBytes_(stored.y), dk)) fail_('bad_signature');
   var prev = Number(stored.signCount || 0);
   if ((prev > 0 || info.signCount > 0) && info.signCount <= prev) fail_('cloned_authenticator');
   return { challenge: cd.challenge, signCount: info.signCount };

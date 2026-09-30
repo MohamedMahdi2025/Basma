@@ -57,6 +57,9 @@ function api_empList(req, me) {
     o.devices = creds[e.id] || [];
     o.device = o.devices.filter(function (d) { return d.status === 'active'; })[0] || null;
     o.activationPending = !!e.actHash && new Date(e.actExp).getTime() > Date.now();
+    o.hasPassword = !!e.pwHash;
+    o.passwordLocked = !!e.pwLockUntil && new Date(e.pwLockUntil).getTime() > Date.now();
+    o.mustChangePassword = e.pwMustChange === true || e.pwMustChange === 'true' || e.pwMustChange === 'TRUE';
     o.activationExp = e.actExp || '';
     return o;
   });
@@ -111,6 +114,35 @@ function api_empActivation(req, me) {
     update_(SHEETS.EMP, emp);
     audit_(me.id, 'activation_issued', emp.id, null);
     return { ok: true, activationCode: code, expires: emp.actExp };
+  });
+}
+
+// A temporary password: 10 characters, always letters and digits, no look-alike characters.
+function tempPassword_() {
+  var letters = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ', digits = '23456789', all = letters + digits;
+  for (;;) {
+    var b = randomBytes_(10), pw = '';
+    for (var i = 0; i < 10; i++) pw += all[b[i] % all.length];
+    if (/[A-Za-z]/.test(pw) && /\d/.test(pw) && Object.keys(pw.split('').reduce(function (o, c) { o[c] = 1; return o; }, {})).length >= 5) return pw;
+  }
+}
+
+/** HR / admin: issue a one-time temporary password. It must be changed at the next sign-in; lockouts are cleared. */
+function api_empPasswordReset(req, me) {
+  return withLock_(function () {
+    var emp = findBy_(SHEETS.EMP, 'id', req.id);
+    if (!emp) fail_('not_found');
+    if (emp.id === me.id) fail_('cannot_reset_own_password');
+    if (me.role !== 'admin' && emp.role !== 'employee') fail_('forbidden');
+    var pw = tempPassword_();
+    emp.pwSalt = bytesToB64u_(randomBytes_(16));
+    emp.pwHash = pwHash_(pw, emp.pwSalt);
+    emp.pwTries = 0; emp.pwLockUntil = ''; emp.pwMustChange = true;
+    emp.tokenVer = Number(emp.tokenVer || 0) + 1; // ends sessions opened with the old password
+    emp.updatedAt = new Date().toISOString();
+    update_(SHEETS.EMP, emp);
+    audit_(me.id, 'password_reset', emp.id, null);
+    return { ok: true, tempPassword: pw };
   });
 }
 

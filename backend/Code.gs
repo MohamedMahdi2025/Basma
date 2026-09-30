@@ -26,7 +26,7 @@ var SHEETS = { EMP: 'employees', CRED: 'credentials', ZONES: 'zones', PUNCH: 'pu
 var HEADERS = {
   employees: ['id', 'empNo', 'name', 'nameEn', 'email', 'phone', 'department', 'title', 'role', 'status',
     'zoneIds', 'shiftStart', 'shiftEnd', 'workdays', 'tokenVer', 'actHash', 'actExp', 'actTries', 'createdAt', 'updatedAt',
-    'pwHash', 'pwSalt', 'pwTries', 'pwLockUntil', 'actIssuedBy'],
+    'pwHash', 'pwSalt', 'pwTries', 'pwLockUntil', 'actIssuedBy', 'pwMustChange'],
   credentials: ['credId', 'empId', 'x', 'y', 'signCount', 'label', 'status', 'createdAt', 'lastUsedAt', 'aaguid', 'kind',
     'platform', 'pinHash', 'pinSalt', 'pinTries'],
   zones: ['id', 'name', 'nameEn', 'lat', 'lng', 'radius', 'status', 'createdAt', 'updatedAt'],
@@ -284,10 +284,10 @@ function doPost(e) {
 
 var PUBLIC_ACTIONS = {
   ping: 1, bootstrapStatus: 1, bootstrap: 1, enrollBegin: 1, enrollFinish: 1,
-  authBegin: 1, authFinish: 1, punchBegin: 1, punchFinish: 1, adminRecover: 1, pwLogin: 1
+  authBegin: 1, authFinish: 1, punchBegin: 1, punchFinish: 1, adminRecover: 1, pwLogin: 1, pinChange: 1
 };
 var EMP_ACTIONS = { me: 1, myHistory: 1, passwordSet: 1, punchPw: 1 };
-var HR_ACTIONS = { board: 1, empList: 1, zoneList: 1, report: 1, reviewList: 1, reviewDecide: 1, manualPunch: 1, auditList: 1, settingsGet: 1, empSave: 1, empActivation: 1 };
+var HR_ACTIONS = { empPasswordReset: 1, board: 1, empList: 1, zoneList: 1, report: 1, reviewList: 1, reviewDecide: 1, manualPunch: 1, auditList: 1, settingsGet: 1, empSave: 1, empActivation: 1 };
 var ADMIN_ACTIONS = { empResetDevice: 1, zoneSave: 1, zoneDelete: 1, settingsSave: 1 };
 
 function handle_(req) {
@@ -299,6 +299,9 @@ function handle_(req) {
     if (PUBLIC_ACTIONS[action]) return fn(req, null);
     var me = readToken_(req.token);
     if (!me) return { ok: false, error: 'session_expired' };
+    if (me._auth === 'pw' && (me.pwMustChange === true || me.pwMustChange === 'true' || me.pwMustChange === 'TRUE') && action !== 'passwordSet' && action !== 'me') {
+      return { ok: false, error: 'password_change_required' };
+    }
     var level = ROLES[me.role] || 0;
     if (EMP_ACTIONS[action] && level >= 1) return fn(req, me);
     if (HR_ACTIONS[action] && level >= ROLES.hr) return fn(req, me);
