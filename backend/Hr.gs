@@ -72,7 +72,9 @@ function updateMany_(name, objs) {
 
 // ---------------- departments ----------------
 
-function codesOf_(rows) { var o = {}; rows.forEach(function (r) { if (r.code) o[String(r.code).toUpperCase()] = 1; }); return o; }
+function codesOf_(rows, key) { var o = {}; rows.forEach(function (r) { var v = r[key || 'code']; if (v) o[String(v).toUpperCase()] = 1; }); return o; }
+/** Numbers already in a tab: a new number never repeats one, even if rows came in by hand. */
+function refsOf_(name) { return codesOf_(readAll_(name), 'ref'); }
 
 function publicDept_(d) {
   return { id: d.id, code: d.code, nameAr: d.nameAr, nameEn: d.nameEn, parentId: d.parentId, headEmpId: d.headEmpId,
@@ -499,7 +501,7 @@ function api_hrCompPropose(req, me) {
   return withLock_(function () {
     if (!findBy_(SHEETS.EMP, 'id', req.empId)) fail_('not_found');
     var row = compRowFrom_(req, me.id);
-    row.ref = nextRef_('salary');
+    row.ref = nextRef_('salary', refsOf_(SHEETS.COMP));
     append_(SHEETS.COMP, row);
     audit_(me.id, 'comp_propose', req.empId, { ref: row.ref, effectiveFrom: row.effectiveFrom });
     return { ok: true, comp: compView_(row) };
@@ -569,7 +571,7 @@ function api_hrDocSave(req, me) {
     var empId = row ? row.empId : d.empId;
     if (!findBy_(SHEETS.EMP, 'id', empId)) fail_('not_found');
     var now = new Date().toISOString(), created = !row;
-    if (!row) row = { id: newId_('F'), empId: empId, createdAt: now, ref: nextRef_('document') };
+    if (!row) row = { id: newId_('F'), empId: empId, createdAt: now, ref: nextRef_('document', refsOf_(SHEETS.DOCS)) };
     row.type = d.type; row.number = str_(d.number, 40); row.issueDate = issue; row.expiryDate = exp;
     row.note = str_(d.note, 300); row.status = d.status === 'deleted' ? 'deleted' : 'active'; row.updatedAt = now;
     if (created) append_(SHEETS.DOCS, row); else update_(SHEETS.DOCS, row);
@@ -616,7 +618,7 @@ function api_hrExpiring(req, me) {
 // ---------------- Excel import ----------------
 
 var IMPORT_REQUIRED = ['empNo', 'nameAr', 'department', 'position', 'hireDate', 'nationality', 'nationalId', 'basic'];
-var IMPORT_DATES = ['hireDate', 'idExpiry', 'birthDate', 'contractEnd', 'probationEnd', 'passportExpiry'];
+var IMPORT_DATES = ['hireDate', 'idExpiry', 'birthDate', 'contractEnd', 'probationEnd', 'passportExpiry', 'leaveOpeningDate'];
 
 function validateImport_(rows, ctx, me) {
   if (!Array.isArray(rows) || !rows.length) fail_('bad_request');
@@ -660,6 +662,11 @@ function validateImport_(rows, ctx, me) {
       var n = Number(r[k]);
       if (!isFinite(n) || n < JOB_NUM[k][0] || n > JOB_NUM[k][1]) e(k, 'bad_value'); else r[k] = n;
     });
+    if (r.leaveOpeningDays !== undefined && r.leaveOpeningDays !== '') {
+      var od = num_(r.leaveOpeningDays);
+      if (!(od >= -60 && od <= 365)) e('leaveOpeningDays', 'bad_value'); else r.leaveOpeningDays = od;
+      if (!r.leaveOpeningDate) e('leaveOpeningDate', 'required');
+    }
     if (r.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(r.email)) e('email', 'bad_email');
     if (r.personalEmail && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(r.personalEmail)) e('personalEmail', 'bad_email');
     if (r.gosiCohort && ['legacy', 'new'].indexOf(r.gosiCohort) < 0) e('gosiCohort', 'bad_value');
@@ -706,7 +713,7 @@ function api_hrImportValidate(req, me) {
   return { ok: true, errors: v.errors, summary: v.summary };
 }
 
-var IMPORT_JOB = ['gender', 'workLocation', 'contractType', 'contractEnd', 'probationEnd', 'contractNo', 'occupationCode',
+var IMPORT_JOB = ['leaveOpeningDays', 'leaveOpeningDate', 'gender', 'workLocation', 'contractType', 'contractEnd', 'probationEnd', 'contractNo', 'occupationCode',
   'employmentType', 'workDaysPerWeek', 'dailyHours', 'annualLeaveDays', 'noticeDays'];
 var IMPORT_PRIV = ['nationalId', 'idExpiry', 'birthDate', 'bankName', 'gosiNumber', 'gosiCohort', 'borderNo', 'passportNo',
   'passportExpiry', 'nationalAddress', 'personalEmail', 'nameEnOfficial', 'maritalStatus', 'emergencyName', 'emergencyPhone'];
@@ -775,7 +782,7 @@ function api_hrImportCommit(req, me) {
     updateMany_(SHEETS.PRIV, privUpd);
     appendMany_(SHEETS.PRIV, privNew);
     appendMany_(SHEETS.JOBH, jobRows);
-    var salRefs = nextRefs_('salary', compRows.length);
+    var salRefs = nextRefs_('salary', compRows.length, refsOf_(SHEETS.COMP));
     compRows.forEach(function (c, i) { c.ref = salRefs[i]; });
     appendMany_(SHEETS.COMP, compRows);
     audit_(me.id, 'hr_import', batch, { created: newEmps.length, updated: updEmps.length, departments: newDeptRows.length, positions: newPosRows.length, salaries: compRows.length });

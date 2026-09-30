@@ -15,7 +15,7 @@ Object.assign(T.ar, {
   mfBank:'البنك', mfGosi:'رقم التأمينات', mfPassport:'رقم الجواز', mfPassExp:'انتهاء الجواز', mfFixHint:'لتصحيح أي بيان تواصل مع الموارد البشرية.',
   mfDocs:'وثائقي', mfNoDocs:'لا توجد وثائق مسجلة.', mfExpired:'منتهية', mfLeft:'متبقي', mfAtt:'سجل الحضور', mfAttLead:'حضورك وانصرافك وساعات العمل لكل يوم.',
   mfOpenAtt:'فتح سجل الحضور', mfTeam:'فريقي', mfTeamLead:'الموظفون الذين تديرهم.', mfOpenTeam:'فتح فريقي', mfPeople:'موظفين',
-  mfHist:'مسيرتي الوظيفية', mfLoadFail:'تعذر تحميل ملفك. تحقق من الاتصال ثم أعد المحاولة.', mfRetry:'إعادة المحاولة',
+  mfHist:'مسيرتي الوظيفية', mfLoadFail:'تعذر تحميل ملفك. تحقق من الاتصال ثم أعد المحاولة.', mfRetry:'إعادة المحاولة', mfInbox:'طلبات بانتظار اعتمادك',
   mfSar:'ر.س', doc_iqama:'الإقامة', doc_passport:'جواز السفر', doc_work_permit:'رخصة العمل', doc_medical_insurance:'التأمين الطبي',
   doc_contract:'العقد', doc_driving_licence:'رخصة القيادة', doc_other:'وثيقة أخرى', doc_contract_end:'نهاية العقد', doc_probation_end:'نهاية التجربة'
 });
@@ -31,7 +31,7 @@ Object.assign(T.en, {
   mfBank:'Bank', mfGosi:'GOSI number', mfPassport:'Passport number', mfPassExp:'Passport expiry', mfFixHint:'To correct any detail, contact HR.',
   mfDocs:'My documents', mfNoDocs:'No documents recorded.', mfExpired:'Expired', mfLeft:'left:', mfAtt:'Attendance record', mfAttLead:'Your check-ins, check-outs and hours for each day.',
   mfOpenAtt:'Open attendance record', mfTeam:'My team', mfTeamLead:'The people you manage.', mfOpenTeam:'Open my team', mfPeople:'people',
-  mfHist:'My job history', mfLoadFail:'Your file could not be loaded. Check the connection and try again.', mfRetry:'Try again',
+  mfHist:'My job history', mfLoadFail:'Your file could not be loaded. Check the connection and try again.', mfRetry:'Try again', mfInbox:'Requests waiting for you',
   mfSar:'SAR', doc_iqama:'Iqama', doc_passport:'Passport', doc_work_permit:'Work permit', doc_medical_insurance:'Medical insurance',
   doc_contract:'Contract', doc_driving_licence:'Driving licence', doc_other:'Other document', doc_contract_end:'Contract end', doc_probation_end:'Probation end'
 });
@@ -153,7 +153,7 @@ function draw(main, f){
     (j.serviceYears != null ? '<div class="svc"><b class="num">' + j.serviceYears.toLocaleString(LOCALE()) + '</b>' + t('mfYears') + ' ' + t('mfSince') + ' ' + fmtDate(j.hireDate) + '</div>' : '') +
     '</div></div>';
 
-  var side = id + card('', '<h3>' + ph('users') + t('mfManagers') + '</h3>' + (j.manager && j.head && j.manager.id === j.head.id ? person(j.manager, t('mfDirect') + ' ' + t('mfAndHead')) : person(j.manager, t('mfDirect')) + person(j.head, t('mfHead'))));
+  var side = id + '<div class="mf-card" id="mfLeave" style="--i:' + (i++) + '"><span class="sk" style="width:40%"></span><span class="sk"></span><span class="sk" style="width:70%"></span></div>' + card('', '<h3>' + ph('users') + t('mfManagers') + '</h3>' + (j.manager && j.head && j.manager.id === j.head.id ? person(j.manager, t('mfDirect') + ' ' + t('mfAndHead')) : person(j.manager, t('mfDirect')) + person(j.head, t('mfHead'))));
   if (f.isManager) side += card('', '<h3>' + ph('users-three') + t('mfTeam') + '<span class="sp"></span><span class="chip in num">' + plural(f.teamCount, 'people') + '</span></h3><p>' + t('mfTeamLead') + '</p>' +
     '<button type="button" class="btn btn-dark btn-sm mf-go" id="mfTeam">' + t('mfOpenTeam') + '</button>');
   side += card('', '<h3>' + ph('calendar-check') + t('mfAtt') + '</h3><p>' + t('mfAttLead') + '</p><button type="button" class="btn btn-line btn-sm mf-go" id="mfAtt">' + t('mfOpenAtt') + '</button>');
@@ -166,7 +166,7 @@ function draw(main, f){
       (duties ? '<h4>' + t('mfDuties') + '</h4>' + lines(duties) : '') + (req ? '<h4>' + t('mfReq') + '</h4>' + lines(req) : '') + '</div>';
   } else jdHtml += '<p>' + t('mfNoJd') + '</p>';
 
-  var mainHtml = card('wide', jdHtml);
+  var mainHtml = '<div class="mf-card wide" id="mfReq" style="--i:' + (i++) + '"><span class="sk" style="width:40%"></span><span class="sk"></span><span class="sk" style="width:70%"></span></div>' + card('wide', jdHtml);
   if ('comp' in f) mainHtml += card('', '<h3>' + ph('wallet') + t('mfPay') + '<span class="sp"></span>' + (f.comp ? '<button type="button" class="mf-toggle" id="mfShow" aria-pressed="' + shown + '">' + ph(shown ? 'eye-slash' : 'eye') + (shown ? t('mfHide') : t('mfShow')) + '</button>' : '') + '</h3><div id="mfPay">' + payCard(f.comp) + '</div>');
   mainHtml += card('', '<h3>' + ph('file-text') + t('mfContract') + '</h3>' + (kv([
     [t('mfType'), j.contractType ? t('ct_' + j.contractType) : ''],
@@ -197,6 +197,22 @@ function draw(main, f){
   if (sb) sb.onclick = function(){ shown = !shown; draw(main, f); };
   $('#mfAtt').onclick = function(){ S.tab = 'history'; renderShell(); };
   var tb = $('#mfTeam'); if (tb) tb.onclick = function(){ S.tab = 'hr'; S.hrSec = 'team'; renderShell(); };
+  requests(main, f);
+}
+
+/** Leave balance and requests: their own call, so the file shows first and these fill in (from memory when seen before). */
+function requests(main, f){
+  if (!window.Req) return;
+  apiFresh('myRequests', {}, function(r){
+    var lv = $('#mfLeave', main), rq = $('#mfReq', main);
+    if (!lv || !rq) return;
+    if (!r.ok) { lv.remove(); rq.innerHTML = '<p>' + t('mfLoadFail') + '</p>'; return; }
+    lv.innerHTML = Req.balanceCard(r.leave, r.holidays) + (r.inbox ? '<button type="button" class="btn btn-dark btn-sm mf-go" id="mfInbox">' + ph('seal-check') + t('mfInbox') + ' (' + r.inbox + ')</button>' : '');
+    rq.innerHTML = Req.listCard(r.rows);
+    Req.wireList(rq, r.rows, f, function(){ requests(main, f); });
+    $('#rqNew', rq).onclick = function(){ Req.newRequest(f, function(){ requests(main, f); }); };
+    var ib = $('#mfInbox', lv); if (ib) ib.onclick = function(){ S.tab = 'hr'; S.hrSec = 'inbox'; renderShell(); };
+  });
 }
 
 function render(main){

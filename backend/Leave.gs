@@ -83,13 +83,15 @@ function round2_(n) { return Math.round(n * 100) / 100; }
 
 /**
  * The annual balance on `asOf`. With an opening balance (carried over from the old system on
- * leaveOpeningDate) accrual starts the next day and only leave taken after it counts; without one,
- * accrual starts at the hire date. Approved unpaid leave pauses accrual (Art. 116).
+ * leaveOpeningDate) accrual starts the next day and only leave taken after it counts. Without one,
+ * accrual starts the day the person joined this system (or the hire date if later): leave taken
+ * before that is unknown here, so counting from the hire date would hand out years of "unused" leave.
+ * Approved unpaid leave pauses accrual (Art. 116).
  */
 function annualBalance_(emp, asOf, reqs, excludeId) {
   var hasOpening = emp.leaveOpeningDate !== '' && emp.leaveOpeningDate != null;
-  var start = hasOpening ? addDays_(String(emp.leaveOpeningDate).slice(0, 10), 1)
-    : (String(emp.hireDate || '').slice(0, 10) || joinedDate_(emp));
+  var hire = String(emp.hireDate || '').slice(0, 10), joined = joinedDate_(emp);
+  var start = hasOpening ? addDays_(String(emp.leaveOpeningDate).slice(0, 10), 1) : maxDate_(hire || joined, joined);
   var opening = hasOpening ? Number(emp.leaveOpeningDays) || 0 : 0;
   var accrued = accrueBetween_(emp, start, asOf), used = 0, pending = 0;
   reqs.forEach(function (r) {
@@ -105,6 +107,7 @@ function annualBalance_(emp, asOf, reqs, excludeId) {
   var svc = emp.hireDate ? daysBetween_(String(emp.hireDate).slice(0, 10), asOf) / 365.25 : 0;
   return { opening: round2_(opening), accrued: round2_(accrued), used: round2_(used), pending: round2_(pending),
     balance: round2_(opening + accrued - used), available: round2_(opening + accrued - used - pending), since: start,
+    openingMissing: !hasOpening && !!hire && hire < joined,
     perYear: svc >= 5 ? annualRates_(emp).after5 : annualRates_(emp).before5 };
 }
 
@@ -269,7 +272,7 @@ function api_requestCreate(req, me) {
     if (q.error) fail_(q.error);
     var steps = stepsFor_(q.type, emp, ctx), now = new Date().toISOString();
     var kind = q.type === 'leave' ? 'leave' : q.type;
-    var row = { id: newId_('R'), ref: nextRef_(kind), empId: emp.id, type: q.type, subtype: q.subtype || '', fromDate: q.fromDate || '',
+    var row = { id: newId_('R'), ref: nextRef_(kind, refsOf_(SHEETS.REQ)), empId: emp.id, type: q.type, subtype: q.subtype || '', fromDate: q.fromDate || '',
       toDate: q.toDate || '', days: q.days == null ? '' : q.days, amount: q.amount == null ? '' : q.amount, months: q.months || '',
       payloadJson: JSON.stringify(Object.assign({}, d.payload || {}, q.payload || {})), reason: str_(d.reason, 500), docNo: str_(d.docNo, 60),
       status: 'pending', step: steps[0], stepsJson: '[]',

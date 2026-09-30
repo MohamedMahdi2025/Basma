@@ -51,6 +51,14 @@ const B = load({ props: { RP_ID: 'localhost', ORIGINS: ORIGIN }, setupKeyHash: c
   B.ctx.append_('empPrivate', { empId: 'E2001', nationalId: '1012345678', idExpiry: '2029-05-01', iban: 'SA0380000000608010167519', bankName: 'الراجحي', gosiNumber: '401234567', gosiCohort: 'legacy', updatedAt: now });
   B.ctx.append_('empPrivate', { empId: 'E2003', nationalId: '2123456780', idExpiry: addDays(18), passportNo: 'P1234567', passportExpiry: addDays(400), updatedAt: now });
   B.ctx.append_('documents', { id: 'F1', empId: 'E2003', type: 'work_permit', number: 'WP-8841', issueDate: '2025-11-01', expiryDate: addDays(25), note: '', status: 'active', createdAt: now, updatedAt: now });
+  // Phase 2 demo: holidays and a few requests waiting at each step
+  B.ctx.append_('holidays', { id: 'O1', date: addDays(12), toDate: addDays(14), nameAr: 'عطلة تجريبية', nameEn: 'Demo holiday', createdBy: 'E2002', createdAt: now, status: 'active' });
+  const rq = (id, ref, emp, type, sub, from, to, days, step, extra) => B.ctx.append_('requests', Object.assign({ id, ref, empId: emp, type, subtype: sub, fromDate: from, toDate: to, days, amount: '', months: '',
+    payloadJson: '{}', reason: 'طلب تجريبي', docNo: '', status: 'pending', step, stepsJson: '[]', effectJson: '{}', createdAt: now, updatedAt: now, decidedAt: '' }, extra || {}));
+  rq('R1', 'LV-2026-00001', 'E2001', 'leave', 'annual', addDays(20), addDays(24), 5, 'manager');
+  rq('R2', 'LV-2026-00002', 'E2003', 'leave', 'sick', addDays(-2), addDays(-1), 2, 'hr', { docNo: 'SEHA-1', stepsJson: JSON.stringify([{ step: 'manager', by: 'E2004', decision: 'approve', note: '', at: now }]) });
+  rq('R3', 'LT-2026-00001', 'E2001', 'letter', 'salary_certificate', '', '', '', 'hr', { payloadJson: JSON.stringify({ addressee: 'بنك الراجحي', lang: 'ar' }) });
+  rq('R4', 'LV-2026-00003', 'E2006', 'leave', 'annual', addDays(3), addDays(5), 3, 'done', { status: 'approved' });
   B.ctx.append_('documents', { id: 'F2', empId: 'E2001', type: 'medical_insurance', number: 'MI-22019', issueDate: '2026-01-01', expiryDate: '2026-12-31', note: '', status: 'active', createdAt: now, updatedAt: now });
 })();
 

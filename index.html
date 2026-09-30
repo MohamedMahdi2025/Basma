@@ -279,6 +279,7 @@ main{flex:1;display:flex;flex-direction:column}
 .chip.absent{background:#F8DED7;color:#8E2F1C}
 .chip.review{background:#FBEBD2;color:#8A5A12}
 .chip.off{background:#ECECEC;color:#666}
+.chip.leave{background:#E1ECF7;color:#1F4E79}
 
 /* ---------- light pages ---------- */
 .page{background:var(--paper);flex:1;border-radius:var(--r-l) var(--r-l) 0 0;padding:20px 16px 28px}
@@ -473,7 +474,7 @@ table.tbl{width:100%;border-collapse:collapse;background:var(--card);font-size:1
   .adm{max-width:1440px;width:calc(100% - 56px);margin:0 auto 28px;border-radius:32px}
   .adm-nav{padding:22px 28px 10px}
   .adm-body{padding:8px 28px 32px}
-  .kpis{grid-template-columns:repeat(6,1fr)}
+  .kpis{grid-template-columns:repeat(7,1fr)}
   .kpi.lead-k{grid-column:span 2}
   .adm .list{display:grid;grid-template-columns:1fr 1fr;column-gap:0}
   .adm .list .row{border-inline-end:1px solid var(--line)}
@@ -1187,7 +1188,7 @@ var T = {
     doneIn:'تم تسجيل الحضور', doneOut:'تم تسجيل الانصراف', reviewNote:'سُجّل وسيُراجع من الموارد البشرية', close:'تم',
     punchFailed:'لم يتم التسجيل', todayTitle:'اليوم',
     histTitle:'سجل الحضور', present:'أيام الحضور', totalHours:'مجموع الساعات', lateDays:'أيام التأخير', absent:'غياب',
-    st_in:'داخل الدوام', st_present:'حاضر', st_absent:'غائب', st_off:'عطلة', st_upcoming:'لم يحضر بعد', st_missing_out:'بلا انصراف',
+    st_in:'داخل الدوام', st_present:'حاضر', st_absent:'غائب', st_leave:'في إجازة', st_holiday:'عطلة رسمية', kLeave:'في إجازة', st_off:'عطلة', st_upcoming:'لم يحضر بعد', st_missing_out:'بلا انصراف',
     admBoard:'اللوحة المباشرة', admEmp:'الموظفون', admZones:'النطاقات', admReports:'التقارير', admReview:'المراجعة', admSettings:'الإعدادات', admAudit:'السجل الأمني',
     kIn:'داخل الآن', kTotal:'الموظفون', kLate:'متأخرون', kAbsent:'غائبون', kUpcoming:'لم يصلوا بعد', kReview:'للمراجعة', presentNow:'نسبة الحضور الآن',
     search:'بحث بالاسم أو الرقم', addEmp:'إضافة موظف', editEmp:'تعديل موظف', save:'حفظ', cancel:'إلغاء',
@@ -1246,7 +1247,7 @@ var T = {
     doneIn:'Checked in', doneOut:'Checked out', reviewNote:'Recorded, HR will review it', close:'Done',
     punchFailed:'Not recorded', todayTitle:'Today',
     histTitle:'Attendance record', present:'Days present', totalHours:'Total hours', lateDays:'Late days', absent:'Absent',
-    st_in:'On shift', st_present:'Present', st_absent:'Absent', st_off:'Day off', st_upcoming:'Not in yet', st_missing_out:'No check-out',
+    st_in:'On shift', st_present:'Present', st_absent:'Absent', st_leave:'On leave', st_holiday:'Public holiday', kLeave:'On leave', st_off:'Day off', st_upcoming:'Not in yet', st_missing_out:'No check-out',
     admBoard:'Live board', admEmp:'Employees', admZones:'Zones', admReports:'Reports', admReview:'Review', admSettings:'Settings', admAudit:'Security log',
     kIn:'In now', kTotal:'Employees', kLate:'Late', kAbsent:'Absent', kUpcoming:'Not arrived', kReview:'To review', presentNow:'Present right now',
     search:'Search name or number', addEmp:'Add employee', editEmp:'Edit employee', save:'Save', cancel:'Cancel',
@@ -1925,7 +1926,9 @@ function enterApp(home){
     setTimeout(function(){
       if (!S.me) return;
       loadScript('js/my-file.js').catch(function(){});
+      loadScript('js/requests.js').catch(function(){});
       apiFresh('myFile', {}, function(r){ if (r.ok && window.setHrAccess) setHrAccess(r.file); }, true);
+      setTimeout(function(){ if (S.me) apiFresh('myRequests', {}, function(){}, true); }, 400);
       if (isHr()) setTimeout(function(){ if (S.me) apiFresh('hrBootstrap', {}, function(){}, true); }, 800);
     }, 1200);
   }
@@ -1952,8 +1955,8 @@ function renderShell(){
   $$('.tabs button').forEach(function(b){ b.onclick = function(){ S.tab = b.dataset.tab; renderShell(); }; });
   if (S.tab === 'home') renderHome();
   else if (S.tab === 'history') renderHistory();
-  else if (S.tab === 'file') lazyScreen(['js/my-file.js'], function(m){ MyFile.render(m); });
-  else if (S.tab === 'hr') lazyScreen(['js/my-file.js', 'js/hr-console.js'], function(m){ HrConsole.render(m); });
+  else if (S.tab === 'file') lazyScreen(['js/my-file.js', 'js/requests.js'], function(m){ MyFile.render(m); });
+  else if (S.tab === 'hr') lazyScreen(['js/my-file.js', 'js/requests.js', 'js/hr-console.js'], function(m){ HrConsole.render(m); });
   else if (S.tab === 'admin') renderAdmin();
   else renderMe();
 }
@@ -2214,8 +2217,8 @@ function renderHistory(){
   load();
 }
 function statusChip(d){
-  var cls = { in:'in', present:'in', absent:'absent', off:'off', upcoming:'off', missing_out:'late' }[d.status] || '';
-  var html = '<span class="chip ' + cls + '">' + t('st_' + d.status) + '</span>';
+  var cls = { in:'in', present:'in', absent:'absent', off:'off', upcoming:'off', missing_out:'late', leave:'leave', holiday:'off' }[d.status] || '';
+  var html = '<span class="chip ' + cls + '">' + (d.status === 'holiday' && d.holiday ? esc(d.holiday) : t('st_' + d.status)) + '</span>';
   if (d.lateMin) html += ' <span class="chip late num">' + t('late') + ' ' + d.lateMin + t('min') + '</span>';
   return html;
 }
@@ -2305,7 +2308,7 @@ function admBoard(){
       $('#admBody').innerHTML =
         '<div class="kpis"><div class="kpi lead-k"><span>' + t('presentNow') + '</span><b class="num">' + pct + '%</b><div class="bar"><i style="width:' + pct + '%"></i></div></div>' +
         '<div class="kpi"><span>' + t('kIn') + '</span><b class="num">' + k.in + '</b></div><div class="kpi"><span>' + t('kLate') + '</span><b class="num">' + k.late + '</b></div>' +
-        '<div class="kpi"><span>' + t('kAbsent') + '</span><b class="num">' + k.absent + '</b></div><div class="kpi"><span>' + t('kUpcoming') + '</span><b class="num">' + k.upcoming + '</b></div></div>' +
+        '<div class="kpi"><span>' + t('kAbsent') + '</span><b class="num">' + k.absent + '</b></div><div class="kpi"><span>' + t('kLeave') + '</span><b class="num">' + (k.leave || 0) + '</b></div><div class="kpi"><span>' + t('kUpcoming') + '</span><b class="num">' + k.upcoming + '</b></div></div>' +
         '<div class="toolbar"><input class="grow" id="bq" type="search" aria-label="' + t('search') + '" placeholder="' + t('search') + '" value="' + esc(q) + '"></div>' +
         '<div class="list">' + (rows.length ? rows.map(function(x){
           return '<div class="row"><div class="av">' + esc(initials(x.emp.name)) + '</div><div class="main"><b>' + esc(x.emp.name) + '</b><small>' + esc(x.emp.empNo) + (x.emp.department ? ' · ' + esc(x.emp.department) : '') + (x.lastZone ? ' · ' + esc(x.lastZone) : '') + '</small></div>' +
@@ -2401,7 +2404,7 @@ function empDrawer(e){
     $('#eman', d).onclick = function(){ d.remove(); manualDrawer(e); };
     var tp = $('#etpw', d);
     if (tp) tp.onclick = function(){ if (!window.confirm(t('confirmTempPw'))) return; api('empPasswordReset', { id: e.id }).then(function(r){ if (r.ok) { d.remove(); showTempPw(e, r.tempPassword); admEmp(); } else toast(errText(r.error)); }); };
-    $('[data-unlink]', d).forEach(function(bt){ bt.onclick = function(){
+    $$('[data-unlink]', d).forEach(function(bt){ bt.onclick = function(){
       if (!window.confirm(t('confirmUnlink'))) return;
       api('empResetDevice', { id: e.id, credId: bt.dataset.unlink }).then(function(r){ if (r.ok) { d.remove(); showCode(e, r.activationCode); admEmp(); } else toast(errText(r.error)); });
     }; });

@@ -4,6 +4,15 @@
 'use strict';
 
 Object.assign(T.ar, {
+  hrInbox:'الطلبات', hrLeave:'الإجازات', hrHolidays:'العطل الرسمية', inMine:'بانتظاري', inAll:'كل الطلبات', inAllStatus:'كل الحالات',
+  inEmpty:'لا توجد طلبات بانتظارك.', inEmptyAll:'لا توجد طلبات.', inApprove:'اعتماد', inReject:'رفض', inNote:'ملاحظة للموظف (مطلوبة عند الرفض)',
+  inDone:'تم الاعتماد', inRejectedT:'تم الرفض', inBalance:'رصيده المتاح بعد طلباته المعلقة', inAfter:'بعد الطلب', inOnBehalf:'تعتمد نيابة عن المدير',
+  lvMonthEmpty:'لا إجازات في هذا الشهر.', lvApproved:'معتمدة', lvPendingK:'قيد الاعتماد', lvHolidayK:'عطلة رسمية', lvBalances:'أرصدة الإجازات',
+  lvEmp:'الموظف', lvAvail:'المتاح', lvUsedK:'المستخدم', lvOpeningK:'الرصيد المنقول', lvEditOpening:'تعديل الرصيد المنقول', lvOpenDays:'عدد الأيام المنقولة',
+  lvOpenAsOf:'كما في تاريخ', lvOpenLead:'الرصيد من النظام السابق حتى هذا التاريخ. يكتسب الموظف بعده تلقائيا.', lvOnLeave:'في إجازة اليوم',
+  hoAdd:'إضافة عطلة', hoFrom:'من', hoTo:'إلى', hoName:'اسم العطلة', hoNameEn:'الاسم بالإنجليزية', hoEmpty:'لم تضف عطل بعد.', hoDelete:'حذف',
+  hoLead:'عيد الفطر وعيد الأضحى يضافان بتواريخهما حسب تقويم أم القرى عند إعلانها. اليوم الوطني 23 سبتمبر ويوم التأسيس 22 فبراير.',
+  hoSuggest:'إضافة يوم التأسيس واليوم الوطني للسنة القادمة',
   hrPeople:'الموظفون', hrTeamSec:'فريقي', hrOrg:'الهيكل التنظيمي', hrPositions:'الوظائف', hrApprovals:'اعتماد الرواتب',
   hrExpiring:'الوثائق والانتهاء', hrImport:'استيراد من Excel', hrSearch:'ابحث بالاسم أو الرقم', hrAllDepts:'كل الإدارات',
   hrHeadcount:'الموظفون النشطون', hrSaudis:'السعوديون', hrSaudiPct:'نسبة التوطين المرجحة', hrNoPkg:'سعوديون بلا راتب معتمد',
@@ -60,6 +69,15 @@ Object.assign(T.ar, {
   e_too_many_rows:'الملف أكبر من 2000 صف.', e_not_found:'السجل غير موجود.', e_missing_fields:'أكمل الحقول المطلوبة.'
 });
 Object.assign(T.en, {
+  hrInbox:'Requests', hrLeave:'Leave', hrHolidays:'Public holidays', inMine:'Waiting for me', inAll:'All requests', inAllStatus:'Any status',
+  inEmpty:'Nothing is waiting for you.', inEmptyAll:'No requests.', inApprove:'Approve', inReject:'Reject', inNote:'Note to the employee (needed to reject)',
+  inDone:'Approved', inRejectedT:'Rejected', inBalance:'Available after pending requests', inAfter:'after this', inOnBehalf:'You approve on the manager\'s behalf',
+  lvMonthEmpty:'No leave this month.', lvApproved:'Approved', lvPendingK:'Waiting approval', lvHolidayK:'Public holiday', lvBalances:'Leave balances',
+  lvEmp:'Employee', lvAvail:'Available', lvUsedK:'Used', lvOpeningK:'Carried over', lvEditOpening:'Edit carried-over balance', lvOpenDays:'Days carried over',
+  lvOpenAsOf:'As of', lvOpenLead:'The balance from the old system up to this date. Accrual continues automatically after it.', lvOnLeave:'On leave today',
+  hoAdd:'Add holiday', hoFrom:'From', hoTo:'To', hoName:'Holiday name (Arabic)', hoNameEn:'Name in English', hoEmpty:'No holidays yet.', hoDelete:'Delete',
+  hoLead:'Add Eid al-Fitr and Eid al-Adha with their Umm al-Qura dates when announced. National Day is 23 September and Founding Day 22 February.',
+  hoSuggest:'Add Founding Day and National Day for next year',
   hrPeople:'People', hrTeamSec:'My team', hrOrg:'Organisation', hrPositions:'Positions', hrApprovals:'Salary approvals',
   hrExpiring:'Documents and expiries', hrImport:'Import from Excel', hrSearch:'Search by name or number', hrAllDepts:'All departments',
   hrHeadcount:'Active employees', hrSaudis:'Saudis', hrSaudiPct:'Weighted Saudization', hrNoPkg:'Saudis without an approved salary',
@@ -148,6 +166,8 @@ var COLS = [
   ['dailyHours', 'ساعات العمل يوميا', 'Working hours a day', 0, 'من 1 إلى 12', '1 to 12'],
   ['annualLeaveDays', 'أيام الإجازة السنوية', 'Annual leave days', 0, '21 على الأقل', 'at least 21'],
   ['noticeDays', 'فترة الإشعار بالأيام', 'Notice days', 0, 'أرقام', 'digits'],
+  ['leaveOpeningDays', 'رصيد الإجازة المنقول', 'Leave balance carried over', 0, 'أيام متبقية من النظام السابق', 'days left from the old system'],
+  ['leaveOpeningDate', 'تاريخ الرصيد المنقول', 'Carried-over balance date', 0, 'يوم/شهر/سنة، عادة يوم بدء النظام', 'dd/mm/yyyy, usually the go-live date'],
   ['basic', 'الراتب الأساسي', 'Basic salary', 1, 'مبلغ بالريال', 'amount in SAR'],
   ['housing', 'بدل السكن', 'Housing allowance', 0, 'مبلغ بالريال', 'amount in SAR'],
   ['transport', 'بدل النقل', 'Transport allowance', 0, 'مبلغ بالريال', 'amount in SAR'],
@@ -222,6 +242,16 @@ var css = '' +
 '.hr-check input{width:20px!important;height:20px!important;margin-top:2px}' +
 '.hr-check small{display:block;color:var(--ink-2)}' +
 '.tbl input[type=checkbox]{width:18px;height:18px}' +
+'.lvg-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r-m);background:var(--card)}' +
+'.lvg{display:grid;min-width:max-content;font-size:12px}' +
+'.lvg > div{border-bottom:1px solid #EFECE3;min-height:30px}' +
+'.lvg-name{position:sticky;inset-inline-start:0;background:var(--card);z-index:1;padding:6px 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-inline-end:1px solid var(--line)}' +
+'.lvg-day{display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--ink-2);line-height:1.2;padding:4px 0}' +
+'.lvg-day span{font-size:10px}.lvg-day.we,.lvg-cell.we{background:#FAF9F5}' +
+'.lvg-day.ho,.lvg-cell.ho{background:repeating-linear-gradient(45deg,#ECE8DD 0 4px,#F6F4EE 4px 8px)}' +
+'.lvg-cell{position:relative}.lvg-cell.on::after{content:"";position:absolute;inset:6px 1px;border-radius:4px;background:var(--brand)}' +
+'.lvg-cell.on.pending::after{background:var(--amber)}' +
+'.lv-legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;color:var(--ink-2)}.lv-legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-inline-end:5px;vertical-align:middle}' +
 '@media (min-width:1024px){' +
   '.hr-shell{display:grid;grid-template-columns:230px minmax(0,1fr);max-width:1440px;width:calc(100% - 56px);margin:0 auto 28px;background:var(--paper);border-radius:32px;min-height:calc(100dvh - 120px)}' +
   '.hr-rail{flex-direction:column;padding:26px 14px;border-inline-end:1px solid var(--line);overflow:visible}' +
@@ -280,10 +310,13 @@ function orgThen(fn){
 // ---------------- shell ----------------
 function sections(){
   var r = roles(), s = [];
+  if (r.hr || r.payroll || r.manager) s.push(['inbox', ph('tray'), t('hrInbox')]);
   if (r.hr) s.push(['people', ph('users-three'), t('hrPeople')]);
   if (r.manager) s.push(['team', ph('users'), t('hrTeamSec')]);
   if (r.hr) s.push(['org', ph('tree-structure'), t('hrOrg')], ['positions', ph('briefcase'), t('hrPositions')]);
   if (r.hr || r.payroll) s.push(['approvals', ph('seal-check'), t('hrApprovals')]);
+  if (r.hr || r.manager) s.push(['leave', ph('calendar-dots'), t('hrLeave')]);
+  if (r.hr) s.push(['holidays', ph('confetti'), t('hrHolidays')]);
   if (r.hr) s.push(['expiring', ph('calendar-x'), t('hrExpiring')], ['import', ph('microsoft-excel-logo'), t('hrImport')]);
   return s;
 }
@@ -298,13 +331,15 @@ function render(main){
   if (!secs.length) { S.tab = 'file'; return renderShell(); }
   if (!secs.some(function(s){ return s[0] === S.hrSec; })) S.hrSec = secs[0][0];
   main.innerHTML = '<div class="hr-shell"><nav class="hr-rail" aria-label="' + t('tabHr') + '">' + secs.map(function(s){
-    return '<button type="button" data-s="' + s[0] + '"' + (S.hrSec === s[0] ? ' aria-current="page"' : '') + '>' + s[1] + '<span>' + s[2] + '</span>' + (s[0] === 'approvals' ? '<span class="badge hidden" id="apBadge"></span>' : '') + '</button>';
+    return '<button type="button" data-s="' + s[0] + '"' + (S.hrSec === s[0] ? ' aria-current="page"' : '') + '>' + s[1] + '<span>' + s[2] + '</span>' + (s[0] === 'approvals' ? '<span class="badge hidden" id="apBadge"></span>' : s[0] === 'inbox' ? '<span class="badge hidden" id="inBadge"></span>' : '') + '</button>';
   }).join('') + '</nav><div class="hr-body" id="hrBody"></div></div>';
   $$('.hr-rail button').forEach(function(b){ b.onclick = function(){ S.hrSec = b.dataset.s; render(main); }; });
   var body = $('#hrBody');
-  ({ people: people, team: team, org: org, positions: positions, approvals: approvals, expiring: expiring, import: importer })[S.hrSec](body);
+  ({ inbox: inbox, leave: leaveSec, holidays: holidaysSec, people: people, team: team, org: org, positions: positions, approvals: approvals, expiring: expiring, import: importer })[S.hrSec](body);
+  apiFresh('reqInbox', {}, function(r){ if (r.ok) setBadge('inBadge', r.rows.length); }, true);
   if (roles().hr || roles().payroll) api('hrCompList', { status: 'pending' }, true).then(function(r){ if (r.ok) setApBadge(r.rows.filter(function(x){ return !x.mine; }).length); });
 }
+function setBadge(id, n){ var b = $('#' + id); if (!b) return; b.textContent = n; b.classList.toggle('hidden', !n); }
 function setApBadge(n){ var b = $('#apBadge'); if (!b) return; b.textContent = n; b.classList.toggle('hidden', !n); }
 
 // ---------------- people ----------------
@@ -766,6 +801,134 @@ function importer(body){
       });
     };
   }
+}
+
+// ---------------- requests waiting for me ----------------
+function inbox(body){
+  var scope = roles().hr ? (S.inScope || 'mine') : 'mine', status = S.inStatus != null ? S.inStatus : 'pending';
+  body.innerHTML = '<div class="hr-h"><h2>' + t('hrInbox') + '</h2>' + (roles().hr ? '<div class="hr-seg" role="group"><button type="button" data-sc="mine" aria-pressed="' + (scope === 'mine') + '">' + t('inMine') + '</button><button type="button" data-sc="all" aria-pressed="' + (scope === 'all') + '">' + t('inAll') + '</button></div>' +
+    (scope === 'all' ? '<select id="inSt" style="height:38px;border:1px solid var(--line);border-radius:var(--r-s);background:var(--card);padding:0 10px">' + opt('', t('inAllStatus'), status) + ['pending', 'approved', 'rejected', 'cancelled'].map(function(x){ return opt(x, t('rs_' + x), status); }).join('') + '</select>' : '') : '') + '</div><div id="inBody"></div>';
+  $$('[data-sc]', body).forEach(function(b){ b.onclick = function(){ S.inScope = b.dataset.sc; inbox(body); }; });
+  var ss = $('#inSt', body); if (ss) ss.onchange = function(){ S.inStatus = this.value; inbox(body); };
+  var el = $('#inBody', body);
+  loading(el);
+  apiFresh('reqInbox', scope === 'all' ? { scope: 'all', status: status } : {}, function(r){
+    if (!r.ok) return failed(el, function(){ inbox(body); });
+    if (scope === 'mine') setBadge('inBadge', r.rows.length);
+    if (!r.rows.length) { el.innerHTML = '<div class="empty">' + ph('tray') + '<b>' + (scope === 'mine' ? t('inEmpty') : t('inEmptyAll')) + '</b></div>'; return; }
+    el.innerHTML = '<div class="list" style="padding:0 14px">' + r.rows.map(function(o){ return Req.rowHtml(o, { who: true, actions: actions }); }).join('') + '</div>';
+    $$('[data-more]', el).forEach(function(m){ if (scope === 'mine') m.classList.remove('hidden'); });
+    Req.wireList(el, r.rows, null, function(){ inbox(body); });
+    $$('[data-dec]', el).forEach(function(b){ b.onclick = function(){
+      var id = b.dataset.id, note = (el.querySelector('[data-note="' + id + '"]') || {}).value || '';
+      $$('[data-id="' + id + '"]', el).forEach(function(x){ x.disabled = true; });
+      api('reqDecide', { id: id, decision: b.dataset.dec, note: note }).then(function(x){
+        if (!x.ok) { $$('[data-id="' + id + '"]', el).forEach(function(y){ y.disabled = false; }); var e = el.querySelector('[data-err="' + id + '"]'); if (e) e.textContent = errText(x.error); return; }
+        toast((b.dataset.dec === 'approve' ? t('inDone') : t('inRejectedT')) + ' ' + x.request.ref); inbox(body);
+      });
+    }; });
+    $$('[data-hrprint]', el).forEach(function(b){ b.onclick = function(){
+      var o = r.rows.filter(function(x){ return x.id === b.dataset.hrprint; })[0];
+      api('hrEmpFile', { id: o.emp.id }).then(function(f){ if (f.ok) Req.printLetter(o, f.file); else toast(errText(f.error)); });
+    }; });
+  });
+  function actions(o){
+    var h = '';
+    if (o.balance) h += '<p class="hr-hint" style="margin:0 0 8px">' + t('inBalance') + ': <b class="num">' + Number(o.balance.available).toLocaleString(LOCALE(), { maximumFractionDigits: 1 }) + '</b>' +
+      '</p>';
+    if (o.canAct) {
+      h += (o.step === 'manager' && roles().hr && !roles().manager ? '<p class="hr-hint" style="margin:0 0 6px">' + t('inOnBehalf') + '</p>' : '') +
+        '<div class="form" style="gap:8px;margin-bottom:12px"><textarea data-note="' + o.id + '" placeholder="' + t('inNote') + '" maxlength="300" style="height:60px"></textarea>' +
+        '<div class="err" data-err="' + o.id + '" style="color:var(--red)"></div><div class="btnrow" style="margin:0"><button type="button" class="btn btn-dark btn-sm" data-dec="approve" data-id="' + o.id + '">' + ph('check') + t('inApprove') + '</button>' +
+        '<button type="button" class="btn btn-line btn-sm" data-dec="reject" data-id="' + o.id + '">' + t('inReject') + '</button></div></div>';
+    }
+    if (o.type === 'letter' && o.status === 'approved' && roles().hr) h += '<div class="btnrow" style="margin:0 0 12px"><button type="button" class="btn btn-dark btn-sm" data-hrprint="' + o.id + '">' + ph('printer') + t('rqPrint') + '</button></div>';
+    return h;
+  }
+}
+
+// ---------------- team leave calendar and balances ----------------
+function leaveSec(body){
+  var m = S.lvMonth || riyadhToday().slice(0, 7);
+  var shift = function(n){ var p = m.split('-'), d = new Date(Date.UTC(+p[0], +p[1] - 1 + n, 1)); S.lvMonth = d.toISOString().slice(0, 7); leaveSec(body); };
+  var label = new Date(Date.UTC(+m.slice(0, 4), +m.slice(5, 7) - 1, 15)).toLocaleDateString(LOCALE(), { month: 'long', year: 'numeric' });
+  body.innerHTML = '<div class="hr-h"><h2>' + t('hrLeave') + '</h2><div class="monthbar" style="margin:0"><button class="iconbtn" type="button" id="lvPrev" aria-label="previous">' + (S.lang === 'ar' ? I.chev : I.chevb) + '</button><b>' + esc(label) + '</b>' +
+    '<button class="iconbtn" type="button" id="lvNext" aria-label="next">' + (S.lang === 'ar' ? I.chevb : I.chev) + '</button></div></div><div id="lvCal"></div>' + (roles().hr ? '<h3 class="hr-sub">' + t('lvBalances') + '</h3><div id="lvBal"></div>' : '');
+  $('#lvPrev', body).onclick = function(){ shift(-1); }; $('#lvNext', body).onclick = function(){ shift(1); };
+  var cal = $('#lvCal', body); loading(cal);
+  apiFresh('leaveTeam', { month: m }, function(r){
+    if (!r.ok) return failed(cal, function(){ leaveSec(body); });
+    var days = [], d = m + '-01';
+    while (d.slice(0, 7) === m) { days.push(d); d = new Date(Date.parse(d + 'T00:00:00Z') + 86400000).toISOString().slice(0, 10); }
+    var hol = {}; r.holidays.forEach(function(h){ hol[h.date] = h.name; });
+    var people = {}, order = [];
+    r.rows.forEach(function(x){ if (!people[x.emp.id]) { people[x.emp.id] = { emp: x.emp, list: [] }; order.push(x.emp.id); } people[x.emp.id].list.push(x); });
+    if (!order.length && !r.holidays.length) { cal.innerHTML = '<div class="empty">' + ph('calendar-dots') + '<b>' + t('lvMonthEmpty') + '</b></div>'; return; }
+    var cols = '150px repeat(' + days.length + ', minmax(22px, 1fr))';
+    var head = '<div class="lvg-name"></div>' + days.map(function(x){ var n = new Date(x + 'T00:00:00Z').getUTCDay(); return '<div class="lvg-day' + (n === 5 || n === 6 ? ' we' : '') + (hol[x] ? ' ho' : '') + '" title="' + esc(hol[x] || '') + '"><span>' + t('dows')[n].slice(0, 1) + '</span><b class="num">' + (+x.slice(8)) + '</b></div>'; }).join('');
+    var rows = order.map(function(id){
+      var p = people[id];
+      return '<div class="lvg-name" title="' + esc(p.emp.name) + '">' + esc(p.emp.name) + '</div>' + days.map(function(x){
+        var hit = p.list.filter(function(l){ return l.fromDate <= x && l.toDate >= x; })[0];
+        var n = new Date(x + 'T00:00:00Z').getUTCDay();
+        return '<div class="lvg-cell' + (n === 5 || n === 6 ? ' we' : '') + (hol[x] ? ' ho' : '') + (hit ? ' on ' + hit.status : '') + '"' + (hit ? ' title="' + esc(t('lt_' + hit.subtype) + ' ' + hit.ref) + '"' : '') + '></div>';
+      }).join('');
+    }).join('');
+    cal.innerHTML = '<div class="lvg-wrap"><div class="lvg" style="grid-template-columns:' + cols + '">' + head + rows + '</div></div>' +
+      '<div class="lv-legend" style="margin-top:8px"><span><i style="background:var(--brand)"></i>' + t('lvApproved') + '</span><span><i style="background:var(--amber)"></i>' + t('lvPendingK') + '</span><span><i style="background:#D9D4C7"></i>' + t('lvHolidayK') + '</span></div>' +
+      (r.holidays.length ? '<p class="hr-hint">' + r.holidays.filter(function(h, i, a){ return !i || a[i - 1].name !== h.name; }).map(function(h){ return esc(h.name) + ' (' + Req.fmtDate(h.date) + ')'; }).join('، ') + '</p>' : '');
+  });
+  if (!roles().hr) return;
+  var bal = $('#lvBal', body); loading(bal);
+  apiFresh('leaveBalances', {}, function(r){
+    if (!r.ok) return failed(bal, function(){ leaveSec(body); });
+    var f1 = function(n){ return Number(n || 0).toLocaleString(LOCALE(), { maximumFractionDigits: 1 }); };
+    bal.innerHTML = '<div class="tblwrap"><table class="tbl"><thead><tr><th>' + t('lvEmp') + '</th><th class="hr-amt">' + t('lvAvail') + '</th><th class="hr-amt">' + t('lvUsedK') + '</th><th class="hr-amt">' + t('lvPending') + '</th><th class="hr-amt">' + t('lvOpeningK') + '</th><th class="hr-amt">' + t('lvSick') + '</th><th></th></tr></thead><tbody>' +
+      r.rows.sort(function(a, b){ return String(a.emp.name).localeCompare(b.emp.name, 'ar'); }).map(function(x){
+        return '<tr><td><b style="font-weight:500">' + esc(x.emp.name) + '</b> <small class="num" style="color:var(--ink-2)">' + esc(x.emp.empNo) + '</small>' + (x.onLeaveToday ? ' <span class="chip leave">' + t('lvOnLeave') + '</span>' : '') + '</td>' +
+          '<td class="hr-amt"><b>' + f1(x.annual.available) + '</b></td><td class="hr-amt">' + f1(x.annual.used) + '</td><td class="hr-amt">' + f1(x.annual.pending) + '</td>' +
+          '<td class="hr-amt">' + (x.openingDays != null ? f1(x.openingDays) + ' <small style="color:var(--ink-2)">' + Req.fmtDate(x.openingDate) + '</small>' : '') + '</td><td class="hr-amt">' + x.sick.used + '</td>' +
+          '<td>' + (x.emp.id !== S.me.id ? '<button type="button" class="btn btn-line btn-sm" data-open="' + x.emp.id + '">' + ph('pencil-simple') + '</button>' : '') + '</td></tr>';
+      }).join('') + '</tbody></table></div>';
+    $$('[data-open]', bal).forEach(function(b){ b.onclick = function(){ openingDrawer(r.rows.filter(function(x){ return x.emp.id === b.dataset.open; })[0], function(){ leaveSec(body); }); }; });
+  });
+}
+function openingDrawer(x, done){
+  var dr = drawer('<h3>' + t('lvEditOpening') + '</h3><p class="hr-hint">' + esc(x.emp.name) + '</p><form class="form" id="opf">' +
+    '<div class="two">' + inp('days', t('lvOpenDays'), x.openingDays != null ? x.openingDays : '', ' type="number" step="0.5" min="-60" max="365" required') + dateInp('asOf', t('lvOpenAsOf'), x.openingDate || riyadhToday()) + '</div>' +
+    '<p class="hr-hint">' + t('lvOpenLead') + '</p><div class="err" id="operr" style="color:var(--red)"></div><div class="btnrow"><button class="btn btn-dark">' + t('save') + '</button><button type="button" class="btn btn-line" id="opc">' + t('cancel') + '</button></div></form>');
+  $('#opc', dr).onclick = function(){ dr.remove(); };
+  $('#opf', dr).onsubmit = function(ev){ ev.preventDefault(); var v = formData(this);
+    api('leaveOpeningSave', { empId: x.emp.id, days: v.days, asOf: v.asOf }).then(function(r){ if (!r.ok) return showErr($('#operr', dr), r); dr.remove(); toast(t('saved')); done(); }); };
+}
+
+// ---------------- public holidays ----------------
+function holidaysSec(body){
+  body.innerHTML = '<div class="hr-h"><h2>' + t('hrHolidays') + '</h2><button type="button" class="btn btn-dark btn-sm" id="hoAdd">' + ph('plus') + t('hoAdd') + '</button></div><p class="hr-hint" style="margin:-6px 0 14px">' + t('hoLead') + '</p><div id="hoBody"></div>';
+  var el = $('#hoBody', body); loading(el);
+  $('#hoAdd', body).onclick = function(){ holidayDrawer(null, function(){ holidaysSec(body); }); };
+  apiFresh('holidayList', {}, function(r){
+    if (!r.ok) return failed(el, function(){ holidaysSec(body); });
+    var next = String(Number(riyadhToday().slice(0, 4)) + 1), has = function(d){ return r.rows.some(function(h){ return h.date <= d && h.toDate >= d; }); };
+    var missing = [[next + '-02-22', 'يوم التأسيس', 'Founding Day'], [next + '-09-23', 'اليوم الوطني', 'National Day']].filter(function(x){ return !has(x[0]); });
+    el.innerHTML = (r.rows.length ? '<div class="list">' + r.rows.map(function(h){
+      return '<div class="row"><div class="av">' + ph('confetti') + '</div><div class="main"><b>' + esc(lang(h.nameAr, h.nameEn)) + '</b><small class="num">' + Req.fmtDate(h.date) + (h.toDate !== h.date ? ' - ' + Req.fmtDate(h.toDate) : '') + '</small></div>' +
+        '<button type="button" class="btn btn-line btn-sm" data-edit="' + h.id + '">' + ph('pencil-simple') + '</button><button type="button" class="btn btn-danger btn-sm" data-del="' + h.id + '">' + t('hoDelete') + '</button></div>';
+    }).join('') + '</div>' : '<div class="empty">' + ph('confetti') + '<b>' + t('hoEmpty') + '</b></div>') +
+      (missing.length ? '<div class="btnrow" style="margin-top:12px"><button type="button" class="btn btn-line btn-sm" id="hoSug">' + ph('magic-wand') + t('hoSuggest') + '</button></div>' : '');
+    $$('[data-edit]', el).forEach(function(b){ b.onclick = function(){ holidayDrawer(r.rows.filter(function(h){ return h.id === b.dataset.edit; })[0], function(){ holidaysSec(body); }); }; });
+    $$('[data-del]', el).forEach(function(b){ b.onclick = function(){ b.disabled = true; api('holidayDelete', { id: b.dataset.del }).then(function(x){ if (!x.ok) { b.disabled = false; return toast(errText(x.error)); } holidaysSec(body); }); }; });
+    var sg = $('#hoSug', el);
+    if (sg) sg.onclick = function(){ sg.disabled = true; missing.reduce(function(p, x){ return p.then(function(){ return api('holidaySave', { holiday: { date: x[0], nameAr: x[1], nameEn: x[2] } }); }); }, Promise.resolve()).then(function(){ holidaysSec(body); }); };
+  });
+}
+function holidayDrawer(h, done){
+  var dr = drawer('<h3>' + (h ? esc(h.nameAr) : t('hoAdd')) + '</h3><form class="form" id="hof"><div class="two">' + dateInp('date', t('hoFrom'), h ? h.date : '') + dateInp('toDate', t('hoTo'), h ? h.toDate : '') + '</div>' +
+    inp('nameAr', t('hoName'), h ? h.nameAr : '', ' required maxlength="80"') + inp('nameEn', t('hoNameEn'), h ? h.nameEn : '', ' dir="ltr" maxlength="80"') +
+    '<div class="err" id="hoerr" style="color:var(--red)"></div><div class="btnrow"><button class="btn btn-dark">' + t('save') + '</button><button type="button" class="btn btn-line" id="hoc">' + t('cancel') + '</button></div></form>');
+  $('#hoc', dr).onclick = function(){ dr.remove(); };
+  $('#hof', dr).onsubmit = function(ev){ ev.preventDefault(); var v = formData(this); if (h) v.id = h.id; if (!v.toDate) v.toDate = v.date;
+    api('holidaySave', { holiday: v }).then(function(r){ if (!r.ok) return showErr($('#hoerr', dr), r); dr.remove(); toast(t('saved')); done(); }); };
 }
 
 window.HrConsole = { render: render, openEmp: openEmp };

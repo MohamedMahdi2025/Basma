@@ -48,14 +48,19 @@ let r, q;
 
 console.log('Annual balance (Art. 109)');
 r = call('5002', 'myRequests');
-const exp5002 = 1826 * 21 / 365 + 112 * 30 / 365; // 21 a year to the 5th anniversary, 30 a year after
-ok(r.ok && near(r.leave.annual.balance, exp5002) && r.leave.annual.perYear === 30, 'over 5 years: 21 a year until the 5th anniversary, then 30', { got: r.leave.annual, want: exp5002 });
+const exp5002 = 34 * 30 / 365; // 30 a year (over 5 years' service), from the go-live on 1 September
+ok(r.ok && near(r.leave.annual.balance, exp5002) && r.leave.annual.perYear === 30 && r.leave.annual.openingMissing, 'no carried-over balance yet: counts from the go-live at 30 a year, and says so', { got: r.leave.annual, want: exp5002 });
+ok(near(B.ctx.accrueBetween_(E('5002'), '2021-06-15', '2026-10-04'), 1826 * 21 / 365 + 112 * 30 / 365), 'accrual: 21 a year until the 5th anniversary, then 30 (Art. 109)');
 r = call('3001', 'leaveOpeningSave', { empId: ids['5003'], days: 10, asOf: '2026-09-30' });
 ok(r.ok, 'HR records a balance carried over from the old system', r);
 r = call('3001', 'leaveOpeningSave', { empId: ids['3001'], days: 99, asOf: '2026-09-30' });
 ok(!r.ok && r.error === 'cannot_change_own_balance', 'HR cannot set their own balance', r);
 r = call('5003', 'myRequests');
 ok(near(r.leave.annual.balance, 10 + 4 * 21 / 365, 0.01), 'opening balance plus what accrued since (4 days at 21 a year)', r.leave.annual);
+
+call('3001', 'leaveOpeningSave', { empId: ids['5002'], days: 20, asOf: '2026-09-30' });
+const open5002 = 20 + 4 * 30 / 365;
+ok(near(call('5002', 'myRequests').leave.annual.balance, open5002, 0.01), 'with 20 days carried over at go-live, the balance is 20 plus what accrued since');
 
 console.log('Annual leave request and approval chain');
 r = call('3001', 'holidaySave', { holiday: { date: '2026-10-13', nameAr: 'عطلة تجريبية' } });
@@ -70,7 +75,7 @@ const lv1 = r.request.id;
 r = ask('5002', { type: 'leave', subtype: 'annual', fromDate: '2026-10-15', toDate: '2026-10-19' });
 ok(!r.ok && r.error === 'overlaps', 'a second leave on the same days is refused', r);
 r = call('5002', 'myRequests');
-ok(near(r.leave.annual.pending, 4) && near(r.leave.annual.available, exp5002 - 4), 'pending days are reserved', r.leave.annual);
+ok(near(r.leave.annual.pending, 4) && near(r.leave.annual.available, open5002 - 4), 'pending days are reserved', r.leave.annual);
 r = decide('5002', lv1, 'approve');
 ok(!r.ok && r.error === 'cannot_decide_own', 'nobody approves their own request', r);
 r = decide('5003', lv1, 'approve');
@@ -182,6 +187,10 @@ ok(r.ok && r.request.ref === 'RS-2026-00001' && r.request.warnings.includes('sho
 decide('5001', r.request.id, 'approve'); decide('3001', r.request.id, 'approve');
 ok(E('5002').lastWorkingDay === '2026-10-20' && E('5002').resignedOn === '2026-10-04', 'approved: the last working day is on the file');
 ok(!ask('5002', { type: 'resignation' }).ok, 'and a second resignation is refused');
+
+direct(() => B.ctx.append_('requests', { id: 'RX', ref: 'LV-2026-00005', empId: ids['5004'], type: 'leave', subtype: 'unpaid', fromDate: '2027-03-01', toDate: '2027-03-01', days: 1, status: 'rejected', step: 'hr', stepsJson: '[]', payloadJson: '{}', effectJson: '{}', createdAt: '2026-10-04T00:00:00Z' }));
+r = ask('5004', { type: 'leave', subtype: 'unpaid', fromDate: '2027-04-01', toDate: '2027-04-01' });
+ok(r.ok && r.request.ref !== 'LV-2026-00005' && /^LV-2026-[0-9]{5}$/.test(r.request.ref), 'a number already in the sheet is never handed out again', r.request && r.request.ref);
 
 console.log('Team calendar and balances');
 r = call('5001', 'leaveTeam', { month: '2026-10' });
