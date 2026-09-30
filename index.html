@@ -1335,7 +1335,7 @@ function api(action, payload, quiet){
 var READ_CACHE = {};
 var CLIENT_READS = { myFile: 1, myRequests: 1, hrBootstrap: 1, hrCompList: 1, hrExpiring: 1, hrTeam: 1, hrEmpFile: 1, reqInbox: 1,
   leaveTeam: 1, holidayList: 1, leaveBalances: 1, myHistory: 1, me: 1, board: 1, empList: 1, zoneList: 1, report: 1, reviewList: 1,
-  auditList: 1, settingsGet: 1, requestQuote: 1, hrDirectory: 1, hrDeptList: 1, hrPositionList: 1, hrDocList: 1, hrImportValidate: 1,
+  auditList: 1, settingsGet: 1, requestQuote: 1, mySlips: 1, payrollList: 1, eosQuote: 1, hrDirectory: 1, hrDeptList: 1, hrPositionList: 1, hrDocList: 1, hrImportValidate: 1,
   authBegin: 1, punchBegin: 1, bootstrapStatus: 1, ping: 1 };
 /** onData(result, fromMemory) runs once from memory (if any) and again only when the fresh answer differs. */
 function apiFresh(action, payload, onData, quiet){
@@ -1955,8 +1955,8 @@ function renderShell(){
   $$('.tabs button').forEach(function(b){ b.onclick = function(){ S.tab = b.dataset.tab; renderShell(); }; });
   if (S.tab === 'home') renderHome();
   else if (S.tab === 'history') renderHistory();
-  else if (S.tab === 'file') lazyScreen(['js/my-file.js', 'js/requests.js'], function(m){ MyFile.render(m); });
-  else if (S.tab === 'hr') lazyScreen(['js/my-file.js', 'js/requests.js', 'js/hr-console.js'], function(m){ HrConsole.render(m); });
+  else if (S.tab === 'file') lazyScreen(['js/my-file.js', 'js/requests.js', 'js/payroll.js'], function(m){ MyFile.render(m); });
+  else if (S.tab === 'hr') lazyScreen(['js/my-file.js', 'js/requests.js', 'js/payroll.js', 'js/hr-console.js'], function(m){ HrConsole.render(m); });
   else if (S.tab === 'admin') renderAdmin();
   else renderMe();
 }

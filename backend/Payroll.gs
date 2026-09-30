@@ -397,7 +397,7 @@ function api_payrollExport(req, me) {
 
 function api_eosQuote(req, me) {
   if (!canPayroll_(me)) fail_('forbidden');
-  var emp = findBy_(SHEETS.EMP, 'id', req.empId);
+  var emp = req.empId ? findBy_(SHEETS.EMP, 'id', req.empId) : empByNo_(req.empNo);
   if (!emp) fail_('not_found');
   var last = isoDate_(req.lastDay) || String(emp.lastWorkingDay || '').slice(0, 10) || today_();
   var hire = String(emp.hireDate || '').slice(0, 10);
@@ -471,7 +471,7 @@ var PAY_LABELS_AR = { basic: 'الراتب الأساسي', housing: 'بدل ا�
   late: 'دقائق التأخير', gosi: 'التأمينات الاجتماعية (حصة الموظف)', advance: 'قسط سلفة', fine: 'جزاء', other_deduction: 'خصم آخر' };
 function payslipEmailHtml_(sl) {
   var e = sl.emp || {}, m = function (n) { return Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
-  var row = function (l) { return '<tr><td style="padding:6px 8px;border-bottom:1px solid #eee">' + (l.code === 'allowance' ? PAY_LABELS_AR.allowance + ' ' + (l.label || '') : (PAY_LABELS_AR[l.code] || l.code)) + (l.ref ? ' (' + l.ref + ')' : '') + '</td><td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:left">' + m(l.amount) + '</td></tr>'; };
+  var row = function (l) { return '<tr><td style="padding:6px 8px;border-bottom:1px solid #eee">' + (l.code === 'allowance' ? (/^بدل/.test(String(l.label || '')) ? l.label : PAY_LABELS_AR.allowance + ' ' + (l.label || '')) : (PAY_LABELS_AR[l.code] || l.code)) + (l.ref ? ' (' + l.ref + ')' : '') + '</td><td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:left">' + m(l.amount) + '</td></tr>'; };
   return '<div dir="rtl" style="font-family:Tahoma,Arial,sans-serif;color:#17221A;max-width:560px">' +
     '<h2 style="color:#1C2A1F;margin:0 0 4px">قسيمة الراتب لشهر ' + sl.month + '</h2><p style="margin:0 0 14px;color:#4A5A4D">' + (e.name || '') + '، الرقم الوظيفي ' + (e.empNo || '') + '، المرجع ' + sl.ref + '</p>' +
     '<table style="width:100%;border-collapse:collapse;font-size:14px"><tr><th colspan="2" style="text-align:right;padding:6px 8px;background:#F2EEE4">الاستحقاقات</th></tr>' +

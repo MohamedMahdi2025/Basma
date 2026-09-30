@@ -155,3 +155,20 @@ before hr-console), tests `tests/leave.js`. Tabs `requests`, `holidays`; employe
   screen passes no `off`, so sign-in reads nothing new.
 - Numbers: LV/LT/AD/AC/DC/RS-YYYY-00001 via `nextRef_(kind, refsOf_(tab))` (never reuses a number already in
   the sheet). Prefixes renameable with the `refPrefixes` setting (JSON).
+
+## HR (Phase 3, live 2026-09-30): payroll
+
+`backend/Payroll.gs`, `js/payroll.js` (HR section "الرواتب" and the payslip in "ملفي"), tests `tests/payroll.js`.
+Tabs `payrollRuns`, `payslips`, `adjustments`. Plan: docs/superpowers/plans/2026-09-30-hr-phase3-payroll.md.
+- `calcSlip_` itemises every line: package on the month's last day (monthly/30, partial months by days),
+  unpaid and sick-tier leave, absence (setting deductAbsence), late minutes (deductLateMinutes, off),
+  Art. 107 overtime from `overtime_hours` adjustments (or attendance with payOvertimeFromAttendance),
+  GOSI by cohort and month (legacy 9.75/11.75; new law steps each July to 11.75/13.75; non-Saudi 0/2),
+  advance instalments until repaid (repaid = locked payslip lines), fines capped at 5 days (Art. 70),
+  deductions capped at 50% of wage due (advances deferred first).
+- Draft by hr or payroll; approved and locked by a payroll holder who did not prepare or last recalculate.
+  Locked is final: no recalc, no adjustments for that month. Payslips show to employees only when locked.
+- Email: `payrollEmail` uses Microsoft Graph with script properties M365_TENANT, M365_CLIENT_ID,
+  M365_CLIENT_SECRET, M365_SENDER. **Also needs `https://www.googleapis.com/auth/script.external_request`
+  in appsscript.json oauthScopes and the owner re-running `authorize`** (deploy that only when the user can
+  click, or every request breaks). Until then it answers email_not_configured; it never uses Gmail.
