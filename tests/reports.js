@@ -79,7 +79,7 @@ ok(r.ok && r.reports.some(x => x.id === 'audit_log') && !r.reports.some(x => x.a
 r = call('3005', 'reportCatalog');
 ok(r.ok && r.reports.some(x => x.id === 'pay_cost') && !r.reports.some(x => x.id === 'pay_register'), 'executive: department cost, never the per-person register');
 r = call('3002', 'reportCatalog');
-ok(r.ok && r.reports.some(x => x.id === 'pay_register') && r.reports.length === 18 - 1, 'payroll: every report except the audit log', r.reports.length);
+ok(r.ok && r.reports.some(x => x.id === 'pay_register') && r.reports.length === 19 - 1, 'payroll: every report except the audit log', r.reports.length);
 r = run('1000', 'pay_register');
 ok(!r.ok && r.error === 'forbidden', 'admin cannot run the payroll register', r);
 
@@ -157,6 +157,9 @@ const yrs = (Date.parse('2026-10-31') - Date.parse('2019-01-01')) / 864e5 + 1;
 ok(r.ok && near(eo.years, yrs / 365, 0.01) && near(eo.awardFull, 5 * 12150 / 2 + (yrs / 365 - 5) * 12150, 1), 'EOS liability: half a month for five years, a month after', eo);
 ok(near(eo.awardResignation, eo.awardFull * 2 / 3, 1), 'resignation after 5-10 years: two thirds (Art. 85)');
 
+r = run('3002', 'pay_equity');
+ok(r.ok && r.rows.length >= 1 && r.columns.some(c => c.key === 'genderGap') && r.checks.some(c => c.code === 'no_gender'), 'pay equity by position with gender and nationality gaps', r.checks);
+ok(run('5001', 'pay_equity').error === 'forbidden' && run('3005', 'pay_equity').error === 'forbidden', 'pay equity is per-person pay: HR and payroll only');
 console.log('Exports: numbered, fingerprinted, reviewed, verified');
 r = call('3001', 'reportExport', { reportId: 'att_summary', format: 'xlsx', params: { from: '2026-10-01', to: '2026-10-31' } });
 ok(r.ok && /^RPT-2026-00001$/.test(r.export.ref) && /^[0-9a-f]{64}$/.test(r.export.hash), 'the export gets an RPT number and a SHA-256', r.export);

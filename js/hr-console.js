@@ -302,6 +302,8 @@ function daysChip(n){
   return '<span class="chip ' + (n <= 30 ? 'late' : '') + ' num">' + t('exIn') + ' ' + plural(n, 'days') + '</span>';
 }
 function deptName(id){ var d = (H.depts || []).filter(function(x){ return x.id === id; })[0]; return d ? lang(d.nameAr, d.nameEn) : ''; }
+/** The directory for other screens (engage.js): from memory at once, loading it first when needed. */
+window.HrDirLoad = function(cb){ var once = false; orgThen(function(){ if (!once) { once = true; cb(H.dir || []); } }); };
 function roles(){ return S.fileRoles || { hr: isHr(), payroll: false, executive: false, manager: false }; }
 function empOpts(excludeId){ return (H.dir || []).filter(function(e){ return e.status === 'active' && e.id !== excludeId; }).map(function(e){ return [e.id, e.name + ' (' + e.empNo + ')']; }); }
 function loading(el){ el.innerHTML = '<div class="list">' + [0, 1, 2, 3].map(function(){ return '<div class="row"><div class="main"><span class="sk" style="width:45%"></span><span class="sk" style="width:70%"></span></div></div>'; }).join('') + '</div>'; }
@@ -326,6 +328,9 @@ function sections(){
   if (r.hr) s.push(['org', ph('tree-structure'), t('hrOrg')], ['positions', ph('briefcase'), t('hrPositions')]);
   if (r.hr || r.payroll) s.push(['approvals', ph('seal-check'), t('hrApprovals')], ['payroll', ph('money'), t('prTitle')]);
   if (r.hr || r.manager) s.push(['leave', ph('calendar-dots'), t('hrLeave')], ['performance', ph('target'), t('pfTitle')]);
+  if (r.hr || r.manager) s.push(['onboarding', ph('rocket-launch'), t('enOnb')], ['plans', ph('path'), t('enPlans')]);
+  if (r.hr || r.executive || r.payroll) s.push(['engagement', ph('heartbeat'), t('enSurvey')]);
+  if (r.hr) s.push(['policies', ph('book-open-text'), t('enPolicies')]);
   if (r.hr) s.push(['holidays', ph('confetti'), t('hrHolidays')]);
   if (r.hr) s.push(['expiring', ph('calendar-x'), t('hrExpiring')], ['import', ph('microsoft-excel-logo'), t('hrImport')]);
   return s;
@@ -345,7 +350,7 @@ function render(main){
   }).join('') + '</nav><div class="hr-body" id="hrBody"></div></div>';
   $$('.hr-rail button').forEach(function(b){ b.onclick = function(){ S.hrSec = b.dataset.s; render(main); }; });
   var body = $('#hrBody');
-  ({ dashboard: function(b){ Dash.section(b); }, reports: function(b){ Reports.section(b); }, performance: function(b){ Perf.section(b, roles()); }, payroll: function(b){ Payroll.section(b); }, inbox: inbox, leave: leaveSec, holidays: holidaysSec, people: people, team: team, org: org, positions: positions, approvals: approvals, expiring: expiring, import: importer })[S.hrSec](body);
+  ({ dashboard: function(b){ Dash.section(b); }, reports: function(b){ Reports.section(b); }, onboarding: function(b){ Engage.onboarding(b); }, plans: function(b){ Engage.plans(b); }, engagement: function(b){ Engage.engagement(b); }, policies: function(b){ Engage.policies(b); }, performance: function(b){ Perf.section(b, roles()); }, payroll: function(b){ Payroll.section(b); }, inbox: inbox, leave: leaveSec, holidays: holidaysSec, people: people, team: team, org: org, positions: positions, approvals: approvals, expiring: expiring, import: importer })[S.hrSec](body);
   apiFresh('reqInbox', {}, function(r){ if (r.ok) setBadge('inBadge', r.rows.length); }, true);
   if (roles().hr || roles().payroll) api('hrCompList', { status: 'pending' }, true).then(function(r){ if (r.ok) setApBadge(r.rows.filter(function(x){ return !x.mine; }).length); });
 }

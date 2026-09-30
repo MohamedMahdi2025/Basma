@@ -25,6 +25,7 @@ var REPORTS = {
   pay_gosi:         { group: 'payroll',    access: 'money',  params: ['run', 'depts'] },
   pay_cost:         { group: 'payroll',    access: 'cost',   params: ['run'] },
   pay_eos:          { group: 'payroll',    access: 'money',  params: ['asOf', 'depts'] },
+  pay_equity:       { group: 'payroll',    access: 'money',  params: ['depts'] },
   perf_results:     { group: 'performance', access: 'people', params: ['cycle', 'depts'] },
   audit_log:        { group: 'audit',      access: 'audit',  params: ['range', 'auditAction'] }
 };
@@ -438,6 +439,34 @@ var REPORT_FNS = {
       col_('awardResignation', 'money', { sum: true }), col_('leaveDays', 'days', { sum: true }), col_('leavePay', 'money', { sum: true }), col_('liability', 'money', { sum: true })]), rows: rows,
       checks: [noHire ? { level: 'warn', code: 'missing_hire_date', count: noHire } : null, noPkg ? { level: 'warn', code: 'no_package', count: noPkg } : null].filter(Boolean),
       chart: { type: 'hbar', label: 'name', value: 'liability' } };
+  },
+
+  // Pay equity (DEI skill): average monthly package by position, men vs women and Saudi vs non-Saudi, and the gap.
+  // A gap is a question to investigate (experience, grade, tenure), not a finding; groups under 2 people show no average.
+  pay_equity: function (p, me, ctx, scope, s) {
+    var emps = reportEmps_(p, ctx, scope), comps = currentCompMap_(today_()), pos = {}, by = {}, noGender = 0;
+    readAll_(SHEETS.POS).forEach(function (x) { pos[x.id] = x.titleAr; });
+    var add = function (g, key, v) { g[key + 'N']++; g[key + 'S'] += v; };
+    emps.forEach(function (e) {
+      var c = comps[e.id]; if (!c) return;
+      var k = pos[e.positionId] || e.title || deptName_(e, ctx) || '-';
+      var g = by[k] = by[k] || { position: k, headcount: 0, maleN: 0, maleS: 0, femaleN: 0, femaleS: 0, saudiN: 0, saudiS: 0, nonN: 0, nonS: 0, all: 0 };
+      g.headcount++; g.all += c.total;
+      if (e.gender === 'male') add(g, 'male', c.total); else if (e.gender === 'female') add(g, 'female', c.total); else noGender++;
+      if (bool_(e.isSaudi)) add(g, 'saudi', c.total); else add(g, 'non', c.total);
+    });
+    var avg = function (sum, n) { return n >= 2 ? r2_(sum / n) : null; }, gap = function (a, b) { return a && b ? r1_((a - b) / a * 100) : null; }, flagged = 0;
+    var rows = Object.keys(by).map(function (k) {
+      var g = by[k], m = avg(g.maleS, g.maleN), f = avg(g.femaleS, g.femaleN), sa = avg(g.saudiS, g.saudiN), ns = avg(g.nonS, g.nonN);
+      var row = { position: g.position, headcount: g.headcount, average: r2_(g.all / g.headcount), men: g.maleN, menAvg: m, women: g.femaleN, womenAvg: f, genderGap: gap(m, f),
+        saudis: g.saudiN, saudiAvg: sa, nonSaudis: g.nonN, nonSaudiAvg: ns, nationalityGap: gap(sa, ns) };
+      if (Math.abs(row.genderGap || 0) >= 10 || Math.abs(row.nationalityGap || 0) >= 10) flagged++;
+      return row;
+    }).sort(function (a, b) { return b.headcount - a.headcount; });
+    return { columns: [col_('position', 'text'), col_('headcount', 'int', { sum: true }), col_('average', 'money'), col_('men', 'int', { sum: true }), col_('menAvg', 'money'), col_('women', 'int', { sum: true }),
+      col_('womenAvg', 'money'), col_('genderGap', 'pct'), col_('saudis', 'int', { sum: true }), col_('saudiAvg', 'money'), col_('nonSaudis', 'int', { sum: true }), col_('nonSaudiAvg', 'money'), col_('nationalityGap', 'pct')],
+      rows: rows, checks: [flagged ? { level: 'warn', code: 'pay_gap', count: flagged, value: 10 } : null, noGender ? { level: 'info', code: 'no_gender', count: noGender } : null].filter(Boolean),
+      chart: { type: 'hbar', label: 'position', value: 'average' } };
   },
 
   perf_results: function (p, me, ctx, scope, s) {

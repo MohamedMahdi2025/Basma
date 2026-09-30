@@ -214,3 +214,20 @@ totals only), 'audit' (HR, admin). Managers never see advances or the leave liab
   via cdnjs qrcodejs, page x / y in the @page footer, signature lines).
 - Shared chart kit: dashboard.js exports `window.Viz` (tile, card, hbars, cols, lineChart, wireTips...). Load dashboard.js first.
 - Every drawer (index.html `drawer()`) has a close (x) button, Escape and tap-outside; do not build panels without it.
+
+## People programmes (live 2026-09-30, from the installed HR skills)
+
+`backend/Engage.gs`, `js/engage.js` (cards in "ملفي", HR console sections onboarding / plans / engagement / policies),
+tests `tests/engage.js`. Tabs onboarding, surveys, surveyAnswers, policies, policyAcks, devPlans. Refs ONB, SRV, POL, IDP, PIP.
+- Onboarding: HR starts an 18-task 30-60-90 plan (`ONB_TEMPLATE`, due dates from the hire date, probation review day 80,
+  outcome day 89, Art. 53). Owners hr / manager / employee / it; each ticks only their own (HR ticks IT's, only HR skips).
+- Pulse survey: eNPS + 5 statements + comment. **Anonymous by design**: surveyAnswers has no employee id; the voter list is
+  a sorted set of HMAC hashes on the survey row (so row order cannot tie a vote to an answer); results, departments and
+  tenure bands with fewer than `MIN_GROUP` (5) answers are hidden; comments shuffled and only when the survey reaches 5.
+  (The sheet owner's Google version history could still correlate edit times; say so if asked.)
+- Policies: versioned; any change to the text bumps the version and asks everyone again; HR sees coverage and who is missing.
+  Starter texts in engage.js (attendance, conduct, anti-harassment, confidentiality/PDPL, leave) for HR to edit.
+- Plans: IDP (up to 2 years) or PIP (30-90 days incl. extensions, a measure per goal, reason and support required), written by
+  the manager or HR, never by the person; check-ins by manager/HR; employee acknowledges; outcome only by HR.
+- Report `pay_equity` (Reports.gs): average package per position by gender and Saudi/non-Saudi, gap %, warn at 10%.
+- Trap (again): String.replace turns `$$` into `$` in inserted code; tests/run.js now fails on `$(...).forEach`.

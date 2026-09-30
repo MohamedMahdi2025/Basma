@@ -22,6 +22,7 @@ var RPT = {
   pay_variance: ['فروقات الرواتب عن الشهر السابق', 'Payroll variance vs last month', 'يقارن كل موظف بآخر مسير مقفل ويبرز من تغير صافيه بأكثر من النسبة المحددة.', 'Compares each person with the last locked run and flags changes above the threshold.'],
   pay_gosi: ['اشتراكات التأمينات الاجتماعية', 'GOSI contributions', 'الأجر الخاضع ونسب ومبالغ الموظف والشركة حسب الفئة.', 'Contributory wage, employee and employer rates and amounts by cohort.'],
   pay_cost: ['تكلفة الرواتب حسب الإدارة', 'Payroll cost by department', 'الإجمالي والتأمينات على الشركة والتكلفة الكلية لكل إدارة ومركز تكلفة، دون أي راتب فردي.', 'Gross, employer GOSI and total cost per department and cost centre; no individual pay.'],
+  pay_equity: ['عدالة الأجور (الجنس والجنسية)', 'Pay equity (gender and nationality)', 'متوسط الراتب الشهري لكل وظيفة للرجال والنساء وللسعوديين وغيرهم، والفجوة بينهم. الفجوة سؤال يستحق التحقق (الخبرة، الدرجة، الأقدمية) وليست حكما.', 'Average monthly package per position for men and women, Saudis and non-Saudis, and the gap. A gap is a question to check (experience, grade, tenure), not a finding.'],
   pay_eos: ['التزام مكافأة نهاية الخدمة', 'End-of-service liability', 'الخدمة المحتسبة والأجر والمكافأة كاملة (م 84) وعند الاستقالة (م 85) وبدل الإجازة (م 111).', 'Counted service, wage, full award (Art. 84), on resignation (Art. 85) and leave pay (Art. 111).'],
   perf_results: ['نتائج تقييم الأداء', 'Performance results', 'التقييم الذاتي وتقييم المدير والدرجات والتقدير النهائي لكل موظف في الدورة.', 'Self and manager review status, scores and final rating per person in the cycle.'],
   audit_log: ['سجل التدقيق', 'Audit log', 'كل إجراء حساس: من فعل ماذا ومتى. حتى 3000 سطر.', 'Every sensitive action: who did what and when. Up to 3,000 lines.']
@@ -54,6 +55,8 @@ var COLS = {
   excludedDays: ['أيام مستبعدة (م 116)', 'Excluded days (116)'], wage: ['الأجر المعتمد', 'Wage'], awardFull: ['المكافأة كاملة', 'Full award'], awardResignation: ['عند الاستقالة', 'On resignation'],
   leaveDays: ['رصيد الإجازة', 'Leave days'], leavePay: ['بدل الإجازة', 'Leave pay'], kpis: ['الأهداف', 'KPIs'], selfDone: ['التقييم الذاتي', 'Self review'], managerDone: ['تقييم المدير', 'Manager review'],
   kpiScore: ['درجة الأهداف', 'KPI score'], compScore: ['درجة الجدارات', 'Competency score'], overall: ['الإجمالي', 'Overall'], finalRating: ['التقدير النهائي', 'Final rating'],
+  average: ['متوسط الراتب', 'Average pay'], men: ['رجال', 'Men'], menAvg: ['متوسط الرجال', 'Men average'], women: ['نساء', 'Women'], womenAvg: ['متوسط النساء', 'Women average'],
+  genderGap: ['فجوة الجنس %', 'Gender gap %'], saudiAvg: ['متوسط السعوديين', 'Saudi average'], nonSaudis: ['غير السعوديين', 'Non-Saudis'], nonSaudiAvg: ['متوسط غير السعوديين', 'Non-Saudi average'], nationalityGap: ['فجوة الجنسية %', 'Nationality gap %'],
   adjusted: ['معدل بالمعايرة', 'Calibrated'], acknowledged: ['اطلع الموظف', 'Acknowledged'], at: ['الوقت', 'Time'], actor: ['المنفذ', 'Actor'], action: ['الإجراء', 'Action'], target: ['على', 'Target'], detail: ['التفاصيل', 'Detail']
 };
 var CODES = {
@@ -74,6 +77,8 @@ var CHECKS = {
   variance_flagged: ['تغير صافيهم بأكثر من {v}% أو جدد أو غابوا عن المسير: {n}', 'Net changed by more than {v}%, new, or missing: {n}'],
   gosi_cohort_missing: ['سعوديون بلا فئة تأمينات مسجلة، تحتسب على النظام السابق: {n}', 'Saudis with no GOSI cohort, counted as legacy: {n}'],
   missing_hire_date: ['بلا تاريخ تعيين، لم يحتسبوا: {n}', 'No hire date, left out: {n}'], no_package: ['بلا راتب معتمد، لم يحتسبوا: {n}', 'No approved package, left out: {n}'],
+  pay_gap: ['وظائف فيها فجوة أجر {v}% أو أكثر بين الجنسين أو الجنسيات: {n}. تحقق من الأسباب المشروعة قبل أي تعديل.', 'Positions with a gap of {v}% or more: {n}. Check the legitimate reasons before any adjustment.'],
+  no_gender: ['بلا جنس مسجل، خارج مقارنة الجنس: {n}', 'No gender on file, left out of the gender comparison: {n}'],
   no_run: ['لا يوجد مسير رواتب بعد.', 'No payroll run yet.'], no_cycle: ['لا توجد دورة تقييم بعد.', 'No review cycle yet.']
 };
 var DAYCODE = { P: ['حاضر', 'Present'], L: ['متأخر', 'Late'], A: ['غائب', 'Absent'], V: ['إجازة', 'Leave'], H: ['عطلة رسمية', 'Holiday'], O: ['راحة', 'Day off'], M: ['بلا انصراف', 'No check-out'] };
