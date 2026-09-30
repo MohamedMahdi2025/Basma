@@ -4,6 +4,7 @@
 'use strict';
 
 Object.assign(T.ar, {
+  mfqNew:'طلب جديد', mfqAtt:'حضوري', mfqPay:'راتبي', mftOverview:'نظرة عامة', mftJob:'وظيفتي', mftRequests:'طلباتي وإجازاتي', mftPay:'راتبي', mftGrowth:'أدائي وتطوري', mftPersonal:'بياناتي ووثائقي',
   mfDashTitle:'شهري في لمحة', mfdAtt:'نسبة حضوري', mfdPunct:'في الموعد', mfdLateDays:'أيام التأخير', mfdLate:'دقائق التأخير', mfdOt:'ساعات إضافية', mfdLeave:'رصيد إجازتي السنوية',
   mfdOpen:'طلباتي المفتوحة', mfdAbsent:'غياب', mfdHours:'ساعات عملي يوما بيوم', mfdHoursLead:'هذا الشهر. العمود البرتقالي يوم تأخرت فيه.',
   mfEmpNo:'الرقم الوظيفي', mfService:'سنوات الخدمة', mfYears:'سنة', mfSince:'منذ', mfManagers:'مديري',
@@ -22,6 +23,7 @@ Object.assign(T.ar, {
   doc_contract:'العقد', doc_driving_licence:'رخصة القيادة', doc_other:'وثيقة أخرى', doc_contract_end:'نهاية العقد', doc_probation_end:'نهاية التجربة'
 });
 Object.assign(T.en, {
+  mfqNew:'New request', mfqAtt:'My attendance', mfqPay:'My pay', mftOverview:'Overview', mftJob:'My job', mftRequests:'Requests and leave', mftPay:'Pay', mftGrowth:'Performance and growth', mftPersonal:'Details and documents',
   mfDashTitle:'My month at a glance', mfdAtt:'My attendance', mfdPunct:'On time', mfdLateDays:'Late days', mfdLate:'Minutes late', mfdOt:'Overtime hours', mfdLeave:'Annual leave left',
   mfdOpen:'My open requests', mfdAbsent:'Absent', mfdHours:'My hours day by day', mfdHoursLead:'This month. Amber columns are days I was late.',
   mfEmpNo:'Employee ID', mfService:'Years of service', mfYears:'years', mfSince:'since', mfManagers:'My managers',
@@ -104,6 +106,57 @@ var css = '' +
   '.page.mf{max-width:1180px}' +
 '}' +
 '@media (max-width:1023px){.mf-side,.mf-main{display:grid;gap:14px}}';
+// Profile redesign (2026-09-30, redesign-skill + ui-ux-pro-max): identity header, tabbed sections, calmer cards.
+css += '' +
+'.page.mf{max-width:1180px}' +
+'.mf-hero{position:relative;overflow:hidden;border-radius:28px;color:var(--cream);margin:0 0 6px;isolation:isolate;' +
+  'background:radial-gradient(90% 120% at 100% 0%, rgba(159,224,174,.20), transparent 55%), radial-gradient(70% 90% at 0% 100%, rgba(77,109,81,.55), transparent 60%), linear-gradient(155deg, #2E4433, #1C2A1F 72%);' +
+  'box-shadow:0 24px 48px -28px rgba(28,42,31,.75), inset 0 0 0 1px rgba(242,238,228,.07);animation:mfHero .6s var(--ease) both}' +
+'.mf-hero::after{content:"";position:absolute;inset:0;z-index:-1;opacity:.35;mix-blend-mode:overlay;pointer-events:none;' +
+  'background-image:url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'160\' height=\'160\'><filter id=\'n\'><feTurbulence type=\'fractalNoise\' baseFrequency=\'.9\' numOctaves=\'2\' stitchTiles=\'stitch\'/></filter><rect width=\'100%\' height=\'100%\' filter=\'url(%23n)\' opacity=\'.5\'/></svg>")}' +
+'@keyframes mfHero{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}' +
+'.mf-hero-in{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:22px;align-items:center;padding:28px 28px 22px}' +
+'.mf-av{width:96px;height:96px;border-radius:30px;display:grid;place-items:center;font-size:34px;font-weight:600;color:#1C2A1F;letter-spacing:.02em;' +
+  'background:linear-gradient(145deg,#C9EDD2,#9FE0AE 45%,#6FA97A);box-shadow:0 10px 24px -10px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.55)}' +
+'.mf-who{min-width:0}' +
+'.mf-co{display:flex;align-items:center;gap:8px;margin:0 0 8px;font-size:12.5px;color:#AFC0AD}.mf-co img{height:20px;opacity:.9}' +
+'.mf-who h1{margin:0;font-size:30px;font-weight:600;line-height:1.2;letter-spacing:-.01em;text-wrap:balance}' +
+'.mf-en{margin:3px 0 0;font-size:13.5px;color:#AFC0AD;direction:ltr;text-align:start}' +
+'.mf-role{margin:8px 0 0;font-size:15px;color:#DDE6DA}.mf-role i{font-style:normal;margin:0 8px;color:#7F9683}' +
+'.mf-flag{display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:12.5px;padding:4px 10px;border-radius:8px;background:rgba(224,160,67,.16);color:#F3CE8E;border:1px solid rgba(224,160,67,.28)}' +
+'.mf-acts{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;align-self:start}' +
+'.mf-btn{height:44px;padding:0 16px;border-radius:12px;white-space:nowrap;display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:500;cursor:pointer;color:var(--cream);' +
+  'background:rgba(242,238,228,.07);border:1px solid rgba(242,238,228,.16);transition:background-color .2s,transform .12s}' +
+'.mf-btn:hover{background:rgba(242,238,228,.14)}.mf-btn:active{transform:translateY(1px)}.mf-btn:focus-visible{outline:2px solid var(--signal);outline-offset:2px}' +
+'.mf-btn.pri{background:var(--cream);color:var(--pine);border-color:var(--cream)}.mf-btn.pri:hover{background:#fff}' +
+'.mf-btn i{font-size:18px}' +
+'.mf-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));margin:0;border-top:1px solid rgba(242,238,228,.1);background:rgba(0,0,0,.12)}' +
+'.mf-facts div{padding:14px 28px 16px;border-inline-start:1px solid rgba(242,238,228,.08)}.mf-facts div:first-child{border-inline-start:0}' +
+'.mf-facts dt{font-size:12px;color:#AFC0AD;margin-bottom:3px}.mf-facts dd{margin:0;font-size:15.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
+'.mf-tabs{position:sticky;top:0;z-index:6;display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;margin:0 -4px 18px;padding:6px 4px 0;background:var(--paper);border-bottom:1px solid var(--line)}' +
+'.mf-tabs::-webkit-scrollbar{display:none}' +
+'.mf-tabs button{flex:none;height:48px;padding:0 14px;border:0;background:none;display:inline-flex;align-items:center;gap:8px;font-size:14.5px;font-weight:500;color:var(--ink-2);' +
+  'border-bottom:3px solid transparent;margin-bottom:-1px;cursor:pointer;border-radius:10px 10px 0 0;transition:color .2s,background-color .2s,border-color .2s}' +
+'.mf-tabs button i{font-size:19px}.mf-tabs button:hover{color:var(--ink);background:rgba(77,109,81,.06)}' +
+'.mf-tabs button[aria-selected="true"]{color:var(--pine);border-bottom-color:var(--brand);font-weight:600}' +
+'.mf-tabs button:focus-visible{outline:2px solid var(--brand);outline-offset:-2px}' +
+'.mf-panel{animation:mfIn .3s var(--ease) both}' +
+'.mf-cols{display:grid;gap:16px;align-items:start}' +
+'.mf .mf-card{border:0;border-radius:20px;padding:18px 20px 16px;box-shadow:0 1px 2px rgba(28,42,31,.05), 0 10px 28px -16px rgba(28,42,31,.22)}' +
+'.mf .mf-card h3{font-size:16px;margin-bottom:12px}.mf .mf-card h3 > i{display:none}' +
+'.mf-card h3 .ic{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:#E6EFE7;flex:none}.mf-card h3 .ic i{font-size:19px;color:var(--brand)}' +
+'.mf-lead{color:var(--ink)!important;font-size:15px;line-height:1.8;max-width:70ch}' +
+'.mf-note{display:flex;gap:6px;align-items:flex-start;margin-top:10px!important;font-size:12.5px}' +
+'.mf #mfDash .db-panel{background:var(--card);border:0;border-radius:20px;box-shadow:0 1px 2px rgba(28,42,31,.05), 0 10px 28px -16px rgba(28,42,31,.22);padding:16px 18px 4px}' +
+'@media (min-width:900px){.mf-cols{grid-template-columns:repeat(2,minmax(0,1fr))}.mf-cols .wide{grid-column:1 / -1}}' +
+'@media (max-width:760px){' +
+  '.mf-hero{border-radius:22px}.mf-hero-in{grid-template-columns:auto minmax(0,1fr);padding:20px 18px 16px;gap:14px}' +
+  '.mf-av{width:68px;height:68px;border-radius:22px;font-size:24px}.mf-who h1{font-size:23px}' +
+  '.mf-acts{grid-column:1 / -1;justify-content:stretch}.mf-btn{flex:1;justify-content:center;padding:0 10px}' +
+  '.mf-facts{grid-template-columns:1fr 1fr}.mf-facts div{padding:11px 18px 12px}.mf-facts div:nth-child(odd){border-inline-start:0}' +
+  '.mf-tabs button{padding:0 11px;font-size:13.5px}' +
+'}' +
+'@media (prefers-reduced-motion:reduce){.mf-hero,.mf-panel,.mf-card{animation:none!important}}';
 var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 
 var shown = false;
@@ -147,34 +200,52 @@ function payCard(c){
 function draw(main, f){
   var e = f.emp, j = f.job, i = 0;
   var card = function(cls, html){ return '<div class="mf-card ' + (cls || '') + '" style="--i:' + (i++) + '">' + html + '</div>'; };
+  var head = function(icon, title, extra){ return '<h3><span class="ic">' + ph(icon) + '</span>' + title + '<span class="sp"></span>' + (extra || '') + '</h3>'; };
   var pos = j.position ? lang(j.position.titleAr, j.position.titleEn) : (e.title || '');
   var dep = j.department ? lang(j.department.nameAr, j.department.nameEn) : (e.department || '');
-  var id = '<div class="mf-id" role="group" aria-label="' + t('mfEmpNo') + '">' +
-    '<div class="top"><img src="' + MARK + '" alt=""><span>' + t('company') + '</span></div>' +
-    '<p class="nm">' + esc(e.name) + '</p>' + (e.nameEn ? '<p class="nme">' + esc(e.nameEn) + '</p>' : '') +
-    (pos || dep ? '<p class="role">' + esc(pos) + (pos && dep ? '، ' : '') + esc(dep) + '</p>' : '') +
-    '<div class="idno"><div><small>' + t('mfEmpNo') + '</small><b class="num">' + esc(e.empNo) + '</b></div>' +
-    (j.serviceYears != null ? '<div class="svc"><b class="num">' + j.serviceYears.toLocaleString(LOCALE()) + '</b>' + t('mfYears') + ' ' + t('mfSince') + ' ' + fmtDate(j.hireDate) + '</div>' : '') +
-    '</div></div>';
+  var hasPay = 'comp' in f, hasPriv = !!(f.priv || f.documents);
 
-  var side = id + '<div class="mf-card" id="mfLeave" style="--i:' + (i++) + '"><span class="sk" style="width:40%"></span><span class="sk"></span><span class="sk" style="width:70%"></span></div>' + card('', '<h3>' + ph('users') + t('mfManagers') + '</h3>' + (j.manager && j.head && j.manager.id === j.head.id ? person(j.manager, t('mfDirect') + ' ' + t('mfAndHead')) : person(j.manager, t('mfDirect')) + person(j.head, t('mfHead'))));
-  if (f.isManager) side += card('', '<h3>' + ph('users-three') + t('mfTeam') + '<span class="sp"></span><span class="chip in num">' + plural(f.teamCount, 'people') + '</span></h3><p>' + t('mfTeamLead') + '</p>' +
-    '<button type="button" class="btn btn-dark btn-sm mf-go" id="mfTeam">' + t('mfOpenTeam') + '</button>');
-  side += card('', '<h3>' + ph('calendar-check') + t('mfAtt') + '</h3><p>' + t('mfAttLead') + '</p><button type="button" class="btn btn-line btn-sm mf-go" id="mfAtt">' + t('mfOpenAtt') + '</button>');
+  // ---- profile header: who I am, the facts people look for, and what I do most ----
+  var facts = [[t('mfEmpNo'), '<bdi class="num">' + esc(e.empNo) + '</bdi>']];
+  if (j.serviceYears != null) facts.push([t('mfService'), '<span class="num">' + j.serviceYears.toLocaleString(LOCALE()) + '</span> ' + t('mfYears')]);
+  if (j.hireDate) facts.push([t('mfSince'), fmtDate(j.hireDate)]);
+  if (j.manager) facts.push([t('mfDirect'), esc(lang(j.manager.name, j.manager.nameEn))]);
+  if (j.contractType) facts.push([t('mfType'), t('ct_' + j.contractType)]);
+  var probation = j.probationEnd && daysLeft(j.probationEnd) >= 0 ? '<span class="mf-flag">' + ph('hourglass-medium') + t('mfProbation') + ' ' + fmtDate(j.probationEnd) + '</span>' : '';
+  var hero = '<header class="mf-hero" role="banner"><div class="mf-hero-in">' +
+    '<div class="mf-av" aria-hidden="true">' + esc(initials(e.name)) + '</div>' +
+    '<div class="mf-who"><p class="mf-co"><img src="' + MARK + '" alt="">' + t('company') + '</p><h1>' + esc(lang(e.name, e.nameEn)) + '</h1>' +
+      (S.lang !== 'en' && e.nameEn ? '<p class="mf-en">' + esc(e.nameEn) + '</p>' : '') +
+      (pos || dep ? '<p class="mf-role">' + esc(pos) + (pos && dep ? '<i>·</i>' : '') + esc(dep) + '</p>' : '') + probation + '</div>' +
+    '<div class="mf-acts"><button type="button" class="mf-btn pri" id="mfNewReq">' + ph('plus') + t('mfqNew') + '</button><button type="button" class="mf-btn" id="mfAtt">' + ph('calendar-check') + t('mfqAtt') + '</button>' +
+      (hasPay ? '<button type="button" class="mf-btn" data-go="pay">' + ph('receipt') + t('mfqPay') + '</button>' : '') + '</div></div>' +
+    '<dl class="mf-facts">' + facts.map(function(x){ return '<div><dt>' + x[0] + '</dt><dd>' + x[1] + '</dd></div>'; }).join('') + '</dl></header>';
 
-  var jd = f.jd, jdHtml = '<h3>' + ph('briefcase') + t('mfJd') + '</h3>';
+  // ---- tabs ----
+  var tabs = [['overview', 'squares-four', t('mftOverview')], ['job', 'briefcase', t('mftJob')], ['requests', 'paper-plane-tilt', t('mftRequests')]];
+  if (hasPay) tabs.push(['pay', 'wallet', t('mftPay')]);
+  tabs.push(['growth', 'trend-up', t('mftGrowth')]);
+  if (hasPriv) tabs.push(['personal', 'identification-badge', t('mftPersonal')]);
+  var cur = S.mfTab && tabs.some(function(x){ return x[0] === S.mfTab; }) ? S.mfTab : 'overview';
+  var nav = '<nav class="mf-tabs" role="tablist" aria-label="' + t('tabFile') + '">' + tabs.map(function(x){
+    return '<button type="button" role="tab" id="mft-' + x[0] + '" aria-controls="mfp-' + x[0] + '" aria-selected="' + (cur === x[0]) + '" tabindex="' + (cur === x[0] ? 0 : -1) + '" data-tab="' + x[0] + '">' + ph(x[1]) + '<span>' + x[2] + '</span></button>';
+  }).join('') + '</nav>';
+
+  // ---- panels ----
+  var people = card('', head('users', t('mfManagers')) + (j.manager && j.head && j.manager.id === j.head.id ? person(j.manager, t('mfDirect') + ' ' + t('mfAndHead')) : person(j.manager, t('mfDirect')) + person(j.head, t('mfHead'))));
+  var team = f.isManager ? card('', head('users-three', t('mfTeam'), '<span class="chip in num">' + plural(f.teamCount, 'people') + '</span>') + '<p>' + t('mfTeamLead') + '</p><button type="button" class="btn btn-dark btn-sm mf-go" id="mfTeam">' + t('mfOpenTeam') + '</button>') : '';
+
+  var overview = '<div id="mfDash">' + (window.Viz ? Viz.panel('file', t('mfDashTitle'), Viz.skeleton(6)) : '') + '</div>' +
+    '<div class="mf-cols"><div id="mfEngage" style="display:contents"></div>' + people + team + '</div>';
+
+  var jd = f.jd, jdHtml = head('briefcase', t('mfJd'));
   if (jd && (jd.purposeAr || jd.dutiesAr || jd.requirementsAr || jd.purposeEn)) {
     var en = S.lang === 'en';
     var purpose = en && jd.purposeEn ? jd.purposeEn : jd.purposeAr, duties = en && jd.dutiesEn ? jd.dutiesEn : jd.dutiesAr, req = en && jd.requirementsEn ? jd.requirementsEn : jd.requirementsAr;
-    jdHtml += '<div class="mf-jd">' + (purpose ? '<p style="color:var(--ink)">' + esc(purpose) + '</p>' : '') +
+    jdHtml += '<div class="mf-jd">' + (purpose ? '<p class="mf-lead">' + esc(purpose) + '</p>' : '') +
       (duties ? '<h4>' + t('mfDuties') + '</h4>' + lines(duties) : '') + (req ? '<h4>' + t('mfReq') + '</h4>' + lines(req) : '') + '</div>';
   } else jdHtml += '<p>' + t('mfNoJd') + '</p>';
-
-  if ('comp' in f) side += '<div class="mf-card" id="mfSlips" style="--i:' + (i++) + '"><span class="sk" style="width:40%"></span><span class="sk"></span></div>';
-  var perfCard = '<div class="mf-card wide" id="mfPerf"><span class="sk" style="width:40%"></span><span class="sk"></span></div>';
-  var mainHtml = '<div id="mfEngage" style="display:contents"></div><div class="mf-card wide" id="mfReq" style="--i:' + (i++) + '"><span class="sk" style="width:40%"></span><span class="sk"></span><span class="sk" style="width:70%"></span></div>' + card('wide', jdHtml) + perfCard;
-  if ('comp' in f) mainHtml += card('', '<h3>' + ph('wallet') + t('mfPay') + '<span class="sp"></span>' + (f.comp ? '<button type="button" class="mf-toggle" id="mfShow" aria-pressed="' + shown + '">' + ph(shown ? 'eye-slash' : 'eye') + (shown ? t('mfHide') : t('mfShow')) + '</button>' : '') + '</h3><div id="mfPay">' + payCard(f.comp) + '</div>');
-  mainHtml += card('', '<h3>' + ph('file-text') + t('mfContract') + '</h3>' + (kv([
+  var contract = card('', head('file-text', t('mfContract')) + (kv([
     [t('mfType'), j.contractType ? t('ct_' + j.contractType) : ''],
     [t('mfEnds'), j.contractType === 'fixed' && j.contractEnd ? fmtDate(j.contractEnd) : ''],
     [t('mfProbation'), j.probationEnd ? fmtDate(j.probationEnd) : ''],
@@ -183,27 +254,67 @@ function draw(main, f){
     [t('mfHours'), j.dailyHours != null ? '<span class="num">' + j.dailyHours + '</span>' : ''],
     [t('mfNotice'), j.noticeDays != null ? plural(j.noticeDays, 'days') : '']
   ]) || '<p>' + t('mfNone') + '</p>'));
-  if (f.priv) {
-    var p = f.priv;
-    mainHtml += card('', '<h3>' + ph('identification-badge') + t('mfPersonal') + '</h3>' + (kv([
-      [t('mfNid'), esc(p.nationalId), 'ltr num'], [t('mfIdExp'), p.idExpiry ? expiryChip(p.idExpiry) : ''],
-      [t('mfPassport'), esc(p.passportNo), 'ltr'], [t('mfPassExp'), p.passportExpiry ? expiryChip(p.passportExpiry) : ''],
-      [t('mfIban'), esc(maskIban(p.iban)), 'ltr num'], [t('mfBank'), esc(p.bankName)], [t('mfGosi'), esc(p.gosiNumber), 'ltr num']
-    ]) || '<p>' + t('mfNone') + '</p>') + '<p style="margin-top:8px;font-size:12.5px">' + t('mfFixHint') + '</p>');
-  }
-  if (f.documents) mainHtml += card('', '<h3>' + ph('folder-simple') + t('mfDocs') + '</h3>' + (f.documents.length ? f.documents.map(function(d){
-    return '<div class="mf-doc"><div class="av">' + ph('file') + '</div><div class="main"><b>' + t('doc_' + d.type) + '</b>' + (d.number ? '<small><bdi>' + esc(d.number) + '</bdi></small>' : '') + '</div>' + expiryChip(d.expiryDate) + '</div>';
-  }).join('') : '<p>' + t('mfNoDocs') + '</p>'));
-  if (f.jobHistory && f.jobHistory.length) mainHtml += card('wide', '<h3>' + ph('path') + t('mfHist') + '</h3><ul class="mf-hist">' + f.jobHistory.map(function(h){
+  var hist = f.jobHistory && f.jobHistory.length ? card('', head('path', t('mfHist')) + '<ul class="mf-hist">' + f.jobHistory.map(function(h){
     return '<li><b>' + esc(h.department || t('mfNone')) + '</b><small>' + fmtDate(h.effectiveFrom) + (h.manager ? '، ' + t('mfDirect') + ': ' + esc(h.manager) : '') + '</small></li>';
-  }).join('') + '</ul>');
+  }).join('') + '</ul>') : '';
+  var job = '<div class="mf-cols">' + card('wide', jdHtml) + contract + (hist || people) + '</div>';
 
-  main.innerHTML = '<section class="page mf"><div id="mfDash">' + (window.Viz ? Viz.panel('file', t('mfDashTitle'), Viz.skeleton(6)) : '') + '</div><div class="mf-grid"><div class="mf-side">' + side + '</div><div class="mf-main">' + mainHtml + '</div></div></section>';
-  myDash(main, null);
-  var sb = $('#mfShow');
+  var requestsP = '<div class="mf-cols"><div class="mf-card wide" id="mfReq" style="--i:' + (i++) + '"><span class="sk" style="width:40%"></span><span class="sk"></span><span class="sk" style="width:70%"></span></div>' +
+    '<div class="mf-card" id="mfLeave" style="--i:' + (i++) + '"><span class="sk" style="width:40%"></span><span class="sk"></span></div>' +
+    card('', head('calendar-check', t('mfAtt')) + '<p>' + t('mfAttLead') + '</p><button type="button" class="btn btn-line btn-sm mf-go" id="mfAtt2">' + t('mfOpenAtt') + '</button>') + '</div>';
+
+  var pay = hasPay ? '<div class="mf-cols">' + card('', head('wallet', t('mfPay'), f.comp ? '<button type="button" class="mf-toggle" id="mfShow" aria-pressed="' + shown + '">' + ph(shown ? 'eye-slash' : 'eye') + (shown ? t('mfHide') : t('mfShow')) + '</button>' : '') + payCard(f.comp)) +
+    '<div class="mf-card" id="mfSlips" style="--i:' + (i++) + '"><span class="sk" style="width:40%"></span><span class="sk"></span></div></div>' : '';
+
+  var growth = '<div class="mf-cols"><div class="mf-card wide" id="mfPerf"><span class="sk" style="width:40%"></span><span class="sk"></span></div></div>';
+
+  var personal = '';
+  if (hasPriv) {
+    personal = '<div class="mf-cols">';
+    if (f.priv) {
+      var p = f.priv;
+      personal += card('', head('identification-badge', t('mfPersonal')) + (kv([
+        [t('mfNid'), esc(p.nationalId), 'ltr num'], [t('mfIdExp'), p.idExpiry ? expiryChip(p.idExpiry) : ''],
+        [t('mfPassport'), esc(p.passportNo), 'ltr'], [t('mfPassExp'), p.passportExpiry ? expiryChip(p.passportExpiry) : ''],
+        [t('mfIban'), esc(maskIban(p.iban)), 'ltr num'], [t('mfBank'), esc(p.bankName)], [t('mfGosi'), esc(p.gosiNumber), 'ltr num']
+      ]) || '<p>' + t('mfNone') + '</p>') + '<p class="mf-note">' + ph('info') + t('mfFixHint') + '</p>');
+    }
+    if (f.documents) personal += card('', head('folder-simple', t('mfDocs')) + (f.documents.length ? f.documents.map(function(d){
+      return '<div class="mf-doc"><div class="av">' + ph('file') + '</div><div class="main"><b>' + t('doc_' + d.type) + '</b>' + (d.number ? '<small><bdi>' + esc(d.number) + '</bdi></small>' : '') + '</div>' + expiryChip(d.expiryDate) + '</div>';
+    }).join('') : '<p>' + t('mfNoDocs') + '</p>'));
+    personal += '</div>';
+  }
+  var panels = { overview: overview, job: job, requests: requestsP, pay: pay, growth: growth, personal: personal };
+
+  main.innerHTML = '<section class="page mf">' + hero + nav + tabs.map(function(x){
+    return '<div class="mf-panel" role="tabpanel" id="mfp-' + x[0] + '" aria-labelledby="mft-' + x[0] + '"' + (cur === x[0] ? '' : ' hidden') + '>' + panels[x[0]] + '</div>';
+  }).join('') + '</section>';
+
+  // tabs: click, arrow keys (RTL aware), remembered for the session
+  var btns = $$('.mf-tabs [data-tab]', main);
+  function go(k, focus){
+    S.mfTab = k;
+    btns.forEach(function(b){ var on = b.dataset.tab === k; b.setAttribute('aria-selected', on); b.tabIndex = on ? 0 : -1; if (on && focus) b.focus(); });
+    $$('.mf-panel', main).forEach(function(p){ p.hidden = p.id !== 'mfp-' + k; });
+    var bar = $('.mf-tabs', main); if (bar && bar.getBoundingClientRect().top < 0) bar.scrollIntoView({ block: 'start' });
+  }
+  btns.forEach(function(b, n){
+    b.onclick = function(){ go(b.dataset.tab); };
+    b.onkeydown = function(ev){
+      var fwd = S.lang === 'ar' ? 'ArrowLeft' : 'ArrowRight', back = S.lang === 'ar' ? 'ArrowRight' : 'ArrowLeft', m = -1;
+      if (ev.key === fwd) m = (n + 1) % btns.length; else if (ev.key === back) m = (n - 1 + btns.length) % btns.length; else if (ev.key === 'Home') m = 0; else if (ev.key === 'End') m = btns.length - 1;
+      if (m >= 0) { ev.preventDefault(); go(btns[m].dataset.tab, true); }
+    };
+  });
+  $$('[data-go]', main).forEach(function(b){ b.onclick = function(){ go(b.dataset.go, true); }; });
+
+  var sb = $('#mfShow', main);
   if (sb) sb.onclick = function(){ shown = !shown; draw(main, f); };
-  $('#mfAtt').onclick = function(){ S.tab = 'history'; renderShell(); };
-  var tb = $('#mfTeam'); if (tb) tb.onclick = function(){ S.tab = 'hr'; S.hrSec = 'team'; renderShell(); };
+  var toAtt = function(){ S.tab = 'history'; renderShell(); };
+  $('#mfAtt', main).onclick = toAtt; $('#mfAtt2', main).onclick = toAtt;
+  $('#mfNewReq', main).onclick = function(){ if (window.Req) Req.newRequest(f, function(){ requests(main, f); }); };
+  var tb = $('#mfTeam', main); if (tb) tb.onclick = function(){ S.tab = 'hr'; S.hrSec = 'team'; renderShell(); };
+  myDash(main, null);
   requests(main, f);
   var sl = $('#mfSlips', main); if (sl && window.Payroll) Payroll.myCard(sl, f.emp);
   var pf = $('#mfPerf', main); if (pf && window.Perf) Perf.myCards(pf);

@@ -85,11 +85,15 @@ var css = '' +
 '.db-tip{position:fixed;z-index:95;pointer-events:none;background:var(--ink);color:var(--cream);border-radius:8px;padding:6px 10px;font-size:12px;line-height:1.5;box-shadow:0 6px 18px rgba(0,0,0,.2);white-space:nowrap}' +
 '.db-tip b{font-size:14px}.db-tip .k{display:inline-block;width:12px;height:2px;margin-inline-end:6px;vertical-align:middle}' +
 '.db-status{display:inline-flex;align-items:center;gap:4px}' +
+// calmer surfaces: no hard borders, one soft tinted shadow (redesign-skill: tinted shadows, hierarchy by elevation)
+'.db-card,.db-tile{border-color:transparent;box-shadow:0 1px 2px rgba(28,42,31,.05), 0 10px 26px -18px rgba(28,42,31,.28)}.db-tile{border-radius:16px}.db-card{border-radius:18px}' +
+'.db-tile.lead{box-shadow:0 14px 30px -18px rgba(28,42,31,.8);background:radial-gradient(90% 120% at 100% 0%, rgba(159,224,174,.18), transparent 55%), linear-gradient(155deg,#2E4433,#1C2A1F 75%)}' +
+'.db-tile b{font-variant-numeric:tabular-nums;letter-spacing:-.01em}' +
 '.db-panel{background:var(--paper);border:1px solid var(--line);border-radius:var(--r-m);padding:12px 14px 2px;margin:0 0 16px}' +
 '.db-ph{display:flex;align-items:center;gap:8px;margin-bottom:10px}.db-ph h3{margin:0;font-size:14.5px;font-weight:600;display:flex;align-items:center;gap:6px;flex:1}.db-ph h3 i{color:var(--brand);font-size:18px}' +
 '.db-panel .db-tiles{margin-bottom:12px}.db-panel .db-grid{margin-bottom:12px}.db-panel .db-tile.lead b{font-size:34px}' +
 '.db-panel .tg{height:28px;padding:0 10px;border-radius:8px;border:1px solid var(--line);background:var(--card);font-size:12px;color:var(--ink-2)}' +
-'@media (min-width:1024px){.db-tiles{grid-template-columns:2fr repeat(5,minmax(0,1fr))}.db-tile.lead{grid-column:auto}.db-grid.two{grid-template-columns:1.4fr 1fr}.db-grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}}' +
+'@media (min-width:1024px){.db-tiles{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}.db-tile.lead{grid-column:span 2}.db-grid.two{grid-template-columns:1.4fr 1fr}.db-grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}}' +
 '@media print{.tabs,.topbar,.hr-rail,.db-filters button,.db-card .tg,.update-bar{display:none!important}.app{padding:0!important}.hr-shell{display:block!important;min-height:0!important}.db-card,.db-tile{break-inside:avoid}body{background:#fff}}';
 var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 

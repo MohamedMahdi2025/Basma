@@ -4,6 +4,7 @@
 'use strict';
 
 Object.assign(T.ar, {
+  rgInsight:'التحليلات', rgDaily:'العمل اليومي', rgPeople:'الموظفون والتنظيم', rgPay:'الرواتب', rgTalent:'الأداء والمواهب',
   hdTitle:'القوى العاملة في لمحة', hdNonSaudi:'غير السعوديين', hdJoiners:'تعيينات جديدة', hdLast12:'آخر 12 شهرا', hdEnding:'عقود تنتهي قريبا', hdNext90:'خلال 90 يوما',
   hdByDept:'الموظفون حسب الإدارة', hdNat:'الجنسيات', hdContract:'أنواع العقود', hdGender:'الجنس', hdMale:'ذكور', hdFemale:'إناث', hdUnset:'غير محدد',
   ibTitle:'الطلبات في لمحة', ibOpen:'تنتظر قرارك', ibOld:'أقدم طلب', ibOver3:'أكثر من 3 أيام', ibByType:'حسب النوع', ibByAge:'حسب العمر', ibAge0:'اليوم', ibAge1:'1-3 أيام', ibAge3:'4-7 أيام', ibAge7:'أكثر من أسبوع',
@@ -73,6 +74,7 @@ Object.assign(T.ar, {
   e_too_many_rows:'الملف أكبر من 2000 صف.', e_not_found:'السجل غير موجود.', e_missing_fields:'أكمل الحقول المطلوبة.'
 });
 Object.assign(T.en, {
+  rgInsight:'Insights', rgDaily:'Daily work', rgPeople:'People and organisation', rgPay:'Payroll', rgTalent:'Performance and talent',
   hdTitle:'Workforce at a glance', hdNonSaudi:'Non-Saudis', hdJoiners:'New hires', hdLast12:'Last 12 months', hdEnding:'Contracts ending soon', hdNext90:'Within 90 days',
   hdByDept:'People by department', hdNat:'Nationalities', hdContract:'Contract types', hdGender:'Gender', hdMale:'Male', hdFemale:'Female', hdUnset:'Not set',
   ibTitle:'Requests at a glance', ibOpen:'Waiting for you', ibOld:'Oldest request', ibOver3:'Older than 3 days', ibByType:'By type', ibByAge:'By age', ibAge0:'Today', ibAge1:'1-3 days', ibAge3:'4-7 days', ibAge7:'Over a week',
@@ -196,6 +198,7 @@ var css = '' +
 '.hr-rail button{flex:none;height:38px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-size:13.5px;color:var(--ink-2);display:inline-flex;align-items:center;gap:7px}' +
 '.hr-rail button i{font-size:17px}' +
 '.hr-rail button[aria-current="page"]{background:var(--pine);color:var(--cream);border-color:var(--pine)}' +
+'.hr-rail-g{display:none}' +
 '.hr-rail .badge{display:inline-grid;place-items:center;min-width:18px;height:18px;border-radius:9px;background:var(--amber);color:#fff;font-size:11px;padding:0 5px}' +
 '.hr-body{padding:8px 14px 28px;min-width:0}' +
 '.hr-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:6px 0 14px}' +
@@ -266,6 +269,8 @@ var css = '' +
   '.hr-rail button{height:42px;border:0;background:none;justify-content:flex-start;border-radius:12px;font-size:14px}' +
   '.hr-rail button:hover{background:#EFECE3}' +
   '.hr-rail .badge{margin-inline-start:auto}' +
+  '.hr-rail .hr-rail-g{display:block;margin:14px 12px 4px;font-size:11.5px;font-weight:600;letter-spacing:.02em;color:#8A948B}.hr-rail .hr-rail-g:first-child{margin-top:0}' +
+  '.hr-rail button[aria-current="page"]{box-shadow:0 8px 18px -10px rgba(28,42,31,.6)}' +
   '.hr-body{padding:26px 30px 36px}' +
   '.hr-sat{grid-template-columns:2fr 1fr 1fr 1fr}' +
   '.hr-sat .meter{grid-column:auto}' +
@@ -333,7 +338,9 @@ function sections(){
   if (r.hr) s.push(['policies', ph('book-open-text'), t('enPolicies')]);
   if (r.hr) s.push(['holidays', ph('confetti'), t('hrHolidays')]);
   if (r.hr) s.push(['expiring', ph('calendar-x'), t('hrExpiring')], ['import', ph('microsoft-excel-logo'), t('hrImport')]);
-  return s;
+  var G = { dashboard: 0, reports: 0, inbox: 1, approvals: 1, leave: 1, holidays: 1, people: 2, team: 2, org: 2, positions: 2, onboarding: 2, policies: 2, expiring: 2, import: 2, payroll: 3, performance: 4, plans: 4, engagement: 4 };
+  s.forEach(function(x, n){ x[3] = G[x[0]] == null ? 5 : G[x[0]]; x[4] = n; });
+  return s.sort(function(a, b){ return a[3] - b[3] || a[4] - b[4]; });
 }
 
 function render(main){
@@ -345,8 +352,9 @@ function render(main){
   var secs = sections();
   if (!secs.length) { S.tab = 'file'; return renderShell(); }
   if (!secs.some(function(s){ return s[0] === S.hrSec; })) S.hrSec = secs[0][0];
-  main.innerHTML = '<div class="hr-shell"><nav class="hr-rail" aria-label="' + t('tabHr') + '">' + secs.map(function(s){
-    return '<button type="button" data-s="' + s[0] + '"' + (S.hrSec === s[0] ? ' aria-current="page"' : '') + '>' + s[1] + '<span>' + s[2] + '</span>' + (s[0] === 'approvals' ? '<span class="badge hidden" id="apBadge"></span>' : s[0] === 'inbox' ? '<span class="badge hidden" id="inBadge"></span>' : '') + '</button>';
+  var GL = [t('rgInsight'), t('rgDaily'), t('rgPeople'), t('rgPay'), t('rgTalent'), ''];
+  main.innerHTML = '<div class="hr-shell"><nav class="hr-rail" aria-label="' + t('tabHr') + '">' + secs.map(function(s, n){
+    return (n === 0 || secs[n - 1][3] !== s[3] ? '<p class="hr-rail-g">' + GL[s[3]] + '</p>' : '') + '<button type="button" data-s="' + s[0] + '"' + (S.hrSec === s[0] ? ' aria-current="page"' : '') + '>' + s[1] + '<span>' + s[2] + '</span>' + (s[0] === 'approvals' ? '<span class="badge hidden" id="apBadge"></span>' : s[0] === 'inbox' ? '<span class="badge hidden" id="inBadge"></span>' : '') + '</button>';
   }).join('') + '</nav><div class="hr-body" id="hrBody"></div></div>';
   $$('.hr-rail button').forEach(function(b){ b.onclick = function(){ S.hrSec = b.dataset.s; render(main); }; });
   var body = $('#hrBody');
