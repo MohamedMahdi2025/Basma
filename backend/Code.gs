@@ -99,8 +99,52 @@ function ensureHeader_(name, sh, width) {
 var READ_MEMO_ = {};
 function forget_(name) { delete READ_MEMO_[name]; }
 
+/*
+ * Sign-in reads the employees and zones tabs but never writes them, and each tab read costs
+ * 250-900 ms. Those two paths may use a copy in CacheService (about 50 ms) that is trusted only
+ * while its version tag matches the tab's current version. Every write through the app and every
+ * hand edit in the Sheet (onEdit) sets a new version, so a changed tab is read fresh at once;
+ * the copy also lapses after 60 s whatever happens. Rows from the copy are marked and can never
+ * be written back (update_ refuses), so the copy cannot overwrite the Sheet.
+ */
+var CACHED_TABS_ = { employees: 1, zones: 1 };
+var USE_TAB_CACHE_ = false;
+var TAB_CACHE_SECONDS_ = 60;
+function tabKeys_(name) { return { snap: 'tab:v1:' + name, ver: 'tabver:v1:' + name }; }
+function bumpTab_(name) {
+  if (!CACHED_TABS_[name]) return;
+  try { CacheService.getScriptCache().put(tabKeys_(name).ver, bytesToB64u_(randomBytes_(9)), 21600); } catch (e) {}
+}
+function cachedRows_(name) {
+  var k = tabKeys_(name), got;
+  try { got = CacheService.getScriptCache().getAll([k.snap, k.ver]); } catch (e) { return null; }
+  var ver = got[k.ver] || '';
+  if (got[k.snap]) {
+    try {
+      var snap = JSON.parse(got[k.snap]);
+      if (snap.ver === ver) { snap.rows.forEach(function (r) { r._cached = true; }); return { rows: snap.rows }; }
+    } catch (e) {}
+  }
+  return { ver: ver };
+}
+
+/** Simple trigger: a hand edit in the Sheet makes the app read that tab fresh on the next request. */
+function onEdit(e) {
+  try {
+    var name = e && e.range ? e.range.getSheet().getName() : '';
+    if (name) bumpTab_(name);
+    if (name === SHEETS.SET) CacheService.getScriptCache().remove(SETTINGS_CACHE_KEY);
+  } catch (err) {}
+}
+
 function readAll_(name) {
   if (READ_MEMO_[name]) return READ_MEMO_[name];
+  var tag = null;
+  if (USE_TAB_CACHE_ && CACHED_TABS_[name]) {
+    var c = cachedRows_(name);
+    if (c && c.rows) return (READ_MEMO_[name] = c.rows);
+    if (c) tag = c.ver;
+  }
   var sh = sheet_(name);
   var cols = HEADERS[name];
   // One call for header and rows together (was three: last column, last row, values).
@@ -117,6 +161,12 @@ function readAll_(name) {
     }
     if (!blank) out.push(o);
   }
+  if (tag !== null) {
+    try {
+      var json = JSON.stringify({ ver: tag, rows: out });
+      if (json.length < 90000) CacheService.getScriptCache().put(tabKeys_(name).snap, json, TAB_CACHE_SECONDS_);
+    } catch (e) {}
+  }
   READ_MEMO_[name] = out;
   return out;
 }
@@ -132,6 +182,7 @@ function toRow_(name, obj) {
 
 function append_(name, obj) {
   forget_(name);
+  bumpTab_(name);
   var sh = sheet_(name);
   ensureHeader_(name, sh);
   sh.appendRow(toRow_(name, obj));
@@ -141,6 +192,7 @@ function append_(name, obj) {
 function appendMany_(name, objs) {
   if (!objs.length) return;
   forget_(name);
+  bumpTab_(name);
   var sh = sheet_(name);
   ensureHeader_(name, sh);
   sh.getRange(sh.getLastRow() + 1, 1, objs.length, HEADERS[name].length).setValues(objs.map(function (o) { return toRow_(name, o); }));
@@ -148,6 +200,8 @@ function appendMany_(name, objs) {
 
 function update_(name, obj) {
   if (!obj._row) throw new Error('update_ without _row');
+  if (obj._cached) throw new Error('update_ from a cached copy of ' + name);
+  bumpTab_(name);
   // The row object read this request is the one written, so the memo stays true; only a foreign copy forces a re-read.
   var memo = READ_MEMO_[name];
   if (!memo || memo.indexOf(obj) < 0) forget_(name);
@@ -338,6 +392,7 @@ var ADMIN_ACTIONS = { empResetDevice: 1, zoneSave: 1, zoneDelete: 1, settingsSav
 
 function handle_(req) {
   READ_MEMO_ = {};
+  USE_TAB_CACHE_ = false;
   var action = req && req.action;
   try {
     var fn = /^[a-zA-Z]+$/.test(String(action)) ? globalThis['api_' + action] : null;

@@ -47,7 +47,8 @@ function load(opts = {}) {
     CacheService: { getScriptCache: () => ({
       get: k => (cache[k] && cache[k].exp > FakeDate.now() ? cache[k].v : null),
       put: (k, v, s) => { cache[k] = { v, exp: FakeDate.now() + s * 1000 }; },
-      remove: k => { delete cache[k]; }
+      remove: k => { delete cache[k]; },
+      getAll: ks => { const o = {}; ks.forEach(k => { if (cache[k] && cache[k].exp > FakeDate.now()) o[k] = cache[k].v; }); return o; }
     }) },
     LockService: { getScriptLock: () => ({ waitLock() {}, releaseLock() {} }) },
     ContentService: { createTextOutput: t => ({ setMimeType() { return t; } }), MimeType: { JSON: 'json' } },

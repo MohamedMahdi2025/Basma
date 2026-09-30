@@ -340,10 +340,12 @@ function api_pinChange(req) {
 }
 
 function api_authBegin(req) {
+  USE_TAB_CACHE_ = true; // read-only: employees and zones may come from the versioned copy
   return { ok: true, options: beginFor_(req, 'login').options };
 }
 
 function api_authFinish(req) {
+  USE_TAB_CACHE_ = true; // writes only credentials and audit, which are always read fresh
   var r = withLock_(function () { return finishFor_(req, 'login'); });
   // Reading the home screen and writing the audit line do not need the lock: others sign in meanwhile.
   var out = { ok: true, token: issueToken_(r.emp), me: publicEmp_(r.emp), home: homePayload_(r.emp) };
@@ -367,6 +369,10 @@ function api_diag(req) {
   [SHEETS.EMP, SHEETS.CRED, SHEETS.PUNCH, SHEETS.ZONES, SHEETS.SET, SHEETS.AUDIT].forEach(function (n) {
     rows[n] = time('read_' + n, function () { forget_(n); return readAll_(n).length; });
   });
+  USE_TAB_CACHE_ = true;
+  forget_(SHEETS.EMP); time('emp_copy_fill', function () { return readAll_(SHEETS.EMP).length; });
+  forget_(SHEETS.EMP); time('emp_copy_hit', function () { return readAll_(SHEETS.EMP).length; });
+  USE_TAB_CACHE_ = false; forget_(SHEETS.EMP);
   time('settings', function () { return settings_(); });
   time('pin_js', function () { return pinHash_('482915', 'c2FsdHNhbHRzYWx0c2FsdA'); });
   time('pin_old_service', function () {

@@ -412,6 +412,37 @@ console.log('Reset tools');
   ok(r.ok, 'the new PIN works', r.error);
 }
 
+console.log('Sign-in copy of the employees tab stays live');
+{
+  const sh = () => B.ctx.sheet_('employees');
+  const col = B.ctx.HEADERS.employees.indexOf('status');
+  const rowOf = () => sh()._rows.findIndex(x => x && String(x[B.ctx.HEADERS.employees.indexOf('empNo')]) === '4001');
+  const edit = () => B.ctx.onEdit({ range: { getSheet: () => ({ getName: () => 'employees' }) } });
+  r = B.call({ action: 'authBegin', empNo: '4001' });
+  ok(r.ok, 'sign-in challenge (warms the copy)', r);
+  const i = rowOf();
+  sh()._rows[i][col] = 'disabled'; edit();
+  r = B.call({ action: 'authBegin', empNo: '4001' });
+  ok(!r.ok && r.error === 'unknown_employee', 'a hand edit in the Sheet (disable) takes effect on the very next sign-in', r);
+  sh()._rows[i][col] = 'active'; edit();
+  r = B.call({ action: 'authBegin', empNo: '4001' });
+  ok(r.ok, 'and re-enabling by hand works at once too', r);
+  B.ctx.USE_TAB_CACHE_ = false;
+  B.ctx.withLock_(() => { B.ctx.forget_('employees'); const e = B.ctx.findBy_('employees', 'empNo', '4001'); e.status = 'disabled'; B.ctx.update_('employees', e); });
+  B.ctx.READ_MEMO_ = {};
+  r = B.call({ action: 'authBegin', empNo: '4001' });
+  ok(!r.ok && r.error === 'unknown_employee', 'a change saved by the app takes effect on the very next sign-in', r);
+  B.ctx.USE_TAB_CACHE_ = false;
+  B.ctx.withLock_(() => { B.ctx.forget_('employees'); const e = B.ctx.findBy_('employees', 'empNo', '4001'); e.status = 'active'; B.ctx.update_('employees', e); });
+  let threw = false;
+  B.ctx.USE_TAB_CACHE_ = true; B.ctx.READ_MEMO_ = {};
+  B.ctx.readAll_('employees'); B.ctx.READ_MEMO_ = {};
+  const cachedRow = B.ctx.readAll_('employees')[0];
+  try { B.ctx.update_('employees', cachedRow); } catch (e) { threw = /cached copy/.test(e.message); }
+  B.ctx.USE_TAB_CACHE_ = false; B.ctx.READ_MEMO_ = {};
+  ok(threw, 'a row from the copy can never be written back to the Sheet');
+}
+
 console.log('Tokens');
 r = B.call({ action: 'me', token: adminToken.slice(0, -2) + 'xx' });
 ok(!r.ok && r.error === 'session_expired', 'a forged token is refused', r);
