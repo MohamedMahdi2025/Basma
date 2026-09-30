@@ -311,6 +311,7 @@ function orgThen(fn){
 function sections(){
   var r = roles(), s = [];
   if (r.hr || r.payroll || r.executive) s.push(['dashboard', ph('chart-line-up'), t('dbTitle')]);
+  if (r.hr || r.payroll || r.executive || r.manager) s.push(['reports', ph('file-text'), t('rpTitle')]);
   if (r.hr || r.payroll || r.manager) s.push(['inbox', ph('tray'), t('hrInbox')]);
   if (r.hr) s.push(['people', ph('users-three'), t('hrPeople')]);
   if (r.manager) s.push(['team', ph('users'), t('hrTeamSec')]);
@@ -336,7 +337,7 @@ function render(main){
   }).join('') + '</nav><div class="hr-body" id="hrBody"></div></div>';
   $$('.hr-rail button').forEach(function(b){ b.onclick = function(){ S.hrSec = b.dataset.s; render(main); }; });
   var body = $('#hrBody');
-  ({ dashboard: function(b){ Dash.section(b); }, performance: function(b){ Perf.section(b, roles()); }, payroll: function(b){ Payroll.section(b); }, inbox: inbox, leave: leaveSec, holidays: holidaysSec, people: people, team: team, org: org, positions: positions, approvals: approvals, expiring: expiring, import: importer })[S.hrSec](body);
+  ({ dashboard: function(b){ Dash.section(b); }, reports: function(b){ Reports.section(b); }, performance: function(b){ Perf.section(b, roles()); }, payroll: function(b){ Payroll.section(b); }, inbox: inbox, leave: leaveSec, holidays: holidaysSec, people: people, team: team, org: org, positions: positions, approvals: approvals, expiring: expiring, import: importer })[S.hrSec](body);
   apiFresh('reqInbox', {}, function(r){ if (r.ok) setBadge('inBadge', r.rows.length); }, true);
   if (roles().hr || roles().payroll) api('hrCompList', { status: 'pending' }, true).then(function(r){ if (r.ok) setApBadge(r.rows.filter(function(x){ return !x.mine; }).length); });
 }

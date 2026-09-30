@@ -187,8 +187,13 @@ r = call('3005', 'reportVerify', { ref: ref1, hash: hash1 });
 ok(r.ok && r.match === true && r.unchanged === false, 'verify: data changed since the export is detected', r);
 r = call('5004', 'reportVerify', { ref: ref1 });
 ok(!r.ok && r.error === 'forbidden', 'an employee cannot use the verifier', r);
+r = call('3001', 'reportExport', { reportId: 'att_summary', format: 'xlsx', params: { from: '2026-10-01', to: '2026-10-31' }, columns: ['empNo', 'name', 'absent', 'nope'] });
+ok(r.ok && r.columns.map(c => c.key).join() === 'empNo,name,absent' && r.export.hash !== hash1, 'an export of chosen columns carries only those, with its own fingerprint', r.columns && r.columns.map(c => c.key));
+const refC = r.export.ref, hashC = r.export.hash;
+r = call('3005', 'reportVerify', { ref: refC, hash: hashC });
+ok(r.ok && r.match === true && r.unchanged === true, 'verifying a column-chosen export re-runs with the same columns', r);
 const aud = direct(() => B.ctx.readAll_('audit')).filter(a => a.action === 'report_export');
-ok(aud.length === 3, 'every export is in the audit trail', aud.length);
+ok(aud.length === 4, 'every export is in the audit trail', aud.length);
 const sv = direct(() => B.ctx.readAll_('audit')).filter(a => a.action === 'salary_view');
 ok(sv.length >= 3, 'running a money report writes a salary-view audit line', sv.length);
 

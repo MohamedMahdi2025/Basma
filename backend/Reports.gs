@@ -480,6 +480,16 @@ function reportHash_(id, p, res) {
   return sha256Hex_(body);
 }
 
+/** Keeps only the chosen columns (in the report's own order); the file and its fingerprint then cover exactly those. */
+function keepColumns_(res, keys) {
+  if (!Array.isArray(keys) || !keys.length) return null;
+  var want = {}; keys.forEach(function (k) { want[String(k)] = 1; });
+  var cols = res.columns.filter(function (c) { return want[c.key]; });
+  if (!cols.length || cols.length === res.columns.length) return null;
+  res.columns = cols;
+  return cols.map(function (c) { return c.key; });
+}
+
 /** Before a file is built: the server runs the report again, numbers the export and stores its fingerprint. */
 function api_reportExport(req, me) {
   var def = REPORTS[req.reportId];
@@ -487,7 +497,9 @@ function api_reportExport(req, me) {
   var format = ['xlsx', 'csv', 'pdf', 'print'].indexOf(req.format) >= 0 ? req.format : 'xlsx';
   var ctx = orgCtx_();
   if (!reportAllowed_(def, me, ctx)) fail_('forbidden');
-  var p = reportParams_(def, req.params), res = runReport_(req.reportId, p, me, ctx), hash = reportHash_(req.reportId, p, res);
+  var p = reportParams_(def, req.params), res = runReport_(req.reportId, p, me, ctx), kept = keepColumns_(res, req.columns);
+  if (kept) p.columns = kept;
+  var hash = reportHash_(req.reportId, p, res);
   return withLock_(function () {
     var row = { id: newId_('X'), ref: nextRef_('report', refsOf_(SHEETS.RLOG)), reportId: req.reportId, paramsJson: JSON.stringify(p), rows: res.rows.length, format: format,
       hash: hash, by: me.id, at: new Date().toISOString(), reviewedBy: '', reviewedAt: '', reviewNote: '' };
@@ -536,7 +548,7 @@ function api_reportVerify(req, me) {
   var given = String(req.hash || '').trim().toLowerCase(), match = given ? (x.hash === given || x.hash.slice(0, given.length) === given && given.length >= 12) : null;
   var same = null, def = REPORTS[x.reportId], ctx = orgCtx_();
   if (def && reportAllowed_(def, me, ctx)) {
-    try { var p = parseJson_(x.paramsJson, {}), res = runReport_(x.reportId, p, me, ctx); same = reportHash_(x.reportId, p, res) === x.hash; } catch (e) { same = null; }
+    try { var p = parseJson_(x.paramsJson, {}), res = runReport_(x.reportId, p, me, ctx); if (p.columns) keepColumns_(res, p.columns); same = reportHash_(x.reportId, p, res) === x.hash; } catch (e) { same = null; }
   }
   audit_(me.id, 'report_verify', '', { ref: x.ref, match: match, same: same });
   return { ok: true, found: true, match: match, unchanged: same, log: publicLog_(x, names) };

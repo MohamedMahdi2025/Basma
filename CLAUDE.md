@@ -198,3 +198,19 @@ Chart colours validated with the dataviz validator on the white card: #2E7D4F / 
 (the brand #4D6D51 fails the chroma floor as a series colour). Charts are plain SVG/CSS, LTR inside,
 with hover tooltips and a table view per card. `saudizationTarget` setting draws the Nitaqat target.
 Trap: never name a dashboard class `.hero` (index.html uses it for the check-in radar).
+
+## Reports centre (live 2026-09-30)
+
+`backend/Reports.gs` (catalogue `REPORTS`, one function per report in `REPORT_FNS`), `js/reports.js` (section "التقارير" in the
+HR console), tests `tests/reports.js`. 18 reports in six groups. Access: 'people' (HR, admin, executive, payroll, managers for
+their team only: row-level security in `reportScope_`), 'money' (HR and payroll, per person), 'cost' (HR, payroll, executive,
+totals only), 'audit' (HR, admin). Managers never see advances or the leave liability column. Money reports write salary_view.
+- Every report returns columns [{key, type, sum, group}], rows, checks (error / warn / info with counts) and a chart hint.
+- Export = `reportExport`: the server runs the report again, keeps the columns the viewer chose (`keepColumns_`), numbers it
+  RPT-YYYY-00001 and stores a SHA-256 of id + params + column keys + rows in tab `reportLog`. `reportReview` is a second person
+  (never the maker); `reportVerify` says whether a fingerprint matches and whether a re-run today would give the same rows.
+- Client files: Excel (SheetJS, Info sheet, SUM formulas with cached values, number formats with "-" zeros and bracketed
+  negatives, RTL), CSV with BOM, PDF/print (A4, watermark with viewer name/no./time/ref, Gregorian + Hijri, QR of "ref|hash"
+  via cdnjs qrcodejs, page x / y in the @page footer, signature lines).
+- Shared chart kit: dashboard.js exports `window.Viz` (tile, card, hbars, cols, lineChart, wireTips...). Load dashboard.js first.
+- Every drawer (index.html `drawer()`) has a close (x) button, Escape and tap-outside; do not build panels without it.
