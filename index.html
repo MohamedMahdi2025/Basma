@@ -304,6 +304,29 @@ main{flex:1;display:flex;flex-direction:column}
 .day .d span{font-size:11.5px;color:var(--ink-2)}
 .day .io{font-size:14px}
 .day .io small{display:block;color:var(--ink-2);font-size:12px}
+/* history redesign: calmer surfaces, a lead stat, and the month as a calendar */
+.stat,.daylist{border-color:transparent;box-shadow:0 1px 2px rgba(28,42,31,.05),0 10px 26px -18px rgba(28,42,31,.28)}
+.stat{border-radius:16px}.stat b{font-variant-numeric:tabular-nums;letter-spacing:-.01em}.stat b small{font-size:14px;color:var(--ink-2);font-weight:500}.stat > small{display:block;font-size:12px;color:var(--ink-2)}
+.stat.lead{grid-column:1 / -1;color:var(--cream);background:radial-gradient(90% 120% at 100% 0%, rgba(159,224,174,.18), transparent 55%),linear-gradient(155deg,#2E4433,#1C2A1F 75%)}
+.stat.lead span,.stat.lead b small{color:#AFC0AD}.stat.lead b{font-size:34px}
+.stat .hbar{height:6px;border-radius:999px;background:rgba(242,238,228,.14);margin-top:10px;overflow:hidden}.stat .hbar i{display:block;height:100%;background:var(--signal);border-radius:999px}
+.stat.warn b{color:#8A5A00}.stat.bad b{color:#B3261E}
+.mcal{background:var(--card);border-radius:18px;padding:14px;margin-bottom:16px;box-shadow:0 1px 2px rgba(28,42,31,.05),0 10px 26px -18px rgba(28,42,31,.28)}
+.mcal .dow,.mcal .grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.mcal .dow span{text-align:center;font-size:11.5px;color:var(--ink-2);padding-bottom:4px}
+.mcal .c{aspect-ratio:1/1;border-radius:12px;border:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-family:inherit;color:var(--ink);background:#F1EFE9;cursor:pointer;transition:transform .12s}
+.mcal button.c:hover{transform:translateY(-1px)}.mcal button.c:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.mcal .c b{font-size:14px;font-weight:600}.mcal .c small{font-size:10.5px;opacity:.75}
+.mcal .c.none{background:transparent;color:#B7B3A8;cursor:default}.mcal .c.ok{background:#DDEEE1}.mcal .c.late{background:#F8E6C2}.mcal .c.absent{background:#F5D5CD;color:#8F1F18}
+.mcal .c.leave{background:#DCE8F7}.mcal .c.holiday,.mcal .c.off{background:#F1EFE9;color:#7D8579}.mcal .c.miss{background:#EFDDF0}.mcal .c.today{box-shadow:inset 0 0 0 2px var(--pine)}
+.mcal .keys{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:12px;font-size:12px;color:var(--ink-2)}.mcal .keys i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:5px;vertical-align:middle}
+.mcal .keys i.ok{background:#9CC7A6}.mcal .keys i.late{background:#E0A043}.mcal .keys i.absent{background:#D86A55}.mcal .keys i.leave{background:#7FA8DC}.mcal .keys i.miss{background:#C48BC9}.mcal .keys i.off{background:#CFCABD}
+.day.flash{animation:dayFlash 1.2s ease}@keyframes dayFlash{0%,60%{background:#FFF6DC}100%{background:transparent}}
+@media (min-width:900px){.stats{grid-template-columns:2fr repeat(3,1fr)}.stat.lead{grid-column:auto}}
+@media (min-width:600px){.mcal .c{aspect-ratio:auto;height:56px}}
+@media (max-width:899px){.stats{grid-template-columns:repeat(3,minmax(0,1fr))}.stats .stat:not(.lead) b{font-size:19px}.stats .stat:not(.lead){padding:10px 11px}}
+.mcal .dow span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (prefers-reduced-motion:reduce){.day.flash{animation:none}.mcal .c{transition:none}}
 .empty{padding:28px 16px;text-align:center;color:var(--ink-2)}
 .empty i{display:block;font-size:34px;color:var(--brand);margin-bottom:6px}
 .empty b{display:block;color:var(--ink);font-weight:600;margin-bottom:2px}
@@ -328,6 +351,11 @@ main{flex:1;display:flex;flex-direction:column}
 .kpi.lead-k span{color:#AFC0AD}
 .kpi .bar{height:6px;border-radius:3px;background:rgba(255,255,255,.12);margin-top:10px;overflow:hidden}
 .kpi .bar i{display:block;height:100%;background:var(--signal);border-radius:3px;transition:width .8s var(--ease)}
+/* board redesign: one row of counts, soft surfaces, colour only where it means something */
+.kpis{grid-template-columns:repeat(auto-fit,minmax(118px,1fr))}
+.kpi{border-color:transparent;border-radius:16px;box-shadow:0 1px 2px rgba(28,42,31,.05),0 10px 26px -18px rgba(28,42,31,.28)}.kpi b{font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.kpi.lead-k{background:radial-gradient(90% 120% at 100% 0%, rgba(159,224,174,.18), transparent 55%),linear-gradient(155deg,#2E4433,#1C2A1F 75%);box-shadow:0 14px 30px -18px rgba(28,42,31,.8)}
+.kpi.k-late b{color:#8A5A00}.kpi.k-absent b{color:#B3261E}.kpi.k-in b{color:#1F6B3C}
 .toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
 .toolbar input,.toolbar select{height:40px;border:1px solid var(--line);border-radius:var(--r-s);background:var(--card);padding:0 12px;min-width:0}
 .toolbar .grow{flex:1;min-width:150px}
@@ -347,6 +375,16 @@ table.tbl{width:100%;border-collapse:collapse;background:var(--card);font-size:1
 .tbl th,.tbl td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:start;white-space:nowrap}
 .tbl th{font-weight:500;color:var(--ink-2);background:#FAF9F5;position:sticky;top:0}
 .tbl td.n{text-align:end}
+/* shared surfaces, 2026-09-30 redesign: soft tinted elevation instead of hard borders; squircle avatars; clear focus */
+.list,.tblwrap{border-color:transparent;border-radius:18px;box-shadow:0 1px 2px rgba(28,42,31,.05),0 10px 26px -18px rgba(28,42,31,.28)}
+.row{border-bottom-color:#EEEBE3}.row.click:hover{background:#F8F6F0}.row.click:focus-visible{outline:2px solid var(--brand);outline-offset:-2px}
+.av{border-radius:13px;background:linear-gradient(145deg,#E6EFE7,#D5E4D7);color:#2E5A36}
+.tbl th{background:#F4F2EC;font-weight:600;color:#56645A}.tbl tbody tr:hover td{background:#FAF9F5}
+.page h2{font-size:24px;letter-spacing:-.01em;margin-bottom:10px}
+.toolbar input,.toolbar select,.form input,.form select,.form textarea{transition:border-color .2s,box-shadow .2s}
+.toolbar input:focus,.toolbar select:focus,.form input:focus,.form select:focus,.form textarea:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(77,109,81,.16)}
+.adm-nav button,.hr-rail button{transition:background-color .2s,color .2s,transform .12s}.adm-nav button:hover{background:#EFECE3}
+.empty{padding:40px 16px}.empty i{width:64px;height:64px;margin:0 auto 10px;border-radius:20px;background:#E6EFE7;display:grid;place-items:center;font-size:30px}
 .form{display:grid;gap:12px}
 .form .field label{color:var(--ink-2)}
 .form input,.form select,.form textarea{width:100%;height:46px;border:1px solid var(--line);border-radius:var(--r-s);background:var(--card);padding:0 12px}
@@ -2335,13 +2373,15 @@ function renderHistory(){
   function load(){
     api('myHistory', { month: S.month }).then(function(r){
       if (!r.ok) return;
-      var tt = r.totals;
-      var html = '<div class="stats"><div class="stat"><span>' + t('present') + '</span><b class="num">' + tt.present + '</b></div>' +
+      var tt = r.totals, exp = r.days.filter(function(d){ return d.workday && ['upcoming', 'leave', 'holiday'].indexOf(d.status) < 0; }).length;
+      var html = '<div class="stats"><div class="stat lead"><span>' + t('present') + '</span><b class="num">' + tt.present + '<small> / ' + exp + '</small></b>' +
+        (exp ? '<div class="hbar"><i style="width:' + Math.round(tt.present / exp * 100) + '%"></i></div>' : '') + '</div>' +
         '<div class="stat"><span>' + t('totalHours') + '</span><b class="num">' + fmtDur(tt.workedMin) + '</b></div>' +
-        '<div class="stat"><span>' + t('lateDays') + '</span><b class="num">' + tt.lateDays + '</b></div>' +
-        '<div class="stat"><span>' + t('absent') + '</span><b class="num">' + tt.absent + '</b></div></div>';
-      html += r.days.length ? '<div class="daylist">' + r.days.map(dayRow).join('') + '</div>' : '<div class="empty">' + I.cal0 + '<b>' + t('emptyDay') + '</b></div>';
+        '<div class="stat' + (tt.lateDays ? ' warn' : '') + '"><span>' + t('lateDays') + '</span><b class="num">' + tt.lateDays + '</b>' + (tt.lateMin ? '<small>' + fmtDur(tt.lateMin) + '</small>' : '') + '</div>' +
+        '<div class="stat' + (tt.absent ? ' bad' : '') + '"><span>' + t('absent') + '</span><b class="num">' + tt.absent + '</b></div></div>';
+      html += r.days.length ? monthGrid(S.month, r.days) + '<div class="daylist">' + r.days.map(dayRow).join('') + '</div>' : '<div class="empty">' + I.cal0 + '<b>' + t('emptyDay') + '</b></div>';
       $('#hBody').innerHTML = html;
+      $$('.mcal [data-d]').forEach(function(c){ c.onclick = function(){ var row = document.getElementById('day-' + c.dataset.d); if (!row) return; row.scrollIntoView({ block: 'center', behavior: 'smooth' }); row.classList.remove('flash'); void row.offsetWidth; row.classList.add('flash'); }; });
     });
   }
   load();
@@ -2352,9 +2392,25 @@ function statusChip(d){
   if (d.lateMin) html += ' <span class="chip late num">' + t('late') + ' ' + d.lateMin + t('min') + '</span>';
   return html;
 }
+/** The month as a calendar: one cell per day, coloured by what happened; tap a day to jump to it in the list. */
+function monthGrid(month, days){
+  var by = {}; days.forEach(function(d){ by[d.date] = d; });
+  var p = month.split('-'), first = new Date(Date.UTC(+p[0], +p[1] - 1, 1)), n = new Date(Date.UTC(+p[0], +p[1], 0)).getUTCDate(), lead = first.getUTCDay(), cells = '';
+  for (var i = 0; i < lead; i++) cells += '<span class="pad"></span>';
+  for (var k = 1; k <= n; k++) {
+    var ds = month + '-' + String(k).padStart(2, '0'), d = by[ds];
+    var cls = !d ? 'none' : d.status === 'absent' ? 'absent' : d.status === 'leave' ? 'leave' : d.status === 'holiday' ? 'holiday' : d.status === 'off' || d.status === 'upcoming' ? 'off' : d.status === 'missing_out' ? 'miss' : d.lateMin ? 'late' : 'ok';
+    var tip = !d ? '' : t('st_' + d.status) + (d.lateMin ? ' · ' + t('late') + ' ' + d.lateMin + t('min') : '') + (d.workedMin ? ' · ' + fmtDur(d.workedMin) : '');
+    cells += d ? '<button type="button" class="c ' + cls + (ds === riyadhToday() ? ' today' : '') + '" data-d="' + ds + '" title="' + esc(tip) + '" aria-label="' + k + ' ' + esc(tip) + '"><b class="num">' + k + '</b>' + (d.workedMin ? '<small class="num">' + Math.round(d.workedMin / 6) / 10 + '</small>' : '') + '</button>'
+      : '<span class="c none"><b class="num">' + k + '</b></span>';
+  }
+  var keys = [['ok', 'st_present'], ['late', 'late'], ['absent', 'st_absent'], ['leave', 'st_leave'], ['miss', 'st_missing_out'], ['off', 'st_off']];
+  return '<div class="mcal"><div class="dow">' + t('dows').map(function(x){ return '<span>' + x + '</span>'; }).join('') + '</div><div class="grid">' + cells + '</div>' +
+    '<div class="keys">' + keys.map(function(x){ return '<span><i class="' + x[0] + '"></i>' + t(x[1]) + '</span>'; }).join('') + '</div></div>';
+}
 function dayRow(d){
   var dt = new Date(d.date + 'T12:00:00Z');
-  return '<div class="day"><div class="d"><b class="num">' + dt.getUTCDate() + '</b><span>' + t('dows')[dt.getUTCDay()] + '</span></div>' +
+  return '<div class="day" id="day-' + d.date + '"><div class="d"><b class="num">' + dt.getUTCDate() + '</b><span>' + t('dows')[dt.getUTCDay()] + '</span></div>' +
     '<div class="io num">' + fmtTime(d.firstIn) + ' - ' + fmtTime(d.lastOut) + '<small>' + (d.workedMin ? fmtDur(d.workedMin) : '') + '</small></div>' +
     '<div>' + statusChip(d) + '</div></div>';
 }
@@ -2437,8 +2493,8 @@ function admBoard(){
       rows.sort(function(a, b){ return (order[a.day.status] - order[b.day.status]) || String(a.emp.name).localeCompare(b.emp.name); });
       $('#admBody').innerHTML =
         '<div class="kpis"><div class="kpi lead-k"><span>' + t('presentNow') + '</span><b class="num">' + pct + '%</b><div class="bar"><i style="width:' + pct + '%"></i></div></div>' +
-        '<div class="kpi"><span>' + t('kIn') + '</span><b class="num">' + k.in + '</b></div><div class="kpi"><span>' + t('kLate') + '</span><b class="num">' + k.late + '</b></div>' +
-        '<div class="kpi"><span>' + t('kAbsent') + '</span><b class="num">' + k.absent + '</b></div><div class="kpi"><span>' + t('kLeave') + '</span><b class="num">' + (k.leave || 0) + '</b></div><div class="kpi"><span>' + t('kUpcoming') + '</span><b class="num">' + k.upcoming + '</b></div></div>' +
+        '<div class="kpi k-in"><span>' + t('kIn') + '</span><b class="num">' + k.in + '</b></div><div class="kpi' + (k.late ? ' k-late' : '') + '"><span>' + t('kLate') + '</span><b class="num">' + k.late + '</b></div>' +
+        '<div class="kpi' + (k.absent ? ' k-absent' : '') + '"><span>' + t('kAbsent') + '</span><b class="num">' + k.absent + '</b></div><div class="kpi"><span>' + t('kLeave') + '</span><b class="num">' + (k.leave || 0) + '</b></div><div class="kpi"><span>' + t('kUpcoming') + '</span><b class="num">' + k.upcoming + '</b></div></div>' +
         '<div class="toolbar"><input class="grow" id="bq" type="search" aria-label="' + t('search') + '" placeholder="' + t('search') + '" value="' + esc(q) + '"></div>' +
         '<div class="list">' + (rows.length ? rows.map(function(x){
           return '<div class="row"><div class="av">' + esc(initials(x.emp.name)) + '</div><div class="main"><b>' + esc(x.emp.name) + '</b><small>' + esc(x.emp.empNo) + (x.emp.department ? ' · ' + esc(x.emp.department) : '') + (x.lastZone ? ' · ' + esc(x.lastZone) : '') + '</small></div>' +
