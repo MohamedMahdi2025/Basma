@@ -63,6 +63,25 @@ fs.writeFileSync(path.join(OUT, 'sw.js'), fs.readFileSync(path.join(SRC, 'sw.js'
 for (const f of ['manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png', 'favicon-48.png']) {
   fs.copyFileSync(path.join(SRC, f), path.join(OUT, f));
 }
+// Lazily loaded screens (js/*.js) get the same treatment: a fresh key each, decoded and run in page scope.
+const JS_IN = path.join(SRC, 'js'), JS_OUT = path.join(OUT, 'js');
+let jsLong = 0;
+if (fs.existsSync(JS_IN)) {
+  fs.mkdirSync(JS_OUT, { recursive: true });
+  for (const f of fs.readdirSync(JS_OUT)) if (!fs.existsSync(path.join(JS_IN, f))) fs.unlinkSync(path.join(JS_OUT, f));
+  for (const f of fs.readdirSync(JS_IN).filter(x => x.endsWith('.js'))) {
+    const src = fs.readFileSync(path.join(JS_IN, f), 'utf8').split('\n').filter(l => !/^\s*\/\/(?!\/)/.test(l)).join('\n');
+    const k = crypto.randomBytes(48), d = Buffer.from(src, 'utf8'), e = Buffer.alloc(d.length);
+    for (let i = 0; i < d.length; i++) e[i] = d[i] ^ k[i % k.length];
+    const out = '(function(){\nvar k=[\n' + lines(k.toString('base64')) + '\n].join(""),p=[\n' + lines(e.toString('base64')) + '\n].join("");\n' +
+      'var kb=atob(k),pb=atob(p),o=new Uint8Array(pb.length);\nfor(var i=0;i<pb.length;i++)o[i]=pb.charCodeAt(i)^kb.charCodeAt(i%kb.length);\n' +
+      '(0,eval)(new TextDecoder().decode(o));\n})();\n';
+    fs.writeFileSync(path.join(JS_OUT, f), out);
+    jsLong += out.split('\n').filter(l => /[A-Za-z0-9+/]{40,}/.test(l)).length;
+    console.log('built js/' + f, Math.round(out.length / 1024) + ' KB');
+  }
+}
+if (jsLong) { console.error('refusing: a js line holds a 40+ character run (GitHub push protection)'); process.exit(1); }
 const long = loader.split('\n').filter(l => /[A-Za-z0-9+/]{40,}/.test(l)).length;
 console.log('built ' + STAMP + ' app/index.html', Math.round(loader.length / 1024) + ' KB', 'source', Math.round(page.length / 1024) + ' KB', 'long runs:', long);
 if (long) { console.error('refusing: a line holds a 40+ character run (GitHub push protection)'); process.exit(1); }

@@ -199,6 +199,11 @@ function contractRule_(e) {
 
 // ---------------- job data ----------------
 
+/** HR may edit employees and HR colleagues; an administrator's record only an administrator may touch. */
+function guardEdit_(me, target) {
+  if (target.role === 'admin' && me.role !== 'admin') fail_('forbidden');
+}
+
 var JOB_KEYS = ['departmentId', 'positionId', 'managerId', 'hireDate', 'contractType', 'contractEnd', 'probationEnd',
   'nationality', 'isSaudi', 'gender', 'workLocation', 'contractNo', 'occupationCode', 'employmentType',
   'workDaysPerWeek', 'dailyHours', 'annualLeaveDays', 'noticeDays'];
@@ -209,6 +214,7 @@ function api_hrEmpSave(req, me) {
   return withLock_(function () {
     var ctx = orgCtx_(), emp = ctx.emps[d.id];
     if (!emp) fail_('not_found');
+    guardEdit_(me, emp);
     var before = { departmentId: emp.departmentId, positionId: emp.positionId, managerId: emp.managerId };
     if ('departmentId' in d && d.departmentId && !ctx.depts[d.departmentId]) fail_('not_found');
     var pos = null;
@@ -282,20 +288,28 @@ function api_hrPrivateSave(req, me) {
   if ('personalEmail' in d && d.personalEmail && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.personalEmail)) fail_('bad_email');
   if ('borderNo' in d && d.borderNo && !/^\d{10}$/.test(String(d.borderNo))) fail_('bad_value');
   return withLock_(function () {
-    if (!findBy_(SHEETS.EMP, 'id', req.empId)) fail_('not_found');
+    var target = findBy_(SHEETS.EMP, 'id', req.empId);
+    if (!target) fail_('not_found');
+    guardEdit_(me, target);
     var row = findBy_(SHEETS.PRIV, 'empId', req.empId), created = !row;
+    var newIban = 'iban' in d ? String(d.iban || '').replace(/\s+/g, '').toUpperCase() : null;
+    // Salary goes to this account: a person may never change their own, so a fraudulent switch needs two people.
+    if (newIban !== null && req.empId === me.id && newIban !== String((row && row.iban) || '')) fail_('cannot_change_own_bank');
     if (!row) row = { empId: req.empId };
     if (d.nationalId) {
       var dup = readAll_(SHEETS.PRIV).some(function (p) { return p.empId !== req.empId && String(p.nationalId) === String(d.nationalId); });
       if (dup) fail_('duplicate_national_id');
     }
+    var ibanBefore = row.iban;
     PRIV_KEYS.forEach(function (k) {
       if (!(k in d)) return;
       row[k] = k === 'iban' ? String(d.iban || '').replace(/\s+/g, '').toUpperCase() : PRIV_DATES[k] ? isoDate_(d[k]) : str_(d[k], 200);
     });
     row.updatedAt = new Date().toISOString();
     if (created) append_(SHEETS.PRIV, row); else update_(SHEETS.PRIV, row);
-    audit_(me.id, 'emp_private_update', req.empId, { fields: Object.keys(d) });
+    var det = { fields: Object.keys(d) };
+    if (newIban !== null) det.iban = (String(ibanBefore || '').slice(-4) || '-') + ' > ' + (newIban.slice(-4) || '-');
+    audit_(me.id, 'emp_private_update', req.empId, det);
     return { ok: true };
   });
 }
@@ -595,7 +609,7 @@ function api_hrExpiring(req, me) {
 var IMPORT_REQUIRED = ['empNo', 'nameAr', 'department', 'position', 'hireDate', 'nationality', 'nationalId', 'basic'];
 var IMPORT_DATES = ['hireDate', 'idExpiry', 'birthDate', 'contractEnd', 'probationEnd', 'passportExpiry'];
 
-function validateImport_(rows, ctx) {
+function validateImport_(rows, ctx, me) {
   if (!Array.isArray(rows) || !rows.length) fail_('bad_request');
   if (rows.length > 2000) fail_('too_many_rows');
   var errors = [], seenNo = {}, seenId = {}, fileMgr = {};
@@ -613,6 +627,9 @@ function validateImport_(rows, ctx) {
     r.empNo = String(r.empNo == null ? '' : r.empNo).trim();
     IMPORT_REQUIRED.forEach(function (k) { if (r[k] === '' || r[k] == null) e(k, 'required'); });
     if (r.empNo) { if (seenNo[r.empNo]) e('empNo', 'duplicate_emp_no'); else seenNo[r.empNo] = line; }
+    var ex = existingByNo[r.empNo];
+    if (ex && me && ex.id === me.id) e('empNo', 'cannot_import_self');
+    else if (ex && me && ex.role === 'admin' && me.role !== 'admin') e('empNo', 'forbidden_row');
     var nid = String(r.nationalId == null ? '' : r.nationalId).trim();
     r.nationalId = nid;
     if (nid) {
@@ -676,7 +693,7 @@ function validateImport_(rows, ctx) {
 }
 
 function api_hrImportValidate(req, me) {
-  var v = validateImport_(req.rows, orgCtx_());
+  var v = validateImport_(req.rows, orgCtx_(), me);
   return { ok: true, errors: v.errors, summary: v.summary };
 }
 
@@ -688,7 +705,7 @@ var IMPORT_PRIV = ['nationalId', 'idExpiry', 'birthDate', 'bankName', 'gosiNumbe
 /** All or nothing: the server re-validates the whole file inside the lock and writes nothing if one row is wrong. */
 function api_hrImportCommit(req, me) {
   return withLock_(function () {
-    var ctx = orgCtx_(), v = validateImport_(req.rows, ctx);
+    var ctx = orgCtx_(), v = validateImport_(req.rows, ctx, me);
     if (v.errors.length) return { ok: false, error: 'import_invalid', errors: v.errors };
     var now = new Date().toISOString(), batch = newId_('B'), t = today_();
     var newDeptRows = [], newPosRows = [];

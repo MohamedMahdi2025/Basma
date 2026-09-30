@@ -251,6 +251,24 @@ ok(E('7001').nameEn === 'Salman Alanazi' && E('5002').managerId === ids['5001'] 
 ok(JSON.stringify(E('5000')) === before5000, 'rows in between are written back unchanged');
 ok(direct(() => B.ctx.readAll_('departments').length) === 3, 'no department was created twice');
 
+console.log('Guards against self-dealing');
+r = B.call({ action: 'hrPrivateSave', token: hrT, empId: ids['3001'], priv: { iban: iban('10000000000000000001') } });
+ok(!r.ok && r.error === 'cannot_change_own_bank', 'HR cannot put their own bank account on file', r);
+r = B.call({ action: 'hrPrivateSave', token: hrT, empId: ids['3001'], priv: { emergencyPhone: '0500000000' } });
+ok(r.ok, 'but can update their other details', r);
+r = B.call({ action: 'hrPrivateSave', token: hrT, empId: ids['1000'], priv: { iban: iban('10000000000000000002') } });
+ok(!r.ok && r.error === 'forbidden', 'HR cannot change an administrator bank account', r);
+r = B.call({ action: 'hrEmpSave', token: hrT, emp: { id: ids['1000'], managerId: E5000 } });
+ok(!r.ok && r.error === 'forbidden', 'HR cannot edit an administrator record', r);
+r = B.call({ action: 'hrPrivateSave', token: hrT, empId: E5002, priv: { iban: iban('55000000000000000555') } });
+r = B.call({ action: 'auditList', token: tok('1000') });
+ok(r.rows.some(a => a.action === 'emp_private_update' && /0555/.test(a.detail || '')), 'an IBAN change is audited with old and new last digits', r.rows.filter(a => a.action === 'emp_private_update').map(a => a.detail));
+const selfRow = Object.assign({}, base, { empNo: '3001', nameAr: 'الموارد البشرية', nationalId: '1000000009', basic: 50000 });
+r = B.call({ action: 'hrImportValidate', token: hrT, rows: [selfRow] });
+ok(r.errors.some(e => e.code === 'cannot_import_self'), 'HR cannot import a row for themselves (own salary or bank)', r.errors);
+r = B.call({ action: 'hrImportValidate', token: hrT, rows: [Object.assign({}, selfRow, { empNo: '1000', nameAr: 'تغيير' })] });
+ok(r.errors.some(e => e.code === 'forbidden_row'), 'nor overwrite an administrator record through the import', r.errors);
+
 console.log('My file');
 r = B.call({ action: 'myFile', token: tok('5002') });
 ok(r.ok && r.file.emp.empNo === '5002' && r.file.job.manager.empNo === '5001' && r.file.job.head.empNo === '5000' &&

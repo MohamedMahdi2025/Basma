@@ -30,6 +30,28 @@ const B = load({ props: { RP_ID: 'localhost', ORIGINS: ORIGIN }, setupKeyHash: c
     const ins = { 1: '07:52', 2: '08:04', 3: '08:41', 5: '07:58' };
     if (ins[i] && Date.parse(at(ins[i])) < Date.now()) B.ctx.append_('punches', { id: 'P' + no, empId: id, type: 'in', ts: at(ins[i]), date: today, lat: HQ.lat + 0.0002, lng: HQ.lng, acc: 14, zoneId: 'ZHQ', distance: 22, status: i === 3 ? 'review' : 'ok', risk: i === 3 ? 45 : 0, flags: i === 3 ? 'static_samples,new_device' : '', source: 'app', note: '', reviewBy: '', reviewAt: '', credId: '', ua: '', createdAt: now });
   });
+  // HR demo (fictional people): organisation, a job description, a manager chain, packages, private data, documents.
+  const addDays = n => new Date(Date.now() + n * 86400000).toISOString().slice(0, 10);
+  B.ctx.append_('departments', { id: 'DFIN', code: 'FIN', nameAr: 'الإدارة المالية', nameEn: 'Finance', parentId: '', headEmpId: 'E2004', costCenter: '100', status: 'active', createdAt: now, updatedAt: now });
+  B.ctx.append_('departments', { id: 'DACC', code: 'ACC', nameAr: 'الحسابات', nameEn: 'Accounts', parentId: 'DFIN', headEmpId: '', costCenter: '110', status: 'active', createdAt: now, updatedAt: now });
+  B.ctx.append_('departments', { id: 'DOPS', code: 'OPS', nameAr: 'العمليات', nameEn: 'Operations', parentId: '', headEmpId: 'E2005', costCenter: '200', status: 'active', createdAt: now, updatedAt: now });
+  B.ctx.append_('positions', { id: 'JACC', code: 'ACC-2', titleAr: 'محاسب', titleEn: 'Accountant', departmentId: 'DACC', grade: 'G5',
+    purposeAr: 'تسجيل العمليات المالية اليومية ومطابقة الحسابات البنكية لضمان دقة القوائم المالية.', purposeEn: 'Record daily transactions and reconcile bank accounts so the statements are accurate.',
+    dutiesAr: 'إعداد قيود اليومية\nمطابقة كشوف البنوك شهريا\nمتابعة ذمم الموردين\nإعداد تقارير الإقفال الشهري', dutiesEn: 'Prepare journal entries\nReconcile bank statements monthly\nFollow up supplier balances\nPrepare month-end reports',
+    requirementsAr: 'بكالوريوس محاسبة\nخبرة سنتين\nإجادة Excel', requirementsEn: "Bachelor's in accounting\nTwo years' experience\nStrong Excel", status: 'active', createdAt: now, updatedAt: now });
+  B.ctx.append_('positions', { id: 'JMGR', code: 'FIN-1', titleAr: 'مدير مالي', titleEn: 'Finance manager', departmentId: 'DFIN', grade: 'G9', purposeAr: '', purposeEn: '', dutiesAr: '', dutiesEn: '', requirementsAr: '', requirementsEn: '', status: 'active', createdAt: now, updatedAt: now });
+  const job = { E2001: { departmentId: 'DACC', positionId: 'JACC', managerId: 'E2004', hireDate: '2021-06-15', nationality: 'SA', isSaudi: true, contractType: 'indefinite', annualLeaveDays: 30, workDaysPerWeek: 5, dailyHours: 8, noticeDays: 60 },
+    E2004: { departmentId: 'DFIN', positionId: 'JMGR', managerId: '', hireDate: '2018-02-01', nationality: 'SA', isSaudi: true, contractType: 'indefinite' },
+    E2003: { departmentId: 'DACC', positionId: 'JACC', managerId: 'E2004', hireDate: '2024-01-07', nationality: 'IN', isSaudi: false, contractType: 'fixed', contractEnd: addDays(40), probationEnd: '' },
+    E2005: { departmentId: 'DOPS', managerId: '', hireDate: '2020-09-01', nationality: 'SA', isSaudi: true }, E2006: { departmentId: 'DOPS', managerId: 'E2005', hireDate: '2025-03-10', nationality: 'EG', isSaudi: false, contractType: 'fixed', contractEnd: addDays(300) } };
+  B.ctx.readAll_('employees').forEach(e => { if (job[e.id]) { Object.assign(e, job[e.id]); B.ctx.update_('employees', e); } });
+  const pkg = [['E2001', 9000, 2250, 900, { 'بدل هاتف': 200 }], ['E2004', 18000, 4500, 1500, {}], ['E2003', 7000, 1750, 700, {}], ['E2005', 3200, 500, 400, {}]];
+  pkg.forEach(([emp, b, h, t, o], i) => B.ctx.append_('compensation', { id: 'C' + i, empId: emp, effectiveFrom: '2026-01-01', basic: b, housing: h, transport: t, otherJson: JSON.stringify(o), currency: 'SAR', reason: 'initial', enteredBy: 'E2002', approvedBy: 'E1000', approvedAt: now, status: 'approved', createdAt: now, batchId: '' }));
+  B.ctx.append_('compensation', { id: 'CP1', empId: 'E2006', effectiveFrom: addDays(10), basic: 6000, housing: 1500, transport: 600, otherJson: '{}', currency: 'SAR', reason: 'initial', enteredBy: 'E1000', approvedBy: '', approvedAt: '', status: 'pending', createdAt: now, batchId: '' });
+  B.ctx.append_('empPrivate', { empId: 'E2001', nationalId: '1012345678', idExpiry: '2029-05-01', iban: 'SA0380000000608010167519', bankName: 'الراجحي', gosiNumber: '401234567', gosiCohort: 'legacy', updatedAt: now });
+  B.ctx.append_('empPrivate', { empId: 'E2003', nationalId: '2123456780', idExpiry: addDays(18), passportNo: 'P1234567', passportExpiry: addDays(400), updatedAt: now });
+  B.ctx.append_('documents', { id: 'F1', empId: 'E2003', type: 'work_permit', number: 'WP-8841', issueDate: '2025-11-01', expiryDate: addDays(25), note: '', status: 'active', createdAt: now, updatedAt: now });
+  B.ctx.append_('documents', { id: 'F2', empId: 'E2001', type: 'medical_insurance', number: 'MI-22019', issueDate: '2026-01-01', expiryDate: '2026-12-31', note: '', status: 'active', createdAt: now, updatedAt: now });
 })();
 
 const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.png': 'image/png', '.webmanifest': 'application/manifest+json', '.json': 'application/json' };

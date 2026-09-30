@@ -1177,7 +1177,7 @@ var T = {
     activateTitle:'فعّل جهازك', activateLead:'أدخل رقمك الوظيفي ورمز التفعيل من الموارد البشرية، ثم اختر رمزاً سرياً من 6 أرقام.',
     actCode:'رمز التفعيل', activate:'تفعيل وربط Face ID / البصمة',
     unlockTitle:'مرحباً', unlockLead:'افتح التطبيق بـ Face ID أو البصمة', unlock:'افتح بـ Face ID / البصمة', notMe:'تسجيل موظف آخر على هذا الجهاز',
-    tabHome:'الحضور', btnIn:'حضور', btnOut:'انصراف', recordedAt:'سيُسجَّل بهذا الوقت', emptyEmp:'لا يوجد موظفون بعد', emptyEmpLead:'أضف أول موظف لتصله رسالة التفعيل.', emptyDay:'لا حركات في هذا الشهر', tabHistory:'سجلي', tabAdmin:'الإدارة', tabMe:'حسابي',
+    tabHome:'الحضور', btnIn:'حضور', btnOut:'انصراف', recordedAt:'سيُسجَّل بهذا الوقت', emptyEmp:'لا يوجد موظفون بعد', emptyEmpLead:'أضف أول موظف لتصله رسالة التفعيل.', emptyDay:'لا حركات في هذا الشهر', tabHistory:'سجلي', tabFile:'ملفي', tabHr:'الموارد', retry:'إعادة المحاولة', tabAdmin:'الإدارة', tabMe:'حسابي',
     locating:'جارٍ تحديد موقعك…', inside:'داخل نطاق', outside:'خارج النطاق', m:'م', km:'كم', fromZone:'من مركز', accuracy:'دقة الموقع',
     noLoc:'فعّل خدمة الموقع للتطبيق حتى تتمكن من التسجيل', noZone:'لم يُحدَّد نطاق عمل لك بعد. تواصل مع الموارد البشرية.',
     checkIn:'تسجيل الحضور', checkOut:'تسجيل الانصراف', hold:'اضغط للتسجيل', holdHint:'اضغط الزر ثم أكّد بـ Face ID أو البصمة', tapHint:'اضغط الزر للتسجيل، يعمل فقط داخل المقر',
@@ -1236,7 +1236,7 @@ var T = {
     activateTitle:'Activate your device', activateLead:'Enter your employee number and HR\'s activation code, then choose a 6-digit PIN.',
     actCode:'Activation code', activate:'Activate with Face ID / fingerprint',
     unlockTitle:'Welcome', unlockLead:'Open the app with Face ID or fingerprint', unlock:'Unlock with Face ID / fingerprint', notMe:'Register a different employee on this device',
-    tabHome:'Attendance', btnIn:'Check in', btnOut:'Check out', recordedAt:'This is the time that will be recorded', emptyEmp:'No employees yet', emptyEmpLead:'Add the first employee to send their activation code.', emptyDay:'Nothing recorded this month', tabHistory:'My record', tabAdmin:'Admin', tabMe:'Account',
+    tabHome:'Attendance', btnIn:'Check in', btnOut:'Check out', recordedAt:'This is the time that will be recorded', emptyEmp:'No employees yet', emptyEmpLead:'Add the first employee to send their activation code.', emptyDay:'Nothing recorded this month', tabHistory:'My record', tabFile:'My file', tabHr:'HR', retry:'Try again', tabAdmin:'Admin', tabMe:'Account',
     locating:'Finding your location…', inside:'Inside', outside:'Outside the zone', m:'m', km:'km', fromZone:'from', accuracy:'Accuracy',
     noLoc:'Allow location access so you can check in', noZone:'No work zone is set for you yet. Contact HR.',
     checkIn:'Check in', checkOut:'Check out', hold:'Tap to record', holdHint:'Tap the button, then confirm with Face ID or fingerprint', tapHint:'Tap the button to record. Works only inside HQ',
@@ -1293,6 +1293,22 @@ function fmtTime(iso){ if (!iso) return '--:--'; return new Date(iso).toLocaleTi
 function fmtDur(min){ min = Math.max(0, Math.round(min || 0)); var h = Math.floor(min / 60), m = min % 60; if (!h) return m + ' ' + t('min'); return h + ' ' + t('h') + ' ' + m + ' ' + t('min'); }
 function fmtDist(m){ if (m == null) return '--'; return m >= 1000 ? (m / 1000).toFixed(m >= 10000 ? 0 : 1) + '<small>' + t('km') + '</small>' : Math.round(m) + '<small>' + t('m') + '</small>'; }
 function toast(msg){ var d = document.createElement('div'); d.className = 'toast'; d.setAttribute('role','status'); d.textContent = msg; document.body.appendChild(d); setTimeout(function(){ d.remove(); }, 2600); }
+/** "3 موظفين", "12 موظفا", "موظفان": forms[lang] = [one, two, 3-10, 11+, hundreds] in Arabic, [one, many] in English. */
+var PLURALS = {
+  people: { ar: ['موظف واحد', 'موظفان', 'موظفين', 'موظفا', 'موظف'], en: ['person', 'people'] },
+  days: { ar: ['يوم واحد', 'يومان', 'أيام', 'يوما', 'يوم'], en: ['day', 'days'] },
+  rows: { ar: ['صف واحد', 'صفان', 'صفوف', 'صفا', 'صف'], en: ['row', 'rows'] }
+};
+function plural(n, key){
+  var f = PLURALS[key][S.lang] || PLURALS[key].en, num = Number(n).toLocaleString(LOCALE());
+  if (S.lang !== 'ar') return num + ' ' + (Number(n) === 1 ? f[0] : f[1]);
+  var m = Math.abs(Number(n)) % 100;
+  if (Number(n) === 1) return f[0];
+  if (Number(n) === 2) return f[1];
+  if (m >= 3 && m <= 10) return num + ' ' + f[2];
+  if (m === 0 || m === 1 || m === 2) return num + ' ' + f[4]; // 100, 101, 1000: the noun stays singular
+  return num + ' ' + f[3];
+}
 function riyadhToday(){ return new Date(Date.now() + 180 * 60000).toISOString().slice(0, 10); }
 
 // ---------------- API ----------------
@@ -1402,8 +1418,40 @@ var I = {
   face: ph('scan-smiley'), finger: ph('fingerprint'), home: ph('crosshair'), cal: ph('calendar-dots'), admin: ph('chart-bar'),
   user: ph('user-circle'), lock: ph('lock-simple'), chev: ph('caret-right'), chevb: ph('caret-left'), tap: ph('hand-tap'), click: ph('cursor-click'), desk: ph('laptop'), phone: ph('device-mobile'),
   pin:'<svg viewBox="0 0 38 62"><defs><linearGradient id="pg" x1="0" x2="1"><stop offset="0" stop-color="#FFE3A8"/><stop offset=".55" stop-color="#E0A043"/><stop offset="1" stop-color="#9E6A1F"/></linearGradient><linearGradient id="pgi" x1="0" x2="1"><stop offset="0" stop-color="#DFF7E4"/><stop offset=".55" stop-color="#9FE0AE"/><stop offset="1" stop-color="#4E9A61"/></linearGradient></defs><path class="pinbody" d="M19 61C19 61 3 36 3 19a16 16 0 0 1 32 0c0 17-16 42-16 42z" fill="url(#pg)"/><circle cx="19" cy="19" r="6.5" fill="#1C2A1F"/></svg>',
-  check: ph('check', 'bold'), x: ph('x', 'bold'), users: ph('users-three'), cal0: ph('calendar-blank')
+  check: ph('check', 'bold'), x: ph('x', 'bold'), users: ph('users-three'), cal0: ph('calendar-blank'),
+  idcard: ph('identification-card'), hr: ph('briefcase')
 };
+
+// ---------------- HR screens (loaded on demand; the check-in screen never waits for them) ----------------
+var loadedScripts = {};
+function loadScript(src){
+  if (loadedScripts[src]) return loadedScripts[src];
+  return (loadedScripts[src] = new Promise(function(res, rej){
+    var sc = document.createElement('script'); sc.src = src + '?v=' + BUILD;
+    sc.onload = res; sc.onerror = function(){ delete loadedScripts[src]; sc.remove(); rej(); };
+    document.head.appendChild(sc);
+  }));
+}
+/** Which HR screens this person gets: remembered per device so the tab shows at once next time. */
+function hrAccessFromStore(){
+  try { var v = JSON.parse(store('hrAccess') || 'null'); return v && S.me && v.id === S.me.id ? v.r : null; } catch (e) { return null; }
+}
+function setHrAccess(file){
+  var r = { hr: !!(file.roles && file.roles.hr), payroll: !!(file.roles && file.roles.payroll), manager: !!file.isManager };
+  var had = hasHrTab();
+  S.fileRoles = r;
+  store('hrAccess', JSON.stringify({ id: S.me.id, r: r }));
+  if (had !== hasHrTab()) renderShell();
+}
+function hasHrTab(){ var r = S.fileRoles; return isHr() || !!(r && (r.hr || r.payroll || r.manager)); }
+function lazyScreen(files, run){
+  var main = $('#main');
+  main.innerHTML = '<section class="page"><span class="sk" style="width:40%"></span><span class="sk" style="margin-top:12px"></span><span class="sk" style="width:70%;margin-top:12px"></span></section>';
+  files.reduce(function(p, f){ return p.then(function(){ return loadScript(f); }); }, Promise.resolve()).then(function(){ if ($('#main') === main) run(main); }, function(){
+    main.innerHTML = '<section class="page"><div class="empty">' + ph('wifi-slash') + '<b>' + t('e_network') + '</b><div class="btnrow" style="justify-content:center;margin-top:12px"><button class="btn btn-dark btn-sm" type="button" id="lzRetry">' + t('retry') + '</button></div></div></section>';
+    $('#lzRetry').onclick = function(){ lazyScreen(files, run); };
+  });
+}
 
 // ---------------- 3D medallion (three.js, loaded on demand) ----------------
 // The logo's circle (x 106-297, y 33-224 of the 402x352 artwork, measured from the file)
@@ -1849,7 +1897,8 @@ function enterApp(home){
   store('name', S.me ? S.me.name : '');
   function go(r){
     applyHome(r); armIdleLock();
-    S.tab = 'home'; renderShell(); startWatch(); schedulePunchPrefetch(true);
+    S.fileRoles = null;
+    S.tab = location.hash === '#hr' ? 'hr' : location.hash === '#file' ? 'file' : 'home'; renderShell(); startWatch(); schedulePunchPrefetch(true);
   }
   if (home && home.me) return go(home);
   api('me', {}).then(function(r){ if (!r.ok) return r.error === 'password_change_required' ? null : renderLock(); go(r); });
@@ -1857,19 +1906,25 @@ function enterApp(home){
 
 function renderShell(){
   rerender = renderShell;
-  var wide = S.tab === 'admin';
-  var tabs = [['home', I.home, t('tabHome')], ['history', I.cal, t('tabHistory')]];
+  var wide = S.tab === 'admin' || S.tab === 'hr';
+  if (!S.fileRoles) S.fileRoles = hrAccessFromStore();
+  if (S.tab === 'hr' && !hasHrTab() && S.fileRoles) S.tab = 'file';
+  var tabs = [['home', I.home, t('tabHome')], ['file', I.idcard, t('tabFile')]];
+  if (hasHrTab()) tabs.push(['hr', I.hr, t('tabHr')]);
   if (isHr()) tabs.push(['admin', I.admin, t('tabAdmin')]);
   tabs.push(['me', I.user, t('tabMe')]);
+  var cur = S.tab === 'history' ? 'file' : S.tab;
   root('<div class="app' + (wide ? ' admin-wide' : '') + (S.tab === 'home' ? ' on-home' : '') + '">' +
     '<header class="topbar"><img src="' + MARK + '" alt="Best Gas"><div class="who"><b>' + esc(S.me.name) + '</b><span>' + esc(S.me.title || S.me.department || t('company')) + ' · ' + esc(S.me.empNo) + '</span></div>' +
     '<button class="iconbtn" type="button" onclick="toggleLang()" aria-label="language" style="font-size:12px;width:auto;padding:0 10px">' + t('langBtn') + '</button>' +
     '<button class="iconbtn" type="button" onclick="renderLock()" aria-label="' + t('signOut') + '">' + I.lock + '</button></header>' +
     '<main id="main"></main>' +
-    '<nav class="tabs" aria-label="' + t('appName') + '">' + tabs.map(function(x){ return '<button type="button" data-tab="' + x[0] + '"' + (S.tab === x[0] ? ' aria-current="page"' : '') + '>' + x[1] + '<span>' + x[2] + '</span></button>'; }).join('') + '</nav></div>');
+    '<nav class="tabs" aria-label="' + t('appName') + '">' + tabs.map(function(x){ return '<button type="button" data-tab="' + x[0] + '"' + (cur === x[0] ? ' aria-current="page"' : '') + '>' + x[1] + '<span>' + x[2] + '</span></button>'; }).join('') + '</nav></div>');
   $$('.tabs button').forEach(function(b){ b.onclick = function(){ S.tab = b.dataset.tab; renderShell(); }; });
   if (S.tab === 'home') renderHome();
   else if (S.tab === 'history') renderHistory();
+  else if (S.tab === 'file') lazyScreen(['js/my-file.js'], function(m){ MyFile.render(m); });
+  else if (S.tab === 'hr') lazyScreen(['js/my-file.js', 'js/hr-console.js'], function(m){ HrConsole.render(m); });
   else if (S.tab === 'admin') renderAdmin();
   else renderMe();
 }

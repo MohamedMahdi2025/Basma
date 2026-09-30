@@ -96,3 +96,31 @@ the lock ~150 ms, and Google's own round trip ~2 s. So speed = fewer Sheet calls
 - The site: each build stamps `BUILD`, `version.json` and the SW cache name; the page
   checks `version.json` on open, on resume and every 5 min (reloads when signed out,
   shows an update banner when signed in). Navigation is fetched `no-store`.
+
+## HR (Phase 1, live 2026-09-30)
+
+Files: `backend/Hr.gs` (all HR actions), `js/my-file.js` ("ملفي" tab), `js/hr-console.js`
+(tab "hr", opened by `#hr`), tests `tests/hr.js` (`node tests/hr.js`). The two js files load
+on demand (`loadScript`, `lazyScreen` in index.html) so the check-in screen never waits;
+`build.js` XOR-encodes each into `app/js/`. hr-console needs my-file loaded first (shared
+strings and `.mf-kv` / `.mf-hist` styles).
+
+Tabs: employees, departments, positions, empPrivate, compensation, jobHistory, documents.
+`compensation` and `jobHistory` are append-only and effective-dated.
+
+Who sees what (enforced in `buildFile_` and each action, never in the page):
+- employee: own file, own package, own private data and documents
+- manager / department head (`manages_`: manager chain or head of the dept or a parent):
+  job, JD, history of their people; never `comp`, `priv`, `documents` (keys absent, not empty)
+- hr: everything; admin: everything except salaries unless also `payroll` (`hrRolesSave`)
+- payroll (extra role, admin grants): salaries and private data, approves packages
+Rules: a salary change needs a second person (`second_approver_required`), nobody proposes,
+approves, imports or changes the bank account of themselves (`cannot_change_own_salary`,
+`cannot_import_self`, `cannot_change_own_bank`), HR cannot edit an admin record.
+KSA checks: `expat_contract_fixed` (Art. 37), `probation_too_long` (> 180 days, Art. 53),
+`leave_below_minimum` (< 21, Art. 109); Saudization in `hrDirectory` (Nitaqat weights).
+
+Import: client parses Excel with SheetJS (cdnjs xlsx 0.18.5), maps Arabic or English headers
+(`COLS` in hr-console.js), skips blank rows and maps server row numbers back to Excel rows.
+Server re-validates everything and commits all or nothing; salaries arrive `pending`.
+Arabic counts go through `plural(n, 'people'|'days'|'rows')`; never "3 موظف".
