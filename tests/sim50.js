@@ -9,6 +9,7 @@ const VERBOSE = process.argv.includes('--verbose');
 const T_START = Date.now();
 const sha = s => crypto.createHash('sha256').update(s).digest('hex');
 const B = load({ setupKeyHash: sha('sim-key') });
+B.ctx.DEFAULT_SETTINGS.adminSeesPay = false; // these checks prove the strict mode: pay kept apart from administration (the default lets the admin hold payroll)
 
 // ---------------- checks, grouped by cycle ----------------
 const CY = {}, ORDER = [], NOTES = [];

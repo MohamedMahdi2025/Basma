@@ -336,6 +336,7 @@ var DEFAULT_SETTINGS = {
   // Company profile (white-label: every letterhead, certificate, payslip and report header reads these)
   companyNameAr: 'شركة الناقل الأفضل للغاز', companyNameEn: 'Best Gas Carrier Co.', companyShortAr: 'الناقل الأفضل', companyShortEn: 'Best Gas',
   companyCr: '', companyVat: '', companyAddressAr: '', companyAddressEn: '',
+  adminSeesPay: true,        // the system administrator also holds payroll; switch off to keep pay apart from administration
   wpsDueDay: 10,            // WPS / Mudad: salaries of month M uploaded by this day of month M+1 (check with the bank / Mudad)
   rostersEnabled: false,     // shifts and rosters (Shifts.gs); off = everyone keeps their own shift, nothing extra is read
   ramadanFrom: '', ramadanTo: '', ramadanHours: 6,   // Art. 98: at most 6 hours a day for Muslim staff in Ramadan

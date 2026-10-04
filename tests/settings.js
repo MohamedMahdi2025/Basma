@@ -117,5 +117,20 @@ ok(r.ok && get().companyCr === '' && get().companyVat === '', 'CR and VAT may be
 r = save('3001', { companyNameAr: 'شركة أخرى' });
 ok(!r.ok && r.error === 'forbidden', 'only the administrator changes the company profile', r);
 
+console.log('\nThe administrator and pay (adminSeesPay)');
+person('3002', 'موظف بالراتب', 'employee');
+r = B.call({ action: 'hrCompList', token: tok('1000') });
+ok(r.ok, 'by default the administrator manages salaries (lists packages)', r);
+r = B.call({ action: 'myFile', token: tok('1000') });
+ok(r.ok && r.file.roles.payroll === true, 'and holds the payroll role in the app, so the pay pages show', r.ok && r.file.roles);
+r = save('1000', { adminSeesPay: false });
+ok(r.ok && get().adminSeesPay === false, 'the company can keep pay apart from system administration', r);
+r = B.call({ action: 'hrCompList', token: tok('1000') });
+ok(!r.ok && r.error === 'forbidden', 'then the administrator alone is refused salaries', r);
+r = B.call({ action: 'hrRolesSave', token: tok('1000'), id: ids['1000'], extraRoles: 'payroll' });
+ok(!r.ok && r.error === 'cannot_change_own_roles', 'and still cannot grant the payroll role to himself', r);
+r = save('1000', { adminSeesPay: true });
+ok(r.ok && B.call({ action: 'hrCompList', token: tok('1000') }).ok, 'switching it back restores the access', r);
+
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);

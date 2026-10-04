@@ -544,7 +544,7 @@ function doExport(fmt, btn){
   if (busy) return; busy = true;
   var keep = visibleCols(R.res).map(function(c){ return c.key; });
   var old = btn.innerHTML; btn.disabled = true; btn.innerHTML = ph('circle-notch') + t('rpExporting'); btn.querySelector('i').style.animation = 'rpSpin .8s linear infinite';
-  var need = fmt === 'xlsx' ? xlsxLib() : Promise.resolve();
+  var need = fmt === 'xlsx' ? loadScript('js/xl.js').then(function(){ return XL.lib(); }) : Promise.resolve();
   need.then(function(){ return api('reportExport', { reportId: R.id, params: R.params, format: fmt, columns: keep }); }, function(){ return { ok: false, error: 'network' }; }).then(function(r){
     busy = false; btn.disabled = false; btn.innerHTML = old;
     if (!r.ok) return toast(errText(r.error));
@@ -558,53 +558,35 @@ function download(blob, name){ var a = document.createElement('a'); a.href = URL
 function fileBase(meta){ return meta.ref + '_' + R.id; }
 function checkText(c){ return (L(CHECKS[c.code]) || c.code).replace('{n}', nf(c.count || 0, 0)).replace('{v}', c.value != null ? nf(c.value, c.code === 'variance_flagged' ? 0 : 2) : ''); }
 
-var XLSX_URL = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js', xlsxP = null;
-function xlsxLib(){
-  if (window.XLSX) return Promise.resolve();
-  if (xlsxP) return xlsxP;
-  var id = Progress.start('script:xlsx');
-  xlsxP = new Promise(function(res, rej){ var s = document.createElement('script'); s.src = XLSX_URL; s.onload = function(){ Progress.done(id); res(); }; s.onerror = function(){ Progress.done(id, false); xlsxP = null; rej(); }; document.head.appendChild(s); });
-  return xlsxP;
+/** A status word to the colour it shows in Excel. */
+function statusTone(v){
+  var s = String(v == null ? '' : v).toLowerCase();
+  if (/^(approved|active|locked|paid|done|present|in|ok|confirmed|closed|resolved|returned|cleared|good)$/.test(s)) return 'ok';
+  if (/^(pending|draft|late|review|open|uploaded|generated|charged|responded|in_progress|due|warn|missing_out)$/.test(s)) return 'warn';
+  if (/^(rejected|absent|disabled|overdue|error|lost|damaged|objected|expired|bad)$/.test(s)) return 'bad';
+  if (/^(leave|holiday|cancelled|info|upcoming|off)$/.test(s)) return 'info';
+  return null;
 }
-function colLetter(i){ var s = ''; i++; while (i) { var m = (i - 1) % 26; s = String.fromCharCode(65 + m) + s; i = Math.floor((i - 1) / 26); } return s; }
-var ZMONEY = '#,##0.00;(#,##0.00);"-"', ZINT = '#,##0;(#,##0);"-"', Z1 = '#,##0.0;(#,##0.0);"-"', Z2 = '#,##0.00;(#,##0.00);"-"', ZPCT = '0.0%;(0.0%);"-"';
-function xCell(c, v){
-  if (v == null || v === '') return { t: 's', v: '' };
-  if (c.type === 'date' && /^\d{4}-\d{2}-\d{2}$/.test(String(v))) { var p = String(v).split('-'); return { t: 'n', v: (Date.UTC(+p[0], +p[1] - 1, +p[2]) - Date.UTC(1899, 11, 30)) / 864e5, z: 'yyyy-mm-dd' }; }
-  if (c.type === 'money') return { t: 'n', v: Number(v), z: ZMONEY };
-  if (c.type === 'pct') return { t: 'n', v: Number(v) / 100, z: ZPCT };
-  if (c.type === 'int' || c.type === 'min') return { t: 'n', v: Number(v), z: ZINT };
-  if (c.type === 'hours') return { t: 'n', v: Number(v), z: Z1 };
-  if (c.type === 'num' || c.type === 'days') return { t: 'n', v: Number(v), z: Z2 };
-  return { t: 's', v: cellText(c, v) };
-}
+/** Excel through the shared kit (js/xl.js): typed columns, totals that follow the filter, status colours, an About sheet. */
+var DTONE = { P: 'ok', L: 'warn', A: 'bad', V: 'info', H: 'none', O: 'none', M: 'info' };
+var XTYPE = { money: 'money', pct: 'pct', int: 'int', min: 'int', hours: 'hours', num: 'num', days: 'days', date: 'date', datetime: 'datetime' };
 function toXlsx(r, meta){
-  var X = window.XLSX, cols = r.columns, n = r.rows.length, ws = {}, en = S.lang === 'en';
-  cols.forEach(function(c, i){ ws[colLetter(i) + '1'] = { t: 's', v: colLabel(c) }; });
-  r.rows.forEach(function(row, ri){ cols.forEach(function(c, i){ ws[colLetter(i) + (ri + 2)] = xCell(c, row[c.key]); }); });
-  var last = n + 1, totRow = n + 2;
-  if (cols.some(function(c){ return c.sum; }) && n) {
-    ws['A' + totRow] = { t: 's', v: t('rpTotal') };
-    var tot = sums(cols, r.rows);
-    cols.forEach(function(c, i){ if (c.sum && i) { var L2 = colLetter(i), base = xCell(c, 0); ws[L2 + totRow] = { t: 'n', f: 'SUM(' + L2 + '2:' + L2 + last + ')', v: tot[c.key], z: base.z }; } });
-  }
-  ws['!ref'] = 'A1:' + colLetter(cols.length - 1) + Math.max(totRow, 2);
-  ws['!autofilter'] = { ref: 'A1:' + colLetter(cols.length - 1) + Math.max(last, 1) };
-  ws['!cols'] = cols.map(function(c){ if (/^d\d+$/.test(c.key)) return { wch: 4 }; var w = String(colLabel(c)).length; r.rows.slice(0, 200).forEach(function(row){ w = Math.max(w, String(cellText(c, row[c.key])).length); }); return { wch: Math.min(48, Math.max(8, w + 2)) }; });
-  var info = [[coName()], [meta.name], [], [t('rpRef'), meta.ref], [t('rpHash'), meta.hash], [t('rpAt'), greg(meta.at)], [t('rpHijri'), hijri(meta.at)], [t('rpBy'), meta.by.name + ' (' + meta.by.empNo + ')'], [t('rpRows'), n]];
+  var en = S.lang === 'en';
+  var cols = r.columns.map(function(c){
+    var day = /^d\d+$/.test(c.key), o = { key: c.key, label: colLabel(c), type: day ? 'text' : XTYPE[c.type] || 'text', sum: !!c.sum };
+    if (day) { o.width = 4.5; o.center = true; o.tone = function(v){ return DTONE[v] || null; }; }
+    else if (o.type === 'text') o.text = function(v){ return cellText(c, v); };
+    if (!day && (c.type === 'status' || c.type === 'code')) o.tone = function(v){ return statusTone(v); };
+    return o;
+  });
+  var info = [[t('rpRef'), meta.ref], [t('rpAt'), greg(meta.at)], [t('rpHijri'), hijri(meta.at)], [t('rpBy'), meta.by.name + ' (' + meta.by.empNo + ')'], [t('rpRows'), r.rows.length], [t('rpHash'), meta.hash, true]];
   if (meta.teamOnly) info.push(['', t('rpTeamOnly')]);
-  info.push([], [t('rpFilters')]); meta.filters.forEach(function(f){ info.push([f[0], String(f[1])]); });
-  info.push([], [t('rpChecks')]); (meta.checks.length ? meta.checks : [{ code: '', level: 'good' }]).forEach(function(c){ info.push([c.level === 'good' ? '' : c.level, c.code ? checkText(c) : t('rpAllGood')]); });
-  info.push([], [t('rpConf')], [t('rpVerifyHow')]);
-  var wi = X.utils.aoa_to_sheet(info); wi['!cols'] = [{ wch: 28 }, { wch: 80 }];
-  var wb = X.utils.book_new();
-  X.utils.book_append_sheet(wb, ws, t('rpDataSheet'));
-  X.utils.book_append_sheet(wb, wi, t('rpInfoSheet'));
-  wb.Workbook = { Views: [{ RTL: !en }] };
-  wb.Props = { Title: meta.name + ' ' + meta.ref, Subject: meta.hash, Author: meta.by.name, Company: coName() };
-  // Arial throughout (the xlsx skill's professional-font rule); SheetJS community keeps the default style otherwise.
-  Object.keys(ws).forEach(function(k){ if (k[0] !== '!') ws[k].s = { font: { name: 'Arial' } }; });
-  X.writeFile(wb, fileBase(meta) + '.xlsx', { compression: true });
+  return loadScript('js/xl.js').then(function(){
+    return XL.download({ fileName: fileBase(meta), title: meta.name, description: rpDesc(R.id), lang: en ? 'en' : 'ar', company: coName(), ref: meta.ref,
+      when: greg(meta.at) + ' · ' + hijri(meta.at), by: meta.by.name, logo: logoInk(), meta: info, filters: meta.filters,
+      checks: meta.checks.map(function(c){ return { level: c.level, text: checkText(c) }; }), footnote: t('rpConf') + ' · ' + t('rpVerifyHow'),
+      sheets: [{ name: t('rpDataSheet'), title: meta.name, columns: cols, rows: r.rows }] });
+  }).catch(function(){ toast(t('e_network')); });
 }
 function toCsv(r, meta){
   var q = function(s){ s = String(s == null ? '' : s); return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };

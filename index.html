@@ -744,6 +744,28 @@ body.v2-on .tblwrap{overflow-x:auto}
 .lc-done .lc-ic{background:var(--ok-bg);color:var(--ok)}
 .lc-now button,.lc-now .lc-x{border-color:var(--brand);box-shadow:0 0 0 2px var(--brand-tint)}.lc-now .lc-ic{background:var(--brand);color:#fff}
 /* avatar menu */
+/* print: a clean A4 page with a letterhead; the shell, buttons and motion are left out */
+.print-head{display:none}
+@media print{
+  @page{size:A4;margin:12mm 10mm 14mm}
+  html,body{background:#fff!important;height:auto!important}
+  body.v2-on *{-webkit-print-color-adjust:exact;print-color-adjust:exact;box-shadow:none!important;animation:none!important;transition:none!important}
+  body.v2-on .app.v2{display:block!important;height:auto!important;overflow:visible!important;background:#fff!important}
+  body.v2-on :is(.v2-side,.v2-top,.v2-bottom,.v2-views,.v2-scrim,.v2-menu,.loader,.toast,.update-bar,.dr-x,.btn,.mini,.hm-mini,.mf-go,.v2-seg,.hr-seg,.cp-seg,.db-tog,.rp-actions){display:none!important}
+  body.v2-on .app.v2 > .v2-main{display:block!important}
+  body.v2-on .app.v2 > .v2-main > main{overflow:visible!important;height:auto!important;display:block!important}
+  body.v2-on .v2 .page,body.v2-on .page.v2{max-width:none!important;padding:0!important}
+  body.v2-on :is(.tblwrap,.tw,.v2-area){overflow:visible!important}
+  body.v2-on :is(.db-card,.mf-card,.hm-card,.v2-card,.kpi,.stat,.db-tile,.list .row,tr,.set-card){break-inside:avoid}
+  .print-head{display:flex!important;align-items:center;gap:14px;border-bottom:2px solid #4D6D51;padding-bottom:8px;margin-bottom:14px}
+  .print-head img{height:46px;width:auto}
+  .print-head b{display:block;font-size:12pt;color:#4D6D51}.print-head span{display:block;font-size:15pt;font-weight:600;color:#17221A}.print-head small{display:block;font-size:8.5pt;color:#5F6D63}
+  body.print-drawer .app{display:none!important}
+  body.print-drawer .drawer{position:static!important;background:none!important;display:block!important;animation:none!important}
+  body.print-drawer .drawer:not(:last-of-type){display:none!important}
+  body.print-drawer .drawer .panel{position:static!important;width:auto!important;max-height:none!important;height:auto!important;border:0!important;padding:0!important;overflow:visible!important;animation:none!important}
+}
+@media (max-width:900px){.v2-desk{display:none!important}}
 .v2-menu{position:absolute;top:54px;inset-inline-end:20px;width:250px;background:var(--card);border:1px solid var(--line);border-radius:var(--r-m);box-shadow:var(--sh-3);padding:6px;z-index:60}
 .v2-menu-h{padding:10px 10px 8px}.v2-menu-h b{display:block;font-size:14.5px;font-weight:600}.v2-menu-h small{color:var(--ink-3);font-size:12.5px}
 .v2-menu button{display:flex;align-items:center;gap:10px;width:100%;height:38px;padding:0 10px;border:0;background:none;border-radius:var(--r-s);font:inherit;font-size:14px;color:var(--ink);cursor:pointer;text-align:start}
@@ -2386,9 +2408,12 @@ Object.assign(T.ar, {
   ramHours:'ساعات الدوام اليومية في رمضان', ramHoursHint:'للمسلمين، 6 ساعات كحد أقصى (المادة 98). من 1 إلى 6 بخطوة نصف ساعة.',
   banFrom:'بداية الحظر الصيفي (شهر-يوم)', banTo:'نهاية الحظر الصيفي (شهر-يوم)', banStart:'يبدأ المنع الساعة', banEnd:'وينتهي الساعة',
   banHint:'مثال: من 06-15 إلى 09-15، من 12:00 إلى 15:00.',
+  swAdminPay:'مسؤول النظام يدير الرواتب', swAdminPayLead:'يرى الرواتب ويعتمدها مثل صاحب صلاحية الرواتب. أوقفه لفصل الرواتب عن إدارة النظام؛ يبقى مبدأ الشخصين في الاعتماد قائما.',
   secCo:'ملف الشركة', secCoLead:'الاسم والسجل التجاري والرقم الضريبي والعنوان. تظهر في رأس كل خطاب وشهادة وقسيمة راتب وتقرير.',
   coNameAr:'اسم الشركة بالعربية', coNameEn:'اسم الشركة بالإنجليزية', coShortAr:'الاسم المختصر بالعربية', coShortEn:'الاسم المختصر بالإنجليزية',
   coCr:'رقم السجل التجاري (10 أرقام)', coVat:'الرقم الضريبي (15 رقما)', coAddrAr:'العنوان بالعربية', coAddrEn:'العنوان بالإنجليزية',
+  v2Print:'طباعة', v2Excel:'تصدير إلى Excel', v2NoTable:'لا توجد جداول أو قوائم في هذه الصفحة لتصديرها.', v2PrintedBy:'طبعه', v2PrintedAt:'التاريخ',
+  v2Sheets:'عدد الأوراق', v2Exported:'نزل ملف Excel', v2XlNote:'كل جدول في الصفحة في ورقة مستقلة. الإجماليات تتبع المرشحات المطبقة في Excel.',
   e_bad_setting:'قيمة غير صحيحة في الإعداد: {key}.', e_cannot_change_own_roles:'لا يمكنك منح صلاحياتك الإضافية أو سحبها بنفسك؛ يغيّرها مسؤول نظام آخر.',
   e_gender_required:'سجّل جنس الموظف في ملفه أولا، فهذه الإجازة مرتبطة بالجنس.', e_cycle_closed:'دورة التقييم مغلقة ولا يمكن تغيير مرحلتها.',
   e_ref_exhausted:'تعذر إصدار رقم مرجعي جديد. أبلغ مسؤول النظام.', e_already_setup:'النظام مهيأ مسبقا؛ ادخل بحسابك.', e_bad_request:'طلب غير صحيح. حدّث الصفحة وأعد المحاولة.',
@@ -2427,9 +2452,12 @@ Object.assign(T.en, {
   ramHours:'Daily hours in Ramadan', ramHoursHint:'For Muslim staff, 6 hours at most (Art. 98). 1 to 6 in half hours.',
   banFrom:'Summer ban from (MM-DD)', banTo:'Summer ban to (MM-DD)', banStart:'Ban starts at', banEnd:'Ban ends at',
   banHint:'For example 06-15 to 09-15, 12:00 to 15:00.',
+  swAdminPay:'Administrator manages pay', swAdminPayLead:'Sees and approves salaries like a payroll holder. Switch off to keep pay apart from system administration; the two-person approval rule still applies.',
   secCo:'Company profile', secCoLead:'Name, commercial registration, VAT number and address. They head every letter, certificate, payslip and report.',
   coNameAr:'Company name in Arabic', coNameEn:'Company name in English', coShortAr:'Short name in Arabic', coShortEn:'Short name in English',
   coCr:'Commercial registration (10 digits)', coVat:'VAT number (15 digits)', coAddrAr:'Address in Arabic', coAddrEn:'Address in English',
+  v2Print:'Print', v2Excel:'Export to Excel', v2NoTable:'This page has no table or list to export.', v2PrintedBy:'Printed by', v2PrintedAt:'Date',
+  v2Sheets:'Sheets', v2Exported:'Excel file downloaded', v2XlNote:'Each table on the page is its own sheet. Totals follow the filters you apply in Excel.',
   e_bad_setting:'Invalid value for the setting: {key}.', e_cannot_change_own_roles:'You cannot grant or remove your own extra roles; another administrator must do it.',
   e_gender_required:"Record the employee's gender in their file first; this leave depends on it.", e_cycle_closed:'This review cycle is closed; its stage cannot change.',
   e_ref_exhausted:'Could not issue a new reference number. Tell the administrator.', e_already_setup:'The system is already set up; sign in instead.', e_bad_request:'Invalid request. Refresh the page and try again.',
@@ -2529,11 +2557,15 @@ function renderShell(){
       '<button class="v2-ib v2-hamb" type="button" id="v2Hamb" aria-label="' + t('v2Menu') + '">' + ph('list') + '</button>' +
       '<button class="v2-search" type="button" id="v2Find" aria-label="' + t('v2Search') + '">' + ph('magnifying-glass') + '<span>' + t('v2Search') + '</span><kbd>Ctrl K</kbd></button><span class="sp"></span>' +
       '<button class="v2-chip" type="button" id="v2Chip"></button>' +
+      '<button class="v2-ib v2-desk" type="button" id="v2Print" aria-label="' + t('v2Print') + '" title="' + t('v2Print') + '">' + ph('printer') + '</button>' +
+      '<button class="v2-ib v2-desk" type="button" id="v2Xl" aria-label="' + t('v2Excel') + '" title="' + t('v2Excel') + '">' + ph('microsoft-excel-logo') + '</button>' +
       '<button class="v2-ib tk-bell" type="button" id="tkBell" aria-label="' + t('tkTitle') + '">' + ph('bell') + '<span class="tk-n hidden" id="tkN"></span></button>' +
       '<button class="v2-ib v2-lang" type="button" id="v2Lang" aria-label="language">' + t('langBtn') + '</button>' +
       '<button class="v2-av" type="button" id="v2Av" aria-haspopup="menu" aria-expanded="false" aria-label="' + esc(S.me.name) + '">' + esc(initials(S.me.name)) + '</button>' +
     '</header><main id="main"></main></div><nav class="v2-bottom" id="v2Bottom" aria-label="' + t('v2Menu') + '"></nav></div>');
   $('#tkBell').onclick = openTasks;
+  $('#v2Print').onclick = printView;
+  $('#v2Xl').onclick = exportView;
   $('#v2Find').onclick = openPalette;
   $('#v2Lang').onclick = toggleLang;
   $('#v2Av').onclick = function(e){ e.stopPropagation(); if ($('.v2-menu')) closeMenus(); else openAvMenu(); };
@@ -2669,12 +2701,13 @@ function openAvMenu(){
   var m = document.createElement('div'); m.className = 'v2-menu'; m.setAttribute('role', 'menu');
   var it = function(k, icon, label){ return '<button type="button" role="menuitem" data-m="' + k + '">' + ph(icon) + '<span>' + label + '</span></button>'; };
   m.innerHTML = '<div class="v2-menu-h"><b>' + esc(S.me.name) + '</b><small class="num">' + esc(S.me.empNo) + ' · ' + t('r_' + S.me.role) + '</small></div>' +
-    it('profile', 'identification-card', t('arProfile')) + it('account', 'user-circle', t('arAccount')) + it('lang', 'translate', t('langBtn')) + '<hr>' + it('lock', 'sign-out', t('signOut'));
+    it('profile', 'identification-card', t('arProfile')) + it('account', 'user-circle', t('arAccount')) + it('lang', 'translate', t('langBtn')) +
+    it('print', 'printer', t('v2Print')) + it('xl', 'microsoft-excel-logo', t('v2Excel')) + '<hr>' + it('lock', 'sign-out', t('signOut'));
   $('.v2-top').appendChild(m);
   $('#v2Av').setAttribute('aria-expanded', 'true');
   $$('[data-m]', m).forEach(function(b){ b.onclick = function(){
     var k = b.dataset.m; closeMenus();
-    if (k === 'lang') toggleLang(); else if (k === 'lock') renderLock(); else goArea(k);
+    if (k === 'lang') toggleLang(); else if (k === 'lock') renderLock(); else if (k === 'print') printView(); else if (k === 'xl') exportView(); else goArea(k);
   }; });
   var items = $$('[data-m]', m); items[0].focus();
   m.onkeydown = function(e){
@@ -2689,6 +2722,42 @@ document.addEventListener('keydown', function(e){
   if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K') && $('.app.v2')) { e.preventDefault(); openPalette(); }
   if (e.key === 'Escape' && $('#v2Side.on')) closeSide();
 });
+
+// ---- print and Excel for every screen ----
+/** The page's name as people see it: area, and the sub-page when the area has several. */
+function viewTitle(){
+  var a = areaOf(S.tab) || AREAS[0], ss = subsOf(a), s = ss.filter(function(x){ return x.id === (S.sub || {})[a.id]; })[0] || ss[0];
+  var dr = document.querySelector('.drawer:last-of-type .panel h3, .drawer:last-of-type .panel .hr-who b');
+  if (document.querySelector('.drawer') && dr) return dr.textContent.trim();
+  return areaName(a) + (ss.length > 1 && s ? ' · ' + t(s.n) : '');
+}
+function nowLine(){ var d = new Date(); return d.toLocaleDateString(LOCALE(), { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Riyadh' }) + ' ' + d.toLocaleTimeString(LOCALE(), { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Riyadh' }); }
+/** Print the screen (or the open panel) on A4 with a letterhead: logo, company, page, who printed it and when. */
+function printView(){
+  closeMenus();
+  var dr = document.querySelector('.drawer:last-of-type .panel');
+  var host = dr || $('#main .page') || $('#v2Body') || $('#main'); if (!host) return;
+  var head = document.createElement('div'); head.className = 'print-head';
+  head.innerHTML = '<img src="' + logoInk() + '" alt=""><div><b>' + esc(coName()) + '</b><span>' + esc(viewTitle()) + '</span><small>' + esc(t('v2PrintedBy') + ' ' + S.me.name + ' (' + S.me.empNo + ') · ' + nowLine()) + '</small></div>';
+  host.insertBefore(head, host.firstChild);
+  document.body.classList.toggle('print-drawer', !!dr);
+  var done = function(){ if (head.isConnected) head.remove(); document.body.classList.remove('print-drawer'); window.removeEventListener('afterprint', done); };
+  window.addEventListener('afterprint', done);
+  setTimeout(function(){ try { window.print(); } catch (e) {} setTimeout(done, 800); }, 60);
+}
+/** Every table and list on the screen (or in the open panel) becomes a formatted sheet in one workbook. */
+function exportView(){
+  closeMenus();
+  var dr = document.querySelector('.drawer:last-of-type .panel'), root = dr || $('#v2Body') || $('#main'); if (!root) return;
+  var title = viewTitle(), en = S.lang === 'en';
+  loadScript('js/xl.js').then(function(){
+    var sheets = XL.sheetsFrom(root, en, title);
+    if (!sheets.length) { toast(t('v2NoTable')); return; }
+    return XL.download({ fileName: title + ' ' + riyadhToday(), title: title, lang: en ? 'en' : 'ar', company: coName(), when: nowLine(), by: S.me.name, logo: logoInk(),
+      meta: [[t('v2PrintedBy'), S.me.name + ' (' + S.me.empNo + ')'], [t('v2PrintedAt'), nowLine()], [t('v2Sheets'), sheets.length]], sheets: sheets,
+      footnote: t('v2XlNote') }).then(function(){ toast(t('v2Exported')); });
+  }).catch(function(){ toast(t('e_network')); });
+}
 
 /** Ctrl K: every page this person may open, and (for HR) every employee from the directory already in memory. */
 function openPalette(){
@@ -3417,7 +3486,7 @@ function admSettings(){
       '</section>' +
       // HR and payroll rules (settingsSave validates each one and answers bad_setting + key)
       '<section class="set-card"><h3>' + ph('money') + t('secPay') + '</h3><p>' + t('secPayLead') + '</p>' +
-        sw('deductAbsence', t('swAbs'), t('swAbsLead')) + sw('deductLateMinutes', t('swLate'), t('swLateLead')) + sw('payOvertimeFromAttendance', t('swOt'), t('swOtLead')) +
+        sw('deductAbsence', t('swAbs'), t('swAbsLead')) + sw('deductLateMinutes', t('swLate'), t('swLateLead')) + sw('payOvertimeFromAttendance', t('swOt'), t('swOtLead')) + sw('adminSeesPay', t('swAdminPay'), t('swAdminPayLead')) +
         '<div class="field"><label for="eosWageBasis">' + t('eosBasis') + '</label><select id="eosWageBasis" name="eosWageBasis">' +
           [['total', t('eosTotal')], ['basic_housing', t('eosBH')]].map(function(o){ return '<option value="' + o[0] + '"' + (st.eosWageBasis === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select><small>' + t('eosBasisHint') + '</small></div>' +
         num('wpsDueDay', t('wpsDay'), t('wpsDayHint'), 1, 28, t('dayOfMonth')) +
@@ -3441,7 +3510,7 @@ function admSettings(){
       $$('[aria-invalid]', f).forEach(function(x){ x.removeAttribute('aria-invalid'); });
       api('settingsSave', { settings: { shiftStart: f.shiftStart.value, shiftEnd: f.shiftEnd.value, graceMin: f.graceMin.value, minPunchGapMin: f.minPunchGapMin.value, maxAccuracy: f.maxAccuracy.value, reviewRiskThreshold: f.reviewRiskThreshold.value,
         workdays: $$('input[name=wd]:checked', f).map(function(x){ return x.value; }).join(',') || '0,1,2,3,4', allowCheckoutOutside: f.allowCheckoutOutside.checked, allowDeviceKey: f.allowDeviceKey.checked, allowDesktop: f.allowDesktop.checked, allowPasswordPunch: f.allowPasswordPunch.checked, maxAccuracyDesktop: f.maxAccuracyDesktop.value,
-        deductAbsence: f.deductAbsence.checked, deductLateMinutes: f.deductLateMinutes.checked, payOvertimeFromAttendance: f.payOvertimeFromAttendance.checked, eosWageBasis: f.eosWageBasis.value, wpsDueDay: Number(f.wpsDueDay.value),
+        deductAbsence: f.deductAbsence.checked, deductLateMinutes: f.deductLateMinutes.checked, adminSeesPay: f.adminSeesPay.checked, payOvertimeFromAttendance: f.payOvertimeFromAttendance.checked, eosWageBasis: f.eosWageBasis.value, wpsDueDay: Number(f.wpsDueDay.value),
         saudizationTarget: f.saudizationTarget.value === '' ? '' : Number(f.saudizationTarget.value), refPrefixes: f.refPrefixes.value.trim(), rostersEnabled: f.rostersEnabled.checked,
         ramadanFrom: f.ramadanFrom.value, ramadanTo: f.ramadanTo.value, ramadanHours: Number(f.ramadanHours.value), summerBanFrom: f.summerBanFrom.value.trim(), summerBanTo: f.summerBanTo.value.trim(),
         summerBanStart: f.summerBanStart.value, summerBanEnd: f.summerBanEnd.value,

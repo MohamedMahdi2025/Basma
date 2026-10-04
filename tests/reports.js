@@ -6,6 +6,7 @@ function ok(c, name, extra) { if (c) { passed++; console.log('  ok  ' + name); }
 const near = (a, b, tol = 0.1) => Math.abs(a - b) <= tol;
 const sha = s => crypto.createHash('sha256').update(s).digest('hex');
 const B = load({ setupKeyHash: sha('k'), now: Date.parse('2026-11-04T06:00:00Z') });
+B.ctx.DEFAULT_SETTINGS.adminSeesPay = false; // these checks prove the strict mode: pay kept apart from administration (the default lets the admin hold payroll)
 
 const devs = {}, ids = {}, toks = {};
 function tok(no, fresh) {

@@ -230,7 +230,7 @@ var WA_JOB_FIELDS = ['id', 'empNo', 'name', 'status', 'department', 'departmentI
   'createdAt', 'shiftStart', 'shiftEnd', 'workdays', 'ramadanReduced', 'outdoor'];
 
 /** Names in analytics: the HR role only (not admin alone, not payroll, not executive). */
-function waNames_(me) { return !!me && me.role === 'hr'; }
+function waNames_(me) { return !!me && (me.role === 'hr' || adminPay_(me)); }
 
 /** d plus n calendar months; the day is clamped to the month's last day (31 Jan + 1 = 28/29 Feb). */
 function waAddMonths_(d, n) {

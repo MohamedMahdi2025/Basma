@@ -258,7 +258,7 @@ function canAct_(me, r, emp, ctx) {
   if (history_(r).some(function (h) { return h.by === me.id; })) return false;
   if (r.step === 'manager') return manages_(me, emp, ctx) || isHr_(me) || !!delegatedFor_(me, emp, ctx);
   // A salary advance is pay: its HR step needs the hr role (an administrator alone never), its last step a payroll holder.
-  if (r.step === 'hr') return r.type === 'advance' ? me.role === 'hr' : isHr_(me);
+  if (r.step === 'hr') return r.type === 'advance' ? (me.role === 'hr' || adminPay_(me)) : isHr_(me);
   if (r.step === 'payroll') return hasRole_(me, 'payroll');
   return false;
 }

@@ -6,6 +6,7 @@ function ok(c, name, extra) { if (c) { passed++; console.log('  ok  ' + name); }
 const sha = s => crypto.createHash('sha256').update(s).digest('hex');
 const T0 = Date.parse('2026-10-04T04:55:00Z'); // Riyadh 2026-10-04 07:55
 const B = load({ setupKeyHash: sha('k'), now: T0 });
+B.ctx.DEFAULT_SETTINGS.adminSeesPay = false; // these checks prove the strict mode: pay kept apart from administration (the default lets the admin hold payroll)
 
 /** A valid Saudi IBAN for a 20-character BBAN: computes the ISO 13616 check digits. */
 function iban(bban) {

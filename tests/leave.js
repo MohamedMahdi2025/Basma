@@ -7,6 +7,7 @@ const near = (a, b, tol = 0.05) => Math.abs(a - b) <= tol;
 const sha = s => crypto.createHash('sha256').update(s).digest('hex');
 const T0 = Date.parse('2026-10-04T05:30:00Z'); // Sunday 2026-10-04, 08:30 in Riyadh
 const B = load({ setupKeyHash: sha('k'), now: T0 });
+B.ctx.DEFAULT_SETTINGS.adminSeesPay = false; // these checks prove the strict mode: pay kept apart from administration (the default lets the admin hold payroll)
 
 const devs = {}, ids = {}, toks = {};
 function tok(no, fresh) {

@@ -14,7 +14,18 @@ function today_() { return localParts_(new Date()).date; }
 function trimList_(v) { return String(v || '').split(',').map(function (s) { return s.trim(); }).filter(String); }
 function bool_(v) { return v === true || v === 'true' || v === 'TRUE' || v === 1 || v === '1'; }
 
-function hasRole_(e, role) { return !!e && (e.role === role || trimList_(e.extraRoles).indexOf(role) >= 0); }
+/**
+ * Extra roles. An administrator also holds payroll while the setting adminSeesPay is on (default): the owner runs
+ * everything. A company that wants pay kept apart from system administration switches it off; the two-person rules
+ * (nobody approves what they prepared, proposed or own) apply either way.
+ */
+function hasRole_(e, role) {
+  if (!e) return false;
+  if (e.role === role || trimList_(e.extraRoles).indexOf(role) >= 0) return true;
+  return role === 'payroll' && adminPay_(e);
+}
+/** The administrator while the setting adminSeesPay is on (the default): the owner who runs pay as well. */
+function adminPay_(e) { return !!e && e.role === 'admin' && settings_().adminSeesPay !== false; }
 function isHr_(e) { return !!e && (e.role === 'hr' || e.role === 'admin'); }
 
 /** Salary: self, HR, payroll. Admin only with payroll (separation of duties). Managers never. */
