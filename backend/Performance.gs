@@ -98,6 +98,7 @@ function api_perfCycleStage(req, me) {
   return withLock_(function () {
     var c = cycleById_(req.id);
     if (!c) fail_('not_found');
+    if (c.status === 'closed') fail_('cycle_closed'); // closed is final: results were published and acknowledged
     var now = new Date().toISOString();
     if (req.status === 'closed') {
       var upd = [];

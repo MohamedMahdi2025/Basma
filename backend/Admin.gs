@@ -11,7 +11,8 @@ function isHm_(v) { return /^([01]\d|2[0-3]):[0-5]\d$/.test(String(v)); }
 
 function api_board(req, me) {
   var s = settings_(), now = new Date(), date = localParts_(now).date;
-  var emps = readAll_(SHEETS.EMP).filter(function (e) { return e.status === 'active'; });
+  // Someone whose first day is still ahead is not on today's board (never "absent" before they start).
+  var emps = readAll_(SHEETS.EMP).filter(function (e) { return e.status === 'active' && joinedDate_(e) <= date; });
   var punches = readAll_(SHEETS.PUNCH);
   var zones = {};
   readAll_(SHEETS.ZONES).forEach(function (z) { zones[z.id] = z.name; });
@@ -303,16 +304,129 @@ function api_settingsSave(req, me) {
   if (d.allowDesktop !== undefined) next.allowDesktop = !!d.allowDesktop;
   if (d.allowPasswordPunch !== undefined) next.allowPasswordPunch = !!d.allowPasswordPunch;
   if (d.maxAccuracyDesktop !== undefined) next.maxAccuracyDesktop = Math.max(20, Math.min(1000, Math.round(Number(d.maxAccuracyDesktop) || 150)));
+  var bad = hrSettings_(d, next) || companySettings_(d, next);
+  if (bad) return { ok: false, error: 'bad_setting', key: bad };
   return withLock_(function () {
     var sh = sheet_(SHEETS.SET);
     if (sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, 2).clearContent();
-    var rows = Object.keys(next).map(function (k) { return [k, String(next[k])]; });
+    // Text is written as text (toRow_): "06-15", "08:00" or "2027-02-08" must not become dates or times.
+    var rows = Object.keys(next).map(function (k) { return toRow_(SHEETS.SET, { key: k, value: next[k] }); });
     sh.getRange(2, 1, rows.length, 2).setValues(rows);
     forget_(SHEETS.SET);
     try { CacheService.getScriptCache().remove(SETTINGS_CACHE_KEY); } catch (e) {}
     audit_(me.id, 'settings_save', '', next);
     return { ok: true, settings: next };
   });
+}
+
+/**
+ * The company profile (white-label). Names are required and plain text; CR is the 10-digit commercial registration,
+ * VAT the 15-digit ZATCA number (starts and ends with 3); both may stay empty. Returns the first bad key, or ''.
+ */
+var COMPANY_TEXT_ = { companyNameAr: [2, 80], companyNameEn: [2, 80], companyShortAr: [1, 30], companyShortEn: [1, 30], companyAddressAr: [0, 200], companyAddressEn: [0, 200] };
+function companySettings_(d, next) {
+  for (var k in COMPANY_TEXT_) {
+    if (d[k] === undefined) continue;
+    var v = String(d[k] == null ? '' : d[k]).replace(/\s+/g, ' ').trim(), lim = COMPANY_TEXT_[k];
+    if (v.length < lim[0] || v.length > lim[1] || /[<>]/.test(v)) return k;
+    next[k] = v;
+  }
+  if (d.companyCr !== undefined) { var cr = String(d.companyCr == null ? '' : d.companyCr).trim(); if (cr && !/^\d{10}$/.test(cr)) return 'companyCr'; next.companyCr = cr; }
+  if (d.companyVat !== undefined) { var vat = String(d.companyVat == null ? '' : d.companyVat).trim(); if (vat && !/^3\d{13}3$/.test(vat)) return 'companyVat'; next.companyVat = vat; }
+  return '';
+}
+/** What the app shows as the employer on every screen and document. */
+function companyOf_(s) {
+  return { nameAr: s.companyNameAr, nameEn: s.companyNameEn, shortAr: s.companyShortAr, shortEn: s.companyShortEn, cr: s.companyCr, vat: s.companyVat,
+    addressAr: s.companyAddressAr, addressEn: s.companyAddressEn };
+}
+
+/**
+ * The HR and payroll settings an administrator may set from the settings screen. Each value is checked and
+ * written into next; returns '' when all are valid, else the key of the first bad one (nothing is saved then).
+ */
+var SETTING_BOOLS_ = ['rostersEnabled', 'deductAbsence', 'deductLateMinutes', 'payOvertimeFromAttendance'];
+function settingBool_(v) { return v === true || v === 'true' ? true : v === false || v === 'false' ? false : null; }
+/** 'MM-DD' with a real month and day (02-29 allowed), else ''. */
+function settingMmdd_(v) { var m = /^(\d{2})-(\d{2})$/.exec(String(v == null ? '' : v)); return m && ymd_(2024, +m[1], +m[2]) ? m[0] : ''; }
+/** 'YYYY-MM-DD' of a real date, or '' for empty; null when unreadable. */
+function settingDate_(v) {
+  var s = String(v == null ? '' : v).trim();
+  if (!s) return '';
+  return /^\d{4}-\d{2}-\d{2}$/.test(s) && isoDate_(s) === s ? s : null;
+}
+function hrSettings_(d, next) {
+  var k, i, v, n;
+  for (i = 0; i < SETTING_BOOLS_.length; i++) {
+    k = SETTING_BOOLS_[i];
+    if (d[k] === undefined) continue;
+    v = settingBool_(d[k]); if (v === null) return k;
+    next[k] = v;
+  }
+  if (d.saudizationTarget !== undefined) {
+    v = d.saudizationTarget;
+    if (v === '' || v === null) next.saudizationTarget = '';
+    else { n = Number(v); if (v === true || v === false || !isFinite(n) || n < 0 || n > 100) return 'saudizationTarget'; next.saudizationTarget = String(Math.round(n * 10) / 10); }
+  }
+  if (d.ramadanHours !== undefined) {
+    n = Number(d.ramadanHours);
+    if (d.ramadanHours === '' || !isFinite(n) || n < 1 || n > 6 || Math.round(n * 2) !== n * 2) return 'ramadanHours';
+    next.ramadanHours = n;
+  }
+  if (d.wpsDueDay !== undefined) {
+    n = Number(d.wpsDueDay);
+    if (d.wpsDueDay === '' || !isFinite(n) || Math.round(n) !== n || n < 1 || n > 28) return 'wpsDueDay';
+    next.wpsDueDay = n;
+  }
+  if (d.eosWageBasis !== undefined) {
+    if (['total', 'basic_housing'].indexOf(d.eosWageBasis) < 0) return 'eosWageBasis';
+    next.eosWageBasis = d.eosWageBasis;
+  }
+  var dates = ['ramadanFrom', 'ramadanTo'];
+  for (i = 0; i < dates.length; i++) {
+    k = dates[i];
+    if (d[k] === undefined) continue;
+    v = settingDate_(d[k]); if (v === null) return k;
+    next[k] = v;
+  }
+  if (d.ramadanFrom !== undefined || d.ramadanTo !== undefined) {
+    // Both dates or neither; the end on or after the start; one Ramadan (at most 31 days).
+    if (!next.ramadanFrom !== !next.ramadanTo) return next.ramadanFrom ? 'ramadanTo' : 'ramadanFrom';
+    if (next.ramadanFrom && (next.ramadanTo < next.ramadanFrom || daysBetween_(next.ramadanFrom, next.ramadanTo) > 30)) return 'ramadanTo';
+  }
+  var mmdd = ['summerBanFrom', 'summerBanTo'];
+  for (i = 0; i < mmdd.length; i++) {
+    k = mmdd[i];
+    if (d[k] === undefined) continue;
+    v = settingMmdd_(d[k]); if (!v) return k;
+    next[k] = v;
+  }
+  if ((d.summerBanFrom !== undefined || d.summerBanTo !== undefined) && next.summerBanFrom > next.summerBanTo) return 'summerBanTo'; // one season inside a calendar year
+  var hm = ['summerBanStart', 'summerBanEnd'];
+  for (i = 0; i < hm.length; i++) {
+    k = hm[i];
+    if (d[k] === undefined) continue;
+    if (!isHm_(d[k])) return k;
+    next[k] = String(d[k]);
+  }
+  if ((d.summerBanStart !== undefined || d.summerBanEnd !== undefined) && hmToMin_(next.summerBanEnd) <= hmToMin_(next.summerBanStart)) return 'summerBanEnd';
+  if (d.refPrefixes !== undefined) {
+    v = d.refPrefixes;
+    if (v === '' || v === null) { next.refPrefixes = ''; return ''; }
+    if (typeof v === 'string') { try { v = JSON.parse(v); } catch (e) { return 'refPrefixes'; } }
+    if (!v || typeof v !== 'object' || Array.isArray(v)) return 'refPrefixes';
+    var clean = {}, used = {}, kinds = Object.keys(v);
+    for (i = 0; i < kinds.length; i++) {
+      k = kinds[i];
+      if (!REF_DEFAULTS[k] || typeof v[k] !== 'string' || !/^[A-Za-z0-9]{1,6}$/.test(v[k])) return 'refPrefixes';
+      clean[k] = v[k].toUpperCase();
+    }
+    // Two kinds may not share a prefix (their numbers would look alike).
+    var all = Object.keys(REF_DEFAULTS);
+    for (i = 0; i < all.length; i++) { var p = clean[all[i]] || REF_DEFAULTS[all[i]]; if (used[p]) return 'refPrefixes'; used[p] = 1; }
+    next.refPrefixes = Object.keys(clean).length ? JSON.stringify(clean) : '';
+  }
+  return '';
 }
 
 function api_auditList(req, me) {

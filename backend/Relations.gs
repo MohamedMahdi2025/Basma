@@ -83,7 +83,8 @@ function publicCase_(x, me, ctx) {
     incidentDate: String(x.incidentDate).slice(0, 10), discoveredDate: String(x.discoveredDate).slice(0, 10), description: x.description,
     reportedBy: hr || !mine ? (ctx.emps[x.reportedBy] ? ctx.emps[x.reportedBy].name : '') : '', chargedAt: x.chargedAt, response: x.responseText, respondedAt: x.responseAt,
     hearings: hr || mine ? parseJson_(x.hearingsJson, []) : [], suggested: x.suggested, decision: x.decision, decisionNote: x.decisionNote, decidedAt: x.decidedAt,
-    decidedBy: ctx.emps[x.decidedBy] ? ctx.emps[x.decidedBy].name : '', amount: x.amount === '' ? null : Number(x.amount), adjMonth: x.adjMonth,
+    // The amount is pay: the employee, the hr role and payroll see it, an administrator alone does not.
+    decidedBy: ctx.emps[x.decidedBy] ? ctx.emps[x.decidedBy].name : '', amount: x.amount === '' || !(mine || canPayroll_(me)) ? null : Number(x.amount), adjMonth: x.adjMonth,
     objection: x.objection, objectedAt: x.objectedAt, objectionResult: x.objectionResult, status: x.status, mine: mine,
     canRespond: mine && x.status === 'charged', canObject: mine && x.status === 'decided' && x.decidedAt && daysBetween_(String(x.decidedAt).slice(0, 10), today_()) <= 15,
     canDecide: hr && x.reportedBy !== me.id && !mine && (x.status === 'charged' || x.status === 'responded') };
@@ -165,6 +166,7 @@ function api_discDecide(req, me) {
     }
     if (pp.kind === 'fine_pct') amount = r2_(dailyWage_(x.empId, t) * pp.n / 100);
     if (pp.kind === 'fine_days' || pp.kind === 'suspend') amount = r2_(dailyWage_(x.empId, t) * pp.n);
+    if (amount > 0 && me.role !== 'hr') fail_('forbidden'); // a fine or suspension is a pay deduction: the hr role decides it
     if (amount > 0) {
       if (monthLocked_(x.empId, month)) { var d = new Date(Date.UTC(+month.slice(0, 4), +month.slice(5, 7), 1)); month = d.toISOString().slice(0, 7); }
       append_(SHEETS.ADJ, { id: newId_('A'), ref: nextRef_('adjustment', refsOf_(SHEETS.ADJ)), empId: x.empId, month: month, kind: 'deduction', code: pp.kind === 'suspend' ? 'other_deduction' : 'fine',
@@ -197,6 +199,7 @@ function api_discObjectionDecide(req, me) {
     if (!x || x.status !== 'objected') fail_('not_found');
     if (x.decidedBy === me.id) fail_('second_approver_required'); // someone other than the one who decided
     var res = req.result === 'cancelled' ? 'cancelled' : 'upheld', note = str_(req.note, 1000); if (!note) fail_('note_required');
+    if (x.amount && me.role !== 'hr') fail_('forbidden'); // ruling on a penalty with a deduction is pay: the hr role
     if (res === 'cancelled' && x.amount) {
       var adj = readAll_(SHEETS.ADJ).filter(function (a) { return a.empId === x.empId && a.status === 'active' && String(a.reason).indexOf(x.ref) === 0; })[0];
       if (adj && !monthLocked_(adj.empId, adj.month)) { adj.status = 'deleted'; update_(SHEETS.ADJ, adj); }

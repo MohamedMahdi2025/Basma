@@ -236,7 +236,7 @@ function draw(main, f){
   var team = f.isManager ? card('', head('users-three', t('mfTeam'), '<span class="chip in num">' + plural(f.teamCount, 'people') + '</span>') + '<p>' + t('mfTeamLead') + '</p><button type="button" class="btn btn-dark btn-sm mf-go" id="mfTeam">' + t('mfOpenTeam') + '</button>') : '';
 
   var overview = '<div id="mfDash">' + (window.Viz ? Viz.panel('file', t('mfDashTitle'), Viz.skeleton(6)) : '') + '</div>' +
-    '<div class="mf-cols"><div id="mfEngage" style="display:contents"></div>' + people + team + '</div>';
+    '<div class="mf-cols"><div id="mfEngage" style="display:contents"></div><div id="mfOps" style="display:contents"></div>' + people + team + '</div>';
 
   var jd = f.jd, jdHtml = head('briefcase', t('mfJd'));
   if (jd && (jd.purposeAr || jd.dutiesAr || jd.requirementsAr || jd.purposeEn)) {
@@ -310,15 +310,16 @@ function draw(main, f){
 
   var sb = $('#mfShow', main);
   if (sb) sb.onclick = function(){ shown = !shown; draw(main, f); };
-  var toAtt = function(){ S.tab = 'history'; renderShell(); };
+  var toAtt = function(){ goArea('time', 'history'); };
   $('#mfAtt', main).onclick = toAtt; $('#mfAtt2', main).onclick = toAtt;
   $('#mfNewReq', main).onclick = function(){ if (window.Req) Req.newRequest(f, function(){ requests(main, f); }); };
-  var tb = $('#mfTeam', main); if (tb) tb.onclick = function(){ S.tab = 'hr'; S.hrSec = 'team'; renderShell(); };
+  var tb = $('#mfTeam', main); if (tb) tb.onclick = function(){ goArea('people', 'team'); };
   myDash(main, null);
   requests(main, f);
   var sl = $('#mfSlips', main); if (sl && window.Payroll) Payroll.myCard(sl, f.emp);
   var pf = $('#mfPerf', main); if (pf && window.Perf) Perf.myCards(pf);
   var eg = $('#mfEngage', main); if (eg && window.Engage) Engage.myCards(eg);
+  var op = $('#mfOps', main); if (op && window.Ops && Ops.myCards) Ops.myCards(op);
 }
 
 /**
@@ -364,7 +365,7 @@ function requests(main, f){
     rq.innerHTML = Req.listCard(r.rows);
     Req.wireList(rq, r.rows, f, function(){ requests(main, f); });
     $('#rqNew', rq).onclick = function(){ Req.newRequest(f, function(){ requests(main, f); }); };
-    var ib = $('#mfInbox', lv); if (ib) ib.onclick = function(){ S.tab = 'hr'; S.hrSec = 'inbox'; renderShell(); };
+    var ib = $('#mfInbox', lv); if (ib) ib.onclick = function(){ goArea('requests', 'inbox'); };
   });
 }
 
@@ -372,7 +373,7 @@ function render(main){
   main.innerHTML = '<section class="page mf"><div class="mf-grid"><div class="mf-side"><div class="mf-id" style="min-height:220px"></div></div>' +
     '<div class="mf-main">' + [0, 1, 2].map(function(){ return '<div class="mf-card"><span class="sk" style="width:40%"></span><span class="sk"></span><span class="sk" style="width:70%"></span></div>'; }).join('') + '</div></div></section>';
   apiFresh('myFile', {}, function(r){
-    if (S.tab !== 'file' || !main.isConnected) return;
+    if (!main.isConnected) return;
     if (!r.ok) {
       main.innerHTML = '<section class="page"><div class="empty">' + ph('wifi-slash') + '<b>' + t('mfLoadFail') + '</b><div class="btnrow" style="justify-content:center;margin-top:12px"><button class="btn btn-dark btn-sm" id="mfRetry">' + t('mfRetry') + '</button></div></div></section>';
       $('#mfRetry').onclick = function(){ render(main); };

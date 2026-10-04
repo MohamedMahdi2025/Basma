@@ -39,17 +39,29 @@ function api_assetSave(req, me) {
     return { ok: true, asset: publicAsset_(a) };
   });
 }
-/** HR: every asset with its holder. Everyone else: what they hold now. */
+/** A proposed charge with only what the payroll approver needs: the asset, whose custody, the return note, the amount. */
+function chargeView_(c, ctx, assets) {
+  var a = assets[c.assetId] || {}, e = ctx.emps[c.empId], by = ctx.emps[c.chargeBy];
+  return { id: c.id, asset: a.id ? { ref: a.ref, type: a.type, nameAr: a.nameAr, serial: a.serial, value: Number(a.value) || 0 } : null,
+    emp: e ? { id: e.id, empNo: String(e.empNo), name: e.name } : null, returnedAt: c.returnedAt, status: c.status, conditionIn: c.conditionIn,
+    charge: Number(c.charge) || 0, chargeStatus: c.chargeStatus, proposedBy: by ? by.name : '' };
+}
+/**
+ * Everyone: `mine`, what they hold now. HR: `rows`, every asset with its holder, and `charges`, every proposed charge
+ * (the hr role only: an administrator alone gets none, the amounts are pay). A payroll holder: `toDecide`, the charges
+ * they may approve (never their own custody or their own proposal), with no other employee data.
+ */
 function api_assetList(req, me) {
-  var ctx = orgCtx_(), assets = {}, held = {};
+  var ctx = orgCtx_(), assets = {}, held = {}, pay = hasRole_(me, 'payroll');
   readAll_(SHEETS.ASSET).forEach(function (a) { assets[a.id] = a; });
   var cust = readAll_(SHEETS.CUST);
   cust.forEach(function (c) { if (c.status === 'held') held[c.assetId] = c; });
   var mine = cust.filter(function (c) { return c.empId === me.id && (c.status === 'held' || c.chargeStatus === 'proposed'); }).map(function (c) { return publicCustody_(c, ctx, assets); });
-  if (!isHr_(me)) return { ok: true, mine: mine };
+  var toDecide = pay ? cust.filter(function (c) { return c.chargeStatus === 'proposed' && c.chargeBy !== me.id && c.empId !== me.id; }).map(function (c) { return chargeView_(c, ctx, assets); }) : [];
+  if (!isHr_(me)) return pay ? { ok: true, mine: mine, toDecide: toDecide, canApproveCharge: true } : { ok: true, mine: mine };
   var rows = Object.keys(assets).map(function (k) { var a = assets[k], c = held[k]; return publicAsset_(a, c ? { custodyId: c.id, emp: empCard_(ctx.emps[c.empId]), since: c.handedAt, ack: !!c.ackAt } : null); });
-  var charges = cust.filter(function (c) { return c.chargeStatus === 'proposed'; }).map(function (c) { return publicCustody_(c, ctx, assets); });
-  return { ok: true, rows: rows, mine: mine, charges: charges, canApproveCharge: hasRole_(me, 'payroll') };
+  var charges = canPayroll_(me) ? cust.filter(function (c) { return c.chargeStatus === 'proposed'; }).map(function (c) { return publicCustody_(c, ctx, assets); }) : [];
+  return { ok: true, rows: rows, mine: mine, charges: charges, canApproveCharge: pay, toDecide: toDecide };
 }
 function api_assetAssign(req, me) {
   if (!isHr_(me)) fail_('forbidden');
@@ -86,6 +98,7 @@ function api_assetReturn(req, me) {
     if (c.empId === me.id) fail_('forbidden');
     var a = findBy_(SHEETS.ASSET, 'id', c.assetId), now = new Date().toISOString(), charge = Math.max(0, Number(req.charge) || 0);
     if (charge && cond === 'good') fail_('bad_value');
+    if (charge && me.role !== 'hr') fail_('forbidden'); // a charge becomes a pay deduction: the hr role proposes it
     if (charge && a && Number(a.value) && charge > Number(a.value)) fail_('charge_over_value');
     c.status = cond === 'good' ? 'returned' : cond; c.returnedAt = now; c.returnedTo = me.id; c.conditionIn = str_(req.note, 300) || cond;
     if (charge) { c.charge = charge; c.chargeStatus = 'proposed'; c.chargeBy = me.id; }
@@ -133,7 +146,9 @@ function clearanceView_(x, me, ctx) {
   var emp = ctx.emps[x.empId], tasks = parseJson_(x.tasksJson, []), held = heldBy_(x.empId);
   tasks.forEach(function (t) {
     if (t.key === 'assets') { t.status = held ? 'open' : 'done'; t.held = held; }
-    var byMe = t.owner === 'hr' ? isHr_(me) : t.owner === 'payroll' ? hasRole_(me, 'payroll') : t.owner === 'manager' ? (emp && manages_(me, emp, ctx)) || isHr_(me) : false;
+    // The settlement is prepared like a payroll draft (the hr role or a payroll holder) and paid only by a payroll
+    // holder who did not prepare it, so a company with a single payroll holder can still finish a clearance.
+    var byMe = t.key === 'settlement' ? canPayroll_(me) : t.owner === 'hr' ? isHr_(me) : t.owner === 'payroll' ? hasRole_(me, 'payroll') : t.owner === 'manager' ? (emp && manages_(me, emp, ctx)) || isHr_(me) : false;
     t.canTick = t.status !== 'done' && byMe && me.id !== x.empId;
   });
   var others = tasks.filter(function (t) { return t.key !== 'paid'; }).every(function (t) { return t.status === 'done'; });
@@ -178,7 +193,8 @@ function api_clearanceTask(req, me) {
     if (!x || x.status === 'cancelled') fail_('not_found');
     var view = clearanceView_(x, me, ctx), t = view.tasks.filter(function (k) { return k.key === req.key; })[0];
     if (!t || t.key === 'assets') fail_('bad_value');
-    if (!t.canTick) fail_(t.key === 'paid' ? 'clearance_incomplete' : 'forbidden');
+    // "incomplete" only for someone who could pay once everything else is done; anyone else is simply not allowed.
+    if (!t.canTick) fail_(t.key === 'paid' && hasRole_(me, 'payroll') && me.id !== x.empId && t.status !== 'done' ? 'clearance_incomplete' : 'forbidden');
     var tasks = parseJson_(x.tasksJson, []), raw = tasks.filter(function (k) { return k.key === req.key; })[0];
     if (raw.key === 'paid') { var prep = tasks.filter(function (k) { return k.key === 'settlement'; })[0]; if (prep && prep.by === me.id) fail_('second_approver_required'); }
     raw.status = 'done'; raw.by = me.id; raw.at = new Date().toISOString(); raw.note = str_(req.note, 300);

@@ -36,6 +36,55 @@ Object.assign(T.en, {
   dbTable:'Table', dbChart:'Chart', dbGenerated:'Prepared', dbReview:'Punches to review', dbMissingOut:'No check-out', dbLiabNote:'Estimate as of today: full Art. 84 award for everyone, leave at total wage.',
   dbNoData:'No data in this period.', dbHideDash:'Hide summary', dbShowDash:'Show summary', lt_unpaid_short:'Unpaid'
 });
+// Workforce analytics (prefix wa). Arabic counts of people go through plural(n, 'people').
+Object.assign(T.ar, {
+  waTitle:'تحليلات القوى العاملة', waAll:'الكل', waLead:'آخر 12 شهرا حتى اليوم، محسوبة من بيانات الوظيفة فقط ولا تتأثر بالفترة المختارة أعلاه.', waPartFailed:'تعذر حساب هذا الجزء الآن.',
+  waTurnover:'معدل الدوران (12 شهرا)', waVoluntary:'الاستقالات (طوعي)', waOther:'المغادرة لأسباب أخرى', waFirstYear:'غادروا قبل إكمال سنة', waOfLeavers:'من المغادرين',
+  waLeaversK:'المغادرون', waAvgHc:'متوسط عدد الموظفين', waOtherWhy:'أسباب المغادرة الأخرى', waTrend:'معدل الدوران شهريا', waTrendLead:'المغادرون في الشهر مقسومون على متوسط عدد الموظفين في أوله وآخره.',
+  waSplit:'المغادرون شهريا: طوعي وغيره', waMonth:'الشهر', waHcStart:'أول الشهر', waHcEnd:'آخر الشهر', waRate:'المعدل', waVolShort:'طوعي', waOtherShort:'أخرى',
+  waTenure:'مدة الخدمة', waTenureAvg:'المتوسط', waMedian:'الوسيط', waYearsU:'سنة', waNoHire:'بلا تاريخ تعيين', waTenureDept:'متوسط مدة الخدمة حسب الإدارة',
+  waCountOnly:'العدد فقط', waSmallNote:'الإدارات والمجموعات الأقل من 5 موظفين تظهر بعددها فقط.', waDept:'الإدارة', waPeopleK:'الموظفون', waBand:'الفئة',
+  waSpan:'نطاق الإشراف', waSpanLead:'عدد المرؤوسين المباشرين لكل مدير.', waManagers:'المديرون', waAvgSpan:'المتوسط', waMinMax:'الأدنى والأعلى', waTeam:'حجم الفريق',
+  waInRange:'ضمن المعتاد', waFlagged:'للعلم', waWide:'أكثر من 12 مرؤوسا', waNarrow:'مرؤوس واحد فقط', waOrphans:'موظفون مديرهم غادر أو غير نشط',
+  waSpanNote:'للعلم وليس خطأ: قد يناسب ذلك طبيعة العمل.', waReportsK:'المرؤوسون',
+  waCohorts:'البقاء حسب سنة التعيين', waCohortsLead:'نسبة من بقوا على رأس العمل بعد 3 و6 و12 شهرا من التعيين، ممن بلغوا تلك المدة. السنوات قبل تشغيل النظام قد لا تشمل من غادر قبله.',
+  waM3:'بعد 3 أشهر', waM6:'بعد 6 أشهر', waM12:'بعد 12 شهرا', waHires:'المعينون', waYear:'السنة', waNotYet:'لم يحن بعد',
+  waFlight:'مؤشرات للحوار حول البقاء', waFlightLead:'مؤشرات لبدء حوار مع الموظف، وليست تنبؤا ولا حكما على أحد. تعتمد على بيانات الوظيفة فقط، ولا تستخدم الجنس أو الجنسية أو العمر أو أي صفة شخصية.',
+  waScored:'شملهم الفحص', waWithSignals:'مؤشر واحد على الأقل', waTwoPlus:'مؤشران أو أكثر', waLeaving:'في فترة الإشعار', waLeavingSub:'لا يشملهم الفحص',
+  waBySignal:'المؤشرات حسب النوع', waBySignalLead:'من ظهر عندهم المؤشر / من أمكن تقييمه له.', waByDept:'حسب الإدارة', waByDeptLead:'من عندهم مؤشر واحد على الأقل من موظفي الإدارة.',
+  waIndicator:'المؤشر', waFired:'ظهر', waCheckable:'أمكن تقييمه', waChecked:'أمكن تقييمه لـ', waHidden:'مجموعات أقل من 5 موظفين لا تظهر هنا: ', waPooled:'إدارات صغيرة مجتمعة',
+  waPeople:'الموظفون ومؤشراتهم', waPeopleLead:'للموارد البشرية فقط. ابدأ بحوار مفتوح عن العمل والتطور، لا بالمؤشر نفسه.', waHrOnly:'أسماء الموظفين تظهر للموارد البشرية فقط.', waNone:'لا يوجد موظف ظهر عنده مؤشر.',
+  waScore:'العدد', waUnknown:'تعذر التقييم', waSig_new_hire:'أقل من سنة في الشركة', waSig_pay_static:'لا تغيير في الراتب منذ 18 شهرا أو أكثر',
+  waSig_low_rating:'آخر تقييم أداء في الفئة الدنيا', waSig_attendance_up:'تزايد التأخير أو الغياب', waSig_manager_change:'تغير المدير خلال 6 أشهر',
+  waSs_new_hire:'مدة الخدمة', waSs_pay_static:'الراتب', waSs_low_rating:'التقييم', waSs_attendance_up:'الحضور', waSs_manager_change:'المدير',
+  waHired:'التعيين', waLastChange:'آخر تغيير', waRatingK:'التقييم', waLateK:'تأخير', waAbsK:'غياب', waVsPrior:'مقابل', waPriorNote:'(آخر 90 يوما مقابل الـ90 قبلها)', waMgrNew:'مدير جديد منذ', waMgrLeft:'غادر المدير في',
+  waCk_wa_no_last_day:'غير نشطين بلا آخر يوم عمل (خارج الحساب)', waCk_wa_end_before_start:'آخر يوم عمل قبل تاريخ التعيين', waCk_wa_orphan_reports:'مديرهم غادر أو غير نشط', waCk_wa_no_hire_date:'بلا تاريخ تعيين',
+  waR_termination:'إنهاء من الشركة', waR_contract_end:'انتهاء العقد', waR_retirement:'تقاعد', waR_other:'أخرى', waR_unrecorded:'غير مسجل'
+});
+Object.assign(T.en, {
+  waTitle:'Workforce analytics', waAll:'All', waLead:'Last 12 months to today, from job data only; the period picked above does not change it.', waPartFailed:'This part could not be worked out just now.',
+  waTurnover:'Turnover (12 months)', waVoluntary:'Resignations (voluntary)', waOther:'Other leavers', waFirstYear:'Left within the first year', waOfLeavers:'of leavers',
+  waLeaversK:'Leavers', waAvgHc:'Average headcount', waOtherWhy:'Other reasons for leaving', waTrend:'Monthly turnover', waTrendLead:'Leavers in the month divided by the average of the headcount at its start and end.',
+  waSplit:'Leavers per month: voluntary and other', waMonth:'Month', waHcStart:'At start', waHcEnd:'At end', waRate:'Rate', waVolShort:'Voluntary', waOtherShort:'Other',
+  waTenure:'Tenure', waTenureAvg:'Average', waMedian:'Median', waYearsU:'yrs', waNoHire:'No hire date', waTenureDept:'Average tenure by department',
+  waCountOnly:'Count only', waSmallNote:'Departments and groups under 5 people show their count only.', waDept:'Department', waPeopleK:'People', waBand:'Band',
+  waSpan:'Span of control', waSpanLead:'Direct reports per manager.', waManagers:'Managers', waAvgSpan:'Average', waMinMax:'Min and max', waTeam:'Team size',
+  waInRange:'Usual range', waFlagged:'For information', waWide:'More than 12 reports', waNarrow:'Only 1 report', waOrphans:'People whose manager has left or is inactive',
+  waSpanNote:'For information, not an error: it may suit the work.', waReportsK:'Reports',
+  waCohorts:'Retention by hire year', waCohortsLead:'Share still employed 3, 6 and 12 months after hire, among those that far along. Years before go-live may miss people who left before it.',
+  waM3:'At 3 months', waM6:'At 6 months', waM12:'At 12 months', waHires:'Hired', waYear:'Year', waNotYet:'Not yet',
+  waFlight:'Retention conversation indicators', waFlightLead:'Indicators to start a conversation, not a prediction or a judgement of anyone. Job data only; never gender, nationality, age or any personal attribute.',
+  waScored:'People checked', waWithSignals:'At least one indicator', waTwoPlus:'Two or more', waLeaving:'Serving notice', waLeavingSub:'not checked',
+  waBySignal:'Indicators by type', waBySignalLead:'People with the indicator / people it could be checked for.', waByDept:'By department', waByDeptLead:'Share of the department with at least one indicator.',
+  waIndicator:'Indicator', waFired:'Shown', waCheckable:'Could be checked', waChecked:'Could be checked for', waHidden:'Groups under 5 people are not shown here: ', waPooled:'Smaller departments combined',
+  waPeople:'People and their indicators', waPeopleLead:'HR only. Open with a conversation about the work and growth, not with the indicator itself.', waHrOnly:'Names are shown to HR only.', waNone:'Nobody shows an indicator.',
+  waScore:'Count', waUnknown:'Could not check', waSig_new_hire:'Less than a year in the company', waSig_pay_static:'No pay change in 18+ months',
+  waSig_low_rating:'Last performance rating in the bottom band', waSig_attendance_up:'Rising lateness or absence', waSig_manager_change:'Manager changed in the last 6 months',
+  waSs_new_hire:'tenure', waSs_pay_static:'pay', waSs_low_rating:'rating', waSs_attendance_up:'attendance', waSs_manager_change:'manager',
+  waHired:'Hired', waLastChange:'Last change', waRatingK:'Rating', waLateK:'Late', waAbsK:'Absent', waVsPrior:'vs', waPriorNote:'(last 90 days vs the 90 before)', waMgrNew:'New manager since', waMgrLeft:'Manager left on',
+  waCk_wa_no_last_day:'Inactive without a last working day (left out)', waCk_wa_end_before_start:'Last working day before the hire date', waCk_wa_orphan_reports:'Manager has left or is inactive', waCk_wa_no_hire_date:'No hire date',
+  waR_termination:'Ended by the company', waR_contract_end:'Contract ended', waR_retirement:'Retirement', waR_other:'Other', waR_unrecorded:'Not recorded'
+});
 
 var css = '' +
 '.db{--s1:#2E7D4F;--s2:#C98500;--s3:#2a78d6;--grid:#e1e0d9;--axis:#c3c2b7;--muted:#898781;--wash:#F1EEE6}' +
@@ -85,6 +134,9 @@ var css = '' +
 '.db-tip{position:fixed;z-index:95;pointer-events:none;background:var(--ink);color:var(--cream);border-radius:8px;padding:6px 10px;font-size:12px;line-height:1.5;box-shadow:0 6px 18px rgba(0,0,0,.2);white-space:nowrap}' +
 '.db-tip b{font-size:14px}.db-tip .k{display:inline-block;width:12px;height:2px;margin-inline-end:6px;vertical-align:middle}' +
 '.db-status{display:inline-flex;align-items:center;gap:4px}' +
+'.gauge{width:230px;max-width:100%;height:auto;display:block}.gauge text{fill:var(--ink-3,#5F6D63);font-family:var(--font);font-size:10px}' +
+'.gauge .val{fill:var(--ink);font-size:40px;font-weight:600;font-variation-settings:"HEXP" 80}.gauge .unit{fill:var(--ink-3,#5F6D63);font-size:11px}' +
+'.gauge .needle{transform-origin:115px 115px;transition:transform 1.1s cubic-bezier(.2,.9,.25,1.15)}@media (prefers-reduced-motion:reduce){.gauge .needle{transition:none}}' +
 // calmer surfaces: no hard borders, one soft tinted shadow (redesign-skill: tinted shadows, hierarchy by elevation)
 '.db-card,.db-tile{border-color:transparent;box-shadow:0 1px 2px rgba(28,42,31,.05), 0 10px 26px -18px rgba(28,42,31,.28)}.db-tile{border-radius:16px}.db-card{border-radius:18px}' +
 '.db-tile.lead{box-shadow:0 14px 30px -18px rgba(28,42,31,.8);background:radial-gradient(90% 120% at 100% 0%, rgba(159,224,174,.18), transparent 55%), linear-gradient(155deg,#2E4433,#1C2A1F 75%)}' +
@@ -94,6 +146,16 @@ var css = '' +
 '.db-ph{display:flex;align-items:center;gap:8px;margin-bottom:10px}.db-ph h3{margin:0;font-size:14.5px;font-weight:600;display:flex;align-items:center;gap:6px;flex:1}.db-ph h3 i{color:var(--brand);font-size:18px}' +
 '.db-panel .db-tiles{margin-bottom:12px}.db-panel .db-grid{margin-bottom:12px}.db-panel .db-tile.lead b{font-size:34px}' +
 '.db-panel .tg{height:28px;padding:0 10px;border-radius:8px;border:1px solid var(--line);background:var(--card);font-size:12px;color:var(--ink-2)}' +
+// workforce analytics: three-series columns, signal chips, information notes (status colours only, never a series colour on text)
+'.db-cols .grp i.c{background:var(--s3)}.db-cols.wa-n3 .grp i{width:27%}.db-cols .grp.dim span{color:var(--ink-3,#5F6D63)}' +
+'.db-cols.wa-n2 .grp span,.db-cols.wa-n3 .grp span{white-space:nowrap}@media (max-width:640px){.db-cols.wa-n2 .grp:nth-child(even) span{visibility:hidden}}' +
+'.wa-note{display:flex;gap:8px;align-items:flex-start;background:var(--info-bg,#E8F1FC);color:var(--ink);border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.6;margin:0 0 12px}' +
+'.wa-note > i{color:var(--info,#1F5FAE);font-size:18px;flex:none;margin-top:1px}' +
+'.wa-chips{display:flex;flex-wrap:wrap;gap:6px;white-space:normal}.wa-chips .chip{white-space:normal;line-height:1.45}.wa-chips .chip small{color:var(--ink-3,#5F6D63);margin-inline-start:4px}' +
+'.wa-unk{display:block;color:var(--ink-3,#5F6D63);font-size:11.5px;margin-top:4px;white-space:normal}' +
+'.wa-checks{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 16px}.wa-ck{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;padding:4px 10px;border-radius:999px}' +
+'.wa-ck.warn{background:var(--warn-bg,#FBF1DC);color:var(--warn,#8A5A00)}.wa-ck.info{background:var(--info-bg,#E8F1FC);color:var(--info,#1F5FAE)}' +
+'.wa-flag{display:inline-flex;align-items:center;gap:4px;color:var(--info,#1F5FAE)}.db-card td.wa-who{white-space:normal;min-width:150px}.db-card td.wa-sig{white-space:normal;min-width:240px;text-align:start}' +
 '@media (min-width:1024px){.db-tiles{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}.db-tile.lead{grid-column:span 2}.db-grid.two{grid-template-columns:1.4fr 1fr}.db-grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}}' +
 '@media print{.tabs,.topbar,.hr-rail,.db-filters button,.db-card .tg,.update-bar{display:none!important}.app{padding:0!important}.hr-shell{display:block!important;min-height:0!important}.db-card,.db-tile{break-inside:avoid}body{background:#fff}}';
 var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
@@ -209,7 +271,7 @@ function section(body){
   $('#dbPrint', body).onclick = function(){ window.print(); };
   var el = $('#dbBody', body), rg = range(k);
   el.innerHTML = '<div class="db-tiles">' + [0, 1, 2, 3, 4, 5].map(function(i){ return '<div class="db-tile' + (i ? '' : ' lead') + '"><span class="sk" style="width:60%"></span><span class="sk" style="margin-top:10px;height:22px"></span></div>'; }).join('') + '</div>';
-  apiFresh('dashboard', { from: rg[0], to: rg[1] }, function(r){
+  apiFresh('dashboard', { from: rg[0], to: rg[1], analytics: 1 }, function(r){
     if (!el.isConnected) return;
     if (!r.ok) { el.innerHTML = '<p class="hr-bad">' + errText(r.error) + '</p>'; return; }
     $('#dbGen', body).textContent = t('dbGenerated') + ' ' + new Date(r.generatedAt).toLocaleTimeString(LOCALE(), { hour: '2-digit', minute: '2-digit' });
@@ -255,6 +317,7 @@ function draw(r){
     card('ten', t('dbTenure'), '', cols(Object.keys(Wf.tenure || {}).map(function(k){ return { label: k, value: Wf.tenure[k], tip: k + ': ' + Wf.tenure[k] }; }), { labels: true }), tbl(['', ''], Object.keys(Wf.tenure || {}).map(function(k){ return [k, Wf.tenure[k]]; }))) + '</div>';
   h += '<div class="db-grid">' + card('mov', t('dbMovement'), '', grouped((Wf.movement || []).map(function(m){ return { label: monthShort(m.month), a: m.joiners, b: m.leavers }; })),
     tbl(['', t('dbJoiners'), t('dbLeavers')], (Wf.movement || []).map(function(m){ return [monthShort(m.month), m.joiners, m.leavers]; }))) + '</div>';
+  h += drawAnalytics(r.analytics);
 
   // leave, requests, performance
   var Lv = r.leave || {}, Rq = r.requests || {}, Pf = r.performance || {};
@@ -284,6 +347,131 @@ function draw(r){
 }
 function lang(ar, en){ return S.lang === 'en' && en ? en : ar; }
 
+// ---------------- workforce analytics (analytics block of api dashboard; names arrive only for the HR role) ----------------
+var WA_SIG = ['new_hire', 'pay_static', 'low_rating', 'attendance_up', 'manager_change'], WA_BANDS = ['<1', '1-3', '3-5', '5-10', '10+'];
+function pc(v){ return v == null ? '-' : n1(v) + '%'; }
+function yrs(v){ return v == null ? '-' : n1(v) + ' ' + t('waYearsU'); }
+function ltr(s){ return '<bdi dir="ltr">' + s + '</bdi>'; }
+function fullDate(d){ return d ? new Date(d + 'T12:00:00Z').toLocaleDateString(LOCALE(), { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }) : '-'; }
+function waBroken(x){ return !x || !!x.error; }
+function waFail(id, title){ return card(id, title, '', '<p class="hr-hint">' + t('waPartFailed') + '</p>'); }
+/** Columns with two or three series per group (validated series colours s1, s2, s3). items: [{label, v: [..], tip, dim}] */
+function waBars(items, names, opts){
+  if (!items.length) return '<p class="hr-hint">' + t('dbNoData') + '</p>';
+  var max = opts && opts.max || Math.max.apply(null, items.map(function(i){ return Math.max.apply(null, i.v.map(function(x){ return x || 0; })); }).concat([1])), cls = ['', 'b', 'c'];
+  return '<div class="db-cols wa-n' + names.length + '" style="height:150px">' + items.map(function(i){
+    return '<div class="grp' + (i.dim ? ' dim' : '') + '" tabindex="0" data-tip="' + esc(i.tip) + '">' + i.v.map(function(x, k){ return '<i class="' + cls[k] + '" style="height:' + ((x || 0) / max * 100) + '%"></i>'; }).join('') + '<span>' + tx(i.label) + '</span></div>';
+  }).join('') + '</div><div class="db-legend">' + names.map(function(n, k){ return '<span><i style="background:var(--s' + (k + 1) + ')"></i>' + n + '</span>'; }).join('') + '</div>';
+}
+
+function waTurnover(Tv){
+  if (waBroken(Tv)) return '<div class="db-grid">' + waFail('watr', t('waTurnover')) + '</div>';
+  var fy = Tv.firstYear || {}, why = Object.keys(Tv.otherReasons || {});
+  var h = '<div class="db-tiles">' + tile(t('waTurnover'), pc(Tv.rate), t('waLeaversK') + ' ' + n1(Tv.leavers, 0) + ' · ' + t('waAvgHc') + ' ' + n1(Tv.avgHeadcount), null, false, true) +
+    tile(t('waVoluntary'), pc(Tv.voluntaryRate), t('waLeaversK') + ' ' + n1(Tv.voluntary, 0)) + tile(t('waOther'), pc(Tv.otherRate), t('waLeaversK') + ' ' + n1(Tv.other, 0)) +
+    tile(t('waFirstYear'), n1(fy.leavers || 0, 0), fy.share != null ? pc(fy.share) + ' ' + t('waOfLeavers') : '') + '</div>';
+  if (why.length) h += '<p class="hr-hint" style="margin:-6px 0 12px">' + t('waOtherWhy') + ': ' + why.map(function(k){ return tx(T[S.lang]['waR_' + k] || k) + ' ' + Tv.otherReasons[k]; }).join('، ') + '</p>';
+  var ms = Tv.months || [], top = Math.max.apply(null, ms.map(function(m){ return m.rate || 0; }).concat([0]));
+  var line = lineChart(ms.map(function(m){ return { label: monthShort(m.month), y: m.rate || 0, note: t('waLeaversK') + ' ' + m.leavers + ' / ' + t('waAvgHc') + ' ' + n1(m.avgHc) }; }),
+    { suffix: '%', aria: t('waTrend'), max: Math.max(10, Math.ceil(top / 10) * 10) }); // whole-number axis (0 / half / top), never "1% 1%"
+  var split = waBars(ms.map(function(m){ return { label: monthShort(m.month), v: [m.voluntary, m.other], tip: monthShort(m.month) + ': ' + t('waVolShort') + ' ' + m.voluntary + '، ' + t('waOtherShort') + ' ' + m.other }; }), [t('waVolShort'), t('waOtherShort')]);
+  var table = tbl([t('waMonth'), t('waHcStart'), t('waHcEnd'), t('waAvgHc'), t('waLeaversK'), t('waVolShort'), t('waOtherShort'), t('waRate')],
+    ms.map(function(m){ return [monthShort(m.month), m.startHc, m.endHc, n1(m.avgHc), m.leavers, m.voluntary, m.other, pc(m.rate)]; }));
+  return h + '<div class="db-grid two">' + card('watr', t('waTrend'), t('waTrendLead'), line, table) +
+    card('wasp', t('waSplit'), '', split, tbl([t('waMonth'), t('waVolShort'), t('waOtherShort')], ms.map(function(m){ return [monthShort(m.month), m.voluntary, m.other]; }))) + '</div>';
+}
+
+function waTenure(Te){
+  if (waBroken(Te)) return waFail('wate', t('waTenure'));
+  var bands = Te.bands || {}, depts = Te.departments || [];
+  var lead = t('waTenureAvg') + ' ' + yrs(Te.avgYears) + ' · ' + t('waMedian') + ' ' + yrs(Te.medianYears) + (Te.headcount > Te.known ? ' · ' + t('waNoHire') + ': ' + plural(Te.headcount - Te.known, 'people') : '');
+  var chart = cols(WA_BANDS.map(function(k){ return { label: k, value: bands[k] || 0, tip: k + ': ' + plural(bands[k] || 0, 'people') }; }), { labels: true }) +
+    '<h4 class="hr-sub">' + t('waTenureDept') + '</h4>' + hbars(depts.map(function(d){
+      return d.suppressed ? { label: d.department, value: 0, gray: true, text: t('waCountOnly'), tip: d.department + ': ' + plural(d.headcount, 'people') + ' · ' + t('waCountOnly') }
+        : { label: d.department, value: d.avgYears || 0, text: yrs(d.avgYears), tip: d.department + ': ' + yrs(d.avgYears) + ' · ' + t('waMedian') + ' ' + yrs(d.medianYears) + ' · ' + plural(d.headcount, 'people') };
+    })) + (depts.some(function(d){ return d.suppressed; }) ? '<p class="hr-hint" style="margin-top:8px">' + t('waSmallNote') + '</p>' : '');
+  var table = tbl([t('waDept'), t('waPeopleK'), t('waTenureAvg'), t('waMedian')].concat(WA_BANDS), [[t('waAll'), Te.headcount, yrs(Te.avgYears), yrs(Te.medianYears)].concat(WA_BANDS.map(function(k){ return bands[k] || 0; }))]
+    .concat(depts.map(function(d){ return d.suppressed ? [tx(d.department), d.headcount, t('waCountOnly'), '-'].concat(WA_BANDS.map(function(){ return '-'; }))
+      : [tx(d.department), d.headcount, yrs(d.avgYears), yrs(d.medianYears)].concat(WA_BANDS.map(function(k){ return d.bands[k] || 0; })); })));
+  return card('wate', t('waTenure'), lead, chart, table);
+}
+
+function waSpan(Sp){
+  if (waBroken(Sp)) return waFail('wasc', t('waSpan'));
+  var flagged = function(l){ return l === '1' || l === '13+'; };
+  var chart = cols((Sp.distribution || []).map(function(d){ return { label: d.label, value: d.managers, alt: flagged(d.label), tip: t('waTeam') + ' ' + d.label + ': ' + t('waManagers') + ' ' + d.managers }; }), { labels: true }) +
+    '<div class="db-legend"><span><i style="background:var(--s1)"></i>' + t('waInRange') + '</span><span><i style="background:var(--s2)"></i>' + t('waFlagged') + '</span></div>';
+  var lead = t('waSpanLead') + ' ' + t('waManagers') + ' ' + n1(Sp.managers, 0) + ' · ' + t('waAvgSpan') + ' ' + n1(Sp.avg) + ' · ' + t('waMedian') + ' ' + n1(Sp.median) +
+    ' · ' + t('waMinMax') + ' ' + (Sp.min == null ? '-' : ltr(Sp.min + ' - ' + Sp.max));
+  var info = '<div class="wa-note" style="margin-top:12px">' + ph('info') + '<div><b>' + t('waWide') + '</b>: ' + n1(Sp.wide, 0) + ' · <b>' + t('waNarrow') + '</b>: ' + n1(Sp.narrow, 0) +
+    (Sp.orphans ? ' · ' + t('waOrphans') + ': ' + plural(Sp.orphans, 'people') : '') + '<br><small>' + t('waSpanNote') + '</small></div></div>';
+  if (Sp.flags && Sp.flags.length) info += tbl([t('waManagers'), t('waReportsK'), ''], Sp.flags.map(function(f){
+    return [tx(f.emp.name) + ' <small style="color:var(--ink-2)">' + tx(f.emp.department) + '</small>', f.reports, '<span class="wa-flag">' + ph('info') + (f.flag === 'wide' ? t('waWide') : t('waNarrow')) + '</span>'];
+  }));
+  return card('wasc', t('waSpan'), lead, chart + info, tbl([t('waTeam'), t('waManagers')], (Sp.distribution || []).map(function(d){ return [d.label, d.managers]; })));
+}
+
+function waCohorts(Co){
+  if (waBroken(Co) || !Array.isArray(Co)) return waFail('waco', t('waCohorts'));
+  var keys = ['m3', 'm6', 'm12'], names = [t('waM3'), t('waM6'), t('waM12')], rows = Co.slice().reverse();
+  var cell = function(m){ return !m || m.pct == null ? t('waNotYet') : n1(m.pct) + '% (' + m.retained + '/' + m.eligible + ')'; };
+  var chart = waBars(rows.map(function(c){
+    if (c.suppressed) return { label: c.year, v: [0, 0, 0], dim: true, tip: c.year + ': ' + t('waHires') + ' ' + c.hires + ' · ' + t('waCountOnly') };
+    return { label: c.year, v: keys.map(function(k){ return c[k] && c[k].pct; }), tip: c.year + ' (' + t('waHires') + ' ' + c.hires + '): ' + keys.map(function(k, i){ return names[i] + ' ' + cell(c[k]); }).join(' · ') };
+  }), names, { max: 100 }) + (Co.some(function(c){ return c.suppressed; }) ? '<p class="hr-hint" style="margin-top:8px">' + t('waSmallNote') + '</p>' : '');
+  var table = tbl([t('waYear'), t('waHires')].concat(names), Co.map(function(c){ return [c.year, c.hires].concat(keys.map(function(k){ return c.suppressed ? t('waCountOnly') : cell(c[k]); })); }));
+  return card('waco', t('waCohorts'), t('waCohortsLead'), chart, table);
+}
+
+function waDetail(s){
+  if (s.code === 'new_hire') return t('waHired') + ' ' + fullDate(s.since);
+  if (s.code === 'pay_static') return t('waLastChange') + ' ' + fullDate(s.since);
+  if (s.code === 'low_rating') return t('waRatingK') + ' ' + ltr(s.rating + ' / 5') + (s.cycleAr ? ' · ' + tx(lang(s.cycleAr, s.cycleEn)) : '');
+  if (s.code === 'manager_change') return (s.why === 'left' ? t('waMgrLeft') : t('waMgrNew')) + ' ' + fullDate(s.on);
+  if (s.code === 'attendance_up') {
+    var part = function(k, label){ return label + ' ' + ltr(s.last[k] + '/' + s.last.expected) + ' ' + t('waVsPrior') + ' ' + ltr(s.prior[k] + '/' + s.prior.expected); };
+    return [s.late ? part('late', t('waLateK')) : '', s.absent ? part('absent', t('waAbsK')) : ''].filter(String).join(' · ') + ' ' + t('waPriorNote');
+  }
+  return '';
+}
+function waFlight(F){
+  var h = '<h3 class="db-h">' + t('waFlight') + '</h3><div class="wa-note">' + ph('chat-circle-dots') + '<span>' + t('waFlightLead') + '</span></div>';
+  if (waBroken(F)) return h + '<div class="db-grid">' + waFail('wafr', t('waFlight')) + '</div>';
+  var sigs = F.signalsList || WA_SIG, by = F.bySignal || {}, cov = F.coverage || {}, groups = F.groups || [];
+  h += '<div class="db-tiles">' + tile(t('waScored'), n1(F.scored, 0), '', null, true, true) + tile(t('waWithSignals'), n1(F.withSignals, 0), F.scored ? pc(Math.round(F.withSignals / F.scored * 1000) / 10) : '') +
+    tile(t('waTwoPlus'), n1(F.twoPlus, 0), '') + tile(t('waLeaving'), n1(F.leaving, 0), t('waLeavingSub')) + '</div>';
+  var bySig = hbars(sigs.map(function(k){ return { label: t('waSig_' + k), value: by[k] || 0, text: ltr(n1(by[k] || 0, 0) + ' / ' + n1(cov[k] || 0, 0)), tip: t('waSig_' + k) + ': ' + (by[k] || 0) + ' · ' + t('waChecked') + ' ' + plural(cov[k] || 0, 'people') }; }),
+    { max: Math.max(1, F.scored || 0) });
+  var gname = function(g){ return g.pooled ? t('waPooled') + ' (' + g.groups + ')' : g.department; };
+  var byDept = hbars(groups.map(function(g){ return { label: gname(g), value: g.headcount ? g.withSignals / g.headcount * 100 : 0, text: ltr(g.withSignals + ' / ' + g.headcount),
+    tip: gname(g) + ': ' + t('waWithSignals') + ' ' + g.withSignals + ' · ' + t('waTwoPlus') + ' ' + g.twoPlus + ' · ' + plural(g.headcount, 'people') }; }), { max: 100 }) +
+    (F.hidden && F.hidden.people ? '<p class="hr-hint" style="margin-top:8px">' + ph('lock-simple') + ' ' + t('waHidden') + plural(F.hidden.people, 'people') + '</p>' : '');
+  h += '<div class="db-grid two">' + card('wasg', t('waBySignal'), t('waBySignalLead'), bySig, tbl([t('waIndicator'), t('waFired'), t('waCheckable')], sigs.map(function(k){ return [t('waSig_' + k), by[k] || 0, cov[k] || 0]; }))) +
+    card('wadp', t('waByDept'), t('waByDeptLead'), byDept, tbl([t('waDept'), t('waPeopleK'), t('waWithSignals'), t('waTwoPlus')].concat(sigs.map(function(k){ return t('waSs_' + k); })),
+      groups.map(function(g){ return [tx(gname(g)), g.headcount, g.withSignals, g.twoPlus].concat(sigs.map(function(k){ return g.signals[k] || 0; })); }))) + '</div>';
+  if (!F.people) return h + '<p class="hr-hint" style="margin:-4px 0 16px">' + ph('lock-simple') + ' ' + t('waHrOnly') + '</p>';
+  var rows = F.people.map(function(p){
+    return '<tr><td class="wa-who">' + tx(p.emp.name) + '<br><small style="color:var(--ink-2)">' + tx(p.emp.empNo) + ' · ' + tx(p.emp.department) + '</small></td><td class="num">' + p.score + '</td><td class="wa-sig"><div class="wa-chips">' +
+      p.signals.map(function(s){ return '<span class="chip">' + t('waSig_' + s.code) + '<small>' + waDetail(s) + '</small></span>'; }).join('') + '</div>' +
+      (p.unknown && p.unknown.length ? '<small class="wa-unk">' + t('waUnknown') + ': ' + p.unknown.map(function(k){ return t('waSs_' + k); }).join('، ') + '</small>' : '') + '</td></tr>';
+  }).join('');
+  return h + '<div class="db-grid">' + card('wapp', t('waPeople'), t('waPeopleLead'), F.people.length ? '<div class="tblwrap"><table class="tbl"><thead><tr><th>' + t('hrName') + '</th><th>' + t('waScore') + '</th><th>' + t('waIndicator') + '</th></tr></thead><tbody>' + rows + '</tbody></table></div>'
+    : '<p class="hr-hint">' + t('waNone') + '</p>') + '</div>';
+}
+
+function waChecks(C){
+  if (!Array.isArray(C) || !C.length) return '';
+  return '<div class="wa-checks">' + C.map(function(c){ return '<span class="wa-ck ' + (c.level === 'warn' ? 'warn' : 'info') + '">' + ph(c.level === 'warn' ? 'warning' : 'info') + (T[S.lang]['waCk_' + c.code] || c.code) + ': ' + plural(c.count, 'people') + '</span>'; }).join('') + '</div>';
+}
+
+function drawAnalytics(A){
+  if (!A) return '';
+  var h = '<h3 class="db-h">' + t('waTitle') + '</h3><p class="hr-hint" style="margin:-4px 0 12px">' + t('waLead') + '</p>';
+  if (A.error) return h + '<p class="hr-hint">' + t('waPartFailed') + '</p>';
+  return h + waChecks(A.checks) + waTurnover(A.turnover) + '<div class="db-grid two">' + waTenure(A.tenure) + waSpan(A.span) + '</div>' +
+    '<div class="db-grid">' + waCohorts(A.cohorts) + '</div>' + waFlight(A.flightRisk);
+}
+
 /** A screen's own dashboard: a titled band that can be folded (remembered per device). */
 function panel(key, title, html){
   var hid = false; try { hid = (JSON.parse(localStorage.getItem('bgatt.dashFold') || '{}') || {})[key]; } catch (e) {}
@@ -298,10 +486,33 @@ function wire(root){
     try { var m = JSON.parse(localStorage.getItem('bgatt.dashFold') || '{}') || {}; m[p.dataset.fold] = hide; localStorage.setItem('bgatt.dashFold', JSON.stringify(m)); } catch (e) {}
   }; });
 }
+/**
+ * The pressure gauge (design system v2, 2026-09-30): the one bold element on a page. 240-degree dial with 5% ticks,
+ * zones red < 70, amber < 85, green up to 100 (override with opts.zones), and a needle that settles once on load.
+ */
+function gauge(v, label, opts){
+  opts = opts || {};
+  var cx = 115, cy = 115, R = 92, a0 = 210, a1 = -30, val = Math.max(0, Math.min(100, Number(v) || 0));
+  var pt = function(deg, r){ var a = deg * Math.PI / 180; return [cx + r * Math.cos(a), cy - r * Math.sin(a)]; };
+  var arc = function(from, to, r){ var p = pt(from, r), q = pt(to, r), large = Math.abs(from - to) > 180 ? 1 : 0; return 'M' + p[0].toFixed(1) + ' ' + p[1].toFixed(1) + ' A' + r + ' ' + r + ' 0 ' + large + ' 1 ' + q[0].toFixed(1) + ' ' + q[1].toFixed(1); };
+  var ang = function(pc){ return a0 - (a0 - a1) * pc / 100; }, z = opts.zones || [70, 85], ticks = '';
+  for (var k = 0; k <= 100; k += 5) {
+    var big = k % 20 === 0, p1 = pt(ang(k), R - 2), p2 = pt(ang(k), R - (big ? 13 : 7));
+    ticks += '<line x1="' + p1[0].toFixed(1) + '" y1="' + p1[1].toFixed(1) + '" x2="' + p2[0].toFixed(1) + '" y2="' + p2[1].toFixed(1) + '" stroke="var(--ink-3,#5F6D63)" stroke-width="' + (big ? 1.6 : 0.8) + '" stroke-linecap="round"/>';
+    if (big) { var lp = pt(ang(k), R - 25); ticks += '<text x="' + lp[0].toFixed(1) + '" y="' + (lp[1] + 3.5).toFixed(1) + '" text-anchor="middle">' + k + '</text>'; }
+  }
+  var zones = '<path d="' + arc(ang(0), ang(z[0]), R + 6) + '" stroke="#B42318" stroke-width="5" fill="none" opacity=".5"/><path d="' + arc(ang(z[0]), ang(z[1]), R + 6) + '" stroke="#C98500" stroke-width="5" fill="none" opacity=".75"/><path d="' + arc(ang(z[1]), ang(100), R + 6) + '" stroke="#2E7D4F" stroke-width="5" fill="none"/>';
+  // No value: no needle at all (a needle parked at the left would read as 0%), "-" without the % unit.
+  var none = v == null || !isFinite(Number(v)), shown = none ? '-' : n1(v, 0);
+  return '<svg class="gauge" viewBox="0 0 230 168" role="img" aria-label="' + tx(label) + ' ' + shown + (none ? '' : '%') + '" direction="ltr">' + zones + ticks +
+    (none ? '' : '<g class="needle" data-v="' + val + '" style="transform:rotate(-120deg)"><line x1="115" y1="115" x2="115" y2="34" stroke="var(--ink,#17221A)" stroke-width="3" stroke-linecap="round"/><circle cx="115" cy="115" r="8" fill="var(--ink,#17221A)"/><circle cx="115" cy="115" r="3" fill="var(--card,#fff)"/></g>') +
+    '<text class="val" x="115" y="158" text-anchor="middle">' + shown + (none ? '' : '<tspan class="unit" dx="3">%</tspan>') + '</text></svg>';
+}
+function spinGauges(root){ $$('.gauge .needle', root).forEach(function(n){ var v = Number(n.dataset.v); if (!isFinite(v)) return; requestAnimationFrame(function(){ requestAnimationFrame(function(){ n.style.transform = 'rotate(' + (-120 + 240 * v / 100) + 'deg)'; }); }); }); }
 function skeleton(n){ return '<div class="db-tiles">' + Array.apply(null, Array(n || 4)).map(function(_, i){ return '<div class="db-tile' + (i ? '' : ' lead') + '"><span class="sk" style="width:60%"></span><span class="sk" style="margin-top:10px;height:22px"></span></div>'; }).join('') + '</div>'; }
 
 window.Dash = { section: section };
 // Shared chart kit: every other screen draws its own mini dashboard with these, so all charts look and behave alike.
 window.Viz = { tile: tile, card: card, tbl: tbl, lineChart: lineChart, cols: cols, grouped: grouped, hbars: hbars, wireLines: wireLines, wireTips: wireTips,
-  n1: n1, sar: sar, shortDate: shortDate, monthShort: monthShort, range: range, showTip: showTip, hideTip: hideTip, panel: panel, wire: wire, skeleton: skeleton };
+  n1: n1, sar: sar, shortDate: shortDate, monthShort: monthShort, range: range, showTip: showTip, hideTip: hideTip, panel: panel, wire: wire, skeleton: skeleton, gauge: gauge, spinGauges: spinGauges };
 })();

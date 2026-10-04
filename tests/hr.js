@@ -57,6 +57,13 @@ ok(B.ctx.canSeeSalary_(E('3001'), E('5002')), 'HR can see salaries');
 ok(!B.ctx.canSeeSalary_(E('1000'), E('5002')), 'admin without payroll cannot see salaries');
 ok(B.ctx.canSeeSalary_(E('5002'), E('5002')), 'an employee sees their own salary');
 ok(!B.ctx.canSeeSalary_(E('5001'), E('5002')), 'a manager cannot see a report salary');
+r = B.call({ action: 'hrRolesSave', token: tok('1000'), id: ids['1000'], extraRoles: 'payroll' });
+ok(!r.ok && r.error === 'cannot_change_own_roles' && !B.ctx.hasRole_(E('1000'), 'payroll'), 'nobody grants themselves an extra role, not even the administrator', r);
+direct(() => { const a = B.ctx.findBy_('employees', 'empNo', '1000'); a.extraRoles = 'executive'; B.ctx.update_('employees', a); });
+r = B.call({ action: 'hrRolesSave', token: tok('1000'), id: ids['1000'], extraRoles: '' });
+ok(!r.ok && r.error === 'cannot_change_own_roles' && E('1000').extraRoles === 'executive', 'nor removes their own', r);
+direct(() => { const a = B.ctx.findBy_('employees', 'empNo', '1000'); a.extraRoles = ''; B.ctx.update_('employees', a); });
+ok(B.call({ action: 'auditList', token: tok('1000') }).rows.some(a => a.action === 'roles_update' && a.target === 'الرواتب'), 'granting someone else is still audited');
 
 console.log('Departments and positions');
 const hrT = tok('3001');
@@ -157,6 +164,15 @@ r = B.call({ action: 'hrCompPropose', token: hrT, empId: E5002, effectiveFrom: '
 ok(!r.ok && r.error === 'bad_amount', 'negative or missing basic salary is refused', r);
 r = B.call({ action: 'hrCompPropose', token: hrT, empId: E5003, effectiveFrom: '2026-10-01', basic: '٧٬٠٠٠', housing: '1,750' });
 ok(r.ok && r.comp.basic === 7000 && r.comp.housing === 1750, 'Arabic digits and thousands separators are read as numbers', r.comp);
+const c3 = r.comp.id;
+r = B.call({ action: 'hrCompList', token: tok('1000'), status: 'approved' });
+ok(!r.ok && r.error === 'forbidden', 'an administrator without payroll cannot list salary packages', r);
+r = B.call({ action: 'hrCompDecide', token: tok('1000'), ids: [c3], decision: 'approve' });
+ok(!r.ok && r.error === 'forbidden', 'nor approve one', r);
+r = B.call({ action: 'hrCompPropose', token: tok('1000'), empId: E5003, effectiveFrom: '2026-10-01', basic: 8000 });
+ok(!r.ok && r.error === 'forbidden', 'nor propose one', r);
+ok(!B.call({ action: 'myTasks', token: tok('1000') }).tasks.some(x => x.kind === 'salaries'), 'and the bell offers the administrator no salaries to approve');
+ok(B.call({ action: 'myTasks', token: payT }).tasks.some(x => x.kind === 'salaries'), 'while payroll sees the waiting package');
 r = B.call({ action: 'hrEmpFile', token: tok('1000'), id: E5002 });
 ok(r.ok && !('comp' in r.file), 'admin without payroll does not see the salary', r.file && Object.keys(r.file));
 r = B.call({ action: 'auditList', token: tok('1000') });
@@ -216,6 +232,9 @@ ok(!r.ok && r.error === 'import_invalid', 'a file with errors commits nothing', 
 ok(!B.call({ action: 'hrDirectory', token: hrT }).rows.some(e => e.empNo === '7001'), 'and nothing was written');
 r = B.call({ action: 'hrImportCommit', token: tok('5002'), rows });
 ok(!r.ok && r.error === 'forbidden', 'only HR can import', r);
+r = B.call({ action: 'hrImportCommit', token: tok('1000'), rows });
+ok(!r.ok && r.error === 'forbidden', 'an administrator alone cannot import salary lines (packages)', r);
+ok(!B.call({ action: 'hrDirectory', token: hrT }).rows.some(e => e.empNo === '7001'), 'and nothing was written (the department codes below show no gap either)');
 r = B.call({ action: 'hrImportCommit', token: hrT, rows });
 ok(r.ok && r.created === 3 && r.pendingSalaries === 3, 'a clean file commits all rows in one go', r);
 r = B.call({ action: 'hrDirectory', token: hrT });
@@ -288,6 +307,20 @@ console.log('Reference numbers');
   B.ctx.CacheService.getScriptCache().remove('settings:v1');
   r = B.call({ action: 'hrDocSave', token: hrT, doc: { empId: E5003, type: 'other', number: 'X1', expiryDate: '2027-01-01' } });
   ok(r.ok && /^HRD-2026-\d{5}$/.test(r.doc.ref), 'a prefix can be renamed in the settings', r.doc && r.doc.ref);
+  // Permanent codes have three digits and grow past 999; they never wrap to 000 and never loop.
+  const P = B.ctx.PropertiesService.getScriptProperties();
+  P.setProperty('seq:asset', '998');
+  let refs = direct(() => B.ctx.nextRefs_('asset', 3, {}));
+  ok(refs.join() === 'AST-999,AST-1000,AST-1001', 'after 999 a permanent code grows to four digits: AST-999, AST-1000, AST-1001', refs);
+  refs = direct(() => B.ctx.nextRefs_('asset', 2, { 'AST-1002': 1, 'AST-1004': 1 }));
+  ok(refs.join() === 'AST-1003,AST-1005' && P.getProperty('seq:asset') === '1005', 'numbers already in the sheet are skipped, a gap stays a gap', refs);
+  const all3 = {};
+  for (let i = 0; i <= 999; i++) all3['SH-' + String(i).padStart(3, '0')] = 1;
+  refs = direct(() => B.ctx.nextRefs_('shift', 1, all3));
+  ok(refs.join() === 'SH-1000', 'with every three-digit code taken the next is SH-1000: no 000, no endless loop', refs);
+  P.setProperty('seq:payslip:2026', '99999');
+  refs = direct(() => B.ctx.nextRefs_('payslip', 2, {}));
+  ok(refs.join() === 'PS-2026-100000,PS-2026-100001', 'yearly numbers grow past 99999 the same way', refs);
 }
 
 console.log('My file');

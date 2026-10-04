@@ -106,7 +106,7 @@ function api_onboardTask(req, me) {
 
 var MIN_GROUP = 5;
 var PULSE_ITEMS = [
-  { key: 'enps', kind: 'nps', ar: 'ما مدى احتمال أن تنصح صديقا بالعمل في الناقل الأفضل للغاز؟', en: 'How likely are you to recommend Best Gas as a place to work?' },
+  { key: 'enps', kind: 'nps', ar: 'ما مدى احتمال أن تنصح صديقا بالعمل في شركتنا؟', en: 'How likely are you to recommend working here to a friend?' },
   { key: 'engaged', kind: 'likert', ar: 'أشعر بالحماس والانخراط في عملي', en: 'I feel engaged and energised by my work' },
   { key: 'belong', kind: 'likert', ar: 'أشعر بالانتماء لهذه الشركة', en: 'I feel I belong at this company' },
   { key: 'manager', kind: 'likert', ar: 'مديري يدعم تطوري ويعطيني ملاحظات منتظمة', en: 'My manager supports my growth and gives me regular feedback' },

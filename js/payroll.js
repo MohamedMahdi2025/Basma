@@ -110,7 +110,7 @@ function printSlip(s, who){
     '.pr-slip h4{margin:12px 0 4px;font-size:13px;color:#4A5A4D}.pr-slip dl{display:grid;grid-template-columns:1fr auto;margin:0}.pr-slip dt,.pr-slip dd{padding:5px 0;border-bottom:1px solid #E5E1D6;margin:0}' +
     '.pr-slip dd{text-align:end;font-variant-numeric:tabular-nums}.pr-slip dt small{color:#6B786D;margin-inline-start:6px}.tot dt,.tot dd{font-weight:600;font-size:15px;border:0}.hr-hint{color:#4A5A4D}.chip{display:none}' +
     'footer{margin-top:24px;font-size:11px;color:#8A948B;border-top:1px solid #DAD5C8;padding-top:6px}</style></head><body>' +
-    '<header><img src="' + LOGO + '" alt=""><div style="text-align:end;font-size:12px;color:#4A5A4D">' + (en ? 'Best Gas Carrier Co.<br>Payslip' : 'شركة الناقل الأفضل للغاز<br>قسيمة راتب') + '</div></header>' +
+    '<header><img src="' + logoInk() + '" alt=""><div style="text-align:end;font-size:12px;color:#4A5A4D">' + esc(coName(en ? 'en' : 'ar')) + (en ? '<br>Payslip' : '<br>قسيمة راتب') + '</div></header>' +
     '<h1>' + (en ? 'Payslip for ' : 'قسيمة راتب شهر ') + esc(monthName(s.month)) + '</h1>' +
     '<div class="meta"><span>' + esc(e.name || '') + '</span><span>' + t('mfEmpNo') + ': ' + esc(e.empNo || '') + '</span><span>' + esc(e.title || '') + '</span><span>' + esc(e.department || '') + '</span>' +
     '<span>' + t('prIban') + ': <bdi>' + (iban ? esc(iban.slice(0, 4) + ' •••• ' + iban.slice(-4)) : '-') + '</bdi></span><span>' + t('prRef') + ': <bdi>' + esc(s.ref) + '</bdi></span></div>' +
@@ -147,7 +147,7 @@ function section(body){
   body.innerHTML = '<div class="hr-h"><h2>' + t('prTitle') + '</h2></div>' +
     '<form class="toolbar" id="prNewF"><label class="hr-hint" style="margin:0">' + t('prMonth') + '</label><input type="month" name="month" value="' + last + '" max="' + riyadhToday().slice(0, 7) + '" required>' +
     '<button class="btn btn-dark btn-sm">' + ph('calculator') + t('prCreate') + '</button><span class="err" id="prErr" style="color:var(--red)"></span></form><div id="prList"></div>' +
-    '<h3 class="hr-sub">' + t('prEos') + '</h3><div id="prEos"></div>';
+    '<section class="v2-card"><h3 class="hr-sub">' + ph('calculator') + t('prEos') + '</h3><div id="prEos"></div></section>';
   $('#prNewF', body).onsubmit = function(ev){
     ev.preventDefault(); var b = this.querySelector('button'); b.disabled = true;
     api('payrollCreate', { month: this.elements.month.value }).then(function(r){ b.disabled = false; if (!r.ok) { $('#prErr', body).textContent = errText(r.error); return; } S.prRun = r.run.id; section(body); });
@@ -303,7 +303,7 @@ function printEos(q, name){
     '.pr-slip h4{margin:14px 0 4px;font-size:13px;color:#4A5A4D}.pr-slip dl{display:grid;grid-template-columns:1fr auto;margin:0}.pr-slip dt,.pr-slip dd{padding:5px 0;border-bottom:1px solid #E5E1D6;margin:0}' +
     '.pr-slip dd{text-align:end;font-variant-numeric:tabular-nums}.pr-slip dt small{color:#6B786D;margin-inline-start:8px}.tot dt,.tot dd{font-weight:600;font-size:15px;border:0}.hr-hint{color:#4A5A4D}' +
     '.sign{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-top:40px}.sign div{border-top:1px solid #999;padding-top:6px;font-size:12px;color:#4A5A4D}</style></head><body>' +
-    '<header><img src="' + LOGO + '" alt=""><div style="text-align:end;font-size:12px;color:#4A5A4D">' + (en ? 'Best Gas Carrier Co.<br>Final settlement' : 'شركة الناقل الأفضل للغاز<br>مخالصة نهائية') + '</div></header>' +
+    '<header><img src="' + logoInk() + '" alt=""><div style="text-align:end;font-size:12px;color:#4A5A4D">' + esc(coName(en ? 'en' : 'ar')) + (en ? '<br>Final settlement' : '<br>مخالصة نهائية') + '</div></header>' +
     '<h1>' + (en ? 'End-of-service and final settlement' : 'مكافأة نهاية الخدمة والمخالصة النهائية') + '</h1><p>' + esc(name || '') + '</p>' + eosHtml(q) +
     '<div class="sign"><div>' + (en ? 'Prepared by (HR)' : 'أعده (الموارد البشرية)') + '</div><div>' + (en ? 'Approved by (Finance)' : 'اعتمده (المالية)') + '</div><div>' + (en ? 'Received by the employee' : 'استلمه الموظف') + '</div></div>' +
     '<script>window.onload=function(){setTimeout(function(){window.print()},400)}<\/script></body></html>';

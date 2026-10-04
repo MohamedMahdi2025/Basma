@@ -164,7 +164,7 @@ function api_wpsStep(req, me) {
  * housing; Qiwa's contract wage is the basic. A difference of more than 1 SAR is a mismatch; people on one side only are listed too.
  */
 function api_reconUpload(req, me) {
-  if (!isHr_(me) && !hasRole_(me, 'payroll')) fail_('forbidden');
+  if (!canPayroll_(me)) fail_('forbidden'); // wages: the hr role or payroll, never an administrator alone
   var source = req.source === 'qiwa' ? 'qiwa' : 'gosi', month = /^\d{4}-\d{2}$/.test(req.month || '') ? req.month : today_().slice(0, 7);
   var rows = (Array.isArray(req.rows) ? req.rows : []).slice(0, 3000);
   if (!rows.length) fail_('missing_fields');
@@ -197,12 +197,12 @@ function publicRecon_(x) {
     missing: parseJson_(x.missingJson, []), unknown: parseJson_(x.unknownJson, []), status: x.status, at: x.at, note: x.note, resolvedAt: x.resolvedAt };
 }
 function api_reconList(req, me) {
-  if (!isHr_(me) && !hasRole_(me, 'payroll')) fail_('forbidden');
+  if (!canPayroll_(me)) fail_('forbidden');
   return { ok: true, rows: readAll_(SHEETS.RECON).slice(-60).reverse().map(publicRecon_) };
 }
 /** Someone other than the uploader closes the mismatches with a note (corrected in Qiwa / GOSI, or in our packages). */
 function api_reconResolve(req, me) {
-  if (!isHr_(me) && !hasRole_(me, 'payroll')) fail_('forbidden');
+  if (!canPayroll_(me)) fail_('forbidden');
   return withLock_(function () {
     var x = findBy_(SHEETS.RECON, 'id', req.id);
     if (!x || x.status !== 'open') fail_('not_found');
@@ -260,9 +260,12 @@ function api_myTasks(req, me) {
   if (canDecideComp_(me)) add('salaries', readAll_(SHEETS.COMP).filter(function (c) { return c.status === 'pending' && c.empId !== me.id && c.enteredBy !== me.id; }).length, { tab: 'hr', sec: 'approvals' });
   if (pay) add('payroll', readAll_(SHEETS.RUN).filter(function (r) { return r.status === 'draft' && r.preparedBy !== me.id; }).length, { tab: 'hr', sec: 'payroll' });
   if (hr || pay) {
-    add('reports', readAll_(SHEETS.RLOG).filter(function (x) { return !x.reviewedBy && x.by !== me.id && (hr || (REPORTS[x.reportId] || {}).access === 'money'); }).length, { tab: 'hr', sec: 'reports', view: 'log' });
-    add('recon', readAll_(SHEETS.RECON).filter(function (x) { return x.status === 'open' && x.by !== me.id; }).length, { tab: 'hr', sec: 'compliance' });
-    add('wps', readAll_(SHEETS.WPS).filter(function (w) { return w.status === 'uploaded' && w.uploadedBy !== me.id; }).length, { tab: 'hr', sec: 'compliance' });
+    // Money exports, wage mismatches and the WPS upload are pay: the hr role or payroll, not an administrator alone.
+    add('reports', readAll_(SHEETS.RLOG).filter(function (x) { return !x.reviewedBy && x.by !== me.id && ((REPORTS[x.reportId] || {}).access === 'money' ? canPayroll_(me) : hr); }).length, { tab: 'hr', sec: 'reports', view: 'log' });
+    if (canPayroll_(me)) {
+      add('recon', readAll_(SHEETS.RECON).filter(function (x) { return x.status === 'open' && x.by !== me.id; }).length, { tab: 'hr', sec: 'compliance' });
+      add('wps', readAll_(SHEETS.WPS).filter(function (w) { return w.status === 'uploaded' && w.uploadedBy !== me.id; }).length, { tab: 'hr', sec: 'compliance' });
+    }
   }
   var onb = readAll_(SHEETS.ONB).filter(function (x) { var e = ctx.emps[x.empId]; return x.status === 'open' && String(x.dueDate).slice(0, 10) <= soon && e && e.status === 'active' && onbCanTick_(me, x, e, ctx) && (x.owner !== 'it' || hr); });
   add('onboarding', onb.length, onb.some(function (x) { return x.empId === me.id; }) && onb.every(function (x) { return x.empId === me.id; }) ? { tab: 'file' } : { tab: 'hr', sec: 'onboarding' });

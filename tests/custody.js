@@ -79,6 +79,21 @@ ok(call('3001', 'assetReturn', { id: tc, condition: 'good' }).ok, 'the truck com
 r = call('3001', 'assetReturn', { id: pc, condition: 'lost', charge: 5000 });
 ok(!r.ok && r.error === 'charge_over_value', 'a charge cannot exceed the asset value', r);
 ok(call('3001', 'assetReturn', { id: pc, condition: 'lost', charge: 1800, note: 'فقد الجهاز' }).ok, 'the POS is lost; HR proposes 1,800 SAR');
+r = call('3004', 'assetList');
+const td = (r.toDecide || [])[0];
+ok(r.ok && !r.rows && r.toDecide.length === 1 && td.id === pc && td.charge === 1800 && td.asset.ref === pos.ref && td.conditionIn === 'فقد الجهاز' && r.canApproveCharge,
+  'a payroll holder lists the charges waiting for them', r);
+ok(Object.keys(td.emp).sort().join() === 'empNo,id,name' && !('title' in td.emp) && !('department' in td.emp), 'with only the employee name and number', td.emp);
+r = call('3001', 'assetList');
+ok(r.charges.length === 1 && r.toDecide.length === 0, 'HR sees every proposed charge, but has none to decide (HR is not payroll here)', { c: r.charges.length, t: r.toDecide.length });
+r = call('1000', 'assetList');
+ok(r.ok && r.rows.length && r.charges.length === 0 && r.toDecide.length === 0, 'an administrator alone sees the assets but no charge amounts', { c: r.charges, t: r.toDecide });
+const phone = call('3001', 'assetSave', { asset: { type: 'phone', nameAr: 'جوال عمل', serial: 'PH-1', value: 900 } }).asset;
+call('3001', 'assetAssign', { assetId: phone.id, empId: ids['5001'] });
+const phc = call('3001', 'assetList').rows.find(a => a.id === phone.id).holder.custodyId;
+r = call('1000', 'assetReturn', { id: phc, condition: 'damaged', charge: 300 });
+ok(!r.ok && r.error === 'forbidden', 'an administrator alone cannot propose a charge (it becomes a pay deduction)', r);
+ok(call('1000', 'assetReturn', { id: phc, condition: 'good' }).ok, 'but can record a return without one');
 r = call('3001', 'assetCharge', { id: pc, approve: true });
 ok(!r.ok && r.error === 'forbidden', 'HR alone cannot approve the charge', r);
 r = call('3004', 'myTasks');
@@ -94,6 +109,20 @@ r = call('3002', 'clearanceTask', { id: cl.id, key: 'paid' });
 ok(!r.ok && r.error === 'second_approver_required', 'the one who prepared the settlement does not pay it', r);
 r = call('3004', 'clearanceTask', { id: cl.id, key: 'paid' });
 ok(r.ok && r.clearance.status === 'cleared' && r.clearance.done === 8, 'another payroll person pays: cleared');
+
+console.log('Settlement prepared by HR (a company with one payroll holder)');
+r = call('3001', 'clearanceStart', { empId: ids['5001'], lastDay: '2026-12-31', reason: 'contract_end' });
+const cl2 = r.clearance;
+ok(r.ok && cl2.total === 8, 'HR opens a clearance for the supervisor whose contract ends');
+['handover', 'access', 'gosi', 'qiwa', 'certificate'].forEach(k => call('3001', 'clearanceTask', { id: cl2.id, key: k }));
+r = call('1000', 'clearanceTask', { id: cl2.id, key: 'settlement' });
+ok(!r.ok && r.error === 'forbidden', 'the administrator alone does not prepare a settlement (it is pay)', r);
+r = call('3001', 'clearanceTask', { id: cl2.id, key: 'settlement' });
+ok(r.ok, 'HR prepares the settlement, like a payroll draft', r);
+r = call('3001', 'clearanceTask', { id: cl2.id, key: 'paid' });
+ok(!r.ok && r.error === 'forbidden', 'HR cannot pay it');
+r = call('3002', 'clearanceTask', { id: cl2.id, key: 'paid' });
+ok(r.ok && r.clearance.status === 'cleared', 'a payroll holder, who did not prepare it, pays it: cleared', r.clearance || r);
 
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);

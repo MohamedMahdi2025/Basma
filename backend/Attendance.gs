@@ -653,7 +653,7 @@ function homePayload_(me, noPunch) {
   var home = { me: publicEmp_(me), hasPassword: !!me.pwHash, zones: zonesFor_(me).map(publicZone_), today: today, shift: shiftOf_(me, s),
     devices: activeCreds_(me.id).map(publicDevice_),
     rules: { maxAccuracy: s.maxAccuracy, maxAccuracyDesktop: s.maxAccuracyDesktop, allowCheckoutOutside: s.allowCheckoutOutside },
-    serverTime: new Date().toISOString() };
+    company: companyOf_(s), serverTime: new Date().toISOString() };
   home.punch = null;
   if (!noPunch) { try { home.punch = { type: today.next, options: punchOptions_(me, today.next) }; } catch (e) { home.punch = null; } }
   return home;
@@ -695,9 +695,14 @@ function api_myHistory(req, me) {
   return { ok: true, month: month, days: days, totals: tot };
 }
 
-/** First local date an employee counts for; nobody is absent before they were added. */
+/**
+ * First local date an employee counts for: the later of the day they were added and their hire date. Nobody is
+ * absent before either (HR often adds a new hire days before the first working day).
+ */
 function joinedDate_(emp) {
-  return emp.createdAt ? localParts_(new Date(emp.createdAt)).date : '0000-00-00';
+  var added = emp.createdAt ? localParts_(new Date(emp.createdAt)).date : '0000-00-00';
+  var hired = /^\d{4}-\d{2}-\d{2}/.test(String(emp.hireDate || '')) ? String(emp.hireDate).slice(0, 10) : '';
+  return hired > added ? hired : added;
 }
 
 function publicDevice_(c) {

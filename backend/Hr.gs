@@ -266,6 +266,7 @@ function api_hrEmpSave(req, me) {
 /** Admin grants the payroll role. Kept apart from HR so the person who edits people is not the one who pays them. */
 function api_hrRolesSave(req, me) {
   var roles = trimList_(req.extraRoles).filter(function (r) { return r === 'payroll' || r === 'executive'; });
+  if (String(req.id) === String(me.id)) fail_('cannot_change_own_roles'); // nobody grants or removes their own rights
   return withLock_(function () {
     var emp = findBy_(SHEETS.EMP, 'id', req.id);
     if (!emp) fail_('not_found');
@@ -478,8 +479,9 @@ function currentCompMap_(asOf) {
   return out;
 }
 
+/** Packages are seen, proposed and decided only by the hr role or a payroll holder; an administrator alone never. */
 function canProposeComp_(me) { return me.role === 'hr' || hasRole_(me, 'payroll'); }
-function canDecideComp_(me) { return me.role === 'admin' || hasRole_(me, 'payroll') || me.role === 'hr'; }
+function canDecideComp_(me) { return me.role === 'hr' || hasRole_(me, 'payroll'); }
 
 function compRowFrom_(d, enteredBy) {
   var basic = num_(d.basic), housing = num_(d.housing || 0), transport = num_(d.transport || 0);
@@ -723,16 +725,15 @@ function api_hrImportCommit(req, me) {
   return withLock_(function () {
     var ctx = orgCtx_(), v = validateImport_(req.rows, ctx, me);
     if (v.errors.length) return { ok: false, error: 'import_invalid', errors: v.errors };
-    var now = new Date().toISOString(), batch = nextRef_('import'), t = today_();
+    var now = new Date().toISOString(), batch = '', t = today_();
     var newDeptRows = [], newPosRows = [];
-    var deptCodes = nextRefs_('department', Object.keys(v.newDepts).length, codesOf_(readAll_(SHEETS.DEPT)));
-    var posCodes = nextRefs_('position', Object.keys(v.newPos).length, codesOf_(readAll_(SHEETS.POS)));
-    Object.keys(v.newDepts).forEach(function (dn, i) {
-      var d = { id: newId_('D'), code: deptCodes[i] || '', nameAr: v.newDepts[dn], nameEn: '', parentId: '', headEmpId: '', costCenter: '', status: 'active', createdAt: now, updatedAt: now };
+    // Codes (DEP-, POS-, IMP-) are reserved only after the last check below, so a refused import leaves no gap.
+    Object.keys(v.newDepts).forEach(function (dn) {
+      var d = { id: newId_('D'), code: '', nameAr: v.newDepts[dn], nameEn: '', parentId: '', headEmpId: '', costCenter: '', status: 'active', createdAt: now, updatedAt: now };
       v.deptNames[dn] = d.id; newDeptRows.push(d);
     });
-    Object.keys(v.newPos).forEach(function (pn, i) {
-      var p = { id: newId_('J'), code: posCodes[i] || '', titleAr: v.newPos[pn].title, titleEn: '', departmentId: v.deptNames[v.newPos[pn].dept] || '', grade: '', status: 'active', createdAt: now, updatedAt: now };
+    Object.keys(v.newPos).forEach(function (pn) {
+      var p = { id: newId_('J'), code: '', titleAr: v.newPos[pn].title, titleEn: '', departmentId: v.deptNames[v.newPos[pn].dept] || '', grade: '', status: 'active', createdAt: now, updatedAt: now };
       POS_TEXT.forEach(function (k) { p[k] = ''; });
       v.posNames[pn] = p.id; newPosRows.push(p);
     });
@@ -775,6 +776,14 @@ function api_hrImportCommit(req, me) {
       if (privByEmp[e.id]) privUpd.push(p); else privNew.push(p);
       delete e._r; delete e._before;
     });
+    // Salary lines are packages: an administrator without the hr role or payroll may not write them. Nothing is written yet.
+    if (compRows.length && !canProposeComp_(me)) fail_('forbidden');
+    var deptCodes = nextRefs_('department', newDeptRows.length, codesOf_(readAll_(SHEETS.DEPT)));
+    var posCodes = nextRefs_('position', newPosRows.length, codesOf_(readAll_(SHEETS.POS)));
+    newDeptRows.forEach(function (d, i) { d.code = deptCodes[i] || ''; });
+    newPosRows.forEach(function (p, i) { p.code = posCodes[i] || ''; });
+    batch = nextRef_('import');
+    compRows.forEach(function (c) { c.batchId = batch; });
     appendMany_(SHEETS.DEPT, newDeptRows);
     appendMany_(SHEETS.POS, newPosRows);
     updateMany_(SHEETS.EMP, updEmps);

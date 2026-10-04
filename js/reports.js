@@ -95,7 +95,7 @@ Object.assign(T.ar, {
   rpTotal:'الإجمالي', rpRows:'السجلات', rpShown:'يظهر', rpOf:'من', rpPrev:'السابق', rpNext:'التالي', rpChecks:'فحص البيانات', rpAllGood:'لا ملاحظات على البيانات.',
   rpTeamOnly:'يعرض فريقك فقط', rpRunning:'جار حساب التقرير', rpExporting:'جار ترقيم التقرير وتجهيز الملف', rpExported:'صدر التقرير برقم', rpInfo:'معلومات التقرير',
   rpRef:'رقم التقرير', rpHash:'البصمة الرقمية (SHA-256)', rpFilters:'عوامل التصفية', rpBy:'أعده', rpAt:'وقت الإعداد', rpHijri:'الموافق', rpConf:'سري، للاستخدام الداخلي',
-  rpCompany:'شركة الناقل الأفضل للغاز', rpVerifyHow:'للتحقق: التقارير ← التحقق من تقرير، وأدخل الرقم والبصمة أو امسح الرمز.', rpPage:'صفحة', rpNoRows:'لا توجد سجلات بهذه التصفية.',
+  rpVerifyHow:'للتحقق: التقارير ← التحقق من تقرير، وأدخل الرقم والبصمة أو امسح الرمز.', rpPage:'صفحة', rpNoRows:'لا توجد سجلات بهذه التصفية.',
   rpReviewed:'روجع', rpNotReviewed:'لم يراجع', rpDoReview:'اعتماد المراجعة', rpReviewNote:'ملاحظة المراجعة (اختيارية)', rpReviewDone:'سجلت المراجعة.',
   rpVerifyLead:'أدخل رقم التقرير المطبوع (RPT-...) وبصمته، أو أول 12 حرفا منها على الأقل.', rpVerifyBtn:'تحقق', rpNotFound:'لا يوجد تقرير بهذا الرقم في السجل.',
   rpMatch:'البصمة مطابقة: هذه النسخة هي نفس التقرير الذي صدر.', rpNoMatch:'البصمة لا تطابق: النسخة التي بين يديك معدلة أو ليست هذا التقرير.', rpNoHash:'لم تدخل بصمة، تحققنا من وجود الرقم فقط.',
@@ -115,7 +115,7 @@ Object.assign(T.en, {
   rpTotal:'Total', rpRows:'Records', rpShown:'Showing', rpOf:'of', rpPrev:'Previous', rpNext:'Next', rpChecks:'Data checks', rpAllGood:'No data issues.',
   rpTeamOnly:'Your team only', rpRunning:'Computing the report', rpExporting:'Numbering the report and preparing the file', rpExported:'Exported as', rpInfo:'Report information',
   rpRef:'Report number', rpHash:'Fingerprint (SHA-256)', rpFilters:'Filters', rpBy:'Prepared by', rpAt:'Prepared at', rpHijri:'Hijri', rpConf:'Confidential, internal use',
-  rpCompany:'Best Gas Carrier Co.', rpVerifyHow:'To verify: Reports > Verify a report, enter the number and fingerprint or scan the code.', rpPage:'Page', rpNoRows:'No records match these filters.',
+  rpVerifyHow:'To verify: Reports > Verify a report, enter the number and fingerprint or scan the code.', rpPage:'Page', rpNoRows:'No records match these filters.',
   rpReviewed:'Reviewed', rpNotReviewed:'Not reviewed', rpDoReview:'Mark reviewed', rpReviewNote:'Review note (optional)', rpReviewDone:'Review recorded.',
   rpVerifyLead:'Enter the printed report number (RPT-...) and its fingerprint, or at least its first 12 characters.', rpVerifyBtn:'Verify', rpNotFound:'No report with this number in the log.',
   rpMatch:'Fingerprint matches: this copy is the report that was exported.', rpNoMatch:'Fingerprint does not match: this copy was altered or is a different report.', rpNoHash:'No fingerprint entered; only the number was checked.',
@@ -591,7 +591,7 @@ function toXlsx(r, meta){
   ws['!ref'] = 'A1:' + colLetter(cols.length - 1) + Math.max(totRow, 2);
   ws['!autofilter'] = { ref: 'A1:' + colLetter(cols.length - 1) + Math.max(last, 1) };
   ws['!cols'] = cols.map(function(c){ if (/^d\d+$/.test(c.key)) return { wch: 4 }; var w = String(colLabel(c)).length; r.rows.slice(0, 200).forEach(function(row){ w = Math.max(w, String(cellText(c, row[c.key])).length); }); return { wch: Math.min(48, Math.max(8, w + 2)) }; });
-  var info = [[t('rpCompany')], [meta.name], [], [t('rpRef'), meta.ref], [t('rpHash'), meta.hash], [t('rpAt'), greg(meta.at)], [t('rpHijri'), hijri(meta.at)], [t('rpBy'), meta.by.name + ' (' + meta.by.empNo + ')'], [t('rpRows'), n]];
+  var info = [[coName()], [meta.name], [], [t('rpRef'), meta.ref], [t('rpHash'), meta.hash], [t('rpAt'), greg(meta.at)], [t('rpHijri'), hijri(meta.at)], [t('rpBy'), meta.by.name + ' (' + meta.by.empNo + ')'], [t('rpRows'), n]];
   if (meta.teamOnly) info.push(['', t('rpTeamOnly')]);
   info.push([], [t('rpFilters')]); meta.filters.forEach(function(f){ info.push([f[0], String(f[1])]); });
   info.push([], [t('rpChecks')]); (meta.checks.length ? meta.checks : [{ code: '', level: 'good' }]).forEach(function(c){ info.push([c.level === 'good' ? '' : c.level, c.code ? checkText(c) : t('rpAllGood')]); });
@@ -601,7 +601,7 @@ function toXlsx(r, meta){
   X.utils.book_append_sheet(wb, ws, t('rpDataSheet'));
   X.utils.book_append_sheet(wb, wi, t('rpInfoSheet'));
   wb.Workbook = { Views: [{ RTL: !en }] };
-  wb.Props = { Title: meta.name + ' ' + meta.ref, Subject: meta.hash, Author: meta.by.name, Company: t('rpCompany') };
+  wb.Props = { Title: meta.name + ' ' + meta.ref, Subject: meta.hash, Author: meta.by.name, Company: coName() };
   // Arial throughout (the xlsx skill's professional-font rule); SheetJS community keeps the default style otherwise.
   Object.keys(ws).forEach(function(k){ if (k[0] !== '!') ws[k].s = { font: { name: 'Arial' } }; });
   X.writeFile(wb, fileBase(meta) + '.xlsx', { compression: true });
@@ -638,7 +638,7 @@ function toPdf(r, meta){
     '.tf td{font-weight:600;background:#EDEAE0}.lg{font-size:8pt;color:#4A5A4D}.lg b{padding:0 4px;border-radius:3px}' +
     '.sign{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-top:26px;break-inside:avoid}.sign div{border-top:1px solid #999;padding-top:5px;font-size:8.5pt;color:#4A5A4D}' +
     '.conf{font-size:8pt;color:#8A948B;margin-top:10px}</style></head><body><div class="wm"></div><main>' +
-    '<header><img src="' + LOGO + '" alt=""><div style="text-align:end;font-size:9pt;color:#4A5A4D">' + t('rpCompany') + '<br><b style="color:#17221A;font-size:11pt;direction:ltr;unicode-bidi:isolate">' + esc(meta.ref) + '</b></div></header>' +
+    '<header><img src="' + logoInk() + '" alt=""><div style="text-align:end;font-size:9pt;color:#4A5A4D">' + esc(coName()) + '<br><b style="color:#17221A;font-size:11pt;direction:ltr;unicode-bidi:isolate">' + esc(meta.ref) + '</b></div></header>' +
     '<h1>' + esc(meta.name) + '</h1><p class="sub">' + esc(rpDesc(R.id)) + '</p>' +
     '<div class="meta"><dl><dt>' + t('rpAt') + '</dt><dd>' + esc(greg(meta.at)) + ' · ' + t('rpHijri') + ' ' + esc(hijri(meta.at)) + '</dd><dt>' + t('rpBy') + '</dt><dd>' + esc(meta.by.name + ' (' + meta.by.empNo + ')') + (meta.teamOnly ? ' · ' + t('rpTeamOnly') : '') + '</dd>' +
     meta.filters.map(function(f){ return '<dt>' + esc(f[0]) + '</dt><dd>' + esc(f[1]) + '</dd>'; }).join('') + '<dt>' + t('rpRows') + '</dt><dd>' + r.rows.length + '</dd><dt>' + t('rpHash') + '</dt><dd class="h">' + esc(meta.hash) + '</dd></dl><div id="qr" aria-label="QR"></div></div>' +

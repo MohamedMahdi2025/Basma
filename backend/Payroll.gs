@@ -530,5 +530,5 @@ function payslipEmailHtml_(sl) {
     sl.lines.filter(function (l) { return l.kind === 'earning'; }).map(row).join('') +
     '<tr><th colspan="2" style="text-align:right;padding:6px 8px;background:#F2EEE4">الاستقطاعات</th></tr>' + sl.lines.filter(function (l) { return l.kind === 'deduction'; }).map(row).join('') +
     '<tr><td style="padding:10px 8px;font-weight:bold">صافي الراتب</td><td style="padding:10px 8px;font-weight:bold;text-align:left">' + m(sl.net) + ' ر.س</td></tr></table>' +
-    '<p style="color:#4A5A4D;font-size:12px">تجد القسيمة كاملة في تطبيق الحضور، تبويب ملفي. شركة الناقل الأفضل للغاز، إدارة الموارد البشرية.</p></div>';
+    '<p style="color:#4A5A4D;font-size:12px">تجد القسيمة كاملة في التطبيق، صفحة ملفي. ' + settings_().companyNameAr + '، إدارة الموارد البشرية.</p></div>';
 }

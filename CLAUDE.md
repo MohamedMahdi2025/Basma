@@ -27,13 +27,16 @@ app/                     the public git repo
 
 ## Deploying
 
-```bash
-node tests/run.js                                   # must be 48/48
-cd ../apps-script && for f in Code WebAuthn Attendance Admin; do cp ../app/backend/$f.gs $f.js; done
-clasp push -f && clasp deploy -i AKfycbz1XJ-WF6qnXiGtieQev6g53pAMThwCWhpp7r-pwbWtQi-ShJrpQIJUFHr17E3AryKG -d "what changed"
-curl -sL https://script.google.com/macros/s/AKfycbz1XJ-WF6qnXiGtieQev6g53pAMThwCWhpp7r-pwbWtQi-ShJrpQIJUFHr17E3AryKG/exec   # must be JSON
-cd ../app && git push                               # Pages rebuilds in ~1 min, caches ~10 min
-```
+`bash tools/deploy.sh "what changed"`. It runs every `tests/*.js` and stops on the first one whose
+last line lacks " 0 failed". Then it builds (`tools/build.js` XOR-encodes index.html and js/*.js into
+../app), copies the backend files to ../apps-script, and runs `clasp push`. Next it runs
+`clasp deploy -i <fixed id>`, checks that the backend answers JSON, pushes ../app (GitHub Pages) and
+commits src.
+- The backend file list lives in three places: deploy.sh, tests/harness.js and
+  ../apps-script/.clasp.json filePushOrder. Keep them in step when a .gs file is added.
+- Rollback: `clasp deploy -i <id> -V <previous version>` (see `clasp deployments`), then revert the
+  ../app commit.
+- Deploy outside the check-in peaks (07:30-08:30 and 16:30-17:30 Riyadh).
 
 `filePushOrder` pins Code.js first. Only scope is `spreadsheets.currentonly`;
 adding any service that needs a new scope (UrlFetchApp, MailApp, openById)
@@ -246,3 +249,64 @@ Tabs delegations (DLG), wpsLog (WPS), salaryRecon (REC). Setting `wpsDueDay` (10
   `recon_open` while a mismatch for that month is open; closing needs a note and a second person.
 - Calendar: GOSI registration 15 days, Qiwa contract documentation, expiries (90 days), payroll/WPS by month, open recon,
   Saudization vs target. Rule details from vendor summaries: verify with HRSD / Qiwa / GOSI.
+
+## The v2 shell (design system v2, built 2026-10-01; docs/research/2026-09-30-hr-ui-design-study.md)
+
+index.html `renderShell` draws a cream sidebar with seven areas plus a top bar. The top bar holds the Ctrl K search,
+an attendance chip, the bell, the language switch and an avatar menu. On phones the sidebar becomes a drawer and a
+bottom bar appears, with check-in in the centre. `AREAS` lists each area's sub-pages, and each sub-page has an `ok()`
+role predicate: `R()` gives the file roles, plus `isHr`, `isAdmin` and `salaryOk`. An admin alone sees no pay pages,
+which matches the server. A sub-page is one of four kinds:
+- `sec`: an HR console section, via `HrConsole.section(id, body)`;
+- `adm`: an old admin screen in `#admBody`;
+- `files` + `run`: a lazily loaded module;
+- a plain `run`.
+
+`goArea(area, sub)` routes everything, and the URL hash is `#area/sub`; the old `#hr` and `#file` still work. The
+check-in radar is `time:punch` (renderHome renders into `view()`); `onPunch()` replaces the old `S.tab === 'home'`
+checks.
+- `taskDest(task)` maps a bell task to a page: an HR `sec` goes through `SEC_DEST`, and personal tasks go to
+  growth:me or profile. Nav counts come from the same myTasks answer.
+- `themeLast()` keeps `<style id="dsv2">` last in head, after each module's own style.
+- The employee panel (hr-console `openEmp`) has a lifecycle strip from hire to clearance; each stage links to its
+  screen.
+- New module files: js/home.js (role-aware home with the gauge) and js/ops.js (shifts, relations, custody,
+  offboarding, `Ops.myCards` in the profile).
+- Settings: admin `settingsSave` also takes the HR keys, writes them as text, and answers `bad_setting` with the
+  `key`. The form is in admSettings.
+- Tests: 13 suites plus `tests/sim50.js`, a 50-employee company that runs every cycle and the access matrix.
+
+## Workforce analytics (dashboard, 2026-10-01)
+
+`api_dashboard` computes it only when called with `analytics: 1` (home does not send it). It covers:
+- 12-month turnover, split voluntary and other, plus first-year attrition;
+- tenure;
+- span of control;
+- cohort retention at 3, 6 and 12 months;
+- retention indicators (0-5 signals, each with its reason).
+
+Rules:
+- The indicators never read gender, nationality, Saudi status, age or the private file; a test flips those and
+  expects identical output.
+- Names are visible to the hr role only.
+- Groups under 5 people show counts only, for anyone who is not HR.
+- Voluntary leaver = `resignedOn`, an approved resignation, or a clearance with reason `resignation`.
+
+## SaaS direction
+
+The plan for licensing the system to many companies is in docs/research/2026-10-01-saas-multitenant-design.md.
+The recommendation is one Node + PostgreSQL platform in a KSA region that reuses backend/*.gs through a storage
+adapter (all data access is in a few Code.gs helpers). Best Gas would be company one. The owner has not decided yet.
+
+## White-label company profile (2026-10-03, SaaS groundwork)
+
+Settings `companyNameAr/En`, `companyShortAr/En`, `companyCr` (10 digits), `companyVat` (15, 3...3) and
+`companyAddressAr/En` are validated in Admin.gs `companySettings_`, with the card "ملف الشركة" in admin settings.
+- They reach the client as `company` in the home payload (`companyOf_`).
+- The client names the employer only through `coName(lang)`, `coShort(lang)` and `coMeta(lang)` (CR · VAT ·
+  address for letterheads). The profile is remembered on the device (`store('co')`), so the sign-in wordmark
+  shows it too.
+- No module may contain a literal company name. `grep -rn "Best Gas\|الناقل الأفضل" js/` must stay empty.
+- The logo file is cream on transparent (made for pine screens), so it was nearly invisible on white printed
+  pages. `logoInk()` returns a copy inked #4D6D51 on a canvas at start-up; every printed document uses it.
+- The logo image itself still says Best Gas: per-company logo upload is a platform (Phase 2) item.

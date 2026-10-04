@@ -55,6 +55,10 @@ r = call('3001', 'leaveOpeningSave', { empId: ids['5003'], days: 10, asOf: '2026
 ok(r.ok, 'HR records a balance carried over from the old system', r);
 r = call('3001', 'leaveOpeningSave', { empId: ids['3001'], days: 99, asOf: '2026-09-30' });
 ok(!r.ok && r.error === 'cannot_change_own_balance', 'HR cannot set their own balance', r);
+r = call('1000', 'leaveOpeningSave', { empId: ids['1000'], days: 15, asOf: '2026-09-30' });
+ok(!r.ok && r.error === 'cannot_change_own_balance', 'the administrator cannot set his own either', r);
+r = call('3001', 'leaveOpeningSave', { empId: ids['1000'], days: 15, asOf: '2026-09-30' });
+ok(r.ok && Number(E('1000').leaveOpeningDays) === 15, 'so HR loads the administrator\'s carried-over balance (with one administrator there is no other way)', r);
 r = call('5003', 'myRequests');
 ok(near(r.leave.annual.balance, 10 + 4 * 21 / 365, 0.01), 'opening balance plus what accrued since (4 days at 21 a year)', r.leave.annual);
 
@@ -145,6 +149,14 @@ r = ask('5002', { type: 'leave', subtype: 'marriage', fromDate: '2027-02-01', to
 ok(!r.ok && r.error === 'leave_once', 'marriage leave once in service', r);
 q = quote('5003', { type: 'leave', subtype: 'iddah', fromDate: '2026-11-01', toDate: '2027-03-10', docNo: 'D-1', payload: { variant: 'full' } });
 ok(!q.error && q.days === 130, 'iddah: 130 days, chosen by the employee, no religion stored', q);
+q = quote('5004', { type: 'leave', subtype: 'maternity', fromDate: '2026-11-01', toDate: '2026-11-02', docNo: 'B-2' });
+ok(q.error === 'gender_required', 'maternity is refused while the gender is not on file', q);
+q = quote('5004', { type: 'leave', subtype: 'iddah', fromDate: '2026-11-01', toDate: '2026-11-15', docNo: 'D-2', payload: { variant: 'short' } });
+ok(q.error === 'gender_required', 'iddah too', q);
+q = quote('5004', { type: 'leave', subtype: 'paternity', fromDate: '2026-10-06', toDate: '2026-10-08', payload: { eventDate: '2026-10-05' } });
+ok(q.error === 'gender_required', 'and paternity', q);
+r = ask('5004', { type: 'leave', subtype: 'maternity', fromDate: '2026-11-01', toDate: '2026-11-02', docNo: 'B-2' });
+ok(!r.ok && r.error === 'gender_required', 'the request itself is refused the same way', r);
 q = quote('5004', { type: 'leave', subtype: 'unpaid', fromDate: '2026-11-01', toDate: '2026-11-25' });
 ok(!q.error && q.warnings.includes('contract_suspended'), 'unpaid leave over 20 days warns that the contract is suspended (Art. 116)', q);
 
@@ -161,7 +173,15 @@ ok(r.ok && r.request.ref === 'AD-2026-00001' && r.request.step === 'hr' && r.req
 const ad = r.request.id;
 ok(!ask('5002', { type: 'advance', amount: 100, months: 1 }).ok, 'one pending advance at a time');
 ok(!call('5001', 'reqInbox').rows.some(x => x.type === 'advance'), 'the line manager never sees the advance');
+r = decide('1000', ad, 'approve');
+ok(!r.ok && r.error === 'forbidden', 'an administrator alone cannot take the HR step of an advance (it is pay)', r);
+r = call('1000', 'reqInbox', { scope: 'all' });
+const adAdmin = r.rows.find(x => x.id === ad);
+ok(adAdmin && adAdmin.amount === undefined && adAdmin.installment === undefined && !adAdmin.canAct, 'nor sees its amount or instalment', adAdmin);
+ok(call('3001', 'reqInbox').rows.find(x => x.id === ad).amount === 6000, 'the hr role still sees the amount');
 decide('3001', ad, 'approve');
+r = decide('1000', ad, 'approve');
+ok(!r.ok && r.error === 'forbidden', 'and the payroll step needs a payroll holder, not an administrator', r);
 r = decide('3003', ad, 'approve');
 ok(!r.ok && r.error === 'forbidden', 'HR cannot take the payroll step', r);
 r = decide('3002', ad, 'approve');

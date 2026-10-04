@@ -351,7 +351,7 @@ function render(main){
     return api('myFile', {}, true).then(function(r){ if (r.ok) setHrAccess(r.file); if (S.fileRoles) render(main); else failed($('#hrBody'), function(){ render(main); }); });
   }
   var secs = sections();
-  if (!secs.length) { S.tab = 'file'; return renderShell(); }
+  if (!secs.length) return goArea('profile');
   if (!secs.some(function(s){ return s[0] === S.hrSec; })) S.hrSec = secs[0][0];
   var GL = [t('rgInsight'), t('rgDaily'), t('rgPeople'), t('rgPay'), t('rgTalent'), ''];
   main.innerHTML = '<div class="hr-shell"><nav class="hr-rail" aria-label="' + t('tabHr') + '">' + secs.map(function(s, n){
@@ -359,9 +359,22 @@ function render(main){
   }).join('') + '</nav><div class="hr-body" id="hrBody"></div></div>';
   $$('.hr-rail button').forEach(function(b){ b.onclick = function(){ S.hrSec = b.dataset.s; render(main); }; });
   var body = $('#hrBody');
-  ({ dashboard: function(b){ Dash.section(b); }, reports: function(b){ Reports.section(b); }, onboarding: function(b){ Engage.onboarding(b); }, plans: function(b){ Engage.plans(b); }, engagement: function(b){ Engage.engagement(b); }, policies: function(b){ Engage.policies(b); }, compliance: function(b){ Compliance.section(b); }, performance: function(b){ Perf.section(b, roles()); }, payroll: function(b){ Payroll.section(b); }, inbox: inbox, leave: leaveSec, holidays: holidaysSec, people: people, team: team, org: org, positions: positions, approvals: approvals, expiring: expiring, import: importer })[S.hrSec](body);
+  secMap()[S.hrSec](body);
   apiFresh('reqInbox', {}, function(r){ if (r.ok) setBadge('inBadge', r.rows.length); }, true);
   if (roles().hr || roles().payroll) api('hrCompList', { status: 'pending' }, true).then(function(r){ if (r.ok) setApBadge(r.rows.filter(function(x){ return !x.mine; }).length); });
+}
+function secMap(){
+  var ops = function(k){ return function(b){ if (window.Ops && Ops[k]) Ops[k](b); else b.innerHTML = '<div class="empty">' + ph('hourglass') + '<b>' + t('loadFail') + '</b></div>'; }; };
+  return { dashboard: function(b){ Dash.section(b); }, reports: function(b){ Reports.section(b); }, onboarding: function(b){ Engage.onboarding(b); }, plans: function(b){ Engage.plans(b); }, engagement: function(b){ Engage.engagement(b); },
+    policies: function(b){ Engage.policies(b); }, compliance: function(b){ Compliance.section(b); }, performance: function(b){ Perf.section(b, roles()); }, payroll: function(b){ Payroll.section(b); },
+    shifts: ops('shifts'), relations: ops('relations'), custody: ops('custody'), offboarding: ops('offboarding'),
+    inbox: inbox, leave: leaveSec, holidays: holidaysSec, people: people, team: team, org: org, positions: positions, approvals: approvals, expiring: expiring, import: importer };
+}
+/** One HR section into any element (the v2 shell hosts sections as area sub-pages, without the old rail). */
+function section(id, body){
+  var run = function(){ S.hrSec = id; var f = secMap()[id]; if (f) f(body); };
+  if (!S.fileRoles) { loading(body); return api('myFile', {}, true).then(function(r){ if (r.ok) setHrAccess(r.file); if (body.isConnected) run(); }); }
+  run();
 }
 function setBadge(id, n){ var b = $('#' + id); if (!b) return; b.textContent = n; b.classList.toggle('hidden', !n); }
 function setApBadge(n){ var b = $('#apBadge'); if (!b) return; b.textContent = n; b.classList.toggle('hidden', !n); }
@@ -438,12 +451,46 @@ function openEmp(id, readOnly){
     if ('documents' in f) tabs.push(['docs', t('tDocs')]);
     if (f.jobHistory) tabs.push(['hist', t('tHist')]);
     box.innerHTML = '<div class="hr-who"><div class="av">' + esc(initials(e.name)) + '</div><div><b>' + esc(lang(e.name, e.nameEn)) + '</b><small class="num">' + esc(e.empNo) + (f.job.position ? '، ' + esc(lang(f.job.position.titleAr, f.job.position.titleEn)) : '') + '</small></div></div>' +
+      lifecycle(f) +
       '<div class="hr-tabs" role="tablist">' + tabs.map(function(x){ return '<button type="button" role="tab" data-t="' + x[0] + '" aria-selected="' + (tab === x[0]) + '">' + x[1] + '</button>'; }).join('') + '</div><div id="edTab"></div>';
     $$('.hr-tabs button', box).forEach(function(b){ b.onclick = function(){ tab = b.dataset.t; draw(f); }; });
+    $$('[data-lc]', box).forEach(function(b){ b.onclick = function(){ var p = b.dataset.lc.split(':'); d.remove(); if (window.goArea) goArea(p[0], p[1]); }; });
     var el = $('#edTab', box);
     ({ job: jobTab, personal: personalTab, pay: payTab, docs: docsTab, hist: histTab })[tab](el, f, load, readOnly || !roles().hr);
   }
   load();
+}
+
+Object.assign(T.ar, { lcTitle:'دورة حياة الموظف', lc_hire:'التعيين', lc_onb:'التهيئة', lc_prob:'فترة التجربة', lc_work:'الدوام والإجازات', lc_perf:'الأداء', lc_pay:'الرواتب',
+  lc_rel:'علاقات العمل', lc_asset:'العهد', lc_exit:'إخلاء الطرف', lcUnset:'غير محدد', lcFirst90:'أول 90 يوما', lcDone:'اكتملت', lcEnds:'تنتهي', lcEnded:'انتهت', lcWorkSub:'الحضور والطلبات',
+  lcPerfSub:'الأهداف والتقييم', lcPaySub:'المسير والقسائم', lcRelSub:'المخالفات والإصابات', lcAssetSub:'التسليم والاستلام', lcLastDay:'آخر يوم', lcNotStarted:'لم يبدأ' });
+Object.assign(T.en, { lcTitle:'Employee lifecycle', lc_hire:'Hire', lc_onb:'Onboarding', lc_prob:'Probation', lc_work:'Time and leave', lc_perf:'Performance', lc_pay:'Pay',
+  lc_rel:'Employee relations', lc_asset:'Assets', lc_exit:'Clearance', lcUnset:'Not set', lcFirst90:'First 90 days', lcDone:'Complete', lcEnds:'Ends', lcEnded:'Ended', lcWorkSub:'Attendance and requests',
+  lcPerfSub:'Goals and review', lcPaySub:'Runs and payslips', lcRelSub:'Cases and injuries', lcAssetSub:'Hand-over and return', lcLastDay:'Last day', lcNotStarted:'Not started' });
+/**
+ * Where this person is in the employee cycle, hire to clearance, and a link from each stage to the screen that runs it.
+ * Built only from the file already loaded; each link opens the area the viewer may use (the shell hides the rest).
+ */
+function lifecycle(f){
+  var j = f.job || {}, e = f.emp || {}, td = riyadhToday(), day = 864e5;
+  var hire = String(j.hireDate || '').slice(0, 10), prob = String(j.probationEnd || '').slice(0, 10), last = String(e.lastWorkingDay || j.lastWorkingDay || '').slice(0, 10);
+  var since = hire ? Math.floor((Date.parse(td) - Date.parse(hire)) / day) : null, leaving = !!(last || e.resignedOn || e.status === 'disabled');
+  var can = function(dest){ var p = dest.split(':'), a = window.areaOf && areaOf(p[0]); return !!(a && a.subs.some(function(s){ return s.id === p[1] && s.ok(); })); };
+  var st = [
+    { k: 'hire', i: 'user-plus', s: hire ? fmtDate(hire) : t('lcUnset'), state: hire ? 'done' : 'todo' },
+    { k: 'onb', i: 'rocket-launch', s: since == null ? '' : since <= 90 ? t('lcFirst90') : t('lcDone'), state: since != null && since <= 90 && !leaving ? 'now' : since != null ? 'done' : 'todo', go: 'people:onboarding' },
+    { k: 'prob', i: 'hourglass-medium', s: prob ? (prob >= td ? t('lcEnds') + ' ' + fmtDate(prob) : t('lcEnded') + ' ' + fmtDate(prob)) : t('lcUnset'), state: prob && prob >= td && !leaving ? 'now' : prob ? 'done' : 'todo', go: 'people:onboarding' },
+    { k: 'work', i: 'calendar-check', s: t('lcWorkSub'), state: leaving ? 'done' : since != null && since > 90 && !(prob && prob >= td) ? 'now' : 'todo', go: 'requests:leave' },
+    { k: 'perf', i: 'target', s: t('lcPerfSub'), state: leaving ? 'done' : 'todo', go: 'growth:cycle' },
+    { k: 'pay', i: 'money', s: t('lcPaySub'), state: leaving ? 'done' : 'todo', go: 'pay:runs' },
+    { k: 'rel', i: 'scales', s: t('lcRelSub'), state: 'todo', go: 'people:relations' },
+    { k: 'asset', i: 'package', s: t('lcAssetSub'), state: 'todo', go: 'people:custody' },
+    { k: 'exit', i: 'sign-out', s: last ? t('lcLastDay') + ' ' + fmtDate(last) : t('lcNotStarted'), state: leaving ? 'now' : 'todo', go: 'people:offboarding' }
+  ];
+  return '<nav class="lc" aria-label="' + t('lcTitle') + '"><p class="lc-t">' + t('lcTitle') + '</p><ol>' + st.map(function(x){
+    var link = x.go && can(x.go), inner = '<span class="lc-ic">' + ph(x.state === 'done' ? 'check' : x.i) + '</span><span class="lc-m"><b>' + t('lc_' + x.k) + '</b>' + (x.s ? '<small>' + esc(x.s) + '</small>' : '') + '</span>';
+    return '<li class="lc-' + x.state + '"' + (x.state === 'now' ? ' aria-current="step"' : '') + '>' + (link ? '<button type="button" data-lc="' + x.go + '">' + inner + '</button>' : '<span class="lc-x">' + inner + '</span>') + '</li>';
+  }).join('') + '</ol></nav>';
 }
 
 function jobTab(el, f, reload, ro){
@@ -785,7 +832,7 @@ function importer(body){
       var help = [[t('imCol'), t('imRequired'), t('imFormat')]].concat(COLS.map(function(c){ return [S.lang === 'en' ? c[2] : c[1], c[3] ? t('imRequired') : t('imOptional'), S.lang === 'en' ? c[5] : c[4]]; }));
       var hs = XLSX.utils.aoa_to_sheet(help); hs['!cols'] = [{ wch: 30 }, { wch: 12 }, { wch: 44 }];
       XLSX.utils.book_append_sheet(wb, hs, t('imHelpSheet'));
-      XLSX.writeFile(wb, 'bestgas-hr-template.xlsx');
+      XLSX.writeFile(wb, 'hr-import-template.xlsx');
       b.disabled = false;
     }, function(){ b.disabled = false; toast(t('imLibFail')); });
   };
@@ -840,7 +887,7 @@ function importer(body){
         res.innerHTML = '<p style="color:#255B31;font-weight:500;margin:0 0 8px">' + t('imDone') + '</p><div class="hr-sum"><span class="chip in num">' + t('imCreate') + ': ' + x.created + '</span><span class="chip num">' + t('imUpdate') + ': ' + x.updated + '</span>' +
           (x.pendingSalaries ? '<span class="chip late num">' + t('imSalaries') + ': ' + x.pendingSalaries + '</span>' : '') + '</div>' +
           (x.pendingSalaries ? '<button type="button" class="btn btn-dark btn-sm" id="imAp">' + t('imGoApprovals') + '</button>' : '');
-        var ap = $('#imAp'); if (ap) ap.onclick = function(){ S.hrSec = 'approvals'; render($('#main')); };
+        var ap = $('#imAp'); if (ap) ap.onclick = function(){ goArea('pay', 'approvals'); };
       });
     };
   }
@@ -1003,5 +1050,5 @@ function holidayDrawer(h, done){
     api('holidaySave', { holiday: v }).then(function(r){ if (!r.ok) return showErr($('#hoerr', dr), r); dr.remove(); toast(t('saved')); done(); }); };
 }
 
-window.HrConsole = { render: render, openEmp: openEmp };
+window.HrConsole = { render: render, section: section, openEmp: openEmp };
 })();

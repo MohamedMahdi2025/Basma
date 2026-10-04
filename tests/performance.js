@@ -137,6 +137,10 @@ r = call('5001', 'feedbackResults', { cycleId: cy });
 ok(r.ok && r.groups.self.shown && r.groups.manager.shown && r.groups.report.shown && !r.groups.peer.shown, 'after closing, the subject sees their own 360', r.groups);
 r = call('5001', 'myPerformance');
 ok(r.my360.length === 1, 'and "ملفي" lists it');
+r = call('3001', 'perfCycleStage', { id: cy, status: 'calibration' });
+ok(!r.ok && r.error === 'cycle_closed', 'a closed cycle cannot move back to an earlier stage', r);
+r = call('3001', 'perfCycleStage', { id: cy, status: 'closed' });
+ok(!r.ok && r.error === 'cycle_closed' && call('3001', 'perfCycleList').rows.find(c => c.id === cy).status === 'closed', 'nor be closed a second time; it stays closed', r);
 
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);

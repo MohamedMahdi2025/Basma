@@ -53,8 +53,12 @@ ok(!r.ok && r.error === 'hearing_required', 'no penalty without a recorded heari
 ok(call('3003', 'discHearing', { id: c1.id, minutes: 'استمعنا للموظف، لم يقدم ما يثبت الحادث', attendees: 'المشرف، الموارد البشرية' }).ok, 'HR records the hearing');
 r = call('3003', 'discDecide', { id: c1.id, penalty: 'warning' });
 ok(!r.ok && r.error === 'note_required', 'departing from the schedule needs a reason', r);
+r = call('1000', 'discDecide', { id: c1.id });
+ok(!r.ok && r.error === 'forbidden', 'an administrator alone cannot decide a fine (it is a pay deduction)', r);
 r = call('3003', 'discDecide', { id: c1.id });
 ok(r.ok && r.case.status === 'decided' && r.case.amount === 25 && r.case.adjMonth === '2026-11', 'decided as scheduled: 10% of a 250 SAR day = 25 SAR, in November payroll', r.case);
+r = call('1000', 'discList');
+ok(r.ok && r.rows.find(x => x.id === c1.id).amount === null && call('5002', 'discList').rows[0].amount === 25, 'the amount shows to the employee and HR, not to an administrator alone');
 const adj = direct(() => B.ctx.readAll_('adjustments')).find(a => a.code === 'fine');
 ok(adj && Number(adj.amount) === 25 && adj.empId === ids['5002'], 'a fine adjustment is waiting for payroll', adj);
 
@@ -79,6 +83,8 @@ r = call('5002', 'discObject', { id: c1.id, text: 'أطلب إعادة النظ�
 ok(r.ok && r.case.status === 'objected', 'the employee objects within 15 days (Art. 72)');
 r = call('3003', 'discObjectionDecide', { id: c1.id, result: 'cancelled', note: 'x' });
 ok(!r.ok && r.error === 'second_approver_required', 'the one who decided does not rule on the objection', r);
+r = call('1000', 'discObjectionDecide', { id: c1.id, result: 'cancelled', note: 'x' });
+ok(!r.ok && r.error === 'forbidden', 'nor rule on the objection to it', r);
 r = call('3001', 'discObjectionDecide', { id: c1.id, result: 'cancelled', note: 'قدم تقرير المرور' });
 ok(r.ok && r.case.status === 'closed', 'another HR person cancels the penalty');
 const adj2 = direct(() => B.ctx.readAll_('adjustments')).find(a => a.code === 'fine');

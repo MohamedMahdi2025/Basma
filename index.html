@@ -18,7 +18,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
-<link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght,HEXP@160..700,0..100&display=swap" rel="stylesheet">
 <style>
 :root{
   --brand:#4D6D51; --brand-2:#5E8262; --pine:#1C2A1F; --pine-2:#243628; --pine-3:#2E4433;
@@ -436,14 +436,15 @@ table.tbl{width:100%;border-collapse:collapse;background:var(--card);font-size:1
 .update-bar{position:fixed;top:calc(10px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:90;background:var(--brand);color:#fff;border:0;border-radius:999px;padding:10px 18px;font:inherit;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.25);cursor:pointer;max-width:92vw}
 .toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:80;background:var(--ink);color:var(--cream);padding:10px 16px;border-radius:12px;font-size:14px;max-width:90vw;animation:up .25s var(--ease) both}
 /* progress: a bar that knows how far along it is (Progress in the script) */
-.loader{position:fixed;top:0;inset-inline:0;height:3px;z-index:95;pointer-events:none;opacity:1;transition:opacity .35s ease .15s}
+/* 6px on a visible track, dark green that reads on both the pine sign-in and the cream app, and a large % badge riding the head */
+.loader{position:fixed;top:0;inset-inline:0;height:6px;z-index:95;pointer-events:none;opacity:1;transition:opacity .35s ease .15s;background:rgba(28,42,31,.14)}
 .loader.hidden{display:block!important;opacity:0}
-.loader .fill{position:absolute;inset-block:0;inset-inline-start:0;width:0;border-radius:0 3px 3px 0;
-  background:linear-gradient(90deg,#2E7D4F,#4D6D51 45%,#9FE0AE);box-shadow:0 0 10px rgba(159,224,174,.75),0 0 3px rgba(159,224,174,.9);transition:width .25s cubic-bezier(.2,.8,.2,1)}
-[dir="rtl"] .loader .fill{background:linear-gradient(270deg,#2E7D4F,#4D6D51 45%,#9FE0AE);border-radius:3px 0 0 3px}
-.loader .fill::after{content:"";position:absolute;inset-inline-end:-2px;top:-3px;width:14px;height:9px;border-radius:50%;background:#C9F2D3;filter:blur(3px);opacity:.9}
-.loader .pct{position:absolute;top:6px;inset-inline-start:0;transform:translateX(-50%);font:600 11px/1 var(--font);color:var(--cream);background:rgba(28,42,31,.92);
-  border:1px solid rgba(159,224,174,.45);padding:4px 7px;border-radius:999px;font-variant-numeric:tabular-nums;box-shadow:0 4px 12px rgba(0,0,0,.25);transition:inset-inline-start .25s cubic-bezier(.2,.8,.2,1)}
+.loader .fill{position:absolute;inset-block:0;inset-inline-start:0;width:0;border-radius:0 6px 6px 0;
+  background:linear-gradient(90deg,#14532D,#1E6B3F 55%,#2E9E5B);box-shadow:0 1px 6px rgba(20,83,45,.55);transition:width .25s cubic-bezier(.2,.8,.2,1)}
+[dir="rtl"] .loader .fill{background:linear-gradient(270deg,#14532D,#1E6B3F 55%,#2E9E5B);border-radius:6px 0 0 6px}
+.loader .fill::after{content:"";position:absolute;inset-inline-end:-3px;top:-3px;width:12px;height:12px;border-radius:50%;background:#2E9E5B;box-shadow:0 0 0 3px rgba(46,158,91,.28),0 0 10px rgba(46,158,91,.8)}
+.loader .pct{position:absolute;top:12px;inset-inline-start:0;transform:translateX(-50%);font:700 14px/1 var(--font);color:#fff;background:#14532D;
+  border:2px solid #fff;padding:6px 11px;border-radius:999px;font-variant-numeric:tabular-nums;box-shadow:0 6px 18px rgba(20,40,26,.35);transition:inset-inline-start .25s cubic-bezier(.2,.8,.2,1)}
 [dir="rtl"] .loader .pct{transform:translateX(50%)}
 .pg-wrap{display:flex;align-items:center;justify-content:center;min-height:46vh;padding:24px}
 .pg-card{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
@@ -549,6 +550,255 @@ table.tbl{width:100%;border-collapse:collapse;background:var(--card);font-size:1
 }
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+}
+</style>
+<style id="dsv2">
+/* ============ Design system v2 (approved 2026-09-30; docs/research/2026-09-30-hr-ui-design-study.md) ============
+   A quiet light frame: cream sidebar holding the logo, white work surfaces on warm paper, one green accent, hierarchy
+   from type and space. Pine only for the check-in moment, sign-in and toasts. This block loads last (themeLast()). */
+:root{
+  --paper:#FAF8F3; --frame:#F2EEE4; --card:#FFFFFF; --well:#F6F3EC; --cream:#F2EEE4;
+  --ink:#17221A; --ink-2:#4A5A4D; --ink-3:#5F6D63; --line:#E4DFD3; --line-2:#EEEAE0; --input:#8F8878;
+  --brand:#4D6D51; --brand-h:#3F5C43; --brand-tint:#E7EFE6;
+  --ok:#1E6B3F; --ok-bg:#E6F2EA; --warn:#8A5A00; --warn-bg:#FBF1DC; --bad:#B42318; --bad-bg:#FDECEA; --info:#1F5FAE; --info-bg:#E8F1FC;
+  --r-s:8px; --r-m:12px; --r-l:16px;
+  --sh-1:0 1px 2px rgba(28,42,31,.06); --sh-3:0 24px 60px -20px rgba(28,42,31,.38);
+}
+.num,td.num,.v2 .kpi b{font-variant-numeric:tabular-nums}
+/* ---- shell ---- */
+.app.v2{display:grid;grid-template-columns:256px minmax(0,1fr);grid-template-rows:minmax(0,1fr);height:100vh;height:100dvh;background:var(--paper);color:var(--ink);overflow:hidden}
+.v2-side{background:var(--frame);border-inline-end:1px solid var(--line);display:flex;flex-direction:column;gap:14px;padding:18px 14px 14px;overflow-y:auto;min-height:0}
+.v2-brand{display:flex;align-items:center;gap:10px;padding:2px 6px}.v2-brand img{width:40px;height:auto}
+/* the mark file is white-on-transparent (made for pine); on cream it is drawn in brand green through a mask */
+.v2-mark{display:block;flex:none;width:36px;height:41px;background:var(--brand);-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center}
+.v2-brand b{display:block;font-size:15px;font-weight:600;line-height:1.25}.v2-brand small{display:block;font-size:12px;color:var(--ink-3);line-height:1.3}
+.v2-nav{display:grid;gap:2px}
+.v2-nav a,.v2-nav button{display:flex;align-items:center;gap:10px;height:38px;padding:0 10px;border-radius:var(--r-s);color:var(--ink-2);text-decoration:none;font-size:14.5px;border:0;background:none;width:100%;text-align:start;cursor:pointer;transition:background-color .12s,color .12s}
+.v2-nav a i,.v2-nav button i{font-size:19px}
+.v2-nav a:hover,.v2-nav button:hover{background:rgba(77,109,81,.08);color:var(--ink)}
+.v2-nav a[aria-current="page"]{background:var(--card);color:var(--ink);font-weight:600;box-shadow:var(--sh-1)}
+.v2-nav a[aria-current="page"] i{color:var(--brand)}
+.v2-nav .cnt{margin-inline-start:auto;font-size:11.5px;font-weight:600;min-width:22px;height:20px;padding:0 6px;border-radius:10px;display:grid;place-items:center;background:var(--warn-bg);color:var(--warn)}
+.v2-foot{margin-top:auto;border-top:1px solid var(--line);padding-top:10px}
+.v2-main{min-width:0;min-height:0;display:flex;flex-direction:column}
+.v2-top{flex:none;height:60px;display:flex;align-items:center;gap:10px;padding:0 28px;background:var(--paper);border-bottom:1px solid var(--line-2);position:relative;z-index:20}
+.v2-top .sp{flex:1}
+.v2-search{flex:0 1 420px;display:flex;align-items:center;gap:8px;height:38px;padding:0 12px;border:1px solid var(--line);border-radius:var(--r-s);background:var(--card);color:var(--ink-3);font-size:14px;text-align:start;cursor:pointer}
+.v2-search kbd{margin-inline-start:auto;font-family:inherit;font-size:11.5px;border:1px solid var(--line);border-radius:4px;padding:0 6px;direction:ltr}
+.v2-chip{display:inline-flex;align-items:center;gap:7px;height:32px;padding:0 12px;border-radius:16px;font-size:13px;font-weight:500;border:0;cursor:pointer;background:var(--well);color:var(--ink-2)}
+.v2-chip.in{background:var(--ok-bg);color:var(--ok)}.v2-chip i.dot{width:8px;height:8px;border-radius:50%;background:currentColor}
+.v2-ib{width:38px;height:38px;border-radius:var(--r-s);border:1px solid transparent;background:none;display:grid;place-items:center;color:var(--ink-2);position:relative;cursor:pointer;font-size:19px}
+.v2-ib:hover{background:var(--well);border-color:var(--line)}
+.v2-ib .tk-n{box-shadow:0 0 0 2px var(--paper);background:var(--bad);color:#fff}
+.v2-av{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;font-weight:600;font-size:13px;background:var(--brand-tint);color:var(--brand);border:0;cursor:pointer}
+.v2-lang{font-size:12px;width:auto;padding:0 10px}
+.app.v2 > .v2-main > main{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.v2-hamb{display:none}
+.v2 .page,.page.v2{background:transparent;border-radius:0;width:100%;max-width:1280px;margin:0 auto;padding:28px 28px 64px;flex:none}
+.v2-ph{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:6px}.v2-ph .sp{flex:1}
+.v2-ph h1{margin:0;font-size:28px;line-height:1.25;font-weight:600;letter-spacing:-.01em;font-variation-settings:"HEXP" 35;text-wrap:balance}
+.v2-ph p{margin:4px 0 0;color:var(--ink-2);font-size:14.5px}
+.v2-views{display:flex;gap:2px;border-bottom:1px solid var(--line);margin:14px 0 20px;overflow-x:auto;scrollbar-width:none}
+.v2-views::-webkit-scrollbar{display:none}
+.v2-views button{flex:none;border:0;background:none;height:42px;padding:0 12px;font-size:14px;color:var(--ink-2);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.v2-views button:hover{color:var(--ink)}
+.v2-views button[aria-selected="true"]{color:var(--ink);font-weight:600;border-color:var(--brand)}
+.v2-views .badge{min-width:18px;height:18px;border-radius:9px;background:var(--warn-bg);color:var(--warn);font-size:11px;display:inline-grid;place-items:center;padding:0 5px}
+.v2-seg{display:inline-flex;gap:2px;padding:3px;background:var(--well);border:1px solid var(--line);border-radius:var(--r-s)}
+.v2-seg button{border:0;background:none;border-radius:6px;padding:5px 12px;font-size:13px;color:var(--ink-2);cursor:pointer}
+.v2-seg button[aria-pressed="true"]{background:var(--card);color:var(--ink);box-shadow:var(--sh-1);font-weight:600}
+/* section headers inside an area page: the tab already names the page, keep only the actions */
+.v2-area .hr-h > h2,.v2-area .adm-nav,.v2-area .hr-rail{display:none!important}
+.v2-area .hr-h{justify-content:flex-end;margin:0 0 14px}.v2-area .hr-h:empty{display:none}
+.v2-area .hr-shell{display:block!important;min-height:0!important;background:none!important;width:auto!important;margin:0!important;border-radius:0!important}
+.v2-area .hr-body,.v2-area .adm-body{padding:0!important}
+.v2-area .adm{background:none;border-radius:0;display:block}
+.v2-area .page{padding:0;max-width:none}
+.v2-area .page > h2:first-child{display:none}
+/* ---- components: one hairline border, no floating shadows ---- */
+.v2 .list,.v2 .tblwrap,.v2 .db-card,.v2 .db-tile,.v2 .mf-card,.v2 .stat,.v2 .kpi,.v2 .mcal,.v2 .rp-grp,.v2 .rp-filt,.v2 .rp-tw,.v2 .cp-box,.v2 .cp-item,.v2 .tk-row,.v2 .hm-card,.v2 .db-panel,.v2 .mf #mfDash .db-panel{border:1px solid var(--line)!important;box-shadow:none!important;border-radius:var(--r-m)}
+.v2 .db-panel{background:var(--card);padding:16px 18px 4px}
+.v2 .db-tile.lead,.v2 .stat.lead,.v2 .kpi.lead-k{background:var(--card)!important;color:var(--ink)!important}
+.v2 .db-tile.lead span,.v2 .db-tile.lead small,.v2 .stat.lead span,.v2 .stat.lead b small,.v2 .kpi.lead-k span{color:var(--ink-3)!important}
+.v2 .db-tile.lead b,.v2 .stat.lead b,.v2 .kpi.lead-k b{font-variation-settings:"HEXP" 60}
+.v2 .db-tile.lead .up{color:var(--ok)}.v2 .db-tile.lead .down{color:var(--bad)}
+.v2 .stat .hbar,.v2 .kpi .bar{background:var(--well)}.v2 .stat .hbar i,.v2 .kpi .bar i{background:#2E7D4F}
+.v2 .row{border-bottom-color:var(--line-2)}
+.v2 .av{border-radius:10px;background:var(--brand-tint);color:var(--brand)}
+.v2 .tbl th{background:var(--card);color:var(--ink-3);font-weight:500;font-size:12.5px}
+.v2 .tbl td{border-bottom-color:var(--line-2)}
+.v2 .btn{height:40px;font-size:14px;border-radius:var(--r-s);font-weight:500}
+.v2 .btn-sm{height:36px;font-size:13.5px}
+.v2 .btn-dark{background:var(--brand);color:#fff}.v2 .btn-dark:hover{background:var(--brand-h)}
+.v2 .btn-line{background:var(--card);border:1px solid var(--line);color:var(--ink)}.v2 .btn-line:hover{border-color:var(--input)}
+.v2 .chip{border-radius:6px;font-size:12px;padding:3px 8px}
+.v2 .field input,.v2 .field select,.v2 .field textarea,.v2 .toolbar input,.v2 .toolbar select,.v2 .form input,.v2 .form select,.v2 .form textarea{border-color:var(--input);border-radius:var(--r-s)}
+.v2 .empty i{background:var(--brand-tint);border-radius:20px}
+/* profile header: white, with a facts strip (no gradient) */
+.v2 .mf-hero{background:var(--card)!important;color:var(--ink)!important;border:1px solid var(--line);box-shadow:none!important;border-radius:var(--r-l)}
+.v2 .mf-hero::after{display:none}
+.v2 .mf-co{color:var(--ink-3)}.v2 .mf-en,.v2 .mf-role{color:var(--ink-2)}.v2 .mf-role i{color:var(--line)}
+.v2 .mf-av{background:var(--brand-tint);color:var(--brand);box-shadow:none}
+.v2 .mf-btn{background:var(--card);border-color:var(--line);color:var(--ink)}.v2 .mf-btn:hover{border-color:var(--input);background:var(--card)}
+.v2 .mf-btn.pri{background:var(--brand);border-color:var(--brand);color:#fff}
+.v2 .mf-facts{background:var(--well);border-top-color:var(--line-2)}.v2 .mf-facts div{border-color:var(--line-2)}
+.v2 .mf-facts dt{color:var(--ink-3)}.v2 .mf-facts dd{color:var(--ink)}
+.v2 .mf-flag{background:var(--warn-bg);color:var(--warn);border-color:transparent}
+.v2 .mf-tabs{background:var(--paper)}
+.v2 .mf-card h3 .ic{background:var(--brand-tint)}
+/* the check-in screen keeps its pine radar: it is the one pine moment */
+.v2-area .home-wide{border-radius:var(--r-l);overflow:hidden;background:var(--pine)}
+.v2-area .home-wide .sheet{background:var(--card)}
+@media (min-width:1024px){
+  .app.v2{padding:0}
+  .v2-area .home-wide{padding:0;gap:16px;background:none;overflow:visible;border-radius:0;max-width:none}
+  .v2-area .home-wide .hero{min-height:max(460px,calc(100dvh - 250px));border-radius:var(--r-l)}
+  .v2-area .home-wide .sheet{border:1px solid var(--line);border-radius:var(--r-l);padding:26px 24px}
+}
+body.v2-on{background:var(--paper)}
+.v2-bare{min-height:100%}
+.v2-ver{margin:8px 10px 0;font-size:11.5px;color:var(--ink-3)}
+.v2-nav a span:not(.cnt),.v2-nav button span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* ============ Whole-system layer (DESIGN.md, 2026-10-03; skills: stitch, stitch-skill, ant, ui-designer) ============
+   Scoped to body.v2-on, so it also reaches drawers, which are appended to <body> outside the shell.
+   Old module tokens are remapped: pine only inside check-in, red and amber become the v2 status colours. */
+body.v2-on{--pine:#4D6D51;--red:#B42318;--amber:#C98500;--brand-2:#3F5C43}
+body.v2-on :is(.home-wide,.hm-clock,.stamp,.v2-bottom){--pine:#1C2A1F}
+body.v2-on :is(button,a,[role="tab"],[role="option"],[tabindex],summary,label):focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.v2-chip{white-space:nowrap}
+/* buttons: one shape, explicit states */
+body.v2-on .btn{height:40px;padding:0 16px;border-radius:var(--r-s);font-size:14.5px;font-weight:500;gap:8px;transition:background-color .15s,border-color .15s,color .15s,transform .12s var(--ease),opacity .15s}
+body.v2-on .btn-sm{height:36px;padding:0 12px;font-size:13.5px}
+body.v2-on .btn i{font-size:17px}
+body.v2-on .btn:active{transform:translateY(1px)}
+body.v2-on .btn:disabled,body.v2-on .btn[disabled],body.v2-on .btn[aria-disabled="true"]{opacity:.45;pointer-events:none}
+body.v2-on .btn-dark,body.v2-on .btn-brand{background:var(--brand);color:#fff;border:1px solid var(--brand)}
+body.v2-on .btn-dark:hover,body.v2-on .btn-brand:hover{background:var(--brand-h);border-color:var(--brand-h)}
+body.v2-on .btn-line{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+body.v2-on .btn-line:hover{border-color:var(--input)}
+body.v2-on .btn-danger{background:var(--bad-bg);color:var(--bad);border:1px solid transparent}
+body.v2-on .btn-danger:hover{border-color:var(--bad)}
+/* status chips: the word always shows, colour only supports it */
+body.v2-on .chip{border-radius:6px;font-size:12px;font-weight:500;padding:2px 8px;line-height:1.6;background:var(--well);color:var(--ink-2)}
+body.v2-on .chip.in{background:var(--ok-bg);color:var(--ok)}
+body.v2-on .chip.late,body.v2-on .chip.review{background:var(--warn-bg);color:var(--warn)}
+body.v2-on .chip.absent{background:var(--bad-bg);color:var(--bad)}
+body.v2-on .chip.off{background:var(--well);color:var(--ink-3)}
+body.v2-on .chip.leave{background:var(--info-bg);color:var(--info)}
+/* fields: label above, 40px, one edge colour, green focus, red error */
+body.v2-on :is(.form,.toolbar,.drawer,.v2-area) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=file]),select){min-height:40px;padding-inline:12px;border:1px solid var(--input);border-radius:var(--r-s);background:var(--card);color:var(--ink);font:inherit;font-size:14.5px}
+body.v2-on :is(.form,.toolbar,.drawer,.v2-area) textarea{padding:10px 12px;border:1px solid var(--input);border-radius:var(--r-s);background:var(--card);color:var(--ink);font:inherit;font-size:14.5px}
+body.v2-on :is(.form,.toolbar,.drawer,.v2-area) :is(input,select,textarea):hover{border-color:var(--ink-3)}
+body.v2-on :is(.form,.toolbar,.drawer,.v2-area) :is(input,select,textarea):focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(77,109,81,.18)}
+body.v2-on :is(input,select,textarea)[aria-invalid="true"]{border-color:var(--bad)!important;box-shadow:0 0 0 3px var(--bad-bg)!important}
+body.v2-on :is(input,textarea)::placeholder{color:#8D887C}
+body.v2-on :is(.form,.drawer,.v2-area) .field label{color:var(--ink-2);font-size:13px;font-weight:500;margin-bottom:6px}
+body.v2-on :is(.form,.drawer,.v2-area) .field small{color:var(--ink-3);font-size:12.5px}
+body.v2-on .err{color:var(--bad)!important;font-size:13.5px}
+/* drawers: white sheet, hairline edge, one deep shadow */
+body.v2-on .drawer{background:rgba(20,28,22,.38)}
+body.v2-on .drawer .panel{background:var(--card);box-shadow:var(--sh-3)}
+body.v2-on .drawer h3{font-size:19px;font-weight:600;line-height:1.35;margin:0 0 16px;text-wrap:balance}
+body.v2-on .dr-x{border-color:var(--line);background:var(--card)}body.v2-on .dr-x:hover{background:var(--well)}
+@media (min-width:1024px){body.v2-on .drawer .panel{border-inline-start:1px solid var(--line)}}
+/* segmented controls and tabs inside modules match the shell */
+body.v2-on :is(.hr-seg,.cp-seg){border-radius:var(--r-s);background:var(--well);border:1px solid var(--line);padding:3px;gap:2px}
+body.v2-on :is(.hr-seg,.cp-seg) button{height:30px;border-radius:6px;padding:0 12px;font-size:13px;color:var(--ink-2)}
+body.v2-on :is(.hr-seg,.cp-seg) button:hover{color:var(--ink)}
+body.v2-on :is(.hr-seg,.cp-seg) button[aria-pressed="true"]{background:var(--card);color:var(--ink);font-weight:600;box-shadow:var(--sh-1)}
+body.v2-on .hr-tabs button{min-height:42px}body.v2-on .hr-tabs button[aria-selected="true"]{font-weight:600}
+body.v2-on .hr-who .av{border-radius:12px;background:var(--brand-tint);color:var(--brand)}
+body.v2-on .hr-sub{font-size:16px;font-weight:600;display:flex;align-items:center;gap:8px;margin:0 0 12px}
+body.v2-on .hr-sub i{color:var(--brand);font-size:19px}
+body.v2-on .hr-hint{color:var(--ink-3)}
+/* a titled block that groups one task (e.g. the end-of-service calculator) */
+.v2-card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-m);padding:18px 20px;margin-top:24px}
+.v2-card > .hr-sub{margin-top:0}
+/* rows and tables: dividers, not boxes; a hover tint on anything clickable */
+body.v2-on .row.click:hover,body.v2-on .tbl tbody tr:hover td{background:#FBFAF6}
+body.v2-on .tblwrap{overflow-x:auto}
+/* motion: lists and cards cascade in once; the live dot breathes; all of it stops for reduced motion */
+@keyframes v2in{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+@keyframes v2pulse{0%{transform:scale(1);opacity:.55}70%,100%{transform:scale(2.6);opacity:0}}
+@media (prefers-reduced-motion:no-preference){
+  body.v2-on .v2-area :is(.list > .row,.db-tiles > *,.mf-cols > *),body.v2-on .hm-grid > *{animation:v2in .26s var(--ease) both}
+  body.v2-on .v2-area .list > .row:nth-child(2),body.v2-on .hm-grid > :nth-child(2),body.v2-on .v2-area .db-tiles > :nth-child(2){animation-delay:30ms}
+  body.v2-on .v2-area .list > .row:nth-child(3),body.v2-on .hm-grid > :nth-child(3),body.v2-on .v2-area .db-tiles > :nth-child(3){animation-delay:60ms}
+  body.v2-on .v2-area .list > .row:nth-child(4),body.v2-on .hm-grid > :nth-child(4),body.v2-on .v2-area .db-tiles > :nth-child(4){animation-delay:90ms}
+  body.v2-on .v2-area .list > .row:nth-child(5),body.v2-on .hm-grid > :nth-child(5),body.v2-on .v2-area .db-tiles > :nth-child(5){animation-delay:120ms}
+  body.v2-on .v2-area .list > .row:nth-child(6),body.v2-on .hm-grid > :nth-child(6),body.v2-on .v2-area .db-tiles > :nth-child(6){animation-delay:150ms}
+  body.v2-on .v2-area .list > .row:nth-child(n+7),body.v2-on .hm-grid > :nth-child(n+7),body.v2-on .v2-area .db-tiles > :nth-child(n+7){animation-delay:180ms}
+  .v2-chip.in i.dot{position:relative}
+  .v2-chip.in i.dot::after{content:"";position:absolute;inset:0;border-radius:50%;background:currentColor;animation:v2pulse 2.4s var(--ease) infinite}
+}
+/* employee lifecycle strip (HR employee panel): done / now / later, each stage opens its screen */
+.lc{margin:4px 0 14px}.lc-t{margin:0 0 6px;font-size:12px;font-weight:600;color:var(--ink-3)}
+.lc ol{list-style:none;margin:0;padding:0 0 4px;display:flex;gap:0;overflow-x:auto;scrollbar-width:thin}
+.lc li{flex:0 0 auto;position:relative;padding-inline-end:14px}
+.lc li:not(:last-child)::after{content:"";position:absolute;top:18px;inset-inline-end:2px;width:10px;height:2px;background:var(--line)}
+.lc li.lc-done:not(:last-child)::after{background:#2E7D4F}
+.lc button,.lc .lc-x{display:flex;align-items:center;gap:8px;min-height:38px;padding:4px 10px 4px 8px;border:1px solid var(--line);border-radius:10px;background:var(--card);font:inherit;color:var(--ink);text-align:start}
+.lc button{cursor:pointer}.lc button:hover{border-color:var(--input)}
+.lc-ic{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;flex:none;background:var(--well);color:var(--ink-3);font-size:15px}
+.lc-m b{display:block;font-size:12.5px;font-weight:600;line-height:1.3;white-space:nowrap}.lc-m small{display:block;font-size:11px;color:var(--ink-3);white-space:nowrap}
+.lc-done .lc-ic{background:var(--ok-bg);color:var(--ok)}
+.lc-now button,.lc-now .lc-x{border-color:var(--brand);box-shadow:0 0 0 2px var(--brand-tint)}.lc-now .lc-ic{background:var(--brand);color:#fff}
+/* avatar menu */
+.v2-menu{position:absolute;top:54px;inset-inline-end:20px;width:250px;background:var(--card);border:1px solid var(--line);border-radius:var(--r-m);box-shadow:var(--sh-3);padding:6px;z-index:60}
+.v2-menu-h{padding:10px 10px 8px}.v2-menu-h b{display:block;font-size:14.5px;font-weight:600}.v2-menu-h small{color:var(--ink-3);font-size:12.5px}
+.v2-menu button{display:flex;align-items:center;gap:10px;width:100%;height:38px;padding:0 10px;border:0;background:none;border-radius:var(--r-s);font:inherit;font-size:14px;color:var(--ink);cursor:pointer;text-align:start}
+.v2-menu button i{font-size:18px;color:var(--ink-2)}.v2-menu button:hover,.v2-menu button:focus-visible{background:var(--well);outline:0}
+.v2-menu hr{border:0;border-top:1px solid var(--line-2);margin:4px 6px}
+/* search palette */
+.v2-pal-back{position:fixed;inset:0;background:rgba(20,28,22,.36);z-index:70;display:flex;justify-content:center;align-items:flex-start;padding:12vh 16px 16px}
+.v2-pal{width:min(640px,100%);max-height:70vh;display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);border-radius:var(--r-l);box-shadow:var(--sh-3);overflow:hidden}
+.v2-pal-in{display:flex;align-items:center;gap:10px;padding:0 10px 0 16px;border-bottom:1px solid var(--line-2);color:var(--ink-3)}
+.v2-pal-in i{font-size:20px}
+.v2-pal-in input{flex:1;min-width:0;height:56px;border:0;outline:0;background:none;font:inherit;font-size:16px;color:var(--ink)}
+.v2-pal-in .dr-x{position:static;flex:none}
+.v2-pal-res{overflow-y:auto;padding:6px 8px 8px}
+.v2-pal-res p{margin:10px 8px 4px;font-size:12px;font-weight:600;color:var(--ink-3)}
+.v2-pal-res button{display:flex;align-items:center;gap:12px;width:100%;min-height:46px;padding:6px 10px;border:0;background:none;border-radius:var(--r-s);font:inherit;color:var(--ink);text-align:start;cursor:pointer}
+.v2-pal-res button[aria-selected="true"]{background:var(--brand-tint)}
+.v2-pal-res .ic,.v2-pal-res .av{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;flex:none;background:var(--well);color:var(--brand);font-size:17px;font-weight:600;font-size:12.5px}
+.v2-pal-res .ic i{font-size:18px}
+.v2-pal-res .m{min-width:0}.v2-pal-res .m b{display:block;font-weight:500;font-size:14.5px}.v2-pal-res .m small{display:block;color:var(--ink-3);font-size:12.5px}
+.v2-pal-none{padding:26px 12px;text-align:center;color:var(--ink-3)}
+.v2-pal-keys{margin:0;padding:8px 16px;border-top:1px solid var(--line-2);font-size:12px;color:var(--ink-3)}
+/* ---- mobile ---- */
+.v2-bottom{display:none}
+@media (max-width:900px){
+  .app.v2{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto}
+  .v2-side{position:fixed;inset-block:0;inset-inline-start:0;width:280px;z-index:45;transform:translateX(104%);transition:transform .25s var(--ease);box-shadow:var(--sh-3)}
+  [dir="ltr"] .v2-side{transform:translateX(-104%)}
+  .v2-side.on{transform:none}
+  .v2-scrim{position:fixed;inset:0;background:rgba(20,28,22,.36);z-index:44}
+  .v2-hamb{display:grid}
+  .v2-top{padding:calc(6px + env(safe-area-inset-top)) 12px 6px;height:auto;min-height:56px}
+  .v2-search{flex:1;min-width:0}.v2-search kbd,.v2-chip span{display:none}.v2-chip{padding:0 10px}
+  .v2-search span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .v2 .page,.page.v2{padding:18px 16px 28px}
+  .v2-ph h1{font-size:23px}
+  .v2-ph p{font-size:13.5px}
+  .v2-lang{display:none}
+  .v2-menu{inset-inline-end:10px;top:calc(58px + env(safe-area-inset-top))}
+  .v2-pal-back{padding-top:calc(10px + env(safe-area-inset-top))}.v2-pal{max-height:80vh}.v2-pal-keys{display:none}
+  .v2-punch{margin-inline:-16px}.v2-area.v2-punch .home-wide{border-radius:0}
+  .is-punch{padding-top:12px!important;padding-bottom:0!important}.is-punch .v2-ph p{display:none}.is-punch .v2-ph h1{font-size:19px}.is-punch .v2-views{margin:6px 0 0}
+  .is-punch .hero{height:min(44vh,340px);min-height:270px}.is-punch .hero-logo.b3d-host{width:84px;height:84px}.is-punch .hero-logo.b3d-host .b3d{width:84px}
+  .is-punch .readout .dist{font-size:34px}.is-punch .sheet{padding:16px 16px 20px}
+  /* touch: 44px targets, 16px fields so iOS never zooms on focus */
+  body.v2-on .btn,body.v2-on .btn-sm{min-height:44px}
+  body.v2-on :is(.form,.toolbar,.drawer,.v2-area) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=file]),select,textarea){min-height:44px;font-size:16px}
+  body.v2-on :is(.hr-seg,.cp-seg) button{height:38px}
+  .v2-views button{height:46px}
+  .v2-card{padding:16px}
+  .v2-bottom{display:flex;grid-column:1 / -1;background:var(--card);border-top:1px solid var(--line);padding:6px 6px calc(6px + env(safe-area-inset-bottom));justify-content:space-around;position:relative;z-index:30}
+  .v2-bottom button{flex:1;border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;color:var(--ink-3);padding:4px 0;cursor:pointer}
+  .v2-bottom button i{font-size:22px}
+  .v2-bottom button[aria-current="page"]{color:var(--brand);font-weight:600}
+  .v2-bottom .center{flex:none;width:58px;height:58px;border-radius:18px;background:var(--pine);color:#F2EEE4;margin-top:-24px;justify-content:center;box-shadow:0 10px 24px -10px rgba(28,42,31,.7)}
+  .v2-bottom .center i{font-size:26px;color:#9FE0AE}
 }
 </style>
 </head>
@@ -1249,7 +1499,7 @@ var T = {
     firstIn:'الحضور', lastOut:'الانصراف', worked:'ساعات العمل', shift:'الدوام', late:'تأخير', min:'د', h:'س',
     doneIn:'تم تسجيل الحضور', doneOut:'تم تسجيل الانصراف', reviewNote:'سُجّل وسيُراجع من الموارد البشرية', close:'تم', closeX:'إغلاق', tkTitle:'مهامي', tkNone:'لا شيء ينتظرك الآن', tkNoneLead:'ستظهر هنا الطلبات والموافقات والمهام التي تحتاج إجراءك.',
     tk_requests:'طلبات تنتظر قرارك', tk_salaries:'رواتب تنتظر اعتمادك', tk_payroll:'مسيرات رواتب تنتظر اعتمادك', tk_reports:'تقارير صادرة تنتظر مراجعتك', tk_recon:'فروقات أجور (التأمينات أو قوى) تنتظر إغلاقك',
-    tk_wps:'رفع ملف حماية الأجور ينتظر تأكيدك', tk_onboarding:'مهام انضمام مستحقة خلال أسبوع', tk_policies:'سياسات تحتاج إقرارك', tk_survey:'استبيان ينتظر مشاركتك', tk_plans:'خطة تطوير تنتظر اطلاعك', tk_delegated:'مفوض بالموافقات نيابة عن',
+    tk_wps:'رفع ملف حماية الأجور ينتظر تأكيدك', tk_onboarding:'مهام انضمام مستحقة خلال أسبوع', tk_policies:'سياسات تحتاج إقرارك', tk_survey:'استبيان ينتظر مشاركتك', tk_plans:'خطة تطوير تنتظر اطلاعك', tk_delegated:'مفوض بالموافقات نيابة عن', tk_disc_respond:'مخالفة تنتظر ردك', tk_disc_decide:'قضايا تأديبية تنتظر القرار', tk_disc_objection:'تظلمات تنتظر البت', tk_injury:'إصابات عمل تنتظر المتابعة', tk_asset_ack:'عهد تنتظر إقرارك باستلامها', tk_asset_charge:'خصومات عهد تنتظر اعتمادك', tk_clearance:'مهام إخلاء طرف لك',
     punchFailed:'لم يتم التسجيل', todayTitle:'اليوم',
     histTitle:'سجل الحضور', present:'أيام الحضور', totalHours:'مجموع الساعات', lateDays:'أيام التأخير', absent:'غياب',
     st_in:'داخل الدوام', st_present:'حاضر', st_absent:'غائب', st_leave:'في إجازة', st_holiday:'عطلة رسمية', kLeave:'في إجازة', st_off:'عطلة', st_upcoming:'لم يحضر بعد', st_missing_out:'بلا انصراف',
@@ -1310,7 +1560,7 @@ var T = {
     firstIn:'In', lastOut:'Out', worked:'Worked', shift:'Shift', late:'Late', min:'m', h:'h',
     doneIn:'Checked in', doneOut:'Checked out', reviewNote:'Recorded, HR will review it', close:'Done', closeX:'Close', tkTitle:'My tasks', tkNone:'Nothing is waiting for you', tkNoneLead:'Requests, approvals and tasks that need your action appear here.',
     tk_requests:'Requests waiting for your decision', tk_salaries:'Salaries waiting for your approval', tk_payroll:'Payroll runs waiting for your approval', tk_reports:'Exported reports waiting for your review', tk_recon:'Wage mismatches (GOSI or Qiwa) waiting for you',
-    tk_wps:'WPS upload waiting for your confirmation', tk_onboarding:'Onboarding tasks due within a week', tk_policies:'Policies to acknowledge', tk_survey:'A survey waiting for you', tk_plans:'A development plan to read', tk_delegated:'Approving on behalf of',
+    tk_wps:'WPS upload waiting for your confirmation', tk_onboarding:'Onboarding tasks due within a week', tk_policies:'Policies to acknowledge', tk_survey:'A survey waiting for you', tk_plans:'A development plan to read', tk_delegated:'Approving on behalf of', tk_disc_respond:'A violation waiting for your reply', tk_disc_decide:'Disciplinary cases waiting for a decision', tk_disc_objection:'Objections waiting for a ruling', tk_injury:'Work injuries to follow up', tk_asset_ack:'Assets to confirm you received', tk_asset_charge:'Asset charges waiting for your approval', tk_clearance:'Clearance tasks for you',
     punchFailed:'Not recorded', todayTitle:'Today',
     histTitle:'Attendance record', present:'Days present', totalHours:'Total hours', lateDays:'Late days', absent:'Absent',
     st_in:'On shift', st_present:'Present', st_absent:'Absent', st_leave:'On leave', st_holiday:'Public holiday', kLeave:'On leave', st_off:'Day off', st_upcoming:'Not in yet', st_missing_out:'No check-out',
@@ -1399,7 +1649,7 @@ var Progress = (function(){
     var pc = Math.round(shown * 100);
     if (el) {
       el.querySelector('.fill').style.width = pc + '%';
-      var pl = el.querySelector('.pct'); pl.textContent = pc + '%'; pl.style.insetInlineStart = Math.max(4, Math.min(96, pc)) + '%';
+      var pl = el.querySelector('.pct'); pl.textContent = pc + '%'; pl.style.insetInlineStart = 'clamp(36px, ' + pc + '%, calc(100% - 36px))';
       el.setAttribute('aria-valuenow', pc);
     }
     listeners.forEach(function(fn){ try { fn(pc); } catch (e) {} });
@@ -1455,7 +1705,7 @@ function api(action, payload, quiet){
 // Screens already seen show their last answer at once while a fresh one loads (kept in memory only,
 // dropped on lock and after any change). Most clicks then feel instant instead of waiting ~2 s for Google.
 var READ_CACHE = {};
-var CLIENT_READS = { myFile: 1, myRequests: 1, hrBootstrap: 1, hrCompList: 1, hrExpiring: 1, hrTeam: 1, hrEmpFile: 1, reqInbox: 1,
+var CLIENT_READS = { shiftList: 1, rosterList: 1, discCodes: 1, discList: 1, injuryList: 1, assetList: 1, clearanceList: 1, myFile: 1, myRequests: 1, hrBootstrap: 1, hrCompList: 1, hrExpiring: 1, hrTeam: 1, hrEmpFile: 1, reqInbox: 1,
   leaveTeam: 1, holidayList: 1, leaveBalances: 1, myHistory: 1, me: 1, board: 1, empList: 1, zoneList: 1, report: 1, reviewList: 1,
   auditList: 1, settingsGet: 1, requestQuote: 1, dashboard: 1, mySlips: 1, payrollList: 1, eosQuote: 1, myPerformance: 1, perfTeam: 1, perfEmp: 1, feedbackResults: 1, perfCycleList: 1, perfOverview: 1, reportCatalog: 1, reportRun: 1, reportLog: 1, reportVerify: 1, myTasks: 1, delegationList: 1, reconList: 1, complianceCalendar: 1, wpsFile: 1, onboardList: 1, mySurveys: 1, surveyResults: 1, policyList: 1, planList: 1, hrDirectory: 1, hrDeptList: 1, hrPositionList: 1, hrDocList: 1, hrImportValidate: 1,
   authBegin: 1, punchBegin: 1, bootstrapStatus: 1, ping: 1 };
@@ -1583,24 +1833,24 @@ function hrAccessFromStore(){
 }
 function setHrAccess(file){
   var r = { hr: !!(file.roles && file.roles.hr), payroll: !!(file.roles && file.roles.payroll), executive: !!(file.roles && file.roles.executive), manager: !!file.isManager };
-  var had = hasHrTab();
+  var had = JSON.stringify(S.fileRoles || null);
   S.fileRoles = r;
   store('hrAccess', JSON.stringify({ id: S.me.id, r: r }));
-  if (had !== hasHrTab()) renderShell();
+  if (had !== JSON.stringify(r) && $('.app.v2')) renderShell();
 }
 function hasHrTab(){ var r = S.fileRoles; return isHr() || !!(r && (r.hr || r.payroll || r.manager || r.executive)); }
-function lazyScreen(files, run){
-  var main = $('#main');
+function lazyScreen(files, run, target){
+  var main = target || $('#main');
   var need = files.filter(function(f){ return !loadedScripts[f]; });
   var stop = need.length ? progressCard(main, t('loadingScreen')) : null;
   if (!need.length) main.innerHTML = '<section class="page"><span class="sk" style="width:40%"></span><span class="sk" style="margin-top:12px"></span></section>';
   files.reduce(function(p, f){ return p.then(function(){
     if (loadedScripts[f]) return loadedScripts[f];
     var id = Progress.start('script:' + f); return loadScript(f).then(function(){ Progress.done(id); }, function(e){ Progress.done(id, false); throw e; });
-  }); }, Promise.resolve()).then(function(){ if (stop) stop(); if ($('#main') === main) run(main); }, function(){
+  }); }, Promise.resolve()).then(function(){ if (stop) stop(); if (main.isConnected) run(main); }, function(){
     if (stop) stop();
     main.innerHTML = '<section class="page"><div class="empty">' + ph('wifi-slash') + '<b>' + t('e_network') + '</b><div class="btnrow" style="justify-content:center;margin-top:12px"><button class="btn btn-dark btn-sm" type="button" id="lzRetry">' + t('retry') + '</button></div></div></section>';
-    $('#lzRetry').onclick = function(){ lazyScreen(files, run); };
+    $('#lzRetry', main).onclick = function(){ lazyScreen(files, run, target); };
   });
 }
 
@@ -1739,6 +1989,7 @@ function toggleLang(){ S.lang = S.lang === 'ar' ? 'en' : 'ar'; store('lang', S.l
 var rerender = function(){};
 function root(html){
   $('#root').innerHTML = html;
+  document.body.classList.toggle('v2-on', html.indexOf('class="app v2"') >= 0);
   // Sign-in screens: everything except the brand panel goes into one column, so desktop can centre it beside the panel.
   Brand3D.mount();
   var g = $('.gate');
@@ -1756,11 +2007,11 @@ function gateBrand(){
 
 // The company name arrives word by word (Arabic), then letter by letter (English).
 function wordmarkHtml(){
-  var ar = 'شركة الناقل الأفضل للغاز'.split(' '), en = 'BEST GAS CARRIER CO.'.split('');
-  return '<div class="wordmark" role="img" aria-label="شركة الناقل الأفضل للغاز - Best Gas Carrier Co.">' +
-    '<span class="wm-ar" aria-hidden="true">' + ar.map(function(w, i){ return '<span class="w" style="--i:' + i + '">' + w + '</span>'; }).join('') + '</span>' +
+  var ar = coName('ar').split(' '), en = coName('en').toUpperCase().split('');
+  return '<div class="wordmark" role="img" aria-label="' + esc(coName('ar') + ' - ' + coName('en')) + '">' +
+    '<span class="wm-ar" aria-hidden="true">' + ar.map(function(w, i){ return '<span class="w" style="--i:' + i + '">' + esc(w) + '</span>'; }).join('') + '</span>' +
     '<span class="sweep-line" aria-hidden="true"></span>' +
-    '<span class="wm-en" aria-hidden="true">' + en.map(function(c, i){ return '<span class="l" style="--i:' + i + '">' + (c === ' ' ? '&nbsp;' : c) + '</span>'; }).join('') + '</span></div>';
+    '<span class="wm-en" aria-hidden="true">' + en.map(function(c, i){ return '<span class="l" style="--i:' + i + '">' + (c === ' ' ? '&nbsp;' : esc(c)) + '</span>'; }).join('') + '</span></div>';
 }
 function brand3dHtml(where){
   return '<div class="brand3d"><div class="b3d" data-b3d="' + where + '"><img class="b3d-fallback" src="' + MARK + '" alt=""></div>' + (where === 'hero' ? '' : wordmarkHtml()) + '</div>';
@@ -2043,6 +2294,46 @@ function applyHome(r){
   S.hasPassword = !!r.hasPassword;
   S.me = r.me; S.zones = r.zones; S.today = r.today; S.shift = r.shift; S.rules = r.rules; S.devices = r.devices || [];
   if (r.punch && r.punch.options) { S.punchOpts = r.punch.options; S.punchType = r.punch.type; S.punchOptsAt = Date.now(); }
+  if (r.company) setCompany(r.company, true);
+  paintChip();
+}
+/**
+ * The employer's profile (white-label: settings companyName*). Every screen and document names the company through
+ * coName / coShort / coMeta, never a literal. Remembered on the device so the sign-in screen shows it too.
+ */
+var CO_DEFAULT = { nameAr: 'شركة الناقل الأفضل للغاز', nameEn: 'Best Gas Carrier Co.', shortAr: 'الناقل الأفضل', shortEn: 'Best Gas', cr: '', vat: '', addressAr: '', addressEn: '' };
+function setCompany(c, keep){
+  S.company = Object.assign({}, CO_DEFAULT, c || {});
+  T.ar.company = S.company.nameAr; T.en.company = S.company.nameEn;
+  T.ar.appName = 'حضور ' + S.company.shortAr; T.en.appName = S.company.shortEn + ' Attendance';
+  if (keep) store('co', JSON.stringify(S.company));
+  document.title = t('appName');
+}
+function coName(l){ var c = S.company || CO_DEFAULT; return (l || S.lang) === 'en' ? c.nameEn : c.nameAr; }
+function coShort(l){ var c = S.company || CO_DEFAULT; return (l || S.lang) === 'en' ? c.shortEn : c.shortAr; }
+/** CR, VAT and address for letterheads, in the letter's language; '' when none is set. */
+function coMeta(l){
+  var c = S.company || CO_DEFAULT, en = (l || S.lang) === 'en', p = [];
+  if (c.cr) p.push((en ? 'C.R. ' : 'س.ت ') + c.cr);
+  if (c.vat) p.push((en ? 'VAT ' : 'الرقم الضريبي ') + c.vat);
+  var a = en ? c.addressEn : c.addressAr; if (a) p.push(a);
+  return p.map(function(x){ return '<bdi>' + esc(x) + '</bdi>'; }).join(' · ');
+}
+try { setCompany(JSON.parse(store('co') || 'null')); } catch (e) { setCompany(null); }
+/**
+ * The logo file is cream on transparent (made for the pine screens), so on white paper it vanishes. Printed documents
+ * use this copy, inked in the brand green on a canvas once at start-up (an <img> always prints; backgrounds may not).
+ */
+var LOGO_INK = '';
+(function(){ try { var im = new Image(); im.onload = function(){ try { var c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight; var x = c.getContext('2d');
+  x.drawImage(im, 0, 0); x.globalCompositeOperation = 'source-in'; x.fillStyle = '#4D6D51'; x.fillRect(0, 0, c.width, c.height); LOGO_INK = c.toDataURL('image/png'); } catch (e) {} }; im.src = LOGO; } catch (e) {} })();
+function logoInk(){ return LOGO_INK || LOGO; }
+/** #area or #area/sub; the old #hr and #file links still land somewhere sensible. */
+function areaFromHash(){
+  var h = location.hash.replace(/^#/, '').split('/'), a = { hr: 'people', file: 'profile', me: 'account', admin: 'time', history: 'time' }[h[0]] || h[0];
+  S.sub = S.sub || {};
+  if (h[0] === 'history') S.sub.time = 'history'; else if (h[0] === 'admin') S.sub.time = 'board'; else if (h[1]) S.sub[a] = h[1];
+  return areaOf(a) ? a : 'home';
 }
 function enterApp(home){
   if (!home) home = null;
@@ -2050,7 +2341,7 @@ function enterApp(home){
   function go(r){
     applyHome(r); armIdleLock();
     S.fileRoles = null;
-    S.tab = location.hash === '#hr' ? 'hr' : location.hash === '#file' ? 'file' : 'home'; renderShell(); startWatch(); schedulePunchPrefetch(true);
+    S.tab = areaFromHash(); renderShell(); startWatch(); schedulePunchPrefetch(true);
     setTimeout(function(){
       if (!S.me) return;
       loadScript('js/my-file.js').catch(function(){});
@@ -2064,32 +2355,387 @@ function enterApp(home){
   api('me', {}).then(function(r){ if (!r.ok) return r.error === 'password_change_required' ? null : renderLock(); go(r); });
 }
 
+// ---------------- the shell (design system v2, approved 2026-09-30) ----------------
+// Seven areas with the same names for every role; each role sees the areas and sub-pages it may use. The server still
+// enforces every permission: these lists only decide what is drawn. S.tab is the area, S.sub[area] its sub-page.
+Object.assign(T.ar, {
+  arHome:'الرئيسية', arTime:'الحضور والدوام', arRequests:'الطلبات والإجازات', arPay:'الرواتب', arGrowth:'الأداء والتطوير', arPeople:'الموظفون والمنشأة',
+  arInsights:'التقارير والتحليلات', arSettings:'الإعدادات', arProfile:'ملفي', arAccount:'الحساب والأجهزة',
+  alTime:'سجل حضورك، جداول دوام الفريق ومراجعة البصمات.', alRequests:'طلباتك والموافقات وتقويم الإجازات والعطل الرسمية.', alPay:'قسائمك ومسيرات الرواتب والامتثال لحماية الأجور.',
+  alGrowth:'أهدافك وتقييمك وخطط التطوير ونبض الموظفين.', alPeople:'الملفات والهيكل والوظائف، من التعيين حتى إخلاء الطرف.', alInsights:'لوحة الإدارة والتقارير الموثقة وسجل التدقيق.',
+  alSettings:'قواعد الحضور وإعدادات النظام.',
+  vwPunch:'تسجيل الحضور', vwHistory:'سجلي', vwBoard:'لوحة اليوم', vwReview:'مراجعة البصمات', vwShifts:'الورديات', vwZones:'المواقع',
+  vwMine:'طلباتي', vwInbox:'الموافقات', vwLeave:'تقويم الإجازات', vwHolidays:'العطل الرسمية',
+  vwSlips:'قسائمي', vwRuns:'مسيرات الرواتب', vwApprovals:'اعتماد الرواتب', vwCompliance:'الامتثال',
+  vwGrowth:'أدائي', vwCycle:'دورة التقييم', vwPlans:'خطط التطوير', vwPulse:'نبض الموظفين',
+  vwDirectory:'الدليل', vwTeam:'فريقي', vwOrg:'الهيكل', vwPositions:'الوظائف', vwOnboarding:'التهيئة', vwOffboarding:'إخلاء الطرف', vwCustody:'العهد',
+  vwRelations:'علاقات العمل', vwPolicies:'السياسات', vwExpiring:'وثائق تنتهي', vwImport:'استيراد', vwAccounts:'الدخول والأجهزة',
+  vwDashboard:'لوحة الإدارة', vwReports:'التقارير', vwAttendance:'تقرير الحضور', vwAudit:'سجل التدقيق', vwMain:'',
+  v2System:'نظام الموارد البشرية', v2Search:'ابحث عن موظف أو صفحة', v2Menu:'القائمة', v2More:'المزيد', v2Punch:'بصمة', v2MyPay:'راتبي', v2Req:'الطلبات', v2PeopleS:'الموظفون',
+  v2InSince:'داخل الدوام منذ', v2OutAt:'انصرفت', v2NotIn:'لم تسجل حضورك', v2DayOff:'يوم راحة', v2Pages:'الصفحات', v2PeopleRes:'الموظفون', v2NoRes:'لا نتائج',
+  v2Hint:'اكتب اسما أو رقما وظيفيا أو اسم صفحة', v2Keys:'↑ ↓ للتنقل، Enter للفتح، Esc للإغلاق',
+  secPay:'الرواتب والخصومات', secPayLead:'قواعد احتساب المسير. تطبق من المسير التالي.', swAbs:'خصم الغياب', swAbsLead:'يخصم أجر يوم الغياب بلا عذر.',
+  swLate:'خصم دقائق التأخير', swLateLead:'يخصم وقت التأخير بعد فترة السماح.', swOt:'الإضافي من البصمة', swOtLead:'يحسب العمل الإضافي من ساعات الحضور (المادة 107) بدل الإدخال اليدوي.',
+  eosBasis:'أساس مكافأة نهاية الخدمة', eosTotal:'الأجر الفعلي الكامل', eosBH:'الأساسي والسكن', eosBasisHint:'الأجر الذي تحسب عليه المكافأة (المادتان 84 و85).',
+  wpsDay:'موعد رفع ملف حماية الأجور', wpsDayHint:'يوم من كل شهر، بين 1 و28.', dayOfMonth:'من الشهر',
+  secComp:'الامتثال والترقيم', secCompLead:'هدف التوطين وبادئات الأرقام المرجعية.', saudiTarget:'هدف التوطين',
+  saudiTargetHint:'النسبة المطلوبة في نطاقات، وتظهر خطا على لوحة الإدارة. اتركه فارغا إن لم يحدد بعد.',
+  refPfx:'بادئات الأرقام المرجعية', refPfxHint:'اختياري، بصيغة JSON مثل {"leave":"VAC"}. حتى 6 أحرف أو أرقام لكل نوع. اتركه فارغا للبادئات الافتراضية.',
+  secSeason:'جداول الدوام ورمضان والحظر الصيفي', secSeasonLead:'تواريخ رمضان وساعاته، وفترة منع العمل تحت الشمس للعاملين في المواقع المكشوفة.',
+  swRoster:'تفعيل جداول الدوام الأسبوعية', swRosterLead:'يستخدم جدول كل موظف الأسبوعي بدل الدوام العام.', ramFrom:'بداية رمضان', ramTo:'نهاية رمضان',
+  ramHours:'ساعات الدوام اليومية في رمضان', ramHoursHint:'للمسلمين، 6 ساعات كحد أقصى (المادة 98). من 1 إلى 6 بخطوة نصف ساعة.',
+  banFrom:'بداية الحظر الصيفي (شهر-يوم)', banTo:'نهاية الحظر الصيفي (شهر-يوم)', banStart:'يبدأ المنع الساعة', banEnd:'وينتهي الساعة',
+  banHint:'مثال: من 06-15 إلى 09-15، من 12:00 إلى 15:00.',
+  secCo:'ملف الشركة', secCoLead:'الاسم والسجل التجاري والرقم الضريبي والعنوان. تظهر في رأس كل خطاب وشهادة وقسيمة راتب وتقرير.',
+  coNameAr:'اسم الشركة بالعربية', coNameEn:'اسم الشركة بالإنجليزية', coShortAr:'الاسم المختصر بالعربية', coShortEn:'الاسم المختصر بالإنجليزية',
+  coCr:'رقم السجل التجاري (10 أرقام)', coVat:'الرقم الضريبي (15 رقما)', coAddrAr:'العنوان بالعربية', coAddrEn:'العنوان بالإنجليزية',
+  e_bad_setting:'قيمة غير صحيحة في الإعداد: {key}.', e_cannot_change_own_roles:'لا يمكنك منح صلاحياتك الإضافية أو سحبها بنفسك؛ يغيّرها مسؤول نظام آخر.',
+  e_gender_required:'سجّل جنس الموظف في ملفه أولا، فهذه الإجازة مرتبطة بالجنس.', e_cycle_closed:'دورة التقييم مغلقة ولا يمكن تغيير مرحلتها.',
+  e_ref_exhausted:'تعذر إصدار رقم مرجعي جديد. أبلغ مسؤول النظام.', e_already_setup:'النظام مهيأ مسبقا؛ ادخل بحسابك.', e_bad_request:'طلب غير صحيح. حدّث الصفحة وأعد المحاولة.',
+  e_bad_time:'الوقت غير صحيح، اكتبه بصيغة HH:MM.', e_cannot_change_own_role:'لا يمكنك تغيير صلاحيتك بنفسك.', e_cannot_disable_self:'لا يمكنك إيقاف حسابك بنفسك.',
+  e_bad_credential:'بيانات الجهاز غير صالحة لهذا الحساب. فعّل الجهاز من جديد.', e_bad_attestation:'تعذر التحقق من الجهاز. أعد التفعيل.', e_bad_auth_data:'بيانات التحقق من الجهاز غير صحيحة. أعد المحاولة.',
+  e_bad_client_data:'بيانات المتصفح غير صحيحة. أعد المحاولة.', e_bad_origin:'افتح التطبيق من رابطه الرسمي.', e_bad_rp:'افتح التطبيق من رابطه الرسمي.',
+  e_no_user_presence:'لم يُؤكَّد الإجراء على الجهاز. أعد المحاولة.', e_unsupported_key:'هذا الجهاز لا يدعم نوع المفتاح المطلوب.', e_cloned_authenticator:'رُصد استخدام نسخة من مفتاح الجهاز. تواصل مع الموارد البشرية.',
+  e_email_auth_failed:'تعذر الدخول إلى بريد Microsoft 365. راجع إعدادات البريد.', e_email_send_failed:'تعذر إرسال البريد. أعد المحاولة لاحقا.', e_unknown_action:'إجراء غير معروف. حدّث التطبيق.',
+  e_range_too_long:'الفترة أطول من المسموح. اختر فترة أقصر.'
+});
+Object.assign(T.en, {
+  arHome:'Home', arTime:'Time & attendance', arRequests:'Requests & leave', arPay:'Pay', arGrowth:'Performance & growth', arPeople:'People & organisation',
+  arInsights:'Reports & insights', arSettings:'Settings', arProfile:'My file', arAccount:'Account & devices',
+  alTime:'Your attendance, team shifts and punch review.', alRequests:'Your requests, approvals, the leave calendar and public holidays.', alPay:'Your payslips, payroll runs and wage protection.',
+  alGrowth:'Your goals and review, development plans and the pulse survey.', alPeople:'Files, structure and positions, from hire to clearance.', alInsights:'The management dashboard, verified reports and the audit log.',
+  alSettings:'Attendance rules and system settings.',
+  vwPunch:'Check in', vwHistory:'My attendance', vwBoard:'Today', vwReview:'Punch review', vwShifts:'Shifts', vwZones:'Locations',
+  vwMine:'My requests', vwInbox:'Approvals', vwLeave:'Leave calendar', vwHolidays:'Public holidays',
+  vwSlips:'My payslips', vwRuns:'Payroll runs', vwApprovals:'Salary approvals', vwCompliance:'Compliance',
+  vwGrowth:'My growth', vwCycle:'Review cycle', vwPlans:'Development plans', vwPulse:'Pulse survey',
+  vwDirectory:'Directory', vwTeam:'My team', vwOrg:'Organisation', vwPositions:'Positions', vwOnboarding:'Onboarding', vwOffboarding:'Offboarding', vwCustody:'Assets',
+  vwRelations:'Employee relations', vwPolicies:'Policies', vwExpiring:'Expiring documents', vwImport:'Import', vwAccounts:'Logins & devices',
+  vwDashboard:'Dashboard', vwReports:'Reports', vwAttendance:'Attendance report', vwAudit:'Audit log', vwMain:'',
+  v2System:'HR system', v2Search:'Search people or pages', v2Menu:'Menu', v2More:'More', v2Punch:'Punch', v2MyPay:'My pay', v2Req:'Requests', v2PeopleS:'People',
+  v2InSince:'In since', v2OutAt:'Out at', v2NotIn:'Not checked in', v2DayOff:'Day off', v2Pages:'Pages', v2PeopleRes:'People', v2NoRes:'No results',
+  v2Hint:'Type a name, an employee number or a page', v2Keys:'↑ ↓ to move, Enter to open, Esc to close',
+  secPay:'Pay and deductions', secPayLead:'How payroll is calculated. Applies from the next run.', swAbs:'Deduct absence', swAbsLead:"Deducts a day's pay for unexcused absence.",
+  swLate:'Deduct late minutes', swLateLead:'Deducts lateness after the grace period.', swOt:'Overtime from attendance', swOtLead:'Pays overtime from punched hours (Art. 107) instead of manual entries.',
+  eosBasis:'End-of-service wage basis', eosTotal:'Full actual wage', eosBH:'Basic and housing', eosBasisHint:'The wage the award is calculated on (Arts. 84 and 85).',
+  wpsDay:'WPS upload due day', wpsDayHint:'A day of each month, 1 to 28.', dayOfMonth:'of month',
+  secComp:'Compliance and numbering', secCompLead:'The Saudization target and reference-number prefixes.', saudiTarget:'Saudization target',
+  saudiTargetHint:'The Nitaqat share required; drawn as a line on the dashboard. Leave empty if not set yet.',
+  refPfx:'Reference-number prefixes', refPfxHint:'Optional JSON such as {"leave":"VAC"}. Up to 6 letters or digits per kind. Leave empty for the defaults.',
+  secSeason:'Rosters, Ramadan and the summer ban', secSeasonLead:'Ramadan dates and hours, and the midday outdoor-work ban for staff at open sites.',
+  swRoster:'Use weekly rosters', swRosterLead:"Uses each employee's weekly roster instead of the general hours.", ramFrom:'Ramadan starts', ramTo:'Ramadan ends',
+  ramHours:'Daily hours in Ramadan', ramHoursHint:'For Muslim staff, 6 hours at most (Art. 98). 1 to 6 in half hours.',
+  banFrom:'Summer ban from (MM-DD)', banTo:'Summer ban to (MM-DD)', banStart:'Ban starts at', banEnd:'Ban ends at',
+  banHint:'For example 06-15 to 09-15, 12:00 to 15:00.',
+  secCo:'Company profile', secCoLead:'Name, commercial registration, VAT number and address. They head every letter, certificate, payslip and report.',
+  coNameAr:'Company name in Arabic', coNameEn:'Company name in English', coShortAr:'Short name in Arabic', coShortEn:'Short name in English',
+  coCr:'Commercial registration (10 digits)', coVat:'VAT number (15 digits)', coAddrAr:'Address in Arabic', coAddrEn:'Address in English',
+  e_bad_setting:'Invalid value for the setting: {key}.', e_cannot_change_own_roles:'You cannot grant or remove your own extra roles; another administrator must do it.',
+  e_gender_required:"Record the employee's gender in their file first; this leave depends on it.", e_cycle_closed:'This review cycle is closed; its stage cannot change.',
+  e_ref_exhausted:'Could not issue a new reference number. Tell the administrator.', e_already_setup:'The system is already set up; sign in instead.', e_bad_request:'Invalid request. Refresh the page and try again.',
+  e_bad_time:'Invalid time; use HH:MM.', e_cannot_change_own_role:'You cannot change your own access level.', e_cannot_disable_self:'You cannot suspend your own account.',
+  e_bad_credential:"This device's credential is not valid. Activate the device again.", e_bad_attestation:'The device could not be verified. Activate again.', e_bad_auth_data:'The device sent invalid sign-in data. Try again.',
+  e_bad_client_data:'The browser sent invalid data. Try again.', e_bad_origin:'Open the app from its official address.', e_bad_rp:'Open the app from its official address.',
+  e_no_user_presence:'The action was not confirmed on the device. Try again.', e_unsupported_key:'This device does not support the required key type.', e_cloned_authenticator:'A copied device key was detected. Contact HR.',
+  e_email_auth_failed:'Could not sign in to Microsoft 365 mail. Check the mail settings.', e_email_send_failed:'The email could not be sent. Try again later.', e_unknown_action:'Unknown action. Update the app.'
+});
+
+/** Extra roles from the file (hr, payroll, executive, manager); before the file arrives, the sign-in role decides hr. */
+function R(){ var r = S.fileRoles; return r ? { hr: !!r.hr, payroll: !!r.payroll, executive: !!r.executive, manager: !!r.manager } : { hr: isHr(), payroll: false, executive: false, manager: false }; }
+function any(){ var ks = Array.prototype.slice.call(arguments); return function(){ var r = R(); return ks.some(function(k){ return r[k]; }); }; }
+function ALL(){ return true; }
+/** Pay amounts: the hr role or a payroll holder. An admin alone gets forbidden on the server, so the pages stay hidden. */
+function salaryOk(){ var r = R(); return r.payroll || (r.hr && !isAdmin()); }
+var MY_FILES = ['js/dashboard.js', 'js/my-file.js', 'js/requests.js', 'js/payroll.js', 'js/performance.js', 'js/engage.js', 'js/ops.js'];
+var HR_FILES = ['js/my-file.js', 'js/requests.js', 'js/payroll.js', 'js/performance.js', 'js/dashboard.js', 'js/reports.js', 'js/engage.js', 'js/compliance.js', 'js/hr-console.js'];
+var OPS_FILES = HR_FILES.concat(['js/ops.js']);
+var AREAS = [
+  { id: 'home', i: 'house', bare: true, subs: [{ id: 'main', n: 'vwMain', ok: ALL, files: ['js/dashboard.js', 'js/compliance.js', 'js/home.js'], run: function(b){ Home.render(b); } }] },
+  { id: 'time', i: 'clock', subs: [
+    { id: 'punch', n: 'vwPunch', ok: ALL, run: function(){ renderHome(); } },
+    { id: 'history', n: 'vwHistory', ok: ALL, run: function(){ renderHistory(); } },
+    { id: 'board', n: 'vwBoard', ok: isHr, adm: 'board' },
+    { id: 'review', n: 'vwReview', ok: isHr, adm: 'review', badge: 'revBadge' },
+    { id: 'shifts', n: 'vwShifts', ok: any('hr', 'manager'), sec: 'shifts', ops: 1 },
+    { id: 'zones', n: 'vwZones', ok: isAdmin, adm: 'zones' }] },
+  { id: 'requests', i: 'tray', subs: [
+    { id: 'mine', n: 'vwMine', ok: ALL, files: MY_FILES, run: myRequestsView },
+    { id: 'inbox', n: 'vwInbox', ok: any('hr', 'payroll', 'manager'), sec: 'inbox' },
+    { id: 'leave', n: 'vwLeave', ok: any('hr', 'manager'), sec: 'leave' },
+    { id: 'holidays', n: 'vwHolidays', ok: any('hr'), sec: 'holidays' }] },
+  { id: 'pay', i: 'wallet', subs: [
+    { id: 'slips', n: 'vwSlips', ok: ALL, files: MY_FILES, run: mySlipsView },
+    { id: 'runs', n: 'vwRuns', ok: salaryOk, sec: 'payroll' },
+    { id: 'approvals', n: 'vwApprovals', ok: salaryOk, sec: 'approvals' },
+    { id: 'compliance', n: 'vwCompliance', ok: salaryOk, sec: 'compliance' }] },
+  { id: 'growth', i: 'trend-up', subs: [
+    { id: 'me', n: 'vwGrowth', ok: ALL, files: MY_FILES, run: myGrowthView },
+    { id: 'cycle', n: 'vwCycle', ok: any('hr', 'manager'), sec: 'performance' },
+    { id: 'plans', n: 'vwPlans', ok: any('hr', 'manager'), sec: 'plans' },
+    { id: 'pulse', n: 'vwPulse', ok: any('hr', 'executive', 'payroll'), sec: 'engagement' }] },
+  { id: 'people', i: 'users-three', subs: [
+    { id: 'directory', n: 'vwDirectory', ok: any('hr'), sec: 'people' },
+    { id: 'team', n: 'vwTeam', ok: any('manager'), sec: 'team' },
+    { id: 'org', n: 'vwOrg', ok: any('hr'), sec: 'org' },
+    { id: 'positions', n: 'vwPositions', ok: any('hr'), sec: 'positions' },
+    { id: 'onboarding', n: 'vwOnboarding', ok: any('hr', 'manager'), sec: 'onboarding' },
+    { id: 'offboarding', n: 'vwOffboarding', ok: any('hr', 'payroll', 'manager'), sec: 'offboarding', ops: 1 },
+    { id: 'custody', n: 'vwCustody', ok: any('hr', 'payroll'), sec: 'custody', ops: 1 },
+    { id: 'relations', n: 'vwRelations', ok: any('hr', 'manager'), sec: 'relations', ops: 1 },
+    { id: 'policies', n: 'vwPolicies', ok: any('hr'), sec: 'policies' },
+    { id: 'expiring', n: 'vwExpiring', ok: any('hr'), sec: 'expiring' },
+    { id: 'import', n: 'vwImport', ok: any('hr'), sec: 'import' },
+    { id: 'accounts', n: 'vwAccounts', ok: isHr, adm: 'emp' }] },
+  { id: 'insights', i: 'chart-line-up', subs: [
+    { id: 'dashboard', n: 'vwDashboard', ok: any('hr', 'payroll', 'executive'), sec: 'dashboard' },
+    { id: 'reports', n: 'vwReports', ok: any('hr', 'payroll', 'executive', 'manager'), sec: 'reports' },
+    { id: 'attendance', n: 'vwAttendance', ok: isHr, adm: 'reports' },
+    { id: 'audit', n: 'vwAudit', ok: isHr, adm: 'audit' }] },
+  { id: 'profile', i: 'identification-card', foot: true, bare: true, subs: [{ id: 'main', n: 'vwMain', ok: ALL, files: MY_FILES, run: function(b){ MyFile.render(b); } }] },
+  { id: 'account', i: 'user-circle', foot: true, bare: true, subs: [{ id: 'main', n: 'vwMain', ok: ALL, run: function(){ renderMe(); } }] },
+  { id: 'settings', i: 'gear-six', foot: true, subs: [{ id: 'main', n: 'vwMain', ok: isAdmin, adm: 'settings' }] }
+];
+var ADM = { board: admBoard, emp: admEmp, zones: admZones, review: admReview, reports: admReports, settings: admSettings, audit: admAudit };
+function areaOf(id){ return AREAS.filter(function(a){ return a.id === id; })[0]; }
+function subsOf(a){ return a.subs.filter(function(s){ return s.ok(); }); }
+function areaOk(a){ return subsOf(a).length > 0; }
+function areaName(a){ return t('ar' + a.id.charAt(0).toUpperCase() + a.id.slice(1)); }
+function areaLead(a){ var k = 'al' + a.id.charAt(0).toUpperCase() + a.id.slice(1); return T[S.lang][k] || ''; }
+/** Where the page body goes: the area body in the shell, #main before the shell exists. */
+function view(){ return $('#v2Body') || $('#main'); }
+/** The v2 block must come after every module's own <style>, so equal selectors resolve to v2. */
+function themeLast(){ var s = document.getElementById('dsv2'); if (s && document.head.lastElementChild !== s) document.head.appendChild(s); }
+function loadAll(files){ return files.reduce(function(p, f){ return p.then(function(){ return loadScript(f); }); }, Promise.resolve()); }
+
+/** Where a task from the bell opens. HR sections map to their area; personal items to growth or the profile. */
+var SEC_DEST = { inbox: 'requests:inbox', leave: 'requests:leave', approvals: 'pay:approvals', payroll: 'pay:runs', compliance: 'pay:compliance', reports: 'insights:reports', dashboard: 'insights:dashboard',
+  onboarding: 'people:onboarding', offboarding: 'people:offboarding', custody: 'people:custody', relations: 'people:relations', team: 'people:team', people: 'people:directory', shifts: 'time:shifts',
+  performance: 'growth:cycle', plans: 'growth:plans', engagement: 'growth:pulse' };
+var MINE_DEST = { survey: 'growth:me', policies: 'growth:me', onboarding: 'growth:me', plans: 'growth:me' };
+function taskDest(x){ var g = x.target || {}; return g.tab === 'hr' ? SEC_DEST[g.sec] || 'home' : MINE_DEST[x.kind] || 'profile'; }
+function areaCounts(){
+  var c = {};
+  ((TASKS && TASKS.tasks) || []).forEach(function(x){ if (x.kind === 'delegated') return; var a = taskDest(x).split(':')[0]; if (a !== 'home') c[a] = (c[a] || 0) + (x.count || 0); });
+  return c;
+}
+
 function renderShell(){
   rerender = renderShell;
-  var wide = S.tab === 'admin' || S.tab === 'hr';
   if (!S.fileRoles) S.fileRoles = hrAccessFromStore();
-  if (S.tab === 'hr' && !hasHrTab() && S.fileRoles) S.tab = 'file';
-  var tabs = [['home', I.home, t('tabHome')], ['file', I.idcard, t('tabFile')]];
-  if (hasHrTab()) tabs.push(['hr', I.hr, t('tabHr')]);
-  if (isHr()) tabs.push(['admin', I.admin, t('tabAdmin')]);
-  tabs.push(['me', I.user, t('tabMe')]);
-  var cur = S.tab === 'history' ? 'file' : S.tab;
-  root('<div class="app' + (wide ? ' admin-wide' : '') + (S.tab === 'home' ? ' on-home' : '') + '">' +
-    '<header class="topbar"><img src="' + MARK + '" alt="Best Gas"><div class="who"><b>' + esc(S.me.name) + '</b><span>' + esc(S.me.title || S.me.department || t('company')) + ' · ' + esc(S.me.empNo) + '</span></div>' +
-    '<button class="iconbtn tk-bell" type="button" id="tkBell" aria-label="' + t('tkTitle') + '">' + ph('bell') + '<span class="tk-n hidden" id="tkN"></span></button>' +
-    '<button class="iconbtn" type="button" onclick="toggleLang()" aria-label="language" style="font-size:12px;width:auto;padding:0 10px">' + t('langBtn') + '</button>' +
-    '<button class="iconbtn" type="button" onclick="renderLock()" aria-label="' + t('signOut') + '">' + I.lock + '</button></header>' +
-    '<main id="main"></main>' +
-    '<nav class="tabs" aria-label="' + t('appName') + '">' + tabs.map(function(x){ return '<button type="button" data-tab="' + x[0] + '"' + (cur === x[0] ? ' aria-current="page"' : '') + '>' + x[1] + '<span>' + x[2] + '</span></button>'; }).join('') + '</nav></div>');
-  $$('.tabs button').forEach(function(b){ b.onclick = function(){ S.tab = b.dataset.tab; renderShell(); }; });
+  root('<div class="app v2">' +
+    '<aside class="v2-side" id="v2Side" aria-label="' + t('v2Menu') + '"><div class="v2-brand"><span class="v2-mark" role="img" aria-label="' + esc(coShort('en')) + '" style="-webkit-mask-image:url(' + MARK + ');mask-image:url(' + MARK + ')"></span><div><b>' + t('company') + '</b><small>' + t('v2System') + '</small></div></div>' +
+      '<nav class="v2-nav" id="v2Nav" aria-label="' + t('v2Menu') + '"></nav><div class="v2-foot"><nav class="v2-nav" id="v2Foot"></nav><p class="v2-ver num">v' + BUILD + '</p></div></aside>' +
+    '<div class="v2-main"><header class="v2-top">' +
+      '<button class="v2-ib v2-hamb" type="button" id="v2Hamb" aria-label="' + t('v2Menu') + '">' + ph('list') + '</button>' +
+      '<button class="v2-search" type="button" id="v2Find" aria-label="' + t('v2Search') + '">' + ph('magnifying-glass') + '<span>' + t('v2Search') + '</span><kbd>Ctrl K</kbd></button><span class="sp"></span>' +
+      '<button class="v2-chip" type="button" id="v2Chip"></button>' +
+      '<button class="v2-ib tk-bell" type="button" id="tkBell" aria-label="' + t('tkTitle') + '">' + ph('bell') + '<span class="tk-n hidden" id="tkN"></span></button>' +
+      '<button class="v2-ib v2-lang" type="button" id="v2Lang" aria-label="language">' + t('langBtn') + '</button>' +
+      '<button class="v2-av" type="button" id="v2Av" aria-haspopup="menu" aria-expanded="false" aria-label="' + esc(S.me.name) + '">' + esc(initials(S.me.name)) + '</button>' +
+    '</header><main id="main"></main></div><nav class="v2-bottom" id="v2Bottom" aria-label="' + t('v2Menu') + '"></nav></div>');
   $('#tkBell').onclick = openTasks;
-  setTimeout(loadTasks, S.tab === 'home' ? 1500 : 0); // never before the check-in screen is ready
-  if (S.tab === 'home') renderHome();
-  else if (S.tab === 'history') renderHistory();
-  else if (S.tab === 'file') lazyScreen(['js/dashboard.js', 'js/my-file.js', 'js/requests.js', 'js/payroll.js', 'js/performance.js', 'js/engage.js'], function(m){ MyFile.render(m); });
-  else if (S.tab === 'hr') lazyScreen(['js/my-file.js', 'js/requests.js', 'js/payroll.js', 'js/performance.js', 'js/dashboard.js', 'js/reports.js', 'js/engage.js', 'js/compliance.js', 'js/hr-console.js'], function(m){ HrConsole.render(m); });
-  else if (S.tab === 'admin') renderAdmin();
-  else renderMe();
+  $('#v2Find').onclick = openPalette;
+  $('#v2Lang').onclick = toggleLang;
+  $('#v2Av').onclick = function(e){ e.stopPropagation(); if ($('.v2-menu')) closeMenus(); else openAvMenu(); };
+  $('#v2Hamb').onclick = openSide;
+  paintNav(); paintChip();
+  var a = areaOf(S.tab) || AREAS[0];
+  setTimeout(loadTasks, a.id === 'time' ? 1500 : 200); // never before the check-in screen is ready
+  goArea(a.id, (S.sub || {})[a.id]);
+}
+
+function paintNav(){
+  var cnt = areaCounts(), vis = AREAS.filter(areaOk);
+  var item = function(a){ var c = cnt[a.id];
+    return '<a href="#' + a.id + '" data-area="' + a.id + '"' + (S.tab === a.id ? ' aria-current="page"' : '') + '>' + ph(a.i) + '<span>' + areaName(a) + '</span>' + (c ? '<span class="cnt num">' + (c > 99 ? '99+' : c) + '</span>' : '') + '</a>'; };
+  var nav = $('#v2Nav'), foot = $('#v2Foot'), bot = $('#v2Bottom'); if (!nav) return;
+  nav.innerHTML = vis.filter(function(a){ return !a.foot; }).map(item).join('');
+  foot.innerHTML = vis.filter(function(a){ return a.foot; }).map(item).join('') + '<button type="button" id="v2Lock">' + ph('lock-simple') + '<span>' + t('signOut') + '</span></button>';
+  var r = R(), fourth = r.hr || r.manager ? ['people', 'users-three', r.hr ? 'v2PeopleS' : 'vwTeam'] : ['pay', 'wallet', 'v2MyPay'];
+  var bn = [['home', 'house', 'arHome'], ['requests', 'tray', 'v2Req'], ['time:punch', 'fingerprint', 'v2Punch', 1], fourth, ['more', 'dots-three-outline', 'v2More']];
+  bot.innerHTML = bn.map(function(b){ var id = b[0].split(':')[0];
+    return '<button type="button" data-area="' + b[0] + '" class="' + (b[3] ? 'center' : '') + '"' + (!b[3] && S.tab === id ? ' aria-current="page"' : '') + ' aria-label="' + t(b[2]) + '">' + ph(b[1]) + (b[3] ? '' : '<span>' + t(b[2]) + '</span>') + '</button>'; }).join('');
+  $$('[data-area]', $('#root')).forEach(function(el){ el.onclick = function(e){
+    e.preventDefault();
+    if (el.dataset.area === 'more') return openSide();
+    var p = el.dataset.area.split(':'); goArea(p[0], p[1]);
+  }; });
+  $('#v2Lock').onclick = function(){ renderLock(); };
+}
+
+/** The top-bar attendance chip: in since / out at / not yet; one tap opens the check-in screen. */
+function paintChip(){
+  var c = $('#v2Chip'); if (!c) return;
+  var d = S.today || {}, inNow = d.next === 'out';
+  var txt = inNow ? t('v2InSince') + ' ' + fmtTime(d.firstIn) : d.lastOut ? t('v2OutAt') + ' ' + fmtTime(d.lastOut) : d.status === 'off' ? t('v2DayOff') : t('v2NotIn');
+  c.className = 'v2-chip' + (inNow ? ' in' : '');
+  c.innerHTML = '<i class="dot"></i><span class="num">' + txt + '</span>';
+  c.setAttribute('aria-label', txt);
+  c.onclick = function(){ goArea('time', 'punch'); };
+}
+
+/** Open an area and one of its sub-pages (or the last one used there, or the first). */
+function goArea(area, sub){
+  var a = areaOf(area); if (!a || !areaOk(a)) a = AREAS[0];
+  var subs = subsOf(a); S.sub = S.sub || {};
+  var s = subs.filter(function(x){ return x.id === sub; })[0] || subs.filter(function(x){ return x.id === S.sub[a.id]; })[0] || subs[0];
+  var wasPunch = S.tab === 'time' && S.sub.time === 'punch';
+  S.tab = a.id; S.sub[a.id] = s.id;
+  if (wasPunch && !(a.id === 'time' && s.id === 'punch')) Brand3D.destroy();
+  try { history.replaceState(null, '', '#' + a.id + (s !== subs[0] ? '/' + s.id : '')); } catch (e) {}
+  closeSide(); closeMenus();
+  var main = $('#main'); if (!main) return;
+  $$('#v2Nav [data-area], #v2Foot [data-area], #v2Bottom [data-area]').forEach(function(el){ var id = el.dataset.area.split(':')[0]; if (!el.classList.contains('center') && id === a.id) el.setAttribute('aria-current', 'page'); else el.removeAttribute('aria-current'); });
+  main.scrollTop = 0;
+  if (a.bare) main.innerHTML = '<div id="v2Body" class="v2-bare"></div>';
+  else {
+    var lead = areaLead(a);
+    main.innerHTML = '<div class="page v2' + (a.id === 'time' && s.id === 'punch' ? ' is-punch' : '') + '"><div class="v2-ph"><div><h1>' + areaName(a) + '</h1>' + (lead ? '<p>' + lead + '</p>' : '') + '</div></div>' +
+      (subs.length > 1 ? '<div class="v2-views" role="tablist" aria-label="' + areaName(a) + '">' + subs.map(function(x){
+        return '<button type="button" role="tab" data-sub="' + x.id + '" aria-selected="' + (x === s) + '" tabindex="' + (x === s ? 0 : -1) + '">' + t(x.n) + (x.badge ? '<span class="badge hidden num" id="' + x.badge + '"></span>' : '') + '</button>';
+      }).join('') + '</div>' : '<div style="height:14px"></div>') +
+      '<div class="v2-area' + (a.id === 'time' && s.id === 'punch' ? ' v2-punch' : '') + '" id="v2Body" role="tabpanel"></div></div>';
+    var tabs = $$('[data-sub]', main);
+    tabs.forEach(function(b, n){
+      b.onclick = function(){ goArea(a.id, b.dataset.sub); };
+      b.onkeydown = function(ev){
+        var fwd = S.lang === 'ar' ? 'ArrowLeft' : 'ArrowRight', back = S.lang === 'ar' ? 'ArrowRight' : 'ArrowLeft', m = -1;
+        if (ev.key === fwd) m = (n + 1) % tabs.length; else if (ev.key === back) m = (n - 1 + tabs.length) % tabs.length;
+        if (m >= 0) { ev.preventDefault(); goArea(a.id, tabs[m].dataset.sub); var f = $('[data-sub="' + tabs[m].dataset.sub + '"]'); if (f) f.focus(); }
+      };
+    });
+    var cur = $('[data-sub][aria-selected="true"]', main); if (cur && cur.scrollIntoView && subs.length > 4) cur.scrollIntoView({ block: 'nearest', inline: 'center' });
+  }
+  runSub(s, $('#v2Body'));
+}
+function runSub(s, body){
+  if (s.adm) { S.adm = s.adm; body.innerHTML = '<div class="adm-body" id="admBody"></div>'; ADM[s.adm](); themeLast(); return; }
+  if (s.sec) return lazyScreen(s.ops ? OPS_FILES : HR_FILES, function(){ HrConsole.section(s.sec, body); themeLast(); }, body);
+  if (s.files) return lazyScreen(s.files, function(){ s.run(body); themeLast(); }, body);
+  s.run(body); themeLast();
+}
+
+// ---- personal sub-pages built from the module cards ----
+function skl(n){ var h = ''; for (var i = 0; i < n; i++) h += '<span class="sk" style="width:' + (86 - i * 18) + '%"></span>'; return h; }
+function failBox(el, retry){
+  el.innerHTML = '<div class="empty">' + ph('wifi-slash') + '<b>' + t('e_network') + '</b><div class="btnrow" style="justify-content:center;margin-top:12px"><button class="btn btn-dark btn-sm" type="button">' + t('retry') + '</button></div></div>';
+  el.querySelector('button').onclick = retry;
+}
+function myRequestsView(b){
+  b.innerHTML = '<div class="mf"><div class="mf-cols"><div class="mf-card wide" id="mfReq">' + skl(3) + '</div><div class="mf-card" id="mfLeave">' + skl(2) + '</div></div></div>';
+  apiFresh('myFile', {}, function(fr){
+    if (!b.isConnected) return;
+    if (!fr.ok) return failBox(b, function(){ myRequestsView(b); });
+    var f = fr.file;
+    function load(){
+      apiFresh('myRequests', {}, function(r){
+        var lv = $('#mfLeave', b), rq = $('#mfReq', b); if (!lv || !rq) return;
+        if (!r.ok) return failBox(rq, load);
+        lv.innerHTML = Req.balanceCard(r.leave, r.holidays) + (r.inbox ? '<button type="button" class="btn btn-dark btn-sm mf-go" id="mfInbox">' + ph('seal-check') + t('vwInbox') + ' (' + r.inbox + ')</button>' : '');
+        rq.innerHTML = Req.listCard(r.rows);
+        Req.wireList(rq, r.rows, f, load);
+        var nb = $('#rqNew', rq); if (nb) nb.onclick = function(){ Req.newRequest(f, load); };
+        var ib = $('#mfInbox', lv); if (ib) ib.onclick = function(){ goArea('requests', 'inbox'); };
+      });
+    }
+    load();
+  });
+}
+function mySlipsView(b){
+  b.innerHTML = '<div class="mf"><div class="mf-cols"><div class="mf-card wide" id="mfSlips">' + skl(3) + '</div></div></div>';
+  apiFresh('myFile', {}, function(fr){
+    var el = $('#mfSlips', b); if (!el) return;
+    if (!fr.ok) return failBox(b, function(){ mySlipsView(b); });
+    Payroll.myCard(el, fr.file.emp);
+  });
+}
+function myGrowthView(b){
+  b.innerHTML = '<div class="mf"><div class="mf-cols"><div class="mf-card wide" id="mfPerf">' + skl(3) + '</div><div id="mfEngage" style="display:contents"></div></div></div>';
+  Perf.myCards($('#mfPerf', b));
+  Engage.myCards($('#mfEngage', b));
+}
+
+// ---- side drawer (phones), avatar menu, search palette ----
+function openSide(){
+  var s = $('#v2Side'); if (!s) return;
+  s.classList.add('on');
+  if (!$('.v2-scrim')) { var sc = document.createElement('div'); sc.className = 'v2-scrim'; sc.onclick = closeSide; document.body.appendChild(sc); }
+  var f = s.querySelector('[aria-current="page"]') || s.querySelector('a,button'); if (f) f.focus();
+}
+function closeSide(){ var s = $('#v2Side'); if (s) s.classList.remove('on'); var sc = $('.v2-scrim'); if (sc) sc.remove(); }
+function closeMenus(){ $$('.v2-menu').forEach(function(m){ m.remove(); }); var av = $('#v2Av'); if (av) av.setAttribute('aria-expanded', 'false'); }
+function openAvMenu(){
+  closeMenus();
+  var m = document.createElement('div'); m.className = 'v2-menu'; m.setAttribute('role', 'menu');
+  var it = function(k, icon, label){ return '<button type="button" role="menuitem" data-m="' + k + '">' + ph(icon) + '<span>' + label + '</span></button>'; };
+  m.innerHTML = '<div class="v2-menu-h"><b>' + esc(S.me.name) + '</b><small class="num">' + esc(S.me.empNo) + ' · ' + t('r_' + S.me.role) + '</small></div>' +
+    it('profile', 'identification-card', t('arProfile')) + it('account', 'user-circle', t('arAccount')) + it('lang', 'translate', t('langBtn')) + '<hr>' + it('lock', 'sign-out', t('signOut'));
+  $('.v2-top').appendChild(m);
+  $('#v2Av').setAttribute('aria-expanded', 'true');
+  $$('[data-m]', m).forEach(function(b){ b.onclick = function(){
+    var k = b.dataset.m; closeMenus();
+    if (k === 'lang') toggleLang(); else if (k === 'lock') renderLock(); else goArea(k);
+  }; });
+  var items = $$('[data-m]', m); items[0].focus();
+  m.onkeydown = function(e){
+    var i = items.indexOf(document.activeElement);
+    if (e.key === 'Escape') { closeMenus(); $('#v2Av').focus(); }
+    else if (e.key === 'ArrowDown') { e.preventDefault(); items[(i + 1) % items.length].focus(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); items[(i - 1 + items.length) % items.length].focus(); }
+  };
+}
+document.addEventListener('click', function(e){ if (!e.target.closest('.v2-menu, #v2Av')) closeMenus(); });
+document.addEventListener('keydown', function(e){
+  if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K') && $('.app.v2')) { e.preventDefault(); openPalette(); }
+  if (e.key === 'Escape' && $('#v2Side.on')) closeSide();
+});
+
+/** Ctrl K: every page this person may open, and (for HR) every employee from the directory already in memory. */
+function openPalette(){
+  if ($('.v2-pal-back') || !S.me) return;
+  var back = document.activeElement, ov = document.createElement('div'); ov.className = 'v2-pal-back';
+  ov.innerHTML = '<div class="v2-pal" role="dialog" aria-modal="true" aria-label="' + t('v2Search') + '"><div class="v2-pal-in">' + ph('magnifying-glass') +
+    '<input id="palQ" type="search" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="true" aria-controls="palRes" placeholder="' + t('v2Hint') + '">' +
+    '<button type="button" class="dr-x" aria-label="' + t('closeX') + '" title="' + t('closeX') + '">' + ph('x') + '</button></div><div class="v2-pal-res" id="palRes" role="listbox"></div>' +
+    '<p class="v2-pal-keys">' + t('v2Keys') + '</p></div>';
+  document.body.appendChild(ov);
+  var q = $('#palQ', ov), res = $('#palRes', ov), people = null, list = [], sel = 0, pages = [];
+  AREAS.filter(areaOk).forEach(function(a){ var ss = subsOf(a); ss.forEach(function(s){ pages.push({ area: a.id, sub: s.id, icon: a.i, label: ss.length > 1 ? areaName(a) + ' · ' + t(s.n) : areaName(a), key: areaName(a) + ' ' + t(s.n) + ' ' + areaLead(a) }); }); });
+  if (R().hr) apiFresh('hrBootstrap', {}, function(r){ if (r.ok && ov.isConnected) { people = r.rows; draw(); } }, true);
+  var norm = function(s){ return String(s == null ? '' : s).toLowerCase().replace(/[ً-ْ]/g, '').replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي'); };
+  function close(){ if (ov.isConnected) ov.remove(); document.removeEventListener('keydown', onKey, true); if (back && back.isConnected && back.focus) back.focus(); }
+  function draw(){
+    var v = norm(q.value.trim());
+    var pg = pages.filter(function(p){ return !v || norm(p.key).indexOf(v) >= 0; }).slice(0, v ? 8 : 14).map(function(p){ return { kind: 'page', p: p }; });
+    var pp = v && people ? people.filter(function(e){ return norm([e.name, e.nameEn, e.empNo, e.departmentName, e.positionName].join(' ')).indexOf(v) >= 0; }).slice(0, 6).map(function(e){ return { kind: 'emp', e: e }; }) : [];
+    list = pp.concat(pg); if (sel >= list.length) sel = 0;
+    var n = -1, row = function(x){ n++;
+      var h = x.kind === 'emp' ? '<span class="av">' + esc(initials(x.e.name)) + '</span><span class="m"><b>' + esc(x.e.name) + '</b><small class="num">' + esc(x.e.empNo) + (x.e.departmentName ? ' · ' + esc(x.e.departmentName) : '') + '</small></span>'
+        : '<span class="ic">' + ph(x.p.icon) + '</span><span class="m"><b>' + esc(x.p.label) + '</b></span>';
+      return '<button type="button" role="option" id="pal-' + n + '" data-i="' + n + '" aria-selected="' + (n === sel) + '">' + h + '</button>'; };
+    res.innerHTML = list.length ? (pp.length ? '<p>' + t('v2PeopleRes') + '</p>' + pp.map(row).join('') : '') + (pg.length ? '<p>' + t('v2Pages') + '</p>' + pg.map(row).join('') : '')
+      : '<div class="v2-pal-none">' + t('v2NoRes') + '</div>';
+    q.setAttribute('aria-activedescendant', list.length ? 'pal-' + sel : '');
+    $$('[data-i]', res).forEach(function(b){ b.onclick = function(){ pick(list[b.dataset.i]); }; b.onmousemove = function(){ if (sel !== +b.dataset.i) { sel = +b.dataset.i; mark(); } }; });
+  }
+  function mark(){ $$('[data-i]', res).forEach(function(b){ b.setAttribute('aria-selected', +b.dataset.i === sel); }); q.setAttribute('aria-activedescendant', 'pal-' + sel); var c = $('#pal-' + sel, res); if (c) c.scrollIntoView({ block: 'nearest' }); }
+  function pick(x){
+    if (!x) return; close();
+    if (x.kind === 'page') return goArea(x.p.area, x.p.sub);
+    goArea('people', 'directory');
+    loadAll(HR_FILES).then(function(){ HrConsole.openEmp(x.e.id); });
+  }
+  function onKey(e){
+    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(); }
+    else if (e.key === 'ArrowDown' && list.length) { e.preventDefault(); sel = (sel + 1) % list.length; mark(); }
+    else if (e.key === 'ArrowUp' && list.length) { e.preventDefault(); sel = (sel - 1 + list.length) % list.length; mark(); }
+    else if (e.key === 'Enter' && document.activeElement === q) { e.preventDefault(); pick(list[sel]); }
+  }
+  document.addEventListener('keydown', onKey, true);
+  ov.onclick = function(e){ if (e.target === ov) close(); };
+  $('.dr-x', ov).onclick = close;
+  q.oninput = function(){ sel = 0; draw(); };
+  draw(); q.focus();
 }
 
 // ---------------- my tasks (the bell) ----------------
@@ -2099,6 +2745,7 @@ function loadTasks(){
   apiFresh('myTasks', {}, function(r){
     if (!r.ok) return;
     TASKS = r;
+    paintNav();
     var n = $('#tkN'); if (!n) return;
     n.textContent = r.total > 99 ? '99+' : r.total; n.classList.toggle('hidden', !r.total);
     var b = $('#tkBell'); if (b) b.setAttribute('aria-label', t('tkTitle') + (r.total ? ' (' + r.total + ')' : ''));
@@ -2117,17 +2764,18 @@ function openTasks(){
         (x.kind === 'delegated' ? '' : '<b class="tk-c num">' + x.count + '</b>') + '<span class="tk-go">' + (S.lang === 'ar' ? ph('caret-left') : ph('caret-right')) + '</span></button>';
     }).join('') + '</div>';
     $$('.tk-row', el).forEach(function(b){ b.onclick = function(){
-      var x = list[b.dataset.i], g = x.target || {};
-      d.remove(); S.tab = g.tab || 'file'; if (g.sec) S.hrSec = g.sec;
+      var x = list[b.dataset.i], g = x.target || {}, dest = taskDest(x).split(':');
+      d.remove();
       if (g.view) S.rpJump = g.view;
-      renderShell();
+      goArea(dest[0], dest[1]);
     }; });
   }
   if (TASKS) draw(TASKS);
   api('myTasks', {}, true).then(function(r){ if (r.ok) TASKS = r; if (d.isConnected) draw(r); loadTasks(); });
 }
 var TK_ICON = { requests: 'tray', salaries: 'seal-check', payroll: 'money', reports: 'file-text', recon: 'scales', wps: 'bank', onboarding: 'rocket-launch', policies: 'book-open-text',
-  survey: 'heartbeat', plans: 'path', delegated: 'handshake' };
+  survey: 'heartbeat', plans: 'path', delegated: 'handshake', disc_respond: 'scales', disc_decide: 'gavel', disc_objection: 'gavel', injury: 'first-aid-kit', asset_ack: 'package',
+  asset_charge: 'package', clearance: 'sign-out' };
 
 // ---------------- location ----------------
 function startWatch(){
@@ -2161,7 +2809,7 @@ function geoState(){
 // ---------------- home: 3D radar + punch ----------------
 function renderHome(){
   var next = S.today ? S.today.next : 'in';
-  $('#main').innerHTML = '<div class="home-wide">' +
+  view().innerHTML = '<div class="home-wide">' +
     '<section class="hero" id="hero" aria-label="geofence"><div class="tilt" id="tilt">' +
       '<div class="plane"><div class="grid"></div><div class="sweep"></div><div class="zone" id="zone"></div>' +
         '<div class="ringlbl" id="rl1"><span></span></div><div class="ringlbl" id="rl2"><span></span></div><div class="ringlbl" id="rl3"><span></span></div>' +
@@ -2202,6 +2850,7 @@ function renderToday(){
     }).join('') + '</ul>';
   }
   var box = $('#todayBox'); if (box) box.innerHTML = html;
+  paintChip();
 }
 
 var clockTimer = null;
@@ -2296,7 +2945,8 @@ function schedulePunchPrefetch(onlyTimer){
   });
   prefetchTimer = setTimeout(schedulePunchPrefetch, 140000);
 }
-function refreshMe(){ return api('me', {}, true).then(function(r){ if (r.ok) { applyHome(r); if (S.tab === 'home') { renderHome(); } } }); }
+function refreshMe(){ return api('me', {}, true).then(function(r){ if (r.ok) { applyHome(r); if (onPunch()) { renderHome(); } } }); }
+function onPunch(){ return !!$('#punch'); }
 
 // One tap. The server refuses a second punch within minPunchGapMin, so a double tap cannot record twice.
 function wirePunch(){
@@ -2324,7 +2974,8 @@ function doPunch(){
     api('punchPw', { type: ptype, geo: { samples: freshSamples() }, deviceTime: Date.now(), ua: navigator.userAgent }).then(function(r){
       S.busy = false;
       if (r.ok) { S.today = r.today; showStamp(true, ptype, r.punch); } else showStamp(false, ptype, null, r.error);
-      if (S.tab === 'home') renderHome();
+      if (onPunch()) renderHome();
+      paintChip();
     });
     return;
   }
@@ -2341,7 +2992,8 @@ function doPunch(){
     else showStamp(false, type, null, r.error);
     if (r.next && r.next.options) { S.punchOpts = r.next.options; S.punchType = r.next.type; S.punchOptsAt = Date.now(); schedulePunchPrefetch(true); }
     else schedulePunchPrefetch();
-    if (S.tab === 'home') { renderHome(); }
+    if (onPunch()) { renderHome(); }
+    paintChip();
   });
 }
 
@@ -2363,7 +3015,7 @@ function showStamp(ok, type, punch, err){
 // ---------------- history ----------------
 S.month = riyadhToday().slice(0, 7);
 function renderHistory(){
-  $('#main').innerHTML = '<section class="page"><h2>' + t('histTitle') + '</h2>' +
+  view().innerHTML = '<section class="page"><h2>' + t('histTitle') + '</h2>' +
     '<div class="monthbar"><button class="iconbtn" id="mPrev" aria-label="previous">' + (S.lang === 'ar' ? I.chev : I.chevb) + '</button><b id="mLbl"></b>' +
     '<button class="iconbtn" id="mNext" aria-label="next">' + (S.lang === 'ar' ? I.chevb : I.chev) + '</button></div><div id="hBody"><div class="daylist">' + [0,1,2,3].map(function(){ return '<div class="day"><span class="sk"></span><span class="sk"></span><span class="sk"></span></div>'; }).join('') + '</div></div></section>';
   function lbl(){ var p = S.month.split('-'); $('#mLbl').textContent = new Date(Date.UTC(+p[0], +p[1] - 1, 15)).toLocaleDateString(LOCALE(), { month:'long', year:'numeric' }); }
@@ -2419,7 +3071,7 @@ function dayRow(d){
 function deviceKindLabel(d){ return d.platform === 'desktop' ? t('laptopMode') : d.kind === 'devicekey' ? t('tapMode') : t('bioMode'); }
 
 function renderMe(){
-  $('#main').innerHTML = '<section class="page"><h2>' + esc(S.me.name) + '</h2><p class="lead">' + esc(S.me.empNo) + ' · ' + t('r_' + S.me.role) + '</p>' +
+  view().innerHTML = '<section class="page"><h2>' + esc(S.me.name) + '</h2><p class="lead">' + esc(S.me.empNo) + ' · ' + t('r_' + S.me.role) + '</p>' +
     '<div class="list">' + (S.devices || []).map(function(d){ return '<div class="row"><div class="av">' + (d.platform === 'desktop' ? I.desk : I.phone) + '</div><div class="main"><b>' + esc(d.label || '') + '</b><small>' + deviceKindLabel(d) + ' · ' + t('since') + ' ' + new Date(d.since).toLocaleDateString(LOCALE()) + '</small></div></div>'; }).join('') +
     '<div class="row"><div class="main"><b>' + t('shift') + '</b><small class="num">' + esc(S.shift.start) + ' - ' + esc(S.shift.end) + ' · ' + S.shift.workdays.map(function(i){ return t('dows')[i]; }).join('، ') + '</small></div></div>' +
     '<div class="row"><div class="main"><b>' + t('admZones') + '</b><small>' + S.zones.map(function(z){ return esc(S.lang === 'en' && z.nameEn ? z.nameEn : z.name) + ' (' + z.radius + t('m') + ')'; }).join('، ') + '</small></div></div></div>' +
@@ -2464,17 +3116,6 @@ function renderMe(){
 }
 
 // ---------------- admin ----------------
-function renderAdmin(){
-  var sections = [['board', t('admBoard')], ['emp', t('admEmp')], ['review', t('admReview')], ['reports', t('admReports')]];
-  if (isAdmin()) sections.splice(2, 0, ['zones', t('admZones')]);
-  if (isAdmin()) sections.push(['settings', t('admSettings')]);
-  sections.push(['audit', t('admAudit')]);
-  $('#main').innerHTML = '<section class="adm"><nav class="adm-nav">' + sections.map(function(s){
-    return '<button type="button" data-s="' + s[0] + '"' + (S.adm === s[0] ? ' aria-current="page"' : '') + '>' + s[1] + (s[0] === 'review' ? '<span class="badge hidden" id="revBadge"></span>' : '') + '</button>';
-  }).join('') + '</nav><div class="adm-body" id="admBody"></div></section>';
-  $$('.adm-nav button').forEach(function(b){ b.onclick = function(){ S.adm = b.dataset.s; renderAdmin(); }; });
-  ({ board: admBoard, emp: admEmp, zones: admZones, review: admReview, reports: admReports, settings: admSettings, audit: admAudit })[S.adm]();
-}
 function setBadge(n){ var b = $('#revBadge'); if (!b) return; b.textContent = n; b.classList.toggle('hidden', !n); }
 function initials(n){ return String(n || '?').trim().split(/\s+/).slice(0, 2).map(function(w){ return w[0]; }).join(''); }
 
@@ -2751,7 +3392,15 @@ function admSettings(){
     function sw(name, title, lead){
       return '<label class="sw-row"><div><b>' + title + '</b><small>' + lead + '</small></div><span class="switch"><input type="checkbox" name="' + name + '"' + (st[name] ? ' checked' : '') + ' role="switch"><span></span></span></label>';
     }
+    var co = function(name, label, attrs){ return '<div class="field"><label for="' + name + '">' + label + '</label><input id="' + name + '" name="' + name + '" value="' + esc(st[name]) + '"' + (attrs || '') + '></div>'; };
     $('#admBody').innerHTML = '<form class="form" id="sf"><div class="set-grid">' +
+      // the employer's profile: every letterhead, certificate, payslip and report header reads it (white-label)
+      '<section class="set-card wide"><h3>' + ph('buildings') + t('secCo') + '</h3><p>' + t('secCoLead') + '</p>' +
+        '<div class="two" style="max-width:820px">' + co('companyNameAr', t('coNameAr'), ' required maxlength="80"') + co('companyNameEn', t('coNameEn'), ' required maxlength="80" dir="ltr"') + '</div>' +
+        '<div class="two" style="max-width:820px">' + co('companyShortAr', t('coShortAr'), ' required maxlength="30"') + co('companyShortEn', t('coShortEn'), ' required maxlength="30" dir="ltr"') + '</div>' +
+        '<div class="two" style="max-width:820px">' + co('companyCr', t('coCr'), ' inputmode="numeric" maxlength="10" pattern="[0-9]{10}" dir="ltr"') + co('companyVat', t('coVat'), ' inputmode="numeric" maxlength="15" pattern="3[0-9]{13}3" dir="ltr"') + '</div>' +
+        '<div class="two" style="max-width:820px">' + co('companyAddressAr', t('coAddrAr'), ' maxlength="200"') + co('companyAddressEn', t('coAddrEn'), ' maxlength="200" dir="ltr"') + '</div>' +
+      '</section>' +
       '<section class="set-card wide"><h3>' + ph('clock') + t('secHours') + '</h3><p>' + t('secHoursLead') + '</p>' +
         '<div class="two" style="max-width:520px"><div class="field"><label for="shiftStart">' + t('from') + '</label><input id="shiftStart" name="shiftStart" type="time" value="' + esc(st.shiftStart) + '"></div><div class="field"><label for="shiftEnd">' + t('to') + '</label><input id="shiftEnd" name="shiftEnd" type="time" value="' + esc(st.shiftEnd) + '"></div></div>' +
         '<div class="field"><label>' + t('workdays') + '</label><div class="checks chips">' + t('dows').map(function(n, i){ return '<label><input type="checkbox" name="wd" value="' + i + '"' + (wd.indexOf(String(i)) >= 0 ? ' checked' : '') + '>' + n + '</label>'; }).join('') + '</div></div>' +
@@ -2765,12 +3414,50 @@ function admSettings(){
       '<section class="set-card"><h3>' + ph('shield-check') + t('secMethods') + '</h3><p>' + t('secMethodsLead') + '</p>' +
         sw('allowDeviceKey', t('swDk'), t('swDkLead')) + sw('allowDesktop', t('swDesk'), t('swDeskLead')) +
         sw('allowPasswordPunch', t('swPw'), t('swPwLead')) + sw('allowCheckoutOutside', t('swOut'), t('swOutLead')) +
+      '</section>' +
+      // HR and payroll rules (settingsSave validates each one and answers bad_setting + key)
+      '<section class="set-card"><h3>' + ph('money') + t('secPay') + '</h3><p>' + t('secPayLead') + '</p>' +
+        sw('deductAbsence', t('swAbs'), t('swAbsLead')) + sw('deductLateMinutes', t('swLate'), t('swLateLead')) + sw('payOvertimeFromAttendance', t('swOt'), t('swOtLead')) +
+        '<div class="field"><label for="eosWageBasis">' + t('eosBasis') + '</label><select id="eosWageBasis" name="eosWageBasis">' +
+          [['total', t('eosTotal')], ['basic_housing', t('eosBH')]].map(function(o){ return '<option value="' + o[0] + '"' + (st.eosWageBasis === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select><small>' + t('eosBasisHint') + '</small></div>' +
+        num('wpsDueDay', t('wpsDay'), t('wpsDayHint'), 1, 28, t('dayOfMonth')) +
+      '</section>' +
+      '<section class="set-card"><h3>' + ph('flag') + t('secComp') + '</h3><p>' + t('secCompLead') + '</p>' +
+        '<div class="field"><label for="saudizationTarget">' + t('saudiTarget') + '</label><div style="position:relative"><input id="saudizationTarget" name="saudizationTarget" type="number" inputmode="decimal" min="0" max="100" step="0.1" value="' + esc(st.saudizationTarget) + '" style="padding-inline-end:52px"><span style="position:absolute;inset-inline-end:12px;top:50%;transform:translateY(-50%);color:var(--ink-2);font-size:13px">%</span></div><small>' + t('saudiTargetHint') + '</small></div>' +
+        '<div class="field"><label for="refPrefixes">' + t('refPfx') + '</label><textarea id="refPrefixes" name="refPrefixes" rows="2" dir="ltr" spellcheck="false" placeholder=\'{"leave":"VAC"}\'>' + esc(typeof st.refPrefixes === 'object' && st.refPrefixes ? JSON.stringify(st.refPrefixes) : (st.refPrefixes || '')) + '</textarea><small>' + t('refPfxHint') + '</small></div>' +
+      '</section>' +
+      '<section class="set-card wide"><h3>' + ph('sun') + t('secSeason') + '</h3><p>' + t('secSeasonLead') + '</p>' +
+        sw('rostersEnabled', t('swRoster'), t('swRosterLead')) +
+        '<div class="two" style="max-width:720px"><div class="field"><label for="ramadanFrom">' + t('ramFrom') + '</label><input id="ramadanFrom" name="ramadanFrom" type="date" dir="ltr" value="' + esc(String(st.ramadanFrom || '').slice(0, 10)) + '"></div>' +
+          '<div class="field"><label for="ramadanTo">' + t('ramTo') + '</label><input id="ramadanTo" name="ramadanTo" type="date" dir="ltr" value="' + esc(String(st.ramadanTo || '').slice(0, 10)) + '"></div></div>' +
+        '<div class="field" style="max-width:340px"><label for="ramadanHours">' + t('ramHours') + '</label><input id="ramadanHours" name="ramadanHours" type="number" inputmode="decimal" min="1" max="6" step="0.5" value="' + esc(st.ramadanHours) + '"><small>' + t('ramHoursHint') + '</small></div>' +
+        '<div class="two" style="max-width:720px"><div class="field"><label for="summerBanFrom">' + t('banFrom') + '</label><input id="summerBanFrom" name="summerBanFrom" type="text" dir="ltr" inputmode="numeric" pattern="[0-1][0-9]-[0-3][0-9]" placeholder="06-15" value="' + esc(st.summerBanFrom) + '"></div>' +
+          '<div class="field"><label for="summerBanTo">' + t('banTo') + '</label><input id="summerBanTo" name="summerBanTo" type="text" dir="ltr" inputmode="numeric" pattern="[0-1][0-9]-[0-3][0-9]" placeholder="09-15" value="' + esc(st.summerBanTo) + '"></div></div>' +
+        '<div class="two" style="max-width:720px"><div class="field"><label for="summerBanStart">' + t('banStart') + '</label><input id="summerBanStart" name="summerBanStart" type="time" value="' + esc(st.summerBanStart) + '"></div>' +
+          '<div class="field"><label for="summerBanEnd">' + t('banEnd') + '</label><input id="summerBanEnd" name="summerBanEnd" type="time" value="' + esc(st.summerBanEnd) + '"></div></div><small style="color:var(--ink-2)">' + t('banHint') + '</small>' +
       '</section></div>' +
       '<div class="set-actions"><button class="btn btn-dark">' + t('save') + '</button><span id="sfmsg" class="lead" style="margin:0"></span></div></form>';
     $('#sf').onsubmit = function(ev){ ev.preventDefault(); var f = ev.target;
+      $$('[aria-invalid]', f).forEach(function(x){ x.removeAttribute('aria-invalid'); });
       api('settingsSave', { settings: { shiftStart: f.shiftStart.value, shiftEnd: f.shiftEnd.value, graceMin: f.graceMin.value, minPunchGapMin: f.minPunchGapMin.value, maxAccuracy: f.maxAccuracy.value, reviewRiskThreshold: f.reviewRiskThreshold.value,
-        workdays: $$('input[name=wd]:checked', f).map(function(x){ return x.value; }).join(',') || '0,1,2,3,4', allowCheckoutOutside: f.allowCheckoutOutside.checked, allowDeviceKey: f.allowDeviceKey.checked, allowDesktop: f.allowDesktop.checked, allowPasswordPunch: f.allowPasswordPunch.checked, maxAccuracyDesktop: f.maxAccuracyDesktop.value } })
-        .then(function(x){ toast(x.ok ? t('saved') : errText(x.error)); });
+        workdays: $$('input[name=wd]:checked', f).map(function(x){ return x.value; }).join(',') || '0,1,2,3,4', allowCheckoutOutside: f.allowCheckoutOutside.checked, allowDeviceKey: f.allowDeviceKey.checked, allowDesktop: f.allowDesktop.checked, allowPasswordPunch: f.allowPasswordPunch.checked, maxAccuracyDesktop: f.maxAccuracyDesktop.value,
+        deductAbsence: f.deductAbsence.checked, deductLateMinutes: f.deductLateMinutes.checked, payOvertimeFromAttendance: f.payOvertimeFromAttendance.checked, eosWageBasis: f.eosWageBasis.value, wpsDueDay: Number(f.wpsDueDay.value),
+        saudizationTarget: f.saudizationTarget.value === '' ? '' : Number(f.saudizationTarget.value), refPrefixes: f.refPrefixes.value.trim(), rostersEnabled: f.rostersEnabled.checked,
+        ramadanFrom: f.ramadanFrom.value, ramadanTo: f.ramadanTo.value, ramadanHours: Number(f.ramadanHours.value), summerBanFrom: f.summerBanFrom.value.trim(), summerBanTo: f.summerBanTo.value.trim(),
+        summerBanStart: f.summerBanStart.value, summerBanEnd: f.summerBanEnd.value,
+        companyNameAr: f.companyNameAr.value, companyNameEn: f.companyNameEn.value, companyShortAr: f.companyShortAr.value, companyShortEn: f.companyShortEn.value,
+        companyCr: f.companyCr.value.trim(), companyVat: f.companyVat.value.trim(), companyAddressAr: f.companyAddressAr.value, companyAddressEn: f.companyAddressEn.value } })
+        .then(function(x){
+          if (x.ok) {
+            var n = x.settings || {};
+            setCompany({ nameAr: n.companyNameAr, nameEn: n.companyNameEn, shortAr: n.companyShortAr, shortEn: n.companyShortEn, cr: n.companyCr, vat: n.companyVat, addressAr: n.companyAddressAr, addressEn: n.companyAddressEn }, true);
+            var bt = $('.v2-brand b'); if (bt) bt.textContent = t('company');
+            return toast(t('saved'));
+          }
+          var el = x.key && f.elements[x.key], lbl = el && el.id ? $('label[for="' + el.id + '"]', f) : null;
+          if (el && el.setAttribute) { el.setAttribute('aria-invalid', 'true'); el.focus(); }
+          toast(x.error === 'bad_setting' ? t('e_bad_setting').replace('{key}', lbl ? lbl.textContent : x.key) : errText(x.error));
+        });
     };
   });
 }
@@ -2806,7 +3493,7 @@ function checkForUpdate(){
 setInterval(checkForUpdate, 5 * 60000);
 document.addEventListener('visibilitychange', function(){ if (!document.hidden) checkForUpdate(); });
 setTimeout(checkForUpdate, 4000);
-document.addEventListener('visibilitychange', function(){ if (!document.hidden && S.me && S.tab === 'home') { refreshMe(); schedulePunchPrefetch(); } });
+document.addEventListener('visibilitychange', function(){ if (!document.hidden && S.me && $('.app.v2')) { refreshMe(); schedulePunchPrefetch(); } });
 tickWorked();
 boot();
 </script>

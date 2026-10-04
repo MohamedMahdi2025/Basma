@@ -147,7 +147,8 @@ function quote_(emp, d, excludeId) {
     if (!from || !to || to < from) return { error: 'bad_date' };
     if (from < addDays_(t, -30) && !d._recheck) return { error: 'too_old' };
     if (daysBetween_(from, to) > 180) return { error: 'too_many_days' };
-    if (rule.gender && emp.gender && emp.gender !== rule.gender) return { error: 'leave_not_eligible' };
+    if (rule.gender && !emp.gender) return { error: 'gender_required' }; // maternity, iddah, paternity: HR records the gender first
+    if (rule.gender && emp.gender !== rule.gender) return { error: 'leave_not_eligible' };
     if (rule.serviceYears && (!emp.hireDate || daysBetween_(String(emp.hireDate).slice(0, 10), from) < rule.serviceYears * 365)) return { error: 'leave_not_eligible' };
     if (rule.once && reqs.some(function (r) { return r.id !== excludeId && r.type === 'leave' && r.subtype === sub && (r.status === 'approved' || r.status === 'pending'); })) return { error: 'leave_once' };
     if (reqs.some(function (r) { return r.id !== excludeId && r.type === 'leave' && (r.status === 'approved' || r.status === 'pending') && !(String(r.toDate) < from || String(r.fromDate) > to); })) return { error: 'overlaps' };
@@ -256,8 +257,9 @@ function canAct_(me, r, emp, ctx) {
   if (!me || !emp || r.status !== 'pending' || r.empId === me.id) return false;
   if (history_(r).some(function (h) { return h.by === me.id; })) return false;
   if (r.step === 'manager') return manages_(me, emp, ctx) || isHr_(me) || !!delegatedFor_(me, emp, ctx);
-  if (r.step === 'hr') return isHr_(me);
-  if (r.step === 'payroll') return hasRole_(me, 'payroll') || me.role === 'admin';
+  // A salary advance is pay: its HR step needs the hr role (an administrator alone never), its last step a payroll holder.
+  if (r.step === 'hr') return r.type === 'advance' ? me.role === 'hr' : isHr_(me);
+  if (r.step === 'payroll') return hasRole_(me, 'payroll');
   return false;
 }
 
@@ -364,11 +366,15 @@ function applyEffect_(r, emp, me, p) {
 
 function empCard_(e) { return e ? { id: e.id, empNo: String(e.empNo), name: e.name, nameEn: e.nameEn, title: e.title, department: e.department } : null; }
 
-/** A request as `viewer` may see it: amounts only for the requester, HR and payroll; data-change values only for them too. */
+/**
+ * A request as `viewer` may see it: advance amounts only for the requester, the hr role and payroll (an administrator
+ * alone never sees pay); data-change values for the requester, HR (with the administrator) and payroll.
+ */
 function publicReq_(r, ctx, viewer) {
   var p = parsePayload_(r), fx = {};
   try { fx = JSON.parse(r.effectJson || '{}') || {}; } catch (e) { fx = {}; }
-  var money = viewer && (viewer.id === r.empId || isHr_(viewer) || hasRole_(viewer, 'payroll'));
+  var money = viewer && (viewer.id === r.empId || viewer.role === 'hr' || hasRole_(viewer, 'payroll'));
+  var data = viewer && (viewer.id === r.empId || isHr_(viewer) || hasRole_(viewer, 'payroll'));
   var steps = stepsFor_(r.type, ctx.emps[r.empId] || { id: r.empId }, ctx);
   var o = { id: r.id, ref: r.ref, type: r.type, subtype: r.subtype, fromDate: r.fromDate ? String(r.fromDate).slice(0, 10) : '',
     toDate: r.toDate ? String(r.toDate).slice(0, 10) : '', days: r.days === '' ? null : Number(r.days), reason: r.reason, docNo: r.docNo,
@@ -379,7 +385,7 @@ function publicReq_(r, ctx, viewer) {
   if (r.type === 'letter') o.letter = { addressee: p.addressee, lang: p.lang };
   if (r.type === 'correction') o.correction = { date: p.date, time: p.time, punchType: p.punchType };
   if (r.type === 'resignation') o.resignation = { lastDay: p.lastDay, noticeDays: p.noticeDays, minLastDay: p.minLastDay };
-  if (r.type === 'data_change' && money) o.fields = p.fields || {};
+  if (r.type === 'data_change' && data) o.fields = p.fields || {};
   else if (r.type === 'data_change') o.fieldNames = Object.keys(p.fields || {});
   if (r.type === 'leave' && p.variant) o.variant = p.variant;
   if (r.type === 'leave' && p.eventDate) o.eventDate = p.eventDate;
@@ -497,7 +503,8 @@ function api_leaveOpeningSave(req, me) {
     var emp = findBy_(SHEETS.EMP, 'id', req.empId);
     if (!emp) fail_('not_found');
     if (emp.id === me.id) fail_('cannot_change_own_balance');
-    guardEdit_(me, emp);
+    // No guardEdit_ here: an administrator may never set their own balance, so HR must be able to load it
+    // (otherwise a company with one administrator could never record that person's carried-over leave).
     var before = { days: emp.leaveOpeningDays, asOf: emp.leaveOpeningDate };
     emp.leaveOpeningDays = round2_(days); emp.leaveOpeningDate = asOf; emp.updatedAt = new Date().toISOString();
     update_(SHEETS.EMP, emp);

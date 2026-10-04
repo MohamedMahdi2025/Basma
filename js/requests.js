@@ -300,14 +300,14 @@ function printLetter(o, file){
   if (en) {
     var pr = fem ? 'Ms.' : 'Mr.', he = fem ? 'she' : 'he', his = fem ? 'her' : 'his';
     body = '<p>This is to certify that ' + pr + ' <b>' + esc(name) + '</b>' + (nat ? ', ' + esc(nat) + ' national' : '') + (idno ? ', ID No. ' + esc(idno) : '') + ', ' +
-      (o.subtype === 'experience' ? 'worked with Best Gas Carrier Co. as ' + esc(pos) + ' from ' + d(j.hireDate) + (e.status !== 'active' || file.emp.lastWorkingDay ? ' to ' + d(file.emp.lastWorkingDay) : ' to date') + '.' :
-        'has been employed by Best Gas Carrier Co. as ' + esc(pos) + ' since ' + d(j.hireDate) + '.') + '</p>' +
+      (o.subtype === 'experience' ? 'worked with ' + esc(coName('en')) + ' as ' + esc(pos) + ' from ' + d(j.hireDate) + (e.status !== 'active' || file.emp.lastWorkingDay ? ' to ' + d(file.emp.lastWorkingDay) : ' to date') + '.' :
+        'has been employed by ' + esc(coName('en')) + ' as ' + esc(pos) + ' since ' + d(j.hireDate) + '.') + '</p>' +
       (o.subtype === 'salary_certificate' && c ? '<p>' + (fem ? 'Her' : 'His') + ' monthly salary is SAR <b>' + m(c.total) + '</b>: basic ' + m(c.basic) + ', housing ' + m(c.housing) + ', transport ' + m(c.transport) +
         Object.keys(c.other || {}).map(function(k){ return ', ' + esc(k) + ' ' + m(c.other[k]); }).join('') + '.</p>' : '') +
       '<p>This letter is issued at ' + his + ' request for submission to ' + esc(to) + ', without any liability on the company.</p>';
   } else {
     var s = fem ? { t: 'السيدة', w: 'تعمل', had: 'عملت', g: 'وتتقاضى', r: 'طلبها', n: 'الجنسية' } : { t: 'السيد', w: 'يعمل', had: 'عمل', g: 'ويتقاضى', r: 'طلبه', n: 'الجنسية' };
-    body = '<p>تشهد شركة الناقل الأفضل للغاز بأن ' + s.t + ' / <b>' + esc(name) + '</b>' + (nat ? '، ' + s.n + ' ' + esc(nat) : '') + (idno ? '، رقم الهوية ' + esc(idno) : '') + '، ' +
+    body = '<p>تشهد ' + esc(coName('ar')) + ' بأن ' + s.t + ' / <b>' + esc(name) + '</b>' + (nat ? '، ' + s.n + ' ' + esc(nat) : '') + (idno ? '، رقم الهوية ' + esc(idno) : '') + '، ' +
       (o.subtype === 'experience' ? s.had + ' لديها بوظيفة ' + esc(pos) + ' من ' + d(j.hireDate) + (file.emp.lastWorkingDay ? ' إلى ' + d(file.emp.lastWorkingDay) : ' حتى تاريخه') + '.' :
         s.w + ' لديها بوظيفة ' + esc(pos) + ' منذ ' + d(j.hireDate) + (o.subtype === 'salary_certificate' && c ? '، ' + s.g + ' راتبا شهريا إجماليا قدره <b>' + m(c.total) + '</b> ريال، منه الأساسي ' + m(c.basic) + ' والسكن ' + m(c.housing) + ' والنقل ' + m(c.transport) +
           Object.keys(c.other || {}).map(function(k){ return ' و' + esc(k) + ' ' + m(c.other[k]); }).join('') : '') + '.') + '</p>' +
@@ -322,10 +322,10 @@ function printLetter(o, file){
     'header div{text-align:end;font-size:12px;color:#4A5A4D;line-height:1.6}h1{text-align:center;font-size:21px;margin:10px 0 26px;color:#1C2A1F}' +
     '.meta{display:flex;justify-content:space-between;font-size:13px;color:#4A5A4D;margin-bottom:18px}.sign{margin-top:60px}.sign b{display:block}' +
     'footer{position:fixed;bottom:0;inset-inline:0;font-size:11px;color:#8A948B;text-align:center;border-top:1px solid #DAD5C8;padding-top:6px}</style></head><body>' +
-    '<header><img src="' + LOGO + '" alt=""><div>' + (en ? 'Best Gas Carrier Co.<br>Human Resources' : 'شركة الناقل الأفضل للغاز<br>إدارة الموارد البشرية') + '</div></header>' +
+    '<header><img src="' + logoInk() + '" alt=""><div>' + esc(coName(en ? 'en' : 'ar')) + '<br>' + (en ? 'Human Resources' : 'إدارة الموارد البشرية') + (coMeta(en ? 'en' : 'ar') ? '<br>' + coMeta(en ? 'en' : 'ar') : '') + '</div></header>' +
     '<div class="meta"><span>' + (en ? 'Ref: ' : 'الرقم: ') + '<bdi>' + esc(o.ref) + '</bdi></span><span>' + (en ? 'Date: ' : 'التاريخ: ') + d(o.decidedAt || o.createdAt) + '</span></div>' +
     '<h1>' + title + '</h1><p>' + (en ? 'To: ' : 'إلى: ') + esc(to) + '</p>' + body +
-    '<div class="sign"><b>' + (en ? 'Human Resources Department' : 'إدارة الموارد البشرية') + '</b>' + (en ? 'Best Gas Carrier Co.' : 'شركة الناقل الأفضل للغاز') + '</div>' +
+    '<div class="sign"><b>' + (en ? 'Human Resources Department' : 'إدارة الموارد البشرية') + '</b>' + esc(coName(en ? 'en' : 'ar')) + '</div>' +
     '<footer>' + (en ? 'Verify this letter with HR quoting reference ' : 'للتحقق من هذه الشهادة تواصل مع الموارد البشرية بذكر الرقم ') + '<bdi>' + esc(o.ref) + '</bdi></footer>' +
     '<script>window.onload=function(){setTimeout(function(){window.print()},400)}<\/script></body></html>';
   var w = window.open('', '_blank');

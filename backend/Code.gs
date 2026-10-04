@@ -333,10 +333,13 @@ function audit_(actorId, action, targetId, detail) {
 // ---------------- settings ----------------
 
 var DEFAULT_SETTINGS = {
-  wpsDueDay: 10,
+  // Company profile (white-label: every letterhead, certificate, payslip and report header reads these)
+  companyNameAr: 'شركة الناقل الأفضل للغاز', companyNameEn: 'Best Gas Carrier Co.', companyShortAr: 'الناقل الأفضل', companyShortEn: 'Best Gas',
+  companyCr: '', companyVat: '', companyAddressAr: '', companyAddressEn: '',
+  wpsDueDay: 10,            // WPS / Mudad: salaries of month M uploaded by this day of month M+1 (check with the bank / Mudad)
   rostersEnabled: false,     // shifts and rosters (Shifts.gs); off = everyone keeps their own shift, nothing extra is read
   ramadanFrom: '', ramadanTo: '', ramadanHours: 6,   // Art. 98: at most 6 hours a day for Muslim staff in Ramadan
-  summerBanFrom: '06-15', summerBanTo: '09-15', summerBanStart: '12:00', summerBanEnd: '15:00', // outdoor midday ban (verify yearly)             // WPS / Mudad: salaries of month M uploaded by this day of month M+1 (check with the bank / Mudad)
+  summerBanFrom: '06-15', summerBanTo: '09-15', summerBanStart: '12:00', summerBanEnd: '15:00', // outdoor midday ban (verify yearly)
   leaveCountMode: 'working', // annual leave counts working days (rest days and holidays excluded) or 'calendar'
   allowNegativeLeave: 0,     // days of annual leave that may be taken ahead of accrual
   maxAdvanceSalaries: 1,     // a salary advance is at most this many monthly wages
@@ -362,6 +365,7 @@ var DEFAULT_SETTINGS = {
 };
 
 var SETTINGS_CACHE_KEY = 'settings:v1';
+var SETTING_MMDD_ = { summerBanFrom: 1, summerBanTo: 1 };
 
 function settings_() {
   try { var hit = CacheService.getScriptCache().get(SETTINGS_CACHE_KEY); if (hit) return JSON.parse(hit); } catch (e) {}
@@ -374,6 +378,8 @@ function settings_() {
     if (typeof d === 'number') v = Number(v);
     else if (typeof d === 'boolean') v = (v === true || v === 'true' || v === 'TRUE');
     else v = String(v);
+    // A month-day typed without the text mark ("06-15") may come back as a full date: keep only MM-DD.
+    if (SETTING_MMDD_[r.key] && /^\d{4}-\d{2}-\d{2}/.test(v)) v = v.slice(5, 10);
     s[r.key] = v;
   });
   try { CacheService.getScriptCache().put(SETTINGS_CACHE_KEY, JSON.stringify(s), 120); } catch (e) {}
@@ -434,7 +440,11 @@ function refPrefix_(kind) {
   return p || REF_DEFAULTS[kind] || 'REF';
 }
 
-/** Reserves n numbers for one kind in a single properties read and write. */
+/**
+ * Reserves n numbers for one kind in a single properties read and write. The number is padded to 5 digits
+ * (yearly) or 3 (permanent codes) and grows past that (AST-999, AST-1000, ...): it never wraps back to 000,
+ * so a number already taken is skipped once and the loop always ends.
+ */
 function nextRefs_(kind, n, taken) {
   if (n === 0) return [];
   n = n || 1;
@@ -442,10 +452,12 @@ function nextRefs_(kind, n, taken) {
   var year = localParts_(new Date()).date.slice(0, 4);
   var key = 'seq:' + kind + (yearly ? ':' + year : '');
   var props = PropertiesService.getScriptProperties();
-  var cur = Number(props.getProperty(key) || 0), out = [];
+  var cur = Math.max(0, Math.floor(Number(props.getProperty(key)) || 0)), out = [];
+  var guard = n + (taken ? Object.keys(taken).length : 0) + 1; // each taken number is skipped at most once
   while (out.length < n) {
+    if (guard-- <= 0) fail_('ref_exhausted');
     cur++;
-    var ref = yearly ? prefix + '-' + year + '-' + ('0000' + cur).slice(-5) : prefix + '-' + ('00' + cur).slice(-3);
+    var ref = prefix + '-' + (yearly ? year + '-' + String(cur).padStart(5, '0') : String(cur).padStart(3, '0'));
     if (taken && taken[ref]) continue; // a code typed by hand earlier is never handed out again
     out.push(ref);
   }

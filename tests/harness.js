@@ -13,6 +13,8 @@ function sheetValue(v) {
   let m;
   if ((m = v.match(/^(\d{4})-(\d{2})-(\d{2})$/))) return new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
   if ((m = v.match(/^(\d{1,2}):(\d{2})$/))) return new Date(Date.UTC(1899, 11, 30, +m[1], +m[2]));
+  // A month and day typed alone ("06-15", "6/15") is read as that date in the current year.
+  if ((m = v.match(/^(\d{1,2})[-\/](\d{1,2})$/)) && +m[1] >= 1 && +m[1] <= 12 && +m[2] >= 1 && +m[2] <= 31) return new Date(Date.UTC(new Date().getUTCFullYear(), +m[1] - 1, +m[2]));
   if (/^[+-]?\d{1,15}(\.\d+)?$/.test(v)) return Number(v);
   if (v === 'TRUE' || v === 'FALSE') return v === 'TRUE';
   return v;
@@ -90,11 +92,21 @@ function load(opts = {}) {
   const dir = path.join(__dirname, '..', 'backend');
   for (const f of ['Code.gs', 'WebAuthn.gs', 'Attendance.gs', 'Admin.gs', 'Hr.gs', 'Leave.gs', 'Payroll.gs', 'Performance.gs', 'Dashboard.gs', 'Reports.gs', 'Engage.gs', 'Compliance.gs', 'Shifts.gs', 'Relations.gs', 'Custody.gs']) vm.runInContext(fs.readFileSync(path.join(dir, f), 'utf8'), ctx, { filename: f });
   if (opts.setupKeyHash) vm.runInContext(`var SETUP_KEY_HASH = ${JSON.stringify(opts.setupKeyHash)};`, ctx);
-  return {
+  const self = {
     ctx, sheets, props, cache,
     call: req => JSON.parse(JSON.stringify(ctx.handle_(req))),
-    setNow: ms => { clock = ms; }
+    setNow: ms => { clock = ms; },
+    now: () => FakeDate.now(),
+    /** A second, independent backend with a copy of this one's sheets, properties, cache and clock (tokens stay valid). */
+    fork: () => {
+      const f = load(Object.assign({}, opts, { now: clock }));
+      Object.keys(sheets).forEach(n => { const sh = f.ctx.SpreadsheetApp.getActiveSpreadsheet().insertSheet(n); structuredClone(sheets[n]._rows).forEach(r => sh._rows.push(r)); });
+      Object.assign(f.props, structuredClone(props));
+      Object.assign(f.cache, structuredClone(cache));
+      return f;
+    }
   };
+  return self;
 }
 
 // ---------------- software authenticator ----------------

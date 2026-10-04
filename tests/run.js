@@ -496,6 +496,31 @@ console.log('Google Sheets value conversion');
   B.ctx.READ_MEMO_ = {};
 }
 
+console.log('A new hire added before the first day');
+{
+  // HR adds someone on 4 October who starts on 11 October: no day before the 11th may count as absent.
+  const N = load({ setupKeyHash: sha('k9'), now: Date.parse('2026-10-04T06:00:00Z') });
+  const dev = {}, tk = {};
+  const add = (no, code) => { dev[no] = new Authenticator(); const b = N.call({ action: 'enrollBegin', empNo: no, code }); tk[no] = N.call({ action: 'enrollFinish', credential: dev[no].create(b.options) }).token; };
+  add('9000', N.call({ action: 'bootstrap', setupKey: 'k9', name: 'مسؤول', empNo: '9000' }).activationCode);
+  const made = N.call({ action: 'empSave', token: tk['9000'], emp: { empNo: '9001', name: 'موظف جديد', role: 'employee' } });
+  add('9001', made.activationCode);
+  ok(N.call({ action: 'hrEmpSave', token: tk['9000'], emp: { id: made.emp.id, hireDate: '2026-10-11' } }).ok, 'the record is created on 4 October with a hire date of 11 October');
+  const relog = () => ['9000', '9001'].forEach(no => { const b = N.call({ action: 'authBegin', empNo: no }); tk[no] = N.call({ action: 'authFinish', credential: dev[no].get(b.options) }).token; });
+  N.setNow(Date.parse('2026-10-08T07:00:00Z')); relog();
+  let h = N.call({ action: 'myHistory', token: tk['9001'], month: '2026-10' });
+  ok(h.ok && h.days.length === 0 && h.totals.absent === 0, 'before the first day the history lists no day and no absence', h.days && h.days.map(d => d.date + ':' + d.status));
+  let rp = N.call({ action: 'report', token: tk['9000'], from: '2026-10-04', to: '2026-10-08' });
+  ok(rp.ok && rp.totals.find(t => t.emp.empNo === '9001').absent === 0 && !rp.rows.some(x => x.empId === made.emp.id), 'the attendance report counts no absence before the hire date');
+  let bd = N.call({ action: 'board', token: tk['9000'] });
+  ok(bd.ok && !bd.rows.some(x => x.emp.empNo === '9001') && bd.kpi.total === 1, 'the live board leaves out someone who has not started yet (only the administrator is counted)', bd.kpi);
+  N.setNow(Date.parse('2026-10-12T07:00:00Z')); relog();
+  h = N.call({ action: 'myHistory', token: tk['9001'], month: '2026-10' });
+  ok(h.days.map(d => d.date + ':' + d.status).join() === '2026-10-12:absent,2026-10-11:absent', 'from the hire date on, days count as usual', h.days.map(d => d.date + ':' + d.status));
+  bd = N.call({ action: 'board', token: tk['9000'] });
+  ok(bd.rows.some(x => x.emp.empNo === '9001' && x.day.status === 'absent'), 'and he is on the board');
+}
+
 console.log('Tokens');
 r = B.call({ action: 'me', token: adminToken.slice(0, -2) + 'xx' });
 ok(!r.ok && r.error === 'session_expired', 'a forged token is refused', r);
