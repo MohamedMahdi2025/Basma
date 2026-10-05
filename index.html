@@ -18,6 +18,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/duotone/style.css">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@500;600;700;800&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght,HEXP@160..700,0..100&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -821,6 +823,137 @@ body.v2-on .tblwrap{overflow-x:auto}
   .v2-bottom button[aria-current="page"]{color:var(--brand);font-weight:600}
   .v2-bottom .center{flex:none;width:58px;height:58px;border-radius:18px;background:var(--pine);color:#F2EEE4;margin-top:-24px;justify-content:center;box-shadow:0 10px 24px -10px rgba(28,42,31,.7)}
   .v2-bottom .center i{font-size:26px;color:#9FE0AE}
+}
+</style>
+<style id="dsv3">
+/* ============ Design v3 "Riyadh Daylight" (2026-10-04; skills: stitch, taste-skill, ui-ux-pro-max, ant) ============
+   Bright and visual: white sidebar with a colour tile per area, green banners with a Najdi star pattern, soft cards
+   that lift, icons everywhere, numbers that count up, bars that grow. Radius rule: cards 16, buttons and fields 10,
+   chips and pills full. One accent: Best Gas green (deepened to #2F6B48 for contrast); area colours only on icon tiles. */
+body.v2-on{
+  --paper:#F4F6F5; --frame:#FFFFFF; --card:#FFFFFF; --well:#F2F5F4; --ink:#0F1C14; --ink-2:#44524A; --ink-3:#5E6C64;
+  --line:#E3E8E5; --line-2:#EEF2F0; --input:#98A39C; --brand:#2F6B48; --brand-h:#245739; --brand-tint:#E4F2E9;
+  --ok:#067647; --ok-bg:#DCFAE6; --warn:#B54708; --warn-bg:#FEF0C7; --bad:#B42318; --bad-bg:#FEE4E2; --info:#175CD3; --info-bg:#D1E9FF;
+  --r-s:10px; --r-m:16px; --r-l:20px;
+  --sh-card:0 1px 2px rgba(15,28,20,.05),0 8px 24px -14px rgba(15,28,20,.18);
+  --sh-lift:0 2px 4px rgba(15,28,20,.06),0 18px 36px -18px rgba(15,28,20,.32);
+  --f-head:'Noto Kufi Arabic','Manrope',system-ui,sans-serif; --f-body:'IBM Plex Sans Arabic','Manrope',system-ui,sans-serif; --f-num:'Manrope','IBM Plex Sans Arabic',sans-serif;
+  font-family:var(--f-body);background:var(--paper)
+}
+html[lang="en"] body.v2-on{--f-head:'Manrope','Noto Kufi Arabic',sans-serif;--f-body:'IBM Plex Sans','IBM Plex Sans Arabic',sans-serif}
+body.v2-on :is(h1,h2,h3,.v2-ph h1,.hm-ph h1,.drawer h3){font-family:var(--f-head)}
+body.v2-on :is(.num,.db-tile b,.kpi b,.stat b,.hm-facts dd,.hm-big b,.kpi .v){font-family:var(--f-num)}
+.app.v2{background:var(--paper)}
+/* ---- sidebar: white, a colour tile per area ---- */
+.v2-side{background:#fff;border-inline-end:1px solid var(--line);box-shadow:none}
+.v2-brand{padding:4px 6px 10px;border-bottom:1px solid var(--line-2)}
+.v2-mark{background:var(--brand)}
+.v2-brand b{font-family:var(--f-head);font-size:14px}
+.v2-nav{gap:3px}
+.v2-nav a,.v2-nav button{height:42px;border-radius:12px;padding:0 8px;font-size:14px;font-weight:500;color:var(--ink-2);position:relative}
+.v2-nav a .v3-ic,.v2-nav button .v3-ic{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;flex:none;background:var(--a-bg,#EEF2F0);color:var(--a-fg,#44524A);transition:transform .2s var(--ease)}
+.v2-nav a .v3-ic i,.v2-nav button .v3-ic i{font-size:18px}
+.v2-nav a:hover{background:#F6F8F7;color:var(--ink)}.v2-nav a:hover .v3-ic{transform:scale(1.06)}
+.v2-nav a[aria-current="page"]{background:var(--brand-tint);color:var(--brand);font-weight:700;box-shadow:none}
+.v2-nav a[aria-current="page"]::before{content:"";position:absolute;inset-inline-start:-14px;top:9px;bottom:9px;width:4px;border-radius:0 4px 4px 0;background:var(--brand)}
+[dir="rtl"] .v2-nav a[aria-current="page"]::before{border-radius:4px 0 0 4px}
+.v2-nav .cnt{background:#FDE7C8;color:#8A4B00;font-family:var(--f-num)}
+[data-area="home"]{--a-bg:#E4F2E9;--a-fg:#1D6B43}[data-area="time"]{--a-bg:#D7F3EF;--a-fg:#0E7C70}[data-area="requests"]{--a-bg:#FEF0C7;--a-fg:#B54708}
+[data-area="pay"]{--a-bg:#DCFAE6;--a-fg:#067647}[data-area="growth"]{--a-bg:#D1E9FF;--a-fg:#175CD3}[data-area="people"]{--a-bg:#FCE7F6;--a-fg:#C11574}
+[data-area="insights"]{--a-bg:#E0EAFF;--a-fg:#3538CD}[data-area="settings"],[data-area="account"]{--a-bg:#EEF2F0;--a-fg:#44524A}[data-area="profile"]{--a-bg:#E4F2E9;--a-fg:#1D6B43}
+/* ---- top bar: light glass ---- */
+.v2-top{height:64px;background:rgba(244,246,245,.86);backdrop-filter:saturate(160%) blur(12px);-webkit-backdrop-filter:saturate(160%) blur(12px);border-bottom:1px solid var(--line-2)}
+.v2-search{background:#fff;border-color:var(--line);border-radius:12px;height:40px;box-shadow:0 1px 2px rgba(15,28,20,.04)}
+.v2-search:hover{border-color:var(--input)}
+.v2-ib{border-radius:12px}.v2-ib:hover{background:#fff;border-color:var(--line)}
+.v2-av{border-radius:12px;background:linear-gradient(135deg,#2F6B48,#4D8F6A);color:#fff}
+.v2-chip{font-weight:600}
+/* ---- area banner (Najdi star pattern, the area icon in a glass tile) ---- */
+.v3-hero{position:relative;overflow:hidden;border-radius:var(--r-l);padding:22px 26px;margin-bottom:16px;color:#fff;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:18px;align-items:center;
+  background:radial-gradient(120% 160% at 100% 0%,rgba(110,190,140,.45) 0%,transparent 55%),linear-gradient(135deg,#173F2A 0%,#2F6B48 58%,#3D8559 100%);box-shadow:0 18px 40px -24px rgba(23,63,42,.8)}
+[dir="ltr"] .v3-hero{background:radial-gradient(120% 160% at 0% 0%,rgba(110,190,140,.45) 0%,transparent 55%),linear-gradient(225deg,#173F2A 0%,#2F6B48 58%,#3D8559 100%)}
+.v3-hero::before{content:"";position:absolute;inset:0;opacity:.13;pointer-events:none;background-size:58px 58px;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='58' height='58' viewBox='0 0 58 58'><g fill='none' stroke='white' stroke-width='1.1'><path d='M29 7l6 16 16 6-16 6-6 16-6-16-16-6 16-6z'/><rect x='18' y='18' width='22' height='22' transform='rotate(45 29 29)'/></g></svg>")}
+.v3-hero::after{content:"";position:absolute;inset-inline-end:-60px;bottom:-90px;width:260px;height:260px;border-radius:50%;border:1px solid rgba(255,255,255,.16);box-shadow:0 0 0 34px rgba(255,255,255,.04),0 0 0 70px rgba(255,255,255,.03);pointer-events:none}
+.v3-hero > *{position:relative;z-index:1}
+.v3-hero-ic{width:56px;height:56px;border-radius:16px;display:grid;place-items:center;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);box-shadow:inset 0 1px 0 rgba(255,255,255,.25)}
+.v3-hero-ic i{font-size:30px;color:#fff}
+.v3-hero h1{margin:0;font-size:26px;line-height:1.3;font-weight:700;color:#fff;text-wrap:balance}
+.v3-hero p{margin:3px 0 0;color:#D2E8DA;font-size:14px;max-width:62ch}
+.v3-hero-stats{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.v3-pill{display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 13px;border-radius:999px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);color:#fff;font-size:12.5px;font-weight:600;white-space:nowrap}
+.v3-pill b{font-family:var(--f-num);font-size:15px}.v3-pill i{font-size:16px}
+.v3-pill.hot{background:#FDE7C8;color:#7A3E00;border-color:transparent}
+/* sub-pages as pills under the banner */
+.v2-views{border:0;gap:6px;margin:0 0 18px;padding:2px}
+.v2-views button{height:38px;padding:0 15px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--ink-2);font-weight:600;font-size:13.5px;margin:0;box-shadow:0 1px 2px rgba(15,28,20,.04);transition:all .18s var(--ease)}
+.v2-views button:hover{border-color:var(--input);color:var(--ink);transform:translateY(-1px)}
+.v2-views button[aria-selected="true"]{background:var(--brand);border-color:var(--brand);color:#fff;box-shadow:0 8px 18px -10px rgba(47,107,72,.9)}
+.v2-views .badge{background:#FDE7C8;color:#7A3E00}
+.v2 .page,.page.v2{max-width:1320px;padding:22px 26px 64px}
+/* ---- surfaces: soft cards that lift ---- */
+body.v2-on :is(.db-card,.mf-card,.hm-card,.v2-card,.set-card,.list,.tblwrap,.db-panel,.rp-grp,.rp-filt,.rp-tw,.cp-box,.cp-item,.mcal,.lc button,.lc .lc-x){border:1px solid transparent!important;box-shadow:var(--sh-card)!important;border-radius:var(--r-m)!important;background:#fff}
+body.v2-on .db-panel{background:transparent;box-shadow:none!important;padding:0}
+body.v2-on :is(.db-card,.mf-card,.hm-card,.set-card,.v2-card){transition:transform .22s var(--ease),box-shadow .22s var(--ease)}
+body.v2-on :is(.db-card,.mf-card,.hm-card,.set-card,.v2-card):hover{transform:translateY(-2px);box-shadow:var(--sh-lift)!important}
+body.v2-on :is(.db-card,.mf-card,.hm-card) :is(h2,h3){font-family:var(--f-head);font-weight:700}
+/* KPI tiles: a colour bubble per tile, big counted numbers */
+body.v2-on :is(.db-tile,.kpi,.stat){position:relative;overflow:hidden;border:0!important;box-shadow:var(--sh-card)!important;border-radius:var(--r-m)!important;background:#fff!important;color:var(--ink)!important;padding:16px 18px!important}
+body.v2-on :is(.db-tile,.kpi,.stat)::after{content:"";position:absolute;inset-inline-end:-22px;top:-26px;width:92px;height:92px;border-radius:50%;background:var(--t-bg,#E4F2E9);opacity:.95;pointer-events:none}
+body.v2-on :is(.db-tile,.kpi,.stat)::before{content:"";position:absolute;inset-inline-end:16px;top:16px;width:10px;height:10px;border-radius:50%;background:var(--t-fg,#2F6B48);z-index:1;box-shadow:0 0 0 5px rgba(255,255,255,.7)}
+body.v2-on :is(.db-tile,.kpi,.stat) > *{position:relative;z-index:1}
+body.v2-on :is(.db-tile,.kpi,.stat) b{font-size:28px!important;font-weight:800!important;letter-spacing:-.02em;color:var(--ink)!important}
+body.v2-on :is(.db-tile,.kpi,.stat) span{color:var(--ink-3)!important;font-weight:500}
+body.v2-on :is(.db-tiles,.kpis,.stats) > :nth-child(4n+1){--t-bg:#E4F2E9;--t-fg:#1D6B43}
+body.v2-on :is(.db-tiles,.kpis,.stats) > :nth-child(4n+2){--t-bg:#D1E9FF;--t-fg:#175CD3}
+body.v2-on :is(.db-tiles,.kpis,.stats) > :nth-child(4n+3){--t-bg:#FEF0C7;--t-fg:#B54708}
+body.v2-on :is(.db-tiles,.kpis,.stats) > :nth-child(4n+4){--t-bg:#FCE7F6;--t-fg:#C11574}
+/* rows, avatars, tables */
+body.v2-on .row{transition:background-color .15s}
+body.v2-on .row.click:hover{background:#F7FAF8}
+body.v2-on .av{border-radius:12px;font-weight:700;font-family:var(--f-head)}
+body.v2-on .tbl th{background:#F7FAF8;color:var(--ink-3);font-weight:700;font-size:12.5px;position:sticky;top:0;z-index:1}
+body.v2-on .tbl tbody tr:hover td{background:#F7FAF8}
+body.v2-on .tbl td:first-child{font-weight:600}
+/* chips as pills */
+body.v2-on .chip{border-radius:999px;padding:3px 10px;font-weight:600}
+/* buttons */
+body.v2-on .btn{border-radius:var(--r-s);font-weight:600}
+body.v2-on :is(.btn-dark,.btn-brand){background:var(--brand);border-color:var(--brand);box-shadow:0 8px 18px -10px rgba(47,107,72,.85)}
+body.v2-on :is(.btn-dark,.btn-brand):hover{transform:translateY(-1px);background:var(--brand-h)}
+body.v2-on .btn-line{border-radius:var(--r-s)}
+/* empty states: a big two-tone icon in a ringed tint */
+body.v2-on .empty{padding:44px 16px}
+body.v2-on .empty i{width:84px;height:84px;border-radius:50%;background:var(--brand-tint);color:var(--brand);display:grid;place-items:center;margin:0 auto 14px;font-size:38px;box-shadow:0 0 0 10px #F1F8F3,0 0 0 20px #F8FBF9}
+body.v2-on .empty b{font-family:var(--f-head);font-size:16px}
+/* drawers */
+body.v2-on .drawer .panel{border-radius:20px 20px 0 0}
+@media (min-width:1024px){body.v2-on .drawer .panel{border-radius:0}}
+/* bottom bar */
+.v2-bottom{background:rgba(255,255,255,.94);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.v2-bottom .center{background:linear-gradient(135deg,#1C3A27,#2F6B48);border-radius:20px}
+/* ---- motion: rise in, count up, grow; all of it off for reduced motion ---- */
+@keyframes v3rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes v3grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes v3pop{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:no-preference){
+  .v3-hero{animation:v3pop .45s var(--ease) both}
+  .v2-views{animation:v3rise .4s .05s var(--ease) both}
+  body.v2-on .v2-area > *,body.v2-on .hm-grid > *,body.v2-on :is(.db-tiles,.kpis,.stats) > *,body.v2-on .db-grid > *,body.v2-on .mf-cols > *{animation:v3rise .45s var(--ease) both}
+  body.v2-on :is(.hm-grid,.db-tiles,.kpis,.stats,.db-grid,.mf-cols) > :nth-child(2){animation-delay:.05s}
+  body.v2-on :is(.hm-grid,.db-tiles,.kpis,.stats,.db-grid,.mf-cols) > :nth-child(3){animation-delay:.1s}
+  body.v2-on :is(.hm-grid,.db-tiles,.kpis,.stats,.db-grid,.mf-cols) > :nth-child(4){animation-delay:.15s}
+  body.v2-on :is(.hm-grid,.db-tiles,.kpis,.stats,.db-grid,.mf-cols) > :nth-child(5){animation-delay:.2s}
+  body.v2-on :is(.hm-grid,.db-tiles,.kpis,.stats,.db-grid,.mf-cols) > :nth-child(n+6){animation-delay:.25s}
+  body.v2-on :is(.hbar i,.bar i,.hm-bar i,.db-hbar i,.meter i,.tr i,.pg-bar i){transform-origin:inline-start;animation:v3grow .9s .15s var(--ease) both}
+}
+@media (max-width:900px){
+  .v3-hero{grid-template-columns:auto minmax(0,1fr);padding:16px 18px;border-radius:18px;margin-bottom:12px}
+  .v3-hero-stats{grid-column:1 / -1;justify-content:flex-start}
+  .v3-hero h1{font-size:20px}.v3-hero p{font-size:12.5px}.v3-hero-ic{width:44px;height:44px;border-radius:13px}.v3-hero-ic i{font-size:24px}
+  .is-punch .v3-hero{display:none}
+  .v2 .page,.page.v2{padding:14px 14px 28px}
+  .v2-views{overflow-x:auto;flex-wrap:nowrap}
 }
 </style>
 </head>
@@ -2408,6 +2541,7 @@ Object.assign(T.ar, {
   ramHours:'ساعات الدوام اليومية في رمضان', ramHoursHint:'للمسلمين، 6 ساعات كحد أقصى (المادة 98). من 1 إلى 6 بخطوة نصف ساعة.',
   banFrom:'بداية الحظر الصيفي (شهر-يوم)', banTo:'نهاية الحظر الصيفي (شهر-يوم)', banStart:'يبدأ المنع الساعة', banEnd:'وينتهي الساعة',
   banHint:'مثال: من 06-15 إلى 09-15، من 12:00 إلى 15:00.',
+  v3Waiting:'بانتظارك',
   swAdminPay:'مسؤول النظام يدير الرواتب', swAdminPayLead:'يرى الرواتب ويعتمدها مثل صاحب صلاحية الرواتب. أوقفه لفصل الرواتب عن إدارة النظام؛ يبقى مبدأ الشخصين في الاعتماد قائما.',
   secCo:'ملف الشركة', secCoLead:'الاسم والسجل التجاري والرقم الضريبي والعنوان. تظهر في رأس كل خطاب وشهادة وقسيمة راتب وتقرير.',
   coNameAr:'اسم الشركة بالعربية', coNameEn:'اسم الشركة بالإنجليزية', coShortAr:'الاسم المختصر بالعربية', coShortEn:'الاسم المختصر بالإنجليزية',
@@ -2452,6 +2586,7 @@ Object.assign(T.en, {
   ramHours:'Daily hours in Ramadan', ramHoursHint:'For Muslim staff, 6 hours at most (Art. 98). 1 to 6 in half hours.',
   banFrom:'Summer ban from (MM-DD)', banTo:'Summer ban to (MM-DD)', banStart:'Ban starts at', banEnd:'Ban ends at',
   banHint:'For example 06-15 to 09-15, 12:00 to 15:00.',
+  v3Waiting:'waiting for you',
   swAdminPay:'Administrator manages pay', swAdminPayLead:'Sees and approves salaries like a payroll holder. Switch off to keep pay apart from system administration; the two-person approval rule still applies.',
   secCo:'Company profile', secCoLead:'Name, commercial registration, VAT number and address. They head every letter, certificate, payslip and report.',
   coNameAr:'Company name in Arabic', coNameEn:'Company name in English', coShortAr:'Short name in Arabic', coShortEn:'Short name in English',
@@ -2474,8 +2609,8 @@ function any(){ var ks = Array.prototype.slice.call(arguments); return function(
 function ALL(){ return true; }
 /** Pay amounts: the hr role or a payroll holder. An admin alone gets forbidden on the server, so the pages stay hidden. */
 function salaryOk(){ var r = R(); return r.payroll || (r.hr && !isAdmin()); }
-var MY_FILES = ['js/dashboard.js', 'js/my-file.js', 'js/requests.js', 'js/payroll.js', 'js/performance.js', 'js/engage.js', 'js/ops.js'];
-var HR_FILES = ['js/my-file.js', 'js/requests.js', 'js/payroll.js', 'js/performance.js', 'js/dashboard.js', 'js/reports.js', 'js/engage.js', 'js/compliance.js', 'js/hr-console.js'];
+var MY_FILES = ['js/dashboard.js', 'js/doc.js', 'js/my-file.js', 'js/requests.js', 'js/payroll.js', 'js/performance.js', 'js/engage.js', 'js/ops.js'];
+var HR_FILES = ['js/doc.js', 'js/my-file.js', 'js/requests.js', 'js/payroll.js', 'js/performance.js', 'js/dashboard.js', 'js/reports.js', 'js/engage.js', 'js/compliance.js', 'js/hr-console.js'];
 var OPS_FILES = HR_FILES.concat(['js/ops.js']);
 var AREAS = [
   { id: 'home', i: 'house', bare: true, subs: [{ id: 'main', n: 'vwMain', ok: ALL, files: ['js/dashboard.js', 'js/compliance.js', 'js/home.js'], run: function(b){ Home.render(b); } }] },
@@ -2532,7 +2667,7 @@ function areaLead(a){ var k = 'al' + a.id.charAt(0).toUpperCase() + a.id.slice(1
 /** Where the page body goes: the area body in the shell, #main before the shell exists. */
 function view(){ return $('#v2Body') || $('#main'); }
 /** The v2 block must come after every module's own <style>, so equal selectors resolve to v2. */
-function themeLast(){ var s = document.getElementById('dsv2'); if (s && document.head.lastElementChild !== s) document.head.appendChild(s); }
+function themeLast(){ ['dsv2', 'dsv3'].forEach(function(id){ var s = document.getElementById(id); if (s) document.head.appendChild(s); }); }
 function loadAll(files){ return files.reduce(function(p, f){ return p.then(function(){ return loadScript(f); }); }, Promise.resolve()); }
 
 /** Where a task from the bell opens. HR sections map to their area; personal items to growth or the profile. */
@@ -2579,14 +2714,14 @@ function renderShell(){
 function paintNav(){
   var cnt = areaCounts(), vis = AREAS.filter(areaOk);
   var item = function(a){ var c = cnt[a.id];
-    return '<a href="#' + a.id + '" data-area="' + a.id + '"' + (S.tab === a.id ? ' aria-current="page"' : '') + '>' + ph(a.i) + '<span>' + areaName(a) + '</span>' + (c ? '<span class="cnt num">' + (c > 99 ? '99+' : c) + '</span>' : '') + '</a>'; };
+    return '<a href="#' + a.id + '" data-area="' + a.id + '"' + (S.tab === a.id ? ' aria-current="page"' : '') + '><span class="v3-ic">' + ph(a.i, 'duotone') + '</span><span>' + areaName(a) + '</span>' + (c ? '<span class="cnt num">' + (c > 99 ? '99+' : c) + '</span>' : '') + '</a>'; };
   var nav = $('#v2Nav'), foot = $('#v2Foot'), bot = $('#v2Bottom'); if (!nav) return;
   nav.innerHTML = vis.filter(function(a){ return !a.foot; }).map(item).join('');
-  foot.innerHTML = vis.filter(function(a){ return a.foot; }).map(item).join('') + '<button type="button" id="v2Lock">' + ph('lock-simple') + '<span>' + t('signOut') + '</span></button>';
+  foot.innerHTML = vis.filter(function(a){ return a.foot; }).map(item).join('') + '<button type="button" id="v2Lock" data-area="account"><span class="v3-ic">' + ph('lock-simple', 'duotone') + '</span><span>' + t('signOut') + '</span></button>';
   var r = R(), fourth = r.hr || r.manager ? ['people', 'users-three', r.hr ? 'v2PeopleS' : 'vwTeam'] : ['pay', 'wallet', 'v2MyPay'];
   var bn = [['home', 'house', 'arHome'], ['requests', 'tray', 'v2Req'], ['time:punch', 'fingerprint', 'v2Punch', 1], fourth, ['more', 'dots-three-outline', 'v2More']];
   bot.innerHTML = bn.map(function(b){ var id = b[0].split(':')[0];
-    return '<button type="button" data-area="' + b[0] + '" class="' + (b[3] ? 'center' : '') + '"' + (!b[3] && S.tab === id ? ' aria-current="page"' : '') + ' aria-label="' + t(b[2]) + '">' + ph(b[1]) + (b[3] ? '' : '<span>' + t(b[2]) + '</span>') + '</button>'; }).join('');
+    return '<button type="button" data-area="' + b[0] + '" class="' + (b[3] ? 'center' : '') + '"' + (!b[3] && S.tab === id ? ' aria-current="page"' : '') + ' aria-label="' + t(b[2]) + '">' + ph(b[1], b[3] ? 'fill' : 'duotone') + (b[3] ? '' : '<span>' + t(b[2]) + '</span>') + '</button>'; }).join('');
   $$('[data-area]', $('#root')).forEach(function(el){ el.onclick = function(e){
     e.preventDefault();
     if (el.dataset.area === 'more') return openSide();
@@ -2606,6 +2741,36 @@ function paintChip(){
   c.onclick = function(){ goArea('time', 'punch'); };
 }
 
+/** The green banner that opens every area: its icon, name, purpose, what waits for the viewer, and today. */
+function heroHtml(a){
+  var n = areaCounts()[a.id], lead = areaLead(a);
+  var today = new Date().toLocaleDateString(LOCALE(), { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Asia/Riyadh' });
+  return '<header class="v3-hero" data-area="' + a.id + '"><span class="v3-hero-ic">' + ph(a.i, 'duotone') + '</span><div><h1>' + areaName(a) + '</h1>' + (lead ? '<p>' + lead + '</p>' : '') + '</div>' +
+    '<div class="v3-hero-stats">' + (n ? '<span class="v3-pill hot">' + ph('bell-ringing', 'fill') + '<b class="num">' + n + '</b>' + t('v3Waiting') + '</span>' : '') +
+    '<span class="v3-pill">' + ph('calendar-blank') + esc(today) + '</span></div></header>';
+}
+/** Numbers count up once when they appear (a tile, a fact, a big figure); the final text is restored exactly. */
+function countUp(el){
+  if (el.dataset.cu) return; el.dataset.cu = '1';
+  var tn = Array.prototype.filter.call(el.childNodes, function(n){ return n.nodeType === 3 && /\d/.test(n.nodeValue); })[0]; if (!tn) return;
+  var raw = tn.nodeValue, m = /^([^\d-]*)(-?[\d,\u066C]*\.?\d+)([\s\S]*)$/.exec(raw); if (!m) return;
+  var sep = m[2].indexOf('\u066C') >= 0 ? '\u066C' : ',', target = parseFloat(m[2].replace(/[,\u066C]/g, '')); if (!isFinite(target) || !target) return;
+  var dec = (m[2].split('.')[1] || '').length, group = /[,\u066C]/.test(m[2]);
+  var fmt = function(v){ var x = group ? v.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec }).replace(/,/g, sep) : v.toFixed(dec); return m[1] + x + m[3]; };
+  var t0 = performance.now();
+  setTimeout(function(){ if (tn.isConnected) tn.nodeValue = raw; }, 900); // frames pause in background tabs: always land on the real value
+  (function step(now){ var p = Math.min(1, (now - t0) / 800), e = 1 - Math.pow(1 - p, 3); if (!tn.isConnected) return; tn.nodeValue = p < 1 ? fmt(target * e) : raw; if (p < 1) requestAnimationFrame(step); })(t0);
+}
+var V3PAL = [['#E4F2E9', '#1D6B43'], ['#D1E9FF', '#175CD3'], ['#FEF0C7', '#B54708'], ['#FCE7F6', '#C11574'], ['#D7F3EF', '#0E7C70'], ['#E0EAFF', '#3538CD'], ['#FDE7E3', '#B42318'], ['#EEF2F0', '#44524A']];
+/** Every new screen: each avatar gets its own stable colour, numbers count up. */
+function v3Enhance(root){
+  $$('.av:not([data-av])', root).forEach(function(a){ a.dataset.av = '1'; if (a.style.background) return; var s = a.textContent || '', h = 0; for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; var p = V3PAL[h % V3PAL.length]; a.style.background = p[0]; a.style.color = p[1]; });
+  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  $$('.db-tile b, .kpi b, .stat b, .hm-facts dd, .hm-big b, .v3-pill b, [data-count]', root).forEach(countUp);
+}
+var v3q = 0;
+new MutationObserver(function(){ if (v3q) return; v3q = requestAnimationFrame(function(){ v3q = 0; if (document.body.classList.contains('v2-on')) v3Enhance(document.body); }); }).observe(document.body, { childList: true, subtree: true });
+
 /** Open an area and one of its sub-pages (or the last one used there, or the first). */
 function goArea(area, sub){
   var a = areaOf(area); if (!a || !areaOk(a)) a = AREAS[0];
@@ -2622,7 +2787,7 @@ function goArea(area, sub){
   if (a.bare) main.innerHTML = '<div id="v2Body" class="v2-bare"></div>';
   else {
     var lead = areaLead(a);
-    main.innerHTML = '<div class="page v2' + (a.id === 'time' && s.id === 'punch' ? ' is-punch' : '') + '"><div class="v2-ph"><div><h1>' + areaName(a) + '</h1>' + (lead ? '<p>' + lead + '</p>' : '') + '</div></div>' +
+    main.innerHTML = '<div class="page v2' + (a.id === 'time' && s.id === 'punch' ? ' is-punch' : '') + '">' + heroHtml(a) +
       (subs.length > 1 ? '<div class="v2-views" role="tablist" aria-label="' + areaName(a) + '">' + subs.map(function(x){
         return '<button type="button" role="tab" data-sub="' + x.id + '" aria-selected="' + (x === s) + '" tabindex="' + (x === s ? 0 : -1) + '">' + t(x.n) + (x.badge ? '<span class="badge hidden num" id="' + x.badge + '"></span>' : '') + '</button>';
       }).join('') + '</div>' : '<div style="height:14px"></div>') +

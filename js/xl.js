@@ -11,7 +11,7 @@ function lib(){
   if (libP) return libP;
   var id = window.Progress ? Progress.start('script:exceljs') : 0;
   libP = new Promise(function(res, rej){
-    var s = document.createElement('script'); s.src = LIB;
+    var s = document.createElement('script'); s.src = LIB; s.integrity = 'sha384-Pqp51FUN2/qzfxZxBCtF0stpc9ONI6MYZpVqmo8m20SoaQCzf+arZvACkLkirlPz'; s.crossOrigin = 'anonymous';
     s.onload = function(){ if (id) Progress.done(id); res(); };
     s.onerror = function(){ if (id) Progress.done(id, false); libP = null; s.remove(); rej(new Error('network')); };
     document.head.appendChild(s);

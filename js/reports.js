@@ -627,7 +627,7 @@ function toPdf(r, meta){
     checks + legend + '<table><thead>' + head + '</thead><tbody>' + body + '</tbody>' + (foot ? '<tfoot class="tf">' + foot + '</tfoot>' : '') + '</table>' +
     '<div class="sign"><div>' + (en ? 'Prepared by' : 'أعده') + '</div><div>' + (en ? 'Reviewed by' : 'راجعه') + '</div><div>' + (en ? 'Approved by' : 'اعتمده') + '</div></div>' +
     '<p class="conf">' + t('rpConf') + ' · ' + t('rpVerifyHow') + '</p></main>' +
-    '<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script><script>' +
+    '<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha384-3zSEDfvllQohrq0PHL1fOXJuC/jSOO34H46t6UQfobFOmxE5BpjjaIJY5F2/bMnU" crossorigin="anonymous"><\/script><script>' +
     'function go(){try{new QRCode(document.getElementById("qr"),{text:' + JSON.stringify(meta.ref + '|' + meta.hash) + ',width:168,height:168,correctLevel:QRCode.CorrectLevel.M})}catch(e){}setTimeout(function(){window.print()},500)}' +
     'if(document.readyState==="complete")go();else window.addEventListener("load",go);<\/script></body></html>';
   var w = window.open('', '_blank'); if (!w) return toast(t('e_generic'));

@@ -292,7 +292,7 @@ function api_hrRolesSave(req, me) {
 
 var PRIV_KEYS = ['nationalId', 'idExpiry', 'birthDate', 'maritalStatus', 'iban', 'bankName', 'gosiNumber', 'gosiCohort',
   'address', 'emergencyName', 'emergencyPhone', 'borderNo', 'passportNo', 'passportExpiry', 'nationalAddress',
-  'personalEmail', 'nameEnOfficial'];
+  'personalEmail', 'nameEnOfficial', 'gosiWage'];
 var PRIV_DATES = { idExpiry: 1, birthDate: 1, passportExpiry: 1 };
 
 function api_hrPrivateSave(req, me) {
@@ -303,6 +303,8 @@ function api_hrPrivateSave(req, me) {
   if ('gosiCohort' in d && d.gosiCohort && ['legacy', 'new'].indexOf(d.gosiCohort) < 0) fail_('bad_value');
   if ('personalEmail' in d && d.personalEmail && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.personalEmail)) fail_('bad_email');
   if ('borderNo' in d && d.borderNo && !/^\d{10}$/.test(String(d.borderNo))) fail_('bad_value');
+  // the wage registered with GOSI (from the GOSI portal) when it is not basic + housing; empty = use the package
+  if ('gosiWage' in d && d.gosiWage !== '' && d.gosiWage != null && !(Number(d.gosiWage) >= 400 && Number(d.gosiWage) <= 1000000)) fail_('bad_value');
   return withLock_(function () {
     var target = findBy_(SHEETS.EMP, 'id', req.empId);
     if (!target) fail_('not_found');
@@ -683,6 +685,7 @@ function validateImport_(rows, ctx, me) {
     if (r.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(r.email)) e('email', 'bad_email');
     if (r.personalEmail && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(r.personalEmail)) e('personalEmail', 'bad_email');
     if (r.gosiCohort && ['legacy', 'new'].indexOf(r.gosiCohort) < 0) e('gosiCohort', 'bad_value');
+    if (r.gosiWage !== undefined && r.gosiWage !== '' && !(Number(r.gosiWage) >= 400 && Number(r.gosiWage) <= 1000000)) e('gosiWage', 'bad_value');
     if (r.contractType !== undefined && r.contractType !== '') {
       var ct = contractType_(r.contractType);
       if (ct === null) e('contractType', 'bad_value'); else r.contractType = ct;
@@ -729,7 +732,7 @@ function api_hrImportValidate(req, me) {
 var IMPORT_JOB = ['leaveOpeningDays', 'leaveOpeningDate', 'gender', 'workLocation', 'contractType', 'contractEnd', 'probationEnd', 'contractNo', 'occupationCode',
   'employmentType', 'workDaysPerWeek', 'dailyHours', 'annualLeaveDays', 'noticeDays'];
 var IMPORT_PRIV = ['nationalId', 'idExpiry', 'birthDate', 'bankName', 'gosiNumber', 'gosiCohort', 'borderNo', 'passportNo',
-  'passportExpiry', 'nationalAddress', 'personalEmail', 'nameEnOfficial', 'maritalStatus', 'emergencyName', 'emergencyPhone'];
+  'passportExpiry', 'nationalAddress', 'personalEmail', 'nameEnOfficial', 'maritalStatus', 'emergencyName', 'emergencyPhone', 'gosiWage'];
 
 /** All or nothing: the server re-validates the whole file inside the lock and writes nothing if one row is wrong. */
 function api_hrImportCommit(req, me) {

@@ -14,6 +14,11 @@ var L = {
 Object.assign(T.ar, {
   pdTitle:'الرواتب في لمحة', pdLastNet:'صافي آخر مسير', pdDrafts:'مسيرات بانتظار الاعتماد', pdDraftsNote:'يعتمدها شخص غير الذي أعدها', pdTrend:'صافي الرواتب شهرا بشهر',
   pdRunTitle:'تحليل المسير', pdEarn:'مكونات الإجمالي', pdDed:'الخصومات', pdDept:'الصافي حسب الإدارة', pdWarn:'قسائم عليها ملاحظات',
+  psCost:'تكلفة الشركة', psCostTitle:'تكلفة الشركة عن هذا الشهر', psGosiEr:'التأمينات (حصة الشركة)', psEos:'مخصص مكافأة نهاية الخدمة', psYears:'{y} سنة خدمة',
+  psEosFull:'شهر عن كل سنة', psEosHalf:'نصف شهر عن كل سنة', psGosiDiff:'أجر التأمينات المسجل {r} يختلف عن الأساسي والسكن {p}. الاشتراكات محسوبة على الأجر المسجل.', psLate:'دقائق التأخير', psOt:'ساعات إضافية',
+  psItem:'البند', psAmount:'المبلغ (ر.س)', psPeriod:'فترة الراتب', psBank:'البنك والحساب', psEmployee:'بيانات الموظف', psName:'الاسم', psPosition:'الوظيفة', psDept:'الإدارة', psId:'رقم الهوية',
+  psGosiBase:'أجر الاشتراك', psCohort:'فئة التأمينات', psAttendance:'الحضور خلال الشهر', psKind:'قسيمة راتب', psTitle:'قسيمة راتب شهر {m}', psFoot:'وثيقة صادرة من نظام الموارد البشرية. للتحقق امسح الرمز أو اذكر المرجع.',
+  psSignHr:'الموارد البشرية', psSignPay:'الرواتب', psSignEmp:'توقيع الموظف بالاستلام',
   prTitle:'الرواتب', prMine:'رواتبي', prMineEmpty:'تظهر هنا قسيمة كل شهر بعد اعتماد مسير الرواتب.', prOpen:'عرض القسيمة', prPrint:'طباعة القسيمة',
   prRuns:'مسيرات الرواتب', prNew:'إعداد مسير شهر', prMonth:'الشهر', prCreate:'إعداد المسير', prEmpty:'لا توجد مسيرات بعد. ابدأ بإعداد مسير الشهر الماضي.',
   pr_draft:'مسودة', pr_locked:'معتمد ومقفل', prHead:'الموظفون', prGross:'الإجمالي', prDed:'الاستقطاعات', prNet:'الصافي', prGosiEr:'تأمينات على الشركة', prWarn:'ملاحظات',
@@ -38,6 +43,11 @@ Object.assign(T.ar, {
 Object.assign(T.en, {
   pdTitle:'Payroll at a glance', pdLastNet:'Last run net', pdDrafts:'Runs awaiting approval', pdDraftsNote:'approved by someone other than the preparer', pdTrend:'Net pay month by month',
   pdRunTitle:'Run analysis', pdEarn:'What the gross is made of', pdDed:'Deductions', pdDept:'Net by department', pdWarn:'Payslips with notes',
+  psCost:'Company cost', psCostTitle:'What this month cost the company', psGosiEr:'GOSI (employer share)', psEos:'End-of-service provision', psYears:'{y} years of service',
+  psEosFull:'one month per year', psEosHalf:'half a month per year', psGosiDiff:'The GOSI-registered wage {r} differs from basic plus housing {p}. Contributions use the registered wage.', psLate:'Minutes late', psOt:'Overtime hours',
+  psItem:'Item', psAmount:'Amount (SAR)', psPeriod:'Pay period', psBank:'Bank and account', psEmployee:'Employee', psName:'Name', psPosition:'Position', psDept:'Department', psId:'ID number',
+  psGosiBase:'Contribution wage', psCohort:'GOSI group', psAttendance:'Attendance this month', psKind:'Payslip', psTitle:'Payslip for {m}', psFoot:'Issued by the HR system. To verify, scan the code or quote the reference.',
+  psSignHr:'Human Resources', psSignPay:'Payroll', psSignEmp:'Employee acknowledgement',
   prTitle:'Payroll', prMine:'My payslips', prMineEmpty:'Each month\'s payslip appears here once payroll is approved.', prOpen:'View payslip', prPrint:'Print payslip',
   prRuns:'Payroll runs', prNew:'Prepare a month', prMonth:'Month', prCreate:'Prepare payroll', prEmpty:'No payroll runs yet. Start with last month.',
   pr_draft:'Draft', pr_locked:'Approved and locked', prHead:'Employees', prGross:'Gross', prDed:'Deductions', prNet:'Net', prGosiEr:'Employer GOSI', prWarn:'Notes',
@@ -71,7 +81,20 @@ var css = '' +
 '.pr-slip .tot dt,.pr-slip .tot dd{font-weight:600;font-size:16px;border-bottom:0}' +
 '.pr-month{display:flex;align-items:center;gap:12px;padding:12px 0;cursor:pointer}.pr-month + .pr-month{border-top:1px solid var(--line)}' +
 '.pr-month .main{flex:1}.pr-month .main small{display:block;color:var(--ink-2);font-size:12.5px}' +
-'@media (min-width:1024px){.pr-kpis{grid-template-columns:2fr 1fr 1fr 1fr 1fr}.pr-kpis .net{grid-column:auto}}';
+'@media (min-width:1024px){.pr-kpis{grid-template-columns:2fr 1fr 1fr 1fr 1fr}.pr-kpis .net{grid-column:auto}}' +
+'.ps{display:grid;gap:14px}.ps-net{display:grid;grid-template-columns:1.3fr 1fr;border-radius:16px;overflow:hidden;box-shadow:0 10px 26px -16px rgba(23,63,42,.6)}' +
+'.ps-net-main{background:linear-gradient(135deg,#173F2A,#2F6B48 60%,#3D8559);color:#fff;padding:16px 18px;position:relative}.ps-net-main span{display:flex;align-items:center;gap:8px;color:#D2E8DA;font-size:13px;font-weight:600}.ps-net-main span i{font-size:20px}' +
+'.ps-net-main b{display:inline-block;font-family:var(--f-num,Manrope,sans-serif);font-size:32px;font-weight:800;letter-spacing:-.02em;margin:6px 0 0;direction:ltr;unicode-bidi:isolate}.ps-net-main em{font-style:normal;margin-inline-start:6px;color:#D2E8DA;font-weight:600}' +
+'.ps-net-main p{margin:6px 0 0;font-size:12px;color:#CFE5D7;line-height:1.5}.ps-net-side{margin:0;background:#F7FAF8;display:grid;align-content:center}.ps-net-side div{padding:9px 14px;border-top:1px solid var(--line-2)}.ps-net-side div:first-child{border-top:0}' +
+'.ps-net-side dt{font-size:12px;color:var(--ink-3)}.ps-net-side dd{margin:0;font-weight:700;font-size:15px}' +
+'.ps-cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}.ps-box{background:#fff;border-radius:14px;padding:12px 14px;box-shadow:0 1px 2px rgba(15,28,20,.05),0 8px 20px -14px rgba(15,28,20,.2)}' +
+'.ps-box h4{margin:0 0 6px;font-size:14px;display:flex;align-items:center;gap:8px;font-family:var(--f-head)}.ps-box h4 i{font-size:20px}.ps-box.earn h4 i{color:#067647}.ps-box.ded h4 i{color:#B42318}.ps-box.cost h4 i{color:#3538CD}' +
+'.ps-r{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid var(--line-2);font-size:13.5px}.ps-r:first-of-type{border-top:0}.ps-r small{display:block;color:var(--ink-3);font-size:11.5px}.ps-r b{font-weight:600;white-space:nowrap}' +
+'.ps-r.tot{border-top:1.5px solid var(--line);font-weight:800}.ps-r.tot b{font-weight:800}.ps-box.cost .ps-r.tot{color:#3538CD}' +
+'.ps-note{display:flex;gap:8px;align-items:flex-start;margin:8px 0 0;padding:8px 10px;border-radius:10px;background:#FEF0C7;color:#7A3E00;font-size:12.5px}.ps-note i{font-size:17px}' +
+'.ps-facts{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}.ps-facts div{background:#fff;border-radius:12px;padding:10px;text-align:center;box-shadow:0 1px 2px rgba(15,28,20,.05)}' +
+'.ps-facts i{font-size:20px;color:var(--brand)}.ps-facts span{display:block;font-size:11.5px;color:var(--ink-3)}.ps-facts b{font-size:17px;font-weight:800}.ps-warn{display:flex;gap:6px;flex-wrap:wrap}' +
+'@media (max-width:700px){.ps-net,.ps-cols{grid-template-columns:1fr}.ps-facts{grid-template-columns:repeat(3,minmax(0,1fr))}}';
 var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 
 function lab(l){ var m = L[S.lang] || L.ar; if (l.code !== 'allowance') return m[l.code] || l.code; var n = String(l.label || ''); return /^(بدل|allowance)/i.test(n) ? n : m.allowance + ' ' + n; }
@@ -89,35 +112,78 @@ function lineNote(l){
 }
 function warnChips(ws){ return (ws || []).filter(function(w, i, a){ return a.indexOf(w) === i; }).map(function(w){ return '<span class="chip ' + (w === 'no_package' || w === 'net_negative' ? 'absent' : 'late') + '">' + t('pw_' + w) + '</span>'; }).join(' '); }
 
-/** The payslip body: used in drawers and on paper. */
+/** A label in a given language (the payslip prints both). */
+function labIn(l, lang){ var m = L[lang] || L.ar; if (l.code !== 'allowance') return m[l.code] || l.code; var n = String(l.label || ''); return /^(بدل|allowance)/i.test(n) ? n : m.allowance + ' ' + n; }
+function sumBy(ls){ return ls.reduce(function(t, l){ return t + (Number(l.amount) || 0); }, 0); }
+function companyCostOf(s){ return s.companyCost != null ? Number(s.companyCost) : Number(s.gross || 0) + Number(s.gosiEmployer || 0) + Number(s.eosAccrual || 0); }
+function maskTail(v, n){ v = String(v || ''); return v ? '•••• ' + v.slice(-(n || 4)) : '-'; }
+
+/** The payslip on screen: net pay up top with the amount in words, earnings beside deductions, then what the month cost the company. */
 function slipHtml(s){
-  var e = s.lines.filter(function(l){ return l.kind === 'earning'; }), d = s.lines.filter(function(l){ return l.kind === 'deduction'; });
-  var rows = function(ls){ return ls.map(function(l){ return '<dt>' + esc(lab(l)) + lineNote(l) + '</dt><dd>' + money(l.amount) + '</dd>'; }).join(''); };
-  return '<div class="pr-slip"><h4>' + t('prEarnings') + '</h4><dl>' + rows(e) + '<dt class="tot" style="font-weight:600">' + t('prGross') + '</dt><dd style="font-weight:600">' + money(s.gross) + '</dd></dl>' +
-    '<h4>' + t('prDeductions') + '</h4><dl>' + (d.length ? rows(d) : '<dt>-</dt><dd>0.00</dd>') + '<dt style="font-weight:600">' + t('prDed') + '</dt><dd style="font-weight:600">' + money(s.deductions) + '</dd></dl>' +
-    '<dl class="tot" style="margin-top:10px"><dt>' + t('prNet') + '</dt><dd>' + money(s.net) + ' ' + t('mfSar') + '</dd></dl>' +
-    '<p class="hr-hint">' + [t('prDays') + ' ' + (s.paidDays || 0), s.absentDays ? t('prAbsent') + ' ' + s.absentDays : '', s.info.leaveBalance != null ? t('prLeaveBal') + ' ' + Number(s.info.leaveBalance).toLocaleString(LOCALE(), { maximumFractionDigits: 1 }) : '',
-      s.gosiEmployer ? t('prGosiNote') + ' ' + money(s.gosiEmployer) : ''].filter(Boolean).join('، ') + '</p>' +
-    (s.warnings && s.warnings.length ? '<div style="margin-top:6px">' + warnChips(s.warnings) + '</div>' : '') + '</div>';
+  var en = S.lang === 'en', e = s.lines.filter(function(l){ return l.kind === 'earning'; }), d = s.lines.filter(function(l){ return l.kind === 'deduction'; });
+  var g = (s.info && s.info.gosi) || {}, eos = (s.info && s.info.eos) || {};
+  var rows = function(ls){ return ls.map(function(l){ return '<div class="ps-r"><span>' + esc(lab(l)) + lineNote(l) + '</span><b class="num">' + money(l.amount) + '</b></div>'; }).join(''); };
+  var words = window.Doc ? Doc.words(s.net, en ? 'en' : 'ar') : '';
+  return '<div class="ps">' +
+    '<div class="ps-net"><div class="ps-net-main"><span>' + ph('wallet', 'duotone') + t('prNet') + '</span><b class="num" data-count>' + money(s.net) + '</b><em>' + t('mfSar') + '</em>' + (words ? '<p>' + esc(words) + '</p>' : '') + '</div>' +
+      '<dl class="ps-net-side"><div><dt>' + t('prGross') + '</dt><dd class="num">' + money(s.gross) + '</dd></div><div><dt>' + t('prDed') + '</dt><dd class="num">' + money(s.deductions) + '</dd></div>' +
+      '<div><dt>' + t('psCost') + '</dt><dd class="num">' + money(companyCostOf(s)) + '</dd></div></dl></div>' +
+    '<div class="ps-cols"><section class="ps-box earn"><h4>' + ph('arrow-circle-up', 'duotone') + t('prEarnings') + '</h4>' + rows(e) + '<div class="ps-r tot"><span>' + t('prGross') + '</span><b class="num">' + money(s.gross) + '</b></div></section>' +
+      '<section class="ps-box ded"><h4>' + ph('arrow-circle-down', 'duotone') + t('prDeductions') + '</h4>' + (d.length ? rows(d) : '<div class="ps-r"><span>-</span><b class="num">0.00</b></div>') +
+      '<div class="ps-r tot"><span>' + t('prDed') + '</span><b class="num">' + money(s.deductions) + '</b></div></section></div>' +
+    '<section class="ps-box cost"><h4>' + ph('buildings', 'duotone') + t('psCostTitle') + '</h4>' +
+      '<div class="ps-r"><span>' + t('prGross') + '</span><b class="num">' + money(s.gross) + '</b></div>' +
+      '<div class="ps-r"><span>' + t('psGosiEr') + '<small>' + (g.erRate != null ? g.erRate + '% × ' + money(g.base) : '') + '</small></span><b class="num">' + money(s.gosiEmployer) + '</b></div>' +
+      '<div class="ps-r"><span>' + t('psEos') + '<small>' + (eos.years != null ? t('psYears').replace('{y}', eos.years) + ' · ' + (eos.perYear === 1 ? t('psEosFull') : t('psEosHalf')) : '') + '</small></span><b class="num">' + money(s.eosAccrual || 0) + '</b></div>' +
+      '<div class="ps-r tot"><span>' + t('psCost') + '</span><b class="num">' + money(companyCostOf(s)) + '</b></div>' +
+      (g.registered && Math.abs(g.registered - (g.packageWage || 0)) > 1 ? '<p class="ps-note">' + ph('warning-circle', 'fill') + t('psGosiDiff').replace('{r}', money(g.registered)).replace('{p}', money(g.packageWage)) + '</p>' : '') + '</section>' +
+    '<div class="ps-facts">' + [['calendar-check', t('prDays'), s.paidDays || 0], ['user-minus', t('prAbsent'), s.absentDays || 0], ['clock-countdown', t('psLate'), (s.info && s.info.lateMin) || 0],
+      ['timer', t('psOt'), (s.info && s.info.overtimeHours) || 0], ['airplane-tilt', t('prLeaveBal'), s.info && s.info.leaveBalance != null ? Number(s.info.leaveBalance).toLocaleString(LOCALE(), { maximumFractionDigits: 1 }) : '-']]
+      .map(function(x){ return '<div>' + ph(x[0], 'duotone') + '<span>' + x[1] + '</span><b class="num">' + x[2] + '</b></div>'; }).join('') + '</div>' +
+    (s.warnings && s.warnings.length ? '<div class="ps-warn">' + warnChips(s.warnings) + '</div>' : '') + '</div>';
 }
 
+/** The payslip on paper: the shared A4 document kit, bilingual labels, amount in words, company cost, verification QR. */
 function printSlip(s, who){
-  var en = S.lang === 'en', e = s.emp || who || {}, iban = String((s.info && s.info.iban) || '');
-  var html = '<!doctype html><html lang="' + (en ? 'en' : 'ar') + '" dir="' + (en ? 'ltr' : 'rtl') + '"><head><meta charset="utf-8"><title>' + esc(s.ref) + '</title>' +
-    '<link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;600&display=swap" rel="stylesheet"><style>' +
-    '@page{size:A4;margin:16mm}body{font-family:"Readex Pro",Tahoma,sans-serif;color:#17221A;font-size:13px}header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #4D6D51;padding-bottom:10px}' +
-    'header img{height:54px}h1{font-size:19px;margin:14px 0 4px}.meta{display:grid;grid-template-columns:1fr 1fr;gap:4px 18px;margin:10px 0 14px;color:#4A5A4D}' +
-    '.pr-slip h4{margin:12px 0 4px;font-size:13px;color:#4A5A4D}.pr-slip dl{display:grid;grid-template-columns:1fr auto;margin:0}.pr-slip dt,.pr-slip dd{padding:5px 0;border-bottom:1px solid #E5E1D6;margin:0}' +
-    '.pr-slip dd{text-align:end;font-variant-numeric:tabular-nums}.pr-slip dt small{color:#6B786D;margin-inline-start:6px}.tot dt,.tot dd{font-weight:600;font-size:15px;border:0}.hr-hint{color:#4A5A4D}.chip{display:none}' +
-    'footer{margin-top:24px;font-size:11px;color:#8A948B;border-top:1px solid #DAD5C8;padding-top:6px}</style></head><body>' +
-    '<header><img src="' + logoInk() + '" alt=""><div style="text-align:end;font-size:12px;color:#4A5A4D">' + esc(coName(en ? 'en' : 'ar')) + (en ? '<br>Payslip' : '<br>قسيمة راتب') + '</div></header>' +
-    '<h1>' + (en ? 'Payslip for ' : 'قسيمة راتب شهر ') + esc(monthName(s.month)) + '</h1>' +
-    '<div class="meta"><span>' + esc(e.name || '') + '</span><span>' + t('mfEmpNo') + ': ' + esc(e.empNo || '') + '</span><span>' + esc(e.title || '') + '</span><span>' + esc(e.department || '') + '</span>' +
-    '<span>' + t('prIban') + ': <bdi>' + (iban ? esc(iban.slice(0, 4) + ' •••• ' + iban.slice(-4)) : '-') + '</bdi></span><span>' + t('prRef') + ': <bdi>' + esc(s.ref) + '</bdi></span></div>' +
-    slipHtml(s) + '<footer>' + (en ? 'Issued by HR. Questions: contact HR quoting ' : 'صادرة عن إدارة الموارد البشرية. للاستفسار اذكر المرجع ') + '<bdi>' + esc(s.ref) + '</bdi></footer>' +
-    '<script>window.onload=function(){setTimeout(function(){window.print()},400)}<\/script></body></html>';
-  var w = window.open('', '_blank'); if (!w) return toast(t('e_generic'));
-  w.document.open(); w.document.write(html); w.document.close();
+  if (!window.Doc) { loadScript('js/doc.js').then(function(){ printSlip(s, who); }); return; }
+  var lang = S.lang === 'en' ? 'en' : 'ar', other = lang === 'en' ? 'ar' : 'en', e = s.emp || who || {}, info = s.info || {}, g = info.gosi || {}, eos = info.eos || {};
+  var bi = function(k){ return Doc.bi((T.ar[k] || k), (T.en[k] || k), lang); };
+  var lb = function(l){ return Doc.bi(labIn(l, 'ar'), labIn(l, 'en'), lang); };
+  var note = function(l){ var x = lineNote(l); return x ? x.replace('<small>', '<small>').replace('</small>', '</small>') : ''; };
+  var tbl = function(ls, totKey, total){ return '<table class="tb"><thead><tr><th>' + bi('psItem') + '</th><th class="n">' + bi('psAmount') + '</th></tr></thead><tbody>' +
+    (ls.length ? ls.map(function(l){ return '<tr><td>' + lb(l) + note(l) + '</td><td class="n num">' + money(l.amount) + '</td></tr>'; }).join('') : '<tr><td>-</td><td class="n num">0.00</td></tr>') +
+    '</tbody><tfoot><tr><td>' + bi(totKey) + '</td><td class="n num">' + money(total) + '</td></tr></tfoot></table>'; };
+  var ear = s.lines.filter(function(l){ return l.kind === 'earning'; }), ded = s.lines.filter(function(l){ return l.kind === 'deduction'; });
+  var cost = companyCostOf(s), period = info.from && info.to ? info.from + ' → ' + info.to : s.month;
+  var body =
+    '<section class="pnet"><div class="pn-main"><span>' + bi('prNet') + '</span><b class="num">' + money(s.net) + ' <em>' + (lang === 'en' ? 'SAR' : 'ر.س') + '</em></b>' +
+      '<p>' + Doc.esc(Doc.words(s.net, lang)) + '</p><p class="o">' + Doc.esc(Doc.words(s.net, other)) + '</p></div>' +
+      '<dl class="pn-side"><div><dt>' + bi('psPeriod') + '</dt><dd class="num">' + Doc.esc(period) + '</dd></div><div><dt>' + bi('psBank') + '</dt><dd>' + Doc.esc(info.bankName || '-') + ' · <span class="num">' + Doc.esc(maskTail(info.iban, 4)) + '</span></dd></div>' +
+      '<div><dt>' + bi('prDays') + '</dt><dd class="num">' + (s.paidDays || 0) + ' / 30</dd></div></dl></section>' +
+    '<section><h2 class="sh">' + bi('psEmployee') + '</h2><dl class="grid c4">' +
+      [['psName', e.name || ''], ['mfEmpNo', e.empNo || ''], ['psPosition', e.title || '-'], ['psDept', e.department || '-'], ['psId', maskTail(info.nationalId, 4)], ['psGosiBase', money(g.base || 0)], ['psCohort', g.cohort ? (T[lang]['co_' + g.cohort] || g.cohort) : '-'], ['prRef', s.ref]]
+        .map(function(x){ return '<div><dt>' + bi(x[0]) + '</dt><dd' + (/Ref|mfEmpNo|psGosiBase|psId/.test(x[0]) ? ' class="num"' : '') + '>' + Doc.esc(x[1]) + '</dd></div>'; }).join('') + '</dl></section>' +
+    '<section class="two"><div><h2 class="sh">' + bi('prEarnings') + '</h2>' + tbl(ear, 'prGross', s.gross) + '</div><div><h2 class="sh">' + bi('prDeductions') + '</h2>' + tbl(ded, 'prDed', s.deductions) + '</div></section>' +
+    '<section class="eq"><div><span>' + bi('prGross') + '</span><b class="num">' + money(s.gross) + '</b></div><i>−</i><div><span>' + bi('prDed') + '</span><b class="num">' + money(s.deductions) + '</b></div><i>=</i><div class="net"><span>' + bi('prNet') + '</span><b class="num">' + money(s.net) + '</b></div></section>' +
+    '<section><h2 class="sh">' + bi('psCostTitle') + '</h2><table class="tb"><tbody>' +
+      '<tr><td>' + bi('prGross') + '</td><td class="n num">' + money(s.gross) + '</td></tr>' +
+      '<tr><td>' + bi('psGosiEr') + '<small>' + (g.erRate != null ? g.erRate + '% × ' + money(g.base) : '') + '</small></td><td class="n num">' + money(s.gosiEmployer) + '</td></tr>' +
+      '<tr><td>' + bi('psEos') + '<small>' + (eos.years != null ? Doc.esc(T[lang].psYears.replace('{y}', eos.years)) + ' · ' + (eos.perYear === 1 ? T[lang].psEosFull : T[lang].psEosHalf) : '') + '</small></td><td class="n num">' + money(s.eosAccrual || 0) + '</td></tr>' +
+      '</tbody><tfoot><tr><td>' + bi('psCost') + '</td><td class="n num">' + money(cost) + '</td></tr></tfoot></table>' +
+      (g.registered && Math.abs(g.registered - (g.packageWage || 0)) > 1 ? '<p class="note warn" style="margin-top:6px">' + Doc.esc(T[lang].psGosiDiff.replace('{r}', money(g.registered)).replace('{p}', money(g.packageWage))) + '</p>' : '') + '</section>' +
+    '<section><h2 class="sh">' + bi('psAttendance') + '</h2><dl class="grid c4">' +
+      [['prDays', s.paidDays || 0], ['prAbsent', s.absentDays || 0], ['psLate', info.lateMin || 0], ['psOt', info.overtimeHours || 0]].map(function(x){ return '<div><dt>' + bi(x[0]) + '</dt><dd class="num">' + x[1] + '</dd></div>'; }).join('') + '</dl></section>';
+  var css = '.pnet{display:grid;grid-template-columns:1.25fr 1fr;border-radius:12px;overflow:hidden;border:1px solid #DCD6C9;margin-top:4px}' +
+    '.pn-main{background:linear-gradient(135deg,#1F4A33,#2F6B48);color:#fff;padding:14px 18px}.pn-main span .bi b{color:#fff}.pn-main span .bi i{color:#CFE5D7}' +
+    '.pn-main b{display:block;font-size:27pt;font-weight:700;line-height:1.15;margin:4px 0 4px;font-family:"IBM Plex Sans",sans-serif}.pn-main b em{font-style:normal;font-size:12pt;font-weight:600;opacity:.85}' +
+    '.pn-main p{margin:0;font-size:8.5pt;color:#E3F1E8}.pn-main p.o{font-size:7.5pt;color:#BCD8C6;margin-top:2px}' +
+    '.pn-side{margin:0;display:grid;align-content:center;gap:0;background:#FAF8F3}.pn-side div{padding:8px 14px;border-top:1px solid #EEEAE0}.pn-side div:first-child{border-top:0}.pn-side dt{font-size:7.5pt;color:#6B786D;margin:0}.pn-side dd{margin:1px 0 0;font-weight:600}' +
+    'section.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}' +
+    '.eq{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:center;gap:8px;background:#F4F7F5;border-radius:10px;padding:10px 14px}.eq i{font-style:normal;font-size:16pt;color:#8F8878}' +
+    '.eq > div > span{display:block;font-size:8pt;color:#6B786D}.eq b{font-size:13pt}.eq .net b{color:#2F5134;font-size:15pt}';
+  Doc.open({ lang: lang, kind: T[lang].psKind, title: T[lang].psTitle.replace('{m}', monthName(s.month)), ref: s.ref, body: body, extraCss: css,
+    qr: 'PS|' + s.ref + '|' + (e.empNo || '') + '|' + s.month + '|' + Number(s.net).toFixed(2), by: S.me ? S.me.name : '',
+    footnote: T[lang].psFoot, signatures: [bi('psSignHr'), bi('psSignPay'), bi('psSignEmp')] });
 }
 
 // ---------------- "ملفي": my payslips ----------------

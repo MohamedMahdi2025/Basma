@@ -127,10 +127,20 @@ function calcSlip_(emp, x) {
   // GOSI, employee share deducted; employer share shown
   var saudi = bool_(emp.isSaudi), rates = gosiRates_(saudi, p.gosiCohort, x.month);
   if (saudi && !p.gosiCohort) out.warnings.push('gosi_cohort_missing');
-  var base = Math.min(GOSI_MAX, Math.max(saudi ? GOSI_MIN : 0, comp.basic + comp.housing)) * f;
-  out.info.gosi = { base: r2_(base), empRate: rates.emp, erRate: rates.er, cohort: rates.cohort };
+  // contributions follow the wage registered with GOSI; when HR recorded one that differs from basic + housing, say so
+  var pkgWage = comp.basic + comp.housing, regWage = Number(p.gosiWage) || 0, gWage = regWage || pkgWage;
+  if (regWage && Math.abs(regWage - pkgWage) > 1) out.warnings.push('gosi_wage_differs');
+  var base = Math.min(GOSI_MAX, Math.max(saudi ? GOSI_MIN : 0, gWage)) * f;
+  out.info.gosi = { base: r2_(base), empRate: rates.emp, erRate: rates.er, cohort: rates.cohort, registered: regWage || null, packageWage: r2_(pkgWage) };
   if (rates.emp) add({ kind: 'deduction', code: 'gosi', rate: rates.emp, amount: base * rates.emp / 100, cap: true, statutory: true });
   out.gosiEmployer = r2_(base * rates.er / 100);
+
+  // end of service the company sets aside this month (Art. 84): half a month's wage a year for the first five years,
+  // a full month after; the wage follows the eosWageBasis setting. A provision, never paid on the slip.
+  var eosWage = x.s.eosWageBasis === 'basic_housing' ? pkgWage : monthly;
+  var years = hire ? Math.max(0, (Date.parse(to) - Date.parse(hire)) / (365.25 * 864e5)) : 0;
+  out.eosAccrual = r2_((years >= 5 ? eosWage / 12 : eosWage / 24) * f);
+  out.info.eos = { wage: r2_(eosWage), years: Math.round(years * 100) / 100, perYear: years >= 5 ? 1 : 0.5 };
 
   // salary advances: an instalment each month from the start month until repaid
   x.reqs.forEach(function (r) {
@@ -165,6 +175,9 @@ function finish_(out) {
   if (out.net < 0) { out.warnings.push('net_negative'); }
   out.gosiEmployee = r2_(out.lines.filter(function (l) { return l.code === 'gosi'; }).reduce(function (t, l) { return t + l.amount; }, 0));
   out.gosiEmployer = out.gosiEmployer || 0;
+  out.eosAccrual = out.eosAccrual || 0;
+  // what the month costs the company: everything earned, plus employer GOSI, plus the end-of-service provision
+  out.companyCost = r2_(out.gross + out.gosiEmployer + out.eosAccrual);
   return out;
 }
 
@@ -182,15 +195,17 @@ function slipRow_(emp, run, calc, existing) {
   row.status = run.status === 'locked' ? 'locked' : 'draft';
   row.linesJson = JSON.stringify(calc.lines); row.gross = calc.gross; row.deductions = calc.deductions; row.net = calc.net;
   row.gosiEmployee = calc.gosiEmployee; row.gosiEmployer = calc.gosiEmployer; row.paidDays = calc.info.paidDays || 0;
+  row.eosAccrual = calc.eosAccrual || 0; row.companyCost = calc.companyCost || 0;
   row.absentDays = calc.info.absentDays || 0; row.infoJson = JSON.stringify({ info: calc.info, warnings: calc.warnings }); row.updatedAt = now;
   return row;
 }
 function totals_(rows) {
-  var t = { headcount: 0, gross: 0, deductions: 0, net: 0, gosiEmployee: 0, gosiEmployer: 0, warnings: 0 };
+  var t = { headcount: 0, gross: 0, deductions: 0, net: 0, gosiEmployee: 0, gosiEmployer: 0, eosAccrual: 0, companyCost: 0, warnings: 0 };
   rows.forEach(function (r) {
     if (r.status === 'void') return;
     t.headcount++; t.gross += Number(r.gross) || 0; t.deductions += Number(r.deductions) || 0; t.net += Number(r.net) || 0;
     t.gosiEmployee += Number(r.gosiEmployee) || 0; t.gosiEmployer += Number(r.gosiEmployer) || 0;
+    t.eosAccrual += Number(r.eosAccrual) || 0; t.companyCost += Number(r.companyCost) || (Number(r.gross) || 0) + (Number(r.gosiEmployer) || 0);
     try { t.warnings += (JSON.parse(r.infoJson || '{}').warnings || []).length; } catch (e) {}
   });
   Object.keys(t).forEach(function (k) { t[k] = r2_(t[k]); });
@@ -292,6 +307,7 @@ function publicSlip_(s, emps) {
   var e = emps && emps[s.empId];
   return { id: s.id, ref: s.ref, runId: s.runId, month: s.month, empId: s.empId, status: s.status, lines: lines_(s), gross: Number(s.gross), deductions: Number(s.deductions),
     net: Number(s.net), gosiEmployee: Number(s.gosiEmployee), gosiEmployer: Number(s.gosiEmployer), paidDays: Number(s.paidDays), absentDays: Number(s.absentDays),
+    eosAccrual: Number(s.eosAccrual) || 0, companyCost: Number(s.companyCost) || r2_(Number(s.gross) + Number(s.gosiEmployer)),
     info: info.info || {}, warnings: info.warnings || [], emailedAt: s.emailedAt,
     emp: e ? { id: e.id, empNo: String(e.empNo), name: e.name, nameEn: e.nameEn, title: e.title, department: e.department, email: e.email, departmentId: e.departmentId } : null };
 }
@@ -384,11 +400,12 @@ function api_payrollExport(req, me) {
     var basic = sum(['basic']), housing = sum(['housing']), other = r2_(Number(s.gross) - basic - housing);
     rows.push({ empNo: String(e.empNo || ''), nationalId: String(p.nationalId || ''), name: p.nameEnOfficial || e.nameEn || e.name || '', nameAr: e.name || '',
       bankName: p.bankName || '', iban: p.iban || '', basic: basic, housing: housing, other: other, deductions: Number(s.deductions), net: Number(s.net),
-      gosiEmployee: Number(s.gosiEmployee), gosiEmployer: Number(s.gosiEmployer), ref: s.ref });
+      gosiEmployee: Number(s.gosiEmployee), gosiEmployer: Number(s.gosiEmployer), eosAccrual: Number(s.eosAccrual) || 0, companyCost: Number(s.companyCost) || 0, ref: s.ref });
     var d = depts[e.departmentId], key = d ? d.id : '';
-    var g = byDept[key] = byDept[key] || { department: d ? d.nameAr : '', costCenter: d ? d.costCenter : '', headcount: 0, gross: 0, gosiEmployer: 0, gosiEmployee: 0, net: 0, deductions: 0 };
+    var g = byDept[key] = byDept[key] || { department: d ? d.nameAr : '', costCenter: d ? d.costCenter : '', headcount: 0, gross: 0, gosiEmployer: 0, gosiEmployee: 0, net: 0, deductions: 0, eosAccrual: 0, companyCost: 0 };
     g.headcount++; g.gross = r2_(g.gross + Number(s.gross)); g.gosiEmployer = r2_(g.gosiEmployer + Number(s.gosiEmployer));
     g.gosiEmployee = r2_(g.gosiEmployee + Number(s.gosiEmployee)); g.net = r2_(g.net + Number(s.net)); g.deductions = r2_(g.deductions + Number(s.deductions));
+    g.eosAccrual = r2_(g.eosAccrual + (Number(s.eosAccrual) || 0)); g.companyCost = r2_(g.companyCost + (Number(s.companyCost) || 0));
   });
   audit_(me.id, 'payroll_export', run.id, { ref: run.ref, rows: rows.length });
   return { ok: true, run: publicRun_(run), rows: rows, departments: Object.keys(byDept).map(function (k) { return byDept[k]; }) };

@@ -582,3 +582,314 @@ function api_reportVerify(req, me) {
   audit_(me.id, 'report_verify', '', { ref: x.ref, match: match, same: same });
   return { ok: true, found: true, match: match, unchanged: same, log: publicLog_(x, names) };
 }
+
+// ======================================================================================================
+// Analytical reports (2026-10-04): trends, comparisons, distributions and data checks on top of the registers above.
+// ======================================================================================================
+/*
+ * Built with the people-report, statistical-analysis and dataviz skills. Every report:
+ *  - compares with the period before wherever it has one: the same number of days before a range, the month before a
+ *    month, the last locked run before a run (value, previous, change, change %; a rate changes in points);
+ *  - reads each Sheet tab once per request (readAll_ keeps a per-request memo; nothing here re-reads after a write);
+ *  - keeps the access rules: 'people' rows are cut to the viewer's team by reportScope_, per-person pay goes to the hr
+ *    role and payroll only (canPayroll_), and a cost-only viewer (the executive) never sees a money figure for a group of
+ *    fewer than RX_MIN_GROUP people, so no total gives away one person's pay.
+ * Statistics: a median next to every mean of a skewed figure (minutes late, hours to decide, pay), the 90th percentile by
+ * linear interpolation, outliers by the 1.5 x IQR rule, the Bradford factor S² x D with common trigger points.
+ * Payroll employer costs: employer GOSI from the payslip; the monthly end-of-service accrual is wage / 24 for the first five
+ * years of service and wage / 12 after (Art. 84) on the eosWageBasis setting, pro rata to the days paid. A payslip that
+ * carries its own eosAccrual / employerGosi / companyCost (the payslip change in Payroll.gs) is read as it is.
+ */
+var RX_MIN_GROUP = 3;
+var RX_SLA_HOURS = 48;          // target hours for one approval step
+var RX_GOSI_SHARE_MIN = 50;     // a GOSI wage under this share of gross is flagged for a look
+var RX_OT_YEAR_HOURS = 720;     // overtime guide, hours a year (check the current executive regulations)
+var RX_CURVE = { 1: [0, 5], 2: [5, 15], 3: [60, 75], 4: [10, 20], 5: [1, 5] }; // healthy spread of ratings, as js/performance.js
+var RX_DOW = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+var RX_ARRIVAL = ['early_30', 'early', 'on_time', 'late_30', 'late_60', 'late_over'];
+var RX_DEDUCTIONS = ['gosi', 'advance', 'absence', 'late', 'unpaid_leave', 'sick_75', 'sick_unpaid', 'fine', 'other_deduction'];
+
+/** The period of the same length just before [from, to]. */
+function rxPrev_(from, to) { var len = daysBetween_(from, to), pTo = addDays_(from, -1); return { from: addDays_(pTo, -len), to: pTo }; }
+function rxAddMonth_(m, n) { return new Date(Date.UTC(+m.slice(0, 4), +m.slice(5, 7) - 1 + n, 1)).toISOString().slice(0, 7); }
+/** Calendar months 'YYYY-MM' from the month of `from` to the month of `to`. */
+function rxMonths_(from, to) {
+  var out = [], m = String(from).slice(0, 7), last = String(to).slice(0, 7);
+  for (var i = 0; m <= last && i < 40; i++) { out.push(m); m = rxAddMonth_(m, 1); }
+  return out;
+}
+/** Change and change % against the previous value: the change rounded to dp decimals, the % to one; no % from a zero base. */
+function rxChg_(cur, prev, dp) {
+  var f = Math.pow(10, dp == null ? 2 : dp), ok = cur != null && prev != null;
+  return { prev: prev == null ? null : prev, change: ok ? Math.round((cur - prev) * f) / f : null, changePct: ok && prev ? r1_((cur - prev) / Math.abs(prev) * 100) : null };
+}
+/** A rate's change in percentage points. */
+function rxPts_(cur, prev) { return cur != null && prev != null ? r1_(cur - prev) : null; }
+/** The q-th quantile (0-1), linear interpolation between the closest ranks. */
+function rxQuant_(xs, q) {
+  if (!xs.length) return null;
+  var s = xs.slice().sort(function (a, b) { return a - b; }), pos = (s.length - 1) * q, lo = Math.floor(pos), hi = Math.ceil(pos);
+  return s[lo] + (s[hi] - s[lo]) * (pos - lo);
+}
+function rxMean_(xs) { return xs.length ? xs.reduce(function (a, b) { return a + b; }, 0) / xs.length : null; }
+/** First and last day someone counts: the hire date (else the day they were added) to the last working day. Null for a
+ *  person switched off with no last working day (cannot be dated). */
+function rxSpan_(e) { var end = isoDate_(e.lastWorkingDay); if (!end && e.status !== 'active') return null; return { start: isoDate_(e.hireDate) || joinedDate_(e), end: end }; }
+function rxOn_(sp, d) { return !!sp && sp.start <= d && (!sp.end || sp.end >= d); }
+/** True for a viewer who may see cost totals but not individual pay (the executive). */
+function rxCostOnly_(me) { return !canPayroll_(me); }
+function rxNoRun_() { return { columns: [], rows: [], checks: [{ level: 'info', code: 'no_run', count: 0 }] }; }
+function rxEmpty_() { return { columns: [], rows: [], checks: [] }; }
+/** Every day each person was employed in [from, to], from the day they joined to their last working day: fn(e, date, day). */
+function rxDays_(emps, from, to, s, fn) {
+  var list = emps.filter(function (e) { return e.status === 'active' || isoDate_(e.lastWorkingDay); });
+  if (!list.length || from > to) return;
+  var a = from;
+  while (a <= to) {
+    var b = minDate_(addDays_(a, 364), to), days = daysFor_(list, a, b, s), start = a; // daysFor_ stops at 400 days
+    list.forEach(function (e) {
+      var lwd = isoDate_(e.lastWorkingDay);
+      days[e.id].forEach(function (d, i) { if (!d) return; var date = addDays_(start, i); if (lwd && date > lwd) return; fn(e, date, d); });
+    });
+    a = addDays_(b, 1);
+  }
+}
+/** What a day counts as: present / absent (an expected working day), leave, off (rest day or holiday), restwork, upcoming. */
+function rxKind_(d) {
+  if (!d.workday) return d.firstIn ? 'restwork' : 'off';
+  if (d.status === 'leave') return 'leave';
+  if (d.status === 'upcoming') return 'upcoming';
+  if (d.firstIn) return 'present';
+  return d.status === 'absent' ? 'absent' : 'off';
+}
+/** Common Bradford trigger points (51 / 201 / 401). A prompt for a return-to-work talk, never a penalty by itself. */
+function rxBradfordBand_(b) { return b > 400 ? 'high' : b > 200 ? 'concern' : b > 50 ? 'watch' : 'low'; }
+function rxArrival_(diff, grace) { return diff <= -30 ? 'early_30' : diff < 0 ? 'early' : diff <= grace ? 'on_time' : diff <= 30 ? 'late_30' : diff <= 60 ? 'late_60' : 'late_over'; }
+/** The months of a range365 report: whole calendar months from `from` to `to` (never past today), and the month before the first. */
+function rxTrendMonths_(p) {
+  var t = today_(), months = rxMonths_(p.from, minDate_(p.to, t));
+  return months.length ? { months: months, from: rxAddMonth_(months[0], -1) + '-01', to: minDate_(monthLast_(months[months.length - 1]), t) } : null;
+}
+
+// ---------------- attendance ----------------
+Object.assign(REPORT_FNS, {
+  // Attendance rate per department and month, with the change from the month before (points and %).
+  att_dept_trend: function (p, me, ctx, scope, s) {
+    var tm = rxTrendMonths_(p); if (!tm) return rxEmpty_();
+    var emps = reportEmps_(p, ctx, scope, true), by = {}, depts = {};
+    rxDays_(emps, tm.from, tm.to, s, function (e, date, d) {
+      var k = rxKind_(d); if (k !== 'present' && k !== 'absent') return;
+      var dn = deptName_(e, ctx) || '-', key = dn + '|' + date.slice(0, 7), g = by[key] || (by[key] = { people: {}, expected: 0, present: 0, absent: 0, lateDays: 0 });
+      depts[dn] = 1; g.people[e.id] = 1; g.expected++;
+      if (k === 'present') { g.present++; if (d.lateMin) g.lateDays++; } else g.absent++;
+    });
+    var rows = [];
+    Object.keys(depts).sort().forEach(function (dn) {
+      tm.months.forEach(function (m) {
+        var g = by[dn + '|' + m]; if (!g) return;
+        var o = by[dn + '|' + rxAddMonth_(m, -1)], rate = pct_(g.present, g.expected), prev = o ? pct_(o.present, o.expected) : null;
+        rows.push({ department: dn, month: m, headcount: Object.keys(g.people).length, expected: g.expected, present: g.present, absent: g.absent, lateDays: g.lateDays,
+          attendance: rate, prevRate: prev, changePts: rxPts_(rate, prev), changePct: rxChg_(rate, prev, 1).changePct });
+      });
+    });
+    var drops = rows.filter(function (r) { return r.changePts != null && r.changePts <= -5; }).length;
+    return { columns: [col_('department', 'text', { group: true }), col_('month', 'text', { group: true }), col_('headcount', 'int'), col_('expected', 'int', { sum: true }),
+      col_('present', 'int', { sum: true }), col_('absent', 'int', { sum: true }), col_('lateDays', 'int', { sum: true }), col_('attendance', 'pct'), col_('prevRate', 'pct'),
+      col_('changePts', 'num'), col_('changePct', 'pct')], rows: rows,
+      checks: drops ? [{ level: 'warn', code: 'att_drop', count: drops }] : [], chart: { type: 'bars', by: 'month', value: 'absent' } };
+  },
+
+  // On-time arrivals per month, with the mean, median and 90th percentile of the minutes late (lateness is right-skewed).
+  att_punctuality: function (p, me, ctx, scope, s) {
+    var tm = rxTrendMonths_(p); if (!tm) return rxEmpty_();
+    var emps = reportEmps_(p, ctx, scope, true), by = {};
+    rxDays_(emps, tm.from, tm.to, s, function (e, date, d) {
+      if (rxKind_(d) !== 'present') return;
+      var m = date.slice(0, 7), g = by[m] || (by[m] = { people: {}, present: 0, late: [] });
+      g.people[e.id] = 1; g.present++; if (d.lateMin) g.late.push(d.lateMin);
+    });
+    var rate = function (g) { return g ? pct_(g.present - g.late.length, g.present) : null; }, rows = [];
+    tm.months.forEach(function (m) {
+      var g = by[m]; if (!g) return;
+      var lm = g.late.reduce(function (a, b) { return a + b; }, 0), n = g.late.length, r = rate(g), pv = rate(by[rxAddMonth_(m, -1)]);
+      rows.push({ month: m, headcount: Object.keys(g.people).length, present: g.present, onTime: g.present - n, lateDays: n, lateMin: lm,
+        avgLate: n ? Math.round(lm / n) : 0, medianLate: n ? Math.round(waMedian_(g.late)) : 0, p90Late: n ? Math.round(rxQuant_(g.late, 0.9)) : 0,
+        punctuality: r, prevRate: pv, changePts: rxPts_(r, pv), changePct: rxChg_(r, pv, 1).changePct });
+    });
+    var drops = rows.filter(function (r) { return r.changePts != null && r.changePts <= -5; }).length;
+    return { columns: [col_('month', 'text'), col_('headcount', 'int'), col_('present', 'int', { sum: true }), col_('onTime', 'int', { sum: true }), col_('lateDays', 'int', { sum: true }),
+      col_('lateMin', 'min', { sum: true }), col_('avgLate', 'min'), col_('medianLate', 'min'), col_('p90Late', 'min'), col_('punctuality', 'pct'), col_('prevRate', 'pct'),
+      col_('changePts', 'num'), col_('changePct', 'pct')], rows: rows,
+      checks: drops ? [{ level: 'warn', code: 'punct_drop', count: drops }] : [], chart: { type: 'hbar', label: 'month', value: 'punctuality', max: 100 } };
+  },
+
+  // Lateness per person, ranked by minutes, with the previous period; the top ten and their share of all minutes late.
+  att_late_top: function (p, me, ctx, scope, s) {
+    var pr = rxPrev_(p.from, p.to), emps = reportEmps_(p, ctx, scope, true), cur = {}, old = {};
+    rxDays_(emps, pr.from, p.to, s, function (e, date, d) {
+      if (rxKind_(d) !== 'present') return;
+      var m = date >= p.from ? cur : old, x = m[e.id] || (m[e.id] = { present: 0, lateDays: 0, lateMin: 0, max: 0 });
+      x.present++; if (d.lateMin) { x.lateDays++; x.lateMin += d.lateMin; if (d.lateMin > x.max) x.max = d.lateMin; }
+    });
+    var rows = emps.filter(function (e) { return cur[e.id] && cur[e.id].lateDays; }).map(function (e) {
+      var x = cur[e.id], pv = old[e.id] ? old[e.id].lateMin : null, c = rxChg_(x.lateMin, pv, 0);
+      return Object.assign(base_(e, ctx), { present: x.present, lateDays: x.lateDays, lateRate: pct_(x.lateDays, x.present), lateMin: x.lateMin,
+        avgLate: Math.round(x.lateMin / x.lateDays), maxLate: x.max, prev: pv, change: c.change, changePct: c.changePct });
+    }).sort(function (a, b) { return b.lateMin - a.lateMin || b.lateDays - a.lateDays; });
+    rows.forEach(function (r, i) { r.rank = i + 1; r.top10 = i < 10 ? 'yes' : ''; });
+    var all = rows.reduce(function (t, r) { return t + r.lateMin; }, 0), top = rows.slice(0, 10).reduce(function (t, r) { return t + r.lateMin; }, 0);
+    return { columns: [col_('rank', 'int')].concat(EMP_COLS, [col_('present', 'int', { sum: true }), col_('lateDays', 'int', { sum: true }), col_('lateRate', 'pct'),
+      col_('lateMin', 'min', { sum: true }), col_('avgLate', 'min'), col_('maxLate', 'min'), col_('prev', 'min', { sum: true }), col_('change', 'min', { sum: true }),
+      col_('changePct', 'pct'), col_('top10', 'code', { group: true })]), rows: rows,
+      checks: rows.length ? [{ level: 'info', code: 'late_top_share', count: Math.min(10, rows.length), value: pct_(top, all) }] : [],
+      chart: { type: 'hbar', label: 'name', value: 'lateMin' } };
+  },
+
+  // Bradford factor = spells² x days of unexcused absence. A spell runs across rest days and holidays; a day present or on
+  // approved leave ends it. The previous window of the same length shows the direction.
+  att_bradford: function (p, me, ctx, scope, s) {
+    var to = minDate_(p.to, today_()); if (p.from > to) return rxEmpty_();
+    var pr = rxPrev_(p.from, to), emps = reportEmps_(p, ctx, scope, true), st = {};
+    var fresh = function () { return { S: 0, D: 0, on: false, expected: 0, last: '' }; };
+    rxDays_(emps, pr.from, to, s, function (e, date, d) {
+      var x = st[e.id] || (st[e.id] = { c: fresh(), p: fresh() }), y = date >= p.from ? x.c : x.p, k = rxKind_(d);
+      if (k === 'absent') { y.expected++; y.D++; if (!y.on) { y.S++; y.on = true; } y.last = date; }
+      else if (k === 'present') { y.expected++; y.on = false; }
+      else if (k === 'leave' || k === 'restwork') y.on = false;
+    });
+    var rows = [];
+    emps.forEach(function (e) {
+      var x = st[e.id]; if (!x || !x.c.expected) return;
+      var b = x.c.S * x.c.S * x.c.D, pb = x.p.expected ? x.p.S * x.p.S * x.p.D : null;
+      rows.push(Object.assign(base_(e, ctx), { expected: x.c.expected, spells: x.c.S, absent: x.c.D, bradford: b, band: rxBradfordBand_(b), prev: pb, change: rxChg_(b, pb, 0).change, lastAbsent: x.c.last }));
+    });
+    rows.sort(function (a, b) { return b.bradford - a.bradford || b.absent - a.absent; });
+    var high = rows.filter(function (r) { return r.bradford > 200; }).length;
+    return { columns: EMP_COLS.concat([col_('expected', 'int', { sum: true }), col_('spells', 'int', { sum: true }), col_('absent', 'int', { sum: true }), col_('bradford', 'int'),
+      col_('band', 'code', { group: true }), col_('prev', 'int'), col_('change', 'int'), col_('lastAbsent', 'date')]), rows: rows,
+      checks: high ? [{ level: 'warn', code: 'bradford_high', count: high }] : [], chart: { type: 'hbar', label: 'name', value: 'bradford' } };
+  },
+
+  // Absence and lateness by day of the week against the previous period; a day with twice the others' absence is flagged.
+  att_weekday: function (p, me, ctx, scope, s) {
+    var pr = rxPrev_(p.from, p.to), emps = reportEmps_(p, ctx, scope, true), c = [], o = [];
+    for (var i = 0; i < 7; i++) { c.push({ expected: 0, present: 0, absent: 0, lateDays: 0, lateMin: 0 }); o.push({ expected: 0, present: 0, absent: 0, lateDays: 0, lateMin: 0 }); }
+    rxDays_(emps, pr.from, p.to, s, function (e, date, d) {
+      var k = rxKind_(d); if (k !== 'present' && k !== 'absent') return;
+      var w = (date >= p.from ? c : o)[dow_(date)];
+      w.expected++;
+      if (k === 'absent') w.absent++; else { w.present++; if (d.lateMin) { w.lateDays++; w.lateMin += d.lateMin; } }
+    });
+    var rows = [];
+    c.forEach(function (w, i) {
+      if (!w.expected) return;
+      var ar = pct_(w.absent, w.expected), lr = pct_(w.lateDays, w.present), pa = o[i].expected ? pct_(o[i].absent, o[i].expected) : null, pl = o[i].present ? pct_(o[i].lateDays, o[i].present) : null;
+      rows.push({ weekday: RX_DOW[i], expected: w.expected, present: w.present, absent: w.absent, lateDays: w.lateDays, absentRate: ar, lateRate: lr,
+        avgLate: w.lateDays ? Math.round(w.lateMin / w.lateDays) : 0, prevAbsentRate: pa, absentChange: rxPts_(ar, pa), prevLateRate: pl, lateChange: rxPts_(lr, pl) });
+    });
+    var spikes = rows.filter(function (r) {
+      var others = rows.filter(function (x) { return x !== r; }), ex = others.reduce(function (t, x) { return t + x.expected; }, 0), ab = others.reduce(function (t, x) { return t + x.absent; }, 0);
+      return r.absent >= 3 && ex > 0 && r.absentRate >= 2 * (ab / ex * 100);
+    }).length;
+    return { columns: [col_('weekday', 'code'), col_('expected', 'int', { sum: true }), col_('present', 'int', { sum: true }), col_('absent', 'int', { sum: true }),
+      col_('lateDays', 'int', { sum: true }), col_('absentRate', 'pct'), col_('lateRate', 'pct'), col_('avgLate', 'min'), col_('prevAbsentRate', 'pct'), col_('absentChange', 'num'),
+      col_('prevLateRate', 'pct'), col_('lateChange', 'num')], rows: rows,
+      checks: spikes ? [{ level: 'warn', code: 'weekday_spike', count: spikes }] : [], chart: { type: 'bars', by: 'weekday', value: 'absent' } };
+  },
+
+  // First check-in of each working day against the shift start, in bands, per department; share and the previous period.
+  att_checkin_bands: function (p, me, ctx, scope, s) {
+    var pr = rxPrev_(p.from, p.to), emps = reportEmps_(p, ctx, scope, true), by = {}, grace = Number(s.graceMin) || 0, lateN = 0, allN = 0;
+    rxDays_(emps, pr.from, p.to, s, function (e, date, d) {
+      if (!d.workday || !d.firstIn) return;
+      var b = rxArrival_(localParts_(new Date(d.firstIn)).minutes - hmToMin_(d.shiftStart), grace), dn = deptName_(e, ctx) || '-';
+      var g = by[dn] || (by[dn] = { c: {}, p: {}, cn: 0, pn: 0 });
+      if (date >= p.from) { g.c[b] = (g.c[b] || 0) + 1; g.cn++; allN++; if (b.indexOf('late') === 0) lateN++; } else { g.p[b] = (g.p[b] || 0) + 1; g.pn++; }
+    });
+    var rows = [];
+    Object.keys(by).sort().forEach(function (dn) {
+      var g = by[dn];
+      RX_ARRIVAL.forEach(function (b) {
+        var n = g.c[b] || 0, pv = g.p[b] || 0; if (!n && !pv) return;
+        var sh = pct_(n, g.cn), ps = pct_(pv, g.pn);
+        rows.push({ department: dn, band: b, arrivals: n, share: sh, prev: g.pn ? pv : null, prevShare: ps, changePts: rxPts_(sh, ps) });
+      });
+    });
+    return { columns: [col_('department', 'text', { group: true }), col_('band', 'code', { group: true }), col_('arrivals', 'int', { sum: true }), col_('share', 'pct'),
+      col_('prev', 'int', { sum: true }), col_('prevShare', 'pct'), col_('changePts', 'num')], rows: rows,
+      checks: allN ? [{ level: lateN ? 'warn' : 'info', code: 'late_arrivals', count: lateN, value: pct_(lateN, allN) }] : [], chart: { type: 'bars', by: 'band', value: 'arrivals' } };
+  },
+
+  // Days a check-in was left without a check-out, per person, with the rate and the previous period.
+  att_missing_out: function (p, me, ctx, scope, s) {
+    var pr = rxPrev_(p.from, p.to), emps = reportEmps_(p, ctx, scope, true), cur = {}, old = {};
+    rxDays_(emps, pr.from, p.to, s, function (e, date, d) {
+      if (!d.firstIn) return;
+      var m = date >= p.from ? cur : old, x = m[e.id] || (m[e.id] = { present: 0, missing: 0, dates: [] });
+      x.present++; if (d.status === 'missing_out') { x.missing++; x.dates.push(date); }
+    });
+    var rows = emps.filter(function (e) { return cur[e.id] && cur[e.id].missing; }).map(function (e) {
+      var x = cur[e.id], pv = old[e.id] ? old[e.id].missing : null;
+      return Object.assign(base_(e, ctx), { present: x.present, missingOut: x.missing, missingRate: pct_(x.missing, x.present), prev: pv, change: rxChg_(x.missing, pv, 0).change,
+        lastDate: x.dates[x.dates.length - 1], detail: x.dates.slice(-6).join(', ') });
+    }).sort(function (a, b) { return b.missingOut - a.missingOut; });
+    var total = rows.reduce(function (t, r) { return t + r.missingOut; }, 0), repeat = rows.filter(function (r) { return r.missingOut >= 3; }).length;
+    return { columns: EMP_COLS.concat([col_('present', 'int', { sum: true }), col_('missingOut', 'int', { sum: true }), col_('missingRate', 'pct'), col_('prev', 'int', { sum: true }),
+      col_('change', 'int', { sum: true }), col_('lastDate', 'date'), col_('detail')]), rows: rows,
+      checks: [total ? { level: 'warn', code: 'missing_out', count: total } : null, repeat ? { level: 'warn', code: 'missing_out_repeat', count: repeat } : null].filter(Boolean),
+      chart: { type: 'hbar', label: 'name', value: 'missingOut' } };
+  },
+
+  // App punches by risk flag: how many, how many people, what the review decided, the average risk, and the previous period.
+  att_flags: function (p, me, ctx, scope, s) {
+    var pr = rxPrev_(p.from, p.to), ids = {}, by = {}, app = 0, pending = 0;
+    reportEmps_(p, ctx, scope, true).forEach(function (e) { ids[e.id] = 1; });
+    readAll_(SHEETS.PUNCH).forEach(function (pn) {
+      var d = String(pn.date).slice(0, 10), src = String(pn.source || '');
+      if (!ids[pn.empId] || d < pr.from || d > p.to || src.indexOf('hr:') === 0 || src.indexOf('request:') === 0) return; // manual punches carry no flags
+      var cur = d >= p.from;
+      if (cur) { app++; if (pn.status === 'review') pending++; }
+      String(pn.flags || '').split(',').map(function (x) { return x.trim(); }).filter(String).forEach(function (f) {
+        var g = by[f] || (by[f] = { punches: 0, people: {}, review: 0, approved: 0, rejected: 0, risk: 0, prev: 0 });
+        if (!cur) { g.prev++; return; }
+        g.punches++; g.people[pn.empId] = 1; g.risk += Number(pn.risk) || 0;
+        if (pn.status === 'review') g.review++; else if (pn.status === 'approved') g.approved++; else if (pn.status === 'rejected') g.rejected++;
+      });
+    });
+    var rows = Object.keys(by).map(function (f) {
+      var g = by[f], c = rxChg_(g.punches, g.prev, 0);
+      return { flag: f, punches: g.punches, people: Object.keys(g.people).length, share: pct_(g.punches, app), pendingReview: g.review, approvedN: g.approved, rejectedN: g.rejected,
+        avgRisk: g.punches ? r1_(g.risk / g.punches) : null, prev: g.prev, change: c.change, changePct: c.changePct };
+    }).sort(function (a, b) { return b.punches - a.punches || b.prev - a.prev; });
+    return { columns: [col_('flag', 'code', { group: true }), col_('punches', 'int', { sum: true }), col_('people', 'int'), col_('share', 'pct'), col_('pendingReview', 'int', { sum: true }),
+      col_('approvedN', 'int', { sum: true }), col_('rejectedN', 'int', { sum: true }), col_('avgRisk', 'num'), col_('prev', 'int', { sum: true }), col_('change', 'int', { sum: true }),
+      col_('changePct', 'pct')], rows: rows, checks: pending ? [{ level: 'warn', code: 'punch_review', count: pending }] : [], chart: { type: 'bars', by: 'flag', value: 'punches' } };
+  },
+
+  // Overtime from the punches: working-day and rest-day hours per person (departments as subtotals), the previous period,
+  // and for the hr role and payroll an Art. 107 cost estimate (hourly wage + 50% of the basic hourly wage).
+  att_overtime: function (p, me, ctx, scope, s) {
+    var pr = rxPrev_(p.from, p.to), emps = reportEmps_(p, ctx, scope, true), money = canPayroll_(me), comps = money ? currentCompMap_(minDate_(p.to, today_())) : {}, st = {};
+    rxDays_(emps, pr.from, p.to, s, function (e, date, d) {
+      if (!d.overtimeMin) return;
+      var x = st[e.id] || (st[e.id] = { days: 0, work: 0, rest: 0, prev: 0 });
+      if (date < p.from) { x.prev += d.overtimeMin; return; }
+      x.days++; if (d.workday) x.work += d.overtimeMin; else x.rest += d.overtimeMin;
+    });
+    var cap = RX_OT_YEAR_HOURS * (daysBetween_(p.from, p.to) + 1) / 365, over = 0, rows = [];
+    emps.forEach(function (e) {
+      var x = st[e.id]; if (!x || !(x.work + x.rest + x.prev)) return;
+      var mins = x.work + x.rest, h = r1_(mins / 60), pv = r1_(x.prev / 60), c = rxChg_(h, pv, 1);
+      if (h > cap) over++;
+      var row = Object.assign(base_(e, ctx), { otDays: x.days, workdayOt: r1_(x.work / 60), restOt: r1_(x.rest / 60), overtime: h, prev: pv, change: c.change, changePct: c.changePct });
+      if (money) { var k = comps[e.id], dh = Number(e.dailyHours) || 8; row.estCost = k ? r2_(mins / 60 * (k.total / 30 / dh + k.basic / 30 / dh * 0.5)) : null; }
+      rows.push(row);
+    });
+    rows.sort(function (a, b) { return b.overtime - a.overtime; });
+    var cols = EMP_COLS.concat([col_('otDays', 'int', { sum: true }), col_('workdayOt', 'hours', { sum: true }), col_('restOt', 'hours', { sum: true }), col_('overtime', 'hours', { sum: true }),
+      col_('prev', 'hours', { sum: true }), col_('change', 'hours', { sum: true }), col_('changePct', 'pct')]);
+    if (money) cols.push(col_('estCost', 'money', { sum: true }));
+    return { columns: cols, rows: rows, checks: [over ? { level: 'warn', code: 'ot_over_cap', count: over } : null, money && rows.length ? { level: 'info', code: 'ot_estimate', count: rows.length } : null].filter(Boolean),
+      chart: { type: 'hbar', label: 'name', value: 'overtime' } };
+  }
+});

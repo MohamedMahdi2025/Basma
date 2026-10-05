@@ -111,6 +111,26 @@ const s6 = slip('5006');
 ok(s6.warnings.includes('no_package') && s6.net === 0, 'no approved package: shown with a warning, nothing paid', s6.warnings);
 ok(s3.warnings.includes('no_iban') === false && slip('5006').warnings.includes('no_iban'), 'a missing IBAN is flagged');
 
+console.log('Company cost: employer GOSI and the end-of-service provision');
+// 5002 joined 2019-01-01: more than five years, so a full month a year (Art. 84) on the total wage 12,350
+ok(near(s2.eosAccrual, 12350 / 12), 'over five years of service: the month sets aside a twelfth of the total wage', s2.eosAccrual);
+ok(near(s2.companyCost, 12350 + 11250 * 0.1175 + 12350 / 12), 'company cost = gross + employer GOSI + end-of-service provision', s2.companyCost);
+// 5003 joined 2024-09-01: under five years, half a month a year; package 6,750
+ok(near(s3.eosAccrual, 6750 / 24), 'under five years: half a month a year, so a 24th of the wage each month', s3.eosAccrual);
+ok(near(slip('5005').eosAccrual, 8100 / 24 * 17 / 30), 'a part month sets aside its share only (17 of 30 days)', slip('5005').eosAccrual);
+ok(near(r.run.totals.companyCost, r.slips.reduce((t, s) => t + s.companyCost, 0)) && r.run.totals.eosAccrual > 0, 'the run totals carry the company cost and the provision', r.run.totals);
+// a GOSI-registered wage that is not basic + housing drives the contributions, and the slip says so
+const x = { first: '2026-10-01', last: '2026-10-31', month: '2026-10', today: '2026-10-01', now: new Date('2026-10-01T06:00:00Z'), reqs: [], adjs: [], byEmpDay: {}, advDone: {}, off: () => null,
+  comps: [{ id: 'CX', empId: 'EX', effectiveFrom: '2026-01-01', basic: 10000, housing: 2500, transport: 1000, otherJson: '{}', status: 'approved', currency: 'SAR' }],
+  priv: { EX: { gosiCohort: 'legacy', gosiWage: 11000, iban: 'SA0380000000608010167519' } }, s: direct(() => B.ctx.settings_()) };
+const cx = direct(() => B.ctx.calcSlip_({ id: 'EX', isSaudi: true, hireDate: '2020-01-01', dailyHours: 8, createdAt: '2020-01-01T00:00:00Z' }, x));
+ok(cx && cx.warnings.includes('gosi_wage_differs') && near(cx.info.gosi.base, 11000) && near(cx.gosiEmployer, 11000 * 0.1175) && near(cx.gosiEmployee, 11000 * 0.0975),
+  'GOSI wage registered as 11,000 (package basic + housing 12,500): contributions follow 11,000 and the slip warns', cx && { w: cx.warnings, g: cx.info.gosi, er: cx.gosiEmployer });
+ok(cx && near(cx.companyCost, 13500 + 11000 * 0.1175 + 13500 / 12), 'and the company cost uses those contributions', cx && cx.companyCost);
+r = call('3001', 'hrPrivateSave', { empId: ids['5002'], priv: { gosiWage: 50 } });
+ok(!r.ok && r.error === 'bad_value', 'a registered GOSI wage must be a real wage', r);
+r = call('3001', 'payrollGet', { id: runId });
+
 console.log('Approval, lock, payslips');
 r = call('5003', 'mySlips');
 ok(r.ok && r.rows.length === 0, 'employees see nothing while it is a draft', r.rows);

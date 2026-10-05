@@ -32,7 +32,7 @@ Object.assign(T.ar, {
   fNotice:'فترة الإشعار بالأيام', fEff:'تاريخ سريان التغيير', fReason:'سبب التغيير', fChoose:'اختر', fNoneOpt:'بدون',
   fNid:'رقم الهوية أو الإقامة', fIdExp:'انتهاء الهوية أو الإقامة', fBirth:'تاريخ الميلاد', fMarital:'الحالة الاجتماعية',
   ms_single:'أعزب', ms_married:'متزوج', ms_other:'أخرى', fIban:'الآيبان', fBank:'البنك', fGosi:'رقم التأمينات',
-  fCohort:'فئة التأمينات', co_legacy:'قبل يوليو 2024', co_new:'من يوليو 2024', fBorder:'رقم الحدود', fPassport:'رقم الجواز',
+  fGosiWage:'أجر التأمينات المسجل', fGosiWageHint:'كما في بوابة التأمينات. اتركه فارغا إذا كان يساوي الأساسي والسكن؛ الاشتراكات تحسب عليه.', fCohort:'فئة التأمينات', co_legacy:'قبل يوليو 2024', co_new:'من يوليو 2024', fBorder:'رقم الحدود', fPassport:'رقم الجواز',
   fPassExp:'انتهاء الجواز', fNatAddr:'العنوان الوطني', fPEmail:'البريد الشخصي', fNameOff:'الاسم الإنجليزي كما في الهوية والبنك',
   fAddr:'العنوان', fEmName:'اسم جهة الطوارئ', fEmPhone:'هاتف الطوارئ', ibanBad:'رقم الآيبان غير صحيح، تحقق من الأرقام.',
   payNow:'الراتب الساري', payHist:'سجل الرواتب', payPropose:'اقتراح راتب جديد', payBasic:'الأساسي', payHousing:'السكن',
@@ -102,7 +102,7 @@ Object.assign(T.en, {
   fNotice:'Notice period in days', fEff:'Change effective from', fReason:'Reason for the change', fChoose:'Choose', fNoneOpt:'None',
   fNid:'National ID or iqama', fIdExp:'ID or iqama expiry', fBirth:'Date of birth', fMarital:'Marital status',
   ms_single:'Single', ms_married:'Married', ms_other:'Other', fIban:'IBAN', fBank:'Bank', fGosi:'GOSI number',
-  fCohort:'GOSI group', co_legacy:'Before July 2024', co_new:'From July 2024', fBorder:'Border number', fPassport:'Passport number',
+  fGosiWage:'GOSI registered wage', fGosiWageHint:'As on the GOSI portal. Leave empty when it equals basic plus housing; contributions use it.', fCohort:'GOSI group', co_legacy:'Before July 2024', co_new:'From July 2024', fBorder:'Border number', fPassport:'Passport number',
   fPassExp:'Passport expiry', fNatAddr:'National address', fPEmail:'Personal email', fNameOff:'English name as on the ID and bank',
   fAddr:'Address', fEmName:'Emergency contact', fEmPhone:'Emergency phone', ibanBad:'This IBAN is not valid. Check the digits.',
   payNow:'Current salary', payHist:'Salary history', payPropose:'Propose a new salary', payBasic:'Basic', payHousing:'Housing',
@@ -166,6 +166,7 @@ var COLS = [
   ['bankName', 'البنك', 'Bank', 0, 'نص', 'text'],
   ['gosiNumber', 'رقم التأمينات', 'GOSI number', 0, 'أرقام', 'digits'],
   ['gosiCohort', 'فئة التأمينات', 'GOSI group', 0, 'legacy قبل يوليو 2024، new بعده', 'legacy before July 2024, new after'],
+  ['gosiWage', 'أجر التأمينات المسجل', 'GOSI registered wage', 0, 'اتركه فارغا إن كان يساوي الأساسي والسكن', 'leave empty when it equals basic plus housing'],
   ['contractType', 'نوع العقد', 'Contract type', 0, 'محدد أو غير محدد', 'fixed or indefinite'],
   ['contractEnd', 'نهاية العقد', 'Contract end', 0, 'يوم/شهر/سنة', 'dd/mm/yyyy'],
   ['probationEnd', 'نهاية التجربة', 'Probation end', 0, 'يوم/شهر/سنة، حتى 180 يوما', 'dd/mm/yyyy, up to 180 days'],
@@ -544,6 +545,7 @@ function personalTab(el, f, reload, ro){
     '<div class="field"><label>' + t('fIban') + '</label><input name="iban" dir="ltr" value="' + esc(p.iban) + '" maxlength="34" autocomplete="off"' + dis + '><div class="hr-bad hidden" id="ibanBad">' + t('ibanBad') + '</div></div>' +
     '<div class="two">' + inp('bankName', t('fBank'), p.bankName, dis) + inp('gosiNumber', t('fGosi'), p.gosiNumber, ' dir="ltr" inputmode="numeric"' + dis) + '</div>' +
     '<div class="two">' + fieldSel('gosiCohort', t('fCohort'), [['legacy', t('co_legacy')], ['new', t('co_new')]], p.gosiCohort) + dateInp('birthDate', t('fBirth'), p.birthDate) + '</div>' +
+    '<div class="two">' + inp('gosiWage', t('fGosiWage'), p.gosiWage, ' type="number" inputmode="decimal" min="400" step="0.01" dir="ltr"' + dis) + '<p class="hr-hint" style="align-self:end">' + t('fGosiWageHint') + '</p></div>' +
     '<div class="two">' + inp('passportNo', t('fPassport'), p.passportNo, ' dir="ltr"' + dis) + dateInp('passportExpiry', t('fPassExp'), p.passportExpiry) + '</div>' +
     '<div class="two">' + inp('borderNo', t('fBorder'), p.borderNo, ' dir="ltr" inputmode="numeric" maxlength="10"' + dis) + fieldSel('maritalStatus', t('fMarital'), [['single', t('ms_single')], ['married', t('ms_married')], ['other', t('ms_other')]], p.maritalStatus) + '</div>' +
     inp('nationalAddress', t('fNatAddr'), p.nationalAddress, dis) + inp('personalEmail', t('fPEmail'), p.personalEmail, ' dir="ltr" type="email"' + dis) +
