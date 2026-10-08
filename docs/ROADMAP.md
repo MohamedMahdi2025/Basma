@@ -12,11 +12,11 @@ Result: 33 have, 20 partial, 43 missing. Each item ships with tests, a print vie
 | Payslip company cost (employer GOSI, monthly end-of-service provision, total); GOSI registered wage | live @36 |
 | Formatted Excel for every report and every screen; print view for every screen | live @35 |
 | Admin manages pay (adminSeesPay); white-label company profile | live @35 |
-| Leave cycle (pre-leave clearance, departure, return to work, late return) | agent building |
-| Approvals centre (every pending decision in one place, configurable chains, SLA, escalation, bulk) | agent building |
-| 30+ analytical reports (attendance, leave, payroll cost, workforce, performance, SLA, compliance) | agent building |
-| Art. 72 fix: 30 days to object; government services (exit/re-entry, final exit, iqama, tickets, fees) | agent building |
-| Expense claims; payroll journal for Odoo; bank and Mudad file formats | agent building |
+| Leave cycle (pre-leave clearance, departure, return to work, late return) | built 2026-10-08, going live |
+| Approvals centre (every pending decision in one place, configurable chains, SLA, escalation, bulk) | built 2026-10-08, going live |
+| 30+ analytical reports (attendance, leave, payroll cost, workforce, performance, SLA, compliance) | built (64 in the catalogue), going live |
+| Art. 72 fix: 30 days to object; government services (exit/re-entry, final exit, iqama, tickets, fees) | built 2026-10-08, going live |
+| Expense claims; payroll journal for Odoo; bank and Mudad file formats | built 2026-10-08, going live |
 
 ## Wave 2
 - Recruitment: requisition, job post, candidates, interviews, offer, hire, onboarding.

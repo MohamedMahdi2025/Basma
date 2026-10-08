@@ -110,8 +110,10 @@ the lock ~150 ms, and Google's own round trip ~2 s. So speed = fewer Sheet calls
   write would fail the tests. This bug had stopped check-out on the live system until 2026-09-30 @16.
 - Settings cache is 120 s (cleared on save and on hand edits of the settings tab).
 - The site: each build stamps `BUILD`, `version.json` and the SW cache name; the page
-  checks `version.json` on open, on resume and every 5 min (reloads when signed out,
-  shows an update banner when signed in). Navigation is fetched `no-store`.
+  checks `version.json` on open, on resume and every minute (since 2026-10-08: the user wants phones
+  updated instantly). Signed out it reloads at once; signed in it reloads by itself as soon as
+  `updateSafeNow()` holds (no punch in flight `S.busy`, no drawer, no focused field, nothing typed for
+  60 s), and shows the update bar meanwhile. Navigation is fetched `no-store`.
 
 ## HR (Phase 1, live 2026-09-30)
 
