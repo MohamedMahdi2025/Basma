@@ -8,7 +8,9 @@ Object.assign(T.ar, {
   cpOverdue:'متأخرة', cpSoon:'خلال 14 يوما', cpLater:'لاحقا', cpOpenRecon:'فروقات أجور مفتوحة', cpAllClear:'لا توجد التزامات متأخرة أو قريبة.', cpDue:'الموعد', cpLeft:'متبقي', cpLate:'متأخر',
   ck_gosi_register:'تسجيل الموظف في التأمينات الاجتماعية (خلال 15 يوما من المباشرة)', ck_qiwa_contract:'توثيق العقد في منصة قوى', ck_iqama:'انتهاء الإقامة', ck_passport:'انتهاء جواز السفر',
   ck_contract_end:'انتهاء العقد محدد المدة', ck_probation_end:'انتهاء فترة التجربة', ck_work_permit:'انتهاء رخصة العمل', ck_medical_insurance:'انتهاء التأمين الطبي', ck_driving_licence:'انتهاء رخصة القيادة',
-  ck_payroll_not_locked:'مسير الشهر لم يعتمد بعد', ck_wps_upload:'رفع ملف حماية الأجور للشهر', ck_wps_confirm:'تأكيد نجاح رفع ملف حماية الأجور', ck_recon_open:'فروقات أجور لم تغلق', ck_saudization:'نسبة التوطين دون المستهدف',
+  ck_payroll_not_locked:'مسير الشهر لم يعتمد بعد', ck_iqama_renewal:'تجديد الإقامة في مقيم', ck_visa_not_returned:'لم يعد بعد انتهاء تأشيرة الخروج والعودة', ck_visa_expiring:'تأشيرة خروج وعودة تنتهي قريبا',
+  ck_final_exit_expiring:'تأشيرة خروج نهائي تنتهي قريبا', ck_final_exit_needed:'غير سعودي في إخلاء طرف بلا تأشيرة خروج نهائي', ck_ticket_due:'تذكرة سنوية مستحقة', ck_ticket_upcoming:'تذكرة سنوية تستحق قريبا',
+  ck_disc_objection_decide:'الرد على تظلم موظف (15 يوما، المادة 72)', ck_journal_pending:'قيد رواتب لم يؤكد في المحاسبة', ck_injury_gosi:'إبلاغ التأمينات عن إصابة عمل (3 أيام)', ck_wps_upload:'رفع ملف حماية الأجور للشهر', ck_wps_confirm:'تأكيد نجاح رفع ملف حماية الأجور', ck_recon_open:'فروقات أجور لم تغلق', ck_saudization:'نسبة التوطين دون المستهدف',
   cpQiwaNote:'منذ أبريل 2026 لا يحتسب السعودي في نطاقات إلا بعقد موثق في قوى.', cpVerify:'المواعيد والقواعد من ملخصات المزودين؛ تحقق منها في أنظمة الموارد البشرية وقوى والتأمينات قبل الاعتماد عليها.',
   wpRun:'المسير المعتمد', wpNoRun:'لا يوجد مسير معتمد بعد. يصدر الملف بعد اعتماد المسير.', wpRows:'موظفون في الملف', wpTotal:'إجمالي الصافي', wpErrors:'أخطاء تمنع الرفع', wpDueT:'موعد الرفع',
   wpDownload:'تنزيل ملف Excel', wpGen:'تم تجهيز الملف', wpUp:'تم الرفع إلى البنك أو مدد', wpConf:'تأكيد النجاح (شخص آخر)', wpBankRef:'رقم المرجع من البنك أو مدد', wpSkipped:'لم يدخلوا الملف (بلا راتب معتمد)',
@@ -22,6 +24,8 @@ Object.assign(T.ar, {
   dgTitle:'تفويض الموافقات', dgLead:'عند غيابك (إجازة، حج، سفر عمل) يوافق من تختاره على طلبات فريقك نيابة عنك، حتى 60 يوما. يسجل كل قرار باسمه ونيابة عنك، ولا يوافق أحد على طلبه هو.',
   dgTo:'المفوض', dgFrom:'من', dgUntil:'إلى', dgReason:'السبب', dgSave:'تفويض', dgRevoke:'إلغاء', dgGiven:'فوضت', dgReceived:'مفوض إليك', dgNone:'لا توجد تفويضات.', dgActive:'سار', dgRevoked:'ملغى', dgEnded:'منتهي',
   e_delegation_too_long:'التفويض 60 يوما كحد أقصى.', e_delegation_overlap:'يوجد تفويض آخر في نفس الأيام.', e_recon_open:'توجد فروقات أجور مفتوحة لهذا الشهر (التأمينات أو قوى). أغلقها من صفحة الامتثال أولا.',
+  wpFormat:'تنسيق ملف البنك', wpValue:'تاريخ القيمة', wpBankFile:'تنزيل ملف البنك', wpMissing:'ينقص لهذا التنسيق (من صفحة قيد الرواتب، ملفات البنوك):', wpMissing_molId:'رقم المنشأة', wpMissing_debitIban:'آيبان الشركة', wpMissing_companyCode:'رمز الشركة لدى البنك',
+  wpFmtNote:'كل تنسيق بنكي قراءة لعينات عامة: طابقه مع البنك أو مدد قبل أول رفع.',
   e_run_not_locked:'يصدر الملف بعد اعتماد المسير.', e_wps_errors:'في الملف أخطاء. صحح بيانات الموظفين أولا.', e_bad_state:'هذه الخطوة غير متاحة الآن.', e_note_required:'اكتب ملاحظة.'
 });
 Object.assign(T.en, {
@@ -29,7 +33,9 @@ Object.assign(T.en, {
   cpOverdue:'Overdue', cpSoon:'Within 14 days', cpLater:'Later', cpOpenRecon:'Open wage mismatches', cpAllClear:'Nothing overdue or due soon.', cpDue:'Due', cpLeft:'left', cpLate:'late',
   ck_gosi_register:'Register with GOSI (within 15 days of joining)', ck_qiwa_contract:'Document the contract in Qiwa', ck_iqama:'Iqama expiry', ck_passport:'Passport expiry',
   ck_contract_end:'Fixed-term contract ends', ck_probation_end:'Probation ends', ck_work_permit:'Work permit expiry', ck_medical_insurance:'Medical insurance expiry', ck_driving_licence:'Driving licence expiry',
-  ck_payroll_not_locked:'Payroll for the month not approved', ck_wps_upload:'Upload the WPS file for the month', ck_wps_confirm:'Confirm the WPS upload succeeded', ck_recon_open:'Wage mismatches still open', ck_saudization:'Saudization below target',
+  ck_payroll_not_locked:'Payroll for the month not approved', ck_iqama_renewal:'Renew the iqama in Muqeem', ck_visa_not_returned:'Not back after the exit/re-entry visa expired', ck_visa_expiring:'Exit/re-entry visa expiring soon',
+  ck_final_exit_expiring:'Final exit visa expiring soon', ck_final_exit_needed:'Non-Saudi leaving with no final exit visa', ck_ticket_due:'Annual ticket due', ck_ticket_upcoming:'Annual ticket due soon',
+  ck_disc_objection_decide:'Answer an employee grievance (15 days, Art. 72)', ck_journal_pending:'Payroll journal not confirmed in accounting', ck_injury_gosi:'Notify GOSI of a work injury (3 days)', ck_wps_upload:'Upload the WPS file for the month', ck_wps_confirm:'Confirm the WPS upload succeeded', ck_recon_open:'Wage mismatches still open', ck_saudization:'Saudization below target',
   cpQiwaNote:'Since April 2026 a Saudi counts in Nitaqat only with a contract documented in Qiwa.', cpVerify:'Deadlines and rules come from vendor summaries; check them against HRSD, Qiwa and GOSI before relying on them.',
   wpRun:'Approved run', wpNoRun:'No approved payroll yet. The file is made after approval.', wpRows:'People in the file', wpTotal:'Total net', wpErrors:'Errors blocking upload', wpDueT:'Upload due',
   wpDownload:'Download Excel file', wpGen:'File prepared', wpUp:'Uploaded to the bank or Mudad', wpConf:'Confirm success (another person)', wpBankRef:'Reference from the bank or Mudad', wpSkipped:'Left out (no approved package)',
@@ -43,6 +49,8 @@ Object.assign(T.en, {
   dgTitle:'Delegate approvals', dgLead:'While you are away (leave, Hajj, travel) the person you choose approves your team\'s requests on your behalf, for up to 60 days. Every decision is recorded under their name on your behalf; nobody approves their own request.',
   dgTo:'Delegate', dgFrom:'From', dgUntil:'To', dgReason:'Reason', dgSave:'Delegate', dgRevoke:'Revoke', dgGiven:'Given by you', dgReceived:'Given to you', dgNone:'No delegations.', dgActive:'Active', dgRevoked:'Revoked', dgEnded:'Ended',
   e_delegation_too_long:'A delegation lasts at most 60 days.', e_delegation_overlap:'Another delegation covers the same days.', e_recon_open:'Open wage mismatches for this month (GOSI or Qiwa). Close them in Compliance first.',
+  wpFormat:'Bank file layout', wpValue:'Value date', wpBankFile:'Download bank file', wpMissing:'Missing for this layout (Payroll journal page, bank files):', wpMissing_molId:'establishment number', wpMissing_debitIban:'company IBAN', wpMissing_companyCode:'company code at the bank',
+  wpFmtNote:'Each bank layout is a reading of public samples: match it with the bank or Mudad before the first upload.',
   e_run_not_locked:'The file is made after the run is approved.', e_wps_errors:'The file has errors. Fix the employee data first.', e_bad_state:'This step is not available now.', e_note_required:'Write a note.'
 });
 
@@ -126,12 +134,18 @@ function wpsView(el){
           st === 'generated' ? '<form class="form" id="wpUpF" style="gap:6px;margin-top:8px"><input name="ref" required placeholder="' + t('wpBankRef') + '" maxlength="60" dir="ltr"><button type="submit" class="btn btn-dark btn-sm">' + t('wpUp') + '</button></form>' : '') +
         step('c', 'seal-check', t('wpConf'), st === 'confirmed', g && g.confirmedAt ? esc(g.confirmedBy) + ' · ' + fmt(g.confirmedAt) : '', st === 'uploaded' ? '<div class="btnrow" style="margin-top:8px"><button type="button" class="btn btn-dark btn-sm" data-step="confirmed">' + t('wpConf') + '</button></div>' : '') + '</div>';
       h += '<div class="btnrow" style="margin:0 0 6px"><button type="button" class="btn btn-line btn-sm" id="wpX"' + (r.errors ? ' disabled' : '') + '>' + ph('microsoft-excel-logo') + t('wpDownload') + '</button></div><p class="cp-note">' + ph('info') + t('wpTemplate') + '</p>';
+      if (r.formats && r.formats.length > 1) h += '<div class="toolbar"><label class="hr-hint" for="wpFmt" style="margin:0">' + t('wpFormat') + '</label><select id="wpFmt">' + r.formats.filter(function(f){ return f.id !== 'generic'; }).map(function(f){ return '<option value="' + esc(f.id) + '">' + esc(S.lang === 'en' ? f.en : f.ar) + '</option>'; }).join('') + '</select>' +
+        '<label class="hr-hint" for="wpVd" style="margin:0">' + t('wpValue') + '</label><input type="date" id="wpVd" value="' + riyadhToday() + '"><button type="button" class="btn btn-line btn-sm" id="wpBk"' + (r.errors ? ' disabled' : '') + '>' + ph('bank') + t('wpBankFile') + '</button></div><p class="cp-note">' + ph('info') + t('wpFmtNote') + '</p>';
       if (bad.length) h += '<h3 class="hr-sub">' + t('wpProblems') + '</h3><div class="list">' + bad.map(function(x){ return '<div class="row"><div class="main"><b>' + esc(x.nameAr || x.name) + '</b><small><bdi>' + esc(x.empNo) + '</bdi> · ' + x.problems.map(function(p){ return t('wp_' + p); }).join('، ') + '</small></div></div>'; }).join('') + '</div>';
       if (r.skipped && r.skipped.length) h += '<h3 class="hr-sub">' + t('wpSkipped') + '</h3><p class="hr-hint">' + r.skipped.map(function(x){ return esc(x.name) + ' (' + esc(x.empNo) + ')'; }).join('، ') + '</p>';
       box.innerHTML = h;
       var msg = function(x){ if (!x.ok) toast(errText(x.error)); wpsView(el); };
       $$('[data-step]', box).forEach(function(b){ b.onclick = function(){ b.disabled = true; api('wpsStep', { id: cur, step: b.dataset.step }).then(msg); }; });
       var uf = $('#wpUpF', box); if (uf) uf.onsubmit = function(ev){ ev.preventDefault(); api('wpsStep', { id: cur, step: 'uploaded', bankRef: this.elements.ref.value }).then(msg); };
+      var bk = $('#wpBk', box); if (bk) bk.onclick = function(){ bk.disabled = true; api('wpsFile', { id: cur, format: $('#wpFmt', box).value, valueDate: $('#wpVd', box).value }).then(function(x){ bk.disabled = false;
+        if (!x.ok || !x.layout) return toast(errText(x.error || 'bad_value'));
+        if (x.layout.missing.length) return toast(t('wpMissing') + ' ' + x.layout.missing.map(function(k){ return t('wpMissing_' + k); }).join('، '));
+        loadScript('js/journal.js').then(function(){ Journal.bankFile(x.layout); }, function(){ toast(errText('network')); }); }); };
       $('#wpX', box).onclick = function(){ xlsxLib().then(function(){ wpsXlsx(r); }, function(){ toast(errText('network')); }); };
     });
   });

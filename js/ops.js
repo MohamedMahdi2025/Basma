@@ -37,7 +37,7 @@ Object.assign(T.ar, {
   dcDecide:'القرار', dcSuggested:'حسب اللائحة', dcPenalty:'الجزاء', dcNoteReq:'سبب الخروج عن اللائحة (مطلوب)', dcDecideBtn:'إصدار القرار', dcDecided:'صدر القرار', dcChanged:'خلاف اللائحة',
   dcPayrollNote:'الحسم والإيقاف يضافان إلى مسير شهر القرار، أو الشهر التالي إن كان معتمدا. الإيقاف 5 أيام في الشهر كحد أقصى (المادة 66)، ومجموع الغرامات لا يتجاوز أجر 5 أيام في الشهر (المادة 70).',
   dcNotYou:'يصدر القرار شخص من الموارد البشرية غير من أبلغ عن المخالفة.', dcDecision:'القرار', dcAmount:'المبلغ', dcMonth:'مسير شهر', dcDecidedBy:'أصدره',
-  dcObjWindow:'للموظف الاعتراض خلال 15 يوما من القرار (المادة 72).', dcObjection:'اعتراض الموظف', dcObjDecide:'البت في الاعتراض',
+  dcObjWindow:'للموظف التظلم كتابة خلال 30 يوما من تبليغه بالقرار، لا تحسب منها أيام العطل الرسمية، ويرد صاحب العمل خلال 15 يوما، ثم للموظف 30 يوما للجوء إلى المحكمة العمالية (المادة 72 المعدلة 2025؛ تحقق مع وزارة الموارد البشرية).', dcObjection:'اعتراض الموظف', dcObjDecide:'البت في الاعتراض',
   dcUpheld:'رفض الاعتراض وتثبيت الجزاء', dcCancelled:'قبول الاعتراض وإلغاء الجزاء', dcObjNote:'أسباب القرار (مطلوب)',
   dcObjLead:'يبت في الاعتراض شخص غير من أصدر القرار. إلغاء الجزاء يحذف الحسم إن لم يعتمد مسير ذلك الشهر بعد.', dcObjSelf:'أنت من أصدر القرار؛ يبت في الاعتراض زميل آخر.',
   dcResult:'نتيجة الاعتراض', dcNone:'لا توجد قضايا.', dcNoMatch:'لا توجد قضايا مطابقة.', dcAllSt:'كل الحالات',
@@ -83,12 +83,13 @@ Object.assign(T.ar, {
   myAssets:'عهدتي', myAck:'تأكيد الاستلام', myAcked:'تم تأكيد الاستلام', myAckLead:'بتأكيدك تقر باستلام الأصل بالحالة المذكورة عند التسليم.', myHanded:'سلم في',
   myCharge:'تحميل مقترح بانتظار الاعتماد', myCases:'المخالفات', myNewCase:'بانتظار ردك', myResponded:'أرسلت ردك، والقضية قيد المراجعة', myRespond:'الرد', myRespondT:'ردك على الاتهام',
   myRespondLead:'اكتب ردك وأسبابك وما يثبتها. يطلع عليه المختص قبل أي قرار، ولا يصدر جزاء قبل سماع أقوالك.', mySendResp:'إرسال الرد',
-  myObject:'اعتراض', myObjectT:'اعتراضك على القرار', myObjLeft:'المتبقي للاعتراض:', myObjLead:'يحق لك الاعتراض كتابة خلال 15 يوما من القرار (المادة 72). يبت فيه شخص غير من أصدر القرار.',
+  dcNotified:'تاريخ التبليغ', dcObjDue:'آخر يوم للتظلم', dcDecideDue:'يرد صاحب العمل قبل', dcDecideLate:'تأخر الرد على التظلم', dcNotice:'تسجيل تاريخ التبليغ', dcNoticeLead:'يحسب أجل التظلم من يوم تبليغ الموظف بالقرار. إن بلغ في يوم غير يوم القرار فسجله هنا.',
+  myObject:'اعتراض', myObjectT:'اعتراضك على القرار', myObjLeft:'المتبقي للاعتراض:', myObjLead:'يحق لك التظلم كتابة خلال 30 يوما من تبليغك بالقرار، لا تحسب منها العطل الرسمية (المادة 72). يبت فيه شخص غير من أصدر القرار خلال 15 يوما.',
   mySendObj:'إرسال الاعتراض', myObjPending:'اعتراضك قيد المراجعة.', myInjury:'إصابات العمل', myInjBtn:'الإبلاغ عن إصابة',
   myInjLead:'إذا أصبت أثناء العمل أو بسببه أبلغ فورا، ولو كانت الإصابة بسيطة. تبلغ الشركة التأمينات خلال 3 أيام.',
   // server errors
   e_too_late:'فات الموعد النظامي لهذا الإجراء.', e_open_too_late:'مضى أكثر من 30 يوما على العلم بالمخالفة؛ لا يجوز فتح القضية (المادة 71).',
-  e_object_too_late:'انتهت مهلة الاعتراض: 15 يوما من القرار (المادة 72).', e_hearing_required:'سجل محضر تحقيق أو استماع قبل إصدار الجزاء (المادة 71).',
+  e_object_too_late:'انتهت مهلة التظلم: 30 يوما من التبليغ بالقرار (المادة 72).', e_hearing_required:'سجل محضر تحقيق أو استماع قبل إصدار الجزاء (المادة 71).',
   e_bad_penalty:'جزاء غير صحيح: الغرامة بالأيام والإيقاف 5 أيام كحد أقصى، والنسبة من 1 إلى 100%.', e_suspension_cap:'يتجاوز الإيقاف بهذا القرار 5 أيام في الشهر (المادة 66).',
   e_overnight_not_supported:'يجب أن تنتهي الوردية بعد بدايتها في نفس اليوم؛ الورديات عبر منتصف الليل غير مدعومة حاليا.', e_shift_too_long:'الوردية 12 ساعة كحد أقصى.',
   e_asset_not_available:'الأصل غير متاح للتسليم: في عهدة موظف آخر أو خارج الخدمة.', e_duplicate_serial:'هذا الرقم التسلسلي مسجل لأصل آخر.', e_charge_over_value:'مبلغ التحميل أكبر من قيمة الأصل.',
@@ -131,7 +132,7 @@ Object.assign(T.en, {
   dcDecide:'Decision', dcSuggested:'Schedule', dcPenalty:'Penalty', dcNoteReq:'Why the penalty differs from the schedule (required)', dcDecideBtn:'Issue decision', dcDecided:'Decision issued', dcChanged:'Differs from schedule',
   dcPayrollNote:'Fines and suspensions go to the payroll of the decision month, or the next one if it is approved. Suspension is at most 5 days a month (Art. 66) and fines at most 5 days\' wage a month (Art. 70).',
   dcNotYou:'The decision is taken by someone in HR other than the person who reported it.', dcDecision:'Decision', dcAmount:'Amount', dcMonth:'Payroll month', dcDecidedBy:'Decided by',
-  dcObjWindow:'The employee may object within 15 days of the decision (Art. 72).', dcObjection:'Employee\'s objection', dcObjDecide:'Rule on the objection',
+  dcObjWindow:'The employee may file a written grievance within 30 days of being notified, official holidays not counted; the employer answers within 15 days, then the employee has 30 days to go to the labour court (Art. 72 as amended in 2025; verify with HRSD).', dcObjection:'Employee\'s objection', dcObjDecide:'Rule on the objection',
   dcUpheld:'Reject the objection, keep the penalty', dcCancelled:'Accept the objection, cancel the penalty', dcObjNote:'Reasons (required)',
   dcObjLead:'Someone other than the decision maker rules on an objection. Cancelling removes the deduction if that month\'s payroll is not approved yet.', dcObjSelf:'You took this decision; a colleague rules on the objection.',
   dcResult:'Objection outcome', dcNone:'No cases.', dcNoMatch:'No matching cases.', dcAllSt:'Any status',
@@ -174,11 +175,12 @@ Object.assign(T.en, {
   myAssets:'My company assets', myAck:'Confirm receipt', myAcked:'Receipt confirmed', myAckLead:'By confirming you accept receipt of the asset in the condition recorded at hand-over.', myHanded:'Handed over',
   myCharge:'Proposed charge waiting for approval', myCases:'Disciplinary cases', myNewCase:'Waiting for your answer', myResponded:'You answered; the case is under review', myRespond:'Answer', myRespondT:'Your answer to the charge',
   myRespondLead:'Write your answer, your reasons and anything that supports them. It is read before any decision, and no penalty is given before you are heard.', mySendResp:'Send answer',
-  myObject:'Object', myObjectT:'Your objection to the decision', myObjLeft:'Left to object:', myObjLead:'You may object in writing within 15 days of the decision (Art. 72). Someone other than the decision maker rules on it.',
+  dcNotified:'Notified on', dcObjDue:'Last day to file a grievance', dcDecideDue:'Employer answers by', dcDecideLate:'Grievance answer overdue', dcNotice:'Record notice date', dcNoticeLead:'The grievance window runs from the day the employee was notified. If that was not the decision day, record it here.',
+  myObject:'Object', myObjectT:'Your objection to the decision', myObjLeft:'Left to object:', myObjLead:'You may file a written grievance within 30 days of being notified, official holidays not counted (Art. 72). Someone other than the decision maker rules on it within 15 days.',
   mySendObj:'Send objection', myObjPending:'Your objection is being reviewed.', myInjury:'Work injuries', myInjBtn:'Report an injury',
   myInjLead:'If you are hurt at or because of work, report it at once, even if it seems minor. The company notifies GOSI within 3 days.',
   e_too_late:'The legal deadline for this step has passed.', e_open_too_late:'More than 30 days since the violation became known; the case cannot be opened (Art. 71).',
-  e_object_too_late:'The objection window has closed: 15 days from the decision (Art. 72).', e_hearing_required:'Record hearing or investigation minutes before a penalty (Art. 71).',
+  e_object_too_late:'The grievance window has closed: 30 days from notice of the decision (Art. 72).', e_hearing_required:'Record hearing or investigation minutes before a penalty (Art. 71).',
   e_bad_penalty:'Invalid penalty: fines in days and suspensions are at most 5 days, a percentage from 1 to 100.', e_suspension_cap:'This would take suspension over 5 days in the month (Art. 66).',
   e_overnight_not_supported:'The shift must end after it starts on the same day; shifts across midnight are not supported yet.', e_shift_too_long:'A shift is at most 12 hours.',
   e_asset_not_available:'The asset is not available: someone holds it or it is retired.', e_duplicate_serial:'This serial number belongs to another asset.', e_charge_over_value:'The charge is more than the asset value.',
@@ -568,6 +570,8 @@ function decisionHtml(x){
   return '<h4 class="op-h4">' + ph('gavel') + t('dcDecision') + '</h4>' +
     meta([[t('dcPenalty'), '<b>' + esc(penLabel(x.decision)) + '</b>' + (x.suggested && x.decision !== x.suggested ? ' ' + chip(t('dcChanged'), 'late') : '')], [t('dcAmount'), x.amount ? money(x.amount) : ''],
       [t('dcMonth'), x.adjMonth ? esc(monthName(x.adjMonth)) : ''], [t('dcDecidedBy'), esc(x.decidedBy) + (x.decidedAt ? ' · ' + fmt(day(x.decidedAt)) : '')], [t('opNote'), esc(x.decisionNote || '')]]) +
+    meta([[t('dcNotified'), x.notifiedOn ? fmt(x.notifiedOn) : ''], [t('dcObjDue'), x.objectionDue && x.status === 'decided' ? fmt(x.objectionDue) + (x.objectDaysLeft != null ? ' (' + plural(x.objectDaysLeft, 'days') + ')' : '') : ''],
+      [t('dcDecideDue'), x.decideDue ? fmt(x.decideDue) + (x.decideOverdue ? ' ' + chip(t('dcDecideLate'), 'late') : '') : '']]) +
     (x.status === 'decided' ? '<p class="hr-hint">' + ph('info') + ' ' + t('dcObjWindow') + '</p>' : '') +
     (x.objection ? '<h4 class="op-h4">' + ph('megaphone') + t('dcObjection') + '</h4>' + quote(x.objection) + '<p class="hr-hint">' + fmt(day(x.objectedAt)) + '</p>' : '') +
     (res ? '<h4 class="op-h4">' + ph('scales') + t('dcResult') + '</h4><p>' + chip(t('dr_' + rk), rk === 'cancelled' ? 'in' : 'off') + ' ' + esc(rn) + '</p>' : '');
@@ -593,6 +597,8 @@ function caseDrawer(x, done){
     fld('<span id="dcNl">' + t('opNoteOpt') + '</span>', '<textarea name="note" rows="2" maxlength="1000"></textarea>') + '<p class="hr-hint">' + t('dcPayrollNote') + '</p>' +
     '<div class="btnrow"><button class="btn btn-dark" type="submit"' + (x.hearings.length ? '' : ' disabled') + '>' + t('dcDecideBtn') + '</button></div></form>';
   else if (hr && open && !x.mine) h += '<p class="notice">' + t('dcNotYou') + '</p>';
+  if (x.canNotice) h += '<form class="form op-box" id="dcNf"><h4>' + ph('envelope-simple') + t('dcNotice') + '</h4><p class="hr-hint">' + t('dcNoticeLead') + '</p>' + fld(t('dcNotified'), '<input name="date" type="date" max="' + td + '" value="' + esc(x.notifiedOn || td) + '">') +
+    '<div class="btnrow"><button class="btn btn-line btn-sm" type="submit">' + t('dcNotice') + '</button></div></form>';
   if (hr && x.status === 'objected') h += '<form class="form op-box" id="dcOf"><h4>' + ph('scales') + t('dcObjDecide') + '</h4><p class="hr-hint">' + t('dcObjLead') + '</p>' +
     (x.decidedBy && S.me && x.decidedBy === S.me.name ? '<p class="notice">' + t('dcObjSelf') + '</p>' : '') +
     '<div class="checks" role="radiogroup" aria-label="' + t('dcObjDecide') + '"><label><input type="radio" name="res" value="upheld" checked>' + t('dcUpheld') + '</label><label><input type="radio" name="res" value="cancelled">' + t('dcCancelled') + '</label></div>' +
@@ -618,6 +624,8 @@ function caseDrawer(x, done){
       api('discDecide', { id: x.id, penalty: v, note: note }).then(function(r){ b.disabled = false; if (!r.ok) return er.textContent = oerr(r.error, 'decide'); toast(t('dcDecided') + (r.case.amount ? ' · ' + moneyTxt(r.case.amount) : '')); reopen(r.case); });
     };
   }
+  var nf = $('#dcNf', d);
+  if (nf) nf.onsubmit = function(ev){ ev.preventDefault(); var b = nf.querySelector('[type=submit]'); b.disabled = true; api('discNotice', { id: x.id, date: nf.elements.date.value }).then(function(r){ b.disabled = false; if (!r.ok) return er.textContent = oerr(r.error); toast(t('opSaved')); reopen(r.case); }); };
   var of = $('#dcOf', d);
   if (of) of.onsubmit = function(ev){
     ev.preventDefault();
@@ -1133,7 +1141,7 @@ function myCards(el){
   }, true);
 }
 function myStatus(s){ return s === 'charged' ? t('myNewCase') : s === 'responded' ? t('myResponded') : t('ds_' + s); }
-/** The employee's own case: answer the charge, see hearings and the decision, object within 15 days. */
+/** The employee's own case: answer the charge, see hearings and the decision, object within 30 days of notice (Art. 72 as amended). */
 function myCase(x, done){
   var d = drawer('<h3>' + esc(x.violation) + '</h3><p class="hr-hint">' + chip(myStatus(x.status), DS_CLS[x.status]) + ' <bdi>' + esc(x.ref) + '</bdi></p>' +
     meta([[t('dcCode'), '<bdi>' + esc(x.code) + '</bdi> · ' + occLabel(x.occurrence)], [t('dcIncident'), fmt(x.incidentDate)], [t('dcChargedAt'), x.chargedAt ? fmt(day(x.chargedAt)) : ''], [t('dcSuggested'), esc(penLabel(x.suggested))]]) + quote(x.description) +
@@ -1152,8 +1160,8 @@ function myCase(x, done){
   };
   if (x.canRespond) { act.innerHTML = form('mcR', t('myRespondT'), t('myRespondLead'), t('mySendResp')); wire('mcR', 'discRespond', ''); }
   else if (x.canObject) {
-    var left = Math.max(0, 15 - daysBetween(day(x.decidedAt), riyadhToday()));
-    act.innerHTML = form('mcO', t('myObjectT'), t('myObjLead') + ' ' + t('myObjLeft') + ' ' + plural(left, 'days'), t('mySendObj')); wire('mcO', 'discObject', 'object');
+    var left = x.objectDaysLeft != null ? x.objectDaysLeft : 0; // the server counts 30 days from notice, official holidays not counted (Art. 72)
+    act.innerHTML = form('mcO', t('myObjectT'), t('myObjLead') + ' ' + t('myObjLeft') + ' ' + plural(left, 'days') + (x.objectionDue ? ' (' + fmt(x.objectionDue) + ')' : ''), t('mySendObj')); wire('mcO', 'discObject', 'object');
   } else if (x.status === 'objected') act.innerHTML = '<p class="notice">' + t('myObjPending') + '</p>';
 }
 
