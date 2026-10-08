@@ -27,6 +27,7 @@ function api_dashboard(req, me) {
   out.requests = dashSafe_(function () { return dashRequests_(reqs, ctx, t); });
   out.performance = dashSafe_(function () { return dashPerformance_(ctx); });
   if (money) out.cost = dashSafe_(function () { return dashCost_(emps, ctx, reqs, t, s); });
+  if (money) out.govFees = dashSafe_(function () { return dashGovFees_(t); }); // government fees (GovServices.gs), same money rule
   // Workforce analytics only when asked (the dashboard section asks; the home screen calls this action too and must stay fast).
   var wantA = req.analytics === true || req.analytics === 1 || req.analytics === '1' || req.analytics === 'true', names = wantA && waNames_(me);
   if (wantA) out.analytics = dashSafe_(function () { return dashAnalytics_(ctx, punches, reqs, s, t, names); });

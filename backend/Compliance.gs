@@ -119,7 +119,10 @@ function api_wpsFile(req, me) {
   });
   audit_(me.id, 'wps_file', run.id, { ref: run.ref, rows: rows.length, errors: errors });
   var log = wpsLogOf_(run.id);
-  return { ok: true, run: publicRun_(run), rows: rows, skipped: skipped, errors: errors, total: total, due: wpsDue_(run.month, settings_()), log: log ? publicWps_(log) : null };
+  // req.format picks a bank / Mudad layout (Journal.gs bankLayout_); every layout says "verify with the bank before first use"
+  var layout = req.format && BANK_FORMATS[req.format] ? bankLayout_(req.format, rows, run, isoDate_(req.valueDate)) : null;
+  return { ok: true, run: publicRun_(run), rows: rows, skipped: skipped, errors: errors, total: total, due: wpsDue_(run.month, settings_()), log: log ? publicWps_(log) : null,
+    formats: Object.keys(BANK_FORMATS).map(function (k) { return { id: k, ar: BANK_FORMATS[k].ar, en: BANK_FORMATS[k].en }; }), layout: layout };
 }
 function wpsLogOf_(runId) { return readAll_(SHEETS.WPS).filter(function (w) { return w.runId === runId; })[0] || null; }
 function publicWps_(w) {
@@ -242,6 +245,7 @@ function api_complianceCalendar(req, me) {
   }
   readAll_(SHEETS.INJ).filter(function (x) { return x.status === 'reported'; }).forEach(function (x) { add('injury_gosi', String(x.gosiDue).slice(0, 10), ctx.emps[x.empId], { ref: x.ref }); });
   readAll_(SHEETS.RECON).filter(function (x) { return x.status === 'open'; }).forEach(function (x) { add('recon_open', '', null, { month: x.month, ref: x.ref, count: parseJson_(x.mismatchesJson, []).length, level: 'error' }); });
+  extraCalendar_(items, add, ctx, t, me); // Art. 72 grievance answers, government services, expenses, journals (GovServices.gs)
   items.forEach(function (x) { if (x.kind === 'recon_open') x.level = 'error'; });
   var target = Number(s.saudizationTarget) || 0;
   if (target) { var dir = api_hrDirectory({}, me).saudization; if (dir.saudiPct < target) items.push({ kind: 'saudization', due: '', daysLeft: null, emp: null, level: 'warn', value: dir.saudiPct, target: target }); }
@@ -283,6 +287,8 @@ function api_myTasks(req, me) {
   if (pay) add('asset_charge', readAll_(SHEETS.CUST).filter(function (c) { return c.chargeStatus === 'proposed' && c.chargeBy !== me.id && c.empId !== me.id; }).length, { tab: 'hr', sec: 'custody' });
   if (hr || pay || managesAnyone_(me, ctx)) add('clearance', readAll_(SHEETS.CLR).filter(function (x) { return x.status === 'open'; }).map(function (x) { return clearanceView_(x, me, ctx); })
     .reduce(function (s, v) { return s + v.tasks.filter(function (t) { return t.canTick; }).length; }, 0), { tab: 'hr', sec: 'offboarding' });
+  extraTasks_(me, ctx, out, add); // government services, expenses, journals, Art. 72 answer dates (GovServices.gs)
+  lcMyTasks_(me, ctx, out, add); // leave-cycle tasks and escalated approvals (Flows.gs)
   var dl = readAll_(SHEETS.DLG).filter(function (d) { return d.toEmpId === me.id && d.status === 'active' && String(d.fromDate).slice(0, 10) <= t && String(d.toDate).slice(0, 10) >= t; });
   if (dl.length) out.push({ kind: 'delegated', count: dl.length, target: { tab: 'hr', sec: 'inbox' }, names: dl.map(function (d) { return ctx.emps[d.fromEmpId] ? ctx.emps[d.fromEmpId].name : ''; }) });
   return { ok: true, tasks: out, total: out.filter(function (x) { return x.kind !== 'delegated'; }).reduce(function (s, x) { return s + x.count; }, 0) };

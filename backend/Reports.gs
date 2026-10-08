@@ -13,20 +13,66 @@ var REPORTS = {
   att_monthly:      { group: 'attendance', access: 'people', params: ['month', 'depts', 'emps', 'nationality'] },
   att_summary:      { group: 'attendance', access: 'people', params: ['range', 'depts', 'emps', 'nationality'] },
   att_exceptions:   { group: 'attendance', access: 'people', params: ['range', 'depts', 'emps'] },
-  leave_balances:   { group: 'leave',      access: 'people', params: ['asOf', 'depts', 'emps', 'nationality'] },
+  // analytical (2026-10-04): trends with the previous period, rankings, distributions
+  att_dept_trend:   { group: 'attendance', access: 'people', params: ['range365', 'depts', 'nationality'] },
+  att_punctuality:  { group: 'attendance', access: 'people', params: ['range365', 'depts', 'emps'] },
+  att_late_top:     { group: 'attendance', access: 'people', params: ['range', 'depts', 'emps'] },
+  att_bradford:     { group: 'attendance', access: 'people', params: ['range365', 'depts', 'emps'] },
+  att_weekday:      { group: 'attendance', access: 'people', params: ['range', 'depts'] },
+  att_checkin_bands: { group: 'attendance', access: 'people', params: ['range', 'depts', 'emps'] },
+  att_missing_out:  { group: 'attendance', access: 'people', params: ['range', 'depts', 'emps'] },
+  att_flags:        { group: 'attendance', access: 'people', params: ['range', 'depts'] },
+  att_overtime:     { group: 'attendance', access: 'people', params: ['range', 'depts', 'emps'], moneyCols: true },
+  leave_balances:   { group: 'leave',      access: 'people', params: ['asOf', 'depts', 'emps', 'nationality'], moneyCols: true },
   leave_taken:      { group: 'leave',      access: 'people', params: ['range', 'depts', 'emps', 'leaveType'] },
   requests_log:     { group: 'leave',      access: 'people', params: ['range', 'depts', 'emps', 'reqType', 'reqStatus'] },
+  leave_util_dept:  { group: 'leave',      access: 'people', params: ['range365', 'depts'] },
+  leave_type_month: { group: 'leave',      access: 'people', params: ['range365', 'depts', 'leaveType'] },
+  leave_upcoming:   { group: 'leave',      access: 'people', params: ['days', 'depts', 'emps'] },
+  leave_sick_bradford: { group: 'leave',   access: 'people', params: ['range365', 'depts', 'emps'] },
+  leave_yearend_risk: { group: 'leave',    access: 'people', params: ['asOf', 'depts', 'nationality'], moneyCols: true },
+  leave_liability_trend: { group: 'leave', access: 'cost',   params: ['range365', 'depts'] },
   hr_headcount:     { group: 'people',     access: 'people', params: ['depts', 'nationality', 'status'] },
   hr_movement:      { group: 'people',     access: 'people', params: ['range365', 'depts'] },
   hr_expiry:        { group: 'people',     access: 'people', params: ['days', 'depts'] },
   hr_saudization:   { group: 'people',     access: 'cost',   params: ['depts'] },
+  wf_snapshot:      { group: 'people',     access: 'people', params: ['month', 'depts'] },
+  wf_joiners:       { group: 'people',     access: 'people', params: ['range365', 'depts'] },
+  wf_leavers:       { group: 'people',     access: 'people', params: ['range365', 'depts'] },
+  wf_turnover_dept: { group: 'people',     access: 'people', params: ['range365', 'depts'] },
+  wf_tenure:        { group: 'people',     access: 'people', params: ['depts', 'nationality'] },
+  wf_span:          { group: 'people',     access: 'people', params: ['depts'] },
+  wf_org:           { group: 'people',     access: 'people', params: ['depts', 'status'] },
+  wf_vacancies:     { group: 'people',     access: 'people', params: ['depts'] },
+  wf_probation:     { group: 'people',     access: 'people', params: ['days', 'depts'] },
   pay_register:     { group: 'payroll',    access: 'money',  params: ['run', 'depts'] },
   pay_variance:     { group: 'payroll',    access: 'money',  params: ['run', 'threshold', 'depts'] },
   pay_gosi:         { group: 'payroll',    access: 'money',  params: ['run', 'depts'] },
   pay_cost:         { group: 'payroll',    access: 'cost',   params: ['run'] },
   pay_eos:          { group: 'payroll',    access: 'money',  params: ['asOf', 'depts'] },
   pay_equity:       { group: 'payroll',    access: 'money',  params: ['depts'] },
+  pay_company_cost: { group: 'payroll',    access: 'money',  params: ['run', 'depts'] },
+  pay_gosi_wage:    { group: 'payroll',    access: 'money',  params: ['run', 'depts'] },
+  pay_var_lines:    { group: 'payroll',    access: 'money',  params: ['run', 'threshold', 'depts'] },
+  pay_ytd:          { group: 'payroll',    access: 'money',  params: ['run', 'depts'] },
+  pay_bands:        { group: 'payroll',    access: 'money',  params: ['depts'] },
+  pay_gosi_cohort:  { group: 'payroll',    access: 'cost',   params: ['run', 'depts'] },
+  pay_deductions:   { group: 'payroll',    access: 'cost',   params: ['run', 'depts'] },
+  pay_ot_trend:     { group: 'payroll',    access: 'cost',   params: ['range365', 'depts'] },
+  pay_cost_per_head: { group: 'payroll',   access: 'cost',   params: ['range365', 'depts'] },
   perf_results:     { group: 'performance', access: 'people', params: ['cycle', 'depts'] },
+  perf_curve:       { group: 'performance', access: 'people', params: ['cycle', 'depts'] },
+  perf_kpi:         { group: 'performance', access: 'people', params: ['cycle', 'depts'] },
+  perf_360:         { group: 'performance', access: 'people', params: ['cycle', 'depts'] },
+  perf_plans:       { group: 'performance', access: 'people', params: ['depts'] },
+  req_sla:          { group: 'requests',   access: 'people', params: ['range', 'reqType'] },
+  req_bottlenecks:  { group: 'requests',   access: 'people', params: ['depts', 'reqType'] },
+  req_volume:       { group: 'requests',   access: 'people', params: ['range365', 'reqType', 'depts'] },
+  cmp_disciplinary: { group: 'compliance', access: 'people', params: ['range365', 'depts'], moneyCols: true },
+  cmp_injuries:     { group: 'compliance', access: 'people', params: ['range365', 'depts'] },
+  cmp_custody:      { group: 'compliance', access: 'people', params: ['depts', 'emps'] },
+  cmp_clearance:    { group: 'compliance', access: 'people', params: ['depts'] },
+  cmp_wps:          { group: 'compliance', access: 'cost',   params: ['range365'] },
   audit_log:        { group: 'audit',      access: 'audit',  params: ['range', 'auditAction'] }
 };
 
@@ -119,7 +165,8 @@ function api_reportRun(req, me) {
   var ctx = orgCtx_();
   if (!reportAllowed_(def, me, ctx)) fail_('forbidden');
   var p = reportParams_(def, req.params), res = runReport_(req.reportId, p, me, ctx);
-  if (def.access === 'money') audit_(me.id, 'salary_view', '', { report: req.reportId, rows: res.rows.length });
+  // A people report with a pay-derived column (moneyCols) shows it only to the hr role and payroll, and records it the same way.
+  if (def.access === 'money' || (def.moneyCols && canPayroll_(me))) audit_(me.id, 'salary_view', '', { report: req.reportId, rows: res.rows.length });
   res.ok = true; res.reportId = req.reportId; res.params = p; res.generatedAt = new Date().toISOString(); res.by = { name: me.name, empNo: String(me.empNo) };
   res.teamOnly = !!reportScope_(me, ctx);
   return res;
@@ -332,17 +379,33 @@ var REPORT_FNS = {
       chart: { type: 'bars', by: 'kind', value: 'count' } };
   },
 
+  // Nitaqat-weighted Saudization per department, against the saudizationTarget setting (full-weight Saudis still needed),
+  // and the change from last month end (people employed then, at the package in force then).
   hr_saudization: function (p, me, ctx, scope, s) {
-    var emps = reportEmps_(p, ctx, scope), comps = currentCompMap_(today_()), by = {};
+    var t = today_(), emps = reportEmps_(p, ctx, scope), comps = currentCompMap_(t), compRows = readAll_(SHEETS.COMP), by = {}, target = Number(s.saudizationTarget) || null;
+    var prevEnd = addDays_(t.slice(0, 8) + '01', -1), grp = function (d) { return by[d] = by[d] || { department: d, headcount: 0, saudis: 0, weighted: 0, half: 0, zero: 0, ph: 0, pw: 0 }; };
     emps.forEach(function (e) {
-      var d = deptName_(e, ctx) || '-', g = by[d] = by[d] || { department: d, headcount: 0, saudis: 0, weighted: 0, half: 0, zero: 0 };
+      var g = grp(deptName_(e, ctx) || '-');
       g.headcount++;
       if (bool_(e.isSaudi)) { g.saudis++; var w = nitaqatWeight_(comps[e.id]); g.weighted += w; if (w === 0.5) g.half++; if (w === 0) g.zero++; }
     });
-    var rows = Object.keys(by).map(function (k) { var g = by[k]; g.pct = pct_(g.weighted, g.headcount); return g; });
+    rxAllEmps_(p, ctx, scope).forEach(function (e) {
+      if (!rxOn_(rxSpan_(e), prevEnd)) return;
+      var g = grp(deptName_(e, ctx) || '-'); g.ph++; if (bool_(e.isSaudi)) g.pw += nitaqatWeight_(compOn_(e.id, prevEnd, compRows));
+    });
+    var need = 0, H = 0, W = 0;
+    var rows = Object.keys(by).filter(function (k) { return by[k].headcount; }).map(function (k) {
+      var g = by[k], pv = g.ph ? pct_(g.pw, g.ph) : null;
+      g.pct = pct_(g.weighted, g.headcount); g.saudiTarget = target; g.needed = target ? Math.max(0, Math.ceil(target / 100 * g.headcount - g.weighted - 1e-9)) : null;
+      g.prevPct = pv; g.changePts = rxPts_(g.pct, pv); need += g.needed || 0; H += g.headcount; W += g.weighted;
+      delete g.ph; delete g.pw;
+      return g;
+    });
+    var co = pct_(W, H);
     return { columns: [col_('department'), col_('headcount', 'int', { sum: true }), col_('saudis', 'int', { sum: true }), col_('weighted', 'num', { sum: true }),
-      col_('half', 'int', { sum: true }), col_('zero', 'int', { sum: true }), col_('pct', 'pct')], rows: rows, chart: { type: 'hbar', label: 'department', value: 'pct', max: 100 },
-      totalsNote: 'saudization' };
+      col_('half', 'int', { sum: true }), col_('zero', 'int', { sum: true }), col_('pct', 'pct'), col_('saudiTarget', 'pct'), col_('needed', 'int', { sum: true }), col_('prevPct', 'pct'), col_('changePts', 'num')],
+      rows: rows, chart: { type: 'hbar', label: 'department', value: 'pct', max: 100 }, totalsNote: 'saudization',
+      checks: target && H ? [{ level: co < target ? 'warn' : 'info', code: 'saudi_vs_target', count: Math.max(0, Math.ceil(target / 100 * H - W - 1e-9)), value: co }] : [] };
   },
 
   pay_register: function (p, me, ctx, scope, s) {
@@ -408,20 +471,30 @@ var REPORT_FNS = {
       rows: rows, run: publicRun_(run), checks: missingCohort ? [{ level: 'warn', code: 'gosi_cohort_missing', count: missingCohort }] : [] };
   },
 
+  // Per department and cost centre: gross, employer GOSI, cost (the two), the end-of-service provision and the company cost
+  // (all three), its share of the total, cost per head, and the company cost of the last locked run with the change.
   pay_cost: function (p, me, ctx, scope, s) {
-    var run = findBy_(SHEETS.RUN, 'id', p.run) || currentRun_();
-    if (!run) return { columns: [], rows: [], checks: [{ level: 'info', code: 'no_run', count: 0 }] };
-    p.run = run.id;
-    var by = {};
-    readAll_(SHEETS.SLIP).forEach(function (sl) {
-      if (sl.runId !== run.id || sl.status === 'void') return;
-      var e = ctx.emps[sl.empId] || {}, d = ctx.depts[e.departmentId], k = d ? d.id : '-';
-      var g = by[k] = by[k] || { department: d ? d.nameAr : '-', costCenter: d ? String(d.costCenter || '') : '', headcount: 0, gross: 0, gosiEmployer: 0, cost: 0, net: 0 };
-      g.headcount++; g.gross = r2_(g.gross + Number(sl.gross)); g.gosiEmployer = r2_(g.gosiEmployer + Number(sl.gosiEmployer)); g.net = r2_(g.net + Number(sl.net)); g.cost = r2_(g.gross + g.gosiEmployer);
-    });
-    var rows = Object.keys(by).map(function (k) { return by[k]; }).sort(function (a, b) { return b.cost - a.cost; });
-    return { columns: [col_('department'), col_('costCenter', 'id'), col_('headcount', 'int', { sum: true }), col_('gross', 'money', { sum: true }), col_('gosiEmployer', 'money', { sum: true }),
-      col_('cost', 'money', { sum: true }), col_('net', 'money', { sum: true })], rows: rows, run: publicRun_(run), chart: { type: 'hbar', label: 'department', value: 'cost' } };
+    var rp = rxRunPair_(p); if (!rp) return rxNoRun_();
+    var run = rp.run, ids = {}; ids[run.id] = 1; if (rp.prev) ids[rp.prev.id] = 1;
+    var slips = rxSlipsBy_(ids, null, ctx), by = {}, old = {};
+    var add = function (map, m, full) {
+      Object.keys(m || {}).forEach(function (k) {
+        var sl = m[k], e = ctx.emps[sl.empId] || {}, d = ctx.depts[e.departmentId], key = d ? d.id : '-';
+        var g = map[key] = map[key] || { department: d ? d.nameAr : '-', costCenter: d ? String(d.costCenter || '') : '', headcount: 0, gross: 0, gosiEmployer: 0, cost: 0, net: 0, eosAccrual: 0, companyCost: 0 };
+        g.headcount++; g.companyCost = r2_(g.companyCost + rxCost_(ctx.emps[sl.empId], sl, s));
+        if (full) { g.gross = r2_(g.gross + Number(sl.gross)); g.gosiEmployer = r2_(g.gosiEmployer + Number(sl.gosiEmployer)); g.net = r2_(g.net + Number(sl.net)); g.cost = r2_(g.gross + g.gosiEmployer); g.eosAccrual = r2_(g.eosAccrual + rxEos_(ctx.emps[sl.empId], sl, s)); }
+      });
+    };
+    add(by, slips[run.id], true); if (rp.prev) add(old, slips[rp.prev.id], false);
+    var tot = Object.keys(by).reduce(function (t, k) { return t + by[k].companyCost; }, 0);
+    var rows = Object.keys(by).map(function (k) {
+      var g = by[k], o = old[k], c = rxChg_(g.companyCost, o ? o.companyCost : rp.prev ? 0 : null);
+      g.share = pct_(g.companyCost, tot); g.perHead = g.headcount ? r2_(g.companyCost / g.headcount) : null; g.prev = c.prev; g.change = c.change; g.changePct = c.changePct;
+      return g;
+    }).sort(function (a, b) { return b.cost - a.cost; });
+    var m = function (k) { return col_(k, 'money', { sum: true }); };
+    return { columns: [col_('department'), col_('costCenter', 'id'), col_('headcount', 'int', { sum: true }), m('gross'), m('gosiEmployer'), m('cost'), m('net'), m('eosAccrual'), m('companyCost'),
+      col_('share', 'pct'), col_('perHead', 'money'), m('prev'), m('change'), col_('changePct', 'pct')], rows: rows, run: publicRun_(run), chart: { type: 'hbar', label: 'department', value: 'cost' } };
   },
 
   pay_eos: function (p, me, ctx, scope, s) {
@@ -891,5 +964,1044 @@ Object.assign(REPORT_FNS, {
     if (money) cols.push(col_('estCost', 'money', { sum: true }));
     return { columns: cols, rows: rows, checks: [over ? { level: 'warn', code: 'ot_over_cap', count: over } : null, money && rows.length ? { level: 'info', code: 'ot_estimate', count: rows.length } : null].filter(Boolean),
       chart: { type: 'hbar', label: 'name', value: 'overtime' } };
+  }
+});
+
+// ---------------- leave ----------------
+/** The day annual leave starts to accrue in this system (as annualBalance_): after the opening date, else the day they joined. */
+function rxLeaveStart_(e) { return e.leaveOpeningDate !== '' && e.leaveOpeningDate != null ? addDays_(String(e.leaveOpeningDate).slice(0, 10), 1) : joinedDate_(e); }
+/** Approved leave per person, read once. */
+function rxLeaveByEmp_(reqs, statuses) {
+  var by = {};
+  reqs.forEach(function (r) { if (r.type === 'leave' && statuses.indexOf(r.status) >= 0) (by[r.empId] = by[r.empId] || []).push(r); });
+  return by;
+}
+/** True when every day strictly between a and b is a rest day or a public holiday for this person (a sick spell runs on). */
+function rxGapOff_(e, a, b, hol, s) {
+  var wd = shiftOf_(e, s).workdays;
+  for (var d = addDays_(a, 1), i = 0; d < b && i < 30; d = addDays_(d, 1), i++) if (!hol[d] && wd.indexOf(dow_(d)) >= 0) return false;
+  return i < 30;
+}
+
+Object.assign(REPORT_FNS, {
+  // Annual leave taken against the leave earned in the period, per department; sick and other leave beside it; the period before.
+  leave_util_dept: function (p, me, ctx, scope, s) {
+    var pr = rxPrev_(p.from, p.to), emps = reportEmps_(p, ctx, scope, true), hol = holidayMap_(), mine = rxLeaveByEmp_(readAll_(SHEETS.REQ), ['approved']), by = {};
+    var win = function (e, a, b) { var sp = rxSpan_(e); if (!sp) return null; var x = maxDate_(rxLeaveStart_(e), a), y = sp.end ? minDate_(sp.end, b) : b; return x <= y ? [x, y] : null; };
+    var used = function (e, w, sub) { // days of approved leave inside the window: one type, or '' for every type except annual and sick
+      return (mine[e.id] || []).reduce(function (t, r) {
+        if (sub ? r.subtype !== sub : (r.subtype === 'annual' || r.subtype === 'sick')) return t;
+        var a = maxDate_(String(r.fromDate).slice(0, 10), w[0]), b = minDate_(String(r.toDate).slice(0, 10), w[1]);
+        return a <= b ? t + countLeaveDays_(e, r.subtype, a, b, hol, s).days : t;
+      }, 0);
+    };
+    emps.forEach(function (e) {
+      var w = win(e, p.from, p.to), pw = win(e, pr.from, pr.to); if (!w && !pw) return;
+      var dn = deptName_(e, ctx) || '-', g = by[dn] || (by[dn] = { headcount: 0, earned: 0, taken: 0, sick: 0, other: 0, none: 0, pe: 0, pt: 0 });
+      if (w) {
+        var taken = used(e, w, 'annual');
+        g.headcount++; g.earned += accrueBetween_(e, w[0], w[1]); g.taken += taken; g.sick += used(e, w, 'sick'); g.other += used(e, w, '');
+        if (!taken && daysBetween_(w[0], w[1]) >= 89) g.none++;
+      }
+      if (pw) { g.pe += accrueBetween_(e, pw[0], pw[1]); g.pt += used(e, pw, 'annual'); }
+    });
+    var rows = Object.keys(by).sort().map(function (dn) {
+      var g = by[dn], earned = r2_(g.earned), taken = r2_(g.taken), u = pct_(taken, earned), pu = g.pe ? pct_(r2_(g.pt), r2_(g.pe)) : null;
+      return { department: dn, headcount: g.headcount, earned: earned, taken: taken, utilisation: u, sickDays: g.sick, otherDays: g.other, noLeave: g.none, prevRate: pu, changePts: rxPts_(u, pu) };
+    }).filter(function (r) { return r.headcount; });
+    var none = rows.reduce(function (t, r) { return t + r.noLeave; }, 0);
+    return { columns: [col_('department'), col_('headcount', 'int', { sum: true }), col_('earned', 'days', { sum: true }), col_('taken', 'days', { sum: true }), col_('utilisation', 'pct'),
+      col_('sickDays', 'days', { sum: true }), col_('otherDays', 'days', { sum: true }), col_('noLeave', 'int', { sum: true }), col_('prevRate', 'pct'), col_('changePts', 'num')], rows: rows,
+      checks: none ? [{ level: 'warn', code: 'no_annual_leave', count: none }] : [], chart: { type: 'hbar', label: 'department', value: 'utilisation', max: 100 } };
+  },
+
+  // Approved leave days by type and calendar month, with the month before.
+  leave_type_month: function (p, me, ctx, scope, s) {
+    var months = rxMonths_(p.from, p.to); if (!months.length) return rxEmpty_();
+    var all = [rxAddMonth_(months[0], -1)].concat(months), ids = {}, hol = holidayMap_(), by = {}, types = {};
+    reportEmps_(p, ctx, scope, true).forEach(function (e) { ids[e.id] = e; });
+    readAll_(SHEETS.REQ).forEach(function (r) {
+      var e = ids[r.empId];
+      if (!e || r.type !== 'leave' || r.status !== 'approved' || (p.leaveType && r.subtype !== p.leaveType)) return;
+      var f = String(r.fromDate).slice(0, 10), t = String(r.toDate).slice(0, 10);
+      all.forEach(function (m) {
+        var a = maxDate_(f, m + '-01'), b = minDate_(t, monthLast_(m)); if (a > b) return;
+        var g = by[r.subtype + '|' + m] || (by[r.subtype + '|' + m] = { requests: 0, people: {}, days: 0 });
+        types[r.subtype] = 1; g.days += countLeaveDays_(e, r.subtype, a, b, hol, s).days; g.people[r.empId] = 1;
+        if (f.slice(0, 7) === m) g.requests++;
+      });
+    });
+    var rows = [];
+    Object.keys(types).sort().forEach(function (k) {
+      months.forEach(function (m) {
+        var g = by[k + '|' + m], o = by[k + '|' + rxAddMonth_(m, -1)]; if (!g) return;
+        var c = rxChg_(g.days, o ? o.days : 0, 2);
+        rows.push({ leaveType: k, month: m, requests: g.requests, people: Object.keys(g.people).length, days: g.days, prev: o ? o.days : 0, change: c.change, changePct: c.changePct });
+      });
+    });
+    return { columns: [col_('leaveType', 'code', { group: true }), col_('month', 'text', { group: true }), col_('requests', 'int', { sum: true }), col_('people', 'int'),
+      col_('days', 'days', { sum: true }), col_('prev', 'days', { sum: true }), col_('change', 'days', { sum: true }), col_('changePct', 'pct')], rows: rows,
+      chart: { type: 'bars', by: 'leaveType', value: 'days' } };
+  },
+
+  // Approved and pending leave in the next `days` days, with the busiest day of the department while each person is away.
+  leave_upcoming: function (p, me, ctx, scope, s) {
+    var t = today_(), end = addDays_(t, p.days), ids = {}, head = {}, away = {}, rows = [];
+    reportEmps_(p, ctx, scope).forEach(function (e) { ids[e.id] = e; });
+    Object.keys(ctx.emps).forEach(function (k) { var e = ctx.emps[k]; if (e.status === 'active') { var dn = deptName_(e, ctx) || '-'; head[dn] = (head[dn] || 0) + 1; } });
+    var list = readAll_(SHEETS.REQ).filter(function (r) {
+      var e = ctx.emps[r.empId];
+      return e && e.status === 'active' && r.type === 'leave' && (r.status === 'approved' || r.status === 'pending') && String(r.toDate).slice(0, 10) >= t && String(r.fromDate).slice(0, 10) <= end;
+    });
+    var span = function (r, fn) { for (var d = maxDate_(String(r.fromDate).slice(0, 10), t), i = 0; d <= minDate_(String(r.toDate).slice(0, 10), end) && i < 370; d = addDays_(d, 1), i++) fn(d); };
+    list.forEach(function (r) { var dn = deptName_(ctx.emps[r.empId], ctx) || '-'; span(r, function (d) { (away[dn + '|' + d] = away[dn + '|' + d] || {})[r.empId] = 1; }); });
+    list.forEach(function (r) {
+      var e = ids[r.empId]; if (!e) return;
+      var dn = deptName_(e, ctx) || '-', peak = 0, f = String(r.fromDate).slice(0, 10);
+      span(r, function (d) { peak = Math.max(peak, Object.keys(away[dn + '|' + d] || {}).length); });
+      rows.push(Object.assign(base_(e, ctx), { ref: r.ref, leaveType: r.subtype, fromDate: f, toDate: String(r.toDate).slice(0, 10), days: Number(r.days) || 0, status: r.status,
+        startsIn: daysBetween_(t, f), peakAway: peak, deptHeadcount: head[dn] || 0, peakShare: pct_(peak, head[dn] || 0) }));
+    });
+    rows.sort(function (a, b) { return a.fromDate < b.fromDate ? -1 : a.fromDate > b.fromDate ? 1 : 0; });
+    var clash = rows.filter(function (r) { return r.peakAway >= 2 && r.peakShare >= 30; }).length, pend = rows.filter(function (r) { return r.status === 'pending'; }).length;
+    return { columns: EMP_COLS.concat([col_('ref', 'id'), col_('leaveType', 'code', { group: true }), col_('fromDate', 'date'), col_('toDate', 'date'), col_('days', 'days', { sum: true }),
+      col_('status', 'status', { group: true }), col_('startsIn', 'int'), col_('peakAway', 'int'), col_('deptHeadcount', 'int'), col_('peakShare', 'pct')]), rows: rows,
+      checks: [clash ? { level: 'warn', code: 'leave_overlap', count: clash } : null, pend ? { level: 'info', code: 'leave_pending', count: pend } : null].filter(Boolean),
+      chart: { type: 'bars', by: 'leaveType', value: 'days' } };
+  },
+
+  // Bradford factor of certified sick leave: approved sick requests, a spell running on over rest days and holidays.
+  leave_sick_bradford: function (p, me, ctx, scope, s) {
+    var t = today_(), to = minDate_(p.to, t); if (p.from > to) return rxEmpty_();
+    var pr = rxPrev_(p.from, to), emps = reportEmps_(p, ctx, scope, true), hol = holidayMap_(), reqs = readAll_(SHEETS.REQ), sick = {}, rows = [];
+    reqs.forEach(function (r) { if (r.type === 'leave' && r.subtype === 'sick' && r.status === 'approved') (sick[r.empId] = sick[r.empId] || []).push(r); });
+    emps.forEach(function (e) {
+      var spells = [], parts = (sick[e.id] || []).map(function (r) { return [maxDate_(String(r.fromDate).slice(0, 10), pr.from), minDate_(String(r.toDate).slice(0, 10), to)]; })
+        .filter(function (x) { return x[0] <= x[1]; }).sort(function (a, b) { return a[0] < b[0] ? -1 : 1; });
+      parts.forEach(function (x) { var l = spells[spells.length - 1]; if (l && (x[0] <= addDays_(l[1], 1) || rxGapOff_(e, l[1], x[0], hol, s))) { if (x[1] > l[1]) l[1] = x[1]; } else spells.push(x.slice()); });
+      // S = merged spells touching the window; D = the sick days themselves (the rest days bridged between two certificates do not count)
+      var w = function (a, b) {
+        var S = spells.filter(function (x) { return maxDate_(x[0], a) <= minDate_(x[1], b); }).length, D = 0;
+        parts.forEach(function (x) { var u = maxDate_(x[0], a), v = minDate_(x[1], b); if (u <= v) D += daysBetween_(u, v) + 1; });
+        return { S: S, D: D, B: S * S * D };
+      };
+      var c = w(p.from, to), o = w(pr.from, pr.to); if (!c.D && !o.D) return;
+      var mine = reqs.filter(function (r) { return r.empId === e.id; }), used = sickSplit_(e.id, t, 0, mine, null).usedBefore;
+      rows.push(Object.assign(base_(e, ctx), { spells: c.S, sickDays: c.D, bradford: c.B, band: rxBradfordBand_(c.B), prev: o.B, change: c.B - o.B, fullPayLeft: Math.max(0, SICK_TIERS[0] - used) }));
+    });
+    rows.sort(function (a, b) { return b.bradford - a.bradford; });
+    var high = rows.filter(function (r) { return r.bradford > 200; }).length;
+    return { columns: EMP_COLS.concat([col_('spells', 'int', { sum: true }), col_('sickDays', 'days', { sum: true }), col_('bradford', 'int'), col_('band', 'code', { group: true }),
+      col_('prev', 'int'), col_('change', 'int'), col_('fullPayLeft', 'days')]), rows: rows,
+      checks: high ? [{ level: 'warn', code: 'bradford_high', count: high }] : [], chart: { type: 'hbar', label: 'name', value: 'bradford' } };
+  },
+
+  // Annual balances projected to 31 December: what is left after approved and pending leave, and what exceeds one year's
+  // entitlement (a carry-over guide, not a legal cap), with the days a month to plan and, for the hr role and payroll, its value.
+  leave_yearend_risk: function (p, me, ctx, scope, s) {
+    var ye = p.asOf.slice(0, 4) + '-12-31', emps = reportEmps_(p, ctx, scope), mine = {}, money = canPayroll_(me), comps = money ? currentCompMap_(p.asOf) : {}, rows = [], missing = 0;
+    readAll_(SHEETS.REQ).forEach(function (r) { (mine[r.empId] = mine[r.empId] || []).push(r); });
+    var monthsLeft = Math.max(1, (daysBetween_(p.asOf, ye) + 1) / 30.4375);
+    emps.forEach(function (e) {
+      var now = annualBalance_(e, p.asOf, mine[e.id] || [], null), end = annualBalance_(e, ye, mine[e.id] || [], null);
+      if (now.openingMissing) missing++;
+      var excess = r2_(Math.max(0, end.available - end.perYear)), row = Object.assign(base_(e, ctx), { perYear: end.perYear, available: now.available, toAccrue: r2_(end.accrued - now.accrued),
+        projected: end.available, excess: excess, perMonth: r2_(excess / monthsLeft), risk: excess > 0 ? 'high' : end.available > end.perYear * 0.75 ? 'watch' : 'ok' });
+      if (money) row.liability = comps[e.id] ? r2_(excess * comps[e.id].total / 30) : null;
+      rows.push(row);
+    });
+    rows.sort(function (a, b) { return b.excess - a.excess || b.projected - a.projected; });
+    var high = rows.filter(function (r) { return r.risk === 'high'; }).length;
+    var cols = EMP_COLS.concat([col_('perYear', 'int'), col_('available', 'days', { sum: true }), col_('toAccrue', 'days', { sum: true }), col_('projected', 'days', { sum: true }),
+      col_('excess', 'days', { sum: true }), col_('perMonth', 'days'), col_('risk', 'code', { group: true })]);
+    if (money) cols.push(col_('liability', 'money', { sum: true }));
+    return { columns: cols, rows: rows, checks: [high ? { level: 'warn', code: 'yearend_excess', count: high } : null, missing ? { level: 'warn', code: 'opening_missing', count: missing } : null].filter(Boolean),
+      chart: { type: 'hbar', label: 'name', value: 'projected' } };
+  },
+
+  // The unused annual leave liability at each month end (balance x package / 30), totals only, with the month before.
+  // Leave counts on the month end only if it started by then; a cost-only viewer sees no amount for fewer than RX_MIN_GROUP people.
+  leave_liability_trend: function (p, me, ctx, scope, s) {
+    var tm = rxTrendMonths_(p); if (!tm) return rxEmpty_();
+    var t = today_(), emps = reportEmps_(p, ctx, scope, true), comps = readAll_(SHEETS.COMP), mine = {}, hide = rxCostOnly_(me), hidden = 0;
+    readAll_(SHEETS.REQ).forEach(function (r) { (mine[r.empId] = mine[r.empId] || []).push(r); });
+    var at = function (d) {
+      var o = { hc: 0, days: 0, liab: 0 };
+      emps.forEach(function (e) {
+        if (!rxOn_(rxSpan_(e), d) || d < joinedDate_(e)) return;
+        if (e.leaveOpeningDate !== '' && e.leaveOpeningDate != null && d < String(e.leaveOpeningDate).slice(0, 10)) return;
+        var c = compOn_(e.id, d, comps); if (!c) return;
+        var b = Math.max(0, annualBalance_(e, d, (mine[e.id] || []).filter(function (r) { return String(r.fromDate).slice(0, 10) <= d; }), null).balance);
+        o.hc++; o.days += b; o.liab += b * c.total / 30;
+      });
+      o.days = r2_(o.days); o.liab = r2_(o.liab);
+      return o;
+    };
+    var vals = {};
+    [rxAddMonth_(tm.months[0], -1)].concat(tm.months).forEach(function (m) { vals[m] = at(minDate_(monthLast_(m), t)); });
+    var rows = tm.months.map(function (m) {
+      var v = vals[m], o = vals[rxAddMonth_(m, -1)], c = rxChg_(v.liab, o.hc ? o.liab : null);
+      var row = { month: m, date: minDate_(monthLast_(m), t), headcount: v.hc, leaveDays: v.days, liability: v.liab, perHead: v.hc ? r2_(v.liab / v.hc) : null, prev: c.prev, change: c.change, changePct: c.changePct };
+      if (hide && (v.hc < RX_MIN_GROUP || (o.hc && o.hc < RX_MIN_GROUP))) { ['liability', 'perHead', 'prev', 'change', 'changePct'].forEach(function (k) { row[k] = null; }); hidden++; }
+      return row;
+    });
+    return { columns: [col_('month', 'text'), col_('date', 'date'), col_('headcount', 'int'), col_('leaveDays', 'days'), col_('liability', 'money'), col_('perHead', 'money'),
+      col_('prev', 'money'), col_('change', 'money'), col_('changePct', 'pct')], rows: rows,
+      checks: hidden ? [{ level: 'info', code: 'small_group_hidden', count: hidden }] : [], chart: { type: 'hbar', label: 'month', value: 'liability' } };
+  }
+});
+
+// ---------------- payroll ----------------
+/** The chosen run (else the latest) and the last locked run before it. */
+function rxRunPair_(p) {
+  var runs = readAll_(SHEETS.RUN).filter(function (r) { return r.status !== 'cancelled'; }), run = runs.filter(function (r) { return r.id === p.run; })[0] || currentRun_();
+  if (!run) return null;
+  p.run = run.id;
+  var prev = runs.filter(function (r) { return r.status === 'locked' && r.month < run.month; }).sort(function (a, b) { return a.month < b.month ? 1 : -1; })[0] || null;
+  return { run: run, prev: prev, runs: runs };
+}
+/** Payslips of the given runs, { runId: { empId: slip } }, after the department filter: one read of the tab. */
+function rxSlipsBy_(runIds, ds, ctx) {
+  var out = {};
+  readAll_(SHEETS.SLIP).forEach(function (sl) {
+    if (!runIds[sl.runId] || sl.status === 'void') return;
+    var e = ctx.emps[sl.empId]; if (ds && (!e || !ds[e.departmentId])) return;
+    (out[sl.runId] = out[sl.runId] || {})[sl.empId] = sl;
+  });
+  return out;
+}
+function rxInfo_(sl) { return parseJson_(sl.infoJson, {}); }
+/** A payslip's lines by code (allowances by their name), amounts and overtime hours added up. */
+function rxLines_(sl) {
+  var m = {};
+  if (sl) lines_(sl).forEach(function (l) {
+    var k = l.code === 'allowance' ? 'allowance|' + (l.label || '') : l.code, x = m[k] || (m[k] = { code: l.code, label: l.code === 'allowance' ? (l.label || '') : '', kind: l.kind, amount: 0, hours: 0 });
+    x.amount = r2_(x.amount + (Number(l.amount) || 0)); x.hours += Number(l.hours) || 0;
+  });
+  return m;
+}
+function rxHas_(v) { return v !== undefined && v !== null && v !== ''; }
+function rxErGosi_(sl) { return Number(rxHas_(sl.employerGosi) ? sl.employerGosi : sl.gosiEmployer) || 0; }
+/** The month's end-of-service provision: the payslip's own eosAccrual, else the same formula as calcSlip_. */
+function rxEos_(e, sl, s) {
+  if (rxHas_(sl.eosAccrual)) return Number(sl.eosAccrual) || 0;
+  var inf = rxInfo_(sl).info || {}, pk = inf.package, hire = e ? (isoDate_(e.hireDate) || joinedDate_(e)) : '', to = inf.to || monthLast_(String(sl.month));
+  if (!pk || !hire) return 0;
+  var wage = s.eosWageBasis === 'basic_housing' ? Number(pk.basic) + Number(pk.housing) : Number(inf.monthly) || 0;
+  var years = Math.max(0, (Date.parse(to) - Date.parse(hire)) / (365.25 * 864e5));
+  return r2_((years >= 5 ? wage / 12 : wage / 24) * (Number(sl.paidDays) || 0) / 30);
+}
+/** What the month cost the company for one payslip: gross + employer GOSI + the end-of-service provision. */
+function rxCost_(e, sl, s) { return rxHas_(sl.companyCost) && Number(sl.companyCost) ? Number(sl.companyCost) : r2_((Number(sl.gross) || 0) + rxErGosi_(sl) + rxEos_(e, sl, s)); }
+/** For a cost-only viewer, empties the money keys of a group smaller than RX_MIN_GROUP; true when it did. */
+function rxHide_(me, row, n, keys) {
+  if (!rxCostOnly_(me) || !(n > 0 && n < RX_MIN_GROUP)) return false;
+  keys.forEach(function (k) { row[k] = null; });
+  return true;
+}
+/** Runs by month for a range365 report, the month before the first included, and their payslips. */
+function rxRunsByMonth_(p, ctx) {
+  var months = rxMonths_(p.from, p.to); if (!months.length) return null;
+  var first = rxAddMonth_(months[0], -1), runs = {}, ids = {};
+  readAll_(SHEETS.RUN).forEach(function (r) { if (r.status !== 'cancelled' && r.month >= first && r.month <= months[months.length - 1]) { runs[r.month] = r; ids[r.id] = 1; } });
+  return { months: months, runs: runs, slips: rxSlipsBy_(ids, deptSet_(p, ctx), ctx) };
+}
+
+Object.assign(REPORT_FNS, {
+  // Each payslip line that moved against the last locked run, for everyone whose net moved by the threshold or more:
+  // the line's effect on net (deductions count against it), its share of the net change, and the line that drove it.
+  pay_var_lines: function (p, me, ctx, scope, s) {
+    var rp = rxRunPair_(p); if (!rp) return rxNoRun_();
+    if (!rp.prev) return { columns: [], rows: [], run: publicRun_(rp.run), checks: [{ level: 'info', code: 'no_previous_run', count: 0 }] };
+    var ids = {}; ids[rp.run.id] = 1; ids[rp.prev.id] = 1;
+    var by = rxSlipsBy_(ids, deptSet_(p, ctx), ctx), cur = by[rp.run.id] || {}, old = by[rp.prev.id] || {}, groups = [], flagged = 0;
+    Object.keys(cur).concat(Object.keys(old).filter(function (k) { return !cur[k]; })).forEach(function (k) {
+      var e = ctx.emps[k]; if (!e) return;
+      var a = old[k], b = cur[k], na = a ? Number(a.net) : 0, nb = b ? Number(b.net) : 0, net = r2_(nb - na), pc = a && na ? r1_((nb - na) / Math.abs(na) * 100) : null;
+      var flag = !a ? 'new' : !b ? 'missing' : Math.abs(pc || 0) >= p.threshold ? 'changed' : 'same';
+      if (flag === 'same') return;
+      flagged++;
+      var la = rxLines_(a), lb = rxLines_(b), keys = {}, list = [];
+      Object.keys(la).concat(Object.keys(lb)).forEach(function (x) { keys[x] = 1; });
+      Object.keys(keys).forEach(function (x) {
+        var u = la[x], v = lb[x], pa = u ? u.amount : 0, pb = v ? v.amount : 0, d = r2_(pb - pa); if (!d) return;
+        var l = v || u, eff = r2_(l.kind === 'deduction' ? -d : d);
+        list.push(Object.assign(base_(e, ctx), { flag: flag, line: l.code, label: l.label, prev: pa, amount: pb, change: d, effect: eff, netChange: net, share: net ? r1_(eff / net * 100) : null, driver: '' }));
+      });
+      list.sort(function (x, y) { return Math.abs(y.effect) - Math.abs(x.effect); });
+      if (list.length) { list[0].driver = 'yes'; groups.push({ net: net, list: list }); }
+    });
+    groups.sort(function (x, y) { return Math.abs(y.net) - Math.abs(x.net); });
+    var rows = [].concat.apply([], groups.map(function (g) { return g.list; }));
+    return { columns: EMP_COLS.concat([col_('flag', 'status', { group: true }), col_('line', 'code', { group: true }), col_('label'), col_('prev', 'money'), col_('amount', 'money'),
+      col_('change', 'money'), col_('effect', 'money', { sum: true }), col_('netChange', 'money'), col_('share', 'pct'), col_('driver', 'code')]), rows: rows,
+      run: publicRun_(rp.run), previous: publicRun_(rp.prev), checks: [{ level: flagged ? 'warn' : 'info', code: 'variance_flagged', count: flagged, value: p.threshold }],
+      chart: { type: 'bars', by: 'line', value: 'count' } };
+  },
+
+  // GOSI by cohort (legacy, new law from July 2024, non-Saudi): contributory wage, rates, employee and employer shares,
+  // share of the total and the last locked run.
+  pay_gosi_cohort: function (p, me, ctx, scope, s) {
+    var rp = rxRunPair_(p); if (!rp) return rxNoRun_();
+    var ids = {}; ids[rp.run.id] = 1; if (rp.prev) ids[rp.prev.id] = 1;
+    var by = rxSlipsBy_(ids, deptSet_(p, ctx), ctx), cur = {}, old = {}, noPkg = 0, missing = 0, capped = 0, hidden = 0;
+    var add = function (map, sl, isCur) {
+      var x = rxInfo_(sl), gi = (x.info || {}).gosi; if (!gi) { if (isCur) noPkg++; return; }
+      var k = gi.cohort || 'legacy', o = map[k] || (map[k] = { people: 0, base: 0, employee: 0, employer: 0, empRate: gi.empRate, erRate: gi.erRate });
+      o.people++; o.base += Number(gi.base) || 0; o.employee += Number(sl.gosiEmployee) || 0; o.employer += rxErGosi_(sl);
+      if (isCur) {
+        if ((x.warnings || []).indexOf('gosi_cohort_missing') >= 0) missing++;
+        var w = Number(gi.registered) || Number(gi.packageWage) || ((x.info.package || {}).basic || 0) + ((x.info.package || {}).housing || 0); if (w > GOSI_MAX) capped++;
+      }
+    };
+    var each = function (id, map, isCur) { var m = by[id] || {}; Object.keys(m).forEach(function (k) { add(map, m[k], isCur); }); };
+    each(rp.run.id, cur, true); if (rp.prev) each(rp.prev.id, old, false);
+    var rows = ['legacy', 'new', 'non_saudi'].filter(function (k) { return cur[k] || old[k]; }).map(function (k) {
+      var o = cur[k] || { people: 0, base: 0, employee: 0, employer: 0 }, q = old[k], tot = r2_(o.employee + o.employer), pt = q ? r2_(q.employee + q.employer) : rp.prev ? 0 : null, c = rxChg_(tot, pt);
+      var row = { cohort: k, headcount: o.people, base: r2_(o.base), employeeRate: o.empRate == null ? null : o.empRate, employee: r2_(o.employee), employerRate: o.erRate == null ? null : o.erRate,
+        employer: r2_(o.employer), total: tot, share: null, prev: pt, change: c.change, changePct: c.changePct };
+      var keys = ['base', 'employee', 'employer', 'total', 'prev', 'change', 'changePct'];
+      if (rxHide_(me, row, o.people, keys) || (q && rxHide_(me, row, q.people, keys))) hidden++;
+      return row;
+    });
+    var shown = rows.reduce(function (t, r) { return t + (r.total || 0); }, 0);
+    rows.forEach(function (r) { if (r.total != null) r.share = pct_(r.total, shown); });
+    var m = function (k) { return col_(k, 'money', { sum: true }); };
+    return { columns: [col_('cohort', 'code'), col_('headcount', 'int', { sum: true }), m('base'), col_('employeeRate', 'pct'), m('employee'), col_('employerRate', 'pct'), m('employer'), m('total'),
+      col_('share', 'pct'), m('prev'), m('change'), col_('changePct', 'pct')], rows: rows, run: publicRun_(rp.run),
+      checks: [missing ? { level: 'warn', code: 'gosi_cohort_missing', count: missing } : null, capped ? { level: 'info', code: 'gosi_cap', count: capped } : null,
+        noPkg ? { level: 'info', code: 'no_package', count: noPkg } : null, hidden ? { level: 'info', code: 'small_group_hidden', count: hidden } : null].filter(Boolean),
+      chart: { type: 'bars', by: 'cohort', value: 'total' } };
+  },
+
+  // Deductions by type: people affected, amount, share of all deductions and of gross, the average, and the last locked run.
+  pay_deductions: function (p, me, ctx, scope, s) {
+    var rp = rxRunPair_(p); if (!rp) return rxNoRun_();
+    var ids = {}; ids[rp.run.id] = 1; if (rp.prev) ids[rp.prev.id] = 1;
+    var by = rxSlipsBy_(ids, deptSet_(p, ctx), ctx), cur = {}, old = {}, totD = 0, totG = 0, capped = 0, hidden = 0;
+    var add = function (id, map, isCur) {
+      var m = by[id] || {};
+      Object.keys(m).forEach(function (k) {
+        var sl = m[k];
+        if (isCur) { totD += Number(sl.deductions) || 0; totG += Number(sl.gross) || 0; if ((rxInfo_(sl).warnings || []).some(function (w) { return ['deductions_capped', 'advance_deferred', 'fine_capped'].indexOf(w) >= 0; })) capped++; }
+        lines_(sl).forEach(function (l) {
+          if (l.kind !== 'deduction') return;
+          var g = map[l.code] || (map[l.code] = { people: {}, amount: 0 }); g.people[k] = 1; g.amount += Number(l.amount) || 0;
+        });
+      });
+    };
+    add(rp.run.id, cur, true); if (rp.prev) add(rp.prev.id, old, false);
+    var codes = RX_DEDUCTIONS.filter(function (c) { return cur[c] || old[c]; }).concat(Object.keys(cur).filter(function (c) { return RX_DEDUCTIONS.indexOf(c) < 0; }));
+    var rows = codes.map(function (c) {
+      var g = cur[c] || { people: {}, amount: 0 }, o = old[c], n = Object.keys(g.people).length, amt = r2_(g.amount), pv = o ? r2_(o.amount) : rp.prev ? 0 : null, ch = rxChg_(amt, pv);
+      var row = { line: c, people: n, amount: amt, share: pct_(amt, totD), ofGross: pct_(amt, totG), avgAmount: n ? r2_(amt / n) : null, prev: pv, change: ch.change, changePct: ch.changePct };
+      var keys = ['amount', 'share', 'ofGross', 'avgAmount', 'prev', 'change', 'changePct'];
+      if (rxHide_(me, row, n, keys) || (o && rxHide_(me, row, Object.keys(o.people).length, keys))) hidden++;
+      return row;
+    }).sort(function (a, b) { return (b.amount || 0) - (a.amount || 0); });
+    var m = function (k) { return col_(k, 'money', { sum: true }); };
+    return { columns: [col_('line', 'code'), col_('people', 'int'), m('amount'), col_('share', 'pct'), col_('ofGross', 'pct'), col_('avgAmount', 'money'), m('prev'), m('change'), col_('changePct', 'pct')],
+      rows: rows, run: publicRun_(rp.run),
+      checks: [capped ? { level: 'warn', code: 'deductions_capped', count: capped } : null, hidden ? { level: 'info', code: 'small_group_hidden', count: hidden } : null].filter(Boolean),
+      chart: { type: 'bars', by: 'line', value: 'amount' } };
+  },
+
+  // Monthly packages by grade and position: minimum, median, mean, maximum, spread, the grade median and outliers (1.5 x IQR).
+  pay_bands: function (p, me, ctx, scope, s) {
+    var emps = reportEmps_(p, ctx, scope), comps = currentCompMap_(today_()), pos = {}, by = {}, grades = {}, noGrade = 0, noPkg = 0;
+    readAll_(SHEETS.POS).forEach(function (x) { pos[x.id] = x; });
+    emps.forEach(function (e) {
+      var c = comps[e.id]; if (!c) { noPkg++; return; }
+      var ps = pos[e.positionId], title = ps ? ps.titleAr : (e.title || '-'), grade = ps && rxHas_(ps.grade) ? String(ps.grade) : '';
+      if (!grade) noGrade++;
+      (by[grade + '|' + title] = by[grade + '|' + title] || { grade: grade, position: title, pays: [] }).pays.push(c.total);
+      (grades[grade] = grades[grade] || []).push(c.total);
+    });
+    var spread = 0, rows = Object.keys(by).map(function (k) {
+      var g = by[k], xs = g.pays, mn = Math.min.apply(null, xs), mx = Math.max.apply(null, xs), med = waMedian_(xs), gm = waMedian_(grades[g.grade]), out = 0;
+      if (xs.length >= 4) { var q1 = rxQuant_(xs, 0.25), q3 = rxQuant_(xs, 0.75), iqr = q3 - q1; out = xs.filter(function (x) { return x < q1 - 1.5 * iqr || x > q3 + 1.5 * iqr; }).length; }
+      var row = { grade: g.grade, position: g.position, headcount: xs.length, min: r2_(mn), median: r2_(med), average: r2_(rxMean_(xs)), max: r2_(mx), spread: mn ? r1_((mx - mn) / mn * 100) : null,
+        gradeMedian: r2_(gm), vsGrade: gm ? r1_((med - gm) / gm * 100) : null, outliers: out };
+      if (xs.length >= 2 && row.spread >= 50) spread++;
+      return row;
+    }).sort(function (a, b) { return a.grade < b.grade ? -1 : a.grade > b.grade ? 1 : b.median - a.median; });
+    return { columns: [col_('grade', 'text', { group: true }), col_('position'), col_('headcount', 'int', { sum: true }), col_('min', 'money'), col_('median', 'money'), col_('average', 'money'),
+      col_('max', 'money'), col_('spread', 'pct'), col_('gradeMedian', 'money'), col_('vsGrade', 'pct'), col_('outliers', 'int', { sum: true })], rows: rows,
+      checks: [spread ? { level: 'warn', code: 'band_spread', count: spread } : null, noGrade ? { level: 'info', code: 'no_grade', count: noGrade } : null,
+        noPkg ? { level: 'info', code: 'no_package', count: noPkg } : null].filter(Boolean), chart: { type: 'hbar', label: 'position', value: 'median' } };
+  },
+
+  // Year to date per person to the chosen run: locked runs of the year plus the chosen one, against the same months last year.
+  pay_ytd: function (p, me, ctx, scope, s) {
+    var rp = rxRunPair_(p); if (!rp) return rxNoRun_();
+    var run = rp.run, y = run.month.slice(0, 4), ly = String(+y - 1) + run.month.slice(4), cur = {}, old = {}, ids = {};
+    rp.runs.forEach(function (r) {
+      if (r.month.slice(0, 4) === y && r.month <= run.month && (r.status === 'locked' || r.id === run.id)) { cur[r.id] = 1; ids[r.id] = 1; }
+      if (r.month.slice(0, 4) === ly.slice(0, 4) && r.month <= ly && r.status === 'locked') { old[r.id] = 1; ids[r.id] = 1; }
+    });
+    var by = rxSlipsBy_(ids, deptSet_(p, ctx), ctx), st = {};
+    Object.keys(by).forEach(function (rid) {
+      Object.keys(by[rid]).forEach(function (k) {
+        var sl = by[rid][k], x = st[k] || (st[k] = { months: 0, basic: 0, housing: 0, transport: 0, allowances: 0, otAmount: 0, otherEarnings: 0, gross: 0, gosi: 0, deductions: 0, net: 0, gosiEmployer: 0, prev: 0, prevN: 0 });
+        if (old[rid]) { x.prev += Number(sl.gross) || 0; x.prevN++; return; }
+        x.months++; x.gross += Number(sl.gross) || 0; x.deductions += Number(sl.deductions) || 0; x.net += Number(sl.net) || 0; x.gosiEmployer += rxErGosi_(sl);
+        lines_(sl).forEach(function (l) {
+          var a = Number(l.amount) || 0, c = l.code;
+          if (c === 'basic' || c === 'housing' || c === 'transport') x[c] += a; else if (c === 'allowance') x.allowances += a; else if (c === 'overtime') x.otAmount += a;
+          else if (c === 'bonus' || c === 'commission' || c === 'other_earning') x.otherEarnings += a; else if (c === 'gosi') x.gosi += a;
+        });
+      });
+    });
+    var rows = Object.keys(st).filter(function (k) { return st[k].months && ctx.emps[k]; }).map(function (k) {
+      var x = st[k], r = Object.assign(base_(ctx.emps[k], ctx), { months: x.months });
+      ['basic', 'housing', 'transport', 'allowances', 'otAmount', 'otherEarnings', 'gross', 'gosi', 'deductions', 'net', 'gosiEmployer'].forEach(function (f) { r[f] = r2_(x[f]); });
+      var c = rxChg_(r.gross, x.prevN ? r2_(x.prev) : null); r.prev = c.prev; r.change = c.change; r.changePct = c.changePct;
+      return r;
+    }).sort(function (a, b) { return String(a.empNo).localeCompare(String(b.empNo), 'en', { numeric: true }); });
+    var m = function (k) { return col_(k, 'money', { sum: true }); };
+    return { columns: EMP_COLS.concat([col_('months', 'int'), m('basic'), m('housing'), m('transport'), m('allowances'), m('otAmount'), m('otherEarnings'), m('gross'), m('gosi'), m('deductions'),
+      m('net'), m('gosiEmployer'), m('prev'), m('change'), col_('changePct', 'pct')]), rows: rows, run: publicRun_(run),
+      checks: run.status !== 'locked' ? [{ level: 'info', code: 'ytd_includes_draft', count: 1 }] : [], chart: { type: 'hbar', label: 'name', value: 'gross' }, wide: true };
+  },
+
+  // Overtime paid per month (hours and amount from the payslips), its share of gross and the month before.
+  pay_ot_trend: function (p, me, ctx, scope, s) {
+    var rb = rxRunsByMonth_(p, ctx); if (!rb) return rxEmpty_();
+    var st = {}, hidden = 0;
+    Object.keys(rb.runs).forEach(function (m) {
+      var x = st[m] = { people: 0, hours: 0, amount: 0, gross: 0 }, sl = rb.slips[rb.runs[m].id] || {};
+      Object.keys(sl).forEach(function (k) { var ot = rxLines_(sl[k]).overtime; x.gross += Number(sl[k].gross) || 0; if (ot && ot.amount > 0) { x.people++; x.hours += ot.hours; x.amount += ot.amount; } });
+    });
+    var rows = rb.months.filter(function (m) { return rb.runs[m]; }).map(function (m) {
+      var x = st[m], o = st[rxAddMonth_(m, -1)], amt = r2_(x.amount), c = rxChg_(amt, o ? r2_(o.amount) : null);
+      var row = { month: m, runStatus: rb.runs[m].status, people: x.people, otHours: r2_(x.hours), otAmount: amt, gross: r2_(x.gross), share: pct_(amt, x.gross),
+        avgAmount: x.people ? r2_(amt / x.people) : null, prev: c.prev, change: c.change, changePct: c.changePct };
+      var keys = ['otAmount', 'share', 'avgAmount', 'prev', 'change', 'changePct'];
+      if (rxHide_(me, row, x.people, keys) || (o && rxHide_(me, row, o.people, keys))) hidden++;
+      return row;
+    });
+    return { columns: [col_('month', 'text'), col_('runStatus', 'code'), col_('people', 'int'), col_('otHours', 'hours', { sum: true }), col_('otAmount', 'money', { sum: true }),
+      col_('gross', 'money', { sum: true }), col_('share', 'pct'), col_('avgAmount', 'money'), col_('prev', 'money'), col_('change', 'money'), col_('changePct', 'pct')], rows: rows,
+      checks: hidden ? [{ level: 'info', code: 'small_group_hidden', count: hidden }] : [], chart: { type: 'hbar', label: 'month', value: 'otAmount' } };
+  },
+
+  // Cost per head per month: gross + employer GOSI + end-of-service provision, divided by the people paid, and the month before.
+  pay_cost_per_head: function (p, me, ctx, scope, s) {
+    var rb = rxRunsByMonth_(p, ctx); if (!rb) return rxEmpty_();
+    var st = {}, hidden = 0;
+    Object.keys(rb.runs).forEach(function (m) {
+      var x = st[m] = { hc: 0, gross: 0, er: 0, eos: 0, cost: 0 }, sl = rb.slips[rb.runs[m].id] || {};
+      Object.keys(sl).forEach(function (k) {
+        var a = sl[k], e = ctx.emps[k]; if (!(Number(a.gross) > 0)) return;
+        x.hc++; x.gross += Number(a.gross); x.er += rxErGosi_(a); x.eos += rxEos_(e, a, s); x.cost += rxCost_(e, a, s);
+      });
+    });
+    var per = function (x) { return x && x.hc ? r2_(x.cost / x.hc) : null; };
+    var rows = rb.months.filter(function (m) { return rb.runs[m]; }).map(function (m) {
+      var x = st[m], o = st[rxAddMonth_(m, -1)], c = rxChg_(per(x), per(o));
+      var row = { month: m, runStatus: rb.runs[m].status, headcount: x.hc, gross: r2_(x.gross), gosiEmployer: r2_(x.er), eosAccrual: r2_(x.eos), companyCost: r2_(x.cost), perHead: per(x),
+        prev: c.prev, change: c.change, changePct: c.changePct };
+      var keys = ['gross', 'gosiEmployer', 'eosAccrual', 'companyCost', 'perHead', 'prev', 'change', 'changePct'];
+      if (rxHide_(me, row, x.hc, keys) || (o && rxHide_(me, row, o.hc, keys))) hidden++;
+      return row;
+    });
+    var m = function (k) { return col_(k, 'money', { sum: true }); };
+    return { columns: [col_('month', 'text'), col_('runStatus', 'code'), col_('headcount', 'int'), m('gross'), m('gosiEmployer'), m('eosAccrual'), m('companyCost'), col_('perHead', 'money'),
+      col_('prev', 'money'), col_('change', 'money'), col_('changePct', 'pct')], rows: rows,
+      checks: hidden ? [{ level: 'info', code: 'small_group_hidden', count: hidden }] : [], chart: { type: 'hbar', label: 'month', value: 'perHead' } };
+  },
+
+  // What each person costs the company in the run: gross, employer GOSI, the month's end-of-service provision and the total,
+  // grouped by department (subtotals) with the share of the company total and the last locked run.
+  pay_company_cost: function (p, me, ctx, scope, s) {
+    var rp = rxRunPair_(p); if (!rp) return rxNoRun_();
+    var ids = {}; ids[rp.run.id] = 1; if (rp.prev) ids[rp.prev.id] = 1;
+    var by = rxSlipsBy_(ids, deptSet_(p, ctx), ctx), cur = by[rp.run.id] || {}, old = rp.prev ? by[rp.prev.id] || {} : {}, rows = [], noPkg = 0, noHire = 0;
+    Object.keys(cur).forEach(function (k) {
+      var sl = cur[k], e = ctx.emps[k]; if (!e) return;
+      if (!(rxInfo_(sl).info || {}).package && !Number(sl.gross)) { noPkg++; return; }
+      if (!isoDate_(e.hireDate)) noHire++;
+      var cc = rxCost_(e, sl, s), pc = old[k] ? rxCost_(e, old[k], s) : null, c = rxChg_(cc, pc);
+      rows.push(Object.assign(base_(e, ctx), { payslip: sl.ref, gross: Number(sl.gross) || 0, gosiEmployer: rxErGosi_(sl), eosAccrual: rxEos_(e, sl, s), companyCost: cc, share: null,
+        prev: c.prev, change: c.change, changePct: c.changePct }));
+    });
+    var tot = rows.reduce(function (t, r) { return t + r.companyCost; }, 0);
+    rows.forEach(function (r) { r.share = pct_(r.companyCost, tot); });
+    rows.sort(function (a, b) { return a.department < b.department ? -1 : a.department > b.department ? 1 : b.companyCost - a.companyCost; });
+    var m = function (k) { return col_(k, 'money', { sum: true }); };
+    return { columns: EMP_COLS.concat([col_('payslip', 'id'), m('gross'), m('gosiEmployer'), m('eosAccrual'), m('companyCost'), col_('share', 'pct'), m('prev'), m('change'), col_('changePct', 'pct')]),
+      rows: rows, run: publicRun_(rp.run), previous: rp.prev ? publicRun_(rp.prev) : null,
+      checks: [rows.length ? { level: 'info', code: 'eos_accrual', count: rows.length } : null, noHire ? { level: 'warn', code: 'missing_hire_date', count: noHire } : null,
+        noPkg ? { level: 'info', code: 'no_package', count: noPkg } : null].filter(Boolean), chart: { type: 'bars', by: 'department', value: 'companyCost' } };
+  },
+
+  // The wage GOSI contributions are on against the gross paid: package wage (basic + housing), the wage registered with GOSI
+  // when HR recorded one, the contributory wage after the floor and cap, what gross leaves out, and the latest GOSI upload.
+  pay_gosi_wage: function (p, me, ctx, scope, s) {
+    var rp = rxRunPair_(p); if (!rp) return rxNoRun_();
+    var run = rp.run, ids = {}; ids[run.id] = 1;
+    var slips = rxSlipsBy_(ids, deptSet_(p, ctx), ctx)[run.id] || {}, mism = {}, miss = {}, rows = [], noPkg = 0;
+    var rec = readAll_(SHEETS.RECON).filter(function (x) { return x.month === run.month && x.source === 'gosi'; }).sort(function (a, b) { return String(a.at) < String(b.at) ? 1 : -1; })[0] || null;
+    if (rec) { parseJson_(rec.mismatchesJson, []).forEach(function (x) { mism[x.empId] = x; }); parseJson_(rec.missingJson, []).forEach(function (x) { miss[x.empId] = 1; }); }
+    Object.keys(slips).forEach(function (k) {
+      var sl = slips[k], e = ctx.emps[k], inf = rxInfo_(sl).info || {}, g = inf.gosi, pk = inf.package;
+      if (!e || !g || !pk) { noPkg++; return; }
+      var saudi = bool_(e.isSaudi), pw = rxHas_(g.packageWage) ? Number(g.packageWage) : r2_(Number(pk.basic) + Number(pk.housing)), reg = Number(g.registered) || null, w = reg || pw;
+      var contrib = r2_(Math.min(GOSI_MAX, Math.max(saudi ? GOSI_MIN : 0, w))), gross = Number(sl.gross) || 0;
+      var reason = reg && Math.abs(reg - pw) > 1 ? 'registered_differs' : w > GOSI_MAX ? 'cap' : saudi && w < GOSI_MIN ? 'floor' : gross && contrib / gross * 100 < RX_GOSI_SHARE_MIN ? 'low_share' : '';
+      var st = !rec ? 'no_upload' : mism[k] ? 'mismatch' : miss[k] ? 'not_in_upload' : 'matched', rw = st === 'mismatch' ? Number(mism[k].theirs) : st === 'matched' ? r2_(Number(pk.basic) + Number(pk.housing)) : null;
+      rows.push(Object.assign(base_(e, ctx), { saudi: saudi ? 'saudi' : 'non_saudi', gross: gross, packageWage: pw, registered: reg, contributory: contrib, excluded: r2_(gross - contrib),
+        excludedPct: pct_(r2_(gross - contrib), gross), reason: reason, reconWage: rw, reconDiff: rw == null ? null : r2_(rw - w), reconStatus: st }));
+    });
+    rows.sort(function (a, b) { return Math.abs(b.reconDiff || 0) - Math.abs(a.reconDiff || 0) || b.excluded - a.excluded; });
+    var n = function (f) { return rows.filter(f).length; }, mm = n(function (r) { return r.reconStatus === 'mismatch'; });
+    var m = function (k) { return col_(k, 'money', { sum: true }); };
+    return { columns: EMP_COLS.concat([col_('saudi', 'code', { group: true }), m('gross'), m('packageWage'), col_('registered', 'money'), m('contributory'), m('excluded'), col_('excludedPct', 'pct'),
+      col_('reason', 'code', { group: true }), m('reconWage'), m('reconDiff'), col_('reconStatus', 'code', { group: true })]), rows: rows, run: publicRun_(run),
+      checks: [mm ? { level: rec && rec.status === 'open' ? 'error' : 'warn', code: 'recon_mismatch', count: mm } : null,
+        n(function (r) { return r.reason === 'registered_differs'; }) ? { level: 'info', code: 'gosi_wage_differs', count: n(function (r) { return r.reason === 'registered_differs'; }) } : null,
+        n(function (r) { return r.reason === 'low_share'; }) ? { level: 'warn', code: 'gosi_low_share', count: n(function (r) { return r.reason === 'low_share'; }) } : null,
+        n(function (r) { return r.reason === 'cap'; }) ? { level: 'info', code: 'gosi_cap', count: n(function (r) { return r.reason === 'cap'; }) } : null,
+        !rec && rows.length ? { level: 'info', code: 'no_recon', count: 0 } : null, noPkg ? { level: 'info', code: 'no_package', count: noPkg } : null].filter(Boolean),
+      chart: { type: 'bars', by: 'reconStatus', value: 'count' } };
+  }
+});
+
+// ---------------- workforce ----------------
+/** Everyone in scope and filters whatever their status (leavers count in history). */
+function rxAllEmps_(p, ctx, scope) { return reportEmps_(Object.assign({}, p, { status: 'all' }), ctx, scope, true); }
+/** Direct reports among the people active today, by manager id; and how many have a manager who is gone or unknown. */
+function rxKids_(ctx) {
+  var act = {}, kids = {}, orphans = 0;
+  Object.keys(ctx.emps).forEach(function (k) { if (ctx.emps[k].status === 'active') act[k] = ctx.emps[k]; });
+  Object.keys(act).forEach(function (k) { var e = act[k]; if (!e.managerId || e.managerId === e.id) return; if (!act[e.managerId]) { orphans++; return; } (kids[e.managerId] = kids[e.managerId] || []).push(k); });
+  return { kids: kids, orphans: orphans, act: act };
+}
+/** Everyone below a manager and the number of layers under them. */
+function rxBelow_(id, kids) {
+  var seen = {}, total = 0, depth = 0;
+  (function walk(x, d) { (kids[x] || []).forEach(function (k) { if (seen[k] || d > 25) return; seen[k] = 1; total++; if (d + 1 > depth) depth = d + 1; walk(k, d + 1); }); })(id, 0);
+  return { total: total, layers: depth };
+}
+/** Onboarding progress per person: tasks, done (or skipped), and the probation review task. */
+function rxOnb_() {
+  var by = {};
+  readAll_(SHEETS.ONB).forEach(function (x) {
+    var o = by[x.empId] || (by[x.empId] = { n: 0, done: 0, review: null });
+    o.n++; if (x.status !== 'open') o.done++;
+    if (x.taskKey === 'probation') o.review = x;
+  });
+  return by;
+}
+function rxSpanBand_(n) { return n <= 1 ? 'span_1' : n <= 4 ? 'span_2_4' : n <= 8 ? 'span_5_8' : n <= 12 ? 'span_9_12' : 'span_13'; }
+
+Object.assign(REPORT_FNS, {
+  // Headcount at the month end by department, Saudi / non-Saudi and gender, joiners and leavers in the month, and last month end.
+  wf_snapshot: function (p, me, ctx, scope, s) {
+    var t = today_(), first = p.month + '-01'; if (first > t) return rxEmpty_();
+    var end = minDate_(monthLast_(p.month), t), pEnd = addDays_(first, -1), by = {}, unknown = 0;
+    rxAllEmps_(p, ctx, scope).forEach(function (e) {
+      var sp = rxSpan_(e); if (!sp) { unknown++; return; }
+      var dn = deptName_(e, ctx) || '-', g = by[dn] || (by[dn] = { department: dn, headcount: 0, saudis: 0, nonSaudis: 0, men: 0, women: 0, noGender: 0, joiners: 0, leavers: 0, prev: 0 });
+      if (rxOn_(sp, end)) {
+        g.headcount++;
+        if (bool_(e.isSaudi)) g.saudis++; else g.nonSaudis++;
+        if (e.gender === 'male') g.men++; else if (e.gender === 'female') g.women++; else g.noGender++;
+      }
+      if (rxOn_(sp, pEnd)) g.prev++;
+      if (sp.start >= first && sp.start <= end && isoDate_(e.hireDate)) g.joiners++;
+      if (sp.end && sp.end >= first && sp.end <= end) g.leavers++;
+    });
+    var rows = Object.keys(by).sort().map(function (k) {
+      var g = by[k], c = rxChg_(g.headcount, g.prev, 0);
+      g.saudiShare = pct_(g.saudis, g.headcount); g.womenShare = pct_(g.women, g.headcount); g.change = c.change; g.changePct = c.changePct;
+      return g;
+    }).filter(function (g) { return g.headcount || g.prev || g.leavers; });
+    var i = function (k) { return col_(k, 'int', { sum: true }); };
+    return { columns: [col_('department'), i('headcount'), i('saudis'), i('nonSaudis'), i('men'), i('women'), i('noGender'), col_('saudiShare', 'pct'), col_('womenShare', 'pct'),
+      i('joiners'), i('leavers'), i('prev'), i('change'), col_('changePct', 'pct')], rows: rows,
+      checks: unknown ? [{ level: 'info', code: 'unknown_end', count: unknown }] : [], chart: { type: 'hbar', label: 'department', value: 'headcount' } };
+  },
+
+  // Everyone hired in the period: position, manager, contract, probation, onboarding progress, still here or gone, early exits.
+  wf_joiners: function (p, me, ctx, scope, s) {
+    var t = today_(), pr = rxPrev_(p.from, p.to), pos = {}, onb = rxOnb_(), prevN = 0, rows = [];
+    readAll_(SHEETS.POS).forEach(function (x) { pos[x.id] = x.titleAr; });
+    rxAllEmps_(p, ctx, scope).forEach(function (e) {
+      var h = isoDate_(e.hireDate); if (!h) return;
+      if (h >= pr.from && h <= pr.to) prevN++;
+      if (h < p.from || h > p.to) return;
+      var lwd = isoDate_(e.lastWorkingDay), gone = lwd && lwd < t, o = onb[e.id], pe = isoDate_(e.probationEnd);
+      rows.push(Object.assign(base_(e, ctx), { hireDate: h, position: pos[e.positionId] || e.title || '', manager: ctx.emps[e.managerId] ? ctx.emps[e.managerId].name : '',
+        contractType: e.contractType || '', saudi: bool_(e.isSaudi) ? 'saudi' : 'non_saudi', probationEnd: pe, onboarding: o ? pct_(o.done, o.n) : null,
+        employed: e.status === 'active' && !gone ? 'yes' : 'no', lastDay: lwd, tenureDays: Math.max(0, daysBetween_(h, gone ? lwd : t)),
+        earlyExit: lwd && (daysBetween_(h, lwd) < 90 || (pe && lwd <= pe)) ? 'yes' : '' }));
+    });
+    rows.sort(function (a, b) { return a.hireDate < b.hireDate ? -1 : 1; });
+    var early = rows.filter(function (r) { return r.earlyExit; }).length;
+    return { columns: EMP_COLS.concat([col_('hireDate', 'date'), col_('position', 'text', { group: true }), col_('manager', 'text', { group: true }), col_('contractType', 'code', { group: true }),
+      col_('saudi', 'code', { group: true }), col_('probationEnd', 'date'), col_('onboarding', 'pct'), col_('employed', 'code', { group: true }), col_('lastDay', 'date'), col_('tenureDays', 'int'),
+      col_('earlyExit', 'code')]), rows: rows,
+      checks: [{ level: 'info', code: 'prev_count', count: prevN }, early ? { level: 'warn', code: 'early_exit', count: early } : null].filter(Boolean),
+      chart: { type: 'bars', by: 'department', value: 'count' } };
+  },
+
+  // Everyone whose last working day falls in the period: tenure, reason, voluntary or not, first-year leavers, notice given,
+  // clearance progress, and their last published rating (a voluntary leaver rated 4 or 5 is a regretted loss).
+  wf_leavers: function (p, me, ctx, scope, s) {
+    var reqs = readAll_(SHEETS.REQ), clr = readAll_(SHEETS.CLR), people = waPeople_(ctx, reqs, clr), ok = {}, pr = rxPrev_(p.from, p.to), prevN = 0, rating = waLastRating_(), resAt = {}, cl = {}, rows = [];
+    rxAllEmps_(p, ctx, scope).forEach(function (e) { ok[e.id] = e; });
+    reqs.forEach(function (r) { if (r.type === 'resignation' && r.status === 'approved') resAt[r.empId] = String(r.createdAt).slice(0, 10); });
+    clr.forEach(function (x) { if (x.status !== 'cancelled') { var v = clearanceView_(x, me, ctx); cl[x.empId] = pct_(v.done, v.total); } });
+    people.forEach(function (q) {
+      var e = ok[q.id]; if (!e || !q.end || !waCounts_(q)) return;
+      if (q.end >= pr.from && q.end <= pr.to) prevN++;
+      if (q.end < p.from || q.end > p.to) return;
+      var y = q.hire ? r2_(daysBetween_(q.hire, q.end) / 365.25) : null, rt = rating[q.id] ? rating[q.id].rating : null;
+      rows.push(Object.assign(base_(e, ctx), { hireDate: q.hire, lastDay: q.end, years: y, tenureBand: y == null ? '' : waBand_(y), reason: q.reason, voluntary: q.voluntary ? 'yes' : 'no',
+        firstYear: q.hire && q.end < waAddMonths_(q.hire, 12) ? 'yes' : '', noticeDays: resAt[q.id] ? daysBetween_(resAt[q.id], q.end) : null, clearanceDone: cl[q.id] == null ? null : cl[q.id],
+        lastRating: rt, regretted: q.voluntary && rt >= 4 ? 'yes' : '' }));
+    });
+    rows.sort(function (a, b) { return a.lastDay < b.lastDay ? -1 : 1; });
+    var first = rows.filter(function (r) { return r.firstYear; }).length, reg = rows.filter(function (r) { return r.regretted; }).length;
+    return { columns: EMP_COLS.concat([col_('hireDate', 'date'), col_('lastDay', 'date'), col_('years', 'num'), col_('tenureBand', 'code', { group: true }), col_('reason', 'code', { group: true }),
+      col_('voluntary', 'code', { group: true }), col_('firstYear', 'code'), col_('noticeDays', 'int'), col_('clearanceDone', 'pct'), col_('lastRating', 'int'), col_('regretted', 'code')]), rows: rows,
+      checks: [{ level: 'info', code: 'prev_count', count: prevN }, first ? { level: 'warn', code: 'first_year_leavers', count: first } : null, reg ? { level: 'warn', code: 'regretted', count: reg } : null].filter(Boolean),
+      chart: { type: 'bars', by: 'reason', value: 'count' } };
+  },
+
+  // Turnover per department: leavers / average headcount (the mean of each month's first- and last-day headcount), voluntary
+  // and other, first-year leavers, and the period before. Departments are today's.
+  wf_turnover_dept: function (p, me, ctx, scope, s) {
+    var to = minDate_(p.to, today_()); if (p.from > to) return rxEmpty_();
+    var pr = rxPrev_(p.from, to), ok = {};
+    rxAllEmps_(p, ctx, scope).forEach(function (e) { ok[e.id] = 1; });
+    var people = waPeople_(ctx, readAll_(SHEETS.REQ), readAll_(SHEETS.CLR)).filter(function (q) { return ok[q.id] && waCounts_(q); });
+    var calc = function (a, b) {
+      var months = rxMonths_(a, b), by = {};
+      people.forEach(function (q) {
+        var g = by[q.dept] || (by[q.dept] = { sum: 0, leavers: 0, voluntary: 0, other: 0, firstYear: 0 });
+        months.forEach(function (m) { g.sum += ((waOn_(q, m + '-01') ? 1 : 0) + (waOn_(q, minDate_(monthLast_(m), b)) ? 1 : 0)) / 2; });
+        if (q.end && q.end >= a && q.end <= b) { g.leavers++; if (q.voluntary) g.voluntary++; else g.other++; if (q.hire && q.end < waAddMonths_(q.hire, 12)) g.firstYear++; }
+      });
+      Object.keys(by).forEach(function (k) { by[k].avg = months.length ? by[k].sum / months.length : 0; });
+      return by;
+    };
+    var cur = calc(p.from, to), old = calc(pr.from, pr.to);
+    var rows = Object.keys(cur).sort().filter(function (k) { return cur[k].avg || cur[k].leavers; }).map(function (k) {
+      var g = cur[k], o = old[k], rate = pct_(g.leavers, g.avg), pv = o && o.avg ? pct_(o.leavers, o.avg) : null;
+      return { department: k, avgHeadcount: waRound_(g.avg, 2), leavers: g.leavers, voluntary: g.voluntary, other: g.other, firstYear: g.firstYear, turnover: rate,
+        voluntaryRate: pct_(g.voluntary, g.avg), prevRate: pv, changePts: rxPts_(rate, pv) };
+    });
+    var high = rows.filter(function (r) { return r.turnover >= 20; }).length;
+    var i = function (k) { return col_(k, 'int', { sum: true }); };
+    return { columns: [col_('department'), col_('avgHeadcount', 'num', { sum: true }), i('leavers'), i('voluntary'), i('other'), i('firstYear'), col_('turnover', 'pct'), col_('voluntaryRate', 'pct'),
+      col_('prevRate', 'pct'), col_('changePts', 'num')], rows: rows,
+      checks: high ? [{ level: 'warn', code: 'turnover_high', count: high }] : [], chart: { type: 'hbar', label: 'department', value: 'turnover' } };
+  },
+
+  // Years of service today by department: bands, mean and median, and the share in their first year.
+  wf_tenure: function (p, me, ctx, scope, s) {
+    var t = today_(), by = {};
+    reportEmps_(p, ctx, scope).forEach(function (e) {
+      var dn = deptName_(e, ctx) || '-', g = by[dn] || (by[dn] = { department: dn, headcount: 0, tenure0: 0, tenure1: 0, tenure3: 0, tenure5: 0, tenure10: 0, ys: [], noHire: 0 });
+      g.headcount++;
+      var h = isoDate_(e.hireDate); if (!h || h > t) { g.noHire++; return; }
+      var y = daysBetween_(h, t) / 365.25; g.ys.push(y);
+      g[y < 1 ? 'tenure0' : y < 3 ? 'tenure1' : y < 5 ? 'tenure3' : y < 10 ? 'tenure5' : 'tenure10']++;
+    });
+    var rows = Object.keys(by).sort().map(function (k) {
+      var g = by[k];
+      return { department: k, headcount: g.headcount, tenure0: g.tenure0, tenure1: g.tenure1, tenure3: g.tenure3, tenure5: g.tenure5, tenure10: g.tenure10,
+        avgYears: g.ys.length ? waRound_(rxMean_(g.ys), 2) : null, medianYears: g.ys.length ? waRound_(waMedian_(g.ys), 2) : null, newShare: pct_(g.tenure0, g.ys.length), noHire: g.noHire };
+    });
+    var noHire = rows.reduce(function (t2, r) { return t2 + r.noHire; }, 0), i = function (k) { return col_(k, 'int', { sum: true }); };
+    return { columns: [col_('department'), i('headcount'), i('tenure0'), i('tenure1'), i('tenure3'), i('tenure5'), i('tenure10'), col_('avgYears', 'num'), col_('medianYears', 'num'),
+      col_('newShare', 'pct'), i('noHire')], rows: rows,
+      checks: noHire ? [{ level: 'info', code: 'missing_hire_date', count: noHire }] : [], chart: { type: 'hbar', label: 'department', value: 'avgYears' } };
+  },
+
+  // Span of control: direct reports, everyone below and the layers under each manager; wide (13+) and narrow (1) flagged.
+  wf_span: function (p, me, ctx, scope, s) {
+    var k = rxKids_(ctx), pos = {}, rows = [];
+    readAll_(SHEETS.POS).forEach(function (x) { pos[x.id] = x.titleAr; });
+    reportEmps_(p, ctx, scope).forEach(function (e) {
+      var n = (k.kids[e.id] || []).length; if (!n) return;
+      var b = rxBelow_(e.id, k.kids);
+      rows.push(Object.assign(base_(e, ctx), { position: pos[e.positionId] || e.title || '', directs: n, totalReports: b.total, layers: b.layers, spanBand: rxSpanBand_(n), spanFlag: n > 12 ? 'wide' : n < 2 ? 'narrow' : '' }));
+    });
+    rows.sort(function (a, b) { return b.directs - a.directs || b.totalReports - a.totalReports; });
+    var wide = rows.filter(function (r) { return r.spanFlag === 'wide'; }).length, narrow = rows.filter(function (r) { return r.spanFlag === 'narrow'; }).length;
+    return { columns: EMP_COLS.concat([col_('position'), col_('directs', 'int', { sum: true }), col_('totalReports', 'int'), col_('layers', 'int'), col_('spanBand', 'code', { group: true }), col_('spanFlag', 'code')]),
+      rows: rows, checks: [wide ? { level: 'info', code: 'span_wide', count: wide } : null, narrow ? { level: 'info', code: 'span_narrow', count: narrow } : null,
+        !scope && k.orphans ? { level: 'warn', code: 'orphan_reports', count: k.orphans } : null].filter(Boolean), chart: { type: 'hbar', label: 'name', value: 'directs' } };
+  },
+
+  // The reporting lines: each person's manager, department head, level from the top and the chain of managers above them.
+  wf_org: function (p, me, ctx, scope, s) {
+    var k = rxKids_(ctx), pos = {}, rows = [], orphans = 0, top = 0;
+    readAll_(SHEETS.POS).forEach(function (x) { pos[x.id] = x; });
+    reportEmps_(p, ctx, scope, p.status !== 'active').forEach(function (e) {
+      var chain = [], seen = {}, cur = e, m = ctx.emps[e.managerId];
+      for (var i = 0; i < 25 && cur && cur.managerId && cur.managerId !== cur.id && !seen[cur.id]; i++) { seen[cur.id] = 1; cur = ctx.emps[cur.managerId]; if (cur) chain.unshift(cur.name); }
+      if (!e.managerId) top++; else if (!m || m.status !== 'active') orphans++;
+      var b = rxBelow_(e.id, k.kids), hd = headFor_(e, ctx), ps = pos[e.positionId];
+      rows.push(Object.assign(base_(e, ctx), { position: ps ? ps.titleAr : (e.title || ''), grade: ps && rxHas_(ps.grade) ? String(ps.grade) : '', managerNo: m ? String(m.empNo) : '', manager: m ? m.name : '',
+        deptHead: hd ? hd.name : '', level: chain.length + 1, chain: chain.join(' › '), directs: (k.kids[e.id] || []).length, totalReports: b.total }));
+    });
+    rows.sort(function (a, b) { return a.level - b.level || String(a.empNo).localeCompare(String(b.empNo), 'en', { numeric: true }); });
+    return { columns: EMP_COLS.concat([col_('position', 'text', { group: true }), col_('grade', 'text', { group: true }), col_('managerNo', 'id'), col_('manager', 'text', { group: true }), col_('deptHead'),
+      col_('level', 'int', { group: true }), col_('chain'), col_('directs', 'int'), col_('totalReports', 'int')]), rows: rows,
+      checks: [orphans ? { level: 'warn', code: 'orphan_reports', count: orphans } : null, top ? { level: 'info', code: 'no_manager', count: top } : null].filter(Boolean),
+      chart: { type: 'bars', by: 'level', value: 'count' } };
+  },
+
+  // Positions nobody active holds: since when (the last holder's last day, else the day the position was created) and how long.
+  wf_vacancies: function (p, me, ctx, scope, s) {
+    var t = today_(), ds = deptSet_(p, ctx), held = {}, last = {}, allowed = null, filled = 0, rows = [];
+    if (scope) { // a manager: positions of the departments their people are in, or that they head (and below)
+      allowed = {};
+      Object.keys(scope).forEach(function (k) { var e = ctx.emps[k]; if (e && e.departmentId) allowed[e.departmentId] = 1; });
+      Object.keys(ctx.depts).forEach(function (k) { if (ctx.depts[k].headEmpId === me.id) allowed[k] = 1; });
+      allowed = deptSet_({ depts: Object.keys(allowed), subDepts: true }, ctx) || {};
+    }
+    Object.keys(ctx.emps).forEach(function (k) {
+      var e = ctx.emps[k]; if (!e.positionId) return;
+      if (e.status === 'active' && !(isoDate_(e.lastWorkingDay) && isoDate_(e.lastWorkingDay) < t)) held[e.positionId] = (held[e.positionId] || 0) + 1;
+      else { var l = isoDate_(e.lastWorkingDay); if (l && (!last[e.positionId] || l > last[e.positionId].date)) last[e.positionId] = { date: l, name: e.name }; }
+    });
+    readAll_(SHEETS.POS).forEach(function (x) {
+      if (x.status === 'disabled' || x.status === 'deleted') return;
+      if ((ds && !ds[x.departmentId]) || (allowed && !allowed[x.departmentId])) return;
+      if (held[x.id]) { filled++; return; }
+      var lh = last[x.id], since = lh ? lh.date : (isoDate_(String(x.createdAt).slice(0, 10)) || t);
+      rows.push({ code: String(x.code || ''), position: x.titleAr, department: ctx.depts[x.departmentId] ? ctx.depts[x.departmentId].nameAr : '-', grade: rxHas_(x.grade) ? String(x.grade) : '',
+        lastHolder: lh ? lh.name : '', vacantSince: since, daysVacant: Math.max(0, daysBetween_(since, t)) });
+    });
+    rows.sort(function (a, b) { return b.daysVacant - a.daysVacant; });
+    var long = rows.filter(function (r) { return r.daysVacant > 90; }).length;
+    return { columns: [col_('code', 'id'), col_('position'), col_('department', 'text', { group: true }), col_('grade', 'text', { group: true }), col_('lastHolder'), col_('vacantSince', 'date'),
+      col_('daysVacant', 'int')], rows: rows,
+      checks: [{ level: 'info', code: 'positions_filled', count: filled }, long ? { level: 'warn', code: 'vacant_long', count: long } : null].filter(Boolean),
+      chart: { type: 'bars', by: 'department', value: 'count' } };
+  },
+
+  // Probation ending within `days` days, in 30 / 60 / 90-day windows, with the probation review task and onboarding progress.
+  wf_probation: function (p, me, ctx, scope, s) {
+    var t = today_(), end = addDays_(t, p.days), onb = rxOnb_(), rows = [];
+    reportEmps_(p, ctx, scope).forEach(function (e) {
+      var pe = isoDate_(e.probationEnd); if (!pe || pe < t || pe > end) return;
+      var h = isoDate_(e.hireDate), left = daysBetween_(t, pe), o = onb[e.id], rv = o && o.review;
+      rows.push(Object.assign(base_(e, ctx), { manager: ctx.emps[e.managerId] ? ctx.emps[e.managerId].name : '', hireDate: h, probationEnd: pe, probationDays: h ? daysBetween_(h, pe) : null,
+        daysLeft: left, window: left <= 30 ? 'd30' : left <= 60 ? 'd60' : left <= 90 ? 'd90' : 'later', onboarding: o ? pct_(o.done, o.n) : null,
+        reviewTask: !rv ? 'none' : rv.status !== 'open' ? 'done' : String(rv.dueDate).slice(0, 10) < t ? 'late' : 'open' }));
+    });
+    rows.sort(function (a, b) { return a.daysLeft - b.daysLeft; });
+    var long = rows.filter(function (r) { return r.probationDays > 180; }).length, open = rows.filter(function (r) { return r.daysLeft <= 30 && r.reviewTask !== 'done'; }).length;
+    return { columns: EMP_COLS.concat([col_('manager', 'text', { group: true }), col_('hireDate', 'date'), col_('probationEnd', 'date'), col_('probationDays', 'int'), col_('daysLeft', 'int'),
+      col_('window', 'code', { group: true }), col_('onboarding', 'pct'), col_('reviewTask', 'code', { group: true })]), rows: rows,
+      checks: [long ? { level: 'error', code: 'probation_too_long', count: long } : null, open ? { level: 'warn', code: 'probation_review_open', count: open } : null].filter(Boolean),
+      chart: { type: 'bars', by: 'window', value: 'count' } };
+  }
+});
+
+// ---------------- performance ----------------
+function rxCycle_(p) { var c = p.cycle ? cycleById_(p.cycle) : currentCycle_(); if (c) p.cycle = c.id; return c; }
+function rxNoCycle_() { return { columns: [], rows: [], checks: [{ level: 'info', code: 'no_cycle', count: 0 }] }; }
+
+Object.assign(REPORT_FNS, {
+  // Ratings 1-5 against the healthy spread. The final rating where the viewer may see it (HR, or a closed cycle), else the
+  // rounded overall score (as the results report shows it). The spread is judged once at least 5 people are rated.
+  perf_curve: function (p, me, ctx, scope, s) {
+    var cyc = rxCycle_(p); if (!cyc) return rxNoCycle_();
+    var ids = {}, n = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }, rated = 0, final = isHr_(me) || cyc.status === 'closed';
+    var emps = reportEmps_(p, ctx, scope); emps.forEach(function (e) { ids[e.id] = 1; });
+    readAll_(SHEETS.REV).forEach(function (r) {
+      if (r.cycleId !== cyc.id || !ids[r.empId]) return;
+      var v = final && score_(r.finalRating) ? score_(r.finalRating) : rxHas_(r.overall) ? Math.min(5, Math.max(1, Math.round(Number(r.overall)))) : null;
+      if (v) { n[v]++; rated++; }
+    });
+    var judged = rated >= 5, out = 0;
+    var rows = [5, 4, 3, 2, 1].map(function (k) {
+      var sh = rated ? r1_(n[k] / rated * 100) : null, g = RX_CURVE[k], gap = sh == null ? null : sh < g[0] ? r1_(sh - g[0]) : sh > g[1] ? r1_(sh - g[1]) : 0;
+      if (judged && gap) out++;
+      return { rating: k, ratingName: 'rating' + k, people: n[k], share: sh, guideMin: g[0], guideMax: g[1], gap: gap, inRange: judged ? (gap ? 'no' : 'yes') : '' };
+    });
+    return { columns: [col_('rating', 'int'), col_('ratingName', 'code'), col_('people', 'int', { sum: true }), col_('share', 'pct'), col_('guideMin', 'pct'), col_('guideMax', 'pct'),
+      col_('gap', 'num'), col_('inRange', 'code')], rows: rows, cycle: publicCycle_(cyc),
+      checks: [out ? { level: 'warn', code: 'curve_out', count: out } : null, !judged ? { level: 'info', code: 'curve_few', count: rated } : null,
+        emps.length - rated ? { level: 'info', code: 'not_rated', count: emps.length - rated } : null].filter(Boolean), chart: { type: 'bars', by: 'ratingName', value: 'people' } };
+  },
+
+  // KPI cycle progress per person: goals set (weights add to 100), mid-year check-in on every KPI, self and manager review.
+  perf_kpi: function (p, me, ctx, scope, s) {
+    var cyc = rxCycle_(p); if (!cyc) return rxNoCycle_();
+    var kp = {}, rv = {}, rows = [], badW = 0, none = 0;
+    readAll_(SHEETS.KPI).forEach(function (k) { if (k.cycleId === cyc.id && k.status !== 'deleted') (kp[k.empId] = kp[k.empId] || []).push(k); });
+    readAll_(SHEETS.REV).forEach(function (r) { if (r.cycleId === cyc.id) rv[r.empId] = r; });
+    reportEmps_(p, ctx, scope).forEach(function (e) {
+      var ks = kp[e.id] || [], r = rv[e.id] || {}, w = ks.reduce(function (t, k) { return t + (Number(k.weight) || 0); }, 0), mid = ks.filter(function (k) { return k.midStatus; });
+      var steps = [ks.length > 0 && Math.round(w) === 100, ks.length > 0 && mid.length === ks.length, !!r.selfAt, !!r.mgrAt], codes = ['pk_goals', 'pk_mid', 'pk_self', 'pk_mgr'], stage = 'pk_none';
+      steps.forEach(function (ok, i) { if (ok) stage = codes[i]; });
+      if (!ks.length) none++; else if (Math.round(w) !== 100) badW++;
+      var cnt = function (st) { return ks.filter(function (k) { return k.midStatus === st; }).length; };
+      rows.push(Object.assign(base_(e, ctx), { kpis: ks.length, weightTotal: Math.round(w), midDone: mid.length, onTrack: cnt('on_track'), atRisk: cnt('at_risk'), offTrack: cnt('off_track'),
+        selfScored: ks.filter(function (k) { return rxHas_(k.selfScore); }).length, mgrScored: ks.filter(function (k) { return rxHas_(k.mgrScore); }).length,
+        completion: steps.filter(Boolean).length * 25, stage: stage }));
+    });
+    return { columns: EMP_COLS.concat([col_('kpis', 'int', { sum: true }), col_('weightTotal', 'int'), col_('midDone', 'int', { sum: true }), col_('onTrack', 'int', { sum: true }),
+      col_('atRisk', 'int', { sum: true }), col_('offTrack', 'int', { sum: true }), col_('selfScored', 'int', { sum: true }), col_('mgrScored', 'int', { sum: true }), col_('completion', 'pct'),
+      col_('stage', 'code', { group: true })]), rows: rows, cycle: publicCycle_(cyc),
+      checks: [badW ? { level: 'warn', code: 'kpi_weights', count: badW } : null, none ? { level: 'info', code: 'no_kpis', count: none } : null].filter(Boolean),
+      chart: { type: 'bars', by: 'stage', value: 'count' } };
+  },
+
+  // 360 participation per person: invitations, answers, response rate, and whether the peer and report groups reach the
+  // three answers they need to be shown. Counts only: no rater and no answer ever leaves the server.
+  perf_360: function (p, me, ctx, scope, s) {
+    var cyc = rxCycle_(p); if (!cyc) return rxNoCycle_();
+    var ids = {}, by = {}, rows = [], hiddenN = 0;
+    var emps = reportEmps_(p, ctx, scope); emps.forEach(function (e) { ids[e.id] = e; });
+    readAll_(SHEETS.FB).forEach(function (f) {
+      if (f.cycleId !== cyc.id || !ids[f.subjectId]) return;
+      var g = by[f.subjectId] || (by[f.subjectId] = { invited: 0, submitted: 0, rel: {} }), r = g.rel[f.relation] || (g.rel[f.relation] = { invited: 0, submitted: 0 });
+      g.invited++; r.invited++; if (f.status === 'submitted') { g.submitted++; r.submitted++; }
+    });
+    emps.forEach(function (e) {
+      var g = by[e.id]; if (!g) return;
+      var rel = function (k) { return g.rel[k] || { invited: 0, submitted: 0 }; }, pe = rel('peer'), re = rel('report'), mg = rel('manager'), sf = rel('self');
+      var shown = function (x) { return x.invited ? (x.submitted >= FB_MIN_GROUP ? 'yes' : 'no') : ''; };
+      if (shown(pe) === 'no' || shown(re) === 'no') hiddenN++;
+      rows.push(Object.assign(base_(e, ctx), { invited: g.invited, submitted: g.submitted, responseRate: pct_(g.submitted, g.invited), selfDone: sf.invited ? (sf.submitted ? 'yes' : 'no') : '',
+        managerDone: mg.invited ? (mg.submitted ? 'yes' : 'no') : '', peers: pe.submitted, reports: re.submitted, peersShown: shown(pe), reportsShown: shown(re) }));
+    });
+    return { columns: EMP_COLS.concat([col_('invited', 'int', { sum: true }), col_('submitted', 'int', { sum: true }), col_('responseRate', 'pct'), col_('selfDone', 'code', { group: true }),
+      col_('managerDone', 'code', { group: true }), col_('peers', 'int', { sum: true }), col_('reports', 'int', { sum: true }), col_('peersShown', 'code'), col_('reportsShown', 'code')]), rows: rows,
+      cycle: publicCycle_(cyc), checks: hiddenN ? [{ level: 'info', code: 'fb_hidden', count: hiddenN }] : [], chart: { type: 'hbar', label: 'name', value: 'responseRate', max: 100 } };
+  },
+
+  // Development (IDP) and improvement (PIP) plans: dates, goals met and at risk, check-ins, acknowledgement; overdue flagged.
+  perf_plans: function (p, me, ctx, scope, s) {
+    var t = today_(), ids = {}, rows = [], overdue = 0, quiet = 0, noAck = 0;
+    reportEmps_(p, ctx, scope, true).forEach(function (e) { ids[e.id] = e; });
+    readAll_(SHEETS.PLAN).forEach(function (x) {
+      var e = ids[x.empId]; if (!e || x.status === 'deleted') return;
+      var goals = parseJson_(x.goalsJson, []), ci = parseJson_(x.checkInsJson, []), open = x.status === 'active' || x.status === 'extended', end = String(x.endDate).slice(0, 10);
+      var lastCi = ci.length ? String(ci[ci.length - 1].date).slice(0, 10) : '', since = daysBetween_(lastCi || String(x.startDate).slice(0, 10), t);
+      if (open && end < t) overdue++;
+      if (open && since > 14) quiet++;
+      if (open && !x.ackAt) noAck++;
+      rows.push(Object.assign(base_(e, ctx), { ref: x.ref, planType: x.type, startDate: String(x.startDate).slice(0, 10), endDate: end, status: x.status, daysLeft: open ? daysBetween_(t, end) : null,
+        goals: goals.length, goalsMet: goals.filter(function (g) { return g.status === 'met'; }).length, goalsAtRisk: goals.filter(function (g) { return g.status === 'at_risk' || g.status === 'not_met'; }).length,
+        checkIns: ci.length, lastCheckIn: lastCi, sinceCheckIn: open ? since : null, acknowledged: x.ackAt ? 'yes' : 'no' }));
+    });
+    rows.sort(function (a, b) { return (a.daysLeft == null ? 1e9 : a.daysLeft) - (b.daysLeft == null ? 1e9 : b.daysLeft); });
+    return { columns: EMP_COLS.concat([col_('ref', 'id'), col_('planType', 'code', { group: true }), col_('startDate', 'date'), col_('endDate', 'date'), col_('status', 'status', { group: true }),
+      col_('daysLeft', 'int'), col_('goals', 'int', { sum: true }), col_('goalsMet', 'int', { sum: true }), col_('goalsAtRisk', 'int', { sum: true }), col_('checkIns', 'int', { sum: true }),
+      col_('lastCheckIn', 'date'), col_('sinceCheckIn', 'int'), col_('acknowledged', 'code', { group: true })]), rows: rows,
+      checks: [overdue ? { level: 'error', code: 'plan_overdue', count: overdue } : null, quiet ? { level: 'warn', code: 'plan_no_checkin', count: quiet } : null,
+        noAck ? { level: 'warn', code: 'plan_not_acked', count: noAck } : null].filter(Boolean), chart: { type: 'bars', by: 'status', value: 'count' } };
+  }
+});
+
+// ---------------- requests and approvals ----------------
+/** The requests the viewer may see in a report: their scope, the type filter, and no salary advance unless they handle pay. */
+function rxReqs_(p, me, ctx, scope) {
+  var ids = {}, money = canPayroll_(me);
+  reportEmps_(p, ctx, scope, true).forEach(function (e) { ids[e.id] = e; });
+  return { ids: ids, list: readAll_(SHEETS.REQ).filter(function (r) { return ids[r.empId] && (!p.reqType || r.type === p.reqType) && (r.type !== 'advance' || money); }) };
+}
+
+Object.assign(REPORT_FNS, {
+  // Time to decide each approval step, per step and approver: from the request (or the step before) to the decision;
+  // mean, median, 90th percentile and maximum hours, the share within RX_SLA_HOURS, and the period before.
+  req_sla: function (p, me, ctx, scope, s) {
+    var pr = rxPrev_(p.from, p.to), q = rxReqs_(p, me, ctx, scope), by = {}, breach = 0;
+    q.list.forEach(function (r) {
+      var last = r.createdAt;
+      history_(r).forEach(function (h) {
+        var start = last; last = h.at;
+        if (h.decision !== 'approve' && h.decision !== 'reject') return;
+        var d = localParts_(new Date(h.at)).date, hrs = (Date.parse(h.at) - Date.parse(start)) / 3600000;
+        if (d < pr.from || d > p.to || !(hrs >= 0)) return;
+        var who = ctx.emps[h.by] ? ctx.emps[h.by].name : '-', key = h.step + '|' + who, g = by[key] || (by[key] = { step: h.step, who: who, c: [], o: [], ok: 0, no: 0 });
+        if (d >= p.from) { g.c.push(hrs); if (h.decision === 'approve') g.ok++; else g.no++; if (hrs > RX_SLA_HOURS) breach++; } else g.o.push(hrs);
+      });
+    });
+    var rows = Object.keys(by).filter(function (k) { return by[k].c.length; }).map(function (k) {
+      var g = by[k], avg = r1_(rxMean_(g.c)), pv = g.o.length ? r1_(rxMean_(g.o)) : null, c = rxChg_(avg, pv, 1);
+      return { approvalStep: g.step, approver: g.who, decisions: g.c.length, approvedN: g.ok, rejectedN: g.no, avgHours: avg, medianHours: r1_(waMedian_(g.c)), p90Hours: r1_(rxQuant_(g.c, 0.9)),
+        maxHours: r1_(Math.max.apply(null, g.c)), withinSla: pct_(g.c.filter(function (x) { return x <= RX_SLA_HOURS; }).length, g.c.length), prev: pv, change: c.change, changePct: c.changePct };
+    }).sort(function (a, b) { return b.avgHours - a.avgHours; });
+    return { columns: [col_('approvalStep', 'code', { group: true }), col_('approver', 'text', { group: true }), col_('decisions', 'int', { sum: true }), col_('approvedN', 'int', { sum: true }),
+      col_('rejectedN', 'int', { sum: true }), col_('avgHours', 'hours'), col_('medianHours', 'hours'), col_('p90Hours', 'hours'), col_('maxHours', 'hours'), col_('withinSla', 'pct'),
+      col_('prev', 'hours'), col_('change', 'hours'), col_('changePct', 'pct')], rows: rows,
+      checks: breach ? [{ level: 'warn', code: 'sla_breach', count: breach }] : [], chart: { type: 'hbar', label: 'approver', value: 'avgHours' } };
+  },
+
+  // Everything waiting for a decision now, by who holds it (the line manager by name, or the HR / payroll queue),
+  // oldest first, with the days since the last action and since the request.
+  req_bottlenecks: function (p, me, ctx, scope, s) {
+    var q = rxReqs_(p, me, ctx, scope), now = Date.now(), rows = [];
+    q.list.forEach(function (r) {
+      if (r.status !== 'pending') return;
+      var e = q.ids[r.empId], h = history_(r), since = h.length ? h[h.length - 1].at : r.createdAt, m = ctx.emps[e.managerId];
+      var who = r.step === 'manager' ? (m && m.status === 'active' ? m.name : 'hr') : r.step;
+      rows.push(Object.assign(base_(e, ctx), { approver: who, approvalStep: r.step, ref: r.ref, type: r.type, created: String(r.createdAt).slice(0, 10),
+        waitingSince: localParts_(new Date(since)).date, daysWaiting: r1_((now - Date.parse(since)) / 864e5), ageDays: r1_((now - Date.parse(r.createdAt)) / 864e5) }));
+    });
+    rows.sort(function (a, b) { return a.approver < b.approver ? -1 : a.approver > b.approver ? 1 : b.daysWaiting - a.daysWaiting; });
+    var rank = {}; rows.forEach(function (r) { r.rank = rank[r.approver] = (rank[r.approver] || 0) + 1; });
+    var over7 = rows.filter(function (r) { return r.daysWaiting > 7; }).length, over3 = rows.filter(function (r) { return r.daysWaiting > 3 && r.daysWaiting <= 7; }).length;
+    return { columns: [col_('approver', 'code', { group: true }), col_('approvalStep', 'code', { group: true }), col_('rank', 'int')].concat(EMP_COLS, [col_('ref', 'id'), col_('type', 'code', { group: true }),
+      col_('created', 'date'), col_('waitingSince', 'date'), col_('daysWaiting', 'num'), col_('ageDays', 'num')]), rows: rows,
+      checks: [over7 ? { level: 'error', code: 'waiting_over_7', count: over7 } : null, over3 ? { level: 'warn', code: 'waiting_over_3', count: over3 } : null].filter(Boolean),
+      chart: { type: 'bars', by: 'approver', value: 'count' } };
+  },
+
+  // Requests made per type and month, how they ended, the approval rate, hours to the final decision, and the month before.
+  req_volume: function (p, me, ctx, scope, s) {
+    var months = rxMonths_(p.from, p.to); if (!months.length) return rxEmpty_();
+    var q = rxReqs_(p, me, ctx, scope), first = rxAddMonth_(months[0], -1), by = {}, types = {};
+    q.list.forEach(function (r) {
+      var m = localParts_(new Date(r.createdAt)).date.slice(0, 7); if (m < first || m > months[months.length - 1]) return;
+      var g = by[r.type + '|' + m] || (by[r.type + '|' + m] = { n: 0, approved: 0, rejected: 0, cancelled: 0, pending: 0, hours: [] });
+      types[r.type] = 1; g.n++; if (g[r.status] != null) g[r.status]++;
+      if ((r.status === 'approved' || r.status === 'rejected') && r.decidedAt) g.hours.push((Date.parse(r.decidedAt) - Date.parse(r.createdAt)) / 3600000);
+    });
+    var rows = [];
+    Object.keys(types).sort().forEach(function (k) {
+      months.forEach(function (m) {
+        var g = by[k + '|' + m]; if (!g) return;
+        var o = by[k + '|' + rxAddMonth_(m, -1)], c = rxChg_(g.n, o ? o.n : 0, 0);
+        rows.push({ type: k, month: m, requests: g.n, approvedN: g.approved, rejectedN: g.rejected, cancelledN: g.cancelled, openReq: g.pending, approvalRate: pct_(g.approved, g.approved + g.rejected),
+          avgHours: g.hours.length ? r1_(rxMean_(g.hours)) : null, prev: c.prev, change: c.change, changePct: c.changePct });
+      });
+    });
+    var i = function (k) { return col_(k, 'int', { sum: true }); };
+    return { columns: [col_('type', 'code', { group: true }), col_('month', 'text', { group: true }), i('requests'), i('approvedN'), i('rejectedN'), i('cancelledN'), i('openReq'),
+      col_('approvalRate', 'pct'), col_('avgHours', 'hours'), i('prev'), i('change'), col_('changePct', 'pct')], rows: rows, chart: { type: 'bars', by: 'type', value: 'requests' } };
+  }
+});
+
+// ---------------- compliance and employee relations ----------------
+Object.assign(REPORT_FNS, {
+  // Disciplinary cases by violation in the period (by incident date): open, decided, objected, repeats, penalties by kind,
+  // days from the charge to the decision, the fines (hr role and payroll only) and the period before.
+  cmp_disciplinary: function (p, me, ctx, scope, s) {
+    var t = today_(), pr = rxPrev_(p.from, p.to), ids = {}, by = {}, money = canPayroll_(me), longOpen = 0;
+    reportEmps_(p, ctx, scope, true).forEach(function (e) { ids[e.id] = 1; });
+    readAll_(SHEETS.DCASE).forEach(function (x) {
+      if (!ids[x.empId] || x.status === 'cancelled') return;
+      var d = String(x.incidentDate).slice(0, 10); if (d < pr.from || d > p.to) return;
+      var g = by[x.code] || (by[x.code] = { violation: x.violation, cases: 0, open: 0, decided: 0, objected: 0, repeat: 0, warnings: 0, fines: 0, suspensions: 0, dismissals: 0, days: [], amount: 0, prev: 0 });
+      if (d < p.from) { g.prev++; return; }
+      var k = penaltyParts_(x.decision || '').kind, open = x.status === 'charged' || x.status === 'responded';
+      g.cases++; if (open) g.open++; if (x.decidedAt) g.decided++; if (x.status === 'objected' || x.objectedAt) g.objected++; if (Number(x.occurrence) >= 2) g.repeat++;
+      if (k === 'warning' || k === 'written') g.warnings++; else if (k === 'fine_pct' || k === 'fine_days') g.fines++; else if (k === 'suspend') g.suspensions++; else if (k.indexOf('dismiss') === 0) g.dismissals++;
+      if (x.decidedAt && x.chargedAt) g.days.push((Date.parse(x.decidedAt) - Date.parse(x.chargedAt)) / 864e5);
+      g.amount += Number(x.amount) || 0;
+      if (open && x.chargedAt && daysBetween_(String(x.chargedAt).slice(0, 10), t) > 30) longOpen++;
+    });
+    var rows = Object.keys(by).filter(function (k) { return by[k].cases || by[k].prev; }).map(function (k) {
+      var g = by[k], row = { code: k, violation: g.violation, cases: g.cases, openCases: g.open, decided: g.decided, objected: g.objected, repeat: g.repeat, warnings: g.warnings, fines: g.fines,
+        suspensions: g.suspensions, dismissals: g.dismissals, avgDays: g.days.length ? r1_(rxMean_(g.days)) : null, prev: g.prev, change: g.cases - g.prev };
+      if (money) row.amount = r2_(g.amount);
+      return row;
+    }).sort(function (a, b) { return b.cases - a.cases; });
+    var i = function (k) { return col_(k, 'int', { sum: true }); }, cols = [col_('code', 'id'), col_('violation'), i('cases'), i('openCases'), i('decided'), i('objected'), i('repeat'), i('warnings'), i('fines'),
+      i('suspensions'), i('dismissals'), col_('avgDays', 'num')];
+    if (money) cols.push(col_('amount', 'money', { sum: true }));
+    return { columns: cols.concat([i('prev'), i('change')]), rows: rows,
+      checks: longOpen ? [{ level: 'warn', code: 'case_open_long', count: longOpen }] : [], chart: { type: 'hbar', label: 'violation', value: 'cases' } };
+  },
+
+  // Work injuries: GOSI must hear within 3 days of the injury. When it was told, how late, days off, and where each case stands.
+  cmp_injuries: function (p, me, ctx, scope, s) {
+    var t = today_(), pr = rxPrev_(p.from, p.to), ids = {}, rows = [], prevN = 0;
+    reportEmps_(p, ctx, scope, true).forEach(function (e) { ids[e.id] = e; });
+    readAll_(SHEETS.INJ).forEach(function (x) {
+      var e = ids[x.empId]; if (!e) return;
+      var d = String(x.occurredAt).slice(0, 10); if (d >= pr.from && d <= pr.to) prevN++;
+      if (d < p.from || d > p.to) return;
+      var due = String(x.gosiDue).slice(0, 10), rep = x.gosiReportedAt ? localParts_(new Date(x.gosiReportedAt)).date : '';
+      var tl = rep ? (rep > due ? 'late' : 'on_time') : t > due ? 'overdue' : 'due', delay = rep ? Math.max(0, daysBetween_(due, rep)) : t > due ? daysBetween_(due, t) : 0;
+      var off = x.offFrom && x.offTo ? daysBetween_(String(x.offFrom).slice(0, 10), String(x.offTo).slice(0, 10)) + 1 : 0;
+      rows.push(Object.assign(base_(e, ctx), { ref: x.ref, occurred: d, place: x.place, gosiDue: due, gosiReported: rep, delayDays: delay, timeliness: tl, daysOff: off, status: x.status }));
+    });
+    rows.sort(function (a, b) { return a.occurred < b.occurred ? 1 : -1; });
+    var n = function (k) { return rows.filter(function (r) { return r.timeliness === k; }).length; };
+    return { columns: EMP_COLS.concat([col_('ref', 'id'), col_('occurred', 'date'), col_('place'), col_('gosiDue', 'date'), col_('gosiReported', 'date'), col_('delayDays', 'int'),
+      col_('timeliness', 'code', { group: true }), col_('daysOff', 'int', { sum: true }), col_('status', 'status', { group: true })]), rows: rows,
+      checks: [n('overdue') ? { level: 'error', code: 'gosi_overdue', count: n('overdue') } : null, n('late') ? { level: 'warn', code: 'gosi_late', count: n('late') } : null,
+        { level: 'info', code: 'prev_count', count: prevN }].filter(Boolean), chart: { type: 'bars', by: 'timeliness', value: 'count' } };
+  },
+
+  // Company assets held now, per person and type: items, value, receipts not yet confirmed, how long held; leavers still holding.
+  cmp_custody: function (p, me, ctx, scope, s) {
+    var t = today_(), ids = {}, assets = {}, by = {}, leavers = {};
+    reportEmps_(p, ctx, scope, true).forEach(function (e) { ids[e.id] = e; });
+    readAll_(SHEETS.ASSET).forEach(function (a) { assets[a.id] = a; });
+    readAll_(SHEETS.CUST).forEach(function (c) {
+      var e = ids[c.empId]; if (!e || c.status !== 'held') return;
+      var a = assets[c.assetId] || {}, k = c.empId + '|' + (a.type || 'other'), g = by[k] || (by[k] = { e: e, type: a.type || 'other', items: 0, value: 0, unacked: 0, since: '' });
+      var h = String(c.handedAt).slice(0, 10);
+      g.items++; g.value += Number(a.value) || 0; if (!c.ackAt) g.unacked++; if (!g.since || h < g.since) g.since = h;
+      if (e.status !== 'active' || isoDate_(e.lastWorkingDay)) leavers[e.id] = 1;
+    });
+    var rows = Object.keys(by).map(function (k) {
+      var g = by[k], gone = g.e.status !== 'active' || isoDate_(g.e.lastWorkingDay);
+      return Object.assign(base_(g.e, ctx), { assetType: g.type, items: g.items, value: r2_(g.value), unacked: g.unacked, heldSince: g.since, heldDays: g.since ? daysBetween_(g.since, t) : null, leaving: gone ? 'yes' : '' });
+    }).sort(function (a, b) { return b.value - a.value; });
+    var un = rows.reduce(function (x, r) { return x + r.unacked; }, 0), lv = Object.keys(leavers).length;
+    return { columns: EMP_COLS.concat([col_('assetType', 'code', { group: true }), col_('items', 'int', { sum: true }), col_('value', 'money', { sum: true }), col_('unacked', 'int', { sum: true }),
+      col_('heldSince', 'date'), col_('heldDays', 'int'), col_('leaving', 'code', { group: true })]), rows: rows,
+      checks: [lv ? { level: 'error', code: 'leaver_holds_assets', count: lv } : null, un ? { level: 'warn', code: 'custody_unacked', count: un } : null].filter(Boolean),
+      chart: { type: 'bars', by: 'assetType', value: 'value' } };
+  },
+
+  // Offboarding clearances: progress, the open tasks by owner (manager, HR, payroll), assets still held, overdue ones.
+  cmp_clearance: function (p, me, ctx, scope, s) {
+    var t = today_(), ids = {}, rows = [];
+    reportEmps_(p, ctx, scope, true).forEach(function (e) { ids[e.id] = e; });
+    readAll_(SHEETS.CLR).forEach(function (x) {
+      var e = ids[x.empId]; if (!e || x.status === 'cancelled') return;
+      var v = clearanceView_(x, me, ctx), open = function (o) { return v.tasks.filter(function (k) { return k.owner === o && k.status !== 'done'; }).length; }, held = v.tasks.filter(function (k) { return k.key === 'assets'; })[0];
+      rows.push(Object.assign(base_(e, ctx), { ref: x.ref, reason: x.reason, lastDay: v.lastDay, daysLeft: v.daysLeft, tasksDone: v.done, tasksTotal: v.total, progress: pct_(v.done, v.total),
+        openManager: open('manager'), openHr: open('hr'), openPayroll: open('payroll'), assetsHeld: held ? held.held || 0 : 0, status: v.status, overdue: v.status === 'open' && v.lastDay < t ? 'yes' : '' }));
+    });
+    rows.sort(function (a, b) { return a.lastDay < b.lastDay ? -1 : 1; });
+    var over = rows.filter(function (r) { return r.overdue; }).length, held = rows.filter(function (r) { return r.status === 'open' && r.assetsHeld; }).length;
+    var i = function (k) { return col_(k, 'int', { sum: true }); };
+    return { columns: EMP_COLS.concat([col_('ref', 'id'), col_('reason', 'code', { group: true }), col_('lastDay', 'date'), col_('daysLeft', 'int'), col_('tasksDone', 'int'), col_('tasksTotal', 'int'),
+      col_('progress', 'pct'), i('openManager'), i('openHr'), i('openPayroll'), i('assetsHeld'), col_('status', 'status', { group: true }), col_('overdue', 'code')]), rows: rows,
+      checks: [over ? { level: 'error', code: 'clearance_overdue', count: over } : null, held ? { level: 'warn', code: 'clearance_assets', count: held } : null].filter(Boolean),
+      chart: { type: 'bars', by: 'status', value: 'count' } };
+  },
+
+  // WPS and wage reconciliation month by month: the run, the WPS file (generated, uploaded with the bank / Mudad reference,
+  // confirmed), the due date and days late, and the latest GOSI and Qiwa uploads with their mismatches. Totals only.
+  cmp_wps: function (p, me, ctx, scope, s) {
+    var months = rxMonths_(p.from, p.to); if (!months.length) return rxEmpty_();
+    var t = today_(), runs = {}, wps = {}, rec = {}, rows = [], overdue = 0, open = 0, notLocked = 0;
+    readAll_(SHEETS.RUN).forEach(function (r) { if (r.status !== 'cancelled' && months.indexOf(r.month) >= 0) runs[r.month] = r; });
+    readAll_(SHEETS.WPS).forEach(function (w) { wps[w.runId] = w; });
+    readAll_(SHEETS.RECON).forEach(function (x) { var k = x.month + '|' + x.source; if (!rec[k] || String(x.at) > String(rec[k].at)) rec[k] = x; });
+    months.forEach(function (m) {
+      var r = runs[m], g = rec[m + '|gosi'], q = rec[m + '|qiwa']; if (!r && !g && !q) return;
+      var w = r ? wps[r.id] : null, due = wpsDue_(m, s), up = w && w.uploadedAt ? localParts_(new Date(w.uploadedAt)).date : '', tt = r ? publicRun_(r).totals || {} : {};
+      var late = up ? Math.max(0, daysBetween_(due, up)) : t > due ? daysBetween_(due, t) : 0;
+      if (r && r.status === 'locked' && !up && t > due) overdue++;
+      if (r && r.status !== 'locked') notLocked++;
+      [g, q].forEach(function (x) { if (x && x.status === 'open') open++; });
+      rows.push({ month: m, payrollRef: r ? r.ref : '', runStatus: r ? r.status : 'none', payslips: tt.headcount == null ? null : Number(tt.headcount), net: tt.net == null ? null : Number(tt.net),
+        wpsStatus: w ? w.status : 'none', due: due, uploaded: up, daysLate: late, bankRef: w ? String(w.bankRef || '') : '',
+        gosiRecon: g ? g.status : 'none', gosiMismatches: g ? parseJson_(g.mismatchesJson, []).length : null, qiwaRecon: q ? q.status : 'none', qiwaMismatches: q ? parseJson_(q.mismatchesJson, []).length : null });
+    });
+    return { columns: [col_('month', 'text'), col_('payrollRef', 'id'), col_('runStatus', 'code'), col_('payslips', 'int'), col_('net', 'money', { sum: true }), col_('wpsStatus', 'code', { group: true }),
+      col_('due', 'date'), col_('uploaded', 'date'), col_('daysLate', 'int'), col_('bankRef', 'id'), col_('gosiRecon', 'code'), col_('gosiMismatches', 'int', { sum: true }), col_('qiwaRecon', 'code'),
+      col_('qiwaMismatches', 'int', { sum: true })], rows: rows,
+      checks: [overdue ? { level: 'error', code: 'wps_overdue', count: overdue } : null, open ? { level: 'warn', code: 'recon_open', count: open } : null,
+        notLocked ? { level: 'info', code: 'run_not_locked', count: notLocked } : null].filter(Boolean), chart: { type: 'bars', by: 'wpsStatus', value: 'count' } };
   }
 });

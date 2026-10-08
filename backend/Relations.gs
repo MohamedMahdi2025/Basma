@@ -11,7 +11,10 @@
  *  - The occurrence counts repeats of the same violation in the previous 180 days.
  *  - Fines and suspension become payroll deductions (the month is the decision month, the next if it is locked); a
  *    suspension is at most 5 days in a month (Art. 66) and payroll already caps fines at 5 days' wage a month (Art. 70).
- *  - The employee may object within 15 days of the decision (Art. 72); HR records the outcome.
+ *  - Art. 72 as amended (in force 19 Feb 2025): the employee may file a written grievance within 30 days of being
+ *    notified of the decision, official holidays (the holidays tab) not counted; the employer decides within 15 days
+ *    (a deadline in the compliance calendar and the bell); the worker then has 30 days to go to the labour court.
+ *    The notice day defaults to the decision day; HR records a later one (registered mail) with discNotice.
  *
  * Work injuries: reported by anyone who sees it (manager, HR, the employee); GOSI must be notified within 3 days; the
  * days off for the injury count as paid leave (subtype 'injury') so attendance never shows them as absence.
@@ -77,8 +80,31 @@ function api_discCodesSave(req, me) {
 }
 
 function dailyWage_(empId, date) { var c = currentCompMap_(date)[empId]; return c ? c.total / 30 : 0; }
+
+// ---------------- Art. 72 windows (amended 2025) ----------------
+var ART72_OBJECT_DAYS = 30, ART72_DECIDE_DAYS = 15, ART72_COURT_DAYS = 30;
+/** The Riyadh calendar day of an ISO timestamp (a stored date passes through). */
+function isoLocalDay_(v) {
+  var s = String(v || '');
+  if (!s) return '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  var ms = Date.parse(s);
+  return isFinite(ms) ? localParts_(new Date(ms)).date : s.slice(0, 10);
+}
+/** Last day to file: 30 days after the notice, a day on an active official holiday not counted. */
+function objectionDue_(notified, hol) {
+  var d = notified, n = 0;
+  for (var i = 0; n < ART72_OBJECT_DAYS && i < 400; i++) { d = addDays_(d, 1); if (!hol[d]) n++; }
+  return d;
+}
+function caseNotified_(x) { return isoLocalDay_(x.notifiedOn) || isoLocalDay_(x.decidedAt); }
+function caseObjectionDue_(x, hol) { var n = caseNotified_(x); return n ? objectionDue_(n, hol || holidayMap_()) : ''; }
+/** The employer answers a grievance within 15 days of receiving it. */
+function caseDecideDue_(x) { var d = isoLocalDay_(x.objectedAt); return d ? addDays_(d, ART72_DECIDE_DAYS) : ''; }
+
 function publicCase_(x, me, ctx) {
-  var hr = isHr_(me), mine = x.empId === me.id;
+  var hr = isHr_(me), mine = x.empId === me.id, t72 = today_();
+  var objDue = x.decidedAt ? caseObjectionDue_(x) : '', decDue = x.status === 'objected' ? caseDecideDue_(x) : '';
   return { id: x.id, ref: x.ref, emp: empCard_(ctx.emps[x.empId]), code: x.code, violation: x.violation, occurrence: Number(x.occurrence) || 1,
     incidentDate: String(x.incidentDate).slice(0, 10), discoveredDate: String(x.discoveredDate).slice(0, 10), description: x.description,
     reportedBy: hr || !mine ? (ctx.emps[x.reportedBy] ? ctx.emps[x.reportedBy].name : '') : '', chargedAt: x.chargedAt, response: x.responseText, respondedAt: x.responseAt,
@@ -86,7 +112,10 @@ function publicCase_(x, me, ctx) {
     // The amount is pay: the employee, the hr role and payroll see it, an administrator alone does not.
     decidedBy: ctx.emps[x.decidedBy] ? ctx.emps[x.decidedBy].name : '', amount: x.amount === '' || !(mine || canPayroll_(me)) ? null : Number(x.amount), adjMonth: x.adjMonth,
     objection: x.objection, objectedAt: x.objectedAt, objectionResult: x.objectionResult, status: x.status, mine: mine,
-    canRespond: mine && x.status === 'charged', canObject: mine && x.status === 'decided' && x.decidedAt && daysBetween_(String(x.decidedAt).slice(0, 10), today_()) <= 15,
+    notifiedOn: caseNotified_(x), objectionDue: objDue, objectDaysLeft: objDue && x.status === 'decided' ? Math.max(0, daysBetween_(t72, objDue)) : null,
+    decideDue: decDue, decideOverdue: !!decDue && t72 > decDue, courtDays: ART72_COURT_DAYS,
+    canRespond: mine && x.status === 'charged', canObject: mine && x.status === 'decided' && !!objDue && t72 <= objDue,
+    canNotice: hr && !mine && x.status === 'decided',
     canDecide: hr && x.reportedBy !== me.id && !mine && (x.status === 'charged' || x.status === 'responded') };
 }
 /** HR or the employee's manager opens a case; it is a written charge the employee sees at once. */
@@ -183,13 +212,47 @@ function api_discObject(req, me) {
   return withLock_(function () {
     var x = findBy_(SHEETS.DCASE, 'id', req.id), ctx = orgCtx_();
     if (!x || x.empId !== me.id || x.status !== 'decided') fail_('not_found');
-    if (daysBetween_(String(x.decidedAt).slice(0, 10), today_()) > 15) fail_('too_late'); // Art. 72
+    if (today_() > caseObjectionDue_(x)) fail_('too_late'); // Art. 72 (amended 2025): 30 days from notice, official holidays not counted
     var txt = str_(req.text, 2000); if (!txt) fail_('missing_fields');
     x.objection = txt; x.objectedAt = new Date().toISOString(); x.status = 'objected'; x.updatedAt = x.objectedAt;
     update_(SHEETS.DCASE, x);
     audit_(me.id, 'disc_object', me.id, { ref: x.ref });
     return { ok: true, case: publicCase_(x, me, ctx) };
   });
+}
+/**
+ * HR records the day the employee was actually told of the decision (registered mail, a signed copy), when it was not
+ * the decision day. Only before a grievance, never earlier than the decision, never in the future.
+ */
+function api_discNotice(req, me) {
+  if (!isHr_(me)) fail_('forbidden');
+  return withLock_(function () {
+    var x = findBy_(SHEETS.DCASE, 'id', req.id), ctx = orgCtx_();
+    if (!x || x.status !== 'decided') fail_('not_found');
+    if (x.empId === me.id) fail_('forbidden');
+    var d = isoDate_(req.date);
+    if (!d || d < isoLocalDay_(x.decidedAt) || d > today_()) fail_('bad_date');
+    var before = caseNotified_(x);
+    x.notifiedOn = d; x.updatedAt = new Date().toISOString();
+    update_(SHEETS.DCASE, x);
+    audit_(me.id, 'disc_notice', x.empId, { ref: x.ref, before: before, notifiedOn: d });
+    return { ok: true, case: publicCase_(x, me, ctx) };
+  });
+}
+/** Compliance calendar: every grievance waiting for the employer's answer, due 15 days after it was filed. */
+function discCalendar_(add, ctx) {
+  readAll_(SHEETS.DCASE).forEach(function (x) {
+    if (x.status !== 'objected') return;
+    add('disc_objection_decide', caseDecideDue_(x), ctx.emps[x.empId], { ref: x.ref });
+  });
+}
+/** The bell's grievance task carries the earliest answer date and how many are overdue. */
+function discTaskDue_(me, out) {
+  var task = out.filter(function (k) { return k.kind === 'disc_objection'; })[0];
+  if (!task) return;
+  var t = today_(), dues = readAll_(SHEETS.DCASE).filter(function (x) { return x.status === 'objected' && x.decidedBy !== me.id; }).map(caseDecideDue_).sort();
+  task.due = dues[0] || '';
+  task.overdue = dues.filter(function (d) { return d < t; }).length;
 }
 /** HR answers an objection: upheld (penalty stays) or cancelled (any deduction not yet paid is removed). */
 function api_discObjectionDecide(req, me) {

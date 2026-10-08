@@ -7,7 +7,10 @@
 // GOSI employee / employer % by cohort and month (Social Insurance Law; new law for first-time contributors from Jul 2024)
 var GOSI_NEW = [['2024-07', 9.75, 11.75], ['2025-07', 10.25, 12.25], ['2026-07', 10.75, 12.75], ['2027-07', 11.25, 13.25], ['2028-07', 11.75, 13.75]];
 var GOSI_LEGACY = [9.75, 11.75], GOSI_NON_SAUDI_ER = 2, GOSI_MIN = 1500, GOSI_MAX = 45000;
-var ADJ_CODES = { bonus: 'earning', commission: 'earning', other_earning: 'earning', overtime_hours: 'hours', fine: 'deduction', other_deduction: 'deduction' };
+var ADJ_CODES = { bonus: 'earning', commission: 'earning', other_earning: 'earning', overtime_hours: 'hours', fine: 'deduction', other_deduction: 'deduction',
+  reimbursement: 'earning' }; // an approved expense claim (Expenses.gs): paid with the salary, not wage (no GOSI, outside the Art. 93 base)
+var ADJ_NON_WAGE = { reimbursement: 1 };
+var ADJ_SYSTEM_ONLY = { reimbursement: 1 }; // only written by an approved claim, never typed in payroll
 
 function gosiRates_(isSaudi, cohort, month) {
   if (!isSaudi) return { emp: 0, er: GOSI_NON_SAUDI_ER, cohort: 'non_saudi' };
@@ -114,7 +117,8 @@ function calcSlip_(emp, x) {
   x.adjs.forEach(function (a) {
     if (a.empId !== emp.id || a.code === 'overtime_hours') return;
     var k = ADJ_CODES[a.code];
-    if (k === 'earning') add({ kind: 'earning', code: a.code, ref: a.ref, label: a.reason, amount: Number(a.amount) });
+    if (k === 'earning' && ADJ_NON_WAGE[a.code]) add({ kind: 'earning', code: a.code, ref: a.ref, label: a.reason, amount: Number(a.amount), nonWage: true });
+    else if (k === 'earning') add({ kind: 'earning', code: a.code, ref: a.ref, label: a.reason, amount: Number(a.amount) });
     else if (a.code === 'fine') fines += Number(a.amount) || 0;
     else if (k === 'deduction') add({ kind: 'deduction', code: a.code, ref: a.ref, label: a.reason, amount: Number(a.amount), cap: true });
   });
@@ -151,7 +155,7 @@ function calcSlip_(emp, x) {
   });
 
   // Art. 92-93: deductions at most half the wage due; advances wait first, then other deductions, then fines
-  var due = sumOf_(out.lines, 'earning') - out.lines.filter(function (l) { return l.kind === 'deduction' && l.cap === false; }).reduce(function (t, l) { return t + l.amount; }, 0);
+  var due = sumOf_(out.lines, 'earning') - out.lines.filter(function (l) { return (l.kind === 'deduction' && l.cap === false) || (l.kind === 'earning' && l.nonWage); }).reduce(function (t, l) { return t + l.amount; }, 0);
   var capped = function () { return out.lines.filter(function (l) { return l.cap; }).reduce(function (t, l) { return t + l.amount; }, 0); };
   var limit = Math.max(0, due) * 0.5;
   ['advance', 'other_deduction', 'fine'].forEach(function (code) {
@@ -346,7 +350,7 @@ function api_payrollAdjSave(req, me) {
   if (!canPayroll_(me)) fail_('forbidden');
   var d = req.adj || {}, month = String(d.month || ''), code = String(d.code || ''), amount = num_(d.amount);
   if (!/^\d{4}-\d{2}$/.test(month)) fail_('bad_date');
-  if (!ADJ_CODES[code]) fail_('bad_value');
+  if (!ADJ_CODES[code] || ADJ_SYSTEM_ONLY[code]) fail_('bad_value');
   if (!(amount > 0) || (code === 'overtime_hours' && amount > 200)) fail_('bad_amount');
   if (!str_(d.reason, 200)) fail_('note_required');
   if (d.empId === me.id) fail_('cannot_change_own_salary');
@@ -366,6 +370,7 @@ function api_payrollAdjDelete(req, me) {
   return withLock_(function () {
     var a = findBy_(SHEETS.ADJ, 'id', req.id);
     if (!a || a.status === 'deleted') fail_('not_found');
+    if (ADJ_SYSTEM_ONLY[a.code]) fail_('forbidden'); // withdrawn by cancelling its expense claim
     if (a.empId === me.id) fail_('cannot_change_own_salary');
     if (monthLocked_(a.empId, a.month)) fail_('month_locked');
     a.status = 'deleted';
@@ -536,7 +541,7 @@ function graphSend_(c, token, to, subject, html) {
   if (r.getResponseCode() >= 300) fail_('email_send_failed');
 }
 var PAY_LABELS_AR = { basic: 'الراتب الأساسي', housing: 'بدل السكن', transport: 'بدل النقل', allowance: 'بدل', overtime: 'عمل إضافي', bonus: 'مكافأة', commission: 'عمولة',
-  other_earning: 'استحقاق آخر', unpaid_leave: 'إجازة بدون راتب', sick_75: 'إجازة مرضية بثلاثة أرباع الأجر', sick_unpaid: 'إجازة مرضية بدون أجر', absence: 'غياب',
+  other_earning: 'استحقاق آخر', reimbursement: 'تعويض مصروفات', unpaid_leave: 'إجازة بدون راتب', sick_75: 'إجازة مرضية بثلاثة أرباع الأجر', sick_unpaid: 'إجازة مرضية بدون أجر', absence: 'غياب',
   late: 'دقائق التأخير', gosi: 'التأمينات الاجتماعية (حصة الموظف)', advance: 'قسط سلفة', fine: 'جزاء', other_deduction: 'خصم آخر' };
 function payslipEmailHtml_(sl) {
   var e = sl.emp || {}, m = function (n) { return Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };

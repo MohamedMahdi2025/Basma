@@ -1,5 +1,7 @@
 // Reports centre checks: node tests/reports.js
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
 const { load, Authenticator } = require('./harness');
 let passed = 0, failed = 0;
 function ok(c, name, extra) { if (c) { passed++; console.log('  ok  ' + name); } else { failed++; console.log('  FAIL ' + name + (extra !== undefined ? '  -> ' + JSON.stringify(extra) : '')); } }
@@ -80,7 +82,7 @@ ok(r.ok && r.reports.some(x => x.id === 'audit_log') && !r.reports.some(x => x.a
 r = call('3005', 'reportCatalog');
 ok(r.ok && r.reports.some(x => x.id === 'pay_cost') && !r.reports.some(x => x.id === 'pay_register'), 'executive: department cost, never the per-person register');
 r = call('3002', 'reportCatalog');
-ok(r.ok && r.reports.some(x => x.id === 'pay_register') && r.reports.length === 19 - 1, 'payroll: every report except the audit log', r.reports.length);
+ok(r.ok && r.reports.some(x => x.id === 'pay_register') && r.reports.length === Object.keys(B.ctx.REPORTS).length - 1, 'payroll: every report except the audit log', r.reports.length);
 r = run('1000', 'pay_register');
 ok(!r.ok && r.error === 'forbidden', 'admin cannot run the payroll register', r);
 
@@ -200,6 +202,311 @@ const aud = direct(() => B.ctx.readAll_('audit')).filter(a => a.action === 'repo
 ok(aud.length === 4, 'every export is in the audit trail', aud.length);
 const sv = direct(() => B.ctx.readAll_('audit')).filter(a => a.action === 'salary_view');
 ok(sv.length >= 3, 'running a money report writes a salary-view audit line', sv.length);
+
+// =====================================================================================================
+// Analytical reports (2026-10-04): fixture, then shape, a hand-computed figure, and access for every new report.
+// =====================================================================================================
+console.log('Analytical reports: fixture');
+const NEW = ['att_dept_trend', 'att_punctuality', 'att_late_top', 'att_bradford', 'att_weekday', 'att_checkin_bands', 'att_missing_out', 'att_flags', 'att_overtime',
+  'leave_util_dept', 'leave_type_month', 'leave_upcoming', 'leave_sick_bradford', 'leave_yearend_risk', 'leave_liability_trend',
+  'pay_company_cost', 'pay_gosi_wage', 'pay_var_lines', 'pay_ytd', 'pay_bands', 'pay_gosi_cohort', 'pay_deductions', 'pay_ot_trend', 'pay_cost_per_head',
+  'wf_snapshot', 'wf_joiners', 'wf_leavers', 'wf_turnover_dept', 'wf_tenure', 'wf_span', 'wf_org', 'wf_vacancies', 'wf_probation',
+  'perf_curve', 'perf_kpi', 'perf_360', 'perf_plans', 'req_sla', 'req_bottlenecks', 'req_volume',
+  'cmp_disciplinary', 'cmp_injuries', 'cmp_custody', 'cmp_clearance', 'cmp_wps'];
+const REQ0 = { ref: '', subtype: '', fromDate: '', toDate: '', days: '', amount: '', months: '', payloadJson: '{}', reason: '', docNo: '', status: 'approved', step: 'done', stepsJson: '[]', effectJson: '{}', updatedAt: '', decidedAt: '' };
+const rq = o => Object.assign({}, REQ0, o);
+const pz = (id, no, ds, hm, extra) => Object.assign({ id, empId: ids[no], type: 'in', ts: at(ds, hm), date: ds, lat: '', lng: '', acc: 10, zoneId: '', distance: 5, status: 'ok', risk: 0, flags: '', source: 'app',
+  note: '', reviewBy: '', reviewAt: '', credId: '', ua: '', createdAt: at(ds, hm) }, extra);
+direct(() => {
+  const X = B.ctx, E = no => X.findBy_('employees', 'empNo', no);
+  [['5001', 'male'], ['5002', 'male'], ['5003', 'female'], ['5004', 'male']].forEach(([no, g]) => { const e = E(no); e.gender = g; X.update_('employees', e); });
+  X.appendMany_('positions', [
+    { id: 'POS1', code: 'SR', titleAr: 'مندوب مبيعات', departmentId: dept, grade: 'G3', status: 'active', createdAt: '2026-01-01T00:00:00Z' },
+    { id: 'POS2', code: 'AC', titleAr: 'محاسب', departmentId: other, grade: 'G4', status: 'active', createdAt: '2026-01-01T00:00:00Z' },
+    { id: 'POS3', code: 'WS', titleAr: 'مشرف مستودع', departmentId: dept, grade: 'G5', status: 'active', createdAt: '2026-09-01T00:00:00Z' }]);
+  [['5002', 'POS1'], ['5003', 'POS1'], ['5004', 'POS2']].forEach(([no, pid]) => { const e = E(no); e.positionId = pid; X.update_('employees', e); });
+  const e4 = E('5004'); e4.leaveOpeningDays = 30; X.update_('employees', e4);
+  // a leaver (resigned, left 15 Aug) and a new hire still in probation
+  X.append_('employees', { id: 'E5005', empNo: '5005', name: 'موظف 5005', role: 'employee', status: 'disabled', departmentId: dept, positionId: 'POS3', hireDate: '2025-03-01',
+    lastWorkingDay: '2026-08-15', resignedOn: '2026-07-15', nationality: 'SA', isSaudi: true, gender: 'male', createdAt: '2026-09-01T00:00:00.000Z', tokenVer: 1 });
+  X.append_('employees', { id: 'E5006', empNo: '5006', name: 'موظف 5006', role: 'employee', status: 'active', departmentId: sub, managerId: ids['5001'], hireDate: '2026-11-01',
+    probationEnd: '2026-11-25', nationality: 'IN', isSaudi: false, gender: 'male', createdAt: '2026-11-04T05:00:00.000Z', tokenVer: 1 });
+  X.append_('empPrivate', { empId: ids['5004'], nationalId: '2000000001', gosiWage: 9000, updatedAt: '' });
+  X.appendMany_('requests', [
+    rq({ id: 'L1', ref: 'LV-2026-00011', empId: ids['5002'], type: 'leave', subtype: 'annual', fromDate: '2026-11-10', toDate: '2026-11-11', days: 2, createdAt: '2026-10-25T06:00:00.000Z', decidedAt: '2026-10-26T06:00:00.000Z' }),
+    rq({ id: 'L2', ref: 'LV-2026-00012', empId: ids['5001'], type: 'leave', subtype: 'annual', fromDate: '2026-11-10', toDate: '2026-11-11', days: 2, status: 'pending', step: 'hr', createdAt: '2026-11-02T06:00:00.000Z' }),
+    rq({ id: 'L3', ref: 'LV-2026-00013', empId: ids['5003'], type: 'leave', subtype: 'annual', fromDate: '2026-11-10', toDate: '2026-11-10', days: 1, status: 'pending', step: 'manager', createdAt: '2026-11-01T06:00:00.000Z' }),
+    rq({ id: 'S1', ref: 'LV-2026-00021', empId: ids['5004'], type: 'leave', subtype: 'sick', fromDate: '2026-10-05', toDate: '2026-10-05', days: 1, createdAt: '2026-10-05T06:00:00.000Z', decidedAt: '2026-10-05T08:00:00.000Z' }),
+    rq({ id: 'S2', ref: 'LV-2026-00022', empId: ids['5004'], type: 'leave', subtype: 'sick', fromDate: '2026-10-11', toDate: '2026-10-12', days: 2, createdAt: '2026-10-11T06:00:00.000Z', decidedAt: '2026-10-11T08:00:00.000Z' }),
+    rq({ id: 'S3', ref: 'LV-2026-00023', empId: ids['5003'], type: 'leave', subtype: 'sick', fromDate: '2026-10-01', toDate: '2026-10-01', days: 1, createdAt: '2026-10-01T06:00:00.000Z', decidedAt: '2026-10-01T08:00:00.000Z' }),
+    rq({ id: 'S4', ref: 'LV-2026-00024', empId: ids['5003'], type: 'leave', subtype: 'sick', fromDate: '2026-10-04', toDate: '2026-10-04', days: 1, createdAt: '2026-10-04T06:00:00.000Z', decidedAt: '2026-10-04T08:00:00.000Z' }),
+    // two corrections with their approval history: manager 4 h and 30 h, HR 48 h and 72 h
+    rq({ id: 'RS1', ref: 'AC-2026-00001', empId: ids['5002'], type: 'correction', createdAt: '2026-10-05T06:00:00.000Z', decidedAt: '2026-10-07T10:00:00.000Z',
+      stepsJson: JSON.stringify([{ step: 'manager', by: ids['5001'], role: 'manager', decision: 'approve', at: '2026-10-05T10:00:00.000Z' }, { step: 'hr', by: ids['3001'], role: 'hr', decision: 'approve', at: '2026-10-07T10:00:00.000Z' }]) }),
+    rq({ id: 'RS2', ref: 'AC-2026-00002', empId: ids['5003'], type: 'correction', createdAt: '2026-10-12T06:00:00.000Z', decidedAt: '2026-10-16T12:00:00.000Z',
+      stepsJson: JSON.stringify([{ step: 'manager', by: ids['5001'], role: 'manager', decision: 'approve', at: '2026-10-13T12:00:00.000Z' }, { step: 'hr', by: ids['3001'], role: 'hr', decision: 'approve', at: '2026-10-16T12:00:00.000Z' }]) })]);
+  X.appendMany_('punches', [pz('PFX1', '5002', '2026-10-20', '07:58', { status: 'rejected', flags: 'static_samples,few_samples', risk: 45 }),
+    pz('PFX2', '5003', '2026-10-21', '07:56', { status: 'approved', flags: 'new_device', risk: 10 })]);
+  X.appendMany_('adjustments', [{ id: 'AJ1', ref: 'ADJ-T1', empId: ids['5002'], month: '2026-09', kind: 'earning', code: 'bonus', amount: 1500, reason: 'مكافأة', enteredBy: ids['3001'], status: 'active', createdAt: '2026-09-28T00:00:00Z' },
+    { id: 'AJ2', ref: 'ADJ-T2', empId: ids['5004'], month: '2026-09', kind: 'hours', code: 'overtime_hours', amount: 4, reason: 'جرد', enteredBy: ids['3001'], status: 'active', createdAt: '2026-09-28T00:00:00Z' }]);
+  X.append_('salaryRecon', { id: 'Q1', ref: 'REC-2026-00001', month: '2026-10', source: 'gosi', total: 3, matched: 2, mismatchesJson: JSON.stringify([{ empId: ids['5002'], empNo: '5002', name: 'موظف 5002', ours: 11250, theirs: 10000, diff: -1250 }]),
+    missingJson: '[]', unknownJson: '[]', status: 'open', by: ids['3002'], at: '2026-11-03T08:00:00.000Z', resolvedBy: '', resolvedAt: '', note: '' });
+  X.append_('perfCycles', { id: 'CY1', ref: 'PC-2026-00001', year: 2026, nameAr: 'تقييم 2026', nameEn: 'Review 2026', type: 'annual', status: 'review', kpiWeight: 70, compWeight: 30, createdBy: ids['3001'], createdAt: '2026-09-15T00:00:00Z' });
+  X.appendMany_('kpis', [[40, 'on_track'], [30, 'at_risk'], [30, '']].map(([w, m], i) => ({ id: 'K' + i, ref: 'KPI-' + i, cycleId: 'CY1', empId: ids['5002'], titleAr: 'هدف ' + i, weight: w, status: 'agreed', midStatus: m, createdAt: '2026-09-20T00:00:0' + i + 'Z' })));
+  X.appendMany_('reviews', [['5002', 3.42, '2026-10-20T00:00:00Z'], ['5003', 4.6, ''], ['5004', 2.2, '']].map(([no, ov, self], i) => ({ id: 'V' + i, ref: 'RV-' + i, cycleId: 'CY1', empId: ids[no], stage: 'manager',
+    selfAt: self, overall: ov, kpiScore: ov, compScore: ov, finalRating: '', createdAt: '2026-10-01T00:00:00Z' })));
+  X.appendMany_('feedback360', [['5002', 'self', 'submitted'], ['5001', 'manager', 'submitted'], ['5003', 'peer', 'submitted'], ['5004', 'peer', 'invited']].map(([no, rel, st], i) => ({ id: 'F' + i, ref: 'FB-' + i,
+    cycleId: 'CY1', subjectId: ids['5002'], raterId: ids[no], relation: rel, status: st, answersJson: '', comment: '', createdAt: '2026-10-01T00:00:00Z', submittedAt: st === 'submitted' ? '2026-10-10T00:00:00Z' : '' })));
+  X.appendMany_('devPlans', [
+    { id: 'D1', ref: 'PIP-2026-00001', empId: ids['5003'], type: 'pip', titleAr: 'تحسين', reason: 'x', goalsJson: JSON.stringify([{ title: 'أ', status: 'met' }, { title: 'ب', status: 'at_risk' }]), support: 'y',
+      startDate: '2026-09-01', endDate: '2026-10-31', status: 'active', checkInsJson: JSON.stringify([{ date: '2026-10-01', note: 'n', by: 'x' }]), ackAt: '', createdBy: ids['5001'], createdAt: '2026-09-01T00:00:00Z' },
+    { id: 'D2', ref: 'IDP-2026-00001', empId: ids['5002'], type: 'idp', titleAr: 'تطوير', reason: '', goalsJson: JSON.stringify([{ title: 'ج', status: 'open' }]), support: '',
+      startDate: '2026-10-01', endDate: '2027-09-30', status: 'active', checkInsJson: JSON.stringify([{ date: '2026-11-01', note: 'n', by: 'x' }]), ackAt: '2026-10-02T00:00:00Z', createdBy: ids['5001'], createdAt: '2026-10-01T00:00:00Z' }]);
+  X.appendMany_('discCases', [
+    { id: 'J1', ref: 'DSC-2026-00001', empId: ids['5002'], code: 'LATE15', violation: 'التأخر حتى 15 دقيقة', occurrence: 1, incidentDate: '2026-10-06', discoveredDate: '2026-10-06', reportedBy: ids['5001'],
+      chargedAt: '2026-10-07T08:00:00.000Z', decision: 'warning', decidedBy: ids['3001'], decidedAt: '2026-10-10T08:00:00.000Z', amount: '', status: 'decided', createdAt: '2026-10-07T08:00:00.000Z' },
+    { id: 'J2', ref: 'DSC-2026-00002', empId: ids['5002'], code: 'LATE15', violation: 'التأخر حتى 15 دقيقة', occurrence: 2, incidentDate: '2026-10-20', discoveredDate: '2026-10-20', reportedBy: ids['5001'],
+      chargedAt: '2026-10-21T08:00:00.000Z', decision: 'fine_pct:5', decidedBy: ids['3001'], decidedAt: '2026-10-25T08:00:00.000Z', amount: 20.25, status: 'decided', createdAt: '2026-10-21T08:00:00.000Z' },
+    { id: 'J3', ref: 'DSC-2026-00003', empId: ids['5003'], code: 'ABS1', violation: 'الغياب يوما', occurrence: 1, incidentDate: '2026-09-18', discoveredDate: '2026-09-18', reportedBy: ids['5001'],
+      chargedAt: '2026-09-20T08:00:00.000Z', decision: '', amount: '', status: 'charged', createdAt: '2026-09-20T08:00:00.000Z' }]);
+  X.appendMany_('injuries', [
+    { id: 'I1', ref: 'INJ-2026-00001', empId: ids['5004'], occurredAt: '2026-10-10T09:00', place: 'المستودع', description: 'جرح في اليد', reportedBy: ids['5004'], reportedAt: '2026-10-10T10:00:00Z',
+      gosiDue: '2026-10-13', gosiRef: 'G-1', gosiReportedAt: '2026-10-15T08:00:00.000Z', offFrom: '2026-10-11', offTo: '2026-10-13', status: 'gosi_notified', createdAt: '2026-10-10T10:00:00Z' },
+    { id: 'I2', ref: 'INJ-2026-00002', empId: ids['5002'], occurredAt: '2026-10-28T10:00', place: 'الساحة', description: 'التواء في القدم', reportedBy: ids['5001'], reportedAt: '2026-10-28T11:00:00Z',
+      gosiDue: '2026-10-31', gosiRef: '', gosiReportedAt: '', offFrom: '', offTo: '', status: 'reported', createdAt: '2026-10-28T11:00:00Z' }]);
+  X.appendMany_('assets', [['T1', 'vehicle', 85000], ['T2', 'pos', 1200], ['T3', 'phone', 2500]].map(([id, ty, v]) => ({ id, ref: 'AST-' + id, type: ty, nameAr: ty, serial: id, value: v, status: 'assigned', createdAt: '2025-01-01T00:00:00Z' })));
+  X.appendMany_('custody', [['C1', 'T1', '5002', '2026-09-15T08:00:00Z', '2026-09-15T09:00:00Z'], ['C2', 'T2', '5002', '2026-10-01T08:00:00Z', ''], ['C3', 'T3', null, '2025-05-01T08:00:00Z', '2025-05-01T09:00:00Z']]
+    .map(([id, a, no, h, ack]) => ({ id, assetId: a, empId: no ? ids[no] : 'E5005', handedAt: h, handedBy: ids['3001'], conditionOut: 'سليم', ackAt: ack, status: 'held' })));
+  X.append_('clearance', { id: 'K1', ref: 'CLR-2026-00001', empId: 'E5005', lastDay: '2026-08-15', reason: 'resignation', status: 'open', createdBy: ids['3001'], createdAt: '2026-07-20T00:00:00Z',
+    tasksJson: JSON.stringify(X.CLR_TASKS.map(t => ({ key: t.key, owner: t.owner, status: t.key === 'handover' ? 'done' : 'open', by: '', at: '' }))) });
+  X.appendMany_('onboarding', [['contract', 'done'], ['gosi', 'open'], ['probation', 'open']].map(([k, st], i) => ({ id: 'O' + i, ref: 'ONB-' + i, empId: 'E5006', taskKey: k, owner: 'hr', dueDate: k === 'probation' ? '2026-11-20' : '2026-11-01',
+    status: st, createdBy: ids['3001'], createdAt: '2026-11-01T00:00:00Z' })));
+});
+r = call('3002', 'payrollCreate', { month: '2026-09' });
+const sepRun = r.run;
+ok(r.ok && call('3004', 'payrollApprove', { id: sepRun.id }).ok, 'September run prepared by one payroll holder and locked by the other');
+const octRun = call('3002', 'reportCatalog').runs.find(x => x.month === '2026-10');
+const team = new Set(['5002', '5003', '5006']);
+const OCT = { from: '2026-10-01', to: '2026-10-31' };
+const prmOf = id => {
+  const ps = B.ctx.REPORTS[id].params, o = {};
+  if (ps.some(x => /^range/.test(x))) Object.assign(o, id === 'wf_joiners' || id === 'wf_leavers' ? { from: '2026-01-01', to: '2026-12-31' } : OCT);
+  if (ps.includes('month')) o.month = '2026-10';
+  if (ps.includes('asOf')) o.asOf = '2026-10-31';
+  if (ps.includes('days')) o.days = 90;
+  if (ps.includes('cycle')) o.cycle = 'CY1';
+  return o;
+};
+const rowOf = (res, f) => (res.rows || []).find(f) || {};
+const emp = no => x => x.empNo === no;
+
+console.log('Analytical reports: shape, strings, access, one read per tab');
+ok(NEW.length === 45 && NEW.every(id => B.ctx.REPORTS[id] && B.ctx.REPORT_FNS[id]) && Object.keys(B.ctx.REPORTS).length === 19 + NEW.length, '45 new reports, each in the catalogue with its function', Object.keys(B.ctx.REPORTS).length);
+// Every report id, column key, check code and code value has its Arabic and English text in js/reports.js.
+const JS = fs.readFileSync(path.join(__dirname, '..', 'js', 'reports.js'), 'utf8');
+const block = name => { const i = JS.indexOf('var ' + name + ' = {'); const j = JS.indexOf('\n};', i); return i < 0 ? '' : JS.slice(i, j); };
+const keysOf = txt => new Set((txt.match(/(?:^|[{,\s])'?([A-Za-z0-9_<+\-]+)'?\s*:\s*\[/gm) || []).map(m => m.replace(/^[{,\s]*'?/, '').replace(/'?\s*:\s*\[$/, '')));
+const K = { RPT: keysOf(block('RPT')), COLS: keysOf(block('COLS')), CODES: keysOf(block('CODES')), CHECKS: keysOf(block('CHECKS')) };
+const GROUPS = new Set((block('GROUPS') || JS.slice(JS.indexOf('var GROUPS'), JS.indexOf('var COLS'))).match(/\['([a-z]+)'/g).map(x => x.slice(2, -1)));
+const RES = {}, bad = [], miss = new Set();
+const known = (key, v) => K.CODES.has(String(v)) || ['type'].includes(key) || ['leaveType'].includes(key) || (key === 'status' && ['approved', 'pending', 'rejected', 'cancelled'].includes(v)) ||
+  ['manager', 'hr', 'payroll'].includes(v) || (key === 'approver' && !/^[a-z_]+$/.test(String(v)));
+const reads = {};
+Object.keys(B.sheets).forEach(n => { const sh = B.sheets[n], orig = sh.getDataRange.bind(sh); sh.getDataRange = () => { reads[n] = (reads[n] || 0) + 1; return orig(); }; });
+const twice = [];
+NEW.forEach(id => {
+  Object.keys(reads).forEach(k => delete reads[k]);
+  const res = RES[id] = run('3001', id, prmOf(id));
+  Object.keys(reads).forEach(k => { if (reads[k] > 1) twice.push(id + ':' + k + 'x' + reads[k]); });
+  if (!res.ok) { bad.push(id + ' ' + res.error); return; }
+  const keys = new Set(res.columns.map(c => c.key));
+  if (!res.columns.length || !res.columns.every(c => typeof c.key === 'string' && typeof c.type === 'string')) bad.push(id + ' columns');
+  if (!Array.isArray(res.rows) || !res.rows.length) bad.push(id + ' no rows');
+  if (!res.checks.every(c => ['error', 'warn', 'info'].includes(c.level) && typeof c.code === 'string' && typeof c.count === 'number')) bad.push(id + ' checks');
+  const ch = res.chart;
+  if (ch && !(['bars', 'hbar'].includes(ch.type) && (ch.type === 'bars' ? keys.has(ch.by) : keys.has(ch.label)) && (ch.value === 'count' || keys.has(ch.value)))) bad.push(id + ' chart');
+  if (!K.RPT.has(id)) miss.add('RPT:' + id);
+  if (!GROUPS.has(B.ctx.REPORTS[id].group)) miss.add('GROUP:' + B.ctx.REPORTS[id].group);
+  res.columns.forEach(c => { if (!K.COLS.has(c.key)) miss.add('COLS:' + c.key); });
+  res.checks.forEach(c => { if (!K.CHECKS.has(c.code)) miss.add('CHECKS:' + c.code); });
+  res.columns.filter(c => c.type === 'code' || c.type === 'status').forEach(c => res.rows.forEach(x => { const v = x[c.key]; if (v != null && v !== '' && !known(c.key, v)) miss.add('CODES:' + c.key + '=' + v); }));
+});
+ok(bad.length === 0, 'each new report returns columns {key, type}, rows, checks {level, code, count} and a chart hint on its own columns', bad);
+ok(miss.size === 0, 'every report name, column, check and code has its Arabic and English text in js/reports.js', [...miss]);
+ok(twice.length === 0, 'no report reads a Sheet tab twice in one request', twice);
+
+const acc = { manager: [], admin: [], exec: [], employee: [], payroll: [] };
+NEW.forEach(id => {
+  const a = B.ctx.REPORTS[id].access, p = prmOf(id);
+  const m = run('5001', id, p), ad = run('1000', id, p), ex = run('3005', id, p), em = run('5004', id, p), pa = run('3002', id, p);
+  if (a === 'people' ? !(m.ok && m.teamOnly && m.rows.every(x => !x.empNo || team.has(String(x.empNo)))) : m.error !== 'forbidden') acc.manager.push(id);
+  if (a === 'people' ? !(ad.ok && !ad.teamOnly) : ad.error !== 'forbidden') acc.admin.push(id);
+  if (a === 'money' ? ex.error !== 'forbidden' : !ex.ok) acc.exec.push(id);
+  if (em.error !== 'forbidden') acc.employee.push(id);
+  if (!pa.ok) acc.payroll.push(id);
+});
+ok(acc.manager.length === 0, 'a manager runs the people reports for their own team only (row-level security), and no money or cost report', acc.manager);
+ok(acc.admin.length === 0, 'strict mode: the administrator alone is refused every money and cost report', acc.admin);
+ok(acc.exec.length === 0, 'the executive gets cost totals and people reports, never per-person pay', acc.exec);
+ok(acc.employee.length === 0 && acc.payroll.length === 0, 'an employee with no team runs none; payroll runs all of them', acc);
+
+console.log('Analytical reports: hand-computed figures');
+r = RES.att_dept_trend;
+let x = rowOf(r, y => y.department === 'مبيعات الرياض');
+ok(x.expected === 19 && x.present === 18 && x.absent === 1 && x.attendance === 94.7 && x.prevRate === 0 && x.changePts === 94.7, 'attendance trend: 5003 in October 18 / 19 expected (two leave days out) = 94.7%, September 0%', x);
+x = rowOf(RES.att_punctuality, y => y.month === '2026-10');
+ok(x.lateDays === 4 && x.lateMin === 180 && x.avgLate === 45 && x.medianLate === 40 && x.p90Late === 54 && x.punctuality === 93.3, 'punctuality: 4 late of 60 (93.3%); minutes 40,40,40,60: mean 45, median 40, p90 54', x);
+r = RES.att_late_top;
+ok(r.rows[0].empNo === '5002' && r.rows[0].rank === 1 && r.rows[0].lateMin === 120 && r.rows[0].lateRate === 14.3 && r.rows[1].empNo === '5003' && r.checks.find(c => c.code === 'late_top_share').value === 100,
+  'lateness ranking: 5002 first, 3 of 21 days (14.3%), 120 minutes; the top ten hold 100%', r.rows.slice(0, 2));
+x = rowOf(RES.att_bradford, emp('5003'));
+ok(x.spells === 1 && x.absent === 1 && x.bradford === 1 && x.prev === 22 && x.change === -21, 'Bradford: one day absent in October = 1; September absent all 22 working days is ONE spell over the weekends = 1 x 1 x 22', x);
+x = rowOf(RES.att_weekday, y => y.weekday === 'sun');
+ok(x.expected === 11 && x.absent === 1 && x.absentRate === 9.1 && x.prevAbsentRate === 100 && rowOf(RES.att_weekday, y => y.weekday === 'thu').lateRate === 14.3, 'weekdays: Sundays 1 absent of 11 (9.1%) against 100% in September; Thursdays 2 late of 14', x);
+x = rowOf(RES.att_checkin_bands, y => y.department === 'المبيعات' && y.band === 'late_60');
+ok(x.arrivals === 3 && x.share === 14.3 && RES.att_checkin_bands.checks.find(c => c.code === 'late_arrivals').count === 4, 'check-in bands: 3 of 5002\'s 21 arrivals were 31-60 minutes late; 4 late arrivals in all', x);
+x = rowOf(RES.att_missing_out, emp('5003'));
+ok(x.missingOut === 1 && x.lastDate === absent5003[0] && x.missingRate === 5.6, 'missing check-out: the hand-entered 09:00 check-in on 8 October left open (1 of 18 days)', x);
+r = RES.att_flags;
+ok(rowOf(r, y => y.flag === 'edge').pendingReview === 1 && rowOf(r, y => y.flag === 'static_samples').rejectedN === 1 && rowOf(r, y => y.flag === 'new_device').approvedN === 1 && rowOf(r, y => y.flag === 'edge').share === 0.8,
+  'risk flags: edge held for review (1 of 121 app punches = 0.8%), frozen samples rejected, new device approved', r.rows);
+x = rowOf(RES.att_overtime, emp('5002'));
+ok(x.overtime === 3 && x.otDays === 18 && x.estCost === 208.13, 'overtime: 18 days x 10 minutes = 3 h; Art. 107 cost 3 x (12150/240 + 50% x 9000/240) = 208.13', x);
+r = run('5001', 'att_overtime', OCT);
+ok(r.ok && !r.columns.some(c => c.key === 'estCost') && !r.rows.some(y => 'estCost' in y), 'a manager sees overtime hours but never the cost estimate');
+ok(direct(() => B.ctx.readAll_('audit')).some(a => a.action === 'salary_view' && String(a.detail).includes('att_overtime')), 'the cost column writes a salary-view audit line for the hr role');
+
+r = run('3001', 'leave_util_dept', { from: '2026-10-01', to: '2026-11-30' });
+x = rowOf(r, y => y.department === 'المبيعات');
+ok(x.headcount === 2 && x.earned === 7.48 && x.taken === 2 && x.utilisation === 26.7, 'leave utilisation: earned 61 x 30/365 + 30 x 30/365 = 7.48 days, taken 2 = 26.7%', x);
+ok(rowOf(r, y => y.department === 'مبيعات الرياض').sickDays === 2 && rowOf(r, y => y.department === 'مبيعات الرياض').otherDays === 4 && rowOf(r, y => y.department === 'المالية').sickDays === 3, 'sick and other leave days beside it (unpaid counts calendar days)');
+r = run('3001', 'leave_type_month', { from: '2026-10-01', to: '2026-11-30' });
+x = rowOf(r, y => y.leaveType === 'sick' && y.month === '2026-10');
+ok(x.days === 5 && x.requests === 4 && x.people === 2 && rowOf(r, y => y.leaveType === 'annual' && y.month === '2026-11').days === 2, 'leave by type and month: October sick 5 days, 4 requests, 2 people', x);
+r = RES.leave_upcoming;
+x = rowOf(r, y => y.ref === 'LV-2026-00011');
+ok(r.rows.length === 3 && x.peakAway === 2 && x.peakShare === 100 && x.startsIn === 6 && r.checks.find(c => c.code === 'leave_overlap').count === 2 && r.checks.find(c => c.code === 'leave_pending').count === 2,
+  'upcoming leave: both people of Sales away on 10-11 November (100%), starting in 6 days; two still pending', r.rows);
+r = RES.leave_sick_bradford;
+ok(rowOf(r, emp('5004')).bradford === 12 && rowOf(r, emp('5004')).spells === 2 && rowOf(r, emp('5004')).fullPayLeft === 27 && rowOf(r, emp('5003')).spells === 1 && rowOf(r, emp('5003')).sickDays === 2 && rowOf(r, emp('5003')).bradford === 2,
+  'sick Bradford: 5004 2 spells x 3 days = 12; 5003 Thursday + Sunday is one spell over the weekend: 1 x 2 = 2', r.rows);
+x = rowOf(RES.leave_yearend_risk, emp('5004'));
+ok(x.projected === 35.29 && x.excess === 14.29 && x.perMonth === 7.02 && x.risk === 'high' && x.liability === 5144.4, 'year end: 30 + 92 x 21/365 = 35.29 days, 14.29 over one year, 7.02 a month to plan, worth 5,144.40', x);
+r = run('5001', 'leave_yearend_risk', { asOf: '2026-10-31' });
+ok(r.ok && !r.columns.some(c => c.key === 'liability') && !r.rows.some(y => y.empNo === '5004'), 'a manager: own team, no money column');
+x = rowOf(RES.leave_liability_trend, y => y.month === '2026-10');
+ok(x.headcount === 3 && x.liability === 19122.3 && x.prev === 17100 && x.change === 2022.3 && x.changePct === 11.8, 'leave liability: 12.55 x 405 + 11.55 x 225 + 31.78 x 360 = 19,122.30 against 17,100 at September end', x);
+
+x = rowOf(RES.pay_company_cost, emp('5002'));
+ok(x.gross === 12150 && x.gosiEmployer === 1321.88 && x.eosAccrual === 1012.5 && x.companyCost === 14484.38 && x.prev === 15984.38 && x.change === -1500 && x.changePct === -9.4 && x.share === 43,
+  'company cost: 12,150 + 11.75% GOSI on 11,250 + 12,150/12 (over 5 years) = 14,484.38; September had the 1,500 bonus', x);
+ok(near(RES.pay_company_cost.rows.reduce((t, y) => t + y.companyCost, 0), 33700.01, 0.001) && rowOf(RES.pay_company_cost, emp('5003')).eosAccrual === 281.25, 'company total 33,700.01; under 5 years the provision is wage / 24 (6,750 / 24 = 281.25)');
+x = rowOf(RES.pay_gosi_wage, emp('5002'));
+ok(x.contributory === 11250 && x.excluded === 900 && x.excludedPct === 7.4 && x.reconStatus === 'mismatch' && x.reconWage === 10000 && x.reconDiff === -1250 && RES.pay_gosi_wage.checks.find(c => c.code === 'recon_mismatch').level === 'error',
+  'GOSI wage vs gross: 11,250 of 12,150 (900 outside); the GOSI upload says 10,000: a 1,250 mismatch, open = error', x);
+r = run('3001', 'pay_gosi_wage', { run: sepRun.id });
+x = rowOf(r, emp('5004'));
+ok(x.registered === 9000 && x.contributory === 9000 && x.reason === 'registered_differs' && x.excluded === 2046.67 && r.checks.some(c => c.code === 'no_recon'), 'the wage HR registered with GOSI (9,000) differs from the package (10,000) and is the one used', x);
+r = RES.pay_var_lines;
+ok(r.rows.length === 2 && r.rows[0].empNo === '5002' && r.rows[0].line === 'bonus' && r.rows[0].effect === -1500 && r.rows[0].driver === 'yes' && r.rows[0].share === 100 &&
+  r.rows[1].line === 'unpaid_leave' && r.rows[1].effect === -900 && r.checks[0].count === 2, 'variance by line: 5002 down 1,500 because of the September bonus; 5003 down 900 for 4 unpaid days', r.rows);
+x = rowOf(RES.pay_ytd, emp('5002'));
+ok(x.months === 2 && x.gross === 25800 && x.otherEarnings === 1500 && x.basic === 18000 && RES.pay_ytd.checks.some(c => c.code === 'ytd_includes_draft'), 'year to date: September (locked) + October (draft) = 25,800', x);
+x = rowOf(RES.pay_bands, y => y.position === 'مندوب مبيعات');
+ok(x.headcount === 2 && x.min === 6750 && x.median === 9450 && x.max === 12150 && x.spread === 80 && x.vsGrade === 0 && RES.pay_bands.checks.find(c => c.code === 'band_spread').count === 1, 'pay bands: 6,750 to 12,150, median 9,450, spread 80%', x);
+r = RES.pay_gosi_cohort;
+ok(rowOf(r, y => y.cohort === 'legacy').total === 3762.52 && rowOf(r, y => y.cohort === 'legacy').share === 95 && rowOf(r, y => y.cohort === 'non_saudi').prev === 180 && rowOf(r, y => y.cohort === 'non_saudi').change === 20,
+  'GOSI by cohort: legacy 1,706.26 + 2,056.26 = 3,762.52 (95%); non-Saudi employer 2% of 10,000 against 2% of the registered 9,000', r.rows);
+r = run('3005', 'pay_gosi_cohort', {});
+ok(r.ok && r.rows.every(y => y.total === null) && r.checks.some(c => c.code === 'small_group_hidden' && c.count === 2), 'the executive sees no amount for a cohort of fewer than 3 people', r.rows);
+r = RES.pay_deductions;
+ok(rowOf(r, y => y.line === 'unpaid_leave').amount === 900 && rowOf(r, y => y.line === 'unpaid_leave').share === 34.5 && rowOf(r, y => y.line === 'gosi').ofGross === 5.7 && rowOf(r, y => y.line === 'gosi').change === 0,
+  'deductions: unpaid leave 900 = 34.5% of all, GOSI 1,706.26 = 5.7% of gross, unchanged from September', r.rows);
+r = run('3001', 'pay_ot_trend', { from: '2026-09-01', to: '2026-10-31' });
+ok(rowOf(r, y => y.month === '2026-09').otAmount === 246.67 && rowOf(r, y => y.month === '2026-09').otHours === 4 && rowOf(r, y => y.month === '2026-10').changePct === -100, 'overtime trend: 4 h in September = 4 x (45 + 50% x 33.33) = 246.67, none in October', r.rows);
+ok(rowOf(run('3005', 'pay_ot_trend', { from: '2026-09-01', to: '2026-10-31' }), y => y.month === '2026-09').otAmount === null, 'one person\'s overtime pay is hidden from the executive');
+r = run('3005', 'pay_cost_per_head', { from: '2026-09-01', to: '2026-10-31' });
+x = rowOf(r, y => y.month === '2026-10');
+ok(x.headcount === 3 && x.companyCost === 33700.01 && x.perHead === 11233.34 && x.prev === 11808.89 && x.changePct === -4.9 && x.eosAccrual === 1743.75, 'cost per head: 33,700.01 / 3 = 11,233.34 against 35,426.68 / 3 in September (-4.9%), shown to the executive', x);
+x = rowOf(run('3005', 'pay_cost', {}), y => y.department === 'المبيعات');
+ok(x.companyCost === 14484.38 && x.eosAccrual === 1012.5 && x.prev === 15984.38 && x.change === -1500, 'cost by department now adds the end-of-service provision, company cost and the change from the last locked run', x);
+
+x = rowOf(RES.wf_snapshot, y => y.department === 'المبيعات');
+ok(x.headcount === 2 && x.men === 2 && x.saudiShare === 100 && x.prev === 2 && rowOf(RES.wf_snapshot, y => y.department === 'مبيعات الرياض').women === 1, 'headcount snapshot: Sales 2 men, both Saudi, at 31 October', x);
+x = rowOf(run('3001', 'wf_snapshot', { month: '2026-08' }), y => y.department === 'المبيعات');
+ok(x.headcount === 2 && x.prev === 3 && x.leavers === 1 && x.change === -1 && x.changePct === -33.3, 'August: one leaver, 3 at July end to 2 (-33.3%)', x);
+r = run('3001', 'wf_joiners', { from: '2025-01-01', to: '2025-12-31' });
+ok(r.rows.length === 1 && r.rows[0].empNo === '5005' && r.rows[0].employed === 'no' && r.rows[0].tenureDays === 532 && r.checks.find(c => c.code === 'prev_count').count === 1, 'joiners 2025: 5005, gone after 532 days; one joiner the year before', r.rows);
+ok(rowOf(run('3001', 'wf_joiners', { from: '2026-01-01', to: '2026-12-31' }), emp('5006')).onboarding === 33.3, 'joiners 2026: 5006, onboarding 1 of 3 tasks');
+r = run('3001', 'wf_leavers', { from: '2026-01-01', to: '2026-12-31' });
+x = r.rows[0] || {};
+ok(r.rows.length === 1 && x.empNo === '5005' && x.years === 1.46 && x.tenureBand === '1-3' && x.reason === 'resignation' && x.voluntary === 'yes' && x.clearanceDone === 12.5, 'leavers: 5005 resigned after 532 / 365.25 = 1.46 years; clearance 1 of 8 tasks', x);
+r = run('3001', 'wf_turnover_dept', { from: '2025-11-01', to: '2026-10-31' });
+x = rowOf(r, y => y.department === 'المبيعات');
+ok(x.avgHeadcount === 2.79 && x.leavers === 1 && x.voluntary === 1 && x.turnover === 35.8 && x.prevRate === 0 && r.checks.some(c => c.code === 'turnover_high'), 'turnover: 1 leaver / average 33.5 / 12 = 2.79 people = 35.8%', x);
+x = rowOf(RES.wf_tenure, y => y.department === 'المبيعات');
+ok(x.avgYears === 8.34 && x.medianYears === 8.34 && x.tenure5 === 2 && rowOf(RES.wf_tenure, y => y.department === 'مبيعات الرياض').newShare === 50, 'tenure: Sales (3229 + 2864) / 2 / 365.25 = 8.34 years; Riyadh half in their first year', x);
+x = rowOf(RES.wf_span, emp('5001'));
+ok(x.directs === 3 && x.totalReports === 3 && x.layers === 1 && x.spanBand === 'span_2_4', 'span of control: 5001 has 3 direct reports in one layer', x);
+x = rowOf(RES.wf_org, emp('5002'));
+ok(x.level === 2 && x.manager === 'مشرف المبيعات' && x.managerNo === '5001' && x.chain === 'مشرف المبيعات' && rowOf(RES.wf_org, emp('5001')).directs === 3, 'reporting lines: 5002 at level 2 under 5001', x);
+r = RES.wf_vacancies;
+ok(r.rows.length === 1 && r.rows[0].code === 'WS' && r.rows[0].vacantSince === '2026-08-15' && r.rows[0].daysVacant === 81 && r.rows[0].lastHolder === 'موظف 5005' && r.checks.find(c => c.code === 'positions_filled').count === 2,
+  'vacancies: the warehouse supervisor post empty since 5005 left (81 days)', r.rows);
+x = rowOf(RES.wf_probation, emp('5006'));
+ok(x.daysLeft === 21 && x.window === 'd30' && x.probationDays === 24 && x.reviewTask === 'open' && RES.wf_probation.checks.some(c => c.code === 'probation_review_open'), 'probation: 5006 ends in 21 days with the review task still open', x);
+
+r = RES.perf_curve;
+x = rowOf(r, y => y.rating === 3);
+ok(x.people === 1 && x.share === 33.3 && x.gap === -26.7 && r.checks.some(c => c.code === 'curve_few' && c.count === 3), 'rating curve: 3.42 / 4.6 / 2.2 round to 3, 5, 2; 33.3% at 3 is 26.7 points under the 60-75% range', r.rows);
+x = rowOf(RES.perf_kpi, emp('5002'));
+ok(x.kpis === 3 && x.weightTotal === 100 && x.midDone === 2 && x.onTrack === 1 && x.atRisk === 1 && x.completion === 50 && x.stage === 'pk_self', 'KPI progress: goals set and self review done, mid-year on 2 of 3 KPIs = 50%', x);
+x = rowOf(RES.perf_360, emp('5002'));
+ok(x.invited === 4 && x.submitted === 3 && x.responseRate === 75 && x.peers === 1 && x.peersShown === 'no', '360: 3 of 4 answered (75%); one peer is too few to show', x);
+r = RES.perf_plans;
+x = rowOf(r, y => y.ref === 'PIP-2026-00001');
+ok(x.daysLeft === -4 && x.goalsMet === 1 && x.goalsAtRisk === 1 && x.sinceCheckIn === 34 && ['plan_overdue', 'plan_no_checkin', 'plan_not_acked'].every(k => r.checks.some(c => c.code === k && c.count === 1)), 'PIP past its end, 34 days since the last check-in, not acknowledged', x);
+
+r = RES.req_sla;
+x = rowOf(r, y => y.approvalStep === 'hr');
+ok(x.decisions === 2 && x.avgHours === 60 && x.medianHours === 60 && x.p90Hours === 69.6 && x.withinSla === 50 && rowOf(r, y => y.approvalStep === 'manager').p90Hours === 27.4 && r.checks.find(c => c.code === 'sla_breach').count === 1,
+  'approval SLA: HR took 48 and 72 hours (mean 60, p90 69.6, half within 48); the manager 4 and 30 (p90 27.4)', r.rows);
+r = RES.req_bottlenecks;
+x = rowOf(r, y => y.ref === 'AD-2026-00001');
+ok(x.approver === 'hr' && x.rank === 1 && x.daysWaiting === 15.3 && rowOf(r, y => y.ref === 'LV-2026-00013').approver === 'مشرف المبيعات' && r.checks.some(c => c.code === 'waiting_over_7' && c.count === 1), 'bottlenecks: the advance has waited 15.3 days with HR; 5003\'s leave waits for 5001', r.rows);
+r = run('5001', 'req_bottlenecks', {});
+ok(r.rows.length === 1 && r.rows[0].ref === 'LV-2026-00013', 'the manager sees their team\'s waiting leave, never the salary advance', r.rows);
+r = run('3001', 'req_volume', { from: '2026-09-01', to: '2026-11-30' });
+ok(rowOf(r, y => y.type === 'correction' && y.month === '2026-10').avgHours === 77 && rowOf(r, y => y.type === 'leave' && y.month === '2026-11').openReq === 2 && rowOf(r, y => y.type === 'leave' && y.month === '2026-11').change === -4,
+  'request volume: corrections took (52 + 102) / 2 = 77 hours; November leave 2 pending, 4 fewer than October', r.rows.filter(y => y.type !== 'advance'));
+ok(!run('5001', 'req_volume', { from: '2026-09-01', to: '2026-11-30' }).rows.some(y => y.type === 'advance'), 'no advances in a manager\'s request volume');
+
+r = run('3001', 'cmp_disciplinary', { from: '2026-01-01', to: '2026-12-31' });
+x = rowOf(r, y => y.code === 'LATE15');
+ok(x.cases === 2 && x.decided === 2 && x.repeat === 1 && x.warnings === 1 && x.fines === 1 && x.avgDays === 3.5 && x.amount === 20.25 && rowOf(r, y => y.code === 'ABS1').openCases === 1 && r.checks.some(c => c.code === 'case_open_long'),
+  'disciplinary: two late cases (a warning, then a 5% fine of 20.25), decided in 3 and 4 days; an absence case open 45 days', r.rows);
+ok(!run('5001', 'cmp_disciplinary', { from: '2026-01-01', to: '2026-12-31' }).columns.some(c => c.key === 'amount'), 'a manager sees the cases of their team without the fines');
+r = run('3001', 'cmp_injuries', { from: '2026-01-01', to: '2026-12-31' });
+ok(rowOf(r, y => y.ref === 'INJ-2026-00001').timeliness === 'late' && rowOf(r, y => y.ref === 'INJ-2026-00001').delayDays === 2 && rowOf(r, y => y.ref === 'INJ-2026-00001').daysOff === 3 &&
+  rowOf(r, y => y.ref === 'INJ-2026-00002').timeliness === 'overdue' && rowOf(r, y => y.ref === 'INJ-2026-00002').delayDays === 4 && r.checks.some(c => c.code === 'gosi_overdue' && c.level === 'error'),
+  'injuries: GOSI told 2 days late; the second not told, 4 days past the 3-day limit', r.rows);
+r = RES.cmp_custody;
+ok(rowOf(r, y => y.assetType === 'vehicle').value === 85000 && rowOf(r, y => y.assetType === 'pos').unacked === 1 && rowOf(r, emp('5005')).leaving === 'yes' && r.checks.some(c => c.code === 'leaver_holds_assets' && c.count === 1),
+  'custody: vehicle 85,000 and a POS device not yet confirmed; a leaver still holds a phone', r.rows);
+x = rowOf(RES.cmp_clearance, emp('5005'));
+ok(x.tasksDone === 1 && x.tasksTotal === 8 && x.progress === 12.5 && x.openHr === 4 && x.openPayroll === 2 && x.assetsHeld === 1 && x.overdue === 'yes', 'clearance: 1 of 8 done, 4 with HR and 2 with payroll, a phone still out, past the last day', x);
+r = run('3001', 'cmp_wps', { from: '2026-09-01', to: '2026-10-31' });
+ok(rowOf(r, y => y.month === '2026-09').wpsStatus === 'none' && rowOf(r, y => y.month === '2026-09').daysLate === 25 && rowOf(r, y => y.month === '2026-10').gosiRecon === 'open' &&
+  rowOf(r, y => y.month === '2026-10').gosiMismatches === 1 && r.checks.some(c => c.code === 'wps_overdue'), 'WPS: September locked but not uploaded, 25 days after the 10 October due date; October GOSI upload open', r.rows);
+
+B.ctx.DEFAULT_SETTINGS.saudizationTarget = '80'; delete B.cache[B.ctx.SETTINGS_CACHE_KEY];
+r = run('3005', 'hr_saudization', {});
+x = rowOf(r, y => y.department === 'المبيعات');
+ok(x.pct === 50 && x.saudiTarget === 80 && x.needed === 1 && x.prevPct === 50 && x.changePts === 0 && r.checks.some(c => c.code === 'saudi_vs_target' && c.count === 6 && c.value === 20),
+  'Saudization against an 80% target: Sales 1 of 2 weighted (50%), one full-weight Saudi short; company 20%, 6 short', { x, checks: r.checks });
+B.ctx.DEFAULT_SETTINGS.saudizationTarget = ''; delete B.cache[B.ctx.SETTINGS_CACHE_KEY];
+r = call('3001', 'reportExport', { reportId: 'pay_company_cost', format: 'xlsx', params: {} });
+ok(r.ok && /^RPT-/.test(r.export.ref) && call('3005', 'reportVerify', { ref: r.export.ref, hash: r.export.hash }).ok, 'a new report exports numbered and fingerprinted like the others');
 
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);

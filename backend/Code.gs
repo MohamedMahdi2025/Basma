@@ -26,7 +26,11 @@ var SHEETS = { EMP: 'employees', CRED: 'credentials', ZONES: 'zones', PUNCH: 'pu
   REQ: 'requests', HOL: 'holidays', RUN: 'payrollRuns', SLIP: 'payslips', ADJ: 'adjustments',
   CYC: 'perfCycles', KPI: 'kpis', REV: 'reviews', FB: 'feedback360', RLOG: 'reportLog',
   ONB: 'onboarding', SRV: 'surveys', SANS: 'surveyAnswers', POL: 'policies', PACK: 'policyAcks', PLAN: 'devPlans',
-  DLG: 'delegations', WPS: 'wpsLog', RECON: 'salaryRecon', SHIFT: 'shifts', ROSTER: 'roster', DCODE: 'discCodes', DCASE: 'discCases', INJ: 'injuries', ASSET: 'assets', CUST: 'custody', CLR: 'clearance' };
+  DLG: 'delegations', WPS: 'wpsLog', RECON: 'salaryRecon', SHIFT: 'shifts', ROSTER: 'roster', DCODE: 'discCodes', DCASE: 'discCases', INJ: 'injuries', ASSET: 'assets', CUST: 'custody', CLR: 'clearance', DEMO: 'demoLedger',
+  // Government services, expenses and the accounting journal (GovServices.gs, Expenses.gs, Journal.gs)
+  GOV_VISA: 'govVisas', GOV_IQR: 'iqamaRenewals', GOV_FEE: 'govFees', TICKET: 'ticketRights', TICKET_USE: 'ticketUses', EXPENSE: 'expenseClaims', JOURNAL: 'journalLog',
+  // Leave cycle and approval flows (Flows.gs)
+  LCYC: 'leaveCycles', FLOW: 'approvalFlows' };
 
 var HEADERS = {
   employees: ['id', 'empNo', 'name', 'nameEn', 'email', 'phone', 'department', 'title', 'role', 'status',
@@ -58,7 +62,8 @@ var HEADERS = {
   jobHistory: ['id', 'empId', 'effectiveFrom', 'departmentId', 'positionId', 'managerId', 'grade', 'reason', 'enteredBy', 'createdAt'],
   documents: ['id', 'empId', 'type', 'number', 'issueDate', 'expiryDate', 'note', 'status', 'createdAt', 'updatedAt', 'ref'],
   requests: ['id', 'ref', 'empId', 'type', 'subtype', 'fromDate', 'toDate', 'days', 'amount', 'months', 'payloadJson', 'reason', 'docNo',
-    'status', 'step', 'stepsJson', 'effectJson', 'createdAt', 'updatedAt', 'decidedAt'],
+    'status', 'step', 'stepsJson', 'effectJson', 'createdAt', 'updatedAt', 'decidedAt',
+    'flowJson'], // the approval flow fixed when the request was made (Flows.gs); empty = the built-in chain
   holidays: ['id', 'date', 'toDate', 'nameAr', 'nameEn', 'createdBy', 'createdAt', 'status'],
   payrollRuns: ['id', 'ref', 'month', 'status', 'preparedBy', 'preparedAt', 'approvedBy', 'approvedAt', 'totalsJson', 'note', 'emailedAt', 'createdAt', 'updatedAt'],
   payslips: ['id', 'ref', 'runId', 'month', 'empId', 'status', 'linesJson', 'gross', 'deductions', 'net', 'gosiEmployee', 'gosiEmployer',
@@ -85,12 +90,31 @@ var HEADERS = {
   roster: ['id', 'empId', 'shiftId', 'fromDate', 'toDate', 'status', 'createdBy', 'createdAt'],
   discCodes: ['id', 'code', 'titleAr', 'titleEn', 'p1', 'p2', 'p3', 'p4', 'status', 'createdAt', 'updatedAt'],
   discCases: ['id', 'ref', 'empId', 'code', 'violation', 'occurrence', 'incidentDate', 'discoveredDate', 'description', 'reportedBy', 'chargedAt', 'responseText', 'responseAt',
-    'hearingsJson', 'suggested', 'decision', 'decisionNote', 'decidedBy', 'decidedAt', 'amount', 'adjMonth', 'objection', 'objectedAt', 'objectionResult', 'status', 'createdAt', 'updatedAt'],
+    'hearingsJson', 'suggested', 'decision', 'decisionNote', 'decidedBy', 'decidedAt', 'amount', 'adjMonth', 'objection', 'objectedAt', 'objectionResult', 'status', 'createdAt', 'updatedAt',
+    'notifiedOn'], // Art. 72 (amended 2025): the day the employee was told of the decision; the 30-day grievance window runs from it
   injuries: ['id', 'ref', 'empId', 'occurredAt', 'place', 'description', 'firstAid', 'witnesses', 'reportedBy', 'reportedAt', 'gosiDue', 'gosiRef', 'gosiReportedAt', 'offFrom', 'offTo',
     'status', 'closedNote', 'createdAt', 'updatedAt'],
   assets: ['id', 'ref', 'type', 'nameAr', 'serial', 'value', 'status', 'note', 'createdAt', 'updatedAt'],
   custody: ['id', 'assetId', 'empId', 'handedAt', 'handedBy', 'conditionOut', 'ackAt', 'returnedAt', 'returnedTo', 'conditionIn', 'status', 'charge', 'chargeStatus', 'chargeBy', 'chargeApprovedBy', 'note'],
-  clearance: ['id', 'ref', 'empId', 'lastDay', 'reason', 'tasksJson', 'status', 'createdBy', 'createdAt', 'clearedAt']
+  demoLedger: ['tab', 'key', 'batch', 'at'],
+  clearance: ['id', 'ref', 'empId', 'lastDay', 'reason', 'tasksJson', 'status', 'createdBy', 'createdAt', 'clearedAt'],
+  // exit/re-entry (ref = the ERV request's) and final exit (FEX) visas, kept by hand until a Muqeem link exists
+  govVisas: ['id', 'ref', 'kind', 'empId', 'requestId', 'visaType', 'durationDays', 'travelFrom', 'travelTo', 'linkRef', 'dependants', 'visaNo', 'issuedOn', 'expiry',
+    'fee', 'feeRef', 'paidBy', 'status', 'issuedBy', 'issuedAt', 'returnedOn', 'returnBy', 'note', 'createdBy', 'createdAt', 'updatedAt'],
+  iqamaRenewals: ['id', 'ref', 'empId', 'iqamaNo', 'oldExpiry', 'newExpiry', 'renewedOn', 'years', 'muqeemRef', 'paidBy', 'feesJson', 'total', 'note', 'enteredBy', 'createdAt'],
+  govFees: ['id', 'ref', 'empId', 'type', 'amount', 'date', 'reference', 'paidBy', 'sourceRef', 'note', 'status', 'enteredBy', 'enteredAt', 'verifiedBy', 'verifiedAt', 'voidNote'],
+  ticketRights: ['id', 'empId', 'travelClass', 'everyYears', 'dependants', 'route', 'cashValue', 'fromDate', 'status', 'note', 'setBy', 'createdAt', 'updatedAt'],
+  ticketUses: ['id', 'ref', 'empId', 'rightId', 'usedOn', 'cycleDue', 'persons', 'kind', 'amount', 'reference', 'note', 'status', 'enteredBy', 'approvedBy', 'approvedAt', 'adjRef', 'createdAt'],
+  expenseClaims: ['id', 'ref', 'empId', 'title', 'linesJson', 'total', 'vat', 'flagsJson', 'attachmentsJson', 'status', 'step', 'stepsJson', 'payout', 'payMonth', 'adjRef',
+    'paidRef', 'paidOn', 'paidBy', 'costCenter', 'departmentId', 'createdAt', 'updatedAt', 'decidedAt'],
+  journalLog: ['id', 'ref', 'runId', 'month', 'status', 'lines', 'debit', 'credit', 'hash', 'generatedBy', 'generatedAt', 'importedBy', 'importedAt', 'odooRef',
+    'confirmedBy', 'confirmedAt', 'note'],
+  // leave cycle LC-YYYY-00001: pre-leave clearance, departure, return to work (Flows.gs)
+  leaveCycles: ['id', 'ref', 'requestId', 'requestRef', 'empId', 'subtype', 'fromDate', 'toDate', 'days', 'status', 'substituteId', 'tasksJson', 'departedOn', 'departedBy',
+    'returnedOn', 'returnRecordedAt', 'returnConfirmedOn', 'returnConfirmedBy', 'outcome', 'earlyDays', 'lateDays', 'extensionRef', 'art80Json', 'historyJson',
+    'createdBy', 'createdAt', 'updatedAt', 'closedAt'],
+  // approval flows per request type, versioned AF-001 (Flows.gs); status active | superseded | default (= back to the built-in chain)
+  approvalFlows: ['id', 'ref', 'type', 'version', 'status', 'stepsJson', 'note', 'createdBy', 'createdAt']
 };
 
 var ROLES = { employee: 1, hr: 2, admin: 3 };
@@ -152,7 +176,9 @@ function forget_(name) { delete READ_MEMO_[name]; }
 // Every small tab can be served from the copy; punches and audit grow without end and are always read.
 var CACHED_TABS_ = { employees: 1, zones: 1, credentials: 1, departments: 1, positions: 1, empPrivate: 1, compensation: 1,
   jobHistory: 1, documents: 1, requests: 1, holidays: 1, payrollRuns: 1, adjustments: 1, perfCycles: 1, kpis: 1, reviews: 1, feedback360: 1,
-  onboarding: 1, surveys: 1, policies: 1, policyAcks: 1, devPlans: 1, delegations: 1, wpsLog: 1, salaryRecon: 1, shifts: 1, roster: 1, discCodes: 1, discCases: 1, injuries: 1, assets: 1, custody: 1, clearance: 1 };
+  onboarding: 1, surveys: 1, policies: 1, policyAcks: 1, devPlans: 1, delegations: 1, wpsLog: 1, salaryRecon: 1, shifts: 1, roster: 1, discCodes: 1, discCases: 1, injuries: 1, assets: 1, custody: 1, clearance: 1,
+  govVisas: 1, iqamaRenewals: 1, govFees: 1, ticketRights: 1, ticketUses: 1, expenseClaims: 1, journalLog: 1,
+  leaveCycles: 1, approvalFlows: 1 };
 var USE_TAB_CACHE_ = false; // true: every cached tab; an object: only those tabs (sign-in writes credentials)
 // Version tags make app writes and hand edits visible at once; the expiry only bounds what Sheets
 // never reports to onEdit (deleting or sorting rows by hand).
@@ -362,7 +388,15 @@ var DEFAULT_SETTINGS = {
   allowDeviceKey: true,          // older phones without Face ID / fingerprint: tap with a device-bound key
   allowDesktop: true,            // laptops: device key + 6-digit PIN
   allowPasswordPunch: true,      // check-in from a password session (any device), flagged for HR
-  maxAccuracyDesktop: 150        // laptops locate by Wi-Fi, so they get a wider allowance
+  maxAccuracyDesktop: 150,       // laptops locate by Wi-Fi, so they get a wider allowance
+  // Leave cycle and approvals centre (Flows.gs), saved from their own screen (flowSettingsSave)
+  leaveClearanceMinDays: 7,  // an approved leave of this many counted days or more opens a leave cycle (1 = every leave)
+  approvalSlaHours: 48,      // target hours per approval step; overdue past it, escalated to the next level past twice it
+  // Expenses (Expenses.gs), the Odoo journal and the bank salary files (Journal.gs): JSON text, saved by their own screens
+  expenseLimits: '',         // {"fuel":1500,"meals":600}: SAR per category per calendar month; over it the approver must give a reason
+  expenseReceiptOver: 100,   // a line above this amount needs a receipt reference
+  glMap: '',                 // account mapping for the payroll journal (journalMapSave)
+  bankFileSetup: ''          // establishment and bank identifiers for the salary files (bankSetupSave)
 };
 
 var SETTINGS_CACHE_KEY = 'settings:v1';
@@ -430,9 +464,11 @@ var REF_DEFAULTS = {
   leave: 'LV', letter: 'LT', advance: 'AD', correction: 'AC', data_change: 'DC', resignation: 'RS',
   salary: 'SAL', document: 'DOC', import: 'IMP', department: 'DEP', position: 'POS',
   payroll: 'PR', payslip: 'PS', adjustment: 'ADJ', perf_cycle: 'PC', kpi: 'KPI', review: 'PE', feedback: 'FB', report: 'RPT',
-  onboarding: 'ONB', survey: 'SRV', policy: 'POL', idp: 'IDP', pip: 'PIP', delegation: 'DLG', wps: 'WPS', recon: 'REC', shift: 'SH', disciplinary: 'DSC', injury: 'INJ', asset: 'AST', clearance: 'CLR'
+  onboarding: 'ONB', survey: 'SRV', policy: 'POL', idp: 'IDP', pip: 'PIP', delegation: 'DLG', wps: 'WPS', recon: 'REC', shift: 'SH', disciplinary: 'DSC', injury: 'INJ', asset: 'AST', clearance: 'CLR',
+  exit_reentry: 'ERV', final_exit: 'FEX', iqama_renewal: 'IQR', gov_fee: 'GF', ticket: 'TKT', expense: 'EXP', journal: 'JV',
+  leavecycle: 'LC', flow: 'AF'
 };
-var REF_YEARLY = { department: false, position: false, shift: false, asset: false };
+var REF_YEARLY = { department: false, position: false, shift: false, asset: false, flow: false };
 
 function refPrefix_(kind) {
   var custom = {};
@@ -552,7 +588,7 @@ function doPost(e) {
 
 var PUBLIC_ACTIONS = {
   ping: 1, bootstrapStatus: 1, bootstrap: 1, enrollBegin: 1, enrollFinish: 1,
-  authBegin: 1, authFinish: 1, punchBegin: 1, punchFinish: 1, adminRecover: 1, pwLogin: 1, pinChange: 1, diag: 1
+  authBegin: 1, authFinish: 1, punchBegin: 1, punchFinish: 1, adminRecover: 1, pwLogin: 1, pinChange: 1, diag: 1, demoData: 1
 };
 var EMP_ACTIONS = { me: 1, myHistory: 1, passwordSet: 1, punchPw: 1,
   myFile: 1, hrEmpFile: 1, hrTeam: 1, hrCompList: 1, hrCompPropose: 1, hrCompDecide: 1,
@@ -564,8 +600,14 @@ var EMP_ACTIONS = { me: 1, myHistory: 1, passwordSet: 1, punchPw: 1,
   onboardList: 1, onboardTask: 1, mySurveys: 1, surveyAnswer: 1, surveyResults: 1, policyList: 1, policyAck: 1, planSave: 1, planList: 1, planCheckIn: 1, planAck: 1,
   myTasks: 1, delegationSave: 1, delegationList: 1, delegationRevoke: 1, wpsFile: 1, wpsStep: 1, reconUpload: 1, reconList: 1, reconResolve: 1, complianceCalendar: 1, shiftList: 1, rosterList: 1,
   discCodes: 1, discOpen: 1, discList: 1, discRespond: 1, discObject: 1, injuryReport: 1, injuryList: 1,
-  assetList: 1, assetAck: 1, assetCharge: 1, clearanceList: 1, clearanceTask: 1 };
-var HR_ACTIONS = { assetSave: 1, assetAssign: 1, assetReturn: 1, clearanceStart: 1, discCodesSave: 1, discHearing: 1, discDecide: 1, discObjectionDecide: 1, injuryUpdate: 1, shiftSave: 1, rosterSave: 1, rosterDelete: 1, onboardStart: 1, surveySave: 1, surveyClose: 1, policySave: 1, planClose: 1, perfCycleSave: 1, perfCycleList: 1, perfCycleStage: 1, perfOverview: 1, perfCalibrate: 1, feedbackLaunch: 1, hrBootstrap: 1, holidaySave: 1, holidayDelete: 1, leaveBalances: 1, leaveOpeningSave: 1, hrDirectory: 1, hrDeptList: 1, hrDeptSave: 1, hrPositionList: 1, hrPositionSave: 1, hrEmpSave: 1,
+  assetList: 1, assetAck: 1, assetCharge: 1, clearanceList: 1, clearanceTask: 1,
+  // government services, expenses, journal: each checks its own roles inside (payroll holders may be plain employees)
+  myGov: 1, govOverview: 1, govVisaReturn: 1, iqamaRenew: 1, govFeeSave: 1, govFeeVerify: 1, govFeeVoid: 1, ticketUseApprove: 1,
+  myExpenses: 1, expenseCheck: 1, expenseCreate: 1, expenseCancel: 1, expenseInbox: 1, expenseDecide: 1, expensePaid: 1, expenseReport: 1, expenseLimitsSave: 1,
+  journalList: 1, journalBuild: 1, journalStep: 1, journalMapGet: 1, journalMapSave: 1, bankSetupSave: 1,
+  // leave cycle and approvals centre (Flows.gs): each checks the owner or role inside
+  approvalsInbox: 1, approvalsAct: 1, approvalHistory: 1, leaveCycleList: 1, myLeaveCycles: 1, leaveCycleTask: 1, leaveCycleDepart: 1, leaveCycleReturn: 1, leaveCycleConfirm: 1 };
+var HR_ACTIONS = { flowList: 1, flowSave: 1, flowSettingsSave: 1, leaveCycleOpen: 1, discNotice: 1, govVisaIssue: 1, govVisaCancel: 1, govFinalExit: 1, ticketSave: 1, ticketUse: 1, assetSave: 1, assetAssign: 1, assetReturn: 1, clearanceStart: 1, discCodesSave: 1, discHearing: 1, discDecide: 1, discObjectionDecide: 1, injuryUpdate: 1, shiftSave: 1, rosterSave: 1, rosterDelete: 1, onboardStart: 1, surveySave: 1, surveyClose: 1, policySave: 1, planClose: 1, perfCycleSave: 1, perfCycleList: 1, perfCycleStage: 1, perfOverview: 1, perfCalibrate: 1, feedbackLaunch: 1, hrBootstrap: 1, holidaySave: 1, holidayDelete: 1, leaveBalances: 1, leaveOpeningSave: 1, hrDirectory: 1, hrDeptList: 1, hrDeptSave: 1, hrPositionList: 1, hrPositionSave: 1, hrEmpSave: 1,
   hrPrivateSave: 1, hrImportValidate: 1, hrImportCommit: 1, hrDocList: 1, hrDocSave: 1, hrExpiring: 1, empPasswordReset: 1, board: 1, empList: 1, zoneList: 1, report: 1, reviewList: 1, reviewDecide: 1, manualPunch: 1, auditList: 1, settingsGet: 1, empSave: 1, empActivation: 1 };
 /**
  * Actions that only read (plus the audit line of a salary view). They may use the cached tab copies;
@@ -575,7 +617,9 @@ var READ_ONLY_ACTIONS = { me: 1, myHistory: 1, myFile: 1, hrEmpFile: 1, hrTeam: 
   hrPositionList: 1, hrDocList: 1, hrExpiring: 1, hrBootstrap: 1, hrImportValidate: 1, board: 1, empList: 1, zoneList: 1, report: 1,
   reviewList: 1, auditList: 1, settingsGet: 1, myRequests: 1, requestQuote: 1, reqInbox: 1, holidayList: 1, leaveTeam: 1, leaveBalances: 1,
   dashboard: 1, mySlips: 1, payrollList: 1, payrollGet: 1, eosQuote: 1, myPerformance: 1, perfTeam: 1, perfEmp: 1, feedbackResults: 1, perfCycleList: 1, perfOverview: 1,
-  reportCatalog: 1, reportRun: 1, reportLog: 1, onboardList: 1, mySurveys: 1, surveyResults: 1, policyList: 1, planList: 1, myTasks: 1, delegationList: 1, reconList: 1, complianceCalendar: 1, wpsFile: 1, shiftList: 1, rosterList: 1, discCodes: 1, discList: 1, injuryList: 1, assetList: 1, clearanceList: 1 };
+  reportCatalog: 1, reportRun: 1, reportLog: 1, onboardList: 1, mySurveys: 1, surveyResults: 1, policyList: 1, planList: 1, myTasks: 1, delegationList: 1, reconList: 1, complianceCalendar: 1, wpsFile: 1, shiftList: 1, rosterList: 1, discCodes: 1, discList: 1, injuryList: 1, assetList: 1, clearanceList: 1,
+  myGov: 1, govOverview: 1, myExpenses: 1, expenseCheck: 1, expenseInbox: 1, expenseReport: 1, journalList: 1, journalBuild: 1, journalMapGet: 1,
+  approvalsInbox: 1, approvalHistory: 1, leaveCycleList: 1, myLeaveCycles: 1, flowList: 1 };
 
 var ADMIN_ACTIONS = { hrRolesSave: 1, empResetDevice: 1, zoneSave: 1, zoneDelete: 1, settingsSave: 1 };
 

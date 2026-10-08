@@ -24,7 +24,8 @@ var LETTERS = ['salary_certificate', 'employment_certificate', 'experience'];
 var REQUEST_STEPS = {
   leave: ['manager', 'hr'], correction: ['manager', 'hr'], resignation: ['manager', 'hr'],
   letter: ['hr'], data_change: ['hr'],
-  advance: ['hr', 'payroll'] // salary-related: the line manager is not in the chain
+  advance: ['hr', 'payroll'], // salary-related: the line manager is not in the chain
+  exit_reentry: ['manager', 'hr'] // exit/re-entry visa for a non-Saudi (GovServices.gs): HR then records the visa issued in Muqeem
 };
 var DATA_FIELDS = { phone: 'emp', personalEmail: 'priv', nationalAddress: 'priv', address: 'priv', maritalStatus: 'priv',
   emergencyName: 'priv', emergencyPhone: 'priv', iban: 'priv', bankName: 'priv', passportNo: 'priv', passportExpiry: 'priv', idExpiry: 'priv' };
@@ -232,6 +233,7 @@ function quote_(emp, d, excludeId) {
     q.fromDate = t; q.toDate = last; q.payload = { lastDay: last, noticeDays: notice, minLastDay: minLast };
     return q;
   }
+  if (type === 'exit_reentry') return govQuote_(emp, d, excludeId, q, reqs, t); // GovServices.gs
   return { error: 'bad_value' };
 }
 
@@ -243,7 +245,9 @@ function api_requestQuote(req, me) {
 
 // ---------------- who acts on which step ----------------
 
-function stepsFor_(type, emp, ctx) {
+function stepsFor_(type, emp, ctx, r) {
+  var fixed = r && r.flowJson ? flowSteps_(r) : null; // a configured approval flow, fixed when the request was made (Flows.gs)
+  if (fixed) return fixed;
   return REQUEST_STEPS[type].filter(function (st) {
     if (st !== 'manager') return true;
     var m = ctx.emps[emp.managerId];
@@ -260,6 +264,8 @@ function canAct_(me, r, emp, ctx) {
   // A salary advance is pay: its HR step needs the hr role (an administrator alone never), its last step a payroll holder.
   if (r.step === 'hr') return r.type === 'advance' ? (me.role === 'hr' || adminPay_(me)) : isHr_(me);
   if (r.step === 'payroll') return hasRole_(me, 'payroll');
+  if (r.step === 'executive') return hasRole_(me, 'executive');
+  if (r.step === 'dept_head' || String(r.step).indexOf('person:') === 0) return flowCanAct_(me, r, emp, ctx); // configured flows (Flows.gs)
   return false;
 }
 
@@ -272,14 +278,15 @@ function api_requestCreate(req, me) {
     if (!emp || emp.status !== 'active') fail_('forbidden');
     var q = quote_(emp, d, null);
     if (q.error) fail_(q.error);
-    var steps = stepsFor_(q.type, emp, ctx), now = new Date().toISOString();
+    var plan = flowPlan_(q.type, emp, q, ctx); // a configured approval flow (Flows.gs), else the built-in chain
+    var steps = plan ? plan.steps.map(function (s) { return s.key; }) : stepsFor_(q.type, emp, ctx), now = new Date().toISOString();
     var kind = q.type === 'leave' ? 'leave' : q.type;
     var row = { id: newId_('R'), ref: nextRef_(kind, refsOf_(SHEETS.REQ)), empId: emp.id, type: q.type, subtype: q.subtype || '', fromDate: q.fromDate || '',
       toDate: q.toDate || '', days: q.days == null ? '' : q.days, amount: q.amount == null ? '' : q.amount, months: q.months || '',
       payloadJson: JSON.stringify(Object.assign({}, d.payload || {}, q.payload || {})), reason: str_(d.reason, 500), docNo: str_(d.docNo, 60),
       status: 'pending', step: steps[0], stepsJson: '[]',
       effectJson: JSON.stringify({ warnings: q.warnings, sick: q.sick || null, holidays: q.holidays || [], calendarDays: q.calendarDays || null }),
-      createdAt: now, updatedAt: now, decidedAt: '' };
+      createdAt: now, updatedAt: now, decidedAt: '', flowJson: plan ? JSON.stringify(plan) : '' };
     append_(SHEETS.REQ, row);
     audit_(me.id, 'request_create', emp.id, { ref: row.ref, type: row.type, subtype: row.subtype });
     return { ok: true, request: publicReq_(row, ctx, me) };
@@ -298,6 +305,7 @@ function api_requestCancel(req, me) {
     h.push({ step: r.step || 'done', by: me.id, decision: 'cancelled', note: str_(req.note, 300), at: new Date().toISOString() });
     r.status = 'cancelled'; r.stepsJson = JSON.stringify(h); r.updatedAt = new Date().toISOString();
     update_(SHEETS.REQ, r);
+    if (r.type === 'leave') leaveCycleCancel_(r, me); // its leave cycle goes with it (Flows.gs)
     audit_(me.id, 'request_cancel', r.empId, { ref: r.ref });
     return { ok: true };
   });
@@ -315,12 +323,12 @@ function api_reqDecide(req, me) {
     var note = str_(req.note, 300), now = new Date().toISOString();
     if (decision === 'reject' && !note) fail_('note_required');
     var h = history_(r);
-    var dg = r.step === 'manager' && !manages_(me, emp, ctx) && !isHr_(me) ? delegatedFor_(me, emp, ctx) : null;
-    h.push({ step: r.step, by: me.id, role: dg ? 'delegate' : r.step === 'manager' && !manages_(me, emp, ctx) ? 'hr_on_behalf' : r.step, onBehalfOf: dg ? dg.fromEmpId : '', decision: decision, note: note, at: now });
+    var who = flowActor_(me, r, emp, ctx); // the step itself, a delegate on behalf of the approver, or HR on behalf (Flows.gs)
+    h.push({ step: r.step, by: me.id, role: who.role, onBehalfOf: who.onBehalfOf, decision: decision, note: note, at: now });
     r.stepsJson = JSON.stringify(h); r.updatedAt = now;
     if (decision === 'reject') { r.status = 'rejected'; r.decidedAt = now; }
     else {
-      var steps = stepsFor_(r.type, emp, ctx), next = steps[steps.indexOf(r.step) + 1];
+      var steps = stepsFor_(r.type, emp, ctx, r), next = steps[steps.indexOf(r.step) + 1];
       if (next) r.step = next;
       else {
         // Final approval: re-check against today's data (balance, overlaps) before it takes effect.
@@ -359,6 +367,10 @@ function applyEffect_(r, emp, me, p) {
     emp.resignedOn = String(r.createdAt).slice(0, 10); emp.lastWorkingDay = p.lastDay; emp.updatedAt = now;
     update_(SHEETS.EMP, emp);
     clearanceOpen_(emp, p.lastDay, 'resignation', me.id); // offboarding clearance (Custody.gs)
+  } else if (r.type === 'exit_reentry') {
+    govVisaApproved_(r, emp, me, p); // GovServices.gs: waits for HR to record the visa issued in Muqeem
+  } else if (r.type === 'leave') {
+    leaveCycleAuto_(r, emp, me); // a long enough leave opens its leave cycle (Flows.gs)
   }
 }
 
@@ -375,12 +387,13 @@ function publicReq_(r, ctx, viewer) {
   try { fx = JSON.parse(r.effectJson || '{}') || {}; } catch (e) { fx = {}; }
   var money = viewer && (viewer.id === r.empId || viewer.role === 'hr' || hasRole_(viewer, 'payroll'));
   var data = viewer && (viewer.id === r.empId || isHr_(viewer) || hasRole_(viewer, 'payroll'));
-  var steps = stepsFor_(r.type, ctx.emps[r.empId] || { id: r.empId }, ctx);
+  var steps = stepsFor_(r.type, ctx.emps[r.empId] || { id: r.empId }, ctx, r);
   var o = { id: r.id, ref: r.ref, type: r.type, subtype: r.subtype, fromDate: r.fromDate ? String(r.fromDate).slice(0, 10) : '',
     toDate: r.toDate ? String(r.toDate).slice(0, 10) : '', days: r.days === '' ? null : Number(r.days), reason: r.reason, docNo: r.docNo,
     status: r.status, step: r.step, steps: steps, createdAt: r.createdAt, decidedAt: r.decidedAt, warnings: fx.warnings || [], sick: fx.sick || null,
     emp: empCard_(ctx.emps[r.empId]),
-    history: history_(r).map(function (h) { var b = ctx.emps[h.by]; return { step: h.step, role: h.role, decision: h.decision, note: h.note, at: h.at, by: b ? b.name : '' }; }) };
+    history: history_(r).map(function (h) { var b = ctx.emps[h.by], ob = ctx.emps[h.onBehalfOf]; return { step: h.step, role: h.role, decision: h.decision, note: h.note, at: h.at, by: b ? b.name : '', onBehalfOf: ob ? ob.name : '' }; }) };
+  if (String(r.step).indexOf('person:') === 0 && ctx.emps[r.step.slice(7)]) o.stepWho = ctx.emps[r.step.slice(7)].name; // a named approver (Flows.gs)
   if (r.type === 'advance' && money) { o.amount = Number(r.amount); o.months = Number(r.months); o.installment = p.installment; o.startMonth = p.startMonth; }
   if (r.type === 'letter') o.letter = { addressee: p.addressee, lang: p.lang };
   if (r.type === 'correction') o.correction = { date: p.date, time: p.time, punchType: p.punchType };
@@ -389,6 +402,7 @@ function publicReq_(r, ctx, viewer) {
   else if (r.type === 'data_change') o.fieldNames = Object.keys(p.fields || {});
   if (r.type === 'leave' && p.variant) o.variant = p.variant;
   if (r.type === 'leave' && p.eventDate) o.eventDate = p.eventDate;
+  if (r.type === 'exit_reentry') o.visa = govReqView_(r, p); // GovServices.gs
   return o;
 }
 

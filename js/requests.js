@@ -6,6 +6,9 @@
 Object.assign(T.ar, {
   rqTitle:'طلباتي', rqNew:'طلب جديد', rqEmpty:'لا توجد طلبات بعد. ابدأ بطلب جديد.', rqChoose:'ما نوع الطلب؟',
   rt_leave:'إجازة', rt_letter:'خطاب', rt_advance:'سلفة على الراتب', rt_correction:'تصحيح حضور', rt_data_change:'تحديث بياناتي', rt_resignation:'استقالة',
+  rt_exit_reentry:'تأشيرة خروج وعودة', rqVisaSingle:'مفردة', rqVisaMultiple:'متعددة', rqVisaDays:'مدة التأشيرة',
+  rw_iqama_expires_before_return:'تنتهي الإقامة قبل تاريخ العودة؛ جدّدها قبل إصدار التأشيرة.', rw_visa_shorter_than_trip:'مدة التأشيرة أقصر من مدة السفر.',
+  rw_leave_outside_trip:'تواريخ الإجازة المرتبطة لا تقع داخل فترة السفر.',
   rtd_leave:'سنوية أو مرضية أو غيرها', rtd_letter:'تعريف بالراتب أو خبرة', rtd_advance:'تسدد على أقساط شهرية', rtd_correction:'بصمة لم تسجل',
   rtd_data_change:'الجوال والعنوان والحساب البنكي', rtd_resignation:'مع فترة الإشعار',
   lt_annual:'سنوية', lt_sick:'مرضية', lt_marriage:'زواج (5 أيام)', lt_paternity:'مولود (3 أيام)', lt_bereavement:'وفاة الزوج أو أحد الوالدين أو الأبناء (5 أيام)',
@@ -34,6 +37,9 @@ Object.assign(T.ar, {
 Object.assign(T.en, {
   rqTitle:'My requests', rqNew:'New request', rqEmpty:'No requests yet. Start a new one.', rqChoose:'What would you like to request?',
   rt_leave:'Leave', rt_letter:'Letter', rt_advance:'Salary advance', rt_correction:'Attendance correction', rt_data_change:'Update my details', rt_resignation:'Resignation',
+  rt_exit_reentry:'Exit/re-entry visa', rqVisaSingle:'single', rqVisaMultiple:'multiple', rqVisaDays:'Visa length',
+  rw_iqama_expires_before_return:'The iqama expires before the return date; renew it before the visa is issued.', rw_visa_shorter_than_trip:'The visa is shorter than the trip.',
+  rw_leave_outside_trip:'The linked leave dates fall outside the travel dates.',
   rtd_leave:'Annual, sick and other leave', rtd_letter:'Salary or experience letter', rtd_advance:'Repaid in monthly instalments', rtd_correction:'A punch that did not record',
   rtd_data_change:'Mobile, address and bank account', rtd_resignation:'With the notice period',
   lt_annual:'Annual', lt_sick:'Sick', lt_marriage:'Marriage (5 days)', lt_paternity:'New baby (3 days)', lt_bereavement:'Death of spouse, parent or child (5 days)',
@@ -112,6 +118,7 @@ function summary(o){
   if (o.type === 'correction' && o.correction) return fmtDate(o.correction.date) + '، ' + (o.correction.punchType === 'in' ? t('rqIn') : t('rqOut')) + ' ' + o.correction.time;
   if (o.type === 'resignation' && o.resignation) return t('rqLastDay') + ' ' + fmtDate(o.resignation.lastDay);
   if (o.type === 'letter' && o.letter) return o.letter.addressee;
+  if (o.type === 'exit_reentry' && o.visa) return fmtDate(o.fromDate) + ' - ' + fmtDate(o.toDate) + '، ' + t(o.visa.visaType === 'multiple' ? 'rqVisaMultiple' : 'rqVisaSingle') + '، ' + t('rqVisaDays') + ' ' + plural(o.visa.durationDays, 'days');
   if (o.type === 'data_change') return Object.keys(o.fields || {}).concat(o.fieldNames || []).map(function(k){ var d = DATA_KEYS.filter(function(x){ return x[0] === k; })[0]; return d ? t(d[1]) : k; }).join('، ');
   return '';
 }
