@@ -236,7 +236,7 @@ function draw(main, f){
   var team = f.isManager ? card('', head('users-three', t('mfTeam'), '<span class="chip in num">' + plural(f.teamCount, 'people') + '</span>') + '<p>' + t('mfTeamLead') + '</p><button type="button" class="btn btn-dark btn-sm mf-go" id="mfTeam">' + t('mfOpenTeam') + '</button>') : '';
 
   var overview = '<div id="mfDash">' + (window.Viz ? Viz.panel('file', t('mfDashTitle'), Viz.skeleton(6)) : '') + '</div>' +
-    '<div class="mf-cols"><div id="mfEngage" style="display:contents"></div><div id="mfOps" style="display:contents"></div>' + people + team + '</div>';
+    '<div class="mf-cols"><div id="mfEngage" style="display:contents"></div><div id="mfOps" style="display:contents"></div><div id="mfW1" style="display:contents"></div><div id="mfGov" style="display:contents"></div>' + people + team + '</div>';
 
   var jd = f.jd, jdHtml = head('briefcase', t('mfJd'));
   if (jd && (jd.purposeAr || jd.dutiesAr || jd.requirementsAr || jd.purposeEn)) {
@@ -320,6 +320,8 @@ function draw(main, f){
   var pf = $('#mfPerf', main); if (pf && window.Perf) Perf.myCards(pf);
   var eg = $('#mfEngage', main); if (eg && window.Engage) Engage.myCards(eg);
   var op = $('#mfOps', main); if (op && window.Ops && Ops.myCards) Ops.myCards(op);
+  var w1 = $('#mfW1', main); if (w1 && window.Flows) Flows.myCards(w1);
+  var gv = $('#mfGov', main); if (gv && window.Gov) Gov.myCard(gv);
 }
 
 /**

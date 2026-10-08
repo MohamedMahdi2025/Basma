@@ -7,6 +7,8 @@ Object.assign(T.ar, {
   rqTitle:'طلباتي', rqNew:'طلب جديد', rqEmpty:'لا توجد طلبات بعد. ابدأ بطلب جديد.', rqChoose:'ما نوع الطلب؟',
   rt_leave:'إجازة', rt_letter:'خطاب', rt_advance:'سلفة على الراتب', rt_correction:'تصحيح حضور', rt_data_change:'تحديث بياناتي', rt_resignation:'استقالة',
   rt_exit_reentry:'تأشيرة خروج وعودة', rqVisaSingle:'مفردة', rqVisaMultiple:'متعددة', rqVisaDays:'مدة التأشيرة',
+  rtd_exit_reentry:'لغير السعوديين: للسفر والعودة', rqVisaType:'نوع التأشيرة', rqTravelFrom:'تاريخ السفر', rqTravelTo:'تاريخ العودة', rqDeps:'المرافقون', rqLeaveRef:'رقم طلب الإجازة المرتبط (اختياري)', rqPurpose:'الغرض', rqTrip:'مدة الرحلة',
+  rstep_executive:'بانتظار الرئيس التنفيذي', rstep_dept_head:'بانتظار رئيس الإدارة', rstep_person:'بانتظار',
   rw_iqama_expires_before_return:'تنتهي الإقامة قبل تاريخ العودة؛ جدّدها قبل إصدار التأشيرة.', rw_visa_shorter_than_trip:'مدة التأشيرة أقصر من مدة السفر.',
   rw_leave_outside_trip:'تواريخ الإجازة المرتبطة لا تقع داخل فترة السفر.',
   rtd_leave:'سنوية أو مرضية أو غيرها', rtd_letter:'تعريف بالراتب أو خبرة', rtd_advance:'تسدد على أقساط شهرية', rtd_correction:'بصمة لم تسجل',
@@ -38,6 +40,8 @@ Object.assign(T.en, {
   rqTitle:'My requests', rqNew:'New request', rqEmpty:'No requests yet. Start a new one.', rqChoose:'What would you like to request?',
   rt_leave:'Leave', rt_letter:'Letter', rt_advance:'Salary advance', rt_correction:'Attendance correction', rt_data_change:'Update my details', rt_resignation:'Resignation',
   rt_exit_reentry:'Exit/re-entry visa', rqVisaSingle:'single', rqVisaMultiple:'multiple', rqVisaDays:'Visa length',
+  rtd_exit_reentry:'For non-Saudis: to travel and come back', rqVisaType:'Visa type', rqTravelFrom:'Travel date', rqTravelTo:'Return date', rqDeps:'Dependants', rqLeaveRef:'Linked leave request number (optional)', rqPurpose:'Purpose', rqTrip:'Trip length',
+  rstep_executive:'With the CEO', rstep_dept_head:'With the department head', rstep_person:'With',
   rw_iqama_expires_before_return:'The iqama expires before the return date; renew it before the visa is issued.', rw_visa_shorter_than_trip:'The visa is shorter than the trip.',
   rw_leave_outside_trip:'The linked leave dates fall outside the travel dates.',
   rtd_leave:'Annual, sick and other leave', rtd_letter:'Salary or experience letter', rtd_advance:'Repaid in monthly instalments', rtd_correction:'A punch that did not record',
@@ -99,7 +103,7 @@ var css = '' +
 '.lv-hol{margin-top:10px;font-size:13px;color:var(--ink-2)}';
 var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 
-var TYPES = [['leave', 'calendar-plus'], ['letter', 'envelope-simple'], ['advance', 'hand-coins'], ['correction', 'clock-counter-clockwise'], ['data_change', 'user-gear'], ['resignation', 'door-open']];
+var TYPES = [['leave', 'calendar-plus'], ['letter', 'envelope-simple'], ['advance', 'hand-coins'], ['correction', 'clock-counter-clockwise'], ['data_change', 'user-gear'], ['resignation', 'door-open'], ['exit_reentry', 'airplane-takeoff']];
 var DATA_KEYS = [['phone', 'phone', 'tel'], ['personalEmail', 'fPEmail', 'email'], ['nationalAddress', 'fNatAddr'], ['address', 'fAddr'], ['maritalStatus', 'fMarital', 'marital'],
   ['emergencyName', 'fEmName'], ['emergencyPhone', 'fEmPhone', 'tel'], ['iban', 'fIban', 'iban'], ['bankName', 'fBank'], ['passportNo', 'fPassport'], ['passportExpiry', 'fPassExp', 'date'], ['idExpiry', 'fIdExp', 'date']];
 var DOC_LEAVES = { sick: 1, maternity: 1, exam: 1, iddah: 1 };
@@ -109,7 +113,7 @@ function money(n){ return Number(n || 0).toLocaleString(LOCALE(), { maximumFract
 function num1(n){ return Number(n || 0).toLocaleString(LOCALE(), { maximumFractionDigits: 1 }); }
 function typeLabel(o){ return o.type === 'leave' ? t('rt_leave') + ' ' + t('lt_' + o.subtype) : o.type === 'letter' ? t('ls_' + o.subtype) : t('rt_' + o.type); }
 function statusChip(o){
-  if (o.status === 'pending') return '<span class="chip late">' + t('rstep_' + o.step) + '</span>';
+  if (o.status === 'pending') return '<span class="chip late">' + (String(o.step).indexOf('person:') === 0 ? t('rstep_person') + ' ' + esc(o.stepWho || '') : t('rstep_' + o.step)) + '</span>';
   return '<span class="chip ' + ({ approved: 'in', rejected: 'absent', cancelled: 'off' }[o.status] || '') + '">' + t('rs_' + o.status) + '</span>';
 }
 function summary(o){
@@ -184,14 +188,15 @@ function wireList(el, rows, file, reload){
 }
 
 // ---------------- the new-request drawer ----------------
-function newRequest(file, done){
-  var gender = file && file.job ? file.job.gender : '';
+function newRequest(file, done, preType){
+  var gender = file && file.job ? file.job.gender : '', saudi = !!(file && file.job && file.job.isSaudi);
   var d = drawer('<h3>' + t('rqNew') + '</h3><div id="rqBody"></div>');
   var body = $('#rqBody', d);
-  body.innerHTML = '<p style="margin:0 0 12px;color:var(--ink-2)">' + t('rqChoose') + '</p><div class="rq-types">' + TYPES.map(function(x){
+  body.innerHTML = '<p style="margin:0 0 12px;color:var(--ink-2)">' + t('rqChoose') + '</p><div class="rq-types">' + TYPES.filter(function(x){ return x[0] !== 'exit_reentry' || !saudi; }).map(function(x){
     return '<button type="button" data-type="' + x[0] + '">' + ph(x[1]) + '<b>' + t('rt_' + x[0]) + '</b><small>' + t('rtd_' + x[0]) + '</small></button>';
   }).join('') + '</div>';
   $$('[data-type]', body).forEach(function(b){ b.onclick = function(){ form(b.dataset.type); }; });
+  if (preType && TYPES.some(function(x){ return x[0] === preType; })) form(preType);
 
   function form(type){
     var h = '<form class="form" id="rqf"><h4 class="hr-sub" style="margin:0">' + ph((TYPES.filter(function(x){ return x[0] === type; })[0])[1]) + ' ' + t('rt_' + type) + '</h4>';
@@ -222,6 +227,12 @@ function newRequest(file, done){
         if (k[2] === 'marital') return '<div class="field"><label>' + t(k[1]) + '</label><select name="f_' + k[0] + '"><option value="">' + t('fNoneOpt') + '</option>' + ['single', 'married', 'other'].map(function(m){ return '<option value="' + m + '">' + t('ms_' + m) + '</option>'; }).join('') + '</select></div>';
         return '<div class="field"><label>' + t(k[1]) + '</label><input name="f_' + k[0] + '"' + (k[2] === 'date' ? ' type="date"' : k[2] === 'email' ? ' type="email" dir="ltr"' : k[2] === 'tel' ? ' inputmode="tel" dir="ltr"' : k[2] === 'iban' ? ' dir="ltr" maxlength="34"' : '') + ' placeholder="' + esc(cur || '') + '"></div>';
       }).join('');
+    } else if (type === 'exit_reentry') {
+      h += '<div class="two"><div class="field"><label>' + t('rqTravelFrom') + '</label><input type="date" name="fromDate" value="' + today + '" min="' + today + '" required></div><div class="field"><label>' + t('rqTravelTo') + '</label><input type="date" name="toDate" value="' + today + '" min="' + today + '" required></div></div>' +
+        '<div class="two"><div class="field"><label>' + t('rqVisaType') + '</label><select name="visaType"><option value="single">' + t('rqVisaSingle') + '</option><option value="multiple">' + t('rqVisaMultiple') + '</option></select></div>' +
+        '<div class="field"><label>' + t('rqVisaDays') + '</label><input type="number" name="durationDays" min="1" max="730" value="60" inputmode="numeric" required></div></div>' +
+        '<div class="two"><div class="field"><label>' + t('rqDeps') + '</label><input type="number" name="dependants" min="0" max="20" value="0" inputmode="numeric"></div><div class="field"><label>' + t('rqLeaveRef') + '</label><input name="leaveRef" dir="ltr" maxlength="30"></div></div>' +
+        '<div class="field"><label>' + t('rqPurpose') + '</label><input name="purpose" maxlength="200"></div>';
     } else if (type === 'resignation') {
       var notice = (file && file.job && file.job.noticeDays) || 30, min = new Date(Date.parse(today + 'T00:00:00Z') + notice * 86400000).toISOString().slice(0, 10);
       h += '<div class="field"><label>' + t('rqLastDay') + '</label><input type="date" name="lastDay" value="' + min + '" min="' + today + '" required><div class="hr-hint">' + t('rqNotice') + ': ' + plural(notice, 'days') + '</div></div>';
@@ -241,6 +252,7 @@ function newRequest(file, done){
       if (type === 'correction') rq.payload = { date: v.date, time: v.time, punchType: v.punchType };
       if (type === 'data_change') { rq.payload.fields = {}; DATA_KEYS.forEach(function(k){ if (v['f_' + k[0]]) rq.payload.fields[k[0]] = v['f_' + k[0]]; }); }
       if (type === 'resignation') rq.payload = { lastDay: v.lastDay };
+      if (type === 'exit_reentry') { rq.fromDate = v.fromDate; rq.toDate = v.toDate; rq.payload = { visaType: v.visaType, durationDays: v.durationDays, dependants: v.dependants, leaveRef: v.leaveRef, purpose: v.purpose }; }
       return rq;
     }
     function showFor(){
@@ -286,6 +298,8 @@ function quoteHtml(q, type){
     if (q.sick) h += '<br>' + [q.sick.full ? plural(q.sick.full, 'days') + ' ' + t('rqSickSplit') : '', q.sick.p75 ? plural(q.sick.p75, 'days') + ' ' + t('rqSick75') : '', q.sick.unpaid ? plural(q.sick.unpaid, 'days') + ' ' + t('rqSickUnpaid') : ''].filter(Boolean).join('، ');
   } else if (type === 'advance') {
     h += t('rqInstallment') + ': <b class="num">' + money(q.installment) + '</b><br>' + t('rqStart') + ' ' + esc(q.payload && q.payload.startMonth || '');
+  } else if (type === 'exit_reentry') {
+    h += t('rqTrip') + ' <b class="num">' + plural(q.days, 'days') + '</b>';
   } else if (type === 'resignation') {
     h += t('rqLastDay') + ': <b>' + fmtDate(q.toDate) + '</b>';
   } else h += ph('check-circle') + ' ' + t('rqSend');
