@@ -93,7 +93,7 @@ function page(body){
 }
 function claimRow(x, i, who){
   return '<div class="row"><div class="av">' + ph('receipt') + '</div><div class="main"><b>' + (who ? empLine(x.emp) + sep() : '') + esc(x.title || t('xpTitle')) + '</b>' +
-    '<small><bdi>' + esc(x.ref) + '</bdi>' + sep() + fmt(day(x.createdAt)) + sep() + money(x.total) + sep() + x.lines.length + ' ' + t('xpLines') + (x.payMonth ? sep() + esc(monthName(x.payMonth)) : '') + (x.paidRef ? sep() + '<bdi>' + esc(x.paidRef) + '</bdi>' : '') + '</small>' +
+    '<small><bdi>' + esc(x.ref) + '</bdi>' + sep() + fmt(day(x.createdAt)) + sep() + money(x.total) + sep() + t('xpLines') + ': ' + x.lines.length + (x.payMonth ? sep() + esc(monthName(x.payMonth)) : '') + (x.paidRef ? sep() + '<bdi>' + esc(x.paidRef) + '</bdi>' : '') + '</small>' +
     (x.flags.length ? '<small style="color:var(--warn)">' + ph('warning') + ' ' + x.flags.map(flagText).join('؛ ') + '</small>' : '') + '</div>' + stChip(x) +
     ' <button type="button" class="btn btn-line btn-sm" data-v="' + i + '" aria-label="' + t('xpPrint') + '">' + ph('eye') + '</button></div>';
 }

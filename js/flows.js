@@ -43,6 +43,7 @@ Object.assign(T.ar, {
   ycArt80Prov:'تقدير مؤقت حتى تأكيد العودة', ycOverdue:'متأخر عن العودة', ycMineTask:'مطلوب منك', ycOpenCycle:'عرض الدورة', ycPrint:'طباعة نموذج الإخلاء',
   ycCoverLead:'سمّاك زميلك بديلا عنه في إجازته. اقرأ ما يسلمه إليك ثم اقبل أو اعتذر مع السبب.', ycNeedSub:'اختر البديل أولا.',
   ycPrintTitle:'نموذج إخلاء طرف قبل الإجازة', ycPrintKind:'إخلاء قبل الإجازة', ycSignEmp:'توقيع الموظف', ycSignMgr:'توقيع المدير المباشر', ycSignHr:'اعتماد الموارد البشرية',
+  ycn_no_right:'لا يوجد استحقاق تذكرة مسجل في العقد', ycn_not_due:'لا تذكرة مستحقة في هذه الدورة', ycn_saudi:'موظف سعودي: لا تلزم تأشيرة', ycn_not_manager:'لا يدير أحدا', ycn_no_handover:'لا تسليم', ycn_not_cleared:'سافر قبل اكتمال الإخلاء', ycn_declined:'اعتذر البديل',
   ycOpenLead:'فتح دورة يدويا لإجازة معتمدة أقصر من الحد أو اعتمدت قبل هذه الخاصية.', ycOpenBtn:'فتح دورة لإجازة', ycReqId:'الإجازة المعتمدة', ycMinDays:'الحد الأدنى',
   // flows
   fwTitle:'مسارات الموافقة', fwLead:'لكل نوع طلب مسار من خطوات بالترتيب. لكل خطوة شرط اختياري وهدف زمني. يثبت المسار على الطلب لحظة تقديمه، فتعديل المسار لا يغير الطلبات الجارية. بدون مسار يعمل المسار الأساسي كما كان.',
@@ -97,6 +98,7 @@ Object.assign(T.en, {
   ycArt80Prov:'Provisional until the return is confirmed', ycOverdue:'Overdue return', ycMineTask:'Your step', ycOpenCycle:'View cycle', ycPrint:'Print clearance form',
   ycCoverLead:'A colleague named you as their substitute for their leave. Read what they hand over, then accept or decline with a reason.', ycNeedSub:'Choose the substitute first.',
   ycPrintTitle:'Pre-leave clearance form', ycPrintKind:'Pre-leave clearance', ycSignEmp:'Employee signature', ycSignMgr:'Line manager signature', ycSignHr:'HR approval',
+  ycn_no_right:'No ticket entitlement recorded in the contract', ycn_not_due:'No ticket due in this cycle', ycn_saudi:'Saudi employee: no visa needed', ycn_not_manager:'Manages nobody', ycn_no_handover:'No hand-over', ycn_not_cleared:'Left before the clearance was complete', ycn_declined:'The substitute declined',
   ycOpenLead:'Open a cycle by hand for an approved leave shorter than the threshold, or approved before this feature.', ycOpenBtn:'Open a cycle for a leave', ycReqId:'Approved leave', ycMinDays:'Threshold',
   fwTitle:'Approval flows', fwLead:'Each request type has ordered steps. Each step may have a condition and a time target. The flow is fixed on a request when it is made, so editing a flow never changes requests in progress. With no flow, the built-in chain works as before.',
   fwBuiltin:'Built-in chain', fwActive:'Flow in force', fwNoFlow:'The built-in chain applies', fwEdit:'Edit flow', fwReset:'Back to the built-in chain', fwVersions:'Versions', fwSave:'Save a new version',
@@ -320,7 +322,7 @@ function history(x){
     el.innerHTML = (it.emp ? '<p>' + empLine(it.emp) + (it.status ? ' ' + chip(esc(tl('rs_' + it.status, tl('ys_' + it.status, it.status)))) : '') + '</p>' : '') +
       (r.entries.length ? '<ul class="cn-tl">' + r.entries.map(function(e){
         var no = e.decision === 'reject' || e.decision === 'rejected' || e.decision === 'cancelled' || e.decision === 'decline';
-        var step = e.step && !/^\d{4}-/.test(e.step) ? tl('yct_' + e.step, tl('cl_' + e.step, tl('rstep_' + e.step, ''))) : '';
+        var step = e.step && !/^\d{4}-/.test(e.step) ? tl('yct_' + e.step, tl('cl_' + e.step, tl('fwk_' + e.step, ''))) : '';
         return '<li class="' + (no ? 'no' : '') + '"><b>' + esc(tl('cnd_' + e.decision, e.decision)) + (e.by ? sep() + esc(e.by) : '') + '</b>' +
           '<small>' + when(e.at) + (step ? sep() + esc(step) : '') + (e.role === 'delegate' || e.onBehalfOf ? sep() + t('cnOnBehalf') + ' ' + esc(e.onBehalfOf || '') : e.role === 'hr_on_behalf' ? sep() + t('cnHrBehalf') : '') + '</small>' +
           (e.note ? '<small>' + esc(e.note) + '</small>' : '') + '</li>';
@@ -372,6 +374,8 @@ function openManual(rows, done){
   $('#ymF', d).onsubmit = function(ev){ ev.preventDefault(); var b = this.querySelector('[type=submit]'); b.disabled = true;
     api('leaveCycleOpen', { requestId: this.elements.id.value }).then(function(x){ b.disabled = false; if (!x.ok) return $('#ymE', d).textContent = errText(x.error); d.remove(); toast(x.cycle.ref); done(); cycleDrawer(x.cycle, done); }); };
 }
+/** A system note code (no_right, saudi...) in words; a person's note as written. */
+function noteText(n){ n = String(n || ''); if (n.indexOf('declined: ') === 0) return t('ycn_declined') + ': ' + n.slice(10); var v = T[S.lang]['ycn_' + n]; return v || n; }
 function taskData(x){
   var dd = x.data || {}, p = [];
   if (x.key === 'handover' && dd.substitute) p.push(t('ycSub') + ': ' + empLine(dd.substitute));
@@ -403,13 +407,13 @@ function cycleDrawer(c, done){
       var ic = x.status === 'done' ? 'check-circle' : x.status === 'na' ? 'minus-circle' : x.status === 'waiting' ? 'hourglass' : TASK_ICON[x.key] || 'circle';
       return '<div class="yc-task ' + x.status + '">' + ph(ic, x.status === 'done' ? 'fill' : '') + '<div class="main"><b>' + t('yct_' + x.key) + (x.required ? '' : ' <small class="hr-hint" style="display:inline">(' + t('ycOptional') + ')</small>') + '</b>' +
         '<small>' + t('yo_' + x.owner) + sep() + t('yts_' + x.status) + (x.auto ? ' (' + t('ycAuto') + ')' : '') + (x.due && x.status === 'open' ? sep() + t('cnDue') + ' ' + fmt(x.due) : '') + (x.by ? sep() + esc(x.by) + (x.at ? ' ' + fmt(day(x.at)) : '') : '') + (x.onBehalfOf ? sep() + t('cnOnBehalf') + ' ' + esc(x.onBehalfOf) : '') + '</small>' +
-        (taskData(x) ? '<small>' + taskData(x) + '</small>' : '') + (x.note ? '<small>' + esc(x.note) + '</small>' : '') + '<div data-tf="' + i + '"></div></div></div>';
+        (taskData(x) ? '<small>' + taskData(x) + '</small>' : '') + (x.note ? '<small>' + esc(noteText(x.note)) + '</small>' : '') + '<div data-tf="' + i + '"></div></div></div>';
     }).join('') + '</div>';
     h += '<h4 class="op-h4">' + ph('airplane') + t('ycSteps') + '</h4><div class="yc-steps">' + c.steps.map(function(s){
       return '<div class="yc-step' + (s.status === 'done' ? ' done' : '') + '"><b>' + ph(s.status === 'done' ? 'check-circle' : s.key === 'depart' ? 'airplane-takeoff' : s.key === 'return' ? 'airplane-landing' : 'seal-check', s.status === 'done' ? 'fill' : '') + t('yct_' + s.key) + '</b>' +
         '<small>' + (s.date ? fmt(s.date) + (s.by ? sep() + esc(s.by) : '') : s.due ? t('cnDue') + ' ' + fmt(s.due) : '') + '</small><div data-sf="' + s.key + '"></div></div>'; }).join('') + '</div>';
     if (c.history && c.history.length) h += '<h4 class="op-h4">' + ph('clock-counter-clockwise') + t('ycHistory') + '</h4><ul class="cn-tl">' + c.history.slice().reverse().map(function(e){
-      return '<li class="' + (e.action === 'decline' || e.action === 'cancelled' ? 'no' : '') + '"><b>' + esc(tl('cnd_' + e.action, e.action)) + (e.key && !/^\d{4}-/.test(e.key) ? sep() + esc(tl('yct_' + e.key, e.key)) : e.key ? sep() + fmt(e.key) : '') + '</b><small>' + esc(e.by) + sep() + when(e.at) + (e.onBehalfOf ? sep() + t('cnOnBehalf') + ' ' + esc(e.onBehalfOf) : '') + '</small>' + (e.note ? '<small>' + esc(e.note) + '</small>' : '') + '</li>';
+      return '<li class="' + (e.action === 'decline' || e.action === 'cancelled' ? 'no' : '') + '"><b>' + esc(tl('cnd_' + e.action, e.action)) + (e.key && !/^\d{4}-/.test(e.key) ? sep() + esc(tl('yct_' + e.key, e.key)) : e.key ? sep() + fmt(e.key) : '') + '</b><small>' + esc(e.by) + sep() + when(e.at) + (e.onBehalfOf ? sep() + t('cnOnBehalf') + ' ' + esc(e.onBehalfOf) : '') + '</small>' + (e.note ? '<small>' + esc(noteText(e.note)) + '</small>' : '') + '</li>';
     }).join('') + '</ul>';
     h += '<div class="btnrow" style="margin-top:10px"><button type="button" class="btn btn-line btn-sm" id="ycPr">' + ph('printer') + t('ycPrint') + '</button></div><p class="hr-bad" id="ycE" role="alert"></p>';
     el.innerHTML = h;
@@ -477,7 +481,7 @@ function printCycle(c){
     [[en ? 'Employee' : 'الموظف', (c.emp ? c.emp.name + ' (' + c.emp.empNo + ')' : '')], [en ? 'Leave request' : 'طلب الإجازة', c.requestRef], [en ? 'From - to' : 'من - إلى', c.fromDate + ' - ' + c.toDate], [en ? 'Due back' : 'موعد العودة', c.backOn]]
       .map(function(x){ return '<div><dt>' + D.esc(x[0]) + '</dt><dd>' + D.esc(x[1] || '-') + '</dd></div>'; }).join('') + '</dl></section>' +
     '<section><h2 class="sh">' + D.esc(t('ycTasks')) + '</h2><table class="tb"><thead><tr><th>' + D.esc(en ? 'Task' : 'المهمة') + '</th><th>' + D.esc(en ? 'Owner' : 'المسؤول') + '</th><th>' + D.esc(en ? 'Status' : 'الحالة') + '</th><th>' + D.esc(en ? 'By / date' : 'بواسطة / التاريخ') + '</th><th>' + D.esc(en ? 'Details' : 'التفاصيل') + '</th></tr></thead><tbody>' +
-    c.tasks.map(function(x){ var tmp = document.createElement('div'); tmp.innerHTML = taskData(x) + (x.note ? ' ' + esc(x.note) : '');
+    c.tasks.map(function(x){ var tmp = document.createElement('div'); tmp.innerHTML = taskData(x) + (x.note ? ' ' + esc(noteText(x.note)) : '');
       return '<tr><td>' + D.esc(t('yct_' + x.key)) + (x.required ? '' : '<small>' + D.esc(t('ycOptional')) + '</small>') + '</td><td>' + D.esc(t('yo_' + x.owner)) + '</td><td>' + D.esc(t('yts_' + x.status)) + '</td><td>' + D.esc(x.by || '') + (x.at ? '<small class="num">' + D.esc(day(x.at)) + '</small>' : '') + '</td><td>' + D.esc(tmp.textContent) + '</td></tr>'; }).join('') +
     '</tbody></table></section>' +
     (c.substitute ? '<section><p>' + D.esc(t('ycSub')) + ': <b>' + D.esc(c.substitute.name) + '</b></p></section>' : '');
@@ -554,7 +558,7 @@ function editFlow(r, ty, done){
         (ty.type === 'leave' ? fld(t('fwDaysOver'), '<input data-k="daysOver" type="number" min="0" step="1" value="' + esc(w.daysOver == null ? '' : w.daysOver) + '">') : '') +
         fld(t('fwDept'), '<select data-k="departmentId">' + opts(r.depts.map(function(x){ return [x.id, lang(x.nameAr, x.nameEn)]; }), w.departmentId || '', t('fwAnyDept')) + '</select>') +
         fld(t('fwSaudi'), '<select data-k="saudi">' + opts([['saudi', t('fwSaudiOnly')], ['non_saudi', t('fwNonSaudi')]], w.saudi || '', t('fwAnyone')) + '</select>') + '</div>';
-      return '<div class="fw-step" data-i="' + i + '"><div>' + fld(t('fwKind'), '<select data-f="kind">' + opts(KINDS.map(function(k){ return [k, t('fwk_' + k) + (k === 'payroll' || k === 'executive' ? ' (' + (r.holders[k] || 0) + ' ' + t('fwHolders') + ')' : '')]; }), s.kind) + '</select>') +
+      return '<div class="fw-step" data-i="' + i + '"><div>' + fld(t('fwKind'), '<select data-f="kind">' + opts(KINDS.map(function(k){ return [k, t('fwk_' + k) + (k === 'payroll' || k === 'executive' ? ' (' + t('fwHolders') + ': ' + (r.holders[k] || 0) + ')' : '')]; }), s.kind) + '</select>') +
         (s.kind === 'person' ? fld(t('fwPerson'), '<select data-f="personId">' + opts(r.people.map(function(p){ return [p.id, p.name + ' (' + p.empNo + ')']; }), s.personId, '-') + '</select>') : '') + '</div>' +
         '<div><small class="hr-hint">' + t('fwWhen') + '</small>' + cond + '</div>' + fld(t('fwSla'), '<input data-f="slaHours" type="number" min="1" max="720" step="1" value="' + esc(s.slaHours) + '">') +
         '<div class="ctl"><button type="button" class="btn btn-line btn-sm" data-up aria-label="' + t('fwUp') + '"' + (i ? '' : ' disabled') + '>' + ph('arrow-up') + '</button><button type="button" class="btn btn-line btn-sm" data-dn aria-label="' + t('fwDown') + '"' + (i < steps.length - 1 ? '' : ' disabled') + '>' + ph('arrow-down') + '</button>' +
