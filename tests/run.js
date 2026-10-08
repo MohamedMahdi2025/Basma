@@ -73,8 +73,9 @@ console.log('Backend files share one namespace');
   // replaces the first (a helper called json_ once took down every reply). Names must be unique.
   const fs = require('fs'), path = require('path'), dir = path.join(__dirname, '..', 'backend'), seen = {}, dup = [];
   fs.readdirSync(dir).filter(f => f.endsWith('.gs')).forEach(f => {
-    (fs.readFileSync(path.join(dir, f), 'utf8').match(/^function\s+([A-Za-z0-9_$]+)/gm) || []).forEach(m => {
-      const n = m.replace(/^function\s+/, '');
+    // Apps Script has one global namespace: a top-level var counts too (a var and a function of one name clash as well)
+    (fs.readFileSync(path.join(dir, f), 'utf8').match(/^(?:function|var)\s+([A-Za-z0-9_$]+)/gm) || []).forEach(m => {
+      const n = m.replace(/^(?:function|var)\s+/, '');
       if (seen[n]) dup.push(n + ' (' + seen[n] + ', ' + f + ')'); else seen[n] = f;
     });
   });
