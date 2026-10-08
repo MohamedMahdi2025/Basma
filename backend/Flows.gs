@@ -278,8 +278,17 @@ function api_leaveCycleList(req, me) {
     if (v.art80 && v.art80.flagged) art80++;
     if (v.status !== 'closed' && v.status !== 'cancelled' && !v.departedOn) v.tasks.forEach(function (x) { if (x.required && x.status === 'open' && x.due < t) overdueTasks++; });
   });
+  // HR: approved leaves not over yet with no live cycle (shorter than the threshold, or approved before this module)
+  var openable = [];
+  if (isHr_(me)) {
+    var has = {};
+    o.cycles.forEach(function (c) { if (c.status !== 'cancelled') has[c.requestId] = 1; });
+    openable = readAll_(SHEETS.REQ).filter(function (r) { return r.type === 'leave' && r.status === 'approved' && !has[r.id] && r.empId !== me.id && String(r.toDate).slice(0, 10) >= t && ctx.emps[r.empId]; })
+      .sort(function (a, b) { return String(a.fromDate) < String(b.fromDate) ? -1 : 1; }).slice(0, 200)
+      .map(function (r) { return { id: r.id, ref: r.ref, emp: empCard_(ctx.emps[r.empId]), fromDate: String(r.fromDate).slice(0, 10), toDate: String(r.toDate).slice(0, 10), days: Number(r.days) || 0 }; });
+  }
   return { ok: true, rows: rows.slice(0, 300), stats: { byStatus: by, outNow: outNow, returningWeek: backWeek, overdueTasks: overdueTasks, art80: art80, total: all.length },
-    minDays: o.conf.minDays, canOpen: isHr_(me) };
+    minDays: o.conf.minDays, canOpen: isHr_(me), openable: openable };
 }
 /** The signed-in person's own cycles, the cycles they cover as substitute, and (when they must name one) colleagues to choose from. */
 function api_myLeaveCycles(req, me) {
