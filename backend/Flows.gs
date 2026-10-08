@@ -202,7 +202,7 @@ function lcNextMonth_(empId) {
 function lcView_(c, me, ctx, o) {
   var emp = ctx.emps[c.empId];
   if (!emp) return null;
-  var self = me.id === c.empId, hr = isHr_(me), pay = canPayroll_(me), sub = !!c.substituteId && me.id === c.substituteId;
+  var self = me.id === c.empId, hr = isHr_(me), pay = canPayroll_(me), sub = (!!c.substituteId && me.id === c.substituteId) || (!!o.viewAsSub && o.viewAsSub === me.id);
   var mgr = !self && (manages_(me, emp, ctx) || !!delegatedFor_(me, emp, ctx));
   if (!self && !hr && !pay && !sub && !mgr) return null;
   var t = today_(), back = lcBackOn_(emp, c.toDate, o.s, o.hol), tasks = lcLive_(c, emp), state = lcState_(c, tasks, back, t);
@@ -324,12 +324,13 @@ function lcAdjustRequest_(c, emp, from, to, kind, info) {
 }
 
 /**
- * Tick a task. action: done | na (not applicable, note needed) | accept / decline (the substitute). data per task:
+ * Tick a task. op: done | na (not applicable, note needed) | accept / decline (the substitute). The field is `op`, never
+ * `action`: `action` is the dispatcher's own key (Code.gs handle_), so a payload field of that name replaces the endpoint. data per task:
  * handover {substituteId, notes}; delegation {delegateId}; exit_reentry {visaNo, validUntil, kind}; ticket {entitlement?, bookingRef, route};
  * leave_salary {amount, month}; custody {note}.
  */
 function api_leaveCycleTask(req, me) {
-  var key = String(req.key || ''), action = ['done', 'na', 'accept', 'decline'].indexOf(req.action) >= 0 ? req.action : 'done', d = req.data || {}, note = str_(req.note, 500);
+  var key = String(req.key || ''), action = ['done', 'na', 'accept', 'decline'].indexOf(req.op) >= 0 ? req.op : 'done', d = req.data || {}, note = str_(req.note, 500);
   var pre = null;
   if (key === 'delegation' && action === 'done') pre = lcDelegate_(req, me, d); // the delegation takes its own lock (Compliance.gs)
   return withLock_(function () {
@@ -341,6 +342,8 @@ function api_leaveCycleTask(req, me) {
     if (!lcIsOwner_(me, x.owner, c, emp, ctx)) fail_('forbidden');
     if (x.status === 'waiting') fail_('bad_state');
     if (x.status === 'done' || x.status === 'na') fail_('already_done');
+    var lx = lcLive_(c, emp).filter(function (k) { return k.key === key; })[0];
+    if (lx && lx.auto && lx.status === 'na') fail_('already_done'); // custody with nothing held: not applicable, nothing to tick
     var now = new Date().toISOString(), onBehalf = '';
     if (x.owner === 'manager' && !manages_(me, emp, ctx) && !isHr_(me)) { var dg = delegatedFor_(me, emp, ctx); onBehalf = dg ? dg.fromEmpId : ''; }
     var acc = tasks.filter(function (k) { return k.key === 'handover_accept'; })[0];
@@ -399,7 +402,9 @@ function api_leaveCycleTask(req, me) {
     c.tasksJson = JSON.stringify(tasks);
     lcSave_(c, me, ctx, { action: action, key: key, note: note, onBehalfOf: onBehalf });
     audit_(me.id, 'leave_cycle_task', c.empId, { ref: c.ref, key: key, action: action, onBehalfOf: onBehalf || undefined });
-    return { ok: true, cycle: lcView_(c, me, ctx, lcViewCtx_(ctx)) };
+    var vc = lcViewCtx_(ctx);
+    if (action === 'decline') vc.viewAsSub = me.id; // the one who just declined sees the result once (they are no longer the substitute)
+    return { ok: true, cycle: lcView_(c, me, ctx, vc) };
   });
 }
 /** The leaver (a manager) hands their approvals to someone for the leave dates; an existing delegation that covers them counts. */
@@ -942,7 +947,7 @@ function apDo_(type, x, decision, note, me) {
   if (type === 'report') { need(decision === 'approve'); var lg = findBy_(SHEETS.RLOG, 'id', x.id); if (!lg) fail_('not_found'); api_reportReview({ ref: lg.ref, note: note }, me); return { ref: lg.ref }; }
   if (type === 'leavecycle') {
     need(decision === 'done' && (x.task === 'custody' || x.task === 'handover_accept'));
-    return { ref: api_leaveCycleTask({ id: x.id, key: x.task, action: x.task === 'handover_accept' ? 'accept' : 'done', note: note }, me).cycle.ref };
+    return { ref: api_leaveCycleTask({ id: x.id, key: x.task, op: x.task === 'handover_accept' ? 'accept' : 'done', note: note }, me).cycle.ref };
   }
   fail_('deep_link_only');
 }

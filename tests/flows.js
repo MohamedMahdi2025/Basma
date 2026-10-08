@@ -106,20 +106,20 @@ r = tick(X, '5002', c1.id, 'handover', { data: { substituteId: ids['5002'], note
 ok(!r.ok && r.error === 'bad_substitute', 'nobody is their own substitute', r);
 r = tick(X, '5002', c1.id, 'handover', { data: { substituteId: ids['5003'], notes: 'خط التوزيع الشمالي وعملاء الجملة' } });
 ok(r.ok && r.cycle.status === 'clearing' && r.cycle.substitute.empNo === '5003' && task(r.cycle, 'handover_accept').status === 'open', 'the driver hands over to 5003; acceptance now open');
-r = tick(X, '5004', c1.id, 'handover_accept', { action: 'accept' });
+r = tick(X, '5004', c1.id, 'handover_accept', { op: 'accept' });
 ok(!r.ok && r.error === 'forbidden', 'only the named substitute accepts', r);
 r = call('5003', 'myTasks');
 ok(r.tasks.some(t => t.kind === 'leavecycle_me'), 'the substitute is asked in the bell');
-r = tick(X, '5003', c1.id, 'handover_accept', { action: 'decline' });
+r = tick(X, '5003', c1.id, 'handover_accept', { op: 'decline' });
 ok(!r.ok && r.error === 'note_required', 'declining needs a reason', r);
-r = tick(X, '5003', c1.id, 'handover_accept', { action: 'decline', note: 'في إجازة نفس الأسبوع' });
+r = tick(X, '5003', c1.id, 'handover_accept', { op: 'decline', note: 'في إجازة نفس الأسبوع' });
 ok(r.ok && task(r.cycle, 'handover').status === 'open' && !r.cycle.substitute, 'the substitute declines: the handover opens again');
 r = call('5003', 'myLeaveCycles');
 ok(r.ok && r.covering.length === 0, 'and it leaves their list');
 tick(X, '5002', c1.id, 'handover', { data: { substituteId: ids['5004'], notes: 'خط التوزيع الشمالي وعملاء الجملة' } });
 r = call('5004', 'myLeaveCycles');
 ok(r.covering.length === 1 && task(r.covering[0], 'handover').data.notes.indexOf('الشمالي') > 0 && !task(r.covering[0], 'exit_reentry').data, 'the new substitute sees the handover notes, not the travel data');
-r = tick(X, '5004', c1.id, 'handover_accept', { action: 'accept' });
+r = tick(X, '5004', c1.id, 'handover_accept', { op: 'accept' });
 ok(r.ok && task(r.cycle, 'handover_accept').status === 'done', 'the substitute accepts');
 r = tick(X, '5001', c1.id, 'custody', { note: 'الشاحنة تبقى مع البديل' });
 ok(r.ok && task(r.cycle, 'custody').status === 'done' && task(r.cycle, 'custody').by === 'مشرف المستودع', 'the manager checks custody');
@@ -150,7 +150,7 @@ ok(!r.ok && r.error === 'bad_date', 'no departure before the date has come', r);
 B.setNow(at('2026-11-15'));
 r = call('5002', 'leaveCycleDepart', { id: c1.id, date: '2026-11-15' });
 ok(r.ok && r.cycle.status === 'departed' && r.cycle.departedOn === '2026-11-15', 'the driver confirms the departure');
-const bal0 = call('5002', 'myRequests').leave.annual.available;
+const bal0 = call('5002', 'myRequests').leave.annual;
 B.setNow(at('2026-11-22'));
 r = call('5001', 'leaveCycleConfirm', { id: c1.id, date: '2026-11-23' });
 ok(!r.ok && r.error === 'bad_date', 'a return date in the future is refused', r);
@@ -164,7 +164,8 @@ r = call('5001', 'leaveCycleConfirm', { id: c1.id, date: '2026-11-22' });
 ok(r.ok && r.cycle.status === 'closed' && r.cycle.outcome === 'early' && r.cycle.earlyDays === 5, 'the manager confirms: early by 5 working days, cycle closed', r.cycle || r);
 let req1 = X.rows('requests').find(q => q.id === lv1.id);
 ok(req1.toDate === '2026-11-21' && Number(req1.days) === 5, 'the leave request now ends the day before the return (10 days became 5)', { to: req1.toDate, days: req1.days });
-ok(Math.abs(call('5002', 'myRequests').leave.annual.available - bal0 - 5) < 0.01, 'the 5 unused days are back in the balance');
+const bal1 = call('5002', 'myRequests').leave.annual; // a week passed: the accrual grew too, so it is taken out of the comparison
+ok(bal0.used - bal1.used === 5 && Math.abs(bal1.available - bal0.available - 5 - (bal1.accrued - bal0.accrued)) < 0.01, 'the 5 unused days are back in the balance', { bal0, bal1 });
 
 console.log('Leave cycle: a manager leaving (delegation), every leave (setting 1), on-time return');
 r = call('5001', 'flowSettingsSave', { settings: { leaveClearanceMinDays: 1 } });
@@ -186,7 +187,7 @@ ok(task(r.rows.find(c => c.id === c2.id), 'custody').status === 'na', 'custody n
 r = tick(X, '5000', c2.id, 'custody');
 ok(!r.ok && (r.error === 'already_done' || r.error === 'forbidden'), 'nothing to tick', r);
 tick(X, '5001', c2.id, 'handover', { data: { substituteId: ids['5003'], notes: 'جرد المستودع الأسبوعي' } });
-tick(X, '5003', c2.id, 'handover_accept', { action: 'accept' });
+tick(X, '5003', c2.id, 'handover_accept', { op: 'accept' });
 B.setNow(at('2026-12-13'));
 ok(call('5001', 'leaveCycleDepart', { id: c2.id }).ok, 'the manager departs (date defaults to today)');
 B.setNow(at('2026-12-14'));
@@ -236,7 +237,7 @@ r = leave(X, '5003', '2027-02-14', '2027-02-18');
 approveAll(X, r.request.id, ['5001', '3001']);
 let c4 = cycleOf(X, '3001', r.request.ref);
 tick(X, '5003', c4.id, 'handover', { data: { substituteId: ids['5002'], notes: 'مفاتيح المستودع مع الحارس' } });
-tick(X, '5002', c4.id, 'handover_accept', { action: 'accept' });
+tick(X, '5002', c4.id, 'handover_accept', { op: 'accept' });
 B.setNow(at('2027-02-14'));
 call('5003', 'leaveCycleDepart', { id: c4.id });
 B.setNow(at('2027-02-23'));
@@ -260,8 +261,9 @@ ok(call('3001', 'requestCancel', { id: lvC.id, note: 'تغيرت الخطة' }).
 console.log('Approvals centre: one inbox across modules');
 X = company(at('2026-11-01')); ({ B, ids, call } = X);
 const T = at('2026-11-01');
-r = leave(X, '5003', '2026-11-20', '2026-11-20');
+r = leave(X, '5003', '2026-11-19', '2026-11-19'); // Thursday (20 November is a Friday: no working day)
 const rqA = r.request;
+ok(r.ok, 'a one-day leave to approve', r);
 call('3001', 'hrCompPropose', { empId: ids['5004'], effectiveFrom: '2026-11-01', basic: 3000, housing: 750, transport: 300, reason: 'ترقية' });
 call('3001', 'payrollCreate', { month: '2026-10' });
 const run = X.rows('payrollRuns')[0];
@@ -276,6 +278,8 @@ X.direct(() => {
   c.append_('perfCycles', { id: 'PC1', ref: 'PC-2026-00001', year: 2026, nameAr: 'دورة 2026', status: 'calibration', createdAt: now });
   c.append_('reviews', { id: 'RV1', ref: 'PE-2026-00001', cycleId: 'PC1', empId: ids['5003'], stage: 'calibration', mgrBy: ids['5001'], mgrAt: now, overall: 3.6, createdAt: now, updatedAt: now });
 });
+call('3001', 'assetSave', { asset: { type: 'phone', nameAr: 'جوال العمل', serial: 'PH-1', value: 2500 } });
+call('3001', 'assetAssign', { assetId: call('3001', 'assetList').rows[0].id, empId: ids['5002'] }); // the driver holds a phone: their leave cycle has a custody check
 call('3001', 'clearanceStart', { empId: ids['5004'], lastDay: '2026-11-30', reason: 'contract_end' });
 call('3001', 'onboardStart', { empId: ids['5005'] });
 r = leave(X, '5002', '2026-11-22', '2026-12-03');
@@ -379,7 +383,7 @@ let row = X.rows('requests').find(x => x.id === q.id);
 ok(q.step === 'manager' && row.flowJson === '' && q.steps.join() === 'manager,hr', 'the default keeps the old behaviour: manager then HR, nothing stored');
 r = call('3001', 'flowSave', { type: 'leave', steps: [{ kind: 'manager' }, { kind: 'executive', when: { daysOver: 5 } }, { kind: 'hr' }] });
 ok(!r.ok && r.error === 'flow_no_holder', 'an executive step needs someone who holds the role', r);
-call('1000', 'hrRolesSave', { id: ids['4001'], extraRoles: 'executive' });
+call('1000', 'hrRolesSave', { id: ids['4001'], extraRoles: 'executive' }); X.tok('4001', true); // a role change ends the person's sessions (tokenVer)
 r = call('3001', 'flowSave', { type: 'advance', steps: [{ kind: 'manager' }, { kind: 'payroll' }] });
 ok(!r.ok && r.error === 'flow_step_not_allowed', 'an advance never goes to the line manager (pay)', r);
 r = call('3001', 'flowSave', { type: 'advance', steps: [{ kind: 'hr' }] });
@@ -426,7 +430,7 @@ ok(r.ok && dc1.steps.join() === 'payroll,hr' && dc2.steps.join() === 'hr', 'a no
 
 console.log('Approval flows: versions and reset');
 r = call('3001', 'flowSave', { type: 'leave', steps: [{ kind: 'hr' }] });
-ok(r.ok && r.flow.version === 2 && r.flow.ref === 'AF-006', 'a new version of the leave flow (v2)', r.flow);
+ok(r.ok && r.flow.version === 2 && r.flow.ref === 'AF-005', 'a new version of the leave flow (v2; AF-005 after leave, letter, correction and data change)', r.flow);
 let fl = call('3001', 'flowList').types.find(x => x.type === 'leave');
 ok(fl.active.version === 2 && fl.versions.length === 2 && fl.versions[1].status === 'superseded', 'v1 is kept as superseded');
 row = X.rows('requests').find(x => x.id === q.id);
@@ -439,7 +443,7 @@ const q3 = leave(X, '5002', '2026-12-20', '2026-12-20').request;
 ok(q3.steps.join() === 'manager,hr' && X.rows('requests').find(x => x.id === q3.id).flowJson === '', 'after the reset the old behaviour is back exactly');
 r = call('3001', 'flowSettingsSave', { settings: { approvalSlaHours: 24 } });
 ok(r.ok && call('5001', 'approvalsInbox').slaHours === 24, 'the SLA target is a setting (24 h)');
-ok(X.rows('audit').filter(a => a.action === 'flow_save' || a.action === 'flow_reset').length === 7, 'every flow change is audited');
+ok(X.rows('audit').filter(a => a.action === 'flow_save' || a.action === 'flow_reset').length === 6, 'every flow change is audited (5 saves and the reset)');
 
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);
