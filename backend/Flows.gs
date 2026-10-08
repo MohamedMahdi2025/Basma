@@ -1002,7 +1002,8 @@ function apDo_(type, x, decision, note, me) {
   if (type === 'ticket_use') { need(decision !== 'done'); return { ref: api_ticketUseApprove({ id: x.id, decision: decision, note: note }, me).use.ref }; }
   if (type === 'gov_fee') { need(decision === 'approve'); api_govFeeVerify({ ids: [x.id] }, me); var gf = findBy_(SHEETS.GOV_FEE, 'id', x.id); return { ref: gf ? gf.ref : '' }; }
   if (type === 'leavecycle') {
-    need(decision === 'done' && (x.task === 'custody' || x.task === 'handover_accept'));
+    if (x.task !== 'custody' && x.task !== 'handover_accept') fail_('deep_link_only'); // forms with data (visa, ticket, amounts, dates) are on the leave-cycle screen
+    need(decision === 'done');
     return { ref: api_leaveCycleTask({ id: x.id, key: x.task, op: x.task === 'handover_accept' ? 'accept' : 'done', note: note }, me).cycle.ref };
   }
   fail_('deep_link_only');

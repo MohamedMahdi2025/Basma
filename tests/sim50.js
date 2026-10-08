@@ -959,7 +959,7 @@ r = call('1012', 'discDecide', { id: DC.id, penalty: 'fine_days:6', note: 'x' })
 ok(!r.ok && r.error === 'bad_penalty', 'a fine of more than 5 days is refused (Art. 66)');
 r = call('1012', 'discDecide', { id: DC.id });
 ok(r.ok && near2(r.case.amount, r2(daily('1018') * 0.25)) && r.case.adjMonth === '2026-11', 'decided as scheduled: 25% of a day\'s wage, deducted in November', r.case);
-ok(call('1018', 'discObject', { id: DC.id, text: 'أطلب إعادة النظر' }).ok, 'the driver objects within 15 days (Art. 72)');
+ok(call('1018', 'discObject', { id: DC.id, text: 'أطلب إعادة النظر' }).ok, 'the driver files a grievance within 30 days of notice (Art. 72 as amended)');
 ok(taskCount('1011', 'disc_objection') === 1 && taskCount('1012', 'disc_objection') === 0, 'the objection goes to the other HR person, not the one who decided');
 r = call('1012', 'discObjectionDecide', { id: DC.id, result: 'upheld', note: 'x' });
 ok(!r.ok && r.error === 'second_approver_required', 'the one who decided cannot rule on it');
@@ -1115,6 +1115,103 @@ call('1045', 'settingsSave', { settings: { saudizationTarget: 60 } });
 ok(call('1009', 'complianceCalendar').ok && !call('1006', 'complianceCalendar').ok && !call('1016', 'complianceCalendar').ok, 'payroll sees it; employees and managers do not');
 
 // =====================================================================================================
+cycle('Wave 1 cycle links (docs/ROADMAP.md)');
+// 1. Hire to onboarding, probation and the first payroll: the driver hired on 19 October has a plan and a prorated October slip.
+{
+  const c49 = direct(() => B.ctx.readAll_('compensation')).filter(c => c.empId === ids['1049'] && c.status === 'approved').sort((a, b) => a.effectiveFrom < b.effectiveFrom ? 1 : -1)[0];
+  const b49 = line('1049', 'basic');
+  ok(c49 && near2(b49, r2(Number(c49.basic) / 30 * 13), 0.02), 'link 1: the new hire\'s first payroll pays 13 days of October (hired 19 October)', { b49, basic: c49 && c49.basic });
+  ok(call('1049', 'onboardList').plans[0].tasks.some(t => t.key === 'probation'), 'link 1: and the onboarding plan carries the probation review');
+}
+// 5. Iqama expiry to the calendar, the bell, the renewal and the fee ledger (1007, Egyptian, iqama ends 10 December).
+at('2026-11-12', '09:00');
+r = call('1011', 'complianceCalendar');
+ok(r.ok && r.items.some(x => (x.kind === 'iqama' || x.kind === 'iqama_renewal') && x.emp && x.emp.empNo === '1007'), 'link 5: the iqama ending 10 December is in the compliance calendar');
+ok(taskCount('1011', 'iqama_renewal') >= 1, 'link 5: and HR is asked in the bell (28 days left)');
+r = call('1011', 'iqamaRenew', { renewal: { empId: ids['1007'], newExpiry: '2027-12-10', muqeemRef: 'MQ-77881', years: 1, fees: { iqama: 650, work_permit: 9600 } } });
+ok(r.ok, 'link 5: HR records the renewal done in Muqeem with its fees', r);
+const fees07 = call('1012', 'govOverview').fees.filter(x => x.emp && x.emp.empNo === '1007');
+ok(fees07.length === 2 && fees07.every(x => x.status === 'recorded' && x.canVerify), 'link 5: two fees in the ledger, waiting for a second person', fees07);
+ok(taskCount('1012', 'iqama_renewal') === 0 && !call('1011', 'complianceCalendar').items.some(x => x.kind === 'iqama_renewal' && x.emp && x.emp.empNo === '1007'), 'link 5: the renewal clears the bell and the calendar');
+r = call('1012', 'approvalsAct', { items: fees07.map(x => ({ type: 'gov_fee', id: x.id })), decision: 'approve', confirm: true });
+ok(r.ok && r.done === 2, 'link 5: the other HR person verifies both from the approvals centre', r);
+
+// 4. Expense claim to approval, payroll reimbursement and the journal (1021, driver, manager 1016).
+r = call('1021', 'expenseCreate', { claim: { title: 'وقود رحلة جدة', lines: [{ category: 'fuel', date: '2026-11-10', amount: 230, vat: 30, description: 'تعبئة الشاحنة', receiptRef: 'R-5521', merchant: 'محطة' }] } });
+const EX = r.claim;
+ok(r.ok && EX.step === 'manager', 'link 4: the driver claims 230 for fuel', r);
+ok(taskCount('1016', 'expense_approve') === 1 && call('1016', 'approvalsInbox').items.some(i => i.type === 'expense' && i.id === EX.id && i.canAct), 'link 4: his supervisor sees it in the bell and the approvals centre');
+ok(call('1016', 'approvalsAct', { items: [{ type: 'expense', id: EX.id }], decision: 'approve' }).results[0].ok, 'link 4: the supervisor approves it');
+ok(call('1009', 'approvalsAct', { items: [{ type: 'expense', id: EX.id }], decision: 'approve' }).results[0].ok, 'link 4: payroll approves it for the next payroll');
+const exAdj = direct(() => B.ctx.readAll_('adjustments')).find(a => a.empId === ids['1021'] && a.code === 'reimbursement');
+ok(exAdj && exAdj.month === '2026-11' && Number(exAdj.amount) === 230, 'link 4: a reimbursement line of 230 waits in November', exAdj);
+
+// 2. Leave request to approvals, pre-leave clearance, departure, return and the payroll effect (1021, Pakistani).
+r = call('1021', 'requestCreate', { request: { type: 'leave', subtype: 'annual', fromDate: '2026-12-06', toDate: '2026-12-17', reason: 'إجازة سنوية' } });
+const LV = r.request;
+ok(r.ok && LV.days === 10, 'link 2: the driver asks for 10 working days of leave in December', r);
+ok(call('1016', 'approvalsAct', { items: [{ type: 'request', id: LV.id }], decision: 'approve' }).results[0].ok && call('1011', 'approvalsAct', { items: [{ type: 'request', id: LV.id }], decision: 'approve' }).results[0].ok, 'link 2: approved through the centre (manager, then HR)');
+let LC = (call('1011', 'leaveCycleList', { status: 'all' }).rows || []).find(c => c.requestRef === LV.ref);
+ok(LC && LC.status === 'approved' && LC.tasks.find(t => t.key === 'exit_reentry').required, 'link 2: the approval opens the leave cycle; the exit/re-entry visa is required', LC);
+ok(call('1021', 'leaveCycleTask', { id: LC.id, key: 'handover', data: { substituteId: ids['1023'], notes: 'خط جدة وعملاء الجملة' } }).ok && call('1023', 'leaveCycleTask', { id: LC.id, key: 'handover_accept', op: 'accept' }).ok, 'link 2: hand-over to a colleague, who accepts');
+LC = call('1016', 'leaveCycleList', { status: 'all' }).rows.find(c => c.id === LC.id);
+if (LC.tasks.find(t => t.key === 'custody').status === 'open') ok(call('1016', 'leaveCycleTask', { id: LC.id, key: 'custody', note: 'العهدة مع البديل' }).ok, 'link 2: the supervisor checks the assets held');
+ok(call('1011', 'leaveCycleTask', { id: LC.id, key: 'exit_reentry', data: { visaNo: '7788990011', validUntil: '2027-02-01', kind: 'single' } }).ok, 'link 2: HR records the exit/re-entry visa');
+const tkTask = call('1011', 'leaveCycleList', { status: 'all' }).rows.find(c => c.id === LC.id).tasks.find(t => t.key === 'ticket');
+if (tkTask.status === 'open' && tkTask.required) ok(call('1011', 'leaveCycleTask', { id: LC.id, key: 'ticket', data: { bookingRef: 'PNR-JD77' } }).ok, 'link 2: HR records the ticket');
+const sug = call('1009', 'leaveCycleList', { status: 'all' }).rows.find(c => c.id === LC.id).tasks.find(t => t.key === 'leave_salary').data.suggested;
+r = call('1009', 'leaveCycleTask', { id: LC.id, key: 'leave_salary', data: { amount: sug } });
+ok(r.ok && r.cycle.cleared && r.cycle.status === 'cleared', 'link 2: payroll pays the leave salary in advance; the clearance is complete', r.cycle || r);
+const lsAdj = direct(() => B.ctx.readAll_('adjustments')).find(a => a.empId === ids['1021'] && a.code === 'other_earning' && String(a.reason).indexOf(LC.ref) >= 0);
+ok(lsAdj && lsAdj.month === '2026-11' && near2(lsAdj.amount, sug), 'link 2: as an earning in November\'s payroll', lsAdj);
+
+// 6. Disciplinary case to its decision, the objection window (30 days from notice, Art. 72) and the payroll fine.
+const dcs = call('1018', 'discList').rows.find(x => x.mine && x.ref === DC.ref);
+ok(dcs && dcs.notifiedOn === '2026-11-05' && dcs.objectionDue >= addDays('2026-11-05', 30), 'link 6: the grievance window runs 30 days from notice, holidays not counted', dcs && { n: dcs.notifiedOn, due: dcs.objectionDue });
+
+// November payroll: the fine, the reimbursement and the leave salary all land on the payslips.
+r = call('1011', 'payrollCreate', { month: '2026-11' });
+const RUN11 = r.run;
+ok(r.ok, 'HR prepares November\'s payroll', r);
+r = call('1009', 'payrollApprove', { id: RUN11.id });
+ok(r.ok && r.run.status === 'locked', 'payroll approves and locks it', r);
+const slips11 = call('1009', 'payrollGet', { id: RUN11.id }).slips || [];
+const sl = no => slips11.find(x => x.empId === ids[no]) || { lines: [] };
+ok(sl('1021').lines.some(l => l.code === 'reimbursement' && near2(l.amount, 230)), 'link 4: the reimbursement is on the driver\'s November payslip', sl('1021').lines);
+ok(sl('1021').lines.some(l => l.code === 'other_earning' && near2(l.amount, sug)), 'link 2: so is the leave salary paid in advance');
+ok(sl('1018').lines.some(l => l.code === 'fine' && near2(l.amount, r2(daily('1018') * 0.25))), 'link 6: the upheld fine is deducted in November', sl('1018').lines);
+
+// 3 and 4. The payroll journal for Odoo: mapped, generated, imported and confirmed by a second person.
+const ACC = { basic: '510101', housing: '510102', transport: '510103', allowance: '510104', overtime: '510105', bonus: '510106', commission: '510107', other_earning: '510108', reimbursement: '510109',
+  gosi_expense: '510110', pay_reduction: '510101', gosi_payable: '220201', net_payable: '220101', advances: '130501', fines: '410901', other_deductions: '220301', eos_expense: '510120', eos_provision: '230101' };
+ok(call('1009', 'journalMapSave', { map: { journal: 'SAL', accounts: ACC, analytic: {}, netByEmployee: false, includeEos: true } }).ok, 'links 3-4: payroll maps the accounts');
+r = call('1009', 'journalBuild', { id: RUN11.id });
+const JE = r.entry;
+ok(r.ok && JE.balanced && !JE.problems.length, 'the November entry is balanced with nothing unmapped', JE && JE.problems);
+ok(JE.lines.some(l => l.key === 'reimbursement' && l.debit >= 230) && JE.lines.some(l => l.key === 'fines' && l.credit > 0), 'link 4 and 6: the entry carries the reimbursement (debit) and the fine (credit)');
+ok(JE.lines.some(l => l.key === 'eos_provision' && l.credit > 0), 'link 3: and the end-of-service provision for the month');
+ok(call('1009', 'journalStep', { id: RUN11.id, step: 'generated' }).ok && call('1009', 'journalStep', { id: RUN11.id, step: 'imported', odooRef: 'MISC/2026/11/0001' }).ok, 'the payroll holder generates and imports it in Odoo');
+ok(taskCount('1011', 'journal_confirm') === 1 && call('1009', 'approvalsInbox').items.every(i => i.type !== 'journal' || !i.canAct), 'the confirmation goes to someone else (HR holds pay), never the importer');
+ok(call('1011', 'approvalsAct', { items: [{ type: 'journal', id: RUN11.id }], decision: 'approve' }).results[0].ok, 'HR confirms it from the approvals centre');
+// 3. The resignation's clearance closed with the service certificate (Art. 64) and the settlement paid (cycle above).
+const cl33 = call('1011', 'clearanceList').rows.find(x => x.emp.empNo === '1033');
+ok(cl33 && cl33.status === 'cleared' && cl33.tasks.find(t => t.key === 'certificate').status === 'done', 'link 3: the leaver\'s clearance is closed with the service certificate issued');
+
+// 2 (continued). Departure, an early return and the balance.
+const bal21 = call('1021', 'myRequests').leave.annual;
+at('2026-12-06', '08:00');
+ok(call('1021', 'leaveCycleDepart', { id: LC.id }).ok, 'link 2: the driver confirms the departure');
+at('2026-12-14', '08:00');
+ok(call('1021', 'leaveCycleReturn', { id: LC.id, date: '2026-12-14' }).ok, 'link 2: he is back early, on 14 December');
+r = call('1016', 'approvalsAct', { items: [{ type: 'leavecycle', id: LC.id, task: 'confirm' }], decision: 'done' });
+ok(r.ok && r.results[0].error === 'deep_link_only', 'link 2: the return is confirmed on the leave-cycle screen (it needs the date)');
+r = call('1016', 'leaveCycleConfirm', { id: LC.id, date: '2026-12-14' });
+ok(r.ok && r.cycle.outcome === 'early' && r.cycle.earlyDays === 4 && r.cycle.status === 'closed', 'link 2: the supervisor confirms: 4 working days back, cycle closed', r.cycle || r);
+const bal21b = call('1021', 'myRequests').leave.annual;
+ok(bal21.used - bal21b.used === 4, 'link 2: the 4 unused days are back in his balance', { before: bal21.used, after: bal21b.used });
+at('2026-11-12', '09:00');
+
+// =====================================================================================================
 cycle('Flow links: every task opens a page its owner may open');
 const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
 const SEC_DEST = {};
@@ -1123,12 +1220,16 @@ const SEC_DEST = {};
 // R() = the roles in myFile (hr is true for hr and admin), isHr/isAdmin = the sign-in role, salaryOk = payroll || (hr && !admin).
 const SEC_OK = {}, unknownOk = [];
 html.replace(/ok: (any\([^)]*\)|\w+), (?:[^{}]*?)sec: '(\w+)'/g, (m, okExpr, sec) => { SEC_OK[sec] = okExpr; if (!/^(any\(|ALL$|isHr$|isAdmin$|salaryOk$)/.test(okExpr)) unknownOk.push(sec + ':' + okExpr); return m; });
+const AREA_SRC = (html.match(/var AREAS = \[([\s\S]*?)\n\];/) || ['', ''])[1];
+Object.keys(SEC_DEST).forEach(k => { if (SEC_OK[k]) return; const sub = SEC_DEST[k].split(':')[1];
+  const m = AREA_SRC.match(new RegExp("\\{ id: '" + sub + "', n: '\\w+', ok: (approverOk|ALL|isHr|isAdmin|salaryOk|any\\([^)]*\\)|function\\(\\)\\{ return isHr\\(\\) \\|\\| any\\([^)]*\\)\\(\\); \\})"));
+  if (m) SEC_OK[k] = m[1]; else unknownOk.push(k + ':no rule'); });
 ok(Object.keys(SEC_DEST).length >= 15 && Object.keys(SEC_OK).length >= 15 && unknownOk.length === 0, 'read the page map from index.html (SEC_DEST and each section\'s ok rule)', { dest: Object.keys(SEC_DEST).length, ok: SEC_OK, unknownOk });
 // what each section loads when it opens (from the js modules)
 const SEC_LOAD = { inbox: ['reqInbox'], leave: ['leaveTeam'], approvals: ['hrCompList'], payroll: ['payrollList'], compliance: ['complianceCalendar'], reports: ['reportCatalog'],
   dashboard: ['dashboard'], onboarding: ['onboardList'], offboarding: ['clearanceList'], custody: ['assetList'], relations: ['discList', 'injuryList', 'discCodes'], team: ['hrTeam'],
   people: ['hrBootstrap'], shifts: ['shiftList', 'rosterList'], performance: ['perfTeam'], plans: ['planList'], engagement: ['surveyResults'],
-  leavecycle: ['leaveCycleList'], approvalcentre: ['approvalsInbox'], flows: ['flowList'] };
+  leavecycle: ['leaveCycleList'], approvalcentre: ['approvalsInbox'], flows: ['flowList'], gov: ['govOverview'], expenses: ['myExpenses'], journal: ['journalList'] };
 // The js/flows.js pages (leave cycle, approvals centre, approval flows) until index.html wires them (AREAS + SEC_DEST): the intended rule stands in.
 const PENDING_SEC = { leavecycle: ['requests:cycle', "any('hr', 'payroll', 'manager')"], approvalcentre: ['requests:centre', 'ALL'], flows: ['settings:flows', 'isHr'] }, pendingSec = [];
 Object.keys(PENDING_SEC).forEach(k => { if (!SEC_DEST[k]) { SEC_DEST[k] = PENDING_SEC[k][0]; pendingSec.push(k); } if (!SEC_OK[k]) SEC_OK[k] = PENDING_SEC[k][1]; });
@@ -1136,8 +1237,11 @@ if (pendingSec.length) NOTES.push('CLIENT: index.html does not route these secti
 const rolesOf = n => { const f = call(n, 'myFile').file; return { hr: f.roles.hr, payroll: f.roles.payroll, executive: f.roles.executive, admin: f.roles.admin, manager: f.isManager }; };
 const ROLES = {}; NOS.forEach(n => { ROLES[n] = rolesOf(n); });
 function visible(n, sec) {
-  const x = SEC_OK[sec], R = ROLES[n], role = EMP[n].role;
+  let x = SEC_OK[sec]; const R = ROLES[n], role = EMP[n].role;
   if (!x) return false;
+  if (x === 'approverOk') x = "isHr|any('hr', 'payroll', 'manager', 'executive')";
+  const fm = /^function\(\)\{ return isHr\(\) \|\| (any\([^)]*\))\(\); \}$/.exec(x); if (fm) x = 'isHr|' + fm[1];
+  if (x.indexOf('isHr|') === 0) { if (role === 'hr' || role === 'admin') return true; x = x.slice(5); }
   if (x === 'ALL') return true;
   if (x === 'isHr') return role === 'hr' || role === 'admin';
   if (x === 'isAdmin') return role === 'admin';

@@ -257,6 +257,20 @@ approveAll(X, r.request.id, ['5001', '3001']);
 const lvC = r.request;
 ok(call('3001', 'requestCancel', { id: lvC.id, note: 'تغيرت الخطة' }).ok && cycleOf(X, '3001', lvC.ref).status === 'cancelled', 'HR cancels the approved leave: its cycle is cancelled too');
 
+console.log('Leave cycle: opened by hand');
+call('3001', 'flowSettingsSave', { settings: { leaveClearanceMinDays: 7 } });
+r = leave(X, '5002', '2027-03-21', '2027-03-22');
+const lvS = r.request;
+approveAll(X, lvS.id, ['5001', '3001']);
+ok(!cycleOf(X, '3001', lvS.ref), 'back to 7 days: a 2-day leave opens no cycle');
+r = call('3001', 'leaveCycleList', { status: 'all' });
+ok(r.canOpen && r.openable.some(o => o.id === lvS.id) && !r.openable.some(o => o.id === lvC.id), 'HR is offered the approved leave without a cycle (not the cancelled one)', r.openable);
+ok(!call('5001', 'leaveCycleList', { status: 'all' }).openable.length, 'a manager is offered none');
+ok(call('5001', 'leaveCycleOpen', { requestId: lvS.id }).error === 'forbidden', 'only HR opens one by hand');
+r = call('3001', 'leaveCycleOpen', { requestId: lvS.id });
+ok(r.ok && r.cycle.requestRef === lvS.ref, 'HR opens the cycle by hand', r);
+ok(call('3001', 'leaveCycleOpen', { requestId: lvS.id }).error === 'already_exists', 'one cycle per leave');
+
 // =====================================================================================================
 console.log('Approvals centre: one inbox across modules');
 X = company(at('2026-11-01')); ({ B, ids, call } = X);
