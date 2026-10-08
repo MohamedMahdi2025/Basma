@@ -717,7 +717,7 @@ function api_flowSettingsSave(req, me) {
 
 // ---------------- approvals centre ----------------
 
-var AP_BULK = { request: 1, salary: 1, asset_charge: 1, report: 1, onboarding: 1 };
+var AP_BULK = { request: 1, salary: 1, asset_charge: 1, report: 1, onboarding: 1, expense: 1, gov_fee: 1 };
 
 /** SLA of one item: hours from `since`, or the end of a due date (Riyadh). Escalated after 2x the SLA (or one SLA past the due date). */
 function apSla_(sinceIso, hours, dueDate) {
@@ -797,6 +797,21 @@ function apItems_(me, ctx) {
     push({ type: 'request', id: r.id, ref: r.ref, emp: emp, step: r.step, since: h.length ? h[h.length - 1].at : r.createdAt, hours: sd && sd.sla, actor: can, owner: ow, primary: prim,
       onBehalfOf: beh, onBehalfRole: behRole, actions: ['approve', 'reject'], link: { tab: 'hr', sec: 'inbox' }, what: apReqWhat_(r, me) });
   });
+  // expense claims (Expenses.gs): the line manager (a delegate, or HR on behalf), then a payroll holder; never one's own, never two steps
+  readAll_(SHEETS.EXPENSE).forEach(function (x) {
+    if (x.status !== 'pending' || x.empId === me.id) return;
+    var emp = ctx.emps[x.empId];
+    if (!emp) return;
+    var h = parseJson_(x.stepsJson, []);
+    if (h.some(function (k) { return k.by === me.id; })) return;
+    var can = canActExpense_(me, x, emp, ctx), mgr = x.step === 'manager', m = mgr ? apMgrOf_(emp.id, ctx) : null;
+    var dg = can && mgr && !manages_(me, emp, ctx) && !isHr_(me) ? delegatedFor_(me, emp, ctx) : null;
+    var prim = can && (!mgr || manages_(me, emp, ctx) || !!dg || !m);
+    push({ type: 'expense', id: x.id, ref: x.ref, emp: emp, step: x.step, since: h.length ? h[h.length - 1].at : x.createdAt, actor: can,
+      owner: mgr ? (m ? { people: [m.id] } : { role: 'hr' }) : { role: 'payroll', money: true }, primary: prim, onBehalfOf: dg ? lcName_(ctx, dg.fromEmpId) : '',
+      onBehalfRole: can && !prim && isHr_(me) ? 'hr' : '', actions: ['approve', 'reject'], link: { tab: 'hr', sec: 'expenses' },
+      what: { amount: round2_(Number(x.total) || 0), count: parseJson_(x.linesJson, []).length, text: x.title || '', flags: parseJson_(x.flagsJson, []).length } });
+  });
   if (roleWork) {
     readAll_(SHEETS.COMP).forEach(function (c) {
       if (c.status !== 'pending') return;
@@ -846,7 +861,35 @@ function apItems_(me, ctx) {
       push({ type: 'report', id: x.id, ref: x.ref, since: x.at, actor: x.by !== me.id && (money ? pay : hr), maker: x.by === me.id, owner: { role: money ? 'payroll' : 'hr', money: money },
         actions: ['approve'], link: { tab: 'hr', sec: 'reports', view: 'log' }, what: { text: x.reportId, count: Number(x.rows) || 0 } });
     });
+    // the payroll journal imported in Odoo, confirmed by a payroll holder who neither generated nor imported it (Journal.gs)
+    readAll_(SHEETS.JOURNAL).forEach(function (j) {
+      if (j.status !== 'imported') return;
+      var mk = j.generatedBy === me.id || j.importedBy === me.id;
+      push({ type: 'journal', id: j.runId, ref: j.ref, since: j.importedAt, actor: pay && !mk, maker: mk, owner: { role: 'payroll', money: true }, actions: ['approve'],
+        link: { tab: 'hr', sec: 'journal' }, what: { month: j.month, count: Number(j.lines) || 0, amount: pay ? Number(j.debit) || 0 : null, text: String(j.odooRef || '') } });
+    });
+    // ticket uses with an amount: a payroll holder who did not record it, never the traveller (GovServices.gs)
+    readAll_(SHEETS.TICKET_USE).forEach(function (u) {
+      if (u.status !== 'pending') return;
+      var mk = u.enteredBy === me.id || u.empId === me.id;
+      push({ type: 'ticket_use', id: u.id, ref: u.ref, emp: ctx.emps[u.empId], since: u.createdAt, actor: pay && !mk, maker: mk, owner: { role: 'payroll', money: true },
+        actions: ['approve', 'reject'], link: { tab: 'hr', sec: 'gov' }, what: { amount: pay || payH ? Number(u.amount) || 0 : null, count: Number(u.persons) || 0, text: u.kind, from: String(u.usedOn).slice(0, 10) } });
+    });
+    // government fees checked against the receipt by a second person (GovServices.gs)
+    var gm = govMoney_(me), gs = govSeesMoney_(me);
+    readAll_(SHEETS.GOV_FEE).forEach(function (f) {
+      if (f.status !== 'recorded') return;
+      var mk = f.enteredBy === me.id || f.empId === me.id;
+      push({ type: 'gov_fee', id: f.id, ref: f.ref, emp: f.empId ? ctx.emps[f.empId] : null, since: f.enteredAt, actor: gm && !mk, maker: mk, owner: { role: 'payroll', money: true },
+        actions: ['approve'], link: { tab: 'hr', sec: 'gov' }, what: { amount: gs ? Number(f.amount) || 0 : null, text: f.type, from: String(f.date).slice(0, 10) } });
+    });
     if (hr) {
+      // visas approved and waiting for HR to record what Muqeem issued: their own screen (the visa number and dates)
+      readAll_(SHEETS.GOV_VISA).forEach(function (v) {
+        if ((v.status !== 'approved' && v.status !== 'planned') || v.empId === me.id) return;
+        push({ type: 'gov_visa', id: v.id, ref: v.ref, emp: ctx.emps[v.empId], since: v.updatedAt || v.createdAt, due: v.travelFrom ? String(v.travelFrom).slice(0, 10) : '', actor: true,
+          owner: { role: 'hr' }, actions: [], link: { tab: 'hr', sec: 'gov' }, what: { text: v.kind, from: String(v.travelFrom || '').slice(0, 10), to: String(v.travelTo || '').slice(0, 10) } });
+      });
       var cal = {};
       readAll_(SHEETS.CYC).forEach(function (cy) { if (cy.status === 'calibration') cal[cy.id] = cy; });
       if (Object.keys(cal).length) readAll_(SHEETS.REV).forEach(function (r) {
@@ -945,6 +988,10 @@ function apDo_(type, x, decision, note, me) {
   if (type === 'clearance') { need(decision === 'done'); return { ref: api_clearanceTask({ id: x.id, key: x.task, note: note }, me).clearance.ref }; }
   if (type === 'onboarding') { need(decision === 'done' || decision === 'approve'); var o = api_onboardTask({ id: x.id, status: 'done', note: note }, me); return { ref: o.task.ref }; }
   if (type === 'report') { need(decision === 'approve'); var lg = findBy_(SHEETS.RLOG, 'id', x.id); if (!lg) fail_('not_found'); api_reportReview({ ref: lg.ref, note: note }, me); return { ref: lg.ref }; }
+  if (type === 'expense') { need(decision !== 'done'); return { ref: api_expenseDecide({ id: x.id, decision: decision, note: note, payout: x.payout === 'outside' ? 'outside' : 'payroll' }, me).claim.ref }; }
+  if (type === 'journal') { need(decision === 'approve'); return { ref: api_journalStep({ id: x.id, step: 'confirmed', note: note }, me).log.ref }; }
+  if (type === 'ticket_use') { need(decision !== 'done'); return { ref: api_ticketUseApprove({ id: x.id, decision: decision, note: note }, me).use.ref }; }
+  if (type === 'gov_fee') { need(decision === 'approve'); api_govFeeVerify({ ids: [x.id] }, me); var gf = findBy_(SHEETS.GOV_FEE, 'id', x.id); return { ref: gf ? gf.ref : '' }; }
   if (type === 'leavecycle') {
     need(decision === 'done' && (x.task === 'custody' || x.task === 'handover_accept'));
     return { ref: api_leaveCycleTask({ id: x.id, key: x.task, op: x.task === 'handover_accept' ? 'accept' : 'done', note: note }, me).cycle.ref };
@@ -968,7 +1015,7 @@ function api_approvalsAct(req, me) {
   }
   if (decision === 'reject' && !note) fail_('note_required');
   var results = list.map(function (x) {
-    try { var r = apDo_(type, x, decision, note, me); return { id: x.id, task: x.task || '', ok: true, ref: r.ref || '' }; }
+    try { var r = apDo_(type, { id: String(x.id || ''), task: x.task || '', payout: x.payout || '' }, decision, note, me); return { id: x.id, task: x.task || '', ok: true, ref: r.ref || '' }; }
     catch (e) {
       var m = String(e && e.message || e);
       if (m.indexOf('E:') !== 0) console.error('approvalsAct ' + type + ': ' + m);
@@ -1032,6 +1079,39 @@ function api_approvalHistory(req, me) {
     if (!lg) fail_('not_found');
     head = { ref: lg.ref, status: lg.reviewedBy ? 'reviewed' : 'pending' };
     ev(lg.at, lg.by, 'exported', lg.format); ev(lg.reviewedAt, lg.reviewedBy, 'reviewed', lg.reviewNote);
+  } else if (type === 'expense') {
+    var ex = findBy_(SHEETS.EXPENSE, 'id', id), xe = ex && ctx.emps[ex.empId];
+    if (!ex) fail_('not_found');
+    var xh = parseJson_(ex.stepsJson, []);
+    if (!(hr || canPayroll_(me) || ex.empId === me.id || (xe && manages_(me, xe, ctx)) || xh.some(function (k) { return k.by === me.id; }) || canActExpense_(me, ex, xe, ctx))) fail_('forbidden');
+    head = { ref: ex.ref, emp: empCard_(xe), status: ex.status, step: ex.step, sub: 'expense' };
+    ev(ex.createdAt, ex.empId, 'submitted', ex.title);
+    xh.forEach(function (k) { ev(k.at, k.by, k.decision, k.note, { step: k.step, role: k.role || '', onBehalfOf: N(k.onBehalfOf) }); });
+    if (ex.status === 'paid' && ex.paidBy) ev(ex.updatedAt, ex.paidBy, 'paid', ex.paidRef);
+  } else if (type === 'journal') {
+    if (!canPayroll_(me)) fail_('forbidden');
+    var jl = journalLogOf_(id) || findBy_(SHEETS.JOURNAL, 'id', id);
+    if (!jl) fail_('not_found');
+    head = { ref: jl.ref, status: jl.status, month: jl.month };
+    ev(jl.generatedAt, jl.generatedBy, 'generated', ''); ev(jl.importedAt, jl.importedBy, 'imported', jl.odooRef); ev(jl.confirmedAt, jl.confirmedBy, 'confirmed', jl.note);
+  } else if (type === 'ticket_use') {
+    if (!hr && !pay) fail_('forbidden');
+    var tu = findBy_(SHEETS.TICKET_USE, 'id', id);
+    if (!tu) fail_('not_found');
+    head = { ref: tu.ref, emp: empCard_(ctx.emps[tu.empId]), status: tu.status };
+    ev(tu.createdAt, tu.enteredBy, 'recorded', tu.reference); ev(tu.approvedAt, tu.approvedBy, tu.status, tu.status === 'rejected' ? tu.note : '');
+  } else if (type === 'gov_fee') {
+    if (!hr && !govMoney_(me)) fail_('forbidden');
+    var gf = findBy_(SHEETS.GOV_FEE, 'id', id);
+    if (!gf) fail_('not_found');
+    head = { ref: gf.ref, emp: gf.empId ? empCard_(ctx.emps[gf.empId]) : null, status: gf.status };
+    ev(gf.enteredAt, gf.enteredBy, 'recorded', gf.reference); ev(gf.verifiedAt, gf.verifiedBy, 'verified', '');
+  } else if (type === 'gov_visa') {
+    var gv = findBy_(SHEETS.GOV_VISA, 'id', id);
+    if (!gv) fail_('not_found');
+    if (!hr && gv.empId !== me.id) fail_('forbidden');
+    head = { ref: gv.ref, emp: empCard_(ctx.emps[gv.empId]), status: gv.status };
+    ev(gv.createdAt, gv.createdBy, 'opened', ''); ev(gv.issuedAt, gv.issuedBy, 'issued', String(gv.visaNo || '')); ev(gv.returnedOn ? gv.updatedAt : '', gv.returnBy, 'returned', '');
   } else if (type === 'calibration') {
     if (!hr) fail_('forbidden');
     var rv = findBy_(SHEETS.REV, 'id', id);

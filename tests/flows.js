@@ -367,6 +367,57 @@ ok(r.results[0].ok && X.rows('reportLog')[0].reviewedBy === ids['3001'], 'a repo
 const onbItems = call('3001', 'approvalsInbox').items.filter(i => i.type === 'onboarding' && i.canAct).slice(0, 2);
 r = call('3001', 'approvalsAct', { items: onbItems.map(i => ({ type: 'onboarding', id: i.id })), decision: 'done', confirm: true });
 ok(r.ok && r.done === 2, 'two onboarding tasks ticked in one confirmed bulk', r);
+
+console.log('Approvals centre: expenses, journal, tickets, government fees and visas');
+r = call('5003', 'expenseCreate', { claim: { title: 'وقود التوزيع', lines: [{ category: 'fuel', date: '2026-11-02', amount: 115, vat: 15, description: 'تعبئة الشاحنة', receiptRef: 'R-77', merchant: 'محطة' }] } });
+const exp1 = r.claim;
+ok(r.ok && exp1.step === 'manager', 'an expense claim waits for the line manager', r);
+let ei = call('5001', 'approvalsInbox').items.find(i => i.type === 'expense' && i.id === exp1.id);
+ok(ei && ei.canAct && ei.primary && ei.what.amount === 115 && ei.link.sec === 'expenses', 'the manager sees the claim in the centre, with the amount', ei);
+ok(!call('5003', 'approvalsInbox').items.some(i => i.type === 'expense'), 'the claimant never sees their own claim there');
+ok(!call('3002', 'approvalsInbox').items.some(i => i.type === 'expense' && i.canAct), 'payroll acts only after the manager');
+ok(call('5001', 'approvalsAct', { items: [{ type: 'expense', id: exp1.id }], decision: 'approve' }).results[0].ok, 'the manager approves it from the centre');
+ei = call('3002', 'approvalsInbox').items.find(i => i.type === 'expense' && i.id === exp1.id);
+ok(ei && ei.canAct && ei.step === 'payroll', 'now with payroll');
+ok(!call('5001', 'approvalsInbox').items.some(i => i.type === 'expense' && i.id === exp1.id), 'and gone from the manager (never two steps)');
+r = call('3002', 'approvalsAct', { items: [{ type: 'expense', id: exp1.id }], decision: 'approve' });
+const expAdj = X.rows('adjustments').find(a => a.code === 'reimbursement' && a.empId === ids['5003']);
+ok(r.results[0].ok && expAdj && Number(expAdj.amount) === 115, 'payroll approves: a reimbursement line in the next payroll', r.results);
+r = call('5003', 'approvalHistory', { type: 'expense', id: exp1.id });
+ok(r.ok && r.entries.length === 3 && r.entries[1].by === 'مشرف المستودع' && r.entries[2].by === 'محاسب الرواتب', 'the claimant reads who approved it and when', r.entries);
+ok(call('5004', 'approvalHistory', { type: 'expense', id: exp1.id }).error === 'forbidden', 'a colleague cannot');
+
+call('3001', 'ticketSave', { ticket: { empId: ids['5002'], travelClass: 'economy', everyYears: 1, dependants: 0, fromDate: '2025-06-01', route: 'RUH-CAI' } });
+r = call('3001', 'ticketUse', { use: { empId: ids['5002'], persons: 1, kind: 'cash', amount: 1200 } });
+const tu1 = r.use;
+ok(r.ok && tu1.status === 'pending', 'HR records a cash ticket of 1,200', r);
+ok(!call('3001', 'approvalsInbox').items.some(i => i.type === 'ticket_use' && i.canAct), 'the one who recorded it cannot approve it');
+ei = call('3004', 'approvalsInbox').items.find(i => i.type === 'ticket_use' && i.id === tu1.id);
+ok(ei && ei.canAct && ei.what.amount === 1200, 'a payroll holder sees the ticket cost', ei);
+ok(call('3004', 'approvalsAct', { items: [{ type: 'ticket_use', id: tu1.id }], decision: 'approve' }).results[0].ok && X.rows('adjustments').some(a => a.empId === ids['5002'] && Number(a.amount) === 1200 && a.code === 'other_earning'), 'approved from the centre: an earning in the next payroll');
+
+r = call('3001', 'govFeeSave', { fee: { empId: ids['5004'], type: 'iqama', amount: 650, reference: 'MQ-9001' } });
+const fee1 = r.fee;
+ok(r.ok, 'HR records an iqama fee', r);
+ok(!call('3001', 'approvalsInbox').items.some(i => i.type === 'gov_fee' && i.canAct), 'not verified by the one who entered it');
+ei = call('3003', 'approvalsInbox').items.find(i => i.type === 'gov_fee' && i.id === fee1.id);
+ok(ei && ei.canAct && ei.what.amount === 650, 'a second HR person sees it to verify', ei);
+ok(!call('5001', 'approvalsInbox').items.some(i => i.type === 'gov_fee'), 'never shown to a line manager');
+ok(call('3003', 'approvalsAct', { items: [{ type: 'gov_fee', id: fee1.id }], decision: 'approve' }).results[0].ok && X.rows('govFees').find(f => f.id === fee1.id).status === 'verified', 'verified from the centre');
+
+X.direct(() => {
+  const now = new Date(B.now()).toISOString();
+  B.ctx.append_('journalLog', { id: 'J1', ref: 'JV-2026-00001', runId: run.id, month: run.month, status: 'imported', lines: 12, debit: 41000, credit: 41000, hash: 'h', generatedBy: ids['3002'], generatedAt: now, importedBy: ids['3002'], importedAt: now, odooRef: 'MISC/2026/10/0001', confirmedBy: '', confirmedAt: '', note: '' });
+  B.ctx.append_('govVisas', { id: 'GV1', ref: 'ER-2026-00001', kind: 'exit_reentry', empId: ids['5002'], requestId: '', visaType: 'single', durationDays: 60, travelFrom: '2026-12-01', travelTo: '2026-12-20', linkRef: '', dependants: 0, visaNo: '', issuedOn: '', expiry: '', fee: '', feeRef: '', paidBy: '', status: 'approved', issuedBy: '', issuedAt: '', returnedOn: '', returnBy: '', note: '', createdBy: ids['3001'], createdAt: now, updatedAt: now });
+});
+ok(!call('3002', 'approvalsInbox').items.some(i => i.type === 'journal' && i.canAct), 'the payroll journal is not confirmed by the one who generated and imported it');
+ei = call('3004', 'approvalsInbox').items.find(i => i.type === 'journal');
+ok(ei && ei.canAct && ei.what.text === 'MISC/2026/10/0001', 'the second payroll holder confirms the Odoo entry', ei);
+ok(call('3004', 'approvalsAct', { items: [{ type: 'journal', id: run.id }], decision: 'approve' }).results[0].error === 'run_not_locked', 'the journal module still decides (its run must be locked)');
+ei = call('3001', 'approvalsInbox').items.find(i => i.type === 'gov_visa' && i.id === 'GV1');
+ok(ei && ei.canAct && ei.actions.length === 0 && ei.link.sec === 'gov', 'HR sees the visa waiting to be recorded, opened on its own screen', ei);
+ok(call('3001', 'approvalsAct', { items: [{ type: 'gov_visa', id: 'GV1' }], decision: 'approve' }).results[0].error === 'deep_link_only', 'the visa number is entered on the government services screen');
+ok(!call('5002', 'approvalsInbox').items.some(i => i.type === 'gov_visa'), 'the traveller does not see their own visa as a task');
 const audits = X.rows('audit').filter(a => a.action === 'approvals_act');
 ok(audits.length >= 6, 'every decision from the centre leaves an audit line (plus the module\'s own)', audits.length);
 
