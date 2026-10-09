@@ -21,6 +21,7 @@
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/duotone/style.css">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@500;600;700;800&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght,HEXP@160..700,0..100&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500..700&family=Noto+Naskh+Arabic:wght@500..700&display=swap" rel="stylesheet">
 <style>
 :root{
   --brand:#4D6D51; --brand-2:#5E8262; --pine:#1C2A1F; --pine-2:#243628; --pine-3:#2E4433;
@@ -955,6 +956,23 @@ body.v2-on .drawer .panel{border-radius:20px 20px 0 0}
   .v2 .page,.page.v2{padding:14px 14px 28px}
   .v2-views{overflow-x:auto;flex-wrap:nowrap}
 }
+</style>
+<style id="dsed">
+/* ============ Editorial layer (2026-10-09): the `claude` design skill blended into v3 "Riyadh Daylight" ============
+   Kept from v3: the green accent, colour tiles, Najdi banners, icons, charts, counting numbers, the lift on hover, pine
+   check-in. Taken from the skill: a serif voice for headings, near-black ink, hairline edges at rest, a flat-top primary
+   button, underlined links, a crisp focus ring. Loads after dsv3 (themeLast). Delete this block to return to plain v3. */
+body.v2-on{
+  --ink:#141413;
+  --sh-card:0 0 0 1px var(--line);
+  --f-head:'Noto Naskh Arabic','Newsreader',Georgia,serif;
+}
+html[lang="en"] body.v2-on{--f-head:'Newsreader','Noto Naskh Arabic',Georgia,serif}
+body.v2-on :is(h1,h2,h3,.v2-ph h1,.hm-ph h1,.drawer h3){font-weight:700;letter-spacing:-.005em;font-variation-settings:normal}
+body.v2-on :is(.btn-dark,.btn-brand){border-radius:4px 4px var(--r-s) var(--r-s)}
+body.v2-on :is(.btn,input,select,textarea,.v2-ib,.v2-search):focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+body.v2-on main a:not(.btn):not([class]){text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;text-decoration-color:color-mix(in srgb,var(--brand) 45%,transparent)}
+body.v2-on main a:not(.btn):not([class]):hover{text-decoration-color:var(--brand)}
 </style>
 </head>
 <body>
@@ -2675,7 +2693,7 @@ function areaLead(a){ var k = 'al' + a.id.charAt(0).toUpperCase() + a.id.slice(1
 /** Where the page body goes: the area body in the shell, #main before the shell exists. */
 function view(){ return $('#v2Body') || $('#main'); }
 /** The v2 block must come after every module's own <style>, so equal selectors resolve to v2. */
-function themeLast(){ ['dsv2', 'dsv3'].forEach(function(id){ var s = document.getElementById(id); if (s) document.head.appendChild(s); }); }
+function themeLast(){ ['dsv2', 'dsv3', 'dsed'].forEach(function(id){ var s = document.getElementById(id); if (s) document.head.appendChild(s); }); }
 function loadAll(files){ return files.reduce(function(p, f){ return p.then(function(){ return loadScript(f); }); }, Promise.resolve()); }
 
 /** Where a task from the bell opens. HR sections map to their area; personal items to growth or the profile. */

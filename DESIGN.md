@@ -147,3 +147,6 @@ active (a tactile 1px press), disabled (45% opacity, no pointer), and loading wh
 - [ ] No pine surface outside check-in and sign-in; no new raw colours in module CSS.
 - [ ] Keyboard pass: Tab through the shell, open and close a drawer, use Ctrl K, arrow through tabs.
 - [ ] Reduced motion: the cascade and the pulse stop.
+- The editorial layer `<style id="dsed">` (2026-10-09, the `claude` skill blended in) loads after dsv3 via themeLast. It adds
+  serif headings (Noto Naskh Arabic / Newsreader through `--f-head`), ink #141413, hairline cards at rest (`--sh-card`),
+  and a flat-top primary button. Delete the block to return to plain v3.
