@@ -1291,7 +1291,7 @@ const EXPECT = {
   // government services, expenses, journal (GovServices.gs, Expenses.gs, Journal.gs)
   govOverview: 'hrPay', iqamaRenew: 'hrPay', govFeeSave: 'pay', govFeeVerify: 'pay', govFeeVoid: 'pay', ticketUseApprove: 'pay',
   expensePaid: 'pay', expenseReport: 'pay', expenseLimitsSave: 'hrPay',
-  journalList: 'pay', journalBuild: 'pay', journalStep: 'pay', journalMapGet: 'hrPay', journalMapSave: 'hrPay', bankSetupSave: 'hrPay'
+  journalList: 'pay', journalBuild: 'pay', journalStep: 'pay', journalMapGet: 'hrPay', journalMapSave: 'hrPay', bankSetupSave: 'pay'
 };
 const T16 = ids['1018'];
 const PROBE = { hrEmpFile: { id: T16 }, perfEmp: { empId: T16, cycleId: CYC.id }, planSave: { plan: { empId: T16, type: 'idp' } }, delegationSave: { delegation: { toEmpId: ids['1003'] } },

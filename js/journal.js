@@ -173,10 +173,11 @@ function bank(el){
   api('journalMapGet', {}, true).then(function(r){
     if (!el.isConnected) return;
     if (!r.ok) return el.innerHTML = bad(r.error);
+    if (!r.canBank) return el.innerHTML = bad('forbidden');
     var b = r.bank || { companyCode: {} };
     el.innerHTML = '<p class="hr-hint">' + t('bkLead') + '</p><form class="form op-box" id="bkF"><div class="two">' + fld(t('bkMol'), '<input name="molId" dir="ltr" maxlength="20" value="' + esc(b.molId) + '">') + fld(t('bkIban'), '<input name="debitIban" dir="ltr" maxlength="34" value="' + esc(b.debitIban) + '">') + '</div>' +
       '<div class="two">' + [['alrajhi', S.lang === 'en' ? 'Al Rajhi Bank' : 'مصرف الراجحي'], ['snb', S.lang === 'en' ? 'Saudi National Bank' : 'البنك الأهلي السعودي'], ['riyad', S.lang === 'en' ? 'Riyad Bank' : 'بنك الرياض']].map(function(k){ return fld(t('bkCode') + ' ' + k[1], '<input data-cc="' + k[0] + '" dir="ltr" maxlength="20" value="' + esc((b.companyCode || {})[k[0]] || '') + '">'); }).join('') + '</div>' +
-      '<p class="hr-bad" id="bkE" role="alert"></p><div class="btnrow"><button class="btn btn-dark" type="submit"' + (r.canEdit ? '' : ' disabled') + '>' + t('bkSave') + '</button></div></form>';
+      '<p class="hr-bad" id="bkE" role="alert"></p><div class="btnrow"><button class="btn btn-dark" type="submit"' + (r.canBank ? '' : ' disabled') + '>' + t('bkSave') + '</button></div></form>';
     $('#bkF', el).onsubmit = function(ev){
       ev.preventDefault(); var f = this, bt = f.querySelector('[type=submit]'), cc = {};
       $$('[data-cc]', f).forEach(function(x){ cc[x.dataset.cc] = x.value.trim(); });

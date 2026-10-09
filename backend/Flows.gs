@@ -560,7 +560,16 @@ function lcMyTasks_(me, ctx, out, add) {
   var seeSec = isHr_(me) || hasRole_(me, 'payroll') || managesAnyone_(me, ctx); // the client shows the section to hr, payroll and managers
   add('leavecycle', sec, seeSec ? { tab: 'hr', sec: 'leavecycle' } : { tab: 'hr', sec: 'approvalcentre' });
   add('leavecycle_me', mine, { tab: 'file' });
-  if (seeSec) add('escalated', apItems_(me, ctx).filter(function (x) { return x.escalated && !x.canAct; }).length, { tab: 'hr', sec: 'approvalcentre' });
+  if (seeSec) add('escalated', lcEscalatedCount_(me, ctx), { tab: 'hr', sec: 'approvalcentre' });
+}
+/** Escalated-to-me count for the bell. The full approvals scan reads every module, so home keeps it for 60 s per person. */
+function lcEscalatedCount_(me, ctx) {
+  var cache = null, key = 'apEsc:' + me.id, hit = null;
+  try { cache = CacheService.getScriptCache(); hit = cache.get(key); } catch (e) {}
+  if (hit != null && hit !== '') return Number(hit) || 0;
+  var n = apItems_(me, ctx).filter(function (x) { return x.escalated && !x.canAct; }).length;
+  try { if (cache) cache.put(key, String(n), 60); } catch (e) {}
+  return n;
 }
 
 // ---------------- approval flows (configurable chains) ----------------

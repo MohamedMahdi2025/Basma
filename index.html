@@ -3719,38 +3719,48 @@ function admAudit(){
 // ---------------- start ----------------
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function(){});
 
-// New releases: check version.json on open, on return to the app and every 5 minutes.
-// Signed out, the page reloads at once; signed in, a banner offers the update so no one loses a check-in mid-way.
-var updateShown = false;
-// A signed-in page updates by itself as soon as nobody is mid-entry: no drawer open, no field focused, nothing typed for 60 s.
-var lastTypedAt = 0, updatePending = false;
-document.addEventListener('input', function(){ lastTypedAt = Date.now(); }, true);
+// New releases: check version.json on open, on return to the app and every minute.
+// The page updates by itself as soon as nobody is mid-entry: no punch in flight, no drawer open, no field focused, nothing
+// typed on this page (typing counts until the person moves to another page) and nothing typed for 60 s. Meanwhile a bar offers it.
+// Each build is auto-loaded once per tab (?u=<build> misses the Pages cache); if the page still comes back old, only the bar stays.
+var updateShown = false, updatePending = '', lastTypedAt = 0, typedOnPage = false;
+document.addEventListener('input', function(){ lastTypedAt = Date.now(); typedOnPage = true; }, true);
+window.addEventListener('hashchange', function(){ typedOnPage = false; });
 function updateSafeNow(){
   var a = document.activeElement, tag = a && a.tagName;
-  return !S.busy && !document.querySelector('.drawer') && tag !== 'INPUT' && tag !== 'TEXTAREA' && tag !== 'SELECT' && Date.now() - lastTypedAt > 60000;
+  return !S.busy && !typedOnPage && !document.querySelector('.drawer') && tag !== 'INPUT' && tag !== 'TEXTAREA' && tag !== 'SELECT' && Date.now() - lastTypedAt > 60000;
 }
-function applyUpdate(){
-  var go = function(){ location.reload(); };
+function updateTried(build, mark){
+  try { if (mark) sessionStorage.setItem('updTried', build); return sessionStorage.getItem('updTried') === build; } catch (e) { return true; }
+}
+function applyUpdate(build){
+  var go = function(){ location.replace(location.pathname + '?u=' + encodeURIComponent(build) + location.hash); };
   if (navigator.serviceWorker && navigator.serviceWorker.getRegistration) navigator.serviceWorker.getRegistration().then(function(g){ return g && g.update(); }).then(go, go);
   else go();
 }
+function offerUpdate(build){
+  updatePending = build;
+  if (updateShown) return;
+  updateShown = true;
+  var b = document.createElement('button');
+  b.type = 'button'; b.className = 'update-bar'; b.textContent = t('updateReady');
+  b.onclick = function(){ applyUpdate(build); };
+  document.body.appendChild(b);
+}
+function autoUpdate(build){
+  if (updateTried(build)) { offerUpdate(build); return; } // already loaded once and still old: never loop
+  updateTried(build, true); applyUpdate(build);
+}
 function checkForUpdate(){
   if (location.protocol !== 'https:') return;
-  if (updatePending) { if (updateSafeNow()) applyUpdate(); return; }
+  if (updatePending) { if (updateSafeNow()) autoUpdate(updatePending); return; }
   fetch('version.json?t=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.json() : null; }).then(function(v){
     if (!v || !v.build || v.build === BUILD) return;
-    if (!S.me || updateSafeNow()) { applyUpdate(); return; }
-    updatePending = true;
-    if (updateShown) return;
-    updateShown = true;
-    var b = document.createElement('button');
-    b.type = 'button'; b.className = 'update-bar'; b.textContent = t('updateReady');
-    b.onclick = applyUpdate;
-    document.body.appendChild(b);
+    if (updateSafeNow()) autoUpdate(v.build); else offerUpdate(v.build);
   }).catch(function(){});
 }
 setInterval(checkForUpdate, 60000);
-setInterval(function(){ if (updatePending && updateSafeNow()) applyUpdate(); }, 15000);
+setInterval(function(){ if (updatePending && updateSafeNow()) autoUpdate(updatePending); }, 15000);
 document.addEventListener('visibilitychange', function(){ if (!document.hidden) checkForUpdate(); });
 setTimeout(checkForUpdate, 4000);
 document.addEventListener('visibilitychange', function(){ if (!document.hidden && S.me && $('.app.v2')) { refreshMe(); schedulePunchPrefetch(); } });

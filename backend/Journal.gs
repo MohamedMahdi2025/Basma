@@ -159,7 +159,7 @@ function api_journalMapGet(req, me) {
   readAll_(SHEETS.COMP).forEach(function (c) { Object.keys(parseJson_(c.otherJson, {})).forEach(function (k) { allowances[k] = 1; }); });
   return { ok: true, map: map, keys: GL_KEYS, allowances: Object.keys(allowances).sort(),
     departments: readAll_(SHEETS.DEPT).filter(function (d) { return d.status !== 'disabled'; }).map(function (d) { return { id: d.id, nameAr: d.nameAr, nameEn: d.nameEn, costCenter: String(d.costCenter || '') }; }),
-    bank: bankSetup_(), canEdit: canMap_(me) };
+    bank: canPayroll_(me) ? bankSetup_() : null, canEdit: canMap_(me), canBank: canPayroll_(me) }; // the company debit IBAN: payroll holders only
 }
 var GL_TEXT_RE = /^[^<>"\u0000-\u001f]{1,64}$/;
 function api_journalMapSave(req, me) {
@@ -215,7 +215,7 @@ function bankSetup_() {
   return { molId: String(o.molId || ''), debitIban: String(o.debitIban || ''), companyCode: { alrajhi: String((o.companyCode || {}).alrajhi || ''), snb: String((o.companyCode || {}).snb || ''), riyad: String((o.companyCode || {}).riyad || '') } };
 }
 function api_bankSetupSave(req, me) {
-  if (!canMap_(me)) fail_('forbidden');
+  if (!canPayroll_(me)) fail_('forbidden');
   var x = req.setup || {}, cc = x.companyCode || {}, iban = String(x.debitIban || '').replace(/\s+/g, '').toUpperCase(), mol = String(x.molId || '').trim();
   if (iban && !ibanOk_(iban)) fail_('bad_iban');
   if (mol && !/^[0-9-]{1,20}$/.test(mol)) fail_('bad_value');
