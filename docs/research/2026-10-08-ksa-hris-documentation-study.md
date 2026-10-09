@@ -59,3 +59,89 @@ business travel with flight booking). Menu also lists Salary Benchmarking, Workf
 | Letters | Default and custom templates (Documents > HR Letters > Templates). **QR verification not found** | [zen-letters] |
 | Leave encashment | In final settlement and payroll setup (marketing level) | [zen-payroll] |
 
+<!-- SOURCES-JISR-ZENHR (moved to the Sources section at the end when finished) -->
+[jisr-f]: https://www.jisr.net/en/features
+[jisr-comp]: https://www.jisr.net/en/saudi-compliance-management
+[jisr-run-payroll]: https://www.jisr.net/en/run-payroll
+[jisr-gosi]: https://www.jisr.net/en/product-updates/integration-with-gosi
+[jisr-muqeem]: https://www.jisr.net/en/product-updates/integration-with-muqeem
+[jisr-muqeem-kb]: https://jisr.zendesk.com/hc/en-sa/articles/13787054402065-List-of-Muqeem-available-services-on-Jisr
+[jisr-att]: https://www.jisr.net/en/attendance-management
+[jisr-geo-kb]: https://jisr.zendesk.com/hc/en-sa/articles/13536914327185-Attendance-registration-via-Geofencing-Technology
+[jisr-vac-kb]: https://jisr.zendesk.com/hc/en-sa/articles/13350244714641-Vacation-Settlement-Q-A
+[jisr-eos-kb]: https://jisr.zendesk.com/hc/en-sa/articles/13340353842193-What-is-meant-by-the-end-of-service-settlement-final-settlement
+[jisr-eos-set-kb]: https://jisr.zendesk.com/hc/en-sa/articles/13340428526225-Settings-for-calculating-the-end-of-service-reward-and-annual-leave-balance-entitlements-in-Final-Settlement
+[jisr-retro-kb]: https://jisr.zendesk.com/hc/en-sa/articles/37257344096145-Retro-journal-entries-for-EOS-and-vacation-accrual
+[jisr-erp]: https://jisr.zendesk.com/hc/en-sa/articles/26593704650897-ERP-Accounting-Integration-with-Jisr-Comprehensive-User-Guide
+[jisr-custom]: https://www.jisr.net/en/product-updates/employee-custom-requests-creation-and-authorization
+[jisr-cycles-kb]: https://jisr.zendesk.com/hc/en-sa/articles/13401453139729-Self-Service-Request-Approval-Cycles
+[jisr-auto-kb]: https://jisr.zendesk.com/hc/en-sa/articles/19294372509073-Workflow-Automation
+[jisr-nov25]: https://www.jisr.net/en/product-updates/november-2025
+[jisr-sec]: https://www.jisr.net/en/security
+[jisr-plans]: https://jisr.net/en/plans
+[preqin-jisr]: https://www.preqin.com/data/profile/asset/jisr/566626
+[jisr-mgr-kb]: https://jisr.zendesk.com/hc/en-sa/articles/13797128786321-How-Jisr-System-can-help-you-as-a-manager
+[zen-law]: https://zenhrsolutions.freshdesk.com/en/support/solutions/articles/43000793464-saudi-arabia-labor-law-full-reference-mapped-to-zenhr-features
+[zen-mudad]: https://www.zenhr.com/en/marketplace-integration/mudad
+[zen-gosi-kb]: https://zenhrsolutions.freshdesk.com/en/support/solutions/articles/43000696295-the-general-organization-for-social-insurance-gosi-integration
+[zen-gosi-mkt]: https://www.zenhr.com/en/marketplace-integration/general-organization-for-social-insurance-gosi
+[zen-muqeem]: https://zenhrsolutions.freshdesk.com/en/support/solutions/articles/43000685060-muqeem-native-integration
+[zen-expat]: https://blog.zenhr.com/en/expat-management-in-saudi-arabia-2026
+[zen-att]: https://www.zenhr.com/en/modules/attendance-and-time-tracking
+[zen-ess25]: https://blog.zenhr.com/en/whats-new-on-zenhrs-ess-mobile-app-2025
+[zen-2026]: https://blog.zenhr.com/en/new-zenhr-features-security-updates-for-2026
+[zen-letters]: https://zenhrsolutions.freshdesk.com/en/support/solutions/articles/43000031707-how-to-generate-hr-letters-
+[zen-payroll]: https://www.zenhr.com/en/modules/payroll
+
+### Bayzat (bayzat.com/ksa), Dubai / Riyadh
+
+| Area | What the documentation says | Source |
+|---|---|---|
+| Modules | Time off (team overlaps), attendance, shift scheduler, employee records with expiry notifications, **letter requests in the app**, onboarding/offboarding, ESS; performance, surveys, ATS; payroll, accounting integration, Mudad, Muqeem, **SAB bank integration**; work expenses, corporate cards, payouts; benefits, fitness challenges, perks; "Bayzat Studio" (apps, workflows, task manager, **service desk / employee ticketing** incl. salary certificates); Bayzat AI (knowledge hub, AI reporting, AI assistant) | [bay-f] |
+| Attendance | "AI-driven biometric verification using facial recognition", **"liveliness detection"**, employees "take selfies for verification", geofencing, GPS, **shared kiosks**, biometric devices; overtime rules by scenario and group; missed-punch request to manager; corrections keep an audit trail. **Offline not mentioned** | [bay-att] |
+| Mudad | "your WPS files will automatically be sent to Mudad" after payroll; pay "at the click of a button" without going to individual banks | [bay-mudad] |
+| Muqeem | "initiate actions directly from Bayzat and get real-time updates"; services not listed (unverified detail) | [bay-muqeem] |
+| GOSI / insurance | GOSI employee and employer shares automated; group health insurance managed in the platform; the vendor's own 2026 buyer guide calls its benefits "CCHI-aware"; dependants **not documented** | [bay-payroll], [bay-guide] |
+| Pricing / residency | Quote-only per employee per month; the vendor's own guide lists "KSA residency on enterprise tier only" as a Bayzat con | [bay-guide] |
+
+The Bayzat 2026 buyer guide ([bay-guide], vendor-written, so a lead not evidence) gives the buyer checklist the market now
+uses: (1) native Mudad submission, not CSV upload, demonstrated live; (2) live Nitaqat tracking that forecasts planned
+hires and warns before a downgrade; (3) GOSI legacy vs new-law schedules applied automatically; (4) Hijri and Gregorian
+natively on payslips, leave and contracts; (5) KSA data residency + PDPL documentation; (6) KSA + UAE in one tenant.
+It quotes list prices (all **unverified**): Jisr SAR 17, PalmHR SAR 19, ZenHR SAR 25, Zoho People SAR 6 per employee
+per month; Qoyod HR SAR 49 base; Mawared on-premises, project priced.
+
+### Menaitech (menaitech.com), Amman / Riyadh
+
+| Area | What the documentation says | Source |
+|---|---|---|
+| Suite | Curio (HR and talent), MenaPAY (payroll), MenaTA (time), MenaME (web ESS/MSS), **MenaME-Plus+ (mobile)**, MenaBI (analytics), Mena360, MenaLMS, MenaTrip, MenaSME | [mena-me] |
+| ESS / MSS | Employee: salary inquiries, vacation planning, data updates, requests "through approval cycle", **time sheet entry**, career path / IDP / succession tracking, "geographic online punching". Manager: approvals, timesheet approval, candidate screening, **job requisition, workforce plan**, announcements, appraisal, roster | [mena-me] |
+| Government | MenaPAY "integrates directly with Mudad"; "integrates fully with GOSI" incl. contributions and statutory reporting; Muqeem (issue, renew, transfer residency; entry/exit records) and **Masdr** (profiled as a GOSI-owned data company [masdr-org], unverified: sync of GOSI employee data, cancellation of subscriptions), June 2023; Qiwa **not mentioned** | [mena-faq], [mena-masdr] |
+| Saudization | "Saudization dashboard" with real-time Saudization rate and analytical reports | [mena-faq] |
+| Attendance | Biometric or GPS tracking; **Google Maps integration for field workforce** | [mena-faq] |
+| Hosting / security | Cloud, on-premises "may be available"; ISO/IEC 27001:2022; claims "Saudi data protection requirements" (PDPL not named) | [mena-faq] |
+
+### Palm HR (palmhr.net), Riyadh
+
+| Area | What the documentation says | Source |
+|---|---|---|
+| Modules | People (records, onboarding/offboarding, documents, **assets**), Time (mobile check-in/out, **timesheet approval**, shifts), Pay (payroll approval workflows, **expense and loan management**, multi-company, multi-currency, WPS); add-ons performance, project time tracking, recruitment; **outsourced HR / "concierge" doing the government-platform work** (Absher, Mudad, Muqeem, GOSI, Qiwa) for the client | [palm], [palm-concierge] |
+| Government | "Seamless connectivity with Qiwa, GOSI, Mudad for compliance reporting" (blog); mechanism (API vs file) **not documented**; the public payroll page reads UAE-first (GPSSA) | [palm-law24], [palm-pay] |
+| Pricing (public) | Starter 1,000 AED / year up to 15 employees (no payroll); Core adds payroll (WPS ready), EOS, multiple approval flows; Professional adds multi-company, custom fields and workflows, **public API**, white-label; Enterprise quote. Biometric devices (CAMS, ZKTeco) paid add-on | [palm-price] |
+| Attendance | GPS; geofence / selfie **not documented** | [palm-price] |
+<!-- SOURCES-BAYZAT-MENA-PALM -->
+[bay-f]: https://www.bayzat.com/ksa/features
+[bay-att]: https://www.bayzat.com/ksa/attendance
+[bay-mudad]: https://www.bayzat.com/ksa/mudad
+[bay-muqeem]: https://www.bayzat.com/ksa/muqeem-integration
+[bay-payroll]: https://www.bayzat.com/ksa/payroll
+[bay-guide]: https://www.bayzat.com/blog/best-hr-software-in-saudi-arabia/
+[mena-me]: https://menaitech.com/en-sa/products/mename/
+[mena-faq]: https://menaitech.com/en-sa/faqs-sa/
+[mena-masdr]: https://menaitech.com/en/news/menaitech-integrates-masdr-and-muqeem-within-its-system-in-saudi-arabia/
+[palm]: https://palmhr.net/en
+[palm-concierge]: https://palmhr.net/en/concierge/
+[palm-law24]: https://palmhr.net/en/resources/changes-to-the-saudi-labor-law-august-2024
+[palm-pay]: https://palmhr.net/en/products/pay
+[palm-price]: https://palmhr.net/en/pricing
