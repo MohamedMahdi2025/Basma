@@ -96,6 +96,7 @@ Object.assign(T.ar, {
   row_over_budget:'أعلى من ميزانية الطلب: يلزم ذكر السبب عند الاعتماد.', row_under_budget:'أقل من ميزانية الطلب.', row_nitaqat_half:'أجر السعودي بين 3,000 و3,999: يحتسب نصف موظف في نطاقات.',
   row_nitaqat_zero:'أجر السعودي أقل من 3,000: لا يحتسب في نطاقات.', row_below_expectation:'أقل من الراتب الذي يتوقعه المرشح.',
   // Wave 3: exit interview and recognition
+  rbTitle:'منشئ التقارير', rbLead:'اختر الأعمدة والفلاتر والتجميع من بيانات الموظفين والحقول المخصصة، ثم صدّر إلى Excel أو اطبع.', rbCols:'الأعمدة', rbFilters:'الفلاتر', rbGroup:'تجميع حسب', rbNoGroup:'بلا تجميع', rbRows:'صف', rbCount:'العدد', rbExport:'تصدير Excel', rbPrint:'طباعة', rbSaudi:'سعودي', rbNonSaudi:'غير سعودي', rbAll:'الكل', rbc_empNo:'الرقم الوظيفي', rbc_name:'الاسم', rbc_nameEn:'الاسم بالإنجليزية', rbc_departmentName:'القسم', rbc_positionName:'المسمى', rbc_managerName:'المدير', rbc_hireDate:'تاريخ التعيين', rbc_status:'الحالة', rbc_nationality:'الجنسية', rbc_isSaudi:'سعودي', rbc_gender:'الجنس', rbc_contractType:'نوع العقد', rbc_contractEnd:'نهاية العقد', rbc_email:'البريد', rbc_phone:'الجوال', rbc_lastWorkingDay:'آخر يوم عمل',
   cfTitle:'الحقول المخصصة', cfLead:'حقول إضافية في ملف الموظف تحددها الشركة (نص، رقم، تاريخ، قائمة، نعم/لا) مع تحديد من يراها. تكتب القيم الموارد البشرية فقط.', cfFields:'الحقول', cfValues:'القيم', cfNew:'حقل جديد', cfLabelAr:'الاسم بالعربية', cfLabelEn:'الاسم بالإنجليزية', cfType:'النوع', cfOptions:'الخيارات', cfOptionsHint:'افصل بين الخيارات بفاصلة.', cfVis:'يراه', cfDisabled:'موقوف', cfPick:'اختر موظفا', cfMy:'بيانات إضافية', cfNone:'لا توجد حقول بعد.', cft_text:'نص', cft_number:'رقم', cft_date:'تاريخ', cft_select:'قائمة خيارات', cft_bool:'نعم / لا', cfv_hr:'الموارد البشرية فقط', cfv_manager:'الموارد البشرية والمدير', cfv_employee:'الموظف أيضا (للقراءة)', cfYes:'نعم', cfNo:'لا',
   ocTitle:'الهيكل التنظيمي', ocLead:'من يتبع لمن، من بيانات الموظفين الحالية. اضغط على أي بطاقة لطي فريقها أو فتحه.', ocReports:'مرؤوسون', ocAll:'الكل', ocSearch:'ابحث عن موظف', ocNoMgr:'بلا مدير مباشر', ocExpand:'فتح الكل', ocCollapse:'طي الكل',
   tsTitle:'كشوف الدوام الشهرية', tsLead:'يعتمد المدير أو الموارد البشرية دوام كل موظف للشهر (الساعات والتأخير والغياب والإضافي) من نفس أرقام التقارير والرواتب. عند تفعيل الإلزام لا تقفل الرواتب قبل اعتماد كل الكشوف.', tsMonth:'الشهر', tsWorked:'ساعات العمل', tsLate:'تأخير (دقيقة)', tsAbsent:'غياب', tsOt:'إضافي (ساعة)', tsMissing:'خروج غير مسجل', tsReview:'بانتظار المراجعة', tsApprove:'اعتماد', tsApproveAll:'اعتماد الكل', tsApproved:'معتمد', tsPending:'بانتظار الاعتماد', tsRequired:'إلزامي قبل إقفال الرواتب', tsOptional:'اختياري', e_timesheets_open:'لا يمكن إقفال الرواتب: توجد كشوف دوام غير معتمدة لهذا الشهر.',
@@ -187,7 +188,8 @@ Object.assign(T.en, {
   ros_draft:'Draft', ros_pending:'Waiting for approval', ros_approved:'Approved', ros_rejected:'Rejected', ros_sent:'Sent', ros_accepted:'Accepted', ros_declined:'Declined by the candidate', ros_expired:'Expired', ros_withdrawn:'Withdrawn', ros_hired:'Hired',
   row_over_budget:'Above the request budget: the approver must give the reason.', row_under_budget:'Below the request budget.', row_nitaqat_half:'Saudi wage between 3,000 and 3,999: counts as half in Nitaqat.',
   row_nitaqat_zero:'Saudi wage under 3,000: does not count in Nitaqat.', row_below_expectation:'Below the salary the candidate expects.',
-cfTitle:'Custom fields', cfLead:'Extra fields on the employee file that the company defines (text, number, date, list, yes/no), with who may see them. Only HR writes the values.', cfFields:'Fields', cfValues:'Values', cfNew:'New field', cfLabelAr:'Name in Arabic', cfLabelEn:'Name in English', cfType:'Type', cfOptions:'Options', cfOptionsHint:'Separate options with commas.', cfVis:'Seen by', cfDisabled:'Disabled', cfPick:'Choose an employee', cfMy:'More about me', cfNone:'No fields yet.', cft_text:'Text', cft_number:'Number', cft_date:'Date', cft_select:'List of options', cft_bool:'Yes / no', cfv_hr:'HR only', cfv_manager:'HR and the manager', cfv_employee:'The employee too (read-only)', cfYes:'Yes', cfNo:'No',
+rbTitle:'Report builder', rbLead:'Pick columns, filters and grouping from employee data and custom fields, then export to Excel or print.', rbCols:'Columns', rbFilters:'Filters', rbGroup:'Group by', rbNoGroup:'No grouping', rbRows:'rows', rbCount:'Count', rbExport:'Export Excel', rbPrint:'Print', rbSaudi:'Saudi', rbNonSaudi:'Non-Saudi', rbAll:'All', rbc_empNo:'Employee no.', rbc_name:'Name', rbc_nameEn:'Name in English', rbc_departmentName:'Department', rbc_positionName:'Position', rbc_managerName:'Manager', rbc_hireDate:'Hire date', rbc_status:'Status', rbc_nationality:'Nationality', rbc_isSaudi:'Saudi', rbc_gender:'Gender', rbc_contractType:'Contract type', rbc_contractEnd:'Contract end', rbc_email:'Email', rbc_phone:'Mobile', rbc_lastWorkingDay:'Last working day',
+  cfTitle:'Custom fields', cfLead:'Extra fields on the employee file that the company defines (text, number, date, list, yes/no), with who may see them. Only HR writes the values.', cfFields:'Fields', cfValues:'Values', cfNew:'New field', cfLabelAr:'Name in Arabic', cfLabelEn:'Name in English', cfType:'Type', cfOptions:'Options', cfOptionsHint:'Separate options with commas.', cfVis:'Seen by', cfDisabled:'Disabled', cfPick:'Choose an employee', cfMy:'More about me', cfNone:'No fields yet.', cft_text:'Text', cft_number:'Number', cft_date:'Date', cft_select:'List of options', cft_bool:'Yes / no', cfv_hr:'HR only', cfv_manager:'HR and the manager', cfv_employee:'The employee too (read-only)', cfYes:'Yes', cfNo:'No',
   ocTitle:'Org chart', ocLead:'Who reports to whom, from the current employee records. Tap a card to fold or open its team.', ocReports:'reports', ocAll:'All', ocSearch:'Find a person', ocNoMgr:'No line manager', ocExpand:'Open all', ocCollapse:'Fold all',
   tsTitle:'Monthly timesheets', tsLead:'The manager or HR approves each person\'s month (hours, lateness, absence, overtime) from the same figures as reports and payroll. When required, payroll cannot lock before every timesheet is approved.', tsMonth:'Month', tsWorked:'Hours worked', tsLate:'Late (min)', tsAbsent:'Absent', tsOt:'Overtime (h)', tsMissing:'Missing check-out', tsReview:'Waiting for review', tsApprove:'Approve', tsApproveAll:'Approve all', tsApproved:'Approved', tsPending:'Waiting for approval', tsRequired:'Required before the payroll lock', tsOptional:'Optional', e_timesheets_open:'Payroll cannot lock: some timesheets for this month are not approved.',
   prTitle:'Annual pay review', prLead:'Managers propose an increase for their team without seeing pay; HR and payroll check the budget; on closing each increase becomes a salary proposal waiting for payroll approval.', prNew:'Open a review', prName:'Review name', prEff:'Effective from', prBudget:'Budget % of payroll', prBasis:'Applies to', prBasisBH:'Basic and housing', prBasisB:'Basic only', prPct:'Increase %', prBase:'Pay it applies to', prInc:'Increase', prUsed:'Budget used', prProposed:'Proposed', prClose:'Close and file proposals', prClosed:'Proposals filed', prOpenNone:'No review is open.', prs_open:'Open', prs_closed:'Closed', prSaveRow:'Save',
@@ -208,6 +210,8 @@ var css = '' +
 '.oc-card{display:inline-flex;gap:10px;align-items:center;border:1px solid var(--line);background:var(--card,#fff);border-radius:14px;padding:8px 12px;cursor:pointer;min-width:240px;transition:border-color .2s,box-shadow .2s}' +
 '.oc-card:hover{border-color:var(--brand);box-shadow:0 8px 18px -12px rgba(0,0,0,.35)}.oc-card .av{width:36px;height:36px}.oc-card b{display:block}.oc-card small{display:block;color:var(--ink-3,var(--muted));font-size:12px}' +
 '.oc-card .oc-n{margin-inline-start:auto;font-size:12px;background:var(--brand-tint,#E7EFE6);color:var(--brand);border-radius:999px;padding:2px 8px}.oc-tree li.fold > ul{display:none}.oc-tree li.hit > .oc-card{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-tint,#E7EFE6)}' +
+'.rb-grid{display:grid;grid-template-columns:260px minmax(0,1fr);gap:18px;align-items:start}.rb-side{border:1px solid var(--line);border-radius:14px;padding:12px 14px;position:sticky;top:12px}.rb-side h4{margin:6px 0 8px}.rb-cols{display:grid;gap:4px;max-height:280px;overflow:auto;margin-bottom:8px}' +
+'.rb-tbl,.rb-sum{border-collapse:collapse;font-size:13px;min-width:100%}.rb-tbl th,.rb-tbl td,.rb-sum th,.rb-sum td{border-bottom:1px solid var(--line);padding:6px 9px;text-align:start;white-space:nowrap}.rb-tbl thead th{position:sticky;top:0;background:var(--card,#fff)}@media (max-width:900px){.rb-grid{grid-template-columns:1fr}.rb-side{position:static}}' +
 '.w2-stars{display:flex;gap:4px}.w2-stars button{font-size:20px}.w2-q{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}.w2-ann{border-inline-start:3px solid var(--brand);padding-inline-start:10px}';
 var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 
@@ -1292,6 +1296,62 @@ function myCustomCard(el){
   });
 }
 
+// =================================================================== REPORT BUILDER (Wave 3)
+var RB_BASE = ['empNo', 'name', 'nameEn', 'departmentName', 'positionName', 'managerName', 'hireDate', 'status', 'nationality', 'isSaudi', 'gender', 'contractType', 'contractEnd', 'email', 'phone', 'lastWorkingDay'];
+var RB_DEFAULT = ['empNo', 'name', 'departmentName', 'positionName', 'hireDate', 'nationality'];
+function reportBuilderSection(body){
+  var box = head(body, 'rbTitle', 'rbLead'); busy(box);
+  Promise.all([api('hrBootstrap', {}, true), api('customValuesAll', {}, true)]).then(function(rs){
+    if (!box.isConnected) return;
+    if (!rs[0].ok) return box.innerHTML = bad(rs[0].error);
+    var cf = rs[1].ok ? rs[1] : { fields: [], values: {} };
+    var cols = RB_BASE.map(function(k){ return { key: k, label: t('rbc_' + k), kind: k === 'hireDate' || k === 'contractEnd' || k === 'lastWorkingDay' ? 'date' : 'text' }; })
+      .concat(cf.fields.map(function(f){ return { key: 'cf:' + f.id, label: lang(f.labelAr, f.labelEn), kind: f.type === 'date' ? 'date' : f.type === 'number' ? 'number' : 'text', cf: f }; }));
+    var colOf = {}; cols.forEach(function(c){ colOf[c.key] = c; });
+    var val = function(e, c){ if (c.cf) { var v = (cf.values[e.id] || {})[c.cf.id]; return v === undefined ? '' : c.cf.type === 'bool' ? t(v === 'yes' ? 'cfYes' : 'cfNo') : v; }
+      if (c.key === 'isSaudi') return t(e.isSaudi ? 'rbSaudi' : 'rbNonSaudi'); if (c.key === 'contractType') return e.contractType ? t('rqc_' + e.contractType) : ''; return e[c.key] == null ? '' : String(e[c.key]).slice(0, c.kind === 'date' ? 10 : 300); };
+    var S0 = S.rb || { cols: RB_DEFAULT.slice(), dept: '', status: 'active', nat: '', saudi: '', contract: '', group: '' };
+    var uniq = function(k){ var o = {}; rs[0].rows.forEach(function(e){ if (e[k]) o[e[k]] = 1; }); return Object.keys(o).sort(); };
+    box.innerHTML = '<div class="rb-grid"><aside class="rb-side"><h4>' + t('rbCols') + '</h4><div class="rb-cols">' + cols.map(function(c){ return '<label class="hr-check"><input type="checkbox" data-col="' + esc(c.key) + '"' + (S0.cols.indexOf(c.key) >= 0 ? ' checked' : '') + '> ' + esc(c.label) + '</label>'; }).join('') + '</div>' +
+      '<h4>' + t('rbFilters') + '</h4>' + fld(t('rbc_departmentName'), '<select data-f="dept">' + opts(uniq('departmentName').map(function(d){ return [d, d]; }), S0.dept, t('rbAll')) + '</select>') +
+      fld(t('rbc_status'), '<select data-f="status">' + opts(uniq('status').map(function(d){ return [d, d]; }), S0.status, t('rbAll')) + '</select>') +
+      fld(t('rbc_nationality'), '<select data-f="nat">' + opts(uniq('nationality').map(function(d){ return [d, d]; }), S0.nat, t('rbAll')) + '</select>') +
+      fld(t('rbc_isSaudi'), '<select data-f="saudi">' + opts([['yes', t('rbSaudi')], ['no', t('rbNonSaudi')]], S0.saudi, t('rbAll')) + '</select>') +
+      fld(t('rbc_contractType'), '<select data-f="contract">' + opts([['indefinite', t('rqc_indefinite')], ['fixed', t('rqc_fixed')]], S0.contract, t('rbAll')) + '</select>') +
+      fld(t('rbGroup'), '<select data-f="group">' + opts(cols.filter(function(c){ return c.kind === 'text'; }).map(function(c){ return [c.key, c.label]; }), S0.group, t('rbNoGroup')) + '</select>') +
+      '</aside><section class="rb-main"><div class="toolbar"><b id="rbN"></b><span class="sp"></span><button type="button" class="btn btn-line btn-sm" id="rbPr">' + ph('printer') + t('rbPrint') + '</button> <button type="button" class="btn btn-dark btn-sm" id="rbXl">' + ph('microsoft-excel-logo') + t('rbExport') + '</button></div><div id="rbOut"></div></section></div>';
+    var out = $('#rbOut', box), cur = { rows: [], cols: [] };
+    function run(){
+      S0.cols = $$('[data-col]', box).filter(function(x){ return x.checked; }).map(function(x){ return x.dataset.col; });
+      $$('[data-f]', box).forEach(function(x){ S0[x.dataset.f] = x.value; }); S.rb = S0;
+      var rows = rs[0].rows.filter(function(e){ return (!S0.dept || e.departmentName === S0.dept) && (!S0.status || e.status === S0.status) && (!S0.nat || e.nationality === S0.nat) &&
+        (!S0.saudi || (S0.saudi === 'yes') === !!e.isSaudi) && (!S0.contract || e.contractType === S0.contract); });
+      var cs = S0.cols.map(function(k){ return colOf[k]; }).filter(Boolean);
+      cur = { rows: rows, cols: cs };
+      $('#rbN', box).textContent = rows.length + ' ' + t('rbRows');
+      var h = '';
+      if (S0.group && colOf[S0.group]) {
+        var g = {}, gc = colOf[S0.group]; rows.forEach(function(e){ var k = val(e, gc) || '-'; g[k] = (g[k] || 0) + 1; });
+        var keys = Object.keys(g).sort(function(a, b){ return g[b] - g[a]; });
+        h += '<h4>' + esc(gc.label) + '</h4><div class="w2-mx"><table class="rb-sum"><thead><tr><th>' + esc(gc.label) + '</th><th>' + t('rbCount') + '</th></tr></thead><tbody>' + keys.map(function(k){ return '<tr><td>' + esc(k) + '</td><td class="num">' + g[k] + '</td></tr>'; }).join('') + '</tbody></table></div>';
+      }
+      h += cs.length ? '<div class="w2-mx"><table class="rb-tbl"><thead><tr>' + cs.map(function(c){ return '<th>' + esc(c.label) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+        rows.slice(0, 1000).map(function(e){ return '<tr>' + cs.map(function(c){ var v = val(e, c); return '<td' + (c.kind !== 'text' ? ' class="num"' : '') + '>' + esc(c.kind === 'date' && v ? fmt(v) : v) + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table></div>' : '';
+      out.innerHTML = h || empty('table', t('w2None'));
+    }
+    box.addEventListener('change', function(ev){ if (ev.target.matches('[data-col],[data-f]')) run(); });
+    run();
+    $('#rbXl', box).onclick = function(){ var b = this; b.disabled = true; loadScript('js/xl.js').then(function(){
+      var en = S.lang === 'en', title = t('rbTitle');
+      return XL.download({ fileName: title + ' ' + riyadhToday(), title: title, lang: en ? 'en' : 'ar', company: coName(), by: S.me.name, logo: logoInk(),
+        filters: [['dept', 'rbc_departmentName'], ['status', 'rbc_status'], ['nat', 'rbc_nationality'], ['saudi', 'rbc_isSaudi'], ['contract', 'rbc_contractType']].filter(function(k){ return S0[k[0]]; }).map(function(k){ return [t(k[1]), S0[k[0]]]; }),
+        sheets: [{ name: title, title: title, columns: cur.cols.map(function(c){ return { key: c.key, label: c.label, type: c.kind === 'number' ? 'num' : 'text' }; }),
+          rows: cur.rows.map(function(e){ var o = {}; cur.cols.forEach(function(c){ var v = val(e, c); o[c.key] = c.kind === 'number' && v !== '' ? Number(v) : v; }); return o; }) }] });
+    }).then(function(){ b.disabled = false; }, function(){ b.disabled = false; toast(t('e_generic')); }); };
+    $('#rbPr', box).onclick = function(){ if (typeof printView === 'function') printView(); else window.print(); };
+  });
+}
+
 // =================================================================== the employee's own cards
 function myCards(el){
   mySettleCard(el); myExitCard(el); myAnnCard(el); myKudosCard(el); myLoansCard(el); myInsCard(el); myTrainingCard(el); myDeskCard(el); myInterviewsCard(el); myCustomCard(el);
@@ -1309,6 +1369,7 @@ window.PayReview = { section: payReviewSection };
 window.Timesheets = { section: timesheetSection };
 window.OrgChart = { section: orgChartSection };
 window.CustomFields = { section: customFieldsSection };
+window.ReportBuilder = { section: reportBuilderSection };
 window.Kudos = { section: kudosSection };
 window.W2 = { myCards: myCards };
 })();
