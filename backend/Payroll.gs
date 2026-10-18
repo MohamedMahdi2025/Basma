@@ -289,6 +289,7 @@ function api_payrollApprove(req, me) {
     if (reconBlocks_(run.month)) fail_('recon_open'); // an open GOSI / Qiwa wage mismatch for this month
     var now = new Date().toISOString();
     var slips = readAll_(SHEETS.SLIP).filter(function (s) { return s.runId === run.id && s.status === 'draft'; });
+    if (!isDemoRun_(run) && tsMissing_(run.month, slips.map(function (s) { return s.empId; }))) fail_('timesheets_open'); // setting timesheetRequired (Attendance.gs)
     slips.forEach(function (s) { s.status = 'locked'; s.updatedAt = now; });
     updateMany_(SHEETS.SLIP, slips);
     run.status = 'locked'; run.approvedBy = me.id; run.approvedAt = now; run.updatedAt = now;

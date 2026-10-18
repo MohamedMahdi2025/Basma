@@ -729,3 +729,64 @@ function publicDevice_(c) {
 function publicZone_(z) {
   return { id: z.id, name: z.name, nameEn: z.nameEn, lat: Number(z.lat), lng: Number(z.lng), radius: Number(z.radius), status: z.status };
 }
+
+
+// ======================================================================= timesheets (Wave 3, 2026-10-18)
+// A month of attendance per person (from summarizeDay_, the same figures as reports and payroll) approved by the manager or HR.
+// With the setting timesheetRequired, payrollApprove refuses a month while a paid person's timesheet is not approved.
+function tsMonthTotals_(e, month, by, off, s, now) {
+  var from = month + '-01', to = monthLast_(month), today = localParts_(now).date, joined = joinedDate_(e);
+  if (to > today) to = today;
+  var t = { workedMin: 0, lateMin: 0, earlyMin: 0, overtimeMin: 0, present: 0, absent: 0, leave: 0, missingOut: 0, review: 0 };
+  for (var d = from; d <= to; d = addDays_(d, 1)) {
+    if (d < joined) continue;
+    var ps = (by[e.id + '|' + d] || []).sort(function (a, b) { return a.ts < b.ts ? -1 : 1; }), sum = summarizeDay_(e, d, ps, s, now, off(e.id, d));
+    t.workedMin += sum.workedMin; t.lateMin += sum.lateMin; t.earlyMin += sum.earlyMin; t.overtimeMin += sum.overtimeMin; t.review += sum.review || 0;
+    if (sum.firstIn) t.present++; if (sum.status === 'absent') t.absent++; if (sum.status === 'leave') t.leave++; if (sum.status === 'missing_out') t.missingOut++;
+  }
+  return t;
+}
+function tsCanApprove_(me, e, ctx) { return !!e && e.id !== me.id && (isHr_(me) || manages_(me, e, ctx)); }
+function api_timesheetList(req, me) {
+  var ctx = orgCtx_(), month = /^\d{4}-\d{2}$/.test(String(req.month || '')) ? String(req.month) : govAddMonths_(today_().slice(0, 7) + '-01', -1).slice(0, 7);
+  if (!isHr_(me) && !managesAnyone_(me, ctx)) fail_('forbidden');
+  var s = settings_(), now = new Date(), from = month + '-01', to = monthLast_(month), by = {}, off = offIndex_(from, to);
+  readAll_(SHEETS.PUNCH).forEach(function (p) { if (!isCounted_(p) || p.date < from || p.date > to) return; (by[p.empId + '|' + p.date] = by[p.empId + '|' + p.date] || []).push(p); });
+  var done = {}; readAll_(SHEETS.TSH).forEach(function (x) { if (x.month === month && x.status === 'approved') done[x.empId] = x; });
+  var rows = Object.keys(ctx.emps).map(function (k) { return ctx.emps[k]; }).filter(function (e) { return e.status === 'active' && (isHr_(me) || manages_(me, e, ctx)) && e.id !== me.id; })
+    .map(function (e) { var a = done[e.id]; return { emp: empCard_(e), totals: tsMonthTotals_(e, month, by, off, s, now), approved: !!a, approvedBy: a && ctx.emps[a.approvedBy] ? ctx.emps[a.approvedBy].name : '', approvedAt: a ? a.approvedAt : '' }; });
+  return { ok: true, month: month, rows: rows, required: s.timesheetRequired === true || String(s.timesheetRequired) === 'true' };
+}
+function api_timesheetApprove(req, me) {
+  if (!isHr_(me) && !managesAnyone_(me, orgCtx_())) fail_('forbidden'); // the role gate before any validation
+  var month = String(req.month || ''), ids = (Array.isArray(req.empIds) ? req.empIds : []).map(String);
+  if (!/^\d{4}-\d{2}$/.test(month) || !ids.length || ids.length > 500) fail_('bad_request');
+  if (month > today_().slice(0, 7)) fail_('future_month');
+  return withLock_(function () {
+    var ctx = orgCtx_(), s = settings_(), now = new Date(), iso = now.toISOString(), from = month + '-01', to = monthLast_(month), by = {}, off = offIndex_(from, to), out = 0;
+    ids.forEach(function (id) { if (!tsCanApprove_(me, ctx.emps[id], ctx)) fail_(id === me.id ? 'cannot_decide_own' : 'forbidden'); });
+    readAll_(SHEETS.PUNCH).forEach(function (p) { if (!isCounted_(p) || p.date < from || p.date > to) return; (by[p.empId + '|' + p.date] = by[p.empId + '|' + p.date] || []).push(p); });
+    var have = {}; readAll_(SHEETS.TSH).forEach(function (x) { if (x.month === month && x.status === 'approved') have[x.empId] = 1; });
+    ids.forEach(function (id) {
+      if (have[id]) return;
+      append_(SHEETS.TSH, { id: newId_('T'), empId: id, month: month, status: 'approved', totalsJson: JSON.stringify(tsMonthTotals_(ctx.emps[id], month, by, off, s, now)), approvedBy: me.id, approvedAt: iso, note: str_(req.note, 200) });
+      out++;
+    });
+    audit_(me.id, 'timesheet_approve', '', { month: month, count: out });
+    return { ok: true, approved: out };
+  });
+}
+/** Payroll.gs api_payrollApprove: with timesheetRequired, every paid person needs an approved timesheet for the month. */
+function tsMissing_(month, empIds) {
+  var s = settings_();
+  if (!(s.timesheetRequired === true || String(s.timesheetRequired) === 'true')) return 0;
+  var have = {}; readAll_(SHEETS.TSH).forEach(function (x) { if (x.month === month && x.status === 'approved') have[x.empId] = 1; });
+  return empIds.filter(function (id) { return !have[id]; }).length;
+}
+hrisHook_('tasks', function (me, ctx, add) {
+  var s = settings_();
+  if (!(s.timesheetRequired === true || String(s.timesheetRequired) === 'true')) return;
+  var prev = govAddMonths_(today_().slice(0, 7) + '-01', -1).slice(0, 7), have = {};
+  readAll_(SHEETS.TSH).forEach(function (x) { if (x.month === prev && x.status === 'approved') have[x.empId] = 1; });
+  add('timesheet', Object.keys(ctx.emps).filter(function (k) { var e = ctx.emps[k]; return e.status === 'active' && !have[k] && e.id !== me.id && !isHr_(me) && manages_(me, e, ctx); }).length, { tab: 'hr', sec: 'timesheets' });
+});

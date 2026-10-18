@@ -1301,7 +1301,9 @@ const EXPECT = {
   // final settlement (Payroll.gs): prepare and list by hr role or payroll, decide and pay by payroll only
   finalSettlementCreate: 'pay', finalSettlementList: 'pay', finalSettlementDecide: 'payOnly', finalSettlementPaid: 'payOnly',
   // annual pay review (Payroll.gs): cycles by hr role / payroll; managers list and propose for their people
-  compCycleSave: 'pay', compCycleClose: 'pay', compCycleList: 'mgrPay', compPropose: 'mgrPay'
+  compCycleSave: 'pay', compCycleClose: 'pay', compCycleList: 'mgrPay', compPropose: 'mgrPay',
+  // timesheets (Attendance.gs): HR (incl. admin) and managers
+  timesheetList: 'mgr', timesheetApprove: 'mgr'
 };
 const T16 = ids['1018'];
 const PROBE = { hrEmpFile: { id: T16 }, perfEmp: { empId: T16, cycleId: CYC.id }, planSave: { plan: { empId: T16, type: 'idp' } }, delegationSave: { delegation: { toEmpId: ids['1003'] } },
