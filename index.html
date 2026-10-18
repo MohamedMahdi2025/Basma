@@ -1310,6 +1310,12 @@ body.v2-on :is(.db-tile b,.kpi b,.stat b,.hm-facts dd,.hm-big b,.hm-k .v,[data-c
 .pw-eye[aria-pressed="true"] i{transform:rotateY(180deg)}
 .gate .pw-eye{color:#C9D3C6}
 .gate input.pinin{letter-spacing:10px}
+.loc-help{margin-top:10px;text-align:start;border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:var(--well,#F6F3EC);color:var(--ink);font-size:13.5px;line-height:1.6}
+.loc-help .btn{width:100%}.loc-help details{margin-top:8px}.loc-help summary{cursor:pointer;color:var(--ink-2)}
+.loc-help ol{margin:6px 0 10px;padding-inline-start:20px}
+.loc-help li{margin:3px 0}
+/* wide screens (2026-10-18): pages use the room instead of a 1320px column with empty strips; the top bar lines up with them */
+@media (min-width:1440px){body.v2-on .v2 .page,body.v2-on .page.v2{max-width:1760px;padding-inline:32px}body.v2-on .v2-top{padding-inline:32px}}
 @media (max-width:1023px){
   .gate{gap:16px;--d:min(38vw,150px);padding-top:calc(64px + env(safe-area-inset-top))}
   .gate .gb-dial{margin-top:6px}
@@ -2034,7 +2040,7 @@ var T = {
     unlockTitle:'مرحباً', unlockLead:'افتح التطبيق بـ Face ID أو البصمة', unlock:'افتح بـ Face ID / البصمة', notMe:'تسجيل موظف آخر على هذا الجهاز',
     tabHome:'الحضور', btnIn:'حضور', btnOut:'انصراف', recordedAt:'سيُسجَّل بهذا الوقت', emptyEmp:'لا يوجد موظفون بعد', emptyEmpLead:'أضف أول موظف لتصله رسالة التفعيل.', emptyDay:'لا حركات في هذا الشهر', tabHistory:'سجلي', tabFile:'ملفي', tabHr:'الموارد', retry:'إعادة المحاولة', loadingNow:'جار التحميل', loadingScreen:'جار تجهيز الشاشة', tabAdmin:'الإدارة', tabMe:'حسابي',
     locating:'جارٍ تحديد موقعك…', inside:'داخل نطاق', outside:'خارج النطاق', m:'م', km:'كم', fromZone:'من مركز', accuracy:'دقة الموقع',
-    noLoc:'فعّل خدمة الموقع للتطبيق حتى تتمكن من التسجيل', noZone:'لم يُحدَّد نطاق عمل لك بعد. تواصل مع الموارد البشرية.',
+    noLoc:'فعّل خدمة الموقع للتطبيق حتى تتمكن من التسجيل', locBtn:'السماح بالموقع', locDeniedTitle:'المتصفح يمنع الموقع عن هذا التطبيق', locOffTitle:'خدمة الموقع متوقفة في جهازك', locSlowTitle:'لم يصل الموقع بعد', locStepChrome:'اضغط رمز القفل بجانب عنوان الموقع أعلى المتصفح، ثم الأذونات، واختر «الموقع: سماح».', locStepSafari:'من قائمة Safari اختر إعدادات المواقع، ثم الموقع، واختر «سماح» لهذا الموقع.', locStepFirefox:'اضغط رمز الأذونات بجانب عنوان الموقع وأزل حظر «الوصول إلى موقعك».', locStepIosSite:'افتح الإعدادات ← الخصوصية والأمان ← خدمات الموقع ← مواقع Safari (أو تطبيق المتصفح) واختر «أثناء الاستخدام» مع تشغيل «الموقع الدقيق».', locStepIos:'تأكد أن خدمات الموقع مفعلة: الإعدادات ← الخصوصية والأمان ← خدمات الموقع.', locStepAndroid:'اسحب شريط الإشعارات للأسفل وفعّل «الموقع»، ثم في Chrome: الإعدادات ← إعدادات المواقع ← الموقع ← سماح.', locStepWin:'في Windows: الإعدادات ← الخصوصية والأمان ← الموقع، وفعّل «خدمات الموقع» و«السماح للتطبيقات بالوصول إلى موقعك» وتطبيقات سطح المكتب.', locStepMac:'في Mac: إعدادات النظام ← الخصوصية والأمان ← خدمات الموقع، وفعّلها للمتصفح.', locStepOther:'فعّل خدمة الموقع في إعدادات الجهاز واسمح بها للمتصفح.', locStepRetry:'ثم اضغط «تفعيل الموقع» أدناه.', noZone:'لم يُحدَّد نطاق عمل لك بعد. تواصل مع الموارد البشرية.',
     checkIn:'تسجيل الحضور', checkOut:'تسجيل الانصراف', hold:'اضغط للتسجيل', holdHint:'اضغط الزر ثم أكّد بـ Face ID أو البصمة', tapHint:'اضغط الزر للتسجيل، يعمل فقط داخل المقر',
     oldPhone:'هاتفي لا يدعم Face ID / البصمة', tapMode:'تسجيل بالنقر', bioMode:'Face ID / بصمة', unlockTap:'دخول', allowDk:'السماح للأجهزة القديمة بالتسجيل بالنقر (بدون بصمة، داخل النطاق فقط)', f_no_biometric:'جهاز بدون بصمة (تسجيل بالنقر)', e_device_key_disabled:'التسجيل بالنقر موقوف، تواصل مع الموارد البشرية', e_no_devicekey:'هذا المتصفح قديم جداً، حدّث المتصفح',
     readyIn:'جاهز لتسجيل الحضور', readyOut:'جاهز لتسجيل الانصراف', moveCloser:'اقترب من المقر لتفعيل الزر', weakGps:'إشارة الموقع ضعيفة، اقترب من نافذة أو انتظر قليلاً',
@@ -2095,7 +2101,7 @@ var T = {
     unlockTitle:'Welcome', unlockLead:'Open the app with Face ID or fingerprint', unlock:'Unlock with Face ID / fingerprint', notMe:'Register a different employee on this device',
     tabHome:'Attendance', btnIn:'Check in', btnOut:'Check out', recordedAt:'This is the time that will be recorded', emptyEmp:'No employees yet', emptyEmpLead:'Add the first employee to send their activation code.', emptyDay:'Nothing recorded this month', tabHistory:'My record', tabFile:'My file', tabHr:'HR', retry:'Try again', loadingNow:'Loading', loadingScreen:'Preparing the screen', tabAdmin:'Admin', tabMe:'Account',
     locating:'Finding your location…', inside:'Inside', outside:'Outside the zone', m:'m', km:'km', fromZone:'from', accuracy:'Accuracy',
-    noLoc:'Allow location access so you can check in', noZone:'No work zone is set for you yet. Contact HR.',
+    noLoc:'Allow location access so you can check in', locBtn:'Allow location', locDeniedTitle:'The browser is blocking location for this app', locOffTitle:'Location services are off on this device', locSlowTitle:'Your location has not arrived yet', locStepChrome:'Click the lock icon next to the address at the top of the browser, then Permissions, and set Location to Allow.', locStepSafari:'In the Safari menu choose Settings for this website, then Location, and choose Allow.', locStepFirefox:'Click the permissions icon next to the address and remove the block on Access your location.', locStepIosSite:'Open Settings > Privacy & Security > Location Services > Safari Websites (or your browser app), choose While Using the App and turn on Precise Location.', locStepIos:'Make sure Location Services is on: Settings > Privacy & Security > Location Services.', locStepAndroid:'Pull down the notification shade and turn on Location, then in Chrome: Settings > Site settings > Location > Allow.', locStepWin:'In Windows: Settings > Privacy & security > Location, turn on Location services, Let apps access your location, and desktop apps.', locStepMac:'On a Mac: System Settings > Privacy & Security > Location Services, and turn it on for your browser.', locStepOther:'Turn on location in the device settings and allow it for the browser.', locStepRetry:'Then press Turn on location below.', noZone:'No work zone is set for you yet. Contact HR.',
     checkIn:'Check in', checkOut:'Check out', hold:'Tap to record', holdHint:'Tap the button, then confirm with Face ID or fingerprint', tapHint:'Tap the button to record. Works only inside HQ',
     oldPhone:'My phone has no Face ID / fingerprint', tapMode:'Tap check-in', bioMode:'Face ID / fingerprint', unlockTap:'Sign in', allowDk:'Let older phones check in with a tap (no biometric, inside the zone only)', f_no_biometric:'No biometric (tap check-in)', e_device_key_disabled:'Tap check-in is switched off. Contact HR.', e_no_devicekey:'This browser is too old. Update it.',
     readyIn:'Ready to check in', readyOut:'Ready to check out', moveCloser:'Move closer to HQ to enable the button', weakGps:'Weak location signal. Move near a window or wait a moment',
@@ -3822,6 +3828,35 @@ function startWatch(){
   }, function(err){ S.locErr = err.code; updateRadar(); }, { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 });
 }
 function stopWatch(){ if (S.watchId !== null && navigator.geolocation) navigator.geolocation.clearWatch(S.watchId); S.watchId = null; }
+/** Ask again for location (a user tap, so iPhone and every browser can show its permission prompt), then keep watching. */
+function requestLoc(btn){
+  if (!navigator.geolocation) { S.locErr = 2; return updateRadar(); }
+  if (btn) btn.disabled = true;
+  stopWatch(); S.locErr = null; updateRadar();
+  navigator.geolocation.getCurrentPosition(function(p){
+    var s = { lat: p.coords.latitude, lng: p.coords.longitude, acc: p.coords.accuracy, t: p.timestamp || Date.now() };
+    S.fix = s; S.locErr = null; S.samples.push(s); if (S.samples.length > 8) S.samples.shift();
+    startWatch(); updateRadar();
+  }, function(err){ S.locErr = err.code; if (btn) btn.disabled = false; updateRadar(); startWatch(); }, { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 });
+}
+/** Which steps to show: the device and browser, read from the user agent (only to pick the right instructions). */
+function locDevice(){
+  var u = navigator.userAgent || '';
+  var os = /iPhone|iPad|iPod/.test(u) || (/Macintosh/.test(u) && navigator.maxTouchPoints > 1) ? 'ios' : /Android/.test(u) ? 'android' : /Windows/.test(u) ? 'win' : /Macintosh/.test(u) ? 'mac' : 'other';
+  var br = /Edg\//.test(u) ? 'edge' : /Firefox\//.test(u) ? 'firefox' : /CriOS|Chrome\//.test(u) ? 'chrome' : /Safari\//.test(u) ? 'safari' : 'other';
+  return { os: os, br: br };
+}
+/** The card under the check-in button when location is missing: a button that asks, and the steps for this device. */
+function locHelpHtml(code){
+  var d = locDevice(), denied = code === 1, steps = [];
+  if (denied) steps.push(t(d.os === 'ios' ? 'locStepIosSite' : d.br === 'safari' ? 'locStepSafari' : d.br === 'firefox' ? 'locStepFirefox' : 'locStepChrome'));
+  steps.push(t(d.os === 'ios' ? 'locStepIos' : d.os === 'android' ? 'locStepAndroid' : d.os === 'win' ? 'locStepWin' : d.os === 'mac' ? 'locStepMac' : 'locStepOther'));
+  // the device's own prompt first; steps only when the browser or the device has location switched off (a page cannot switch it on)
+  return '<div class="loc-help" role="status"><button type="button" class="btn btn-brand" id="locAsk">' + ph('crosshair') + t('locBtn') + '</button>' +
+    (code === 1 || code === 2 ? '<details><summary>' + t(denied ? 'locDeniedTitle' : 'locOffTitle') + '</summary><ol>' + steps.map(function(s){ return '<li>' + s + '</li>'; }).join('') + '</ol></details>' : '') + '</div>';
+}
+// when the person changes the browser permission, pick it up at once
+try { navigator.permissions && navigator.permissions.query({ name: 'geolocation' }).then(function(p){ p.onchange = function(){ if (p.state === 'granted' && S.locErr) requestLoc(); }; }); } catch (e) {}
 
 function haversine(a, b, c, d){ var R = 6371008.8, r = Math.PI / 180, x = (c - a) * r, y = (d - b) * r; var h = Math.sin(x/2)*Math.sin(x/2) + Math.cos(a*r)*Math.cos(c*r)*Math.sin(y/2)*Math.sin(y/2); return 2 * R * Math.asin(Math.min(1, Math.sqrt(h))); }
 function bearing(a, b, c, d){ var r = Math.PI / 180, y = Math.sin((d - b) * r) * Math.cos(c * r), x = Math.cos(a * r) * Math.sin(c * r) - Math.sin(a * r) * Math.cos(c * r) * Math.cos((d - b) * r); return Math.atan2(y, x); }
@@ -3919,7 +3954,7 @@ function updateRadar(){
   var enabled = (g.kind === 'inside' && !g.weak) || (canOutside && (g.kind === 'inside' || g.kind === 'outside'));
   btn.setAttribute('aria-disabled', enabled ? 'false' : 'true');
   if (g.kind === 'nozone') { stateTxt.textContent = t('outside'); distTxt.innerHTML = '--'; subTxt.textContent = ''; pTitle.textContent = t('noZone'); pHint.textContent = ''; zoneEl.style.width = zoneEl.style.height = '40%'; return; }
-  if (g.kind === 'noloc') { stateTxt.textContent = t('outside'); distTxt.innerHTML = '--'; subTxt.textContent = ''; pTitle.textContent = t('noLoc'); pHint.textContent = ''; zoneEl.style.width = zoneEl.style.height = '40%'; return; }
+  if (g.kind === 'noloc') { stateTxt.textContent = t('outside'); distTxt.innerHTML = '--'; subTxt.textContent = ''; pTitle.textContent = t('noLoc'); pHint.innerHTML = locHelpHtml(S.locErr); var la = $('#locAsk'); if (la) la.onclick = function(){ requestLoc(la); }; zoneEl.style.width = zoneEl.style.height = '40%'; return; }
   if (g.kind === 'locating') { zoneEl.style.width = zoneEl.style.height = '40%'; return; }
   var zname = S.lang === 'en' && g.zone.nameEn ? g.zone.nameEn : g.zone.name;
   // Scale: the plane's radius shows 2.4x the zone; far away, distance is compressed logarithmically.
@@ -3988,7 +4023,9 @@ function wirePunch(){
   btn.addEventListener('pointerdown', function(){ if (btn.getAttribute('aria-disabled') !== 'true') btn.classList.add('pressing'); });
   ['pointerup', 'pointercancel', 'pointerleave'].forEach(function(ev){ btn.addEventListener(ev, function(){ btn.classList.remove('pressing'); }); });
   btn.addEventListener('click', function(){
-    if (btn.getAttribute('aria-disabled') === 'true' || S.busy) return;
+    if (S.busy) return;
+    // no location yet: the tap itself asks the device for permission (its own prompt), no instructions
+    if (btn.getAttribute('aria-disabled') === 'true') { var gk = geoState().kind; if (gk === 'noloc' || gk === 'locating') requestLoc(); return; }
     prog.style.transition = 'stroke-dashoffset .6s cubic-bezier(.2,.8,.2,1)'; prog.style.strokeDashoffset = 0;
     if (navigator.vibrate) navigator.vibrate(15);
     doPunch();
