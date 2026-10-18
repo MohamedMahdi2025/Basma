@@ -96,6 +96,7 @@ Object.assign(T.ar, {
   row_over_budget:'أعلى من ميزانية الطلب: يلزم ذكر السبب عند الاعتماد.', row_under_budget:'أقل من ميزانية الطلب.', row_nitaqat_half:'أجر السعودي بين 3,000 و3,999: يحتسب نصف موظف في نطاقات.',
   row_nitaqat_zero:'أجر السعودي أقل من 3,000: لا يحتسب في نطاقات.', row_below_expectation:'أقل من الراتب الذي يتوقعه المرشح.',
   // Wave 3: exit interview and recognition
+  cfTitle:'الحقول المخصصة', cfLead:'حقول إضافية في ملف الموظف تحددها الشركة (نص، رقم، تاريخ، قائمة، نعم/لا) مع تحديد من يراها. تكتب القيم الموارد البشرية فقط.', cfFields:'الحقول', cfValues:'القيم', cfNew:'حقل جديد', cfLabelAr:'الاسم بالعربية', cfLabelEn:'الاسم بالإنجليزية', cfType:'النوع', cfOptions:'الخيارات', cfOptionsHint:'افصل بين الخيارات بفاصلة.', cfVis:'يراه', cfDisabled:'موقوف', cfPick:'اختر موظفا', cfMy:'بيانات إضافية', cfNone:'لا توجد حقول بعد.', cft_text:'نص', cft_number:'رقم', cft_date:'تاريخ', cft_select:'قائمة خيارات', cft_bool:'نعم / لا', cfv_hr:'الموارد البشرية فقط', cfv_manager:'الموارد البشرية والمدير', cfv_employee:'الموظف أيضا (للقراءة)', cfYes:'نعم', cfNo:'لا',
   ocTitle:'الهيكل التنظيمي', ocLead:'من يتبع لمن، من بيانات الموظفين الحالية. اضغط على أي بطاقة لطي فريقها أو فتحه.', ocReports:'مرؤوسون', ocAll:'الكل', ocSearch:'ابحث عن موظف', ocNoMgr:'بلا مدير مباشر', ocExpand:'فتح الكل', ocCollapse:'طي الكل',
   tsTitle:'كشوف الدوام الشهرية', tsLead:'يعتمد المدير أو الموارد البشرية دوام كل موظف للشهر (الساعات والتأخير والغياب والإضافي) من نفس أرقام التقارير والرواتب. عند تفعيل الإلزام لا تقفل الرواتب قبل اعتماد كل الكشوف.', tsMonth:'الشهر', tsWorked:'ساعات العمل', tsLate:'تأخير (دقيقة)', tsAbsent:'غياب', tsOt:'إضافي (ساعة)', tsMissing:'خروج غير مسجل', tsReview:'بانتظار المراجعة', tsApprove:'اعتماد', tsApproveAll:'اعتماد الكل', tsApproved:'معتمد', tsPending:'بانتظار الاعتماد', tsRequired:'إلزامي قبل إقفال الرواتب', tsOptional:'اختياري', e_timesheets_open:'لا يمكن إقفال الرواتب: توجد كشوف دوام غير معتمدة لهذا الشهر.',
   prTitle:'مراجعة الرواتب السنوية', prLead:'يقترح المديرون نسبة الزيادة لفريقهم دون رؤية الرواتب، وتراجع الموارد البشرية والرواتب الميزانية، وعند الإغلاق تصبح كل زيادة اقتراح راتب ينتظر اعتماد الرواتب.', prNew:'فتح مراجعة', prName:'اسم المراجعة', prEff:'تسري من', prBudget:'الميزانية % من الرواتب', prBasis:'تطبق على', prBasisBH:'الأساسي والسكن', prBasisB:'الأساسي فقط', prPct:'الزيادة %', prBase:'الأجر المعني', prInc:'الزيادة', prUsed:'المستخدم من الميزانية', prProposed:'تم اقتراحه', prClose:'إغلاق وإصدار الاقتراحات', prClosed:'صدرت الاقتراحات', prOpenNone:'لا توجد مراجعة مفتوحة.', prs_open:'مفتوحة', prs_closed:'مغلقة', prSaveRow:'حفظ',
@@ -186,7 +187,8 @@ Object.assign(T.en, {
   ros_draft:'Draft', ros_pending:'Waiting for approval', ros_approved:'Approved', ros_rejected:'Rejected', ros_sent:'Sent', ros_accepted:'Accepted', ros_declined:'Declined by the candidate', ros_expired:'Expired', ros_withdrawn:'Withdrawn', ros_hired:'Hired',
   row_over_budget:'Above the request budget: the approver must give the reason.', row_under_budget:'Below the request budget.', row_nitaqat_half:'Saudi wage between 3,000 and 3,999: counts as half in Nitaqat.',
   row_nitaqat_zero:'Saudi wage under 3,000: does not count in Nitaqat.', row_below_expectation:'Below the salary the candidate expects.',
-ocTitle:'Org chart', ocLead:'Who reports to whom, from the current employee records. Tap a card to fold or open its team.', ocReports:'reports', ocAll:'All', ocSearch:'Find a person', ocNoMgr:'No line manager', ocExpand:'Open all', ocCollapse:'Fold all',
+cfTitle:'Custom fields', cfLead:'Extra fields on the employee file that the company defines (text, number, date, list, yes/no), with who may see them. Only HR writes the values.', cfFields:'Fields', cfValues:'Values', cfNew:'New field', cfLabelAr:'Name in Arabic', cfLabelEn:'Name in English', cfType:'Type', cfOptions:'Options', cfOptionsHint:'Separate options with commas.', cfVis:'Seen by', cfDisabled:'Disabled', cfPick:'Choose an employee', cfMy:'More about me', cfNone:'No fields yet.', cft_text:'Text', cft_number:'Number', cft_date:'Date', cft_select:'List of options', cft_bool:'Yes / no', cfv_hr:'HR only', cfv_manager:'HR and the manager', cfv_employee:'The employee too (read-only)', cfYes:'Yes', cfNo:'No',
+  ocTitle:'Org chart', ocLead:'Who reports to whom, from the current employee records. Tap a card to fold or open its team.', ocReports:'reports', ocAll:'All', ocSearch:'Find a person', ocNoMgr:'No line manager', ocExpand:'Open all', ocCollapse:'Fold all',
   tsTitle:'Monthly timesheets', tsLead:'The manager or HR approves each person\'s month (hours, lateness, absence, overtime) from the same figures as reports and payroll. When required, payroll cannot lock before every timesheet is approved.', tsMonth:'Month', tsWorked:'Hours worked', tsLate:'Late (min)', tsAbsent:'Absent', tsOt:'Overtime (h)', tsMissing:'Missing check-out', tsReview:'Waiting for review', tsApprove:'Approve', tsApproveAll:'Approve all', tsApproved:'Approved', tsPending:'Waiting for approval', tsRequired:'Required before the payroll lock', tsOptional:'Optional', e_timesheets_open:'Payroll cannot lock: some timesheets for this month are not approved.',
   prTitle:'Annual pay review', prLead:'Managers propose an increase for their team without seeing pay; HR and payroll check the budget; on closing each increase becomes a salary proposal waiting for payroll approval.', prNew:'Open a review', prName:'Review name', prEff:'Effective from', prBudget:'Budget % of payroll', prBasis:'Applies to', prBasisBH:'Basic and housing', prBasisB:'Basic only', prPct:'Increase %', prBase:'Pay it applies to', prInc:'Increase', prUsed:'Budget used', prProposed:'Proposed', prClose:'Close and file proposals', prClosed:'Proposals filed', prOpenNone:'No review is open.', prs_open:'Open', prs_closed:'Closed', prSaveRow:'Save',
   fsTitle:'Final settlement', fsLead:'End-of-service dues from the award calculator (Art. 84 and 85) with leave balance, the last month\'s days, advances and loans. One person prepares it, a different payroll holder approves it, then the payout is recorded with the transfer reference.', fsNew:'Prepare a settlement', fsReason:'Reason the employment ended', fsLastDay:'Last working day', fsAward:'End-of-service award', fsLeave:'Leave balance pay', fsLastMonth:'Last month\'s days', fsAdvances:'Advances owed', fsLoans:'Loans owed', fsNet:'Net due', fsYears:'Years of service', fsWage:'Actual wage', fsPay:'Record payout', fsPaidRef:'Transfer reference', fsPaidOn:'Paid on', fsPrint:'Print settlement', fsDue:'Due by', fsMy:'My final settlement', fsKind:'Final settlement', fsSignEmp:'Employee\'s receipt', fsSignHr:'Human resources', fsSignPay:'Payroll', fsStatement:'I confirm I received the amounts above under the Labour Law.', fss_draft:'Waiting for approval', fss_approved:'Approved, waiting for payout', fss_paid:'Paid', fss_cancelled:'Cancelled', fsr_resignation:'Resignation', fsr_termination:'Ended by the employer', fsr_contract_end:'Contract ended', fsr_art80:'Dismissal under Art. 80', fsr_art87_marriage:'Art. 87: marriage', fsr_art87_force_majeure:'Art. 87: force majeure', fsr_art81:'Art. 81: left over the employer\'s breach', fsr_art87_childbirth:'Art. 87: within 3 months of giving birth',
@@ -1226,9 +1228,73 @@ function orgChartSection(body){
   });
 }
 
+// =================================================================== CUSTOM FIELDS (Wave 3)
+var CF_TYPES = ['text', 'number', 'date', 'select', 'bool'];
+function cfLabel(f){ return esc(lang(f.labelAr, f.labelEn)); }
+function cfShow(f, v){ return v === '' || v == null ? '-' : f.type === 'bool' ? t(v === 'yes' ? 'cfYes' : 'cfNo') : f.type === 'date' ? fmt(v) : esc(v); }
+function cfInput(f, v){
+  var n = 'v_' + f.id;
+  if (f.type === 'select') return '<select name="' + n + '">' + opts(f.options.map(function(o){ return [o, o]; }), v, '-') + '</select>';
+  if (f.type === 'bool') return '<select name="' + n + '">' + opts([['yes', t('cfYes')], ['no', t('cfNo')]], v, '-') + '</select>';
+  return '<input name="' + n + '"' + (f.type === 'number' ? ' type="number" step="any"' : f.type === 'date' ? ' type="date"' : ' maxlength="300"') + ' value="' + esc(v == null ? '' : v) + '">';
+}
+function cfFieldForm(f, again){
+  f = f || { type: 'text', visibleTo: 'hr', options: [] };
+  var d = formDrawer(f.id ? t('w2Edit') : t('cfNew'), f.key ? '<bdi>' + esc(f.key) + '</bdi>' : '', two(fld(t('cfLabelAr'), '<input name="labelAr" maxlength="80" required value="' + esc(f.labelAr || '') + '">'), fld(t('cfLabelEn'), '<input name="labelEn" maxlength="80" dir="ltr" value="' + esc(f.labelEn || '') + '">')) +
+    two(fld(t('cfType'), '<select name="type">' + keyOpts(CF_TYPES, 'cft_', f.type) + '</select>'), fld(t('cfVis'), '<select name="visibleTo">' + keyOpts(['hr', 'manager', 'employee'], 'cfv_', f.visibleTo) + '</select>')) +
+    '<div id="cfOpt"' + (f.type === 'select' ? '' : ' hidden') + '>' + fld(t('cfOptions'), '<input name="options" maxlength="600" value="' + esc((f.options || []).join(', ')) + '">', t('cfOptionsHint')) + '</div>' + (f.id ? chk('disabled', t('cfDisabled'), f.status === 'disabled') : ''),
+    function(v){ return api('customFieldSave', { field: { id: f.id || '', labelAr: v.labelAr, labelEn: v.labelEn, type: v.type, visibleTo: v.visibleTo, options: v.options, status: v.disabled ? 'disabled' : 'active' } }); }, again, t('w2Save'));
+  var ty = $('[name=type]', d); ty.onchange = function(){ $('#cfOpt', d).hidden = ty.value !== 'select'; };
+}
+function customFieldsSection(body){
+  var box = head(body, 'cfTitle', 'cfLead'), tab = S.cfTab || 'fields';
+  function load(){
+    busy(box);
+    api('customFieldList', { all: 1 }, true).then(function(r){
+      if (!box.isConnected) return;
+      if (!r.ok) return box.innerHTML = bad(r.error);
+      box.innerHTML = tabsBar(tab, [['fields', 'list-plus', 'cfFields'], ['values', 'user-list', 'cfValues']]) + '<div id="cfT"></div>';
+      $$('[data-tab]', box).forEach(function(b){ b.onclick = function(){ tab = S.cfTab = b.dataset.tab; load(); }; });
+      var el = $('#cfT', box);
+      if (tab === 'fields') {
+        el.innerHTML = '<div class="toolbar"><span class="sp"></span><button type="button" class="btn btn-dark btn-sm" id="cfNew">' + ph('plus') + t('cfNew') + '</button></div>' +
+          (r.fields.length ? '<div class="list">' + r.fields.map(function(f, i){ return '<div class="row w2-row">' + av(null, 'textbox') + '<div class="main"><b>' + cfLabel(f) + '</b><small><bdi>' + esc(f.key) + '</bdi>' + sep() + t('cft_' + f.type) + sep() + t('cfv_' + f.visibleTo) + (f.options.length ? sep() + esc(f.options.join('، ')) : '') + '</small></div>' +
+            (f.status === 'disabled' ? chip(t('cfDisabled'), 'off') + ' ' : '') + '<button type="button" class="btn btn-line btn-sm" data-cf="' + i + '" aria-label="' + t('w2Edit') + '">' + ph('pencil-simple') + '</button></div>'; }).join('') + '</div>' : empty('textbox', t('cfNone')));
+        $('#cfNew', el).onclick = function(){ cfFieldForm(null, load); };
+        $$('[data-cf]', el).forEach(function(b){ b.onclick = function(){ cfFieldForm(r.fields[b.dataset.cf], load); }; });
+      } else {
+        people(function(P){
+          el.innerHTML = '<div class="toolbar"><select id="cfEmp" aria-label="' + t('cfPick') + '">' + empOpts(P.rows, S.cfEmp || '', t('cfPick')) + '</select></div><div id="cfV"></div>';
+          var sel = $('#cfEmp', el), vb = $('#cfV', el);
+          var show = function(){ S.cfEmp = sel.value; if (!sel.value) return vb.innerHTML = ''; busy(vb);
+            api('customValuesGet', { empId: sel.value }, true).then(function(x){
+              if (!vb.isConnected) return;
+              if (!x.ok) return vb.innerHTML = bad(x.error);
+              if (!x.fields.length) return vb.innerHTML = empty('textbox', t('cfNone'));
+              vb.innerHTML = '<form class="form" id="cfVF" style="max-width:560px">' + x.fields.map(function(f){ return fld(cfLabel(f), x.canEdit ? cfInput(f, f.value) : '<input disabled value="' + cfShow(f, f.value) + '">', t('cfv_' + f.visibleTo)); }).join('') +
+                '<p class="hr-bad" id="cfE" role="alert"></p>' + (x.canEdit ? '<div class="btnrow"><button class="btn btn-dark" type="submit">' + t('w2Save') + '</button></div>' : '') + '</form>';
+              var f = $('#cfVF', vb); f.onsubmit = function(ev){ ev.preventDefault(); var v = formVals(f), vals = {}; x.fields.forEach(function(fd){ vals[fd.id] = v['v_' + fd.id]; });
+                api('customValuesSave', { empId: sel.value, values: vals }).then(function(y){ if (!y.ok) return $('#cfE', vb).textContent = errText(y.error); toast(t('w2Saved')); }); };
+            }); };
+          sel.onchange = show; show();
+        });
+      }
+    });
+  }
+  load();
+}
+function myCustomCard(el){
+  api('customValuesGet', {}, true).then(function(r){
+    if (!el.isConnected || !r.ok || !r.fields.length) return;
+    var d = el.querySelector('[data-w2=cf]') || document.createElement('div'); d.className = 'mf-card op-card'; d.dataset.w2 = 'cf';
+    d.innerHTML = '<h3><span class="ic">' + ph('identification-badge') + '</span>' + t('cfMy') + '</h3><div class="mf-kv">' + r.fields.map(function(f){ return '<div><span>' + cfLabel(f) + '</span><b>' + cfShow(f, f.value) + '</b></div>'; }).join('') + '</div>';
+    if (!d.isConnected) el.appendChild(d);
+  });
+}
+
 // =================================================================== the employee's own cards
 function myCards(el){
-  mySettleCard(el); myExitCard(el); myAnnCard(el); myKudosCard(el); myLoansCard(el); myInsCard(el); myTrainingCard(el); myDeskCard(el); myInterviewsCard(el);
+  mySettleCard(el); myExitCard(el); myAnnCard(el); myKudosCard(el); myLoansCard(el); myInsCard(el); myTrainingCard(el); myDeskCard(el); myInterviewsCard(el); myCustomCard(el);
 }
 
 window.Loans = { section: loansSection };
@@ -1242,6 +1308,7 @@ window.Settle = { section: settleSection };
 window.PayReview = { section: payReviewSection };
 window.Timesheets = { section: timesheetSection };
 window.OrgChart = { section: orgChartSection };
+window.CustomFields = { section: customFieldsSection };
 window.Kudos = { section: kudosSection };
 window.W2 = { myCards: myCards };
 })();

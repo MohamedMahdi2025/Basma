@@ -334,5 +334,33 @@ ok(r.ok && r.file.isManager === true && r.file.teamCount === 2, 'a manager sees 
 r = B.call({ action: 'myFile', token: payT });
 ok(r.ok && r.file.roles.payroll === true && r.file.roles.hr === false, 'the file tells the app which consoles to offer', r.file && r.file.roles);
 
+
+console.log('Custom fields (2026-10-18)');
+{
+  const c = (no, action, extra) => B.call(Object.assign({ action, token: tok(no) }, extra || {}));
+  let x = c('5001', 'customFieldSave', { field: { labelAr: 'x', type: 'text', visibleTo: 'hr' } });
+  ok(!x.ok && x.error === 'forbidden', 'only HR defines custom fields', x);
+  x = c('3001', 'customFieldSave', { field: { labelAr: 'فصيلة الدم', type: 'select', options: 'A+, O+, B+', visibleTo: 'employee' } });
+  const blood = x.field;
+  ok(x.ok && blood.options.length === 3 && blood.key === 'cf1', 'a select field with its options (visible to the employee)', x.field || x);
+  const lic = c('3001', 'customFieldSave', { field: { labelAr: 'رخصة القيادة', type: 'text', visibleTo: 'manager' } }).field;
+  const band = c('3001', 'customFieldSave', { field: { labelAr: 'الدرجة', type: 'text', visibleTo: 'hr' } }).field;
+  x = c('3001', 'customValuesSave', { empId: ids['5002'], values: { [blood.id]: 'Z+' } });
+  ok(!x.ok && x.error === 'bad_value', 'a select value outside its options is refused', x);
+  x = c('3001', 'customValuesSave', { empId: ids['5002'], values: { [blood.id]: 'O+', [lic.id]: 'DL-4471', [band.id]: 'B3' } });
+  ok(x.ok && x.changed === 3, 'HR fills three values', x);
+  x = c('3001', 'customValuesSave', { empId: ids['3001'], values: { [blood.id]: 'A+' } });
+  ok(!x.ok && x.error === 'cannot_decide_own', 'HR never edits their own file', x);
+  x = c('5002', 'customValuesGet');
+  ok(x.ok && x.fields.length === 1 && x.fields[0].value === 'O+' && !x.canEdit, 'the employee sees only the employee-visible field, read-only', x);
+  x = c('5001', 'customValuesGet', { empId: ids['5002'] });
+  ok(x.ok && x.fields.length === 2 && !x.fields.some(f => f.id === band.id), 'the manager sees the employee and manager fields, never the HR-only one', x.fields);
+  x = c('5003', 'customValuesGet', { empId: ids['5002'] });
+  ok(!x.ok && x.error === 'forbidden', 'a colleague cannot read another file', x);
+  x = c('5001', 'customValuesAll');
+  ok(!x.ok && x.error === 'forbidden', 'only HR reads all values', x);
+  x = c('3001', 'customValuesAll');
+  ok(x.ok && x.values[ids['5002']] && Object.keys(x.values[ids['5002']]).length === 3 && x.fields.length === 3, 'HR reads every value for the report builder', x.fields && x.fields.length);
+}
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);

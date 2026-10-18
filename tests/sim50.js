@@ -1303,7 +1303,9 @@ const EXPECT = {
   // annual pay review (Payroll.gs): cycles by hr role / payroll; managers list and propose for their people
   compCycleSave: 'pay', compCycleClose: 'pay', compCycleList: 'mgrPay', compPropose: 'mgrPay',
   // timesheets (Attendance.gs): HR (incl. admin) and managers
-  timesheetList: 'mgr', timesheetApprove: 'mgr'
+  timesheetList: 'mgr', timesheetApprove: 'mgr',
+  // custom fields (Hr.gs): definitions and values written by HR (incl. admin); everyone may list and read what they may see
+  customFieldSave: 'hrA', customValuesSave: 'hrA', customValuesAll: 'hrA'
 };
 const T16 = ids['1018'];
 const PROBE = { hrEmpFile: { id: T16 }, perfEmp: { empId: T16, cycleId: CYC.id }, planSave: { plan: { empId: T16, type: 'idp' } }, delegationSave: { delegation: { toEmpId: ids['1003'] } },

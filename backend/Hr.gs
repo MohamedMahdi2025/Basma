@@ -824,3 +824,84 @@ function api_myFile(req, me) {
   file.roles = { hr: isHr_(me), payroll: hasRole_(me, 'payroll'), executive: hasRole_(me, 'executive'), admin: me.role === 'admin' };
   return { ok: true, file: file };
 }
+
+
+// ======================================================================= custom fields (Wave 3, 2026-10-18)
+// HR defines extra fields (text, number, date, select, yes/no) and who may see them: hr (HR only), manager (HR and the
+// person's managers), employee (also the person, read-only). Values are written by HR only, never on their own file.
+var CF_TYPES = ['text', 'number', 'date', 'select', 'bool'];
+var CF_VIS = ['hr', 'manager', 'employee'];
+function cfFields_(all) { return readAll_(SHEETS.CFD).filter(function (f) { return all || f.status !== 'disabled'; }).sort(function (a, b) { return (Number(a.order) || 0) - (Number(b.order) || 0); }); }
+function cfPublic_(f) { return { id: f.id, key: f.key, labelAr: f.labelAr, labelEn: f.labelEn, type: f.type, options: parseJson_(f.optionsJson, []), visibleTo: f.visibleTo, status: f.status, order: Number(f.order) || 0 }; }
+/** Which fields a viewer may read on an employee's file. */
+function cfVisible_(me, emp, ctx, f) {
+  if (isHr_(me)) return true;
+  if (f.visibleTo === 'employee' && emp.id === me.id) return true;
+  return (f.visibleTo === 'manager' || f.visibleTo === 'employee') && emp.id !== me.id && manages_(me, emp, ctx);
+}
+function cfClean_(f, v) {
+  if (v === null || v === undefined || v === '') return '';
+  if (f.type === 'number') { var n = Number(v); if (!isFinite(n)) fail_('bad_value'); return n; }
+  if (f.type === 'date') { var d = isoDate_(v); if (!d) fail_('bad_date'); return d; }
+  if (f.type === 'bool') return v === true || v === 'true' || v === 'yes' ? 'yes' : 'no';
+  if (f.type === 'select') { if (parseJson_(f.optionsJson, []).indexOf(String(v)) < 0) fail_('bad_value'); return String(v); }
+  return str_(v, 300);
+}
+function api_customFieldList(req, me) {
+  return { ok: true, fields: cfFields_(isHr_(me) && req.all).filter(function (f) { return isHr_(me) || f.visibleTo !== 'hr'; }).map(cfPublic_), types: CF_TYPES, canEdit: isHr_(me) };
+}
+function api_customFieldSave(req, me) {
+  if (!isHr_(me)) fail_('forbidden');
+  var d = req.field || {}, labelAr = str_(d.labelAr, 80);
+  if (!labelAr) fail_('missing_fields');
+  if (CF_TYPES.indexOf(d.type) < 0 || CF_VIS.indexOf(d.visibleTo) < 0) fail_('bad_value');
+  var opts = (Array.isArray(d.options) ? d.options : String(d.options || '').split(/[,،\n]/)).map(function (o) { return str_(o, 60); }).filter(Boolean).slice(0, 40);
+  if (d.type === 'select' && opts.length < 2) fail_('missing_fields');
+  return withLock_(function () {
+    var all = readAll_(SHEETS.CFD), f = d.id ? findBy_(SHEETS.CFD, 'id', d.id) : null, now = new Date().toISOString();
+    if (d.id && !f) fail_('not_found');
+    if (f && f.type !== d.type && readAll_(SHEETS.CFV).some(function (v) { return v.fieldId === f.id && v.value !== ''; })) fail_('bad_request'); // a used field keeps its type
+    var fresh = !f;
+    if (!f) f = { id: newId_('F'), key: 'cf' + (all.length + 1), order: all.length + 1, createdAt: now };
+    f.labelAr = labelAr; f.labelEn = str_(d.labelEn, 80); f.type = d.type; f.optionsJson = JSON.stringify(d.type === 'select' ? opts : []); f.visibleTo = d.visibleTo;
+    f.status = d.status === 'disabled' ? 'disabled' : 'active'; f.updatedAt = now;
+    if (fresh) append_(SHEETS.CFD, f); else update_(SHEETS.CFD, f);
+    audit_(me.id, fresh ? 'custom_field_create' : 'custom_field_update', '', { key: f.key, type: f.type, visibleTo: f.visibleTo });
+    return { ok: true, field: cfPublic_(f) };
+  });
+}
+function api_customValuesGet(req, me) {
+  var ctx = orgCtx_(), emp = ctx.emps[req.empId || me.id];
+  if (!emp) fail_('not_found');
+  var vals = {}; readAll_(SHEETS.CFV).forEach(function (v) { if (v.empId === emp.id) vals[v.fieldId] = v.value; });
+  var out = cfFields_(false).filter(function (f) { return cfVisible_(me, emp, ctx, f); }).map(function (f) { var o = cfPublic_(f); o.value = vals[f.id] === undefined ? '' : vals[f.id]; return o; });
+  if (!out.length && emp.id !== me.id && !isHr_(me) && !manages_(me, emp, ctx)) fail_('forbidden');
+  return { ok: true, empId: emp.id, fields: out, canEdit: isHr_(me) && emp.id !== me.id };
+}
+function api_customValuesSave(req, me) {
+  if (!isHr_(me)) fail_('forbidden');
+  if (req.empId === me.id) fail_('cannot_decide_own');
+  var values = req.values || {};
+  return withLock_(function () {
+    var ctx = orgCtx_(), emp = ctx.emps[req.empId], now = new Date().toISOString(), defs = {};
+    if (!emp) fail_('not_found');
+    cfFields_(true).forEach(function (f) { defs[f.id] = f; });
+    var have = {}; readAll_(SHEETS.CFV).forEach(function (v) { if (v.empId === emp.id) have[v.fieldId] = v; });
+    var changed = [];
+    Object.keys(values).forEach(function (fid) {
+      var f = defs[fid]; if (!f) fail_('not_found');
+      var v = cfClean_(f, values[fid]), row = have[fid];
+      if (row) { if (String(row.value) === String(v)) return; row.value = v; row.updatedBy = me.id; row.updatedAt = now; update_(SHEETS.CFV, row); }
+      else { if (v === '') return; append_(SHEETS.CFV, { id: newId_('V'), empId: emp.id, fieldId: fid, value: v, updatedBy: me.id, updatedAt: now }); }
+      changed.push(f.key);
+    });
+    audit_(me.id, 'custom_values_save', emp.id, { fields: changed });
+    return { ok: true, changed: changed.length };
+  });
+}
+/** Every value of every active employee (HR): the report builder joins them to the directory. */
+function api_customValuesAll(req, me) {
+  if (!isHr_(me)) fail_('forbidden');
+  var by = {}; readAll_(SHEETS.CFV).forEach(function (v) { (by[v.empId] = by[v.empId] || {})[v.fieldId] = v.value; });
+  return { ok: true, fields: cfFields_(false).map(cfPublic_), values: by };
+}
