@@ -18,9 +18,9 @@
  * test import in Odoo before the first live month.
  */
 
-var GL_KEYS = ['basic', 'housing', 'transport', 'allowance', 'overtime', 'bonus', 'commission', 'other_earning', 'reimbursement', 'gosi_expense', 'pay_reduction',
+var GL_KEYS = ['basic', 'housing', 'transport', 'allowance', 'overtime', 'bonus', 'commission', 'other_earning', 'reimbursement', 'per_diem', 'gosi_expense', 'pay_reduction',
   'gosi_payable', 'net_payable', 'advances', 'fines', 'other_deductions', 'eos_expense', 'eos_provision'];
-var GL_EARN = { basic: 'basic', housing: 'housing', transport: 'transport', overtime: 'overtime', bonus: 'bonus', commission: 'commission', other_earning: 'other_earning', reimbursement: 'reimbursement' };
+var GL_EARN = { basic: 'basic', housing: 'housing', transport: 'transport', overtime: 'overtime', bonus: 'bonus', commission: 'commission', other_earning: 'other_earning', reimbursement: 'reimbursement', per_diem: 'per_diem' }; // per_diem: business trips (Leave.gs 'travel')
 var GL_REDUCE = { unpaid_leave: 1, sick_75: 1, sick_unpaid: 1, absence: 1, late: 1 };
 var GL_DEDUCT = { gosi: 'gosi_payable', advance: 'advances', fine: 'fines', other_deduction: 'other_deductions' };
 
@@ -106,7 +106,11 @@ function api_journalList(req, me) {
     o.journal = publicJournal_(j, me);
     return o;
   });
-  return { ok: true, runs: runs, mapped: Object.keys(map.accounts).length > 0, history: logs.slice(-60).reverse().map(function (j) { return publicJournal_(j, me); }) };
+  // why a run is not here yet: drafts waiting for the second payroll approval, and demo runs (never in the ledger)
+  var all = readAll_(SHEETS.RUN).filter(function (r) { return r.status !== 'cancelled'; });
+  var drafts = all.filter(function (r) { return r.status === 'draft' && !isDemoRun_(r); }).map(function (r) { return { ref: r.ref, month: r.month }; });
+  var demo = all.filter(function (r) { return isDemoRun_(r); }).map(function (r) { return { ref: r.ref, month: r.month, status: r.status }; });
+  return { ok: true, drafts: drafts, demo: demo, runs: runs, mapped: Object.keys(map.accounts).length > 0, history: logs.slice(-60).reverse().map(function (j) { return publicJournal_(j, me); }) };
 }
 function api_journalBuild(req, me) {
   if (!canPayroll_(me)) fail_('forbidden');

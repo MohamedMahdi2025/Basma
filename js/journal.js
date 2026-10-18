@@ -7,7 +7,7 @@
 
 Object.assign(T.ar, {
   vwJournal:'قيد الرواتب', jvTitle:'قيد الرواتب للمحاسبة', jvLead:'قيد متوازن لكل مسير معتمد، مؤرخ بآخر يوم في الشهر، جاهز للاستيراد في أودو. يجهزه شخص ويستورده، ويؤكده شخص آخر بعد مطابقته في أودو.',
-  jvRuns:'المسيرات المعتمدة', jvMap:'ربط الحسابات', jvBank:'ملفات البنوك ومدد', jvNoRun:'لا يوجد مسير معتمد بعد.', jvNoMap:'اربط الحسابات أولا: لا يصدر القيد وفيه بند بلا حساب.',
+  jvRuns:'المسيرات المعتمدة', jvMap:'ربط الحسابات', jvBank:'ملفات البنوك ومدد', jvNoRun:'لا يوجد مسير معتمد بعد.', jvDraft:'مسير {m} ({r}) لم يعتمد بعد: يظهر قيده هنا بعد أن يعتمده شخص ثان من الرواتب (الرواتب ← اعتماد الرواتب).', jvDemo:'{n} من المسيرات تجريبية (الشركة التجريبية) ولا تنشئ قيدا محاسبيا ولا ملف بنك أبدا.', gl_per_diem:'بدل الانتداب', jvNoMap:'اربط الحسابات أولا: لا يصدر القيد وفيه بند بلا حساب.',
   jvAccount:'الحساب', jvLabel:'البيان', jvAnalytic:'الحساب التحليلي', jvPartner:'الشريك', jvDebit:'مدين', jvCredit:'دائن', jvTotal:'الإجمالي', jvBalanced:'متوازن', jvUnbalanced:'غير متوازن',
   jvProblems:'مشكلات تمنع التصدير', jvp_unmapped:'بند بلا حساب', jvp_unknown_line:'بند غير معروف في قسيمة', jvp_slip_mismatch:'بنود القسيمة لا تساوي صافيها', jvChanged:'تغير القيد منذ تجهيز الملف (الربط أو القسائم). ألغه وجهزه من جديد.',
   jvGen:'تجهيز القيد', jvImp:'تم الاستيراد في أودو', jvConf:'تأكيد المطابقة (شخص آخر)', jvCancel:'إلغاء القيد', jvOdooRef:'رقم القيد في أودو', jvNoteReq:'السبب (مطلوب)',
@@ -25,7 +25,7 @@ Object.assign(T.ar, {
 });
 Object.assign(T.en, {
   vwJournal:'Payroll journal', jvTitle:'Payroll journal for accounting', jvLead:'A balanced entry for each approved run, dated the month\'s last day, ready to import in Odoo. One person generates and imports it; another confirms it after checking it in Odoo.',
-  jvRuns:'Approved runs', jvMap:'Account mapping', jvBank:'Bank and Mudad files', jvNoRun:'No approved run yet.', jvNoMap:'Map the accounts first: no entry is exported with an unmapped line.',
+  jvRuns:'Approved runs', jvMap:'Account mapping', jvBank:'Bank and Mudad files', jvNoRun:'No approved run yet.', jvDraft:'The {m} run ({r}) is not approved yet: its journal shows here once a second payroll holder approves it (Pay → Payroll approval).', jvDemo:'{n} run(s) are demo runs (the demo company) and never produce a ledger entry or a bank file.', gl_per_diem:'Travel per diem', jvNoMap:'Map the accounts first: no entry is exported with an unmapped line.',
   jvAccount:'Account', jvLabel:'Label', jvAnalytic:'Analytic', jvPartner:'Partner', jvDebit:'Debit', jvCredit:'Credit', jvTotal:'Total', jvBalanced:'Balanced', jvUnbalanced:'Not balanced',
   jvProblems:'Problems blocking export', jvp_unmapped:'Line without an account', jvp_unknown_line:'Unknown payslip line', jvp_slip_mismatch:'Payslip lines do not add up to its net', jvChanged:'The entry changed since the file was made (mapping or payslips). Cancel it and generate again.',
   jvGen:'Generate entry', jvImp:'Imported in Odoo', jvConf:'Confirm match (another person)', jvCancel:'Cancel entry', jvOdooRef:'Odoo entry number', jvNoteReq:'Reason (required)',
@@ -78,9 +78,12 @@ function runs(el){
   api('journalList', {}, true).then(function(r){
     if (!el.isConnected) return;
     if (!r.ok) return el.innerHTML = bad(r.error);
-    if (!r.runs.length) return el.innerHTML = empty('notebook', t('jvNoRun'));
+    // say why nothing is here: a draft waiting for its second approval, or only demo runs (never in the ledger)
+    var why = (r.drafts || []).map(function(x){ return '<p class="notice">' + ph('hourglass') + ' ' + t('jvDraft').replace('{m}', esc(monthName(x.month))).replace('{r}', esc(x.ref)) + '</p>'; }).join('') +
+      ((r.demo || []).length ? '<p class="notice">' + ph('flask') + ' ' + t('jvDemo').replace('{n}', r.demo.length) + '</p>' : '');
+    if (!r.runs.length) return el.innerHTML = empty('notebook', t('jvNoRun')) + why;
     var cur = S.jvRun && r.runs.some(function(x){ return x.id === S.jvRun; }) ? S.jvRun : r.runs[0].id;
-    el.innerHTML = (r.mapped ? '' : '<p class="notice">' + t('jvNoMap') + '</p>') + '<div class="toolbar"><select id="jvSel" aria-label="' + t('jvRuns') + '">' + r.runs.map(function(x){ return '<option value="' + esc(x.id) + '"' + (x.id === cur ? ' selected' : '') + '>' + esc(monthName(x.month) + ' · ' + x.ref) + (x.journal ? ' · ' + t('jvs_' + x.journal.status) : '') + '</option>'; }).join('') + '</select></div><div id="jvR"></div>';
+    el.innerHTML = why + (r.mapped ? '' : '<p class="notice">' + t('jvNoMap') + '</p>') + '<div class="toolbar"><select id="jvSel" aria-label="' + t('jvRuns') + '">' + r.runs.map(function(x){ return '<option value="' + esc(x.id) + '"' + (x.id === cur ? ' selected' : '') + '>' + esc(monthName(x.month) + ' · ' + x.ref) + (x.journal ? ' · ' + t('jvs_' + x.journal.status) : '') + '</option>'; }).join('') + '</select></div><div id="jvR"></div>';
     $('#jvSel', el).onchange = function(){ S.jvRun = this.value; runs(el); };
     entry($('#jvR', el), cur, function(){ runs(el); });
   });
