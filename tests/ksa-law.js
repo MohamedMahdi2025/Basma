@@ -179,5 +179,39 @@ ok(r.ok && r.eos.dueDays === 14 && r.eos.dueBy === '2026-10-28', 'Art. 88: resig
 r = call('3002', 'eosQuote', { empId: ids['5001'], lastDay: '2026-10-14', reason: 'termination' });
 ok(r.ok && near(r.eos.award, 36043.84) && r.eos.dueDays === 7, 'termination: full award, due within a week', r.eos);
 
+// ---------------------------------------------------------------- resignation deemed acceptance, enforced (2025, 2026-10-18)
+console.log('Resignation deemed acceptance (enforced) and the written deferral up to 60 days');
+person('5002', 'مستقيل مؤجل', 'employee');
+person('5003', 'مستقيل بلا رد', 'employee');
+const rsg = (id, ref, no, created) => direct(() => C.append_('requests', { id, ref, empId: ids[no], type: 'resignation', subtype: '', fromDate: '', toDate: '', days: '', amount: '', months: '',
+  reason: 'ظروف شخصية', docNo: '', payloadJson: JSON.stringify({ lastDay: '2026-11-30', noticeDays: 30, minLastDay: '2026-11-13' }), status: 'pending', step: 'hr', stepsJson: '[]',
+  requestedBy: ids[no], createdAt: created, updatedAt: created, decidedAt: '' }));
+// RS-T2: submitted 2026-09-01, accept-by 2026-10-01 (+30), today 2026-10-14: already deemed accepted
+rsg('RQT2', 'RS-2026-09002', '5003', '2026-09-01T08:00:00Z');
+const hrRow = () => C.findBy_('employees', 'id', ids['3001']);
+let thrown = '';
+try { direct(() => C.api_reqDecide({ id: 'RQT2', decision: 'reject', note: 'لا' }, hrRow())); } catch (e) { thrown = String(e.message); }
+ok(thrown === 'E:deemed_accepted', 'past day 30 HR can no longer reject the resignation', thrown);
+const swept = C.resignationDeemedSweep_(true);
+const t2 = direct(() => C.findBy_('requests', 'id', 'RQT2')), e3 = direct(() => C.findBy_('employees', 'id', ids['5003']));
+ok(swept.indexOf('RS-2026-09002') >= 0 && t2.status === 'approved' && t2.step === 'done', 'the sweep accepts it as the system', [swept, t2.status]);
+ok(JSON.parse(t2.stepsJson).some(h => h.by === 'system' && h.decision === 'deemed_accepted'), 'the history records a system "deemed accepted" step');
+ok(String(e3.resignedOn).slice(0, 10) === '2026-09-01' && String(e3.lastWorkingDay).slice(0, 10) === '2026-11-30', 'same effect as an approval: resigned on the submission day, last day kept', [e3.resignedOn, e3.lastWorkingDay]);
+ok(direct(() => C.readAll_('clearance')).some(x => x.empId === ids['5003'] && x.reason === 'resignation'), 'the offboarding clearance opens');
+ok(C.resignationDeemedSweep_(true).length === 0, 'a second sweep changes nothing');
+// RS-T1: submitted 2026-09-20, accept-by 2026-10-20; HR may defer to at most 2026-11-19 (+60)
+rsg('RQT1', 'RS-2026-09001', '5002', '2026-09-20T08:00:00Z');
+let d = call('5002', 'resignationDefer', { id: 'RQT1', until: '2026-11-10', reason: 'x' });
+ok(!d.ok && d.error === 'forbidden', 'an employee cannot defer (HR only)', d);
+d = call('3001', 'resignationDefer', { id: 'RQT1', until: '2026-11-20', reason: 'تسليم الأعمال' });
+ok(!d.ok && d.error === 'bad_date', 'deferral beyond 60 days from submission (2026-11-19) is refused', d);
+d = call('3001', 'resignationDefer', { id: 'RQT1', until: '2026-11-19', reason: '' });
+ok(!d.ok && d.error === 'note_required', 'the written reason is required', d);
+d = call('3001', 'resignationDefer', { id: 'RQT1', until: '2026-11-19', reason: 'تسليم الأعمال' });
+ok(d.ok && d.request.resignation.acceptBy === '2026-11-19' && d.request.resignation.deferUntil === '2026-11-19' && d.request.resignation.deferReason === 'تسليم الأعمال' && !d.request.resignation.deemedAccepted,
+  'deferred to day 60: the new accept-by day and the reason show on the request', d.request && d.request.resignation);
+d = call('3001', 'resignationDefer', { id: 'RQT1', until: '2026-11-19', reason: 'مرة ثانية' });
+ok(!d.ok && d.error === 'bad_date', 'it cannot be pushed again past the same limit', d);
+
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);

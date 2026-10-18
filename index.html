@@ -100,7 +100,7 @@ button{cursor:pointer}
 .b3d .b3d-fallback{position:absolute;inset:14%;width:72%;opacity:0;transition:opacity .4s}
 .b3d.no-webgl .b3d-fallback{opacity:1}
 .wordmark{display:flex;flex-direction:column;align-items:center;gap:6px;line-height:1.2;user-select:none}
-.wm-ar{font-size:26px;font-weight:600;color:var(--cream);display:flex;gap:.32em;flex-wrap:wrap;justify-content:center}
+.wm-ar{direction:rtl;font-size:26px;font-weight:600;color:var(--cream);display:flex;gap:.32em;flex-wrap:wrap;justify-content:center}
 .wm-en{font-size:12px;font-weight:500;letter-spacing:.34em;color:#C9D3C6;direction:ltr;white-space:nowrap}
 .wm-ar .w,.wm-en .l{display:inline-block;opacity:0}
 .wm-ar .w{animation:wordIn .8s var(--ease) forwards;animation-delay:calc(.25s + var(--i) * .2s)}
@@ -1245,6 +1245,104 @@ body.v2-on :is(.db-tile b,.kpi b,.stat b,.hm-facts dd,.hm-big b,.hm-k .v,[data-c
 ::view-transition-old(root),::view-transition-new(root){animation-duration:var(--mo-enter);animation-timing-function:var(--ease-out)}
 @media print{.mo-page,.mo-sub,.mo-wait,.mo-wait *{animation:none!important}}
 </style>
+<style id="dsgate">
+/* ---------- sign-in, 2026-10-18: the pressure gauge ----------
+   One memorable thing: the medallion (unchanged) sits in a calibrated dial whose arc sweeps once on load.
+   Everything else is quiet: a frosted slab for the form, brass only for focus and ticks. */
+.gate{--brass:#CDA866;--brass-2:rgba(205,168,102,.2);--mint:#9FE0AE;--slab:rgba(242,238,228,.045);--slab-line:rgba(242,238,228,.1);--d:min(50vw,210px);
+  background:radial-gradient(60% 46% at 50% 22%, rgba(94,130,98,.42), transparent 72%),radial-gradient(130% 70% at 50% 115%, #0B170F 35%, transparent 75%),linear-gradient(180deg,#22352A 0%,#15251B 100%)}
+.gate .aurora{opacity:.35}
+.gate .gb-scene{display:none!important}
+.gb-dial{position:relative;display:flex;flex-direction:column;align-items:center;isolation:isolate}
+.gate .gb-dial .b3d{width:var(--d)}
+.gb-dial .brand3d{position:relative;z-index:1}
+.gauge{position:absolute;left:50%;top:calc(var(--d) / 2);width:calc(var(--d) * 1.62);aspect-ratio:1;transform:translate(-50%,-50%);z-index:0;pointer-events:none;overflow:visible}
+.gauge .trk{fill:none;stroke:rgba(242,238,228,.1);stroke-width:1.6;stroke-dasharray:376.99 502.65}
+.gauge .val{fill:none;stroke:var(--mint);stroke-width:2.6;stroke-linecap:round;stroke-dasharray:282.74 502.65;stroke-dashoffset:282.74;filter:drop-shadow(0 0 5px rgba(159,224,174,.65));animation:gArc 1.6s .5s cubic-bezier(.3,.7,.1,1) forwards}
+.gauge .tk{stroke:rgba(205,168,102,.32);stroke-width:1.2;stroke-linecap:round}
+.gauge .tk.mj{stroke:rgba(205,168,102,.7);stroke-width:1.8}
+.gauge .ticks{opacity:0;animation:gFade .9s .25s ease-out forwards}
+.gauge .mk{transform-origin:100px 100px;transform:rotate(135deg);animation:gMark 1.6s .5s cubic-bezier(.3,.7,.1,1) forwards}
+.gauge .mk circle{fill:var(--cream);filter:drop-shadow(0 0 6px rgba(159,224,174,.9))}
+@keyframes gArc{to{stroke-dashoffset:0}}
+@keyframes gMark{to{transform:rotate(337.5deg)}}
+@keyframes gFade{to{opacity:1}}
+@keyframes slabIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+.gate h1{font-size:26px;font-weight:600;line-height:1.25;letter-spacing:0;color:var(--cream)}
+.gate p{color:#B9C6B6;font-size:15px;line-height:1.6}
+.gate .field label{font-size:13.5px;font-weight:500;color:#C9D3C6;margin-bottom:7px}
+.gate input{height:56px;border-radius:14px;background:rgba(6,16,10,.38);border:1px solid rgba(242,238,228,.12);transition:border-color .2s,box-shadow .25s var(--ease),background-color .2s}
+.gate input:hover{border-color:rgba(242,238,228,.22)}
+.gate input:focus{border-color:var(--brass);background:rgba(6,16,10,.5);box-shadow:0 0 0 4px var(--brass-2);outline:none}
+.gate .btn-primary{height:56px;border-radius:14px;font-size:16.5px;position:relative;overflow:hidden;box-shadow:0 14px 30px -14px rgba(0,0,0,.7);transition:transform .15s var(--ease),box-shadow .25s,background-color .2s}
+.gate .btn-primary::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.55) 50%,transparent 70%);transform:translateX(-120%);pointer-events:none}
+.gate .btn-primary:hover{box-shadow:0 18px 34px -14px rgba(0,0,0,.75);transform:translateY(-1px)}
+.gate .btn-primary:hover::after{transform:translateX(120%);transition:transform .7s var(--ease)}
+.gate .btn-primary:active{transform:scale(.98)}
+.gate :is(.btn,.linkish,.langsw,.pinkeys button,.pw-eye):focus-visible{outline:2px solid var(--brass);outline-offset:3px}
+.gate .linkish{text-decoration:none;color:#B9C6B6;border-radius:8px;transition:color .2s}
+.gate .linkish:hover{color:var(--cream);text-decoration:underline}
+.gate .err:not(:empty){background:rgba(196,81,58,.14);border:1px solid rgba(255,180,163,.25);border-radius:12px;padding:10px 12px;animation:slabIn .3s var(--ease)}
+.langsw{backdrop-filter:blur(10px);transition:background-color .2s}
+.langsw:hover{background:rgba(255,255,255,.14)}
+/* PIN pad: glass keys that answer each press */
+.gate .pindots{gap:16px}
+.gate .pindots i{width:13px;height:13px;border-color:rgba(242,238,228,.45)}
+.gate .pindots i.on{background:var(--mint);border-color:var(--mint);box-shadow:0 0 10px rgba(159,224,174,.6);animation:dotIn .28s var(--ease)}
+@keyframes dotIn{0%{transform:scale(.4)}60%{transform:scale(1.25)}100%{transform:scale(1.08)}}
+.gate .pinkeys button{position:relative;overflow:hidden;background:linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,.03));border-color:rgba(242,238,228,.13);box-shadow:inset 0 1px 0 rgba(255,255,255,.08);transition:transform .1s,background-color .15s,border-color .2s}
+.gate .pinkeys button:hover{border-color:rgba(205,168,102,.45)}
+.gate .pinkeys button::after{content:"";position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle,rgba(159,224,174,.45),transparent 65%);opacity:0;transform:scale(.3)}
+.gate .pinkeys button:active::after{opacity:1;transform:scale(1.1);transition:transform .25s var(--ease),opacity .1s}
+.gate .pinkeys button.fn{background:none;box-shadow:none;font-size:26px}
+:root[dir="rtl"] .gate .pinkeys button.fn i{display:inline-block;transform:scaleX(-1)}
+.gate .linkish.lk-ic{display:inline-flex;align-items:center;gap:6px}
+.gate .linkish.lk-ic i{font-size:17px;color:var(--brass)}
+/* show / hide on every password and PIN field (gate and app) */
+.pw-wrap{position:relative;display:block}
+:root[dir="rtl"] .pw-wrap > input{padding-left:54px!important}
+:root[dir="ltr"] .pw-wrap > input{padding-right:54px!important}
+.pw-eye{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border:0;border-radius:12px;background:none;color:inherit;opacity:.7;display:grid;place-items:center;font-size:21px;cursor:pointer;transition:opacity .2s,background-color .2s}
+:root[dir="rtl"] .pw-eye{left:6px}
+:root[dir="ltr"] .pw-eye{right:6px}
+.pw-eye:hover{opacity:1;background:rgba(128,128,128,.12)}
+.pw-eye i{display:block;transition:transform .3s var(--ease)}
+.pw-eye[aria-pressed="true"] i{transform:rotateY(180deg)}
+.gate .pw-eye{color:#C9D3C6}
+.gate input.pinin{letter-spacing:10px}
+@media (max-width:1023px){
+  .gate{gap:16px;--d:min(38vw,150px);padding-top:calc(64px + env(safe-area-inset-top))}
+  .gate .gb-dial{margin-top:6px}
+  .gate .gb-dial .wordmark{margin-top:18px}
+  .gate-form:not(:has(.pinpad)){display:flex;flex-direction:column;align-items:stretch;gap:12px;width:100%;max-width:440px;text-align:start;background:var(--slab);border:1px solid var(--slab-line);
+    border-radius:24px;padding:24px 20px 18px;backdrop-filter:blur(14px);box-shadow:0 30px 60px -30px rgba(0,0,0,.6),inset 0 1px 0 rgba(242,238,228,.06);animation:slabIn .6s .3s var(--ease) both}
+  .gate-form:not(:has(.pinpad)) h1,.gate-form:not(:has(.pinpad)) > p{text-align:center}
+  .gate-form:not(:has(.pinpad)) form{max-width:none}
+  .gate-form:not(:has(.pinpad)) .linkish{align-self:center}
+  .gate:has(.pinpad){--d:min(24vw,96px);padding-top:calc(52px + env(safe-area-inset-top))!important}
+  .gate:has(.pinpad) .gauge{width:calc(var(--d) * 1.6)}
+  .gate:has(.pinpad) .gb-dial .wordmark{margin-top:16px}
+  .gate:has(.pinpad) .gb-dial .b3d{width:var(--d)!important}
+}
+@media (min-width:1024px){
+  .gate{--d:min(24vw,320px);grid-template-columns:minmax(0,1.2fr) minmax(400px,460px);column-gap:clamp(48px,7vw,120px);padding:40px clamp(40px,7vw,120px)}
+  :root[dir="rtl"] .gate{background:radial-gradient(48% 62% at 70% 46%, rgba(94,130,98,.45), transparent 72%),radial-gradient(130% 80% at 50% 120%, #0B170F 35%, transparent 75%),linear-gradient(180deg,#22352A,#132219)}
+  :root[dir="ltr"] .gate{background:radial-gradient(48% 62% at 30% 46%, rgba(94,130,98,.45), transparent 72%),radial-gradient(130% 80% at 50% 120%, #0B170F 35%, transparent 75%),linear-gradient(180deg,#22352A,#132219)}
+  .gate-brand{gap:34px;min-height:min(84vh,780px)}
+  .gate-brand .wm-ar{font-size:40px}
+  .gate-tag{color:#B9C6B6;font-size:16.5px}
+  .gate-form{background:var(--slab);border:1px solid var(--slab-line);border-radius:28px;padding:44px 40px 30px;gap:16px;backdrop-filter:blur(16px);
+    box-shadow:0 50px 90px -40px rgba(0,0,0,.65),inset 0 1px 0 rgba(242,238,228,.07);animation:slabIn .7s .45s var(--ease) both}
+  .gate-form:has(.pinpad){align-items:center;text-align:center}
+  .gate-form:has(.pinpad) .linkish{justify-self:center;align-self:center}
+  .gate h1{font-size:34px}
+  .gate .linkish{align-self:flex-start}
+}
+@media (prefers-reduced-motion:reduce){
+  .gauge .val{animation:none;stroke-dashoffset:0}.gauge .mk{animation:none;transform:rotate(337.5deg)}.gauge .ticks{animation:none;opacity:1}
+  .gate-form,.gate .err:not(:empty){animation:none!important}.gate .pindots i.on{animation:none}.gate .btn-primary::after{display:none}
+}
+</style>
 </head>
 <body>
 <div id="root"></div>
@@ -1915,7 +2013,7 @@ var MARK = 'data:image/png;base64,iVBORw0KGgoAAAAN' +
 var T = {
   ar: {
     appName:'حضور الناقل الأفضل', company:'شركة الناقل الأفضل للغاز', gateTag:'سجّل حضورك من مقر الشركة بلمسة واحدة، محمية برمزك السري.',
-    pwLogin:'الدخول بكلمة المرور', forgotPin:'نسيت الرمز السري؟', forgotPw:'نسيت كلمة المرور؟',
+    pwLogin:'الدخول بكلمة المرور', eyeShowPw:'إظهار كلمة المرور', eyeHidePw:'إخفاء كلمة المرور', eyeShowPin:'إظهار الرمز', eyeHidePin:'إخفاء الرمز', forgotPin:'نسيت الرمز السري؟', forgotPw:'نسيت كلمة المرور؟',
     forgotPinText:'اطلب من الموارد البشرية رمز تفعيل جديد. تفعّل به جهازك مرة أخرى وتختار رمزاً سرياً جديداً.', forgotPwText:'اطلب من الموارد البشرية كلمة مرور مؤقتة. ستُطلب منك كلمة مرور جديدة عند أول دخول.',
     mustChangeTitle:'اختر كلمة مرور جديدة', mustChangeLead:'دخلت بكلمة مرور مؤقتة. اختر كلمة مرورك الخاصة للمتابعة.', pwTemp:'كلمة المرور المؤقتة', continueBtn:'حفظ والمتابعة',
     tempPwBtn:'كلمة مرور مؤقتة', tempPwTitle:'كلمة مرور مؤقتة', tempPwLead:'أرسلها للموظف. تعمل مرة واحدة وتُطلب بعدها كلمة مرور جديدة. تنتهي بها أي جلسة قديمة بكلمة المرور.', tempPwMsg:'رابط تطبيق الحضور: {url}\nالرقم الوظيفي: {no}\nكلمة المرور المؤقتة: {pw}\nستُطلب منك كلمة مرور جديدة عند الدخول.',
@@ -1976,7 +2074,7 @@ var T = {
   },
   en: {
     appName:'Best Gas Attendance', company:'Best Gas Carrier Co.', gateTag:'Check in at head office with one tap, protected by your PIN.',
-    pwLogin:'Sign in with password', forgotPin:'Forgot your PIN?', forgotPw:'Forgot your password?',
+    pwLogin:'Sign in with password', eyeShowPw:'Show password', eyeHidePw:'Hide password', eyeShowPin:'Show PIN', eyeHidePin:'Hide PIN', forgotPin:'Forgot your PIN?', forgotPw:'Forgot your password?',
     forgotPinText:'Ask HR for a new activation code. Use it to activate this device again and choose a new PIN.', forgotPwText:'Ask HR for a temporary password. You will choose a new one the first time you sign in.',
     mustChangeTitle:'Choose a new password', mustChangeLead:'You signed in with a temporary password. Choose your own to continue.', pwTemp:'Temporary password', continueBtn:'Save and continue',
     tempPwBtn:'Temporary password', tempPwTitle:'Temporary password', tempPwLead:'Send it to the employee. It works once, then a new password is required. Any old password session ends.', tempPwMsg:'Attendance app: {url}\nEmployee number: {no}\nTemporary password: {pw}\nYou will choose a new password when you sign in.',
@@ -2449,8 +2547,32 @@ function root(html){
 
 function gateBrand(){
   return '<aside class="gate-brand"><div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div><div class="gb-scene" aria-hidden="true"><i></i><i></i><i></i></div>' +
-    brand3dHtml('gate') + '<p class="gate-tag">' + t('gateTag') + '</p></aside>';
+    '<div class="gb-dial">' + gaugeSvg() + brand3dHtml('gate') + '</div><p class="gate-tag">' + t('gateTag') + '</p></aside>';
 }
+/** The calibrated dial around the medallion: 270 degrees of brass ticks, a mint arc that sweeps to three quarters once. */
+var GAUGE_SVG = '';
+function gaugeSvg(){
+  if (GAUGE_SVG) return GAUGE_SVG;
+  var tk = '';
+  for (var i = 0; i <= 45; i++) { var a = (135 + i * 6) * Math.PI / 180, mj = i % 5 === 0, r1 = mj ? 84 : 88, r2 = 93;
+    tk += '<line class="tk' + (mj ? ' mj' : '') + '" x1="' + (100 + r1 * Math.cos(a)).toFixed(2) + '" y1="' + (100 + r1 * Math.sin(a)).toFixed(2) + '" x2="' + (100 + r2 * Math.cos(a)).toFixed(2) + '" y2="' + (100 + r2 * Math.sin(a)).toFixed(2) + '"/>'; }
+  return (GAUGE_SVG = '<svg class="gauge" viewBox="0 0 200 200" aria-hidden="true" focusable="false"><g class="ticks">' + tk + '</g>' +
+    '<circle class="trk" cx="100" cy="100" r="80" transform="rotate(135 100 100)"/><circle class="val" cx="100" cy="100" r="80" transform="rotate(135 100 100)"/>' +
+    '<g class="mk"><circle cx="180" cy="100" r="3.4"/></g></svg>');
+}
+/** Show / hide on every password and PIN field, wherever it is drawn (sign-in, account, drawers). */
+function eyeify(scope){
+  Array.prototype.forEach.call((scope || document).querySelectorAll('input[type="password"]:not([data-eye])'), function(inp){
+    inp.setAttribute('data-eye', '1');
+    var pin = inp.classList.contains('pinin') || inp.getAttribute('inputmode') === 'numeric';
+    var wrap = document.createElement('span'); wrap.className = 'pw-wrap'; inp.parentNode.insertBefore(wrap, inp); wrap.appendChild(inp);
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'pw-eye'; b.setAttribute('aria-pressed', 'false'); b.setAttribute('aria-controls', inp.id || '');
+    var paint = function(){ var on = inp.type === 'text'; b.setAttribute('aria-pressed', on ? 'true' : 'false'); b.setAttribute('aria-label', t(on ? (pin ? 'eyeHidePin' : 'eyeHidePw') : (pin ? 'eyeShowPin' : 'eyeShowPw'))); b.innerHTML = '<i class="ph ph-' + (on ? 'eye-slash' : 'eye') + '" aria-hidden="true"></i>'; };
+    b.onclick = function(){ var at = inp.selectionStart; inp.type = inp.type === 'password' ? 'text' : 'password'; paint(); inp.focus(); try { if (at != null) inp.setSelectionRange(at, at); } catch (e) {} };
+    paint(); wrap.appendChild(b);
+  });
+}
+(function(){ var busy = false; new MutationObserver(function(){ if (busy) return; busy = true; requestAnimationFrame(function(){ busy = false; eyeify(document); }); }).observe(document.documentElement, { childList: true, subtree: true }); })();
 
 // The company name arrives word by word (Arabic), then letter by letter (English).
 function wordmarkHtml(){
@@ -2560,7 +2682,7 @@ function pinPadHtml(){
   return '<div class="pinpad" id="pinpad" role="group" aria-label="' + t('pinPadLead') + '"><div class="pindots" aria-hidden="true">' + '<i></i><i></i><i></i><i></i><i></i><i></i>' + '</div>' +
     '<div class="pinkeys">' + keys.map(function(k){
       if (!k) return '<span></span>';
-      if (k === 'del') return '<button type="button" class="fn" data-k="del" aria-label="' + t('del') + '">' + t('del') + '</button>';
+      if (k === 'del') return '<button type="button" class="fn" data-k="del" aria-label="' + t('del') + '"><i class="ph ph-backspace" aria-hidden="true"></i></button>';
       return '<button type="button" data-k="' + k + '">' + k + '</button>';
     }).join('') + '</div></div>';
 }
@@ -2586,7 +2708,7 @@ function renderLock(){
     (pinMode ? '<p>' + t('pinPadLead') + '</p>' : S.kind === 'devicekey' ? '' : '<p>' + t('unlockLead') + '</p><div class="bio-icon" aria-hidden="true">' + I.face + '</div>') +
     '<div class="err" id="err" role="alert">' + (S.lockMsg ? esc(S.lockMsg) : '') + '</div>' +
     (pinMode ? pinPadHtml() : '<form id="f" style="align-items:stretch"><button class="btn btn-primary" id="go">' + (S.kind === 'devicekey' ? t('unlockTap') : t('unlock')) + '</button></form>') +
-    (pinMode ? '<button class="linkish" type="button" id="fpin">' + t('forgotPin') + '</button>' : '') +
+    (pinMode ? '<button class="linkish lk-ic" type="button" id="fpin"><i class="ph ph-question" aria-hidden="true"></i>' + t('forgotPin') + '</button>' : '') +
     '<button class="linkish" type="button" id="pwl">' + t('pwLogin') + '</button>' +
     '<button class="linkish" type="button" id="other">' + t('notMe') + '</button></div>');
   $('#pwl').onclick = function(){ renderPwLogin(S.empNo); };
@@ -2634,7 +2756,7 @@ function renderPwLogin(prefNo){
     '<div class="field"><label for="ppw">' + t('password') + '</label><input id="ppw" name="password" type="password" autocomplete="current-password" required minlength="8" dir="ltr"></div>' +
     '<div class="err" id="err" role="alert">' + (S.lockMsg ? esc(S.lockMsg) : '') + '</div>' +
     '<button class="btn btn-primary" id="pgo">' + I.lock + t('signIn') + '</button></form>' +
-    '<button class="linkish" type="button" id="fpw">' + t('forgotPw') + '</button>' +
+    '<button class="linkish lk-ic" type="button" id="fpw"><i class="ph ph-question" aria-hidden="true"></i>' + t('forgotPw') + '</button>' +
     (hasDevice ? '<button class="linkish" type="button" id="back">' + t('backToPin') + '</button>' : '<button class="linkish" type="button" id="back">' + t('activateTitle') + '</button>') + '</div>');
   S.lockMsg = '';
   $('#fpw').onclick = function(){ forgotSheet('pw'); };
@@ -2990,7 +3112,7 @@ function areaLead(a){ var k = 'al' + a.id.charAt(0).toUpperCase() + a.id.slice(1
 /** Where the page body goes: the area body in the shell, #main before the shell exists. */
 function view(){ return $('#v2Body') || $('#main'); }
 /** The v2 block must come after every module's own <style>, so equal selectors resolve to v2. */
-function themeLast(){ ['dsv2', 'dsv3', 'dsed', 'dsfp', 'dspg', 'dsdark', 'dsmo'].forEach(function(id){ var s = document.getElementById(id); if (s) document.head.appendChild(s); }); }
+function themeLast(){ ['dsv2', 'dsv3', 'dsed', 'dsfp', 'dspg', 'dsdark', 'dsmo', 'dsgate'].forEach(function(id){ var s = document.getElementById(id); if (s) document.head.appendChild(s); }); }
 function loadAll(files){ return files.reduce(function(p, f){ return p.then(function(){ return loadScript(f); }); }, Promise.resolve()); }
 
 /** Where a task from the bell opens. HR sections map to their area; personal items to growth or the profile. */

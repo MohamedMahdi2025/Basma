@@ -244,7 +244,68 @@ function quote_(emp, d, excludeId) {
  * submission counts as accepted; the employer may defer acceptance up to 60 days in writing for a work need.
  * Returns the day the 30 days run out (day of submission + 30).
  */
-function resignationAcceptBy_(r) { return addDays_(String(r.createdAt || '').slice(0, 10), 30); }
+function resignationAcceptBy_(r) {
+  var d = parsePayload_(r).deferUntil;
+  return d && /^\d{4}-\d{2}-\d{2}$/.test(String(d)) ? String(d) : addDays_(String(r.createdAt || '').slice(0, 10), 30);
+}
+function resignationDeemed_(r) { return r.type === 'resignation' && r.status === 'pending' && today_() > resignationAcceptBy_(r); }
+
+/**
+ * Enforcement (2026-10-18): a pending resignation past its accept-by day is accepted by the system, with the same effect as
+ * an approval (resignedOn, last working day, offboarding clearance). Runs at most once an hour, before any write action
+ * (Code.gs handle_), and never fails the action that triggered it. Returns the refs it accepted.
+ */
+function resignationDeemedSweep_(force) {
+  if (!force) {
+    try { var c = CacheService.getScriptCache(); if (c.get('deemedSweep')) return []; c.put('deemedSweep', '1', 3600); } catch (e) {}
+  }
+  var done = [];
+  try {
+    withLock_(function () {
+      var ctx = null, now = new Date().toISOString(), sys = { id: 'system', role: 'system' };
+      readAll_(SHEETS.REQ).filter(resignationDeemed_).forEach(function (r) {
+        ctx = ctx || orgCtx_();
+        var emp = ctx.emps[r.empId];
+        if (!emp) return;
+        var h = history_(r);
+        h.push({ step: r.step, by: 'system', role: 'system', decision: 'deemed_accepted', note: resignationAcceptBy_(r), at: now });
+        r.stepsJson = JSON.stringify(h); r.status = 'approved'; r.step = 'done'; r.decidedAt = now; r.updatedAt = now;
+        update_(SHEETS.REQ, r);
+        applyEffect_(r, emp, sys, parsePayload_(r));
+        audit_('system', 'resignation_deemed_accepted', r.empId, { ref: r.ref, acceptBy: resignationAcceptBy_(r) });
+        done.push(r.ref);
+      });
+    });
+  } catch (e) { console.error('deemed sweep: ' + (e && e.message)); }
+  return done;
+}
+
+/**
+ * The employer may defer acceptance in writing, for a work need, up to 60 days from submission (once the 30 days have not
+ * yet run out). HR only; never on their own resignation; a reason is required and shown to the employee.
+ */
+function api_resignationDefer(req, me) {
+  if (!isHr_(me)) fail_('forbidden');
+  var reason = str_(req.reason, 300), until = isoDate_(req.until);
+  if (!reason) fail_('note_required');
+  return withLock_(function () {
+    var ctx = orgCtx_(), r = findBy_(SHEETS.REQ, 'id', req.id);
+    if (!r || r.type !== 'resignation' || r.status !== 'pending') fail_('not_found');
+    if (r.empId === me.id) fail_('cannot_decide_own');
+    if (resignationDeemed_(r)) fail_('deemed_accepted');
+    var max = addDays_(String(r.createdAt || '').slice(0, 10), 60);
+    if (!until || until <= resignationAcceptBy_(r) || until > max) fail_('bad_date');
+    var p = parsePayload_(r), now = new Date().toISOString();
+    p.deferUntil = until; p.deferReason = reason; p.deferBy = me.id; p.deferAt = now;
+    r.payloadJson = JSON.stringify(p);
+    var h = history_(r);
+    h.push({ step: r.step, by: me.id, role: 'hr', decision: 'deferred', note: until + ' ' + reason, at: now });
+    r.stepsJson = JSON.stringify(h); r.updatedAt = now;
+    update_(SHEETS.REQ, r);
+    audit_(me.id, 'resignation_deferred', r.empId, { ref: r.ref, until: until });
+    return { ok: true, request: publicReq_(r, ctx, me) };
+  });
+}
 
 function api_requestQuote(req, me) {
   var emp = findBy_(SHEETS.EMP, 'id', me.id) || me;
@@ -331,6 +392,7 @@ function api_reqDecide(req, me) {
     if (!canAct_(me, r, emp, ctx)) fail_(r.status !== 'pending' ? 'not_found' : 'forbidden');
     var note = str_(req.note, 300), now = new Date().toISOString();
     if (decision === 'reject' && !note) fail_('note_required');
+    if (decision === 'reject' && resignationDeemed_(r)) fail_('deemed_accepted'); // 2025 amendment: past the accept-by day it cannot be refused
     var h = history_(r);
     var who = flowActor_(me, r, emp, ctx); // the step itself, a delegate on behalf of the approver, or HR on behalf (Flows.gs)
     h.push({ step: r.step, by: me.id, role: who.role, onBehalfOf: who.onBehalfOf, decision: decision, note: note, at: now });
@@ -407,7 +469,8 @@ function publicReq_(r, ctx, viewer) {
   if (r.type === 'letter') o.letter = { addressee: p.addressee, lang: p.lang };
   if (r.type === 'correction') o.correction = { date: p.date, time: p.time, punchType: p.punchType };
   if (r.type === 'resignation') o.resignation = { lastDay: p.lastDay, noticeDays: p.noticeDays, minLastDay: p.minLastDay, acceptBy: resignationAcceptBy_(r),
-    deemedAccepted: r.status === 'pending' && today_() > resignationAcceptBy_(r) };
+    deemedAccepted: resignationDeemed_(r) || history_(r).some(function (h) { return h.decision === 'deemed_accepted'; }),
+    deferUntil: parsePayload_(r).deferUntil || '', deferReason: parsePayload_(r).deferReason || '', maxDefer: addDays_(String(r.createdAt || '').slice(0, 10), 60) };
   if (r.type === 'data_change' && data) o.fields = p.fields || {};
   else if (r.type === 'data_change') o.fieldNames = Object.keys(p.fields || {});
   if (r.type === 'leave' && p.variant) o.variant = p.variant;

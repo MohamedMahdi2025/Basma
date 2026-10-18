@@ -269,7 +269,7 @@ Object.assign(T.ar, {
   rqPayNone:'لا أثر على الراتب', rqPayUnpaid:'تخصم هذه الأيام من الراتب', rqPayAdvance:'يخصم القسط من الراتب كل شهر', rqThisReq:'هذا الطلب', rqLeft:'يبقى',
   rqSchedule:'جدول الخصم', rqFixFirst:'أكمل الحقول ليظهر الحساب.', rqReady:'جاهز للإرسال', rqSentTitle:'أرسل طلبك', rqSentLead:'تابع خطواته هنا. يصل الطلب الآن إلى',
   rqDecideTitle:'قرارك', rqApprove:'اعتماد', rqReject:'رفض', rqNoteFor:'ملاحظة (مطلوبة عند الرفض)', rqNotFound:'لم نجد هذا الطلب، أو لا تملك صلاحية عرضه.',
-  rqAllMine:'كل طلباتي', rqCreated:'تاريخ الطلب', rqStatus:'الحالة', rqWithdrawSure:'اضغط مرة أخرى للتأكيد', rqAcceptBy:'تعد مقبولة إن لم يرد عليها حتى', rqDeemed:'مضت 30 يوما دون رد، فتعد الاستقالة مقبولة.',
+  rqAllMine:'كل طلباتي', rqCreated:'تاريخ الطلب', rqStatus:'الحالة', rqWithdrawSure:'اضغط مرة أخرى للتأكيد', rqAcceptBy:'تعد مقبولة إن لم يرد عليها حتى', rqDeemed:'مضت 30 يوما دون رد، فتعد الاستقالة مقبولة.', rqDefer:'تأجيل القبول', rqDeemedNode:'تعد مقبولة بمضي المهلة دون رد', rqSystem:'النظام', rqDeferLead:'يجوز لصاحب العمل تأجيل قبول الاستقالة كتابة لحاجة العمل، بحد أقصى 60 يوما من تقديمها.', rqDeferUntil:'تؤجل حتى', rqDeferReason:'سبب التأجيل (يراه الموظف)', rqDeferred:'أجل القبول حتى', rqDeferSaved:'تم تأجيل القبول', e_deemed_accepted:'مضت مهلة الرد فتعد الاستقالة مقبولة؛ لا يمكن رفضها أو تأجيلها الآن.',
   rqOnBehalf:'نيابة عن', rqDays:'المدة', rqDates:'التواريخ', rqTimeline:'سير الطلب', rqNow:'الآن', rqLater:'لاحقا', rqDecided:'تم القرار', rqChanges:'التغييرات المطلوبة',
   rqCurrent:'الحالي', rqNew2:'الجديد', rqVisa:'التأشيرة', rqMinLast:'أقرب آخر يوم حسب الإشعار', rqPayslipMonth:'أول خصم',
   rh_annual:'الإجازة السنوية 21 يوما في السنة، و30 يوما بعد 5 سنوات خدمة (المادة 109). الطلبات قيد الاعتماد تحجز من رصيدك.',
@@ -295,7 +295,7 @@ Object.assign(T.en, {
   rqPayNone:'No effect on pay', rqPayUnpaid:'These days are deducted from pay', rqPayAdvance:'The instalment is deducted from pay each month', rqThisReq:'This request', rqLeft:'Left',
   rqSchedule:'Deduction schedule', rqFixFirst:'Fill in the fields to see the check.', rqReady:'Ready to send', rqSentTitle:'Your request is sent', rqSentLead:'Follow each step here. It now goes to',
   rqDecideTitle:'Your decision', rqApprove:'Approve', rqReject:'Reject', rqNoteFor:'Note (required to reject)', rqNotFound:'This request was not found, or you cannot see it.',
-  rqAllMine:'All my requests', rqCreated:'Requested on', rqStatus:'Status', rqWithdrawSure:'Tap again to confirm', rqAcceptBy:'Counts as accepted if not answered by', rqDeemed:'30 days passed without an answer, so the resignation counts as accepted.',
+  rqAllMine:'All my requests', rqCreated:'Requested on', rqStatus:'Status', rqWithdrawSure:'Tap again to confirm', rqAcceptBy:'Counts as accepted if not answered by', rqDeemed:'30 days passed without an answer, so the resignation counts as accepted.', rqDefer:'Defer acceptance', rqDeemedNode:'Accepted: the answer period passed', rqSystem:'System', rqDeferLead:'The employer may defer accepting a resignation in writing for a work need, up to 60 days from submission.', rqDeferUntil:'Defer until', rqDeferReason:'Reason (the employee sees it)', rqDeferred:'Acceptance deferred until', rqDeferSaved:'Acceptance deferred', e_deemed_accepted:'The answer period has passed, so the resignation counts as accepted; it can no longer be refused or deferred.',
   rqOnBehalf:'on behalf of', rqDays:'Length', rqDates:'Dates', rqTimeline:'Progress', rqNow:'Now', rqLater:'Later', rqDecided:'Decided', rqChanges:'Requested changes',
   rqCurrent:'Current', rqNew2:'New', rqVisa:'Visa', rqMinLast:'Earliest last day by notice', rqPayslipMonth:'First deduction',
   rh_annual:'Annual leave is 21 days a year, 30 after 5 years of service (Art. 109). Requests in review hold days from your balance.',
@@ -364,14 +364,16 @@ function realChain(o){
   var ended = false;
   steps.forEach(function(st){
     if (ended) return;
-    var h = hist.filter(function(x){ return x.step === st && x.decision !== 'cancelled'; })[0];
+    var h = hist.filter(function(x){ return x.step === st && x.decision !== 'cancelled' && x.decision !== 'deferred'; })[0];
     if (h) {
       var by = esc(h.by) + (h.onBehalfOf ? ' (' + t('rqOnBehalf') + ' ' + esc(h.onBehalfOf) + ')' : '') + ' · ' + fmtDate(h.at);
       if (h.decision === 'reject') { li.push(node('no', 'x', stepName(st, o) + ': ' + t('rqRejected'), by, h.note)); ended = true; }
+      else if (h.decision === 'deemed_accepted') { li.push(node('done', 'seal-check', t('rqDeemedNode'), t('rqSystem') + ' · ' + fmtDate(h.at))); ended = true; }
       else li.push(node('done', 'check', stepName(st, o) + ': ' + t('rqApproved'), by, h.note));
     } else if (o.status === 'pending' && o.step === st) li.push(node('now', 'hourglass-medium', stepName(st, o), t('rqNow')));
     else li.push(node('off', 'circle-dashed', stepName(st, o), o.status === 'pending' ? t('rqLater') : ''));
   });
+  hist.filter(function(x){ return x.decision === 'deferred'; }).forEach(function(x){ li.push(node('done', 'calendar-plus', t('rqDefer'), esc(x.by) + ' · ' + fmtDate(x.at), x.note)); });
   var c = hist.filter(function(x){ return x.decision === 'cancelled'; })[0];
   if (c) li.push(node('no', 'arrow-u-up-left', t('rs_cancelled'), esc(c.by) + ' · ' + fmtDate(c.at), c.note));
   else if (o.status === 'approved') li.push(node('done', 'seal-check', t('rqStepEnd'), o.decidedAt ? fmtDate(o.decidedAt) : ''));
@@ -614,7 +616,7 @@ function viewPage(body, id){
     if (o.sick && (o.sick.full || o.sick.p75 || o.sick.unpaid)) extra += '<div class="fp-rows"><div><span>' + t('lt_sick') + '</span><b>' + [o.sick.full ? plural(o.sick.full, 'days') + ' ' + t('rqSickSplit') : '', o.sick.p75 ? plural(o.sick.p75, 'days') + ' ' + t('rqSick75') : '', o.sick.unpaid ? plural(o.sick.unpaid, 'days') + ' ' + t('rqSickUnpaid') : ''].filter(Boolean).join('، ') + '</b></div></div>';
     if (o.fields) extra += '<h3 class="hr-sub" style="margin:14px 0 6px;font-size:14px">' + t('rqChanges') + '</h3><div class="fp-rows">' + Object.keys(o.fields).map(function(k){ var d = DATA_KEYS.filter(function(x){ return x[0] === k; })[0]; return '<div><span>' + (d ? t(d[1]) : esc(k)) + '</span><b><bdi>' + esc(o.fields[k]) + '</bdi></b></div>'; }).join('') + '</div>';
     if (o.type === 'advance' && o.amount) extra += '<div class="fp-rows"><div><span>' + t('rqAmount') + '</span><b>' + money(o.amount) + '</b></div><div><span>' + t('rqInstallment') + '</span><b>' + money(o.installment) + ' × ' + o.months + '</b></div>' + (o.startMonth ? '<div><span>' + t('rqStart') + '</span><b><bdi>' + esc(o.startMonth) + '</bdi></b></div>' : '') + '</div>';
-    if (o.resignation) extra += '<div class="fp-rows"><div><span>' + t('rqNotice') + '</span><b>' + plural(o.resignation.noticeDays || 30, 'days') + '</b></div>' + (o.status === 'pending' ? '<div><span>' + t('rqAcceptBy') + '</span><b>' + fmtDate(o.resignation.acceptBy) + '</b></div>' : '') + '</div>' + (o.resignation.deemedAccepted ? '<div class="fp-state warn" style="margin-top:10px">' + ph('info') + '<span>' + t('rqDeemed') + '</span></div>' : '');
+    if (o.resignation) extra += '<div class="fp-rows"><div><span>' + t('rqNotice') + '</span><b>' + plural(o.resignation.noticeDays || 30, 'days') + '</b></div>' + (o.status === 'pending' ? '<div><span>' + t('rqAcceptBy') + '</span><b>' + fmtDate(o.resignation.acceptBy) + '</b></div>' : '') + (o.resignation.deferUntil ? '<div><span>' + t('rqDeferred') + '</span><b>' + fmtDate(o.resignation.deferUntil) + (o.resignation.deferReason ? ' · ' + esc(o.resignation.deferReason) : '') + '</b></div>' : '') + '</div>' + (o.resignation.deemedAccepted ? '<div class="fp-state warn" style="margin-top:10px">' + ph('info') + '<span>' + t('rqDeemed') + '</span></div>' : '');
     (o.warnings || []).forEach(function(w){ extra += '<div class="fp-state warn" style="margin-top:10px">' + ph('warning') + '<span>' + t('rw_' + w) + '</span></div>'; });
     var acts = '';
     if (mine && o.status === 'pending') acts += '<button type="button" class="btn btn-line" data-withdraw>' + ph('arrow-u-up-left') + t('rqCancel') + '</button>';
@@ -622,6 +624,8 @@ function viewPage(body, id){
     if (o.type === 'letter' && o.status === 'approved' && (mine || isHr()) && (mine || o.subtype !== 'salary_certificate' || (typeof salaryOk !== 'function' || salaryOk()))) acts += '<button type="button" class="btn btn-dark" data-print>' + ph('printer') + t('rqPrint') + '</button>';
     // HR may cancel approved leave that has not ended (the server checks the same rule)
     if (!mine && isHr() && o.type === 'leave' && o.status === 'approved' && o.toDate >= riyadhToday()) acts += '<button type="button" class="btn btn-line" data-withdraw>' + ph('arrow-u-up-left') + t('rqCancel') + '</button>';
+    // 2025 amendment: HR may defer accepting a resignation in writing, up to 60 days from submission (the server checks the same)
+    if (!mine && isHr() && o.type === 'resignation' && o.status === 'pending' && o.resignation && !o.resignation.deemedAccepted && o.resignation.acceptBy < o.resignation.maxDefer) acts += '<button type="button" class="btn btn-line" data-defer>' + ph('calendar-plus') + t('rqDefer') + '</button>';
     var decide = how === 'decide' && o.status === 'pending' ? '<section class="fp-card"><h2>' + ph('seal-check') + t('rqDecideTitle') + '</h2><div class="form"><div class="field"><label for="rqDn">' + t('rqNoteFor') + '</label><textarea id="rqDn" rows="3" maxlength="300"></textarea></div></div>' +
       '<p class="fp-err" id="rqDe" role="alert"></p><div class="fp-actions"><button type="button" class="btn btn-dark" data-dec="approve">' + ph('check') + t('rqApprove') + '</button><button type="button" class="btn btn-danger" data-dec="reject">' + ph('x') + t('rqReject') + '</button></div></section>' : '';
     var nowWho = o.status === 'pending' ? stepName(o.step, o) : '';
@@ -635,6 +639,15 @@ function viewPage(body, id){
       if (!w.dataset.sure) { w.dataset.sure = '1'; w.innerHTML = ph('warning') + t('rqWithdrawSure'); setTimeout(function(){ if (w.isConnected) { delete w.dataset.sure; w.innerHTML = ph('arrow-u-up-left') + t('rqCancel'); } }, 4000); return; }
       w.disabled = true;
       api('requestCancel', { id: o.id }).then(function(r){ if (!r.ok) { w.disabled = false; $('#rqAe', pg).textContent = errText(r.error); return; } toast(t('rqCancelled')); if (typeof loadTasks === 'function') loadTasks(); viewPage(body, id); });
+    };
+    var df = $('[data-defer]', pg);
+    if (df) df.onclick = function(){
+      var dmin = o.resignation.acceptBy, dmax = o.resignation.maxDefer;
+      var d = drawer('<h3>' + t('rqDefer') + '</h3><p class="hr-hint">' + t('rqDeferLead') + '</p><form class="form" id="rqDf"><div class="field"><label for="rqDfU">' + t('rqDeferUntil') + '</label><input id="rqDfU" name="until" type="date" min="' + esc(dmin) + '" max="' + esc(dmax) + '" value="' + esc(dmax) + '" required></div>' +
+        '<div class="field"><label for="rqDfR">' + t('rqDeferReason') + '</label><input id="rqDfR" name="reason" maxlength="300" required></div><p class="hr-bad" id="rqDfE" role="alert"></p><div class="btnrow"><button class="btn btn-dark" type="submit">' + t('rqDefer') + '</button></div></form>');
+      var f = $('#rqDf', d);
+      f.onsubmit = function(ev){ ev.preventDefault(); var b = f.querySelector('[type=submit]'); b.disabled = true;
+        api('resignationDefer', { id: o.id, until: $('#rqDfU', d).value, reason: $('#rqDfR', d).value.trim() }).then(function(r){ b.disabled = false; if (!r.ok) return $('#rqDfE', d).textContent = errText(r.error); d.remove(); toast(t('rqDeferSaved')); viewPage(body, id); }); };
     };
     var pr = $('[data-print]', pg);
     if (pr) pr.onclick = function(){ if (!mine && !(o.emp && o.emp.id)) return; printFetched(o, function(){ return mine ? api('myFile', {}, true) : api('hrEmpFile', { id: o.emp.id }); }); };
