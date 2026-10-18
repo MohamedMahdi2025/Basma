@@ -808,7 +808,7 @@ function toPdf(r, meta){
     'function go(){try{new QRCode(document.getElementById("qr"),{text:' + JSON.stringify(meta.ref + '|' + meta.hash) + ',width:168,height:168,correctLevel:QRCode.CorrectLevel.M})}catch(e){}setTimeout(function(){window.print()},500)}' +
     'if(document.readyState==="complete")go();else window.addEventListener("load",go);<\/script></body></html>';
   var w = window.open('', '_blank'); if (!w) return toast(t('e_generic'));
-  w.document.open(); w.document.write(html); w.document.close();
+  w.document.open(); w.document.write(html); w.document.close(); if (window.docBar) docBar(w);
 }
 
 // ---------------- export log (its own mini dashboard) ----------------

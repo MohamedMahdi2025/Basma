@@ -244,7 +244,7 @@ function printLetter(o, file, win){
     '<script>window.onload=function(){setTimeout(function(){window.print()},400)}<\/script></body></html>';
   var w = win || window.open('', '_blank');
   if (!w) return toast(t('e_generic'));
-  w.document.open(); w.document.write(html); w.document.close();
+  w.document.open(); w.document.write(html); w.document.close(); if (window.docBar) docBar(w);
 }
 
 /** Print a letter whose file must still be fetched: the window opens now, inside the tap, and is filled when the file arrives. */

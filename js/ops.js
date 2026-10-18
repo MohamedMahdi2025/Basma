@@ -1089,7 +1089,7 @@ function printCertificate(c){
       '<footer>' + t('ceVerify') + ' <bdi>' + esc(c.ref) + '</bdi></footer>' +
       '<script>window.onload=function(){setTimeout(function(){window.print()},400)}<\/script></body></html>';
     if (w.closed) return;
-    w.document.open(); w.document.write(html); w.document.close();
+    w.document.open(); w.document.write(html); w.document.close(); if (window.docBar) docBar(w);
   };
   if (window.HrDirLoad) HrDirLoad(fill); else fill([]);
 }

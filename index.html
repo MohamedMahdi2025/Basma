@@ -3721,6 +3721,25 @@ function printView(){
   window.addEventListener('afterprint', done);
   setTimeout(function(){ try { window.print(); } catch (e) {} setTimeout(done, 800); }, 60);
 }
+/** A Close / Print bar on top of a print window (screen only). Close shuts the window; where the platform keeps it open
+ *  (an installed app on a phone), it returns that window to the app instead. */
+function docBar(w){
+  try {
+    var d = w.document; if (!d || !d.body || d.getElementById('bgDocBar')) return;
+    var ar = S.lang !== 'en', st = d.createElement('style');
+    st.textContent = '#bgDocBar{position:sticky;top:0;z-index:9999;display:flex;gap:8px;justify-content:space-between;align-items:center;padding:10px 12px calc(10px);padding-top:calc(10px + env(safe-area-inset-top));background:#1C2A1F;color:#F2EEE4;font:600 15px/1 "IBM Plex Sans Arabic",Tahoma,sans-serif;direction:' + (ar ? 'rtl' : 'ltr') + '}' +
+      '#bgDocBar button{min-height:44px;padding:0 16px;border-radius:12px;border:1px solid rgba(242,238,228,.25);background:rgba(255,255,255,.08);color:inherit;font:inherit;cursor:pointer}' +
+      '#bgDocBar button.p{background:#F2EEE4;color:#1C2A1F;border-color:#F2EEE4}@media print{#bgDocBar{display:none!important}}';
+    d.head.appendChild(st);
+    var bar = d.createElement('div'); bar.id = 'bgDocBar';
+    var cl = d.createElement('button'); cl.type = 'button'; cl.textContent = '✕ ' + (ar ? 'إغلاق' : 'Close');
+    var pr = d.createElement('button'); pr.type = 'button'; pr.className = 'p'; pr.textContent = (ar ? 'طباعة' : 'Print');
+    cl.onclick = function(){ try { w.close(); } catch (e) {} setTimeout(function(){ try { if (!w.closed) w.location.replace(location.origin + location.pathname + '#home'); } catch (e) {} }, 250); };
+    pr.onclick = function(){ try { w.focus(); w.print(); } catch (e) {} };
+    bar.appendChild(cl); bar.appendChild(pr);
+    d.body.insertBefore(bar, d.body.firstChild);
+  } catch (e) {}
+}
 /** Every table and list on the screen (or in the open panel) becomes a formatted sheet in one workbook. */
 function exportView(){
   closeMenus();

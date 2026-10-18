@@ -419,7 +419,7 @@ function printEos(q, name){
     '<div class="sign"><div>' + (en ? 'Prepared by (HR)' : 'أعده (الموارد البشرية)') + '</div><div>' + (en ? 'Approved by (Finance)' : 'اعتمده (المالية)') + '</div><div>' + (en ? 'Received by the employee' : 'استلمه الموظف') + '</div></div>' +
     '<script>window.onload=function(){setTimeout(function(){window.print()},400)}<\/script></body></html>';
   var w = window.open('', '_blank'); if (!w) return toast(t('e_generic'));
-  w.document.open(); w.document.write(html); w.document.close();
+  w.document.open(); w.document.write(html); w.document.close(); if (window.docBar) docBar(w);
 }
 
 window.Payroll = { section: section, myCard: myCard, openSlip: openSlip, openSlipRef: openSlipRef, printSlip: printSlip };

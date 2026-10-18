@@ -122,7 +122,7 @@ function open(o){
     'if(document.readyState==="complete")go();else window.addEventListener("load",go);<\/script></body></html>';
   var w = window.open('', '_blank');
   if (!w) { if (window.toast) toast(window.t ? t('e_generic') : 'Allow pop-ups to print'); return null; }
-  w.document.open(); w.document.write(html); w.document.close();
+  w.document.open(); w.document.write(html); w.document.close(); if (window.docBar) docBar(w);
   return w;
 }
 
