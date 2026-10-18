@@ -1310,6 +1310,8 @@ body.v2-on :is(.db-tile b,.kpi b,.stat b,.hm-facts dd,.hm-big b,.hm-k .v,[data-c
 .pw-eye[aria-pressed="true"] i{transform:rotateY(180deg)}
 .gate .pw-eye{color:#C9D3C6}
 .gate input.pinin{letter-spacing:10px}
+/* phone top bar (2026-10-18): always on top while scrolling, clear of the iPhone status bar, language switch kept, search as an icon */
+@media (max-width:900px){body.v2-on .v2-top{position:sticky;top:0;z-index:40;padding-top:calc(6px + env(safe-area-inset-top));min-height:calc(56px + env(safe-area-inset-top));gap:6px}body.v2-on .v2-top .v2-lang{display:grid!important;font-size:12.5px;padding:0 8px;min-width:40px}body.v2-on .v2-top .v2-search{flex:0 0 auto;width:40px;height:40px;padding:0;justify-content:center;border-radius:12px}body.v2-on .v2-top .v2-search span,body.v2-on .v2-top .v2-search kbd{display:none!important}body.v2-on .v2-top .sp{flex:1}}
 .loc-help{margin-top:10px;text-align:start;border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:var(--well,#F6F3EC);color:var(--ink);font-size:13.5px;line-height:1.6}
 .loc-help .btn{width:100%}.loc-help details{margin-top:8px}.loc-help summary{cursor:pointer;color:var(--ink-2)}
 .loc-help ol{margin:6px 0 10px;padding-inline-start:20px}

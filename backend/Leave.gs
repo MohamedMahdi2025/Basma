@@ -25,7 +25,9 @@ var REQUEST_STEPS = {
   leave: ['manager', 'hr'], correction: ['manager', 'hr'], resignation: ['manager', 'hr'],
   letter: ['hr'], data_change: ['hr'],
   advance: ['hr', 'payroll'], // salary-related: the line manager is not in the chain
-  exit_reentry: ['manager', 'hr'] // exit/re-entry visa for a non-Saudi (GovServices.gs): HR then records the visa issued in Muqeem
+  exit_reentry: ['manager', 'hr'], // exit/re-entry visa for a non-Saudi (GovServices.gs): HR then records the visa issued in Muqeem
+  permission: ['manager', 'hr'], // hourly permission (استئذان): hours out of the working day, capped per request and per month
+  overtime: ['manager', 'hr'] // overtime pre-approval: on final approval an overtime_hours adjustment goes to payroll (Art. 107)
 };
 var DATA_FIELDS = { phone: 'emp', personalEmail: 'priv', nationalAddress: 'priv', address: 'priv', maritalStatus: 'priv',
   emergencyName: 'priv', emergencyPhone: 'priv', iban: 'priv', bankName: 'priv', passportNo: 'priv', passportExpiry: 'priv', idExpiry: 'priv' };
@@ -236,6 +238,34 @@ function quote_(emp, d, excludeId) {
     return q;
   }
   if (type === 'exit_reentry') return govQuote_(emp, d, excludeId, q, reqs, t); // GovServices.gs
+  if (type === 'permission') {
+    var pd = isoDate_(p.date), f1 = String(p.fromTime || ''), f2 = String(p.toTime || '');
+    if (!pd || !isHm_(f1) || !isHm_(f2)) return { error: 'missing_fields' };
+    if ((pd < addDays_(t, -7) || pd > addDays_(t, 60)) && !d._recheck) return { error: 'bad_date' };
+    var hm = function (x) { return Number(x.slice(0, 2)) * 60 + Number(x.slice(3, 5)); }, mins = hm(f2) - hm(f1);
+    if (mins < 15) return { error: 'bad_value' };
+    var maxH = Number(s.permissionMaxHours) || 4, capH = Number(s.permissionMonthHours) || 8;
+    if (mins > maxH * 60) return { error: 'too_many_hours', max: maxH };
+    if (reqs.some(function (r) { return r.id !== excludeId && r.type === 'leave' && (r.status === 'approved' || r.status === 'pending') && String(r.fromDate) <= pd && String(r.toDate) >= pd; })) return { error: 'overlaps' };
+    var used = 0;
+    reqs.forEach(function (r) { if (r.id !== excludeId && r.type === 'permission' && (r.status === 'approved' || r.status === 'pending') && String(r.fromDate).slice(0, 7) === pd.slice(0, 7)) used += Number(parsePayload_(r).minutes) || 0; });
+    q.fromDate = pd; q.toDate = pd; q.hours = round2_(mins / 60);
+    q.payload = { date: pd, fromTime: f1, toTime: f2, minutes: mins, monthUsed: used, monthCap: capH * 60 };
+    if (used + mins > capH * 60) return Object.assign(q, { error: 'permission_month_cap', max: capH });
+    return q;
+  }
+  if (type === 'overtime') {
+    var od = isoDate_(p.date), hrs = Number(p.hours);
+    if (!od) return { error: 'missing_fields' };
+    if ((od < addDays_(t, -7) || od > addDays_(t, 60)) && !d._recheck) return { error: 'bad_date' };
+    if (!(hrs >= 0.5 && hrs <= 12) || Math.round(hrs * 2) !== hrs * 2) return { error: 'bad_value' };
+    if (reqs.some(function (r) { return r.id !== excludeId && r.type === 'overtime' && (r.status === 'approved' || r.status === 'pending') && String(r.fromDate).slice(0, 10) === od; })) return { error: 'overlaps' };
+    var yr = 0;
+    reqs.forEach(function (r) { if (r.id !== excludeId && r.type === 'overtime' && r.status === 'approved' && String(r.fromDate).slice(0, 4) === od.slice(0, 4)) yr += Number(parsePayload_(r).hours) || 0; });
+    q.fromDate = od; q.toDate = od; q.hours = hrs; q.payload = { date: od, hours: hrs, yearHours: yr };
+    if (yr + hrs > (Number(s.overtimeYearHours) || 720)) q.warnings.push('overtime_year_cap'); // the ministerial yearly ceiling on overtime hours
+    return q;
+  }
   return { error: 'bad_value' };
 }
 
@@ -442,6 +472,12 @@ function applyEffect_(r, emp, me, p) {
     govVisaApproved_(r, emp, me, p); // GovServices.gs: waits for HR to record the visa issued in Muqeem
   } else if (r.type === 'leave') {
     leaveCycleAuto_(r, emp, me); // a long enough leave opens its leave cycle (Flows.gs)
+  } else if (r.type === 'overtime') {
+    // approved overtime becomes an overtime_hours adjustment in the month it was worked (or the next open one); payroll pays it per Art. 107
+    var month = String(p.date).slice(0, 7);
+    for (var i = 0; i < 12 && monthLocked_(emp.id, month); i++) month = govAddMonths_(month + '-01', 1).slice(0, 7);
+    append_(SHEETS.ADJ, { id: newId_('A'), ref: nextRef_('adjustment', refsOf_(SHEETS.ADJ)), empId: emp.id, month: month, kind: ADJ_CODES.overtime_hours, code: 'overtime_hours',
+      amount: Number(p.hours), reason: r.ref + (r.reason ? ' ' + String(r.reason).slice(0, 150) : ''), enteredBy: me.id, status: 'active', createdAt: now });
   }
 }
 
@@ -468,6 +504,8 @@ function publicReq_(r, ctx, viewer) {
   if (r.type === 'advance' && money) { o.amount = Number(r.amount); o.months = Number(r.months); o.installment = p.installment; o.startMonth = p.startMonth; }
   if (r.type === 'letter') o.letter = { addressee: p.addressee, lang: p.lang };
   if (r.type === 'correction') o.correction = { date: p.date, time: p.time, punchType: p.punchType };
+  if (r.type === 'permission') o.permission = { date: p.date, fromTime: p.fromTime, toTime: p.toTime, minutes: Number(p.minutes) || 0 };
+  if (r.type === 'overtime') o.overtime = { date: p.date, hours: Number(p.hours) || 0 };
   if (r.type === 'resignation') o.resignation = { lastDay: p.lastDay, noticeDays: p.noticeDays, minLastDay: p.minLastDay, acceptBy: resignationAcceptBy_(r),
     deemedAccepted: resignationDeemed_(r) || history_(r).some(function (h) { return h.decision === 'deemed_accepted'; }),
     deferUntil: parsePayload_(r).deferUntil || '', deferReason: parsePayload_(r).deferReason || '', maxDefer: addDays_(String(r.createdAt || '').slice(0, 10), 60) };

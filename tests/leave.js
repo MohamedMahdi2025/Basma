@@ -226,5 +226,31 @@ ok(!r.ok && r.error === 'forbidden', 'an employee cannot see everyone else\'s ba
 r = call('5003', 'myRequests');
 ok(r.ok && r.holidays.some(h => h.date === '2026-10-13'), 'the employee sees coming public holidays');
 
+console.log('Hourly permission (PM) and overtime pre-approval (OT), 2026-10-18');
+q = quote('5003', { type: 'permission', payload: { date: '2026-10-06', fromTime: '10:00', toTime: '12:00' } });
+ok(q && !q.error && q.hours === 2 && q.payload.monthCap === 480, 'a 2-hour permission quotes 2 hours against an 8-hour month', q);
+q = quote('5003', { type: 'permission', payload: { date: '2026-10-06', fromTime: '08:00', toTime: '13:00' } });
+ok(q && q.error === 'too_many_hours', 'more than 4 hours in one permission is refused', q);
+r = ask('5003', { type: 'permission', payload: { date: '2026-10-06', fromTime: '10:00', toTime: '12:00' }, reason: 'موعد طبي' });
+ok(r.ok && /^PM-2026-/.test(r.request.ref) && r.request.permission.minutes === 120, 'the permission is filed with its own PM number', r.request || r);
+const pm1 = r.request && r.request.id;
+r = ask('5003', { type: 'permission', payload: { date: '2026-10-07', fromTime: '09:00', toTime: '13:00' } });
+ok(r.ok, 'a second permission (4 h) still fits the month (6 of 8 h)', r);
+q = quote('5003', { type: 'permission', payload: { date: '2026-10-08', fromTime: '09:00', toTime: '12:00' } });
+ok(q && q.error === 'permission_month_cap', 'a third one (3 h, 9 of 8) passes the monthly cap and is refused', q);
+decide('5001', pm1, 'approve'); r = decide('3001', pm1, 'approve');
+ok(r.ok && r.request.status === 'approved', 'manager then HR approve the permission', r.request || r);
+r = ask('5003', { type: 'overtime', payload: { date: '2026-10-05', hours: 3 }, reason: 'جرد نهاية الشهر' });
+ok(r.ok && /^OT-2026-/.test(r.request.ref), 'overtime pre-approval is filed with its own OT number', r.request || r);
+const ot1 = r.request && r.request.id, otRef = r.request && r.request.ref;
+q = quote('5003', { type: 'overtime', payload: { date: '2026-10-05', hours: 2 } });
+ok(q && q.error === 'overlaps', 'a second overtime request for the same day is refused', q);
+q = quote('5003', { type: 'overtime', payload: { date: '2026-10-09', hours: 13 } });
+ok(q && q.error === 'bad_value', 'more than 12 hours in a day is refused', q);
+decide('5001', ot1, 'approve'); r = decide('3001', ot1, 'approve');
+const adj = direct(() => B.ctx.readAll_('adjustments')).filter(a => a.empId === ids['5003'] && a.code === 'overtime_hours');
+ok(r.ok && r.request.status === 'approved' && adj.length === 1 && Number(adj[0].amount) === 3 && adj[0].month === '2026-10' && String(adj[0].reason).indexOf(otRef) === 0,
+  'on final approval 3 overtime hours go to payroll for 2026-10, referenced to the request', adj);
+
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);

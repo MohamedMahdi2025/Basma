@@ -65,7 +65,7 @@ var CSS = '' +
 '@page{size:A4;margin:0}' +
 '*{box-sizing:border-box}html,body{margin:0;background:#fff}' +
 'body{font-family:"IBM Plex Sans Arabic","IBM Plex Sans",Tahoma,Arial,sans-serif;color:#15201A;font-size:10.5pt;line-height:1.55;-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
-'.sheet{position:relative;min-height:297mm;padding:13mm 14mm 30mm}' +
+'.sheet{position:relative;min-height:297mm;padding:0 14mm}.pgt{width:100%;border-collapse:collapse;border:0}.pgt>thead>tr>td,.pgt>tfoot>tr>td,.pgt>tbody>tr>td{padding:0;border:0;background:none}.pg-sp-t{height:13mm}.pg-sp-b{height:27mm}section,figure,.sign,table.kv tr,.eq,.box,.card{break-inside:avoid}h1,h2,h3{break-after:avoid}' +
 '.wm{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none;z-index:0}.wm img{width:120mm;opacity:.045}' +
 '.sheet > *{position:relative;z-index:1}' +
 'header.lh{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center;padding-bottom:10px}' +
@@ -110,10 +110,10 @@ function open(o){
     '<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">' +
     '<style>' + CSS + (o.extraCss || '') + '</style></head><body>' +
     (logo ? '<div class="wm"><img src="' + logo + '" alt=""></div>' : '') +
-    '<div class="sheet"><header class="lh">' + (logo ? '<img src="' + logo + '" alt="">' : '<span></span>') + '<div class="co"><b>' + esc(co) + '</b>' + (meta ? '<small>' + meta + '</small>' : '') + '</div>' +
+    '<div class="sheet"><table class="pgt" role="presentation"><thead><tr><td><div class="pg-sp-t"></div></td></tr></thead><tfoot><tr><td><div class="pg-sp-b"></div></td></tr></tfoot><tbody><tr><td><header class="lh">' + (logo ? '<img src="' + logo + '" alt="">' : '<span></span>') + '<div class="co"><b>' + esc(co) + '</b>' + (meta ? '<small>' + meta + '</small>' : '') + '</div>' +
     '<div class="kind"><span>' + esc(o.kind || '') + '</span>' + (o.ref ? '<small>' + esc(o.ref) + '</small>' : '') + '</div></header><div class="rule"></div>' +
     (o.title ? '<h1 class="dt">' + esc(o.title) + '</h1>' : '') + '<div class="issued">' + (lang === 'en' ? 'Issued ' : 'تاريخ الإصدار: ') + esc(dates(o.issued || new Date(), lang)) + '</div>' +
-    o.body + sig + '</div>' +
+    o.body + sig + '</td></tr></tbody></table></div>' +
     '<div class="foot"><div class="qr" id="qr"></div><div>' + (o.footnote ? esc(o.footnote) + '<br>' : '') + esc(co) + (o.ref ? ' · <span class="num">' + esc(o.ref) + '</span>' : '') +
       (o.by ? ' · ' + (lang === 'en' ? 'Printed by ' : 'طبعه ') + esc(o.by) : '') + '</div><div class="num">' + esc(new Date().toISOString().slice(0, 10)) + '</div></div>' +
     '<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha384-3zSEDfvllQohrq0PHL1fOXJuC/jSOO34H46t6UQfobFOmxE5BpjjaIJY5F2/bMnU" crossorigin="anonymous"><\/script><script>' +

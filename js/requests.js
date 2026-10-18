@@ -6,7 +6,7 @@
 Object.assign(T.ar, {
   rqTitle:'طلباتي', rqNew:'طلب جديد', rqEmpty:'لا توجد طلبات بعد. ابدأ بطلب جديد.', rqChoose:'ما نوع الطلب؟',
   rt_leave:'إجازة', rt_letter:'خطاب', rt_advance:'سلفة على الراتب', rt_correction:'تصحيح حضور', rt_data_change:'تحديث بياناتي', rt_resignation:'استقالة',
-  rt_exit_reentry:'تأشيرة خروج وعودة', rqVisaSingle:'مفردة', rqVisaMultiple:'متعددة', rqVisaDays:'مدة التأشيرة',
+  rt_exit_reentry:'تأشيرة خروج وعودة', rt_permission:'استئذان', rtd_permission:'ساعات من الدوام بإذن مديرك', rt_overtime:'عمل إضافي', rtd_overtime:'موافقة مسبقة على ساعات إضافية تصرف في راتبك', rqHours:'ساعات', rqDate:'التاريخ', rqFromTime:'من الساعة', rqToTime:'إلى الساعة', rqTimes:'الوقت', rqMonthUsed:'استئذان هذا الشهر', rqYearHours:'العمل الإضافي هذا العام', rqPayOvertime:'تضاف إلى مسير الشهر بعد الاعتماد', e_too_many_hours:'المدة أطول من الحد المسموح للاستئذان الواحد.', e_permission_month_cap:'تجاوزت ساعات الاستئذان المسموحة هذا الشهر.', rw_overtime_year_cap:'يتجاوز السقف السنوي للعمل الإضافي (720 ساعة)؛ تأكد من موافقة الجهات المختصة.', rqVisaSingle:'مفردة', rqVisaMultiple:'متعددة', rqVisaDays:'مدة التأشيرة',
   rtd_exit_reentry:'لغير السعوديين: للسفر والعودة', rqVisaType:'نوع التأشيرة', rqTravelFrom:'تاريخ السفر', rqTravelTo:'تاريخ العودة', rqDeps:'المرافقون', rqLeaveRef:'رقم طلب الإجازة المرتبط (اختياري)', rqPurpose:'الغرض', rqTrip:'مدة الرحلة',
   rstep_executive:'بانتظار الرئيس التنفيذي', rstep_dept_head:'بانتظار رئيس الإدارة', rstep_person:'بانتظار',
   rw_iqama_expires_before_return:'تنتهي الإقامة قبل تاريخ العودة؛ جدّدها قبل إصدار التأشيرة.', rw_visa_shorter_than_trip:'مدة التأشيرة أقصر من مدة السفر.',
@@ -39,7 +39,7 @@ Object.assign(T.ar, {
 Object.assign(T.en, {
   rqTitle:'My requests', rqNew:'New request', rqEmpty:'No requests yet. Start a new one.', rqChoose:'What would you like to request?',
   rt_leave:'Leave', rt_letter:'Letter', rt_advance:'Salary advance', rt_correction:'Attendance correction', rt_data_change:'Update my details', rt_resignation:'Resignation',
-  rt_exit_reentry:'Exit/re-entry visa', rqVisaSingle:'single', rqVisaMultiple:'multiple', rqVisaDays:'Visa length',
+  rt_exit_reentry:'Exit/re-entry visa', rt_permission:'Permission (hours)', rtd_permission:'Hours out of your working day, with your manager\'s approval', rt_overtime:'Overtime', rtd_overtime:'Pre-approval for extra hours paid in your salary', rqHours:'hours', rqDate:'Date', rqFromTime:'From', rqToTime:'To', rqTimes:'Time', rqMonthUsed:'Permission this month', rqYearHours:'Overtime this year', rqPayOvertime:'Added to the month\'s payroll once approved', e_too_many_hours:'That is longer than one permission allows.', e_permission_month_cap:'You have used this month\'s permission hours.', rw_overtime_year_cap:'This passes the yearly overtime ceiling (720 hours); check it is authorised.', rqVisaSingle:'single', rqVisaMultiple:'multiple', rqVisaDays:'Visa length',
   rtd_exit_reentry:'For non-Saudis: to travel and come back', rqVisaType:'Visa type', rqTravelFrom:'Travel date', rqTravelTo:'Return date', rqDeps:'Dependants', rqLeaveRef:'Linked leave request number (optional)', rqPurpose:'Purpose', rqTrip:'Trip length',
   rstep_executive:'With the CEO', rstep_dept_head:'With the department head', rstep_person:'With',
   rw_iqama_expires_before_return:'The iqama expires before the return date; renew it before the visa is issued.', rw_visa_shorter_than_trip:'The visa is shorter than the trip.',
@@ -103,7 +103,7 @@ var css = '' +
 '.lv-hol{margin-top:10px;font-size:13px;color:var(--ink-2)}';
 var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 
-var TYPES = [['leave', 'calendar-plus'], ['letter', 'envelope-simple'], ['advance', 'hand-coins'], ['correction', 'clock-counter-clockwise'], ['data_change', 'user-gear'], ['resignation', 'door-open'], ['exit_reentry', 'airplane-takeoff']];
+var TYPES = [['leave', 'calendar-plus'], ['letter', 'envelope-simple'], ['advance', 'hand-coins'], ['correction', 'clock-counter-clockwise'], ['data_change', 'user-gear'], ['resignation', 'door-open'], ['exit_reentry', 'airplane-takeoff'], ['permission', 'clock-user'], ['overtime', 'timer']];
 var DATA_KEYS = [['phone', 'phone', 'tel'], ['personalEmail', 'fPEmail', 'email'], ['nationalAddress', 'fNatAddr'], ['address', 'fAddr'], ['maritalStatus', 'fMarital', 'marital'],
   ['emergencyName', 'fEmName'], ['emergencyPhone', 'fEmPhone', 'tel'], ['iban', 'fIban', 'iban'], ['bankName', 'fBank'], ['passportNo', 'fPassport'], ['passportExpiry', 'fPassExp', 'date'], ['idExpiry', 'fIdExp', 'date']];
 var DOC_LEAVES = { sick: 1, maternity: 1, exam: 1, iddah: 1 };
@@ -123,6 +123,8 @@ function summary(o){
   if (o.type === 'resignation' && o.resignation) return t('rqLastDay') + ' ' + fmtDate(o.resignation.lastDay);
   if (o.type === 'letter' && o.letter) return o.letter.addressee;
   if (o.type === 'exit_reentry' && o.visa) return fmtDate(o.fromDate) + ' - ' + fmtDate(o.toDate) + '، ' + t(o.visa.visaType === 'multiple' ? 'rqVisaMultiple' : 'rqVisaSingle') + '، ' + t('rqVisaDays') + ' ' + plural(o.visa.durationDays, 'days');
+  if (o.type === 'permission' && o.permission) return fmtDate(o.permission.date) + '، ' + o.permission.fromTime + ' - ' + o.permission.toTime;
+  if (o.type === 'overtime' && o.overtime) return fmtDate(o.overtime.date) + '، ' + o.overtime.hours + ' ' + t('rqHours');
   if (o.type === 'data_change') return Object.keys(o.fields || {}).concat(o.fieldNames || []).map(function(k){ var d = DATA_KEYS.filter(function(x){ return x[0] === k; })[0]; return d ? t(d[1]) : k; }).join('، ');
   return '';
 }
@@ -281,7 +283,7 @@ Object.assign(T.ar, {
   rh_correction:'لبصمة لم تسجل في يومها. يراجعها مديرك ثم الموارد البشرية. خلال 30 يوما فقط.',
   rh_data_change:'تراجع الموارد البشرية التغيير قبل اعتماده. تغيير الحساب البنكي يسري بعد الاعتماد.',
   rh_resignation:'فترة الإشعار 30 يوما على الأقل أو حسب عقدك إن كانت أطول (المادة 75). الاستقالة التي لا يرد عليها خلال 30 يوما تعد مقبولة.',
-  rh_exit_reentry:'لغير السعوديين. يجب أن تكون الإقامة سارية بعد تاريخ العودة.'
+  rh_exit_reentry:'لغير السعوديين. يجب أن تكون الإقامة سارية بعد تاريخ العودة.', rh_permission:'حتى 4 ساعات في الطلب و8 ساعات في الشهر (تعدلها الموارد البشرية).', rh_overtime:'يصرف بأجر الساعة مع 50% من الأجر الأساسي (المادة 107) بعد اعتماد مديرك والموارد البشرية.'
 });
 Object.assign(T.en, {
   rqPageLead:'Choose what you need. The request page shows your balance, the live check and the approval path before you send.', rqWho:'Requested by', rqDetails:'Request details', rqNoteAtt:'Note and documents',
@@ -307,7 +309,7 @@ Object.assign(T.en, {
   rh_correction:'For a punch that did not record that day. Your manager and then HR check it. Within 30 days only.',
   rh_data_change:'HR reviews the change before it applies. A new bank account applies once approved.',
   rh_resignation:'Notice is at least 30 days, or your contract notice if longer (Art. 75). A resignation not answered within 30 days counts as accepted.',
-  rh_exit_reentry:'For non-Saudis. Your iqama must stay valid past the return date.'
+  rh_exit_reentry:'For non-Saudis. Your iqama must stay valid past the return date.', rh_permission:'Up to 4 hours per request and 8 hours a month (HR can change these).', rh_overtime:'Paid at the hourly wage plus 50% of basic (Art. 107) once your manager and HR approve.'
 });
 // The data-change labels (also in hr-console.js, which employees never load): defined here so the form never shows raw keys.
 Object.assign(T.ar, { fPEmail:'البريد الشخصي', fNatAddr:'العنوان الوطني', fAddr:'العنوان', fMarital:'الحالة الاجتماعية', fEmName:'اسم جهة الطوارئ', fEmPhone:'هاتف الطوارئ',
@@ -324,9 +326,9 @@ var css2 = '' +
 '.rq-hol{display:flex;flex-wrap:wrap;gap:6px}.rq-hol span{font-size:12px;padding:3px 9px;border-radius:999px;background:var(--info-bg);color:var(--info)}';
 var st2 = document.createElement('style'); st2.textContent = css2; document.head.appendChild(st2);
 
-var STEPS = { leave: ['manager', 'hr'], correction: ['manager', 'hr'], resignation: ['manager', 'hr'], letter: ['hr'], data_change: ['hr'], advance: ['hr', 'payroll'], exit_reentry: ['manager', 'hr'] };
+var STEPS = { leave: ['manager', 'hr'], correction: ['manager', 'hr'], resignation: ['manager', 'hr'], letter: ['hr'], data_change: ['hr'], advance: ['hr', 'payroll'], exit_reentry: ['manager', 'hr'], permission: ['manager', 'hr'], overtime: ['manager', 'hr'] };
 var ICON = {}; TYPES.forEach(function(x){ ICON[x[0]] = x[1]; });
-var TYPE_TINT = { leave: 'requests', letter: 'growth', advance: 'pay', correction: 'time', data_change: 'profile', resignation: 'people', exit_reentry: 'insights' };
+var TYPE_TINT = { leave: 'requests', letter: 'growth', advance: 'pay', correction: 'time', data_change: 'profile', resignation: 'people', exit_reentry: 'insights', permission: 'time', overtime: 'pay' };
 function lng(ar, en){ return S.lang === 'en' && en ? en : ar; }
 function initials2(n){ return typeof initials === 'function' ? initials(n || '') : String(n || '').slice(0, 2); }
 function stepName(st, o){
@@ -428,6 +430,14 @@ function sumHtml(type, q, rq, file){
     h += '<div class="fp-big"><b class="num">' + num1(q.days) + '</b><span>' + t('rqTrip') + '</span></div>';
     row(t('rqDates'), '<bdi>' + fmtDate(q.fromDate) + ' - ' + fmtDate(q.toDate) + '</bdi>');
     if (rq.payload) { row(t('rqVisaType'), t(rq.payload.visaType === 'multiple' ? 'rqVisaMultiple' : 'rqVisaSingle')); row(t('rqVisaDays'), plural(Number(rq.payload.durationDays) || 0, 'days')); }
+  } else if (type === 'permission') {
+    var pm = q.payload || {};
+    h += '<div class="fp-big"><b class="num">' + num1(q.hours) + '</b><span>' + t('rqHours') + ' · ' + fmtDate(pm.date) + '</span></div>';
+    row(t('rqTimes'), '<bdi dir="ltr">' + esc(pm.fromTime || '') + ' - ' + esc(pm.toTime || '') + '</bdi>'); row(t('rqMonthUsed'), '<span class="num">' + num1(((pm.monthUsed || 0) + (pm.minutes || 0)) / 60) + ' / ' + num1((pm.monthCap || 0) / 60) + '</span> ' + t('rqHours'));
+  } else if (type === 'overtime') {
+    var ot = q.payload || {};
+    h += '<div class="fp-big"><b class="num">' + num1(q.hours) + '</b><span>' + t('rqHours') + ' · ' + fmtDate(ot.date) + '</span></div>';
+    row(t('rqYearHours'), '<span class="num">' + num1((ot.yearHours || 0) + (q.hours || 0)) + '</span> ' + t('rqHours')); row(t('rqPayEffect'), t('rqPayOvertime'));
   } else if (type === 'correction') {
     var c = q.payload || {};
     h += '<div class="fp-big"><b><bdi dir="ltr">' + esc(c.time || '') + '</bdi></b><span>' + (c.punchType === 'out' ? t('rqOut') : t('rqIn')) + ' · ' + fmtDate(c.date) + '</span></div>';
@@ -509,6 +519,11 @@ function newPage(body, type){
         '<div class="field"><label>' + t('rqVisaDays') + '</label><input type="number" name="durationDays" min="1" max="730" value="60" inputmode="numeric" required></div></div>' +
         '<div class="two"><div class="field"><label>' + t('rqDeps') + '</label><input type="number" name="dependants" min="0" max="20" value="0" inputmode="numeric"></div><div class="field"><label>' + t('rqLeaveRef') + '</label><input name="leaveRef" dir="ltr" maxlength="30"></div></div>' +
         '<div class="field"><label>' + t('rqPurpose') + '</label><input name="purpose" maxlength="200"></div>';
+    } else if (type === 'permission') {
+      fields = '<div class="field"><label>' + t('rqDate') + '</label><input type="date" name="date" value="' + today + '" required></div>' +
+        '<div class="two"><div class="field"><label>' + t('rqFromTime') + '</label><input type="time" name="fromTime" value="10:00" required></div><div class="field"><label>' + t('rqToTime') + '</label><input type="time" name="toTime" value="12:00" required></div></div>';
+    } else if (type === 'overtime') {
+      fields = '<div class="two"><div class="field"><label>' + t('rqDate') + '</label><input type="date" name="date" value="' + today + '" required></div><div class="field"><label>' + t('rqHours') + '</label><input type="number" name="hours" min="0.5" max="12" step="0.5" value="2" inputmode="decimal" required></div></div>';
     } else if (type === 'resignation') {
       var notice = Math.max(30, (file.job && file.job.noticeDays) || 30), min = new Date(Date.parse(today + 'T00:00:00Z') + notice * 86400000).toISOString().slice(0, 10);
       fields = '<div class="field"><label>' + t('rqLastDay') + '</label><input type="date" name="lastDay" value="' + min + '" min="' + today + '" required><small>' + t('rqNotice') + ': ' + plural(notice, 'days') + '</small></div>';
@@ -535,6 +550,8 @@ function newPage(body, type){
       if (type === 'correction') rq.payload = { date: v.date, time: v.time, punchType: v.punchType };
       if (type === 'data_change') { rq.payload.fields = {}; DATA_KEYS.forEach(function(k){ if (v['f_' + k[0]]) rq.payload.fields[k[0]] = v['f_' + k[0]]; }); }
       if (type === 'resignation') rq.payload = { lastDay: v.lastDay };
+      if (type === 'permission') rq.payload = { date: v.date, fromTime: v.fromTime, toTime: v.toTime };
+      if (type === 'overtime') rq.payload = { date: v.date, hours: v.hours };
       if (type === 'exit_reentry') { rq.fromDate = v.fromDate; rq.toDate = v.toDate; rq.payload = { visaType: v.visaType, durationDays: v.durationDays, dependants: v.dependants, leaveRef: v.leaveRef, purpose: v.purpose }; }
       return rq;
     }
