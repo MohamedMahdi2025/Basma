@@ -360,3 +360,105 @@ function api_planClose(req, me) {
     return { ok: true, plan: publicPlan_(p, me, ctx) };
   });
 }
+
+
+// ======================================================================= exit interview (Wave 3, 2026-10-18)
+// Opened when an offboarding clearance starts (Custody.gs clearanceOpen_). The leaver rates five areas 1-5, gives the main
+// reason, would-return and recommend (0-10), and a comment. HR sees only aggregates, and only from MIN_GROUP answers; comments
+// are shown without names and shuffled. Nobody, HR included, reads one person's answers through the API.
+var EXIT_AREAS = ['manager', 'pay', 'growth', 'workload', 'culture'];
+var EXIT_REASONS = ['pay', 'growth', 'manager', 'workload', 'relocation', 'family', 'study', 'better_offer', 'health', 'other'];
+
+function exitSurveyOpen_(emp) {
+  if (readAll_(SHEETS.EXS).some(function (x) { return x.empId === emp.id && x.status !== 'cancelled'; })) return null;
+  var now = new Date().toISOString(), row = { id: newId_('X'), ref: nextRef_('exit_survey', refsOf_(SHEETS.EXS)), empId: emp.id, status: 'open', answersJson: '{}',
+    reason: '', submittedAt: '', createdAt: now };
+  append_(SHEETS.EXS, row);
+  return row;
+}
+function api_myExitSurvey(req, me) {
+  var x = readAll_(SHEETS.EXS).filter(function (r) { return r.empId === me.id && r.status === 'open'; })[0];
+  return { ok: true, survey: x ? { id: x.id, ref: x.ref, areas: EXIT_AREAS, reasons: EXIT_REASONS } : null };
+}
+function api_exitSurveySubmit(req, me) {
+  var a = req.answers || {}, out = { ratings: {} };
+  EXIT_AREAS.forEach(function (k) { var n = Math.floor(Number(a.ratings && a.ratings[k])); if (!(n >= 1 && n <= 5)) fail_('missing_fields'); out.ratings[k] = n; });
+  if (EXIT_REASONS.indexOf(a.reason) < 0) fail_('missing_fields');
+  var rec = Math.floor(Number(a.recommend));
+  if (!(rec >= 0 && rec <= 10)) fail_('bad_value');
+  out.reason = a.reason; out.recommend = rec; out.wouldReturn = a.wouldReturn === true; out.comment = str_(a.comment, 1000);
+  return withLock_(function () {
+    var x = readAll_(SHEETS.EXS).filter(function (r) { return r.empId === me.id && r.status === 'open'; })[0];
+    if (!x) fail_('not_found');
+    x.answersJson = JSON.stringify(out); x.reason = out.reason; x.status = 'submitted'; x.submittedAt = new Date().toISOString();
+    update_(SHEETS.EXS, x);
+    audit_(me.id, 'exit_survey_submit', me.id, { ref: x.ref });
+    return { ok: true };
+  });
+}
+/** The hr role only: averages, reasons, recommend score and anonymous comments, from MIN_GROUP answers in the period. */
+function api_exitSurveyResults(req, me) {
+  if (me.role !== 'hr' && !hasRole_(me, 'executive')) fail_('forbidden');
+  var from = isoDate_(req.from) || addDays_(today_(), -365), to = isoDate_(req.to) || today_();
+  var rows = readAll_(SHEETS.EXS).filter(function (x) { return x.status === 'submitted' && String(x.submittedAt).slice(0, 10) >= from && String(x.submittedAt).slice(0, 10) <= to; });
+  var open = readAll_(SHEETS.EXS).filter(function (x) { return x.status === 'open'; }).length;
+  if (rows.length < MIN_GROUP) return { ok: true, count: rows.length, open: open, minGroup: MIN_GROUP, hidden: true };
+  var sum = {}, reasons = {}, prom = 0, det = 0, back = 0, comments = [];
+  rows.forEach(function (x) {
+    var a = parseJson_(x.answersJson, {});
+    EXIT_AREAS.forEach(function (k) { sum[k] = (sum[k] || 0) + (Number(a.ratings && a.ratings[k]) || 0); });
+    reasons[a.reason] = (reasons[a.reason] || 0) + 1;
+    if (a.recommend >= 9) prom++; else if (a.recommend <= 6) det++;
+    if (a.wouldReturn) back++;
+    if (a.comment) comments.push(a.comment);
+  });
+  for (var i = comments.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), tmp = comments[i]; comments[i] = comments[j]; comments[j] = tmp; }
+  var avg = {}; EXIT_AREAS.forEach(function (k) { avg[k] = Math.round(sum[k] / rows.length * 10) / 10; });
+  return { ok: true, count: rows.length, open: open, averages: avg, reasons: reasons, enps: Math.round((prom - det) / rows.length * 100),
+    wouldReturn: Math.round(back / rows.length * 100), comments: comments };
+}
+
+// ======================================================================= recognition / kudos (Wave 3, 2026-10-18)
+var KUDOS_VALUES = ['teamwork', 'customer', 'safety', 'initiative', 'excellence'];
+function kudosPublic_(k, ctx) { return { id: k.id, from: empCard_(ctx.emps[k.fromId]), to: empCard_(ctx.emps[k.toId]), value: k.value, message: k.message, at: k.createdAt }; }
+function api_kudosSend(req, me) {
+  var d = req.kudos || {}, msg = str_(d.message, 280);
+  if (KUDOS_VALUES.indexOf(d.value) < 0 || !msg) fail_('missing_fields');
+  if (d.toId === me.id) fail_('cannot_decide_own');
+  return withLock_(function () {
+    var ctx = orgCtx_(), to = ctx.emps[d.toId];
+    if (!to || to.status !== 'active') fail_('not_found');
+    var t = today_();
+    if (readAll_(SHEETS.KUD).filter(function (k) { return k.fromId === me.id && String(k.createdAt).slice(0, 10) === t; }).length >= 5) fail_('kudos_daily_limit');
+    var row = { id: newId_('U'), fromId: me.id, toId: to.id, value: d.value, message: msg, status: 'active', createdAt: new Date().toISOString() };
+    append_(SHEETS.KUD, row);
+    audit_(me.id, 'kudos_send', to.id, { value: d.value });
+    return { ok: true, kudos: kudosPublic_(row, ctx) };
+  });
+}
+/** The company feed (everyone), what I received, and people to thank. */
+function api_kudosFeed(req, me) {
+  var ctx = orgCtx_(), all = readAll_(SHEETS.KUD).filter(function (k) { return k.status === 'active'; }).sort(function (a, b) { return a.createdAt < b.createdAt ? 1 : -1; });
+  var people = Object.keys(ctx.emps).map(function (k) { return ctx.emps[k]; }).filter(function (e) { return e.status === 'active' && e.id !== me.id; })
+    .map(function (e) { return { id: e.id, name: e.name, nameEn: e.nameEn, empNo: String(e.empNo) }; });
+  return { ok: true, values: KUDOS_VALUES, feed: all.slice(0, 40).map(function (k) { return kudosPublic_(k, ctx); }),
+    mine: all.filter(function (k) { return k.toId === me.id; }).slice(0, 20).map(function (k) { return kudosPublic_(k, ctx); }),
+    received: all.filter(function (k) { return k.toId === me.id; }).length, sentToday: all.filter(function (k) { return k.fromId === me.id && String(k.createdAt).slice(0, 10) === today_(); }).length, people: people };
+}
+/** HR, executives: by value and by department, this month and the last 12 months. */
+function api_kudosStats(req, me) {
+  if (!isHr_(me) && !hasRole_(me, 'executive')) fail_('forbidden');
+  var ctx = orgCtx_(), since = govAddMonths_(today_().slice(0, 7) + '-01', -11).slice(0, 7), byMonth = {}, byValue = {}, byDept = {}, top = {};
+  readAll_(SHEETS.KUD).forEach(function (k) {
+    if (k.status !== 'active') return;
+    var m = String(k.createdAt).slice(0, 7); if (m < since) return;
+    byMonth[m] = (byMonth[m] || 0) + 1; byValue[k.value] = (byValue[k.value] || 0) + 1;
+    var e = ctx.emps[k.toId] || {}, dn = ctx.depts[e.departmentId] ? ctx.depts[e.departmentId].nameAr : (e.department || '-');
+    byDept[dn] = (byDept[dn] || 0) + 1; top[k.toId] = (top[k.toId] || 0) + 1;
+  });
+  return { ok: true, byMonth: byMonth, byValue: byValue, byDept: byDept,
+    top: Object.keys(top).sort(function (a, b) { return top[b] - top[a]; }).slice(0, 10).map(function (id) { return { emp: empCard_(ctx.emps[id]), count: top[id] }; }) };
+}
+hrisHook_('tasks', function (me, ctx, add) {
+  add('exit_survey', readAll_(SHEETS.EXS).filter(function (x) { return x.empId === me.id && x.status === 'open'; }).length, { tab: 'file' });
+});

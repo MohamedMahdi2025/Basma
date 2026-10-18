@@ -164,6 +164,7 @@ function clearanceOpen_(emp, lastDay, reason, byId) {
     tasksJson: JSON.stringify(CLR_TASKS.map(function (t) { return { key: t.key, owner: t.owner, ar: t.ar, en: t.en, status: 'open', by: '', at: '' }; })),
     status: 'open', createdBy: byId, createdAt: new Date().toISOString(), clearedAt: '' };
   append_(SHEETS.CLR, row);
+  if (typeof exitSurveyOpen_ === 'function') exitSurveyOpen_(emp); // the exit interview opens with the clearance (Engage.gs)
   return row;
 }
 function api_clearanceStart(req, me) {

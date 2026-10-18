@@ -174,5 +174,35 @@ ok(r.ok && r.plan.ref === 'IDP-2026-00001', 'a development plan (IDP) needs only
 const aud = direct(() => B.ctx.readAll_('audit')).map(a => a.action);
 ok(['onboard_start', 'survey_open', 'policy_save', 'policy_ack', 'pip_start', 'plan_close', 'idp_start'].every(a => aud.includes(a)), 'every step is in the audit trail');
 
+
+console.log('Exit interview and recognition (Wave 3, 2026-10-18)');
+{
+  const people = Object.keys(ids);
+  const emp = '5001'; // an ordinary employee (3005 is the CEO with the executive role, who may read results)
+  const row = direct(() => B.ctx.exitSurveyOpen_(B.ctx.findBy_('employees', 'empNo', emp)));
+  ok(row && /^EXS-/.test(row.ref), 'an exit interview opens (EXS number)', row);
+  ok(direct(() => B.ctx.exitSurveyOpen_(B.ctx.findBy_('employees', 'empNo', emp))) === null, 'it opens only once per person');
+  let x = B.call({ action: 'myExitSurvey', token: tok(emp) });
+  ok(x.ok && x.survey && x.survey.areas.length === 5, 'the leaver sees the open survey', x);
+  x = B.call({ action: 'exitSurveySubmit', token: tok(emp), answers: { ratings: { manager: 4, pay: 2 }, reason: 'pay', recommend: 6 } });
+  ok(!x.ok && x.error === 'missing_fields', 'every area must be rated', x);
+  x = B.call({ action: 'exitSurveySubmit', token: tok(emp), answers: { ratings: { manager: 4, pay: 2, growth: 3, workload: 3, culture: 4 }, reason: 'pay', recommend: 6, wouldReturn: true, comment: 'راتب أقل من السوق' } });
+  ok(x.ok, 'the leaver submits', x);
+  x = B.call({ action: 'exitSurveyResults', token: tok('3001') });
+  ok(x.ok && x.hidden === true && x.count === 1 && !x.comments, 'under 5 answers HR sees only the count, nothing else', x);
+  x = B.call({ action: 'exitSurveyResults', token: tok(emp) });
+  ok(!x.ok && x.error === 'forbidden', 'an employee cannot read the results', x);
+  const other = '3005';
+  x = B.call({ action: 'kudosSend', token: tok(emp), kudos: { toId: B.ctx.findBy_('employees', 'empNo', emp).id, value: 'teamwork', message: 'x' } });
+  ok(!x.ok && x.error === 'cannot_decide_own', 'nobody thanks themselves', x);
+  for (let i = 0; i < 5; i++) x = B.call({ action: 'kudosSend', token: tok(emp), kudos: { toId: B.ctx.findBy_('employees', 'empNo', other).id, value: 'safety', message: 'شكرا ' + i } });
+  ok(x.ok && x.kudos.value === 'safety', 'thanks are sent with a company value', x);
+  x = B.call({ action: 'kudosSend', token: tok(emp), kudos: { toId: B.ctx.findBy_('employees', 'empNo', other).id, value: 'safety', message: 'six' } });
+  ok(!x.ok && x.error === 'kudos_daily_limit', 'at most 5 thanks a day', x);
+  x = B.call({ action: 'kudosFeed', token: tok(other) });
+  ok(x.ok && x.received === 5 && x.feed.length === 5 && !x.people.some(pp => pp.empNo === other), 'the receiver sees 5 thanks; the people list leaves themselves out', { received: x.received });
+  x = B.call({ action: 'kudosStats', token: tok('3001') });
+  ok(x.ok && x.byValue.safety === 5, 'HR sees thanks by value', x.byValue);
+}
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);

@@ -95,6 +95,8 @@ Object.assign(T.ar, {
   ros_draft:'مسودة', ros_pending:'بانتظار الاعتماد', ros_approved:'معتمد', ros_rejected:'مرفوض', ros_sent:'مرسل', ros_accepted:'مقبول', ros_declined:'مرفوض من المرشح', ros_expired:'انتهت صلاحيته', ros_withdrawn:'مسحوب', ros_hired:'تم التعيين',
   row_over_budget:'أعلى من ميزانية الطلب: يلزم ذكر السبب عند الاعتماد.', row_under_budget:'أقل من ميزانية الطلب.', row_nitaqat_half:'أجر السعودي بين 3,000 و3,999: يحتسب نصف موظف في نطاقات.',
   row_nitaqat_zero:'أجر السعودي أقل من 3,000: لا يحتسب في نطاقات.', row_below_expectation:'أقل من الراتب الذي يتوقعه المرشح.',
+  // Wave 3: exit interview and recognition
+  exTitle:'رأي المغادرين', exLead:'مقابلة الخروج: تقييم خمسة جوانب وسبب المغادرة، تعرض مجمعة فقط من 5 إجابات فأكثر، والتعليقات بلا أسماء.', exMy:'مقابلة الخروج', exMyLead:'إجاباتك سرية ولا تظهر باسمك؛ تساعدنا على التحسن.', exArea_manager:'المدير المباشر', exArea_pay:'الراتب والمزايا', exArea_growth:'فرص التطور', exArea_workload:'ضغط العمل', exArea_culture:'بيئة العمل', exReason:'السبب الرئيسي للمغادرة', exRecommend:'هل توصي صديقا بالعمل لدينا؟ (0-10)', exReturn:'سأعود للعمل هنا إن سنحت الفرصة', exComment:'ما الذي كان يمكن أن يبقيك؟', exSend:'إرسال', exThanks:'شكرا لك. وصلتنا إجاباتك.', exr_pay:'الراتب', exr_growth:'التطور الوظيفي', exr_manager:'المدير', exr_workload:'ضغط العمل', exr_relocation:'الانتقال لمدينة أخرى', exr_family:'ظروف عائلية', exr_study:'الدراسة', exr_better_offer:'عرض أفضل', exr_health:'الصحة', exr_other:'أخرى', exCount:'إجابات', exOpen:'بانتظار الإجابة', exHidden:'تظهر النتائج عند وصول 5 إجابات أو أكثر حفاظا على السرية.', exAvg:'متوسط التقييم', exReasons:'أسباب المغادرة', exEnps:'مؤشر التوصية', exBack:'سيعودون', exComments:'تعليقات (بلا أسماء)', kdTitle:'التقدير', kdLead:'شكر الزملاء على قيم الشركة؛ يراه الجميع ويقيس ثقافة التقدير.', kdMy:'شكرا زملائي', kdSend:'أرسل شكرا', kdTo:'إلى', kdValue:'القيمة', kdMsg:'رسالتك', kdFeed:'آخر الشكر في الشركة', kdMine:'شكر وصلني', kdReceived:'وصلك', kdSent:'تم إرسال الشكر', kdLeft:'متبقي اليوم', kdByValue:'حسب القيمة', kdByDept:'حسب القسم', kdTop:'الأكثر تقديرا', kdMonth:'هذا الشهر', kdv_teamwork:'روح الفريق', kdv_customer:'خدمة العميل', kdv_safety:'السلامة أولا', kdv_initiative:'المبادرة', kdv_excellence:'الإتقان', e_kudos_daily_limit:'وصلت إلى 5 رسائل شكر اليوم.',
   e_saudi_only:'هذه وظيفة موطنة: لا يقدم عرض لغير سعودي.', e_offer_expired:'انتهت صلاحية العرض؛ جدده قبل تسجيل القبول.'
 });
 Object.assign(T.en, {
@@ -180,6 +182,7 @@ Object.assign(T.en, {
   ros_draft:'Draft', ros_pending:'Waiting for approval', ros_approved:'Approved', ros_rejected:'Rejected', ros_sent:'Sent', ros_accepted:'Accepted', ros_declined:'Declined by the candidate', ros_expired:'Expired', ros_withdrawn:'Withdrawn', ros_hired:'Hired',
   row_over_budget:'Above the request budget: the approver must give the reason.', row_under_budget:'Below the request budget.', row_nitaqat_half:'Saudi wage between 3,000 and 3,999: counts as half in Nitaqat.',
   row_nitaqat_zero:'Saudi wage under 3,000: does not count in Nitaqat.', row_below_expectation:'Below the salary the candidate expects.',
+  exTitle:'Exit insights', exLead:'Exit interviews: five areas rated and the reason for leaving, shown only as totals from 5 answers, comments without names.', exMy:'Exit interview', exMyLead:'Your answers are confidential and never shown with your name; they help us improve.', exArea_manager:'Your manager', exArea_pay:'Pay and benefits', exArea_growth:'Room to grow', exArea_workload:'Workload', exArea_culture:'Work environment', exReason:'Main reason for leaving', exRecommend:'Would you recommend working here to a friend? (0-10)', exReturn:'I would come back if the chance came', exComment:'What could have kept you?', exSend:'Send', exThanks:'Thank you. We have your answers.', exr_pay:'Pay', exr_growth:'Career growth', exr_manager:'Manager', exr_workload:'Workload', exr_relocation:'Moving city', exr_family:'Family', exr_study:'Study', exr_better_offer:'A better offer', exr_health:'Health', exr_other:'Other', exCount:'answers', exOpen:'Waiting for an answer', exHidden:'Results show from 5 answers, to keep them confidential.', exAvg:'Average rating', exReasons:'Reasons for leaving', exEnps:'Recommend score', exBack:'Would come back', exComments:'Comments (no names)', kdTitle:'Recognition', kdLead:'Thank colleagues against the company values; everyone sees it, and it measures the culture of recognition.', kdMy:'Thank a colleague', kdSend:'Send thanks', kdTo:'To', kdValue:'Value', kdMsg:'Your message', kdFeed:'Latest thanks across the company', kdMine:'Thanks I received', kdReceived:'Received', kdSent:'Thanks sent', kdLeft:'left today', kdByValue:'By value', kdByDept:'By department', kdTop:'Most thanked', kdMonth:'This month', kdv_teamwork:'Teamwork', kdv_customer:'Customer first', kdv_safety:'Safety first', kdv_initiative:'Initiative', kdv_excellence:'Excellence', e_kudos_daily_limit:'You have sent 5 thanks today.',
   e_saudi_only:'This is a localised job: no offer to a non-Saudi.', e_offer_expired:'The offer has expired; renew it before recording the acceptance.'
 });
 
@@ -973,9 +976,89 @@ function myInterviewsCard(el){
   });
 }
 
+
+// =================================================================== EXIT INTERVIEW (Wave 3)
+var EX_AREAS = ['manager', 'pay', 'growth', 'workload', 'culture'];
+function myExitCard(el){
+  api('myExitSurvey', {}, true).then(function(r){
+    if (!el.isConnected || !r.ok || !r.survey) return;
+    var s = r.survey, d = el.querySelector('[data-w2=exit]') || document.createElement('div'); d.className = 'mf-card op-card'; d.dataset.w2 = 'exit';
+    d.innerHTML = '<h3><span class="ic">' + ph('door-open') + '</span>' + t('exMy') + '</h3><p class="hr-hint">' + t('exMyLead') + '</p><form class="form" id="exF">' +
+      EX_AREAS.map(function(k){ return fld(t('exArea_' + k), '<select name="r_' + k + '" required>' + opts([[5, '5'], [4, '4'], [3, '3'], [2, '2'], [1, '1']], '', '-') + '</select>'); }).join('') +
+      fld(t('exReason'), '<select name="reason" required>' + keyOpts(s.reasons, 'exr_', '', '-') + '</select>') + fld(t('exRecommend'), '<input name="recommend" type="number" min="0" max="10" required>') +
+      chk('wouldReturn', t('exReturn')) + fld(t('exComment'), '<textarea name="comment" rows="3" maxlength="1000"></textarea>') + '<p class="hr-bad" id="exE" role="alert"></p><div class="btnrow"><button class="btn btn-dark" type="submit">' + t('exSend') + '</button></div></form>';
+    if (!d.isConnected) el.insertBefore(d, el.firstChild);
+    var f = $('#exF', d); f.onsubmit = function(ev){ ev.preventDefault(); var v = formVals(f), rt = {}; EX_AREAS.forEach(function(k){ rt[k] = v['r_' + k]; });
+      api('exitSurveySubmit', { answers: { ratings: rt, reason: v.reason, recommend: v.recommend, wouldReturn: v.wouldReturn, comment: v.comment } }).then(function(x){
+        if (!x.ok) return $('#exE', d).textContent = errText(x.error); d.innerHTML = '<h3><span class="ic">' + ph('seal-check') + '</span>' + t('exThanks') + '</h3>'; refreshTasks(); }); };
+  });
+}
+function exitSection(body){
+  var box = head(body, 'exTitle', 'exLead'); busy(box);
+  api('exitSurveyResults', {}, true).then(function(r){
+    if (!box.isConnected) return;
+    if (!r.ok) return box.innerHTML = bad(r.error);
+    var h = tiles([[t('exCount'), n(r.count), '', true], [t('exOpen'), n(r.open)]].concat(r.hidden ? [] : [[t('exEnps'), n(r.enps)], [t('exBack'), r.wouldReturn + '%']]));
+    if (r.hidden) { box.innerHTML = h + empty('lock', t('exHidden')); wire(box); return; }
+    var V = window.Viz, bars = function(list){ return V && V.hbars ? V.hbars(list) : list.map(function(x){ return '<div>' + x.label + ': ' + x.text + '</div>'; }).join(''); };
+    var av = EX_AREAS.map(function(k){ return { label: t('exArea_' + k), value: r.averages[k], text: String(r.averages[k]), tip: t('exArea_' + k) + ': ' + r.averages[k] + '/5' }; });
+    var rs = Object.keys(r.reasons).sort(function(a, b){ return r.reasons[b] - r.reasons[a]; }).map(function(k){ return { label: t('exr_' + k), value: r.reasons[k], text: String(r.reasons[k]), tip: t('exr_' + k) + ': ' + r.reasons[k] }; });
+    h += '<div class="db-grid">' + (V && V.card ? V.card('exa', t('exAvg'), '', bars(av), '') + V.card('exr', t('exReasons'), '', bars(rs), '') : bars(av) + bars(rs)) + '</div>';
+    h += '<h4>' + t('exComments') + '</h4>' + (r.comments.length ? '<div class="list">' + r.comments.map(function(c){ return '<div class="row"><div class="main"><small class="w2-body">' + esc(c) + '</small></div></div>'; }).join('') + '</div>' : '<p class="hr-hint">' + t('w2None') + '</p>');
+    box.innerHTML = h; wire(box);
+  });
+}
+
+// =================================================================== RECOGNITION / KUDOS (Wave 3)
+var KD_ICON = { teamwork: 'users-three', customer: 'handshake', safety: 'shield-check', initiative: 'lightbulb', excellence: 'medal' };
+function kudosRow(k){
+  return '<div class="row w2-row">' + av(k.from) + '<div class="main"><b>' + (k.from ? esc(lang(k.from.name, k.from.nameEn)) : '') + ' ' + ph(S.lang === 'en' ? 'arrow-right' : 'arrow-left') + ' ' + (k.to ? esc(lang(k.to.name, k.to.nameEn)) : '') + '</b>' +
+    '<small>' + ph(KD_ICON[k.value] || 'heart') + ' ' + t('kdv_' + k.value) + sep() + fmtT(k.at) + '</small><small class="w2-body">' + esc(k.message) + '</small></div></div>';
+}
+function kudosForm(r, again){
+  var d = formDrawer(t('kdSend'), (5 - r.sentToday) + ' ' + t('kdLeft'), fld(t('kdTo'), '<select name="toId" required>' + opts(r.people.map(function(p){ return [p.id, lang(p.name, p.nameEn) + ' (' + p.empNo + ')']; }), '', '-') + '</select>') +
+    fld(t('kdValue'), '<select name="value" required>' + keyOpts(r.values, 'kdv_', 'teamwork') + '</select>') + fld(t('kdMsg'), '<textarea name="message" rows="3" maxlength="280" required></textarea>'),
+    function(v){ return api('kudosSend', { kudos: v }); }, function(){ toast(t('kdSent')); if (again) again(); }, t('kdSend'));
+  return d;
+}
+function myKudosCard(el){
+  api('kudosFeed', {}, true).then(function(r){
+    if (!el.isConnected || !r.ok) return;
+    var d = el.querySelector('[data-w2=kd]') || document.createElement('div'); d.className = 'mf-card op-card'; d.dataset.w2 = 'kd';
+    d.innerHTML = '<h3><span class="ic">' + ph('hands-clapping') + '</span>' + t('kdMy') + '<span class="sp"></span>' + (r.received ? chip(t('kdReceived') + ' ' + r.received, 'in') + ' ' : '') +
+      '<button type="button" class="btn btn-line btn-sm" data-ask="1">' + ph('heart') + t('kdSend') + '</button></h3>' + (r.mine.length ? r.mine.slice(0, 3).map(kudosRow).join('') : '');
+    if (!d.isConnected) el.appendChild(d);
+    $('[data-ask]', d).onclick = function(){ kudosForm(r, function(){ myKudosCard(el); }); };
+  });
+}
+function kudosSection(body){
+  var box = head(body, 'kdTitle', 'kdLead');
+  function load(){
+    busy(box);
+    Promise.all([api('kudosFeed', {}, true), api('kudosStats', {}, true)]).then(function(rs){
+      if (!box.isConnected) return;
+      var f = rs[0], s = rs[1];
+      if (!f.ok) return box.innerHTML = bad(f.error);
+      var h = '';
+      if (s.ok) {
+        var mk = new Date().toISOString().slice(0, 7), V = window.Viz;
+        h += tiles([[t('kdMonth'), n(s.byMonth[mk] || 0), '', true], [t('kdTop'), s.top[0] ? esc(s.top[0].emp ? s.top[0].emp.name : '') : '-']]);
+        var vb = Object.keys(s.byValue).map(function(k){ return { label: t('kdv_' + k), value: s.byValue[k], text: String(s.byValue[k]), tip: t('kdv_' + k) + ': ' + s.byValue[k] }; });
+        var db = Object.keys(s.byDept).sort(function(a, b){ return s.byDept[b] - s.byDept[a]; }).slice(0, 8).map(function(k){ return { label: esc(k), value: s.byDept[k], text: String(s.byDept[k]), tip: esc(k) + ': ' + s.byDept[k] }; });
+        if (V && V.card && V.hbars && (vb.length || db.length)) h += '<div class="db-grid">' + V.card('kdv', t('kdByValue'), '', V.hbars(vb), '') + V.card('kdd', t('kdByDept'), '', V.hbars(db), '') + '</div>';
+      }
+      h += '<div class="toolbar"><h4 style="margin:0">' + t('kdFeed') + '</h4><span class="sp"></span><button type="button" class="btn btn-dark btn-sm" id="kdNew">' + ph('heart') + t('kdSend') + '</button></div>';
+      h += f.feed.length ? '<div class="list">' + f.feed.map(kudosRow).join('') + '</div>' : empty('hands-clapping', t('w2None'));
+      box.innerHTML = h; wire(box);
+      $('#kdNew', box).onclick = function(){ kudosForm(f, load); };
+    });
+  }
+  load();
+}
+
 // =================================================================== the employee's own cards
 function myCards(el){
-  myAnnCard(el); myLoansCard(el); myInsCard(el); myTrainingCard(el); myDeskCard(el); myInterviewsCard(el);
+  myExitCard(el); myAnnCard(el); myKudosCard(el); myLoansCard(el); myInsCard(el); myTrainingCard(el); myDeskCard(el); myInterviewsCard(el);
 }
 
 window.Loans = { section: loansSection };
@@ -984,5 +1067,7 @@ window.Ann = { section: annSection };
 window.Ins = { section: insSection };
 window.Training = { section: trainingSection };
 window.Hire = { section: recruitSection };
+window.Exits = { section: exitSection };
+window.Kudos = { section: kudosSection };
 window.W2 = { myCards: myCards };
 })();
