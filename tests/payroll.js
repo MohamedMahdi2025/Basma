@@ -210,5 +210,34 @@ const mails = sent.filter(x => x.url.includes('/sendMail'));
 ok(r.ok && r.sent === 8 && r.skipped.length === 1 && r.skipped[0] === '1000' && mails.length === 8 && mails[0].url.includes('m.mahdi%40bestgas.sa') && JSON.parse(mails[0].o.payload).message.body.content.includes('صافي الراتب'),
   'once configured: one Graph sendMail per employee from m.mahdi@bestgas.sa; the one without an email is listed, not guessed', { sent: r.sent, n: mails.length });
 
+
+console.log('Annual pay review (CR), 2026-10-18');
+{
+  call('3001', 'hrEmpSave', { emp: { id: ids['5003'], managerId: ids['5006'] } });
+  let c = call('5006', 'compCycleSave', { cycle: { name: 'x', effectiveFrom: '2027-01-01', budgetPct: 5 } });
+  ok(!c.ok && c.error === 'forbidden', 'a manager cannot open a pay review', c);
+  c = call('3001', 'compCycleSave', { cycle: { name: 'مراجعة 2027', effectiveFrom: '2027-01-01', budgetPct: 5 } });
+  ok(c.ok && /^CR-/.test(c.cycle.ref) && c.cycle.status === 'open', 'HR opens the 2027 pay review (5% budget)', c.cycle || c);
+  const cyc = c.cycle;
+  let l = call('5006', 'compCycleList');
+  const mrows = l.ok && l.rows[0] ? l.rows[0].rows : [];
+  ok(l.ok && mrows.length === 1 && mrows[0].emp.empNo === '5003' && mrows[0].base === undefined && l.rows[0].budgetPct === undefined, 'the manager sees only their own person, and no pay at all', l.rows && l.rows[0]);
+  const r5003 = mrows[0] && mrows[0].id;
+  ok(call('5006', 'compPropose', { id: r5003, pct: 5, note: 'أداء ممتاز' }).ok, 'the manager proposes +5% for their person');
+  const all = call('3001', 'compCycleList').rows[0].rows;
+  const r5002 = all.find(x => x.emp && x.emp.empNo === '5002');
+  c = call('5006', 'compPropose', { id: r5002.id, pct: 10 });
+  ok(!c.ok && c.error === 'forbidden', 'a manager cannot propose for someone outside their team', c);
+  ok(call('3001', 'compPropose', { id: r5002.id, pct: 3 }).ok, 'HR proposes +3% for another person');
+  l = call('3001', 'compCycleList').rows[0];
+  const v = l.rows.find(x => x.emp.empNo === '5003');
+  ok(v.base === 6250 && v.increase === 312.5 && l.increase > 0 && l.usedPct > 0, 'HR sees the money: 5003 base 6,250 (basic + housing), +312.50, and the budget used', { v, used: l.usedPct });
+  c = call('3002', 'compCycleClose', { id: cyc.id });
+  const pend = direct(() => B.ctx.readAll_('compensation')).filter(x => x.status === 'pending' && x.effectiveFrom === '2027-01-01');
+  const p3 = pend.find(x => x.empId === ids['5003']);
+  ok(c.ok && c.proposals === 2 && p3 && Number(p3.basic) === 5250 && Number(p3.housing) === 1312.5 && p3.enteredBy === ids['3002'], 'closing files the increases as pending salary proposals (5003: 5,250 + 1,312.50 from 2027-01-01)', { c, p3 });
+  c = call('3002', 'hrCompDecide', { ids: [p3.id], decision: 'approve' });
+  ok(!c.ok && c.error === 'second_approver_required', 'the person who closed the review cannot also approve the new salary', c);
+}
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);

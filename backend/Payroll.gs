@@ -670,3 +670,92 @@ hrisHook_('tasks', function (me, ctx, add) {
   add('settlement_approve', all.filter(function (x) { return x.status === 'draft' && x.preparedBy !== me.id && x.empId !== me.id; }).length, { tab: 'hr', sec: 'settlements' });
   add('settlement_pay', all.filter(function (x) { return x.status === 'approved' && x.empId !== me.id; }).length, { tab: 'hr', sec: 'settlements' });
 });
+
+
+// ======================================================================= annual pay review (Wave 3, 2026-10-18)
+function crSeesPay_(me) { return canProposeComp_(me); } // the hr role or payroll
+function crRows_(cycleId) { return readAll_(SHEETS.CRP).filter(function (p) { return p.cycleId === cycleId; }); }
+function crPublic_(c, me, ctx) {
+  var rows = crRows_(c.id), money = crSeesPay_(me), comp = readAll_(SHEETS.COMP), base = 0, inc = 0, proposed = 0;
+  var mine = rows.filter(function (p) { if (money) return true; var e = ctx.emps[p.empId]; return e && manages_(me, e, ctx); });
+  var out = mine.map(function (p) {
+    var e = ctx.emps[p.empId], v = { id: p.id, emp: empCard_(e), pct: p.pct === '' ? null : Number(p.pct), note: p.note, proposedBy: ctx.emps[p.proposedBy] ? ctx.emps[p.proposedBy].name : '', status: p.status };
+    if (money) { var k = compOn_(p.empId, today_(), comp), b = k ? k.basic + (c.basis === 'basic' ? 0 : k.housing) : 0; v.base = r2_(b); v.increase = r2_(b * (Number(p.pct) || 0) / 100); base += b; inc += v.increase; }
+    if (p.pct !== '') proposed++;
+    return v;
+  });
+  var o = { id: c.id, ref: c.ref, name: c.name, effectiveFrom: String(c.effectiveFrom).slice(0, 10), basis: c.basis, status: c.status, rows: out, proposed: proposed, total: mine.length,
+    canManage: crSeesPay_(me), note: c.note };
+  if (money) { o.budgetPct = Number(c.budgetPct) || 0; o.base = r2_(base); o.increase = r2_(inc); o.usedPct = base ? Math.round(inc / base * 1000) / 10 : 0; }
+  return o;
+}
+function api_compCycleSave(req, me) {
+  if (!crSeesPay_(me)) fail_('forbidden');
+  var d = req.cycle || {}, name = str_(d.name, 100), eff = isoDate_(d.effectiveFrom), bud = Number(d.budgetPct);
+  if (!name || !eff) fail_('missing_fields');
+  if (!(bud >= 0 && bud <= 50)) fail_('bad_value');
+  return withLock_(function () {
+    if (readAll_(SHEETS.CRC).some(function (c) { return c.status === 'open'; })) fail_('already_exists');
+    var ctx = orgCtx_(), now = new Date().toISOString(), c = { id: newId_('C'), ref: nextRef_('comp_cycle', refsOf_(SHEETS.CRC)), name: name, effectiveFrom: eff, budgetPct: bud,
+      basis: d.basis === 'basic' ? 'basic' : 'basic_housing', status: 'open', note: str_(d.note, 300), createdBy: me.id, createdAt: now, closedAt: '' };
+    append_(SHEETS.CRC, c);
+    var rows = Object.keys(ctx.emps).map(function (k) { return ctx.emps[k]; }).filter(function (e) { return e.status === 'active' && !demoEmpIds_()[e.id]; })
+      .map(function (e) { return { id: newId_('Q'), cycleId: c.id, empId: e.id, pct: '', note: '', proposedBy: '', status: 'open', updatedAt: now }; });
+    appendMany_(SHEETS.CRP, rows);
+    audit_(me.id, 'comp_cycle_open', '', { ref: c.ref, people: rows.length });
+    return { ok: true, cycle: crPublic_(c, me, ctx) };
+  });
+}
+function api_compCycleList(req, me) {
+  var ctx = orgCtx_();
+  if (!crSeesPay_(me) && !managesAnyone_(me, ctx)) fail_('forbidden');
+  var rows = readAll_(SHEETS.CRC).filter(function (c) { return crSeesPay_(me) || c.status === 'open'; }).sort(function (a, b) { return a.createdAt < b.createdAt ? 1 : -1; });
+  if (crSeesPay_(me)) audit_(me.id, 'salary_view', '', { compCycles: rows.length });
+  return { ok: true, rows: rows.map(function (c) { return crPublic_(c, me, ctx); }), canManage: crSeesPay_(me) };
+}
+/** A manager (for their people) or the hr role / payroll proposes an increase % while the cycle is open. */
+function api_compPropose(req, me) {
+  if (!crSeesPay_(me) && !managesAnyone_(me, orgCtx_())) fail_('forbidden'); // the role gate comes before any validation
+  var pct = Number(req.pct);
+  if (!(pct >= 0 && pct <= 50) || Math.round(pct * 10) !== pct * 10) fail_('bad_value');
+  return withLock_(function () {
+    var ctx = orgCtx_(), p = findBy_(SHEETS.CRP, 'id', req.id);
+    if (!p) fail_('not_found');
+    var c = findBy_(SHEETS.CRC, 'id', p.cycleId), e = ctx.emps[p.empId];
+    if (!c || c.status !== 'open') fail_('not_found');
+    if (p.empId === me.id) fail_('cannot_change_own_salary');
+    if (!crSeesPay_(me) && !(e && manages_(me, e, ctx))) fail_('forbidden');
+    p.pct = pct; p.note = str_(req.note, 300); p.proposedBy = me.id; p.updatedAt = new Date().toISOString();
+    update_(SHEETS.CRP, p);
+    audit_(me.id, 'comp_cycle_propose', p.empId, { cycle: c.ref, pct: pct });
+    return { ok: true };
+  });
+}
+/** HR / payroll close the cycle: each increase above 0 becomes a pending salary proposal from the effective date. */
+function api_compCycleClose(req, me) {
+  if (!crSeesPay_(me)) fail_('forbidden');
+  var c = findBy_(SHEETS.CRC, 'id', req.id);
+  if (!c || c.status !== 'open') fail_('not_found');
+  var comp = readAll_(SHEETS.COMP), made = 0, skipped = 0;
+  crRows_(c.id).forEach(function (p) {
+    var pct = Number(p.pct) || 0;
+    if (!(pct > 0) || p.empId === me.id) { skipped++; return; }
+    var k = compOn_(p.empId, today_(), comp);
+    if (!k) { skipped++; return; }
+    var f = 1 + pct / 100;
+    api_hrCompPropose({ empId: p.empId, effectiveFrom: String(c.effectiveFrom).slice(0, 10), basic: r2_(k.basic * f), housing: r2_(c.basis === 'basic' ? k.housing : k.housing * f),
+      transport: k.transport, other: k.other || {}, reason: c.ref + ' ' + c.name + ' +' + pct + '%' }, me);
+    READ_MEMO_ = {}; made++;
+  });
+  return withLock_(function () {
+    var x = findBy_(SHEETS.CRC, 'id', c.id);
+    x.status = 'closed'; x.closedAt = new Date().toISOString(); update_(SHEETS.CRC, x);
+    audit_(me.id, 'comp_cycle_close', '', { ref: x.ref, proposals: made });
+    return { ok: true, proposals: made, skipped: skipped };
+  });
+}
+hrisHook_('tasks', function (me, ctx, add) {
+  var open = readAll_(SHEETS.CRC).filter(function (c) { return c.status === 'open'; });
+  if (!open.length || crSeesPay_(me)) return;
+  add('comp_review', readAll_(SHEETS.CRP).filter(function (p) { var e = ctx.emps[p.empId]; return p.cycleId === open[0].id && p.pct === '' && e && manages_(me, e, ctx); }).length, { tab: 'hr', sec: 'payreview' });
+});

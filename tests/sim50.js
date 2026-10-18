@@ -1283,7 +1283,7 @@ const COLS = ['employee', 'manager', 'hr', 'payroll', 'executive', 'admin'];
 // Expected with an empty request. Actions that pick their target first are probed with a real target (PROBE).
 const ALLW = { all: COLS, hrA: ['hr', 'admin'], adm: ['admin'], pay: ['hr', 'payroll'], payOnly: ['payroll'], dash: ['hr', 'payroll', 'executive', 'admin'], hrPay: ['hr', 'payroll', 'admin'],
   mgr: ['manager', 'hr', 'admin'], none: [], fileView: ['manager', 'hr', 'payroll', 'admin'],
-  mgrX: ['manager', 'hr', 'executive', 'admin'], money: ['hr', 'payroll', 'executive'], hrExec: ['hr', 'executive'], hrExecA: ['hr', 'executive', 'admin'] };
+  mgrX: ['manager', 'hr', 'executive', 'admin'], money: ['hr', 'payroll', 'executive'], hrExec: ['hr', 'executive'], hrExecA: ['hr', 'executive', 'admin'], mgrPay: ['manager', 'hr', 'payroll', 'admin'] };
 const EXPECT = {
   hrCompList: 'pay', hrCompPropose: 'pay', hrCompDecide: 'pay', leaveTeam: 'mgr', payrollList: 'pay', payrollGet: 'pay', payrollCreate: 'pay', payrollRecalc: 'pay', payrollApprove: 'payOnly',
   payrollDelete: 'pay', payrollAdjSave: 'pay', payrollAdjDelete: 'pay', payrollExport: 'pay', payrollEmail: 'pay', eosQuote: 'pay', dashboard: 'dash', reportLog: 'hrPay', reportReview: 'hrPay',
@@ -1299,7 +1299,9 @@ const EXPECT = {
   // Wave 3 (Engage.gs): exit results for the hr role and executives (never an admin alone), recognition stats for HR, executives, admins
   exitSurveyResults: 'hrExec', kudosStats: 'hrExecA',
   // final settlement (Payroll.gs): prepare and list by hr role or payroll, decide and pay by payroll only
-  finalSettlementCreate: 'pay', finalSettlementList: 'pay', finalSettlementDecide: 'payOnly', finalSettlementPaid: 'payOnly'
+  finalSettlementCreate: 'pay', finalSettlementList: 'pay', finalSettlementDecide: 'payOnly', finalSettlementPaid: 'payOnly',
+  // annual pay review (Payroll.gs): cycles by hr role / payroll; managers list and propose for their people
+  compCycleSave: 'pay', compCycleClose: 'pay', compCycleList: 'mgrPay', compPropose: 'mgrPay'
 };
 const T16 = ids['1018'];
 const PROBE = { hrEmpFile: { id: T16 }, perfEmp: { empId: T16, cycleId: CYC.id }, planSave: { plan: { empId: T16, type: 'idp' } }, delegationSave: { delegation: { toEmpId: ids['1003'] } },
