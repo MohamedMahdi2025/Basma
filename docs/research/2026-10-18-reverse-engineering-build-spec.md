@@ -72,3 +72,62 @@ Each row gives the module, then the source, tabs, actions and screen.
 
 **Confidence:** high on what we lack (read from our code); medium on how each vendor implements it (from their public
 documentation, not hands-on use).
+
+## 5. Update, later on 2026-10-18: what is now built, and the next build list
+
+**Built and live today (O, from our code and the deploy log):**
+- permission (PM) and overtime (OT) requests;
+- resignation deemed acceptance enforced;
+- overnight shifts;
+- business trips with per diem (TR);
+- final settlement (FS);
+- annual pay review (CR);
+- timesheets;
+- exit interview;
+- recognition;
+- org chart;
+- custom fields and the report builder;
+- icons on every tab;
+- sign-in redesign;
+- laptop check-in fix;
+- location prompt;
+- print margins.
+
+**Fresh public evidence (O: vendor pages and press, 2026):**
+- **Gartner 2026 HCM leaders:** Workday, Oracle, UKG.
+  - Oracle pushes agentic AI inside HCM.
+  - UKG's strength is workforce management (open shifts, swaps).
+- **Jisr 2026:** public careers page for ATS, a redesigned roles and permissions screen, a redesigned GOSI page, and a move into payments, expenses and accounting.
+- **Deel:** workforce planning inside the HRIS.
+- **ZenHR:** earned-wage access (a partner product).
+- **Bayzat:** a live Nitaqat band dashboard (vendor claim).
+
+Sources:
+- https://newsroom.workday.com/2026-09-02-Workday-Named-a-Leader-in-2026-Gartner-R-Magic-Quadrant-TM-for-Cloud-HCM-Suites-for-1,000-Employee-Enterprises-for-Eleventh-Consecutive-Year
+- https://www.oracle.com/news/announcement/oracle-named-a-leader-in-2026-gartner-magic-quadrant-for-hcm-suites-2026-09-22/
+- https://www.ukg.com/learn/resources/analyst-report/2026-gartner-magic-quadrant-cloud-hcm-suites-1000-employee-enterprises
+- https://www.jisr.net/en/product-updates/march-2026
+- https://updates.jisr.net/en/whats-new-at-jisr-june-2025
+- https://www.zawya.com/en/press-release/events-conferences/leap-2026-sees-launch-of-new-technologies-for-hr-and-financial-operations-472694
+- https://www.outsail.co/post/is-rippling-right-for-your-business-2026
+- https://www.bayzat.com/blog/?p=26314
+
+**Next build list (code only, no owner action), in order:**
+
+| # | Module | Seen in | Fits into |
+|---|---|---|---|
+| 1 | Leave year-end: carry-over cap and encashment, plus a team overlap warning on the leave form | Oracle, Bayzat | Leave.gs quote_, a new year-end action |
+| 2 | Open shifts and shift swaps (manager approves) | UKG, Jisr | Shifts.gs roster |
+| 3 | Public careers page and online application with PDPL consent | Jisr 2026 | Recruitment.gs public action, rate-limited |
+| 4 | Workforce / headcount plan by department against approved positions | Deel, Workday | positions + requisitions |
+| 5 | 1:1 meetings and continuous goals between review cycles | HiBob, Workday | Performance.gs |
+| 6 | Survey builder (custom questions, anonymity kept) | Workday, HiBob | Engage.gs surveys |
+| 7 | HR knowledge base articles shown inside the help desk before a ticket | Oracle, Jisr | HelpDesk.gs |
+| 8 | Succession and 9-box (performance x potential) | SAP, Oracle, Workday | Performance.gs |
+| 9 | Art. 77 compensation in the settlement | KSA law | Payroll.gs api_eosQuote |
+| 10 | Roles and permissions overview screen | Jisr 2026 | Admin.gs, read-only matrix |
+
+**Still blocked:**
+- On the owner: e-mail and WhatsApp notifications, file attachments, payslip e-mail (each needs a scope and a re-authorise), and the speed fix (the platform server needs a cloud account).
+- On partners or hardware: Mudad, GOSI, Qiwa and Muqeem APIs; Tameeni; earned-wage access; LMS content; biometric devices.
+- On a provider key: AI agents.

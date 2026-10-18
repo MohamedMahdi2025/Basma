@@ -905,3 +905,64 @@ function api_customValuesAll(req, me) {
   var by = {}; readAll_(SHEETS.CFV).forEach(function (v) { (by[v.empId] = by[v.empId] || {})[v.fieldId] = v.value; });
   return { ok: true, fields: cfFields_(false).map(cfPublic_), values: by };
 }
+
+
+// ======================================================================= search across records (2026-10-18)
+// DESIGN CHOICE, after Microsoft Sticky Notes' visible behaviour: the whole text of a record is searched, as the user types,
+// and the matched words come back with a snippet so the palette can highlight them. Not reverse-engineered (the Sticky Notes
+// installed on the build machine is only a Store install stub). Every source applies the rule the app already uses to show
+// that record, so search never reveals anything the caller could not open: own requests and those they can act on, the
+// announcements addressed to them, their own help-desk tickets and the queues they handle, active courses, documents (own;
+// HR all), and recruitment for HR only. At most SEARCH_PER_GROUP results per source.
+var SEARCH_PER_GROUP = 5;
+function searchNorm_(s) { return String(s == null ? '' : s).toLowerCase().replace(/[\u064B-\u0652\u0640]/g, '').replace(/[\u0623\u0625\u0622]/g, '\u0627').replace(/\u0629/g, '\u0647').replace(/\u0649/g, '\u064A'); }
+/** A short piece of the original text around the first match (by normalised position), or '' when the text has no match. */
+function searchSnippet_(text, q) {
+  var src = String(text == null ? '' : text), n = '', map = [];
+  for (var i = 0; i < src.length; i++) { var c = searchNorm_(src.charAt(i)); for (var k = 0; k < c.length; k++) { n += c.charAt(k); map.push(i); } }
+  var at = n.indexOf(q);
+  if (at < 0) return '';
+  var from = map[at], to = map[Math.min(n.length - 1, at + q.length - 1)] + 1, a = Math.max(0, from - 40), b = Math.min(src.length, to + 60);
+  return (a > 0 ? '…' : '') + src.slice(a, b).replace(/\s+/g, ' ') + (b < src.length ? '…' : '');
+}
+function api_searchAll(req, me) {
+  var q = searchNorm_(String(req.q || '').trim()).slice(0, 60);
+  if (q.length < 2) return { ok: true, q: q, groups: [] };
+  var ctx = orgCtx_(), hr = isHr_(me), groups = [];
+  var hit = function (fields) { for (var i = 0; i < fields.length; i++) { var s = searchSnippet_(fields[i], q); if (s) return s; } return ''; };
+  var add = function (key, items) { if (items.length) groups.push({ key: key, items: items.slice(0, SEARCH_PER_GROUP), more: items.length > SEARCH_PER_GROUP }); };
+  // requests: mine, and those waiting for my step
+  add('requests', readAll_(SHEETS.REQ).filter(function (r) { return r.empId === me.id || canAct_(me, r, ctx.emps[r.empId], ctx); })
+    .sort(function (a, b) { return a.createdAt < b.createdAt ? 1 : -1; }).map(function (r) {
+      var e = ctx.emps[r.empId], s = hit([r.ref, r.reason, r.subtype, r.type, e && r.empId !== me.id ? e.name : '']);
+      return s ? { ref: r.ref, kind: r.type, sub: r.subtype, status: r.status, who: r.empId !== me.id && e ? e.name : '', snippet: s, dest: { area: 'requests', sub: 'view', arg: r.id } } : null;
+    }).filter(Boolean));
+  // announcements addressed to me (HR also searches drafts on the announcements page, not here)
+  add('announcements', (typeof annMine_ === 'function' ? annMine_(me, ctx) : []).map(function (a) {
+    var s = hit([a.titleAr, a.titleEn, a.bodyAr, a.bodyEn, a.ref]);
+    return s ? { ref: a.ref, title: a.titleAr, titleEn: a.titleEn, snippet: s, dest: { area: 'profile', sub: 'main' } } : null;
+  }).filter(Boolean));
+  // help desk: my own tickets, and the queues I handle (never someone else's confidential ticket outside my queue)
+  if (SHEETS.HDT) add('helpdesk', readAll_(SHEETS.HDT).filter(function (x) { return x.empId === me.id || (typeof hdCanWork_ === 'function' && hdCanWork_(me, x)); })
+    .sort(function (a, b) { return a.createdAt < b.createdAt ? 1 : -1; }).map(function (x) {
+      var own = x.empId === me.id, s = hit([x.subject, x.body, x.ref]);
+      return s ? { ref: x.ref, title: x.subject, status: x.status, snippet: s, dest: own ? { area: 'profile', sub: 'main' } : { area: 'requests', sub: 'helpdesk' } } : null;
+    }).filter(Boolean));
+  // training courses (the catalogue everyone may browse)
+  if (SHEETS.COURSE) add('courses', readAll_(SHEETS.COURSE).filter(function (c) { return c.status === 'active'; }).map(function (c) {
+    var s = hit([c.titleAr, c.titleEn, c.code, c.provider]);
+    return s ? { ref: c.code, title: c.titleAr, titleEn: c.titleEn, snippet: s, dest: hr || managesAnyone_(me, ctx) ? { area: 'growth', sub: 'training' } : { area: 'profile', sub: 'main' } } : null;
+  }).filter(Boolean));
+  // documents: my own; HR (and the administrator) all — never a manager (Hr.gs buildFile_ rule)
+  add('documents', readAll_(SHEETS.DOCS).filter(function (d) { return d.status !== 'deleted' && (d.empId === me.id || hr); }).map(function (d) {
+    var e = ctx.emps[d.empId], s = hit([d.number, d.type, d.note, d.ref, e && d.empId !== me.id ? e.name : '']);
+    return s ? { ref: d.ref || d.number, kind: d.type, who: e && d.empId !== me.id ? e.name : '', snippet: s, expiry: String(d.expiryDate || '').slice(0, 10),
+      dest: d.empId === me.id ? { area: 'profile', sub: 'main' } : { area: 'people', sub: 'directory', empId: d.empId } } : null;
+  }).filter(Boolean));
+  // recruitment: HR only (contact data stays out of results)
+  if (hr && SHEETS.REQN) {
+    add('requisitions', readAll_(SHEETS.REQN).map(function (r) { var s = hit([r.titleAr, r.titleEn, r.ref, r.justification]); return s ? { ref: r.ref, title: r.titleAr, titleEn: r.titleEn, status: r.status, snippet: s, dest: { area: 'people', sub: 'recruitment' } } : null; }).filter(Boolean));
+    add('candidates', readAll_(SHEETS.CAND).filter(function (c) { return c.stage !== 'erased'; }).map(function (c) { var s = hit([c.name, c.nameEn, c.ref, c.currentTitle, c.currentEmployer]); return s ? { ref: c.ref, title: c.name, status: c.stage, snippet: s, dest: { area: 'people', sub: 'recruitment' } } : null; }).filter(Boolean));
+  }
+  return { ok: true, q: q, groups: groups };
+}

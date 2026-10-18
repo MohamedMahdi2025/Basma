@@ -180,6 +180,15 @@ function quote_(emp, d, excludeId) {
       if (q.sick.p75 || q.sick.unpaid) q.warnings.push('sick_reduced_pay');
     }
     if (sub === 'unpaid' && cnt.days > 20) q.warnings.push('contract_suspended');
+    // team overlap (2026-10-18): how many of the same team (same manager, else same department) are off on these dates
+    var team = readAll_(SHEETS.EMP).filter(function (x) { return x.id !== emp.id && x.status === 'active' && ((emp.managerId && x.managerId === emp.managerId) || (!emp.managerId && emp.departmentId && x.departmentId === emp.departmentId)); });
+    if (team.length) {
+      var ids = {}; team.forEach(function (x) { ids[x.id] = 1; });
+      var off = {}; readAll_(SHEETS.REQ).forEach(function (r) { if (ids[r.empId] && r.type === 'leave' && (r.status === 'approved' || r.status === 'pending') && !(String(r.toDate) < from || String(r.fromDate) > to)) off[r.empId] = 1; });
+      var n = Object.keys(off).length, share = (n + 1) / (team.length + 1);
+      q.teamOff = n; q.teamSize = team.length + 1;
+      if (n && share >= (Number(s.leaveOverlapShare) || 0.34)) q.warnings.push('team_overlap');
+    }
     return q;
   }
   if (type === 'letter') {

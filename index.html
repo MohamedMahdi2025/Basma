@@ -783,6 +783,7 @@ body.v2-on .tblwrap{overflow-x:auto}
 .v2-pal-res button[aria-selected="true"]{background:var(--brand-tint)}
 .v2-pal-res .ic,.v2-pal-res .av{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;flex:none;background:var(--well);color:var(--brand);font-size:17px;font-weight:600;font-size:12.5px}
 .v2-pal-res .ic i{font-size:18px}
+.v2-pal-res mark.sx-mark{background:var(--brand-tint);color:inherit;border-radius:3px;padding:0 1px;font-weight:600}.v2-pal-res .sx-snip{display:block;color:var(--ink-3);font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.v2-pal-res .sx-wait{margin:6px 10px;font-size:12.5px;color:var(--ink-3)}
 .v2-pal-res .m{min-width:0}.v2-pal-res .m b{display:block;font-weight:500;font-size:14.5px}.v2-pal-res .m small{display:block;color:var(--ink-3);font-size:12.5px}
 .v2-pal-none{padding:26px 12px;text-align:center;color:var(--ink-3)}
 .v2-pal-keys{margin:0;padding:8px 16px;border-top:1px solid var(--line-2);font-size:12px;color:var(--ink-3)}
@@ -2259,7 +2260,7 @@ function api(action, payload, quiet){
 // Screens already seen show their last answer at once while a fresh one loads (kept in memory only,
 // dropped on lock and after any change). Most clicks then feel instant instead of waiting ~2 s for Google.
 var READ_CACHE = {};
-var CLIENT_READS = { customFieldList: 1, customValuesGet: 1, customValuesAll: 1, timesheetList: 1, compCycleList: 1, myFinalSettlement: 1, finalSettlementList: 1, myExitSurvey: 1, kudosFeed: 1, exitSurveyResults: 1, kudosStats: 1, recruitReqList: 1, recruitCandList: 1, recruitCandGet: 1, recruitBoard: 1, recruitOfferLetter: 1, loanQuote: 1, myLoans: 1, loanList: 1, myTraining: 1, trainSessionList: 1, trainMatrix: 1, courseList: 1,
+var CLIENT_READS = { searchAll: 1, customFieldList: 1, customValuesGet: 1, customValuesAll: 1, timesheetList: 1, compCycleList: 1, myFinalSettlement: 1, finalSettlementList: 1, myExitSurvey: 1, kudosFeed: 1, exitSurveyResults: 1, kudosStats: 1, recruitReqList: 1, recruitCandList: 1, recruitCandGet: 1, recruitBoard: 1, recruitOfferLetter: 1, loanQuote: 1, myLoans: 1, loanList: 1, myTraining: 1, trainSessionList: 1, trainMatrix: 1, courseList: 1,
   myInsurance: 1, insList: 1, insCost: 1, insPolicyList: 1, myAnnouncements: 1, annList: 1, hdMine: 1, hdList: 1, hdGet: 1, shiftList: 1, rosterList: 1, discCodes: 1, discList: 1, injuryList: 1, assetList: 1, clearanceList: 1, myFile: 1, myRequests: 1, hrBootstrap: 1, hrCompList: 1, hrExpiring: 1, hrTeam: 1, hrEmpFile: 1, reqInbox: 1,
   leaveTeam: 1, holidayList: 1, leaveBalances: 1, myHistory: 1, me: 1, board: 1, empList: 1, zoneList: 1, report: 1, reviewList: 1,
   auditList: 1, settingsGet: 1, requestQuote: 1, dashboard: 1, mySlips: 1, payrollList: 1, eosQuote: 1, myPerformance: 1, perfTeam: 1, perfEmp: 1, feedbackResults: 1, perfCycleList: 1, perfOverview: 1, reportCatalog: 1, reportRun: 1, reportLog: 1, reportVerify: 1, myTasks: 1, delegationList: 1, reconList: 1, complianceCalendar: 1, wpsFile: 1, onboardList: 1, mySurveys: 1, surveyResults: 1, policyList: 1, planList: 1, hrDirectory: 1, hrDeptList: 1, hrPositionList: 1, hrDocList: 1, hrImportValidate: 1,
@@ -2959,7 +2960,7 @@ Object.assign(T.ar, {
   vwRelations:'علاقات العمل', vwPolicies:'السياسات', vwExpiring:'وثائق تنتهي', vwImport:'استيراد', vwAccounts:'الدخول والأجهزة',
   vwDashboard:'لوحة الإدارة', vwReports:'التقارير', vwAttendance:'تقرير الحضور', vwAudit:'سجل التدقيق', vwMain:'',
   v2System:'نظام الموارد البشرية', v2Search:'ابحث عن موظف أو صفحة', v2Menu:'القائمة', v2More:'المزيد', v2Punch:'بصمة', v2MyPay:'راتبي', v2Req:'الطلبات', v2PeopleS:'الموظفون',
-  v2InSince:'داخل الدوام منذ', v2OutAt:'انصرفت', v2NotIn:'لم تسجل حضورك', v2DayOff:'يوم راحة', v2Pages:'الصفحات', v2PeopleRes:'الموظفون', v2NoRes:'لا نتائج',
+  v2InSince:'داخل الدوام منذ', v2OutAt:'انصرفت', v2NotIn:'لم تسجل حضورك', v2DayOff:'يوم راحة', v2Pages:'الصفحات', v2PeopleRes:'الموظفون', sxg_requests:'الطلبات', sxg_announcements:'الإعلانات', sxg_helpdesk:'طلبات الدعم', sxg_courses:'الدورات', sxg_documents:'المستندات', sxg_requisitions:'طلبات التوظيف', sxg_candidates:'المرشحون', sxMore:'والمزيد', sxSearching:'جار البحث في السجلات', v2NoRes:'لا نتائج',
   v2Hint:'اكتب اسما أو رقما وظيفيا أو اسم صفحة', v2Keys:'↑ ↓ للتنقل، Enter للفتح، Esc للإغلاق',
   secPay:'الرواتب والخصومات', secPayLead:'قواعد احتساب المسير. تطبق من المسير التالي.', swAbs:'خصم الغياب', swAbsLead:'يخصم أجر يوم الغياب بلا عذر.',
   swLate:'خصم دقائق التأخير', swLateLead:'يخصم وقت التأخير بعد فترة السماح.', swOt:'الإضافي من البصمة', swOtLead:'يحسب العمل الإضافي من ساعات الحضور (المادة 107) بدل الإدخال اليدوي.',
@@ -3005,7 +3006,7 @@ Object.assign(T.en, {
   vwRelations:'Employee relations', vwPolicies:'Policies', vwExpiring:'Expiring documents', vwImport:'Import', vwAccounts:'Logins & devices',
   vwDashboard:'Dashboard', vwReports:'Reports', vwAttendance:'Attendance report', vwAudit:'Audit log', vwMain:'',
   v2System:'HR system', v2Search:'Search people or pages', v2Menu:'Menu', v2More:'More', v2Punch:'Punch', v2MyPay:'My pay', v2Req:'Requests', v2PeopleS:'People',
-  v2InSince:'In since', v2OutAt:'Out at', v2NotIn:'Not checked in', v2DayOff:'Day off', v2Pages:'Pages', v2PeopleRes:'People', v2NoRes:'No results',
+  v2InSince:'In since', v2OutAt:'Out at', v2NotIn:'Not checked in', v2DayOff:'Day off', v2Pages:'Pages', v2PeopleRes:'People', sxg_requests:'Requests', sxg_announcements:'Announcements', sxg_helpdesk:'Help desk', sxg_courses:'Courses', sxg_documents:'Documents', sxg_requisitions:'Hiring requests', sxg_candidates:'Candidates', sxMore:'and more', sxSearching:'Searching records', v2NoRes:'No results',
   v2Hint:'Type a name, an employee number or a page', v2Keys:'↑ ↓ to move, Enter to open, Esc to close',
   secPay:'Pay and deductions', secPayLead:'How payroll is calculated. Applies from the next run.', swAbs:'Deduct absence', swAbsLead:"Deducts a day's pay for unexcused absence.",
   swLate:'Deduct late minutes', swLateLead:'Deducts lateness after the grace period.', swOt:'Overtime from attendance', swOtLead:'Pays overtime from punched hours (Art. 107) instead of manual entries.',
@@ -3743,22 +3744,43 @@ function openPalette(){
     '<button type="button" class="dr-x" aria-label="' + t('closeX') + '" title="' + t('closeX') + '">' + ph('x') + '</button></div><div class="v2-pal-res" id="palRes" role="listbox"></div>' +
     '<p class="v2-pal-keys">' + t('v2Keys') + '</p></div>';
   document.body.appendChild(ov);
-  var q = $('#palQ', ov), res = $('#palRes', ov), people = null, list = [], sel = 0, pages = [];
+  // DESIGN CHOICE (2026-10-18), after Microsoft Sticky Notes' visible behaviour: results follow every keystroke, the whole text of
+  // records is searched (server searchAll, Hr.gs), and the matched words are highlighted. Not reverse-engineered (the Sticky Notes
+  // installed on the build machine is only a Store install stub with no search code).
+  var q = $('#palQ', ov), res = $('#palRes', ov), people = null, list = [], sel = 0, pages = [], recs = [], recQ = '', recSeq = 0, recTimer = 0, recWait = false;
   AREAS.filter(areaOk).forEach(function(a){ var ss = subsOf(a).filter(function(s){ return !s.page || s.id === 'new' || s.id === 'claim'; }); ss.forEach(function(s){ pages.push({ area: a.id, sub: s.id, icon: a.i, label: ss.length > 1 ? areaName(a) + ' · ' + t(s.n) : areaName(a), key: areaName(a) + ' ' + t(s.n) + ' ' + areaLead(a) }); }); });
-  if (R().hr) apiFresh('hrBootstrap', {}, function(r){ if (r.ok && ov.isConnected) { people = r.rows; draw(); } }, true);
   var norm = function(s){ return String(s == null ? '' : s).toLowerCase().replace(/[ً-ْ]/g, '').replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي'); };
+  /** Escaped text with every normalised match of v wrapped in <mark>; positions map back to the original characters. */
+  var hl = function(text, v){
+    var src = String(text == null ? '' : text); if (!v) return esc(src);
+    var n = '', map = []; for (var i = 0; i < src.length; i++) { var c = norm(src.charAt(i)); for (var k = 0; k < c.length; k++) { n += c.charAt(k); map.push(i); } }
+    var out = '', last = 0, at = n.indexOf(v);
+    while (at >= 0 && v) { var a = map[at], b = map[at + v.length - 1] + 1; if (a >= last) { out += esc(src.slice(last, a)) + '<mark class="sx-mark">' + esc(src.slice(a, b)) + '</mark>'; last = b; } at = n.indexOf(v, at + v.length); }
+    return out + esc(src.slice(last));
+  };
+  /** The record search on the server: debounced, and an older answer never replaces a newer one. */
+  function searchRecords(){
+    clearTimeout(recTimer); var v = q.value.trim();
+    if (norm(v).length < 2) { recs = []; recQ = ''; recWait = false; return; }
+    recWait = true; var my = ++recSeq;
+    recTimer = setTimeout(function(){ api('searchAll', { q: v }, true).then(function(r){ if (my !== recSeq || !ov.isConnected) return; recWait = false; recs = r.ok ? r.groups : []; recQ = norm(v); draw(); }); }, 150);
+  }
   function close(){ if (ov.isConnected) ov.remove(); document.removeEventListener('keydown', onKey, true); if (back && back.isConnected && back.focus) back.focus(); }
   function draw(){
     var v = norm(q.value.trim());
     var pg = pages.filter(function(p){ return !v || norm(p.key).indexOf(v) >= 0; }).slice(0, v ? 8 : 14).map(function(p){ return { kind: 'page', p: p }; });
     var pp = v && people ? people.filter(function(e){ return norm([e.name, e.nameEn, e.empNo, e.departmentName, e.positionName].join(' ')).indexOf(v) >= 0; }).slice(0, 6).map(function(e){ return { kind: 'emp', e: e }; }) : [];
-    list = pp.concat(pg); if (sel >= list.length) sel = 0;
+    var rr = []; if (v && recQ === v) recs.forEach(function(g){ g.items.forEach(function(it, ix){ rr.push({ kind: 'rec', g: g, it: it, first: ix === 0 }); }); });
+    list = pp.concat(rr, pg); if (sel >= list.length) sel = 0;
     var n = -1, row = function(x){ n++;
-      var h = x.kind === 'emp' ? '<span class="av">' + esc(initials(x.e.name)) + '</span><span class="m"><b>' + esc(x.e.name) + '</b><small class="num">' + esc(x.e.empNo) + (x.e.departmentName ? ' · ' + esc(x.e.departmentName) : '') + '</small></span>'
-        : '<span class="ic">' + ph(x.p.icon) + '</span><span class="m"><b>' + esc(x.p.label) + '</b></span>';
+      var REC_IC = { requests: 'tray', announcements: 'megaphone', helpdesk: 'lifebuoy', courses: 'graduation-cap', documents: 'file-text', requisitions: 'briefcase', candidates: 'user-plus' };
+      var h = x.kind === 'emp' ? '<span class="av">' + esc(initials(x.e.name)) + '</span><span class="m"><b>' + hl(x.e.name, v) + '</b><small class="num">' + hl(x.e.empNo, v) + (x.e.departmentName ? ' · ' + hl(x.e.departmentName, v) : '') + '</small></span>'
+        : x.kind === 'rec' ? '<span class="ic">' + ph(REC_IC[x.g.key] || 'file') + '</span><span class="m"><b><bdi>' + esc(x.it.ref || '') + '</bdi>' + (x.it.title ? ' · ' + hl(S.lang === 'en' && x.it.titleEn ? x.it.titleEn : x.it.title, v) : '') + (x.it.who ? ' · ' + hl(x.it.who, v) : '') + '</b><span class="sx-snip">' + hl(x.it.snippet, v) + '</span></span>'
+        : '<span class="ic">' + ph(x.p.icon) + '</span><span class="m"><b>' + hl(x.p.label, v) + '</b></span>';
       return '<button type="button" role="option" id="pal-' + n + '" data-i="' + n + '" aria-selected="' + (n === sel) + '">' + h + '</button>'; };
-    res.innerHTML = list.length ? (pp.length ? '<p>' + t('v2PeopleRes') + '</p>' + pp.map(row).join('') : '') + (pg.length ? '<p>' + t('v2Pages') + '</p>' + pg.map(row).join('') : '')
-      : '<div class="v2-pal-none">' + t('v2NoRes') + '</div>';
+    var recHtml = rr.map(function(x){ var head = x.first ? '<p>' + t('sxg_' + x.g.key) + (x.g.more ? ' · ' + t('sxMore') : '') + '</p>' : ''; return head + row(x); }).join('');
+    res.innerHTML = list.length ? (pp.length ? '<p>' + t('v2PeopleRes') + '</p>' + pp.map(row).join('') : '') + recHtml + (recWait && v ? '<div class="sx-wait" role="status">' + t('sxSearching') + '</div>' : '') + (pg.length ? '<p>' + t('v2Pages') + '</p>' + pg.map(row).join('') : '')
+      : (recWait && v ? '<div class="sx-wait" role="status">' + t('sxSearching') + '</div>' : '<div class="v2-pal-none">' + t('v2NoRes') + '</div>');
     q.setAttribute('aria-activedescendant', list.length ? 'pal-' + sel : '');
     $$('[data-i]', res).forEach(function(b){ b.onclick = function(){ pick(list[b.dataset.i]); }; b.onmousemove = function(){ if (sel !== +b.dataset.i) { sel = +b.dataset.i; mark(); } }; });
   }
@@ -3766,6 +3788,7 @@ function openPalette(){
   function pick(x){
     if (!x) return; close();
     if (x.kind === 'page') return goArea(x.p.area, x.p.sub);
+    if (x.kind === 'rec') { var d = x.it.dest || {}; if (d.empId) { goArea('people', 'directory'); return loadAll(HR_FILES).then(function(){ HrConsole.openEmp(d.empId); }); } return goArea(d.area, d.sub, d.arg); }
     goArea('people', 'directory');
     loadAll(HR_FILES).then(function(){ HrConsole.openEmp(x.e.id); });
   }
@@ -3778,7 +3801,9 @@ function openPalette(){
   document.addEventListener('keydown', onKey, true);
   ov.onclick = function(e){ if (e.target === ov) close(); };
   $('.dr-x', ov).onclick = close;
-  q.oninput = function(){ sel = 0; draw(); };
+  q.oninput = function(){ sel = 0; searchRecords(); draw(); };
+  // after every helper above exists: apiFresh may answer at once from memory and call draw() synchronously
+  if (R().hr) apiFresh('hrBootstrap', {}, function(r){ if (r.ok && ov.isConnected) { people = r.rows; draw(); } }, true);
   draw(); q.focus();
 }
 

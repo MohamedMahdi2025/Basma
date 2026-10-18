@@ -204,5 +204,42 @@ console.log('Exit interview and recognition (Wave 3, 2026-10-18)');
   x = B.call({ action: 'kudosStats', token: tok('3001') });
   ok(x.ok && x.byValue.safety === 5, 'HR sees thanks by value', x.byValue);
 }
+
+console.log('Company feed (design choice: social-feed patterns), 2026-10-18');
+{
+  const E = no => direct(() => B.ctx.findBy_('employees', 'empNo', no));
+  // an announcement for everyone, and one addressed only to the CEO (3005)
+  let a = B.call({ action: 'annSave', token: tok('3001'), announcement: { kind: 'general', titleAr: 'إعلان للجميع', bodyAr: 'نص', audience: { all: true } } });
+  B.call({ action: 'annPublish', token: tok('3001'), id: a.announcement.id });
+  let b = B.call({ action: 'annSave', token: tok('3001'), announcement: { kind: 'general', titleAr: 'إعلان خاص', bodyAr: 'نص', audience: { empIds: [E('3005').id] } } });
+  B.call({ action: 'annPublish', token: tok('3001'), id: b.announcement.id });
+  // 5001 joined 10 days ago; 3005 started on this day years ago; 3005 is on sick leave today
+  direct(() => { const e = B.ctx.findBy_('employees', 'empNo', '5001'); e.hireDate = '2026-10-25'; B.ctx.update_('employees', e);
+    const c = B.ctx.findBy_('employees', 'empNo', '3005'); c.hireDate = '2019-11-04'; B.ctx.update_('employees', c);
+    B.ctx.append_('requests', { id: 'RSICK', ref: 'LV-2026-09901', empId: c.id, type: 'leave', subtype: 'sick', fromDate: '2026-11-03', toDate: '2026-11-05', days: 3, status: 'approved', step: 'done', stepsJson: '[]', payloadJson: '{}', createdAt: '2026-11-03T05:00:00Z', updatedAt: '2026-11-03T05:00:00Z' }); });
+  const f1 = B.call({ action: 'feed', token: tok('5001') });
+  const titles = f1.ok ? f1.items.filter(x => x.kind === 'announcement').map(x => x.title) : [];
+  ok(f1.ok && titles.indexOf('إعلان للجميع') >= 0 && titles.indexOf('إعلان خاص') < 0, 'an employee sees the company announcement, not one addressed to someone else', titles);
+  const f3 = B.call({ action: 'feed', token: tok('3005') });
+  ok(f3.ok && f3.items.some(x => x.kind === 'announcement' && x.title === 'إعلان خاص'), 'the addressee sees their own announcement');
+  ok(f1.items.some(x => x.kind === 'kudos') && f1.items.some(x => x.kind === 'joiner' && x.who && x.who.empNo === '5001') && f1.items.some(x => x.kind === 'anniversary' && x.who && x.who.empNo === '3005' && x.years === 7),
+    'thanks, a new joiner and a 7-year anniversary appear as cards', f1.items.map(x => x.kind));
+  const away = f1.today.away.map(x => x.empNo);
+  ok(away.indexOf('3005') >= 0 && JSON.stringify(f1.today).indexOf('sick') < 0 && JSON.stringify(f1.items).indexOf('sick') < 0, 'away today lists the person but never the kind of leave', f1.today);
+  const key = f1.items.find(x => x.kind === 'joiner').key;
+  let r = B.call({ action: 'feedReact', token: tok('3001'), key, kind: 'celebrate' });
+  ok(r.ok && r.mine === 'celebrate', 'a reaction is recorded', r);
+  r = B.call({ action: 'feedReact', token: tok('3001'), key, kind: 'like' });
+  let c = B.call({ action: 'feed', token: tok('5001') }).items.find(x => x.key === key);
+  ok(r.ok && r.mine === 'like' && c.reactions.like === 1 && !c.reactions.celebrate, 'one reaction per person: a new one replaces the old', c.reactions);
+  r = B.call({ action: 'feedReact', token: tok('3001'), key, kind: 'like' });
+  c = B.call({ action: 'feed', token: tok('5001') }).items.find(x => x.key === key);
+  ok(r.ok && r.mine === '' && !c.reactions.like, 'the same reaction again removes it', c.reactions);
+  const secret = f3.items.find(x => x.title === 'إعلان خاص').key;
+  r = B.call({ action: 'feedReact', token: tok('5001'), key: secret, kind: 'like' });
+  ok(!r.ok && r.error === 'not_found', 'nobody can react to a card they cannot see', r);
+  r = B.call({ action: 'feedReact', token: tok('5001'), key: 'x:<script>', kind: 'like' });
+  ok(!r.ok && r.error === 'bad_value', 'a malformed key is refused', r);
+}
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);
