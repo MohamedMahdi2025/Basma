@@ -443,7 +443,7 @@ function recordPunch_(emp, cred, req, type, method) {
     var risk = riskScore_(emp, r.cred, req, geo, last, now);
     var lp = localParts_(now);
     var punch = {
-      id: newId_('P'), empId: emp.id, type: type, ts: now.toISOString(), date: lp.date,
+      id: newId_('P'), empId: emp.id, type: type, ts: now.toISOString(), date: workDate_(emp, now, s), // overnight shifts file under the day the shift began
       lat: geo.fix ? geo.fix.lat : '', lng: geo.fix ? geo.fix.lng : '', acc: geo.fix ? Math.round(geo.fix.acc) : '',
       zoneId: geo.zone ? geo.zone.id : '', distance: geo.distance == null ? '' : Math.round(geo.distance),
       status: '', risk: risk.score, flags: risk.flags.concat(geo.flags).join(','), source: 'app', note: '',
@@ -574,7 +574,16 @@ function lastPunch_(empId) { var p = punchesOf_(empId); return p.length ? p[p.le
 function nextPunchType_(empId) {
   var last = lastPunch_(empId);
   if (!last || last.type === 'out') return 'in';
-  return last.date === localParts_(new Date()).date ? 'out' : 'in';
+  var emp = findBy_(SHEETS.EMP, 'id', empId);
+  return last.date === (emp ? workDate_(emp, new Date(), settings_()) : localParts_(new Date()).date) ? 'out' : 'in';
+}
+
+/** An overnight shift (end at or before start, e.g. 22:00-06:00) belongs to the day it began. */
+function shiftOvernight_(sh) { return hmToMin_(sh.end) <= hmToMin_(sh.start); }
+/** The work date a moment belongs to: until 6 hours after an overnight shift ends, it is still the previous day's shift. */
+function workDate_(emp, now, s) {
+  var lp = localParts_(now), prev = addDays_(lp.date, -1), sh = adjustShift_(emp, shiftOf_(emp, s), s, prev);
+  return shiftOvernight_(sh) && sh.workdays.indexOf(new Date(prev + 'T00:00:00Z').getUTCDay()) >= 0 && lp.minutes < hmToMin_(sh.end) + 360 ? prev : lp.date;
 }
 
 function publicPunch_(p) {
@@ -603,8 +612,11 @@ function summarizeDay_(emp, date, punches, s, now, off) {
   var dow = new Date(date + 'T00:00:00Z').getUTCDay();
   var workday = sh.workdays.indexOf(dow) >= 0;
   if (off && off.holiday) workday = false; // work on a public holiday is overtime (Art. 107)
-  var startM = hmToMin_(sh.start), endM = hmToMin_(sh.end);
-  var out = { date: date, workday: workday, shiftStart: sh.start, shiftEnd: sh.end, firstIn: null, lastOut: null,
+  var startM = hmToMin_(sh.start), endM = hmToMin_(sh.end), overnight = endM <= startM;
+  if (overnight) endM += 1440;
+  // minutes from the start of `date` (a punch after midnight on an overnight shift counts as 24:00 + its time)
+  var rel = function (d) { var l = localParts_(d); return l.minutes + (l.date > date ? 1440 : 0); };
+  var out = { date: date, overnight: overnight, workday: workday, shiftStart: sh.start, shiftEnd: sh.end, firstIn: null, lastOut: null,
     workedMin: 0, lateMin: 0, earlyMin: 0, overtimeMin: 0, status: '', punches: punches.length, review: 0 };
   punches.forEach(function (p) { if (p.status === 'review') out.review++; });
   var openIn = null;
@@ -613,24 +625,24 @@ function summarizeDay_(emp, date, punches, s, now, off) {
     if (p.type === 'in') { if (!openIn) openIn = t; if (!out.firstIn) out.firstIn = p.ts; }
     else if (openIn) { out.workedMin += Math.round((t - openIn) / 60000); openIn = null; out.lastOut = p.ts; }
   });
-  var isToday = date === lpNow.date;
+  var isToday = date === lpNow.date || (overnight && date === addDays_(lpNow.date, -1) && lpNow.minutes < endM - 1440 + 360);
   if (openIn) {
     if (isToday) { out.workedMin += Math.round((now.getTime() - openIn) / 60000); out.status = 'in'; }
     else out.status = 'missing_out';
   }
   if (out.firstIn) {
-    var inM = localParts_(new Date(out.firstIn)).minutes;
+    var inM = rel(new Date(out.firstIn));
     if (workday && inM > startM + sh.grace) out.lateMin = inM - startM;
     if (!out.status) out.status = 'present';
     if (workday && out.lastOut && !openIn) {
-      var outM = localParts_(new Date(out.lastOut)).minutes;
+      var outM = rel(new Date(out.lastOut));
       if (outM < endM) out.earlyMin = endM - outM;
     }
     var planned = Math.max(endM - startM, 0);
     if (!workday) out.overtimeMin = out.workedMin;
     else if (out.workedMin > planned) out.overtimeMin = out.workedMin - planned;
   } else if (!workday) out.status = 'off';
-  else if (date > lpNow.date || (isToday && lpNow.minutes <= startM + sh.grace)) out.status = 'upcoming';
+  else if (date > lpNow.date || (isToday && rel(now) <= startM + sh.grace)) out.status = 'upcoming';
   else out.status = 'absent';
   if (off) {
     if (off.holiday) out.holiday = off.holiday;
@@ -641,7 +653,7 @@ function summarizeDay_(emp, date, punches, s, now, off) {
 }
 
 function todayFor_(emp, s) {
-  var now = new Date(), date = localParts_(now).date;
+  var now = new Date(), date = workDate_(emp, now, s);
   var ps = punchesOf_(emp.id).filter(function (p) { return p.date === date; });
   var sum = summarizeDay_(emp, date, ps, s, now);
   sum.list = ps.map(publicPunch_);

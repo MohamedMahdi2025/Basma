@@ -27,6 +27,7 @@ var REQUEST_STEPS = {
   advance: ['hr', 'payroll'], // salary-related: the line manager is not in the chain
   exit_reentry: ['manager', 'hr'], // exit/re-entry visa for a non-Saudi (GovServices.gs): HR then records the visa issued in Muqeem
   permission: ['manager', 'hr'], // hourly permission (استئذان): hours out of the working day, capped per request and per month
+  travel: ['manager', 'hr'], // business trip with per diem: on final approval the per diem goes to payroll (non-wage)
   overtime: ['manager', 'hr'] // overtime pre-approval: on final approval an overtime_hours adjustment goes to payroll (Art. 107)
 };
 var DATA_FIELDS = { phone: 'emp', personalEmail: 'priv', nationalAddress: 'priv', address: 'priv', maritalStatus: 'priv',
@@ -254,6 +255,19 @@ function quote_(emp, d, excludeId) {
     if (used + mins > capH * 60) return Object.assign(q, { error: 'permission_month_cap', max: capH });
     return q;
   }
+  if (type === 'travel') {
+    var tf = isoDate_(d.fromDate), tt = isoDate_(d.toDate || d.fromDate), abroad = p.scope === 'abroad', dest = str_(p.destination, 120);
+    if (!tf || !tt || tt < tf) return { error: 'bad_date' };
+    if (!dest) return { error: 'missing_fields' };
+    if (tf < addDays_(t, -7) && !d._recheck) return { error: 'bad_date' };
+    var tdays = daysBetween_(tf, tt) + 1;
+    if (tdays > 60) return { error: 'too_many_days', max: 60 };
+    if (reqs.some(function (r) { return r.id !== excludeId && (r.type === 'travel' || r.type === 'leave') && (r.status === 'approved' || r.status === 'pending') && !(String(r.toDate) < tf || String(r.fromDate) > tt); })) return { error: 'overlaps' };
+    var rate = abroad ? (Number(s.perDiemAbroad) || 600) : (Number(s.perDiemInside) || 300);
+    q.fromDate = tf; q.toDate = tt; q.days = tdays; q.amount = round2_(rate * tdays);
+    q.payload = { destination: dest, scope: abroad ? 'abroad' : 'inside', purpose: str_(p.purpose, 200), transport: ['air', 'company_car', 'own_car', 'other'].indexOf(p.transport) >= 0 ? p.transport : 'air', rate: rate, days: tdays, perDiem: q.amount };
+    return q;
+  }
   if (type === 'overtime') {
     var od = isoDate_(p.date), hrs = Number(p.hours);
     if (!od) return { error: 'missing_fields' };
@@ -472,6 +486,12 @@ function applyEffect_(r, emp, me, p) {
     govVisaApproved_(r, emp, me, p); // GovServices.gs: waits for HR to record the visa issued in Muqeem
   } else if (r.type === 'leave') {
     leaveCycleAuto_(r, emp, me); // a long enough leave opens its leave cycle (Flows.gs)
+  } else if (r.type === 'travel' && Number(p.perDiem) > 0) {
+    // the per diem is paid with the salary of the month the trip starts (or the next open one); non-wage (no GOSI, outside Art. 93)
+    var tm = String(r.fromDate).slice(0, 7);
+    for (var k = 0; k < 12 && monthLocked_(emp.id, tm); k++) tm = govAddMonths_(tm + '-01', 1).slice(0, 7);
+    append_(SHEETS.ADJ, { id: newId_('A'), ref: nextRef_('adjustment', refsOf_(SHEETS.ADJ)), empId: emp.id, month: tm, kind: 'earning', code: 'per_diem',
+      amount: Number(p.perDiem), reason: r.ref + ' ' + String(p.destination || '').slice(0, 100), enteredBy: me.id, status: 'active', createdAt: now });
   } else if (r.type === 'overtime') {
     // approved overtime becomes an overtime_hours adjustment in the month it was worked (or the next open one); payroll pays it per Art. 107
     var month = String(p.date).slice(0, 7);
@@ -506,6 +526,7 @@ function publicReq_(r, ctx, viewer) {
   if (r.type === 'correction') o.correction = { date: p.date, time: p.time, punchType: p.punchType };
   if (r.type === 'permission') o.permission = { date: p.date, fromTime: p.fromTime, toTime: p.toTime, minutes: Number(p.minutes) || 0 };
   if (r.type === 'overtime') o.overtime = { date: p.date, hours: Number(p.hours) || 0 };
+  if (r.type === 'travel') { o.travel = { destination: p.destination, scope: p.scope, purpose: p.purpose, transport: p.transport, days: Number(p.days) || 0 }; if (money) { o.travel.rate = Number(p.rate) || 0; o.travel.perDiem = Number(p.perDiem) || 0; } }
   if (r.type === 'resignation') o.resignation = { lastDay: p.lastDay, noticeDays: p.noticeDays, minLastDay: p.minLastDay, acceptBy: resignationAcceptBy_(r),
     deemedAccepted: resignationDeemed_(r) || history_(r).some(function (h) { return h.decision === 'deemed_accepted'; }),
     deferUntil: parsePayload_(r).deferUntil || '', deferReason: parsePayload_(r).deferReason || '', maxDefer: addDays_(String(r.createdAt || '').slice(0, 10), 60) };

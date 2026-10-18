@@ -373,6 +373,9 @@ function hrSettings_(d, next) {
     if (d.ramadanHours === '' || !isFinite(n) || n < 1 || n > 6 || Math.round(n * 2) !== n * 2) return 'ramadanHours';
     next.ramadanHours = n;
   }
+  // Wave 3 (2026-10-18): permission, overtime and per diem limits
+  var W3 = { permissionMaxHours: [1, 8], permissionMonthHours: [1, 40], overtimeYearHours: [1, 2000], perDiemInside: [0, 5000], perDiemAbroad: [0, 10000] };
+  for (k in W3) { if (d[k] === undefined) continue; n = Number(d[k]); if (d[k] === '' || d[k] === true || !isFinite(n) || n < W3[k][0] || n > W3[k][1]) return k; next[k] = n; }
   if (d.wpsDueDay !== undefined) {
     n = Number(d.wpsDueDay);
     if (d.wpsDueDay === '' || !isFinite(n) || Math.round(n) !== n || n < 1 || n > 28) return 'wpsDueDay';

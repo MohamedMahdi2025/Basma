@@ -4,10 +4,10 @@
 'use strict';
 
 var L = {
-  ar: { basic:'الراتب الأساسي', housing:'بدل السكن', transport:'بدل النقل', allowance:'بدل', overtime:'عمل إضافي', bonus:'مكافأة', commission:'عمولة', other_earning:'استحقاق آخر', reimbursement:'تعويض مصروفات',
+  ar: { basic:'الراتب الأساسي', housing:'بدل السكن', transport:'بدل النقل', allowance:'بدل', overtime:'عمل إضافي', bonus:'مكافأة', commission:'عمولة', other_earning:'استحقاق آخر', reimbursement:'تعويض مصروفات', per_diem:'بدل انتداب',
     unpaid_leave:'إجازة بدون راتب', sick_75:'إجازة مرضية بثلاثة أرباع الأجر', sick_unpaid:'إجازة مرضية بدون أجر', absence:'غياب', late:'دقائق التأخير',
     gosi:'التأمينات الاجتماعية', advance:'قسط سلفة', fine:'جزاء', other_deduction:'خصم آخر', overtime_hours:'ساعات عمل إضافي' },
-  en: { basic:'Basic salary', housing:'Housing allowance', transport:'Transport allowance', allowance:'Allowance', overtime:'Overtime', bonus:'Bonus', commission:'Commission', other_earning:'Other earning', reimbursement:'Expense reimbursement',
+  en: { basic:'Basic salary', housing:'Housing allowance', transport:'Transport allowance', allowance:'Allowance', overtime:'Overtime', bonus:'Bonus', commission:'Commission', other_earning:'Other earning', reimbursement:'Expense reimbursement', per_diem:'Travel per diem',
     unpaid_leave:'Unpaid leave', sick_75:'Sick leave at 75%', sick_unpaid:'Unpaid sick leave', absence:'Absence', late:'Minutes late',
     gosi:'GOSI (employee share)', advance:'Advance instalment', fine:'Fine', other_deduction:'Other deduction', overtime_hours:'Overtime hours' }
 };
@@ -286,7 +286,7 @@ function listDash(rows){
     V.tile(t('pdDrafts'), V.n1(drafts, 0), drafts ? t('pdDraftsNote') : '') + '</div>' +
     (pts.length > 1 ? '<div class="db-grid">' + V.card('pn', t('pdTrend'), '', V.lineChart(pts, { fmt: 'sar', aria: t('pdTrend') }), V.tbl(['', t('prNet'), t('prHead')], asc.map(function(x){ return [monthName(x.month), money(x.totals.net), x.totals.headcount]; }))) + '</div>' : ''));
 }
-var EARN = { basic: 1, housing: 1, transport: 1, allowance: 1, overtime: 1, bonus: 1, commission: 1, other_earning: 1, reimbursement: 1 };
+var EARN = { basic: 1, housing: 1, transport: 1, allowance: 1, overtime: 1, bonus: 1, commission: 1, other_earning: 1, reimbursement: 1, per_diem: 1 };
 /** One run: what the gross is made of, where the deductions go, and net by department. */
 function runDash(r){
   var V = Viz, earn = {}, ded = {}, dept = {}, warn = 0, lab = L[S.lang] || L.ar;

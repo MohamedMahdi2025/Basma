@@ -30,8 +30,8 @@ let r;
 console.log('Shifts');
 r = call('5002', 'shiftSave', { shift: { nameAr: 'x', start: '06:00', end: '14:00' } });
 ok(!r.ok && r.error === 'forbidden', 'only HR defines shifts', r);
-r = call('3001', 'shiftSave', { shift: { nameAr: 'ليلي', start: '22:00', end: '06:00' } });
-ok(!r.ok && r.error === 'overnight_not_supported', 'a shift crossing midnight is refused for now', r);
+r = call('3001', 'shiftSave', { shift: { nameAr: 'ليلي طويل', start: '20:00', end: '10:00' } });
+ok(!r.ok && r.error === 'shift_too_long', 'an overnight shift is also at most 12 hours (20:00-10:00 is 14)', r);
 r = call('3001', 'shiftSave', { shift: { nameAr: 'طويل', start: '06:00', end: '20:00' } });
 ok(!r.ok && r.error === 'shift_too_long', 'at most 12 hours', r);
 r = call('3001', 'shiftSave', { shift: { nameAr: 'صباحي توزيع', start: '06:00', end: '14:00', workdays: '0,1,2,3,4,6', outdoor: true } });
@@ -74,5 +74,23 @@ ok(r.ok && r.warnings.length === 1 && r.warnings[0].emp.id === ids['5003'] && r.
 r = call('3001', 'rosterList', { from: '2027-03-01', to: '2027-03-31' });
 ok(r.ok && r.warnings.length === 0, 'no warning outside the season');
 
+
+console.log('Overnight shifts (2026-10-18)');
+r = call('3001', 'shiftSave', { shift: { nameAr: 'ليلي', start: '22:00', end: '06:00' } });
+ok(r.ok && r.shift.overnight && r.shift.hours === 8, 'a 22:00-06:00 shift is accepted as an 8-hour overnight shift', r.shift || r);
+person('5009', 'حارس ليلي', 'employee');
+direct(() => { const e = B.ctx.findBy_('employees', 'empNo', '5009'); e.shiftStart = '22:00'; e.shiftEnd = '06:00'; e.createdAt = '2026-01-01T00:00:00.000Z'; B.ctx.update_('employees', e); });
+const D = '2027-02-22';
+direct(() => B.ctx.appendMany_('punches', [['in', at(D, '22:07')], ['out', at('2027-02-23', '06:03')]].map(([ty, ts]) => ({ id: 'PN' + ty, empId: ids['5009'], type: ty, ts, date: D, lat: '', lng: '', acc: 10, zoneId: '', distance: 5, status: 'ok', risk: 0, flags: '', source: 'app', note: '', reviewBy: '', reviewAt: '', credId: '', ua: '', createdAt: ts }))));
+const nd = day('5009', D);
+ok(nd.overnight && nd.workedMin === 476 && nd.earlyMin === 0 && nd.status === 'present', 'in 22:07, out 06:03 next morning: 476 minutes worked, not early, present', nd);
+direct(() => B.ctx.appendMany_('punches', [['in', at('2027-02-23', '22:40')], ['out', at('2027-02-24', '05:00')]].map(([ty, ts]) => ({ id: 'PM' + ty, empId: ids['5009'], type: ty, ts, date: '2027-02-23', lat: '', lng: '', acc: 10, zoneId: '', distance: 5, status: 'ok', risk: 0, flags: '', source: 'app', note: '', reviewBy: '', reviewAt: '', credId: '', ua: '', createdAt: ts }))));
+const n2 = day('5009', '2027-02-23');
+ok(n2.shiftEnd === '04:00' && n2.lateMin === 40 && n2.earlyMin === 0 && n2.overtimeMin === 20, 'in Ramadan (6 h) the 22:00 shift ends 04:00: in 22:40 is 40 min late, out 05:00 is not early', n2);
+const wd = (iso) => direct(() => B.ctx.workDate_(B.ctx.findBy_('employees', 'empNo', '5009'), new Date(iso), B.ctx.settings_()));
+ok(wd('2027-02-23T03:00:00+03:00') === '2027-02-22', 'a punch at 03:00 files under the shift that began the evening before', wd('2027-02-23T03:00:00+03:00'));
+ok(wd('2027-02-23T13:00:00+03:00') === '2027-02-23', 'after midday it is the new day again', wd('2027-02-23T13:00:00+03:00'));
+const dayEmp = direct(() => B.ctx.findBy_('employees', 'empNo', '5002'));
+ok(direct(() => B.ctx.workDate_(dayEmp, new Date('2027-02-23T03:00:00+03:00'), B.ctx.settings_())) === '2027-02-23', 'a day-shift employee is never moved to the previous day');
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);

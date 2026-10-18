@@ -37,15 +37,15 @@ function adjustShift_(emp, sh, s, date) {
   }
   var rh = ramadanHours_(emp, date, s);
   if (rh) {
-    var a = hmToMin_(sh.start), b = hmToMin_(sh.end);
-    if (b - a > rh * 60) sh = Object.assign({}, sh, { end: hm_(a + rh * 60), ramadan: true });
+    var a = hmToMin_(sh.start), b = hmToMin_(sh.end); if (b <= a) b += 1440;
+    if (b - a > rh * 60) sh = Object.assign({}, sh, { end: hm_((a + rh * 60) % 1440), ramadan: true });
   }
   return sh;
 }
 
 function publicShift_(x) {
   return { id: x.id, code: x.code, nameAr: x.nameAr, nameEn: x.nameEn, start: String(x.start), end: String(x.end), workdays: String(x.workdays || ''),
-    outdoor: bool_(x.outdoor), status: x.status, hours: Math.round((hmToMin_(x.end) - hmToMin_(x.start)) / 6) / 10 };
+    outdoor: bool_(x.outdoor), status: x.status, hours: Math.round((((hmToMin_(x.end) - hmToMin_(x.start)) + 1440) % 1440 || 1440) / 6) / 10, overnight: hmToMin_(x.end) <= hmToMin_(x.start) };
 }
 function api_shiftList(req, me) {
   if (!isHr_(me) && !managesAnyone_(me, orgCtx_())) fail_('forbidden');
@@ -58,8 +58,9 @@ function api_shiftSave(req, me) {
   if (!isHr_(me)) fail_('forbidden');
   var x = req.shift || {}, start = String(x.start || ''), end = String(x.end || '');
   if (!/^\d{2}:\d{2}$/.test(start) || !/^\d{2}:\d{2}$/.test(end)) fail_('bad_value');
-  if (hmToMin_(end) <= hmToMin_(start)) fail_('overnight_not_supported');
-  if (hmToMin_(end) - hmToMin_(start) > 12 * 60) fail_('shift_too_long');
+  var dur = hmToMin_(end) - hmToMin_(start); if (dur <= 0) dur += 1440; // overnight shifts cross midnight (2026-10-18)
+  if (start === end) fail_('bad_value');
+  if (dur > 12 * 60) fail_('shift_too_long');
   var days = String(x.workdays || '0,1,2,3,4').split(',').map(Number).filter(function (d) { return d >= 0 && d <= 6; });
   if (!days.length) fail_('bad_value');
   if (!str_(x.nameAr, 60)) fail_('missing_fields');

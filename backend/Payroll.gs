@@ -10,9 +10,9 @@ var GOSI_LEGACY = [9.75, 11.75], GOSI_NON_SAUDI_ER = 2, GOSI_MIN = 1500, GOSI_MA
 // GCC states other than KSA (ISO 2 and 3 letter codes): covered by the GCC extension, see calcSlip_
 var GOSI_GCC = { KW: 1, KWT: 1, BH: 1, BHR: 1, QA: 1, QAT: 1, AE: 1, ARE: 1, OM: 1, OMN: 1 };
 var ADJ_CODES = { bonus: 'earning', commission: 'earning', other_earning: 'earning', overtime_hours: 'hours', fine: 'deduction', other_deduction: 'deduction',
-  reimbursement: 'earning' }; // an approved expense claim (Expenses.gs): paid with the salary, not wage (no GOSI, outside the Art. 93 base)
-var ADJ_NON_WAGE = { reimbursement: 1 };
-var ADJ_SYSTEM_ONLY = { reimbursement: 1 }; // only written by an approved claim, never typed in payroll
+  reimbursement: 'earning', per_diem: 'earning' }; // per_diem: an approved business trip (Leave.gs 'travel'), non-wage like reimbursement; an approved expense claim (Expenses.gs): paid with the salary, not wage (no GOSI, outside the Art. 93 base)
+var ADJ_NON_WAGE = { reimbursement: 1, per_diem: 1 };
+var ADJ_SYSTEM_ONLY = { reimbursement: 1, per_diem: 1 }; // only written by an approved claim, never typed in payroll
 
 function gosiRates_(isSaudi, cohort, month) {
   if (!isSaudi) return { emp: 0, er: GOSI_NON_SAUDI_ER, cohort: 'non_saudi' };

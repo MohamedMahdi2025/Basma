@@ -432,7 +432,7 @@ function shiftDrawer(x, done){
   function check(){
     var m = hmMin(f.elements.end.value) - hmMin(f.elements.start.value);
     len.textContent = m > 0 ? t('shLen') + ': ' + hours(Math.round(m / 6) / 10) : '';
-    return !f.elements.start.value || !f.elements.end.value ? 'missing_fields' : m <= 0 ? 'overnight_not_supported' : m > 720 ? 'shift_too_long' : '';
+    return !f.elements.start.value || !f.elements.end.value ? 'missing_fields' : m === 0 ? 'bad_value' : (m < 0 ? m + 1440 : m) > 720 ? 'shift_too_long' : '';
   }
   f.elements.start.oninput = f.elements.end.oninput = function(){ var c = check(); er.textContent = c && c !== 'missing_fields' ? oerr(c) : ''; };
   check();

@@ -252,5 +252,24 @@ const adj = direct(() => B.ctx.readAll_('adjustments')).filter(a => a.empId === 
 ok(r.ok && r.request.status === 'approved' && adj.length === 1 && Number(adj[0].amount) === 3 && adj[0].month === '2026-10' && String(adj[0].reason).indexOf(otRef) === 0,
   'on final approval 3 overtime hours go to payroll for 2026-10, referenced to the request', adj);
 
+
+console.log('Business trip with per diem (TR), 2026-10-18');
+q = quote('5002', { type: 'travel', fromDate: '2026-11-02', toDate: '2026-11-04', payload: { destination: 'جدة', scope: 'inside' } });
+ok(q && !q.error && q.days === 3 && q.amount === 900, 'three days inside the Kingdom at 300 a day = 900', q);
+q = quote('5002', { type: 'travel', fromDate: '2026-11-02', toDate: '2026-11-03', payload: { destination: 'دبي', scope: 'abroad' } });
+ok(q && !q.error && q.amount === 1200, 'two days abroad at 600 a day = 1,200', q);
+q = quote('5002', { type: 'travel', fromDate: '2026-11-02', toDate: '2026-11-04', payload: { scope: 'inside' } });
+ok(q && q.error === 'missing_fields', 'the destination is required', q);
+r = ask('5002', { type: 'travel', fromDate: '2026-11-02', toDate: '2026-11-04', payload: { destination: 'جدة', scope: 'inside', purpose: 'زيارة محطة', transport: 'air' } });
+ok(r.ok && /^TR-2026-/.test(r.request.ref) && r.request.travel.perDiem === 900, 'the trip is filed as TR with the per diem visible to the traveller', r.request || r);
+const tr1 = r.request && r.request.id, trRef = r.request && r.request.ref;
+q = quote('5002', { type: 'travel', fromDate: '2026-11-04', toDate: '2026-11-05', payload: { destination: 'الدمام', scope: 'inside' } });
+ok(q && q.error === 'overlaps', 'a second trip over the same days is refused', q);
+decide('5001', tr1, 'approve'); r = decide('3001', tr1, 'approve');
+const pd = direct(() => B.ctx.readAll_('adjustments')).filter(a => a.empId === ids['5002'] && a.code === 'per_diem');
+ok(r.ok && r.request.status === 'approved' && pd.length === 1 && Number(pd[0].amount) === 900 && pd[0].month === '2026-11' && String(pd[0].reason).indexOf(trRef) === 0,
+  'on approval 900 per diem goes to the November payroll, referenced to the trip', pd);
+r = call('3002', 'payrollAdjSave', { adj: { empId: ids['5002'], month: '2026-11', code: 'per_diem', amount: 100, reason: 'x' } });
+ok(!r.ok && r.error === 'bad_value', 'payroll cannot type a per diem by hand (only an approved trip writes one)', r);
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);

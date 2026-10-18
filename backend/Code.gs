@@ -442,6 +442,11 @@ var DEFAULT_SETTINGS = {
   expenseReceiptOver: 100,   // a line above this amount needs a receipt reference
   glMap: '',                 // account mapping for the payroll journal (journalMapSave)
   bankFileSetup: '',         // establishment and bank identifiers for the salary files (bankSetupSave)
+  permissionMaxHours: 4,     // hourly permission (Leave.gs 'permission'): hours per request
+  permissionMonthHours: 8,   // and hours per month
+  overtimeYearHours: 720,    // yearly overtime ceiling: a warning above it (Leave.gs 'overtime')
+  perDiemInside: 300,        // business trip per diem a day inside the Kingdom (Leave.gs 'travel')
+  perDiemAbroad: 600,        // and outside it
   loanPolicy: ''             // JSON {maxSalaries, maxMonths, minServiceMonths, oneActive}: employee loans (Loans.gs, loanPolicySave); empty = the defaults
 };
 
@@ -507,7 +512,7 @@ function randomBytes_(n) {
  * and are only ever taken inside withLock_, so two requests can never get the same number.
  */
 var REF_DEFAULTS = {
-  leave: 'LV', letter: 'LT', advance: 'AD', correction: 'AC', data_change: 'DC', resignation: 'RS', permission: 'PM', overtime: 'OT',
+  leave: 'LV', letter: 'LT', advance: 'AD', correction: 'AC', data_change: 'DC', resignation: 'RS', permission: 'PM', overtime: 'OT', travel: 'TR',
   salary: 'SAL', document: 'DOC', import: 'IMP', department: 'DEP', position: 'POS',
   payroll: 'PR', payslip: 'PS', adjustment: 'ADJ', perf_cycle: 'PC', kpi: 'KPI', review: 'PE', feedback: 'FB', report: 'RPT',
   onboarding: 'ONB', survey: 'SRV', policy: 'POL', idp: 'IDP', pip: 'PIP', delegation: 'DLG', wps: 'WPS', recon: 'REC', shift: 'SH', disciplinary: 'DSC', injury: 'INJ', asset: 'AST', clearance: 'CLR',

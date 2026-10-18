@@ -359,7 +359,7 @@ r = call('1011', 'shiftSave', { shift: { nameAr: 'وردية التوزيع ال
 const SH = r.shift;
 ok(r.ok && /^SH-\d{3,}$/.test(SH.code) && SH.hours === 8, 'HR defines the 06:00-14:00 outdoor delivery shift', SH);
 r = call('1011', 'shiftSave', { shift: { nameAr: 'ليلية', start: '22:00', end: '06:00' } });
-ok(!r.ok && r.error === 'overnight_not_supported', 'a shift across midnight is refused for now');
+ok(r.ok && r.shift.overnight && r.shift.hours === 8, 'a 22:00-06:00 night shift is accepted (overnight shifts, 2026-10-18)', r.shift || r);
 r = call('1016', 'shiftSave', { shift: { nameAr: 'x', start: '07:00', end: '15:00' } });
 ok(!r.ok && r.error === 'forbidden', 'a supervisor cannot define shifts');
 r = call('1011', 'rosterSave', { empIds: driverNos.map(n => ids[n]), shiftId: SH.id, fromDate: '2026-10-01', toDate: '2027-09-30' });
