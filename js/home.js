@@ -9,9 +9,7 @@
 var V = window.Viz;
 
 Object.assign(T.ar, {
-  hmMorning:'صباح الخير', hmEvening:'مساء الخير', hmCompany:'الشركة', hmMine:'أنا', fdTab:'الحائط', fdToday:'اليوم', fdAway:'خارج المكتب', fdJoin:'انضم حديثا', fdAnv:'ذكرى انضمام', fdEmpty:'لا جديد على الحائط بعد.', fdErr:'تعذر تحميل الحائط.',
-  fdk_announcement:'إعلان', fdk_kudos:'شكر وتقدير', fdk_joiner:'موظف جديد', fdk_anniversary:'ذكرى انضمام', fdk_training:'دورة تدريبية', fdJoined:'انضم إلى الفريق', fdYears:'{n} سنوات معنا', fdYear1:'سنة معنا', fdThanks:'شكر', fdTrainFrom:'تبدأ', fdAndOthers:'و{n} آخرون',
-  fdr_like:'أعجبني', fdr_celebrate:'تهنئة', fdr_support:'دعم', fdr_insightful:'مفيد', fdReactOn:'تفاعلت', fdNoToday:'لا أحد خارج المكتب، ولا انضمامات أو ذكريات اليوم.', hmToday:'الحضور اليوم', hmTodaySentence:'{p} من {e} بدأوا يومهم. {l} متأخرون و{v} في إجازة.',
+  hmMorning:'صباح الخير', hmEvening:'مساء الخير', hmCompany:'الشركة', hmMine:'أنا', hmToday:'الحضور اليوم', hmTodaySentence:'{p} من {e} بدأوا يومهم. {l} متأخرون و{v} في إجازة.',
   hmHeadcount:'الموظفون النشطون', hmSaudi:'التوطين المرجح', hmPayroll:'آخر مسير', hmOpenReq:'طلبات مفتوحة', hmDecide:'يحتاج قرارك', hmAllTasks:'كل المهام', hmNothing:'لا شيء ينتظر قرارك الآن.',
   hmDeadlines:'مواعيد نظامية', hmCalendar:'التقويم', hmDeadLead:'الأقرب موعدا أولا', hmNoDeadlines:'لا مواعيد قريبة.', hmDepts:'الحضور حسب الإدارة اليوم', hmMove:'حركة القوى العاملة',
   hmMoveLead:'المنضمون والمغادرون كل شهر', hmJoin:'انضموا', hmLeft:'غادروا', hmShift:'دوامك اليوم', hmIn:'سجلت حضورك', hmOut:'سجلت انصرافك', hmNotYet:'لم تسجل حضورك بعد',
@@ -26,9 +24,7 @@ Object.assign(T.ar, {
   hmPerYear:'سنويا', hmBasis14:'الخط الصغير: آخر 14 يوم عمل', hmLateMin:'دقائق التأخير', hmBasisYday:'الأسهم مقارنة بأمس', hmBasisRun:'الأسهم مقارنة بالمسير السابق', hmBasisSame:'الأسهم مقارنة بنفس الأيام من الشهر الماضي'
 });
 Object.assign(T.en, {
-  hmMorning:'Good morning', hmEvening:'Good evening', hmCompany:'Company', hmMine:'Me', fdTab:'Feed', fdToday:'Today', fdAway:'Away', fdJoin:'New', fdAnv:'Anniversary', fdEmpty:'Nothing on the feed yet.', fdErr:'The feed could not load.',
-  fdk_announcement:'Announcement', fdk_kudos:'Thanks', fdk_joiner:'New joiner', fdk_anniversary:'Work anniversary', fdk_training:'Training', fdJoined:'joined the team', fdYears:'{n} years with us', fdYear1:'one year with us', fdThanks:'thanked', fdTrainFrom:'Starts', fdAndOthers:'and {n} others',
-  fdr_like:'Like', fdr_celebrate:'Celebrate', fdr_support:'Support', fdr_insightful:'Insightful', fdReactOn:'You reacted', fdNoToday:'Nobody away, and no joiners or anniversaries today.', hmToday:'Attendance today', hmTodaySentence:'{p} of {e} have started their day. {l} late and {v} on leave.',
+  hmMorning:'Good morning', hmEvening:'Good evening', hmCompany:'Company', hmMine:'Me', hmToday:'Attendance today', hmTodaySentence:'{p} of {e} have started their day. {l} late and {v} on leave.',
   hmHeadcount:'Active employees', hmSaudi:'Weighted Saudization', hmPayroll:'Last payroll', hmOpenReq:'Open requests', hmDecide:'Waiting for your decision', hmAllTasks:'All tasks', hmNothing:'Nothing is waiting for you.',
   hmDeadlines:'Legal deadlines', hmCalendar:'Calendar', hmDeadLead:'Soonest first', hmNoDeadlines:'Nothing due soon.', hmDepts:'Attendance by department today', hmMove:'Workforce movement',
   hmMoveLead:'Joiners and leavers each month', hmJoin:'Joined', hmLeft:'Left', hmShift:'Your hours today', hmIn:'Checked in', hmOut:'Checked out', hmNotYet:'Not checked in yet',
@@ -107,33 +103,6 @@ var css = '' +
 '@media (max-width:1100px){.hm-s4,.hm-s5,.hm-s7,.hm-s8{grid-column:1 / -1}.hm-facts{grid-template-columns:repeat(2,minmax(0,1fr))}.hm-facts div:nth-child(3){border-inline-start:0;padding-inline-start:0}}' +
 '@media (max-width:900px){.hm-hero{grid-template-columns:1fr;justify-items:center}.hm-hero > div{justify-self:stretch}.hm-ph h1{font-size:25px}}' +
 '@media (max-width:380px){.hm-k .db-tf{flex-direction:column;align-items:flex-start}.hm-k .db-spark{margin-inline-start:0}}';
-css += '' +
-'.fd-wrap{display:grid;gap:14px;max-width:760px;margin:0 auto}' +
-'.fd-today{display:flex;gap:14px;overflow-x:auto;padding:4px 2px 10px;scrollbar-width:thin}' +
-'.fd-pp{flex:none;width:76px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;font-size:12px;color:var(--ink-2)}' +
-'.fd-ring{width:62px;height:62px;border-radius:50%;padding:3px;background:conic-gradient(var(--brand),#C9A45C,var(--brand))}' +
-'.fd-ring.away{background:var(--line)}.fd-ring span{display:grid;place-items:center;width:100%;height:100%;border-radius:50%;background:var(--card);border:2px solid var(--card);font-weight:700;color:var(--brand);font-size:17px}' +
-'.fd-pp b{font-weight:600;color:var(--ink);max-width:76px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}' +
-'.fd-card{background:var(--card);border:1px solid var(--line-2,var(--line));border-radius:18px;padding:14px 16px 8px;box-shadow:0 1px 2px rgba(15,23,18,.04)}' +
-'.fd-card.fd-in{animation:fdIn .45s var(--ease) both;animation-delay:calc(var(--i,0) * 50ms)}' +
-'@keyframes fdIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}' +
-'.fd-hd{display:flex;gap:10px;align-items:center}.fd-av{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:var(--brand-tint,#E7EFE6);color:var(--brand);font-weight:700;flex:none}' +
-'.fd-av.ic{font-size:21px}.fd-hd b{display:block;font-weight:600}.fd-hd small{display:block;color:var(--ink-3,#7B877F);font-size:12.5px}' +
-'.fd-tag{margin-inline-start:auto;font-size:11.5px;font-weight:600;border-radius:999px;padding:3px 9px;background:var(--well,#F6F3EC);color:var(--ink-2)}' +
-'.fd-bd{margin:10px 2px 6px;white-space:pre-wrap;line-height:1.6}.fd-bd h4{margin:0 0 4px;font-size:15.5px}' +
-'.fd-hero{display:flex;align-items:center;gap:12px;margin:10px 0 6px;padding:14px;border-radius:14px;background:linear-gradient(135deg,var(--brand-tint,#E7EFE6),transparent)}.fd-hero i{font-size:30px;color:var(--brand)}' +
-'.fd-sum{display:flex;justify-content:space-between;align-items:center;color:var(--ink-3,#7B877F);font-size:12.5px;padding:4px 2px;min-height:24px}' +
-'.fd-sum .fd-ics{display:inline-flex;gap:0}.fd-sum .fd-ics i{width:20px;height:20px;border-radius:50%;display:inline-grid;place-items:center;font-size:12px;color:#fff;background:var(--brand);border:2px solid var(--card);margin-inline-start:-5px}' +
-'.fd-bar{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line-2,var(--line));margin-top:4px;padding-top:4px}' +
-'.fd-r{position:relative;display:flex;align-items:center;justify-content:center;gap:6px;height:38px;border:0;background:none;border-radius:10px;color:var(--ink-2);font:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:background-color .15s,color .15s}' +
-'.fd-r:hover{background:var(--well,#F6F3EC)}.fd-r i{font-size:18px;transition:transform .25s var(--ease)}.fd-r[aria-pressed="true"]{color:var(--brand)}.fd-r[aria-pressed="true"] i{transform:scale(1.15)}' +
-'.fd-r:focus-visible{outline:2px solid var(--brand);outline-offset:2px}' +
-'.fd-r.fd-pop i{animation:fdPop .45s var(--ease)}@keyframes fdPop{0%{transform:scale(.6)}50%{transform:scale(1.45) rotate(-8deg)}100%{transform:scale(1.15)}}' +
-'.fd-r .fd-burst{position:absolute;inset:0;pointer-events:none}.fd-burst b{position:absolute;left:50%;top:50%;width:6px;height:6px;border-radius:50%;background:var(--brand);opacity:0;animation:fdB .6s ease-out forwards}' +
-'@keyframes fdB{0%{opacity:1;transform:translate(-50%,-50%)}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy)))}}' +
-'.fd-sk{background:var(--card);border:1px solid var(--line-2,var(--line));border-radius:18px;padding:16px;display:grid;gap:10px}.fd-sk .sk{height:12px}.fd-sk .sk.c{width:42px;height:42px;border-radius:50%}' +
-'@media (max-width:640px){.fd-r span{display:none}.fd-card{border-radius:14px;padding:12px 12px 6px}}' +
-'@media (prefers-reduced-motion:reduce){.fd-card.fd-in,.fd-r.fd-pop i,.fd-burst b{animation:none!important}}';
 var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 
 function go(area, sub){ if (window.goArea) goArea(area, sub); }
@@ -179,100 +148,20 @@ function chartCard(id, cls, icon, title, lead, chart, table, dest){
 }
 
 function render(main){
-  var company = companyRole(), scope = S.homeScope === 'feed' ? 'feed' : company ? (S.homeScope || 'company') : 'mine';
+  var company = companyRole(), scope = company ? (S.homeScope || 'company') : 'mine';
   var h = new Date(Date.now() + 180 * 60000).getUTCHours();
   main.innerHTML = '<div class="page v2"><header class="v3-hero hm-banner"><span class="v3-hero-ic">' + ph(h < 12 ? 'sun-horizon' : h < 17 ? 'sun' : 'moon-stars', 'duotone') + '</span><div><h1>' + greet() + '</h1><p>' + dateLine() + '</p></div>' +
-    '<div class="v3-hero-stats"><div class="hm-scope" role="group">' + (company ? '<button type="button" data-sc="company" aria-pressed="' + (scope === 'company') + '">' + ph('buildings', 'duotone') + t('hmCompany') + '</button>' : '') + '<button type="button" data-sc="mine" aria-pressed="' + (scope === 'mine') + '">' + ph('user', 'duotone') + t('hmMine') + '</button><button type="button" data-sc="feed" aria-pressed="' + (scope === 'feed') + '">' + ph('newspaper', 'duotone') + t('fdTab') + '</button></div></div></header>' +
+    '<div class="v3-hero-stats">' + (company ? '<div class="hm-scope" role="group"><button type="button" data-sc="company" aria-pressed="' + (scope === 'company') + '">' + ph('buildings', 'duotone') + t('hmCompany') + '</button><button type="button" data-sc="mine" aria-pressed="' + (scope === 'mine') + '">' + ph('user', 'duotone') + t('hmMine') + '</button></div>' : '') + '</div></header>' +
     '<div id="hmBody"></div></div>';
   $$('[data-sc]', main).forEach(function(b){ b.onclick = function(){
-    if (b.getAttribute('aria-pressed') === 'true') return;
+    if (S.homeScope === b.dataset.sc || (!S.homeScope && b.dataset.sc === 'company')) return;
     S.homeScope = b.dataset.sc; $$('[data-sc]', main).forEach(function(x){ x.setAttribute('aria-pressed', String(x === b)); });
     var body = $('#hmBody', main); body.classList.remove('mo-sub'); void body.offsetWidth;
     if (!moReduced()) { body.classList.add('mo-sub'); body.style.setProperty('--mo-dir', String((b.dataset.sc === 'mine' ? 1 : -1) * (S.lang === 'ar' ? -1 : 1))); }
-    var ord = { company: 0, mine: 1, feed: 2 };
-    if (!moReduced()) body.style.setProperty('--mo-dir', String((ord[b.dataset.sc] > ord[scope] ? 1 : -1) * (S.lang === 'ar' ? -1 : 1)));
-    scope = b.dataset.sc;
-    if (b.dataset.sc === 'company') companyHome(body); else if (b.dataset.sc === 'feed') feedHome(body); else myHome(body);
+    if (b.dataset.sc === 'company') companyHome(body); else myHome(body);
   }; });
   var body = $('#hmBody', main);
-  if (scope === 'company') companyHome(body); else if (scope === 'feed') feedHome(body); else myHome(body);
-}
-
-// ---------------- feed (design choice: social-feed patterns) ----------------
-var FD_ICON = { like: 'thumbs-up', celebrate: 'confetti', support: 'hand-heart', insightful: 'lightbulb' };
-var FD_KIND = { announcement: 'megaphone', kudos: 'hands-clapping', joiner: 'user-plus', anniversary: 'cake', training: 'graduation-cap' };
-function fdName(e){ return e ? esc(S.lang === 'en' && e.nameEn ? e.nameEn : e.name) : ''; }
-function fdAgo(iso){
-  var ms = Date.now() - Date.parse(iso); if (isNaN(ms)) return '';
-  var m = Math.round(ms / 60000), rtf = window.Intl && Intl.RelativeTimeFormat ? new Intl.RelativeTimeFormat(S.lang === 'en' ? 'en' : 'ar', { numeric: 'auto' }) : null;
-  if (!rtf) return new Date(iso).toLocaleDateString(LOCALE());
-  if (m < 60) return rtf.format(-Math.max(1, m), 'minute');
-  if (m < 1440) return rtf.format(-Math.round(m / 60), 'hour');
-  if (m < 43200) return rtf.format(-Math.round(m / 1440), 'day');
-  return new Date(iso).toLocaleDateString(LOCALE(), { day: 'numeric', month: 'short' });
-}
-function fdSkel(n){ var h = ''; for (var i = 0; i < n; i++) h += '<div class="fd-sk" aria-hidden="true"><div style="display:flex;gap:10px;align-items:center"><span class="sk c"></span><div style="flex:1;display:grid;gap:6px"><span class="sk" style="width:40%"></span><span class="sk" style="width:25%"></span></div></div><span class="sk" style="width:90%"></span><span class="sk" style="width:70%"></span></div>'; return h; }
-function fdToday(td){
-  var pp = [];
-  (td.away || []).forEach(function(e){ pp.push({ e: e, cls: 'away', lab: t('fdAway') }); });
-  (td.joiners || []).forEach(function(e){ pp.push({ e: e, cls: '', lab: t('fdJoin') }); });
-  (td.anniversaries || []).forEach(function(e){ pp.push({ e: e, cls: '', lab: t('fdAnv') }); });
-  if (!pp.length) return '<p class="hr-hint" style="margin:0">' + t('fdNoToday') + '</p>';
-  return '<div class="fd-today" role="list" aria-label="' + t('fdToday') + '">' + pp.map(function(x){ return '<div class="fd-pp" role="listitem"><div class="fd-ring ' + x.cls + '"><span>' + esc(initials(x.e.name)) + '</span></div><b>' + fdName(x.e) + '</b><small>' + x.lab + '</small></div>'; }).join('') + '</div>';
-}
-function fdBody(x){
-  var L = function(ar, en){ return esc(S.lang === 'en' && en ? en : ar || ''); };
-  if (x.kind === 'announcement') return '<div class="fd-bd"><h4>' + L(x.title, x.titleEn) + '</h4>' + L(x.body, x.bodyEn) + '</div>';
-  if (x.kind === 'kudos') return '<div class="fd-bd">' + esc(x.body || '') + '</div>';
-  if (x.kind === 'joiner') return '<div class="fd-hero">' + ph('hand-waving', 'duotone') + '<div><b>' + fdName(x.who) + '</b> ' + t('fdJoined') + (x.position ? '<br><small>' + esc(x.position) + '</small>' : '') + '</div></div>';
-  if (x.kind === 'anniversary') return '<div class="fd-hero">' + ph('confetti', 'duotone') + '<div><b>' + fdName(x.who) + '</b><br>' + (x.years === 1 ? t('fdYear1') : t('fdYears').replace('{n}', x.years)) + '</div></div>';
-  if (x.kind === 'training') return '<div class="fd-bd"><h4>' + L(x.title, x.titleEn) + '</h4>' + t('fdTrainFrom') + ' ' + esc(x.from) + (x.location ? ' · ' + esc(x.location) : '') + '</div>';
-  return '';
-}
-function fdHead(x){
-  var who = x.kind === 'kudos' ? fdName(x.from) + ' ' + t('fdThanks') + ' ' + fdName(x.to) : x.who ? fdName(x.who) : t('fdk_' + x.kind);
-  var avh = x.kind === 'kudos' && x.from ? '<span class="fd-av">' + esc(initials(x.from.name)) + '</span>' : x.who ? '<span class="fd-av">' + esc(initials(x.who.name)) + '</span>' : '<span class="fd-av ic">' + ph(FD_KIND[x.kind] || 'note', 'duotone') + '</span>';
-  return '<div class="fd-hd">' + avh + '<div><b>' + who + '</b><small>' + fdAgo(x.at) + '</small></div><span class="fd-tag">' + (x.pinned ? ph('push-pin') + ' ' : '') + t('fdk_' + x.kind) + '</span></div>';
-}
-function fdSum(x, reacts){
-  var tot = 0, ics = '';
-  reacts.forEach(function(k){ var n = x.reactions[k] || 0; tot += n; if (n) ics += ph(FD_ICON[k], 'fill'); });
-  if (!tot) return '<div class="fd-sum"></div>';
-  var shown = (x.reactors || []).slice(0, 2), names = shown.map(esc).join(S.lang === 'en' ? ', ' : '، '), more = tot - shown.length;
-  return '<div class="fd-sum"><span><span class="fd-ics" aria-hidden="true">' + ics + '</span> ' + names + (names && more > 0 ? ' ' + t('fdAndOthers').replace('{n}', more) : '') + '</span><span class="num">' + tot + '</span></div>';
-}
-function fdCard(x, i, reacts){
-  return '<article class="fd-card fd-in" style="--i:' + Math.min(i, 8) + '" data-k="' + esc(x.key) + '">' + fdHead(x) + fdBody(x) + '<div data-sum>' + fdSum(x, reacts) + '</div>' +
-    '<div class="fd-bar" role="group" aria-label="' + t('fdReactOn') + '">' + reacts.map(function(k){ return '<button type="button" class="fd-r" data-r="' + k + '" aria-pressed="' + (x.mine === k) + '" aria-label="' + t('fdr_' + k) + '">' + ph(FD_ICON[k], x.mine === k ? 'fill' : '') + '<span>' + t('fdr_' + k) + '</span></button>'; }).join('') + '</div></article>';
-}
-function fdBurst(b){
-  if (moReduced()) return;
-  var w = document.createElement('span'); w.className = 'fd-burst';
-  for (var i = 0; i < 8; i++) { var a = i / 8 * Math.PI * 2, d = document.createElement('b'); d.style.setProperty('--dx', Math.round(Math.cos(a) * 22) + 'px'); d.style.setProperty('--dy', Math.round(Math.sin(a) * 22) + 'px'); w.appendChild(d); }
-  b.appendChild(w); setTimeout(function(){ w.remove(); }, 650);
-}
-function feedHome(el){
-  el.innerHTML = '<div class="fd-wrap">' + fdSkel(3) + '</div>';
-  api('feed', {}, true).then(function(r){
-    if (!el.isConnected) return;
-    if (!r.ok) { el.innerHTML = '<div class="fd-wrap"><p class="hr-bad">' + t('fdErr') + '</p></div>'; return; }
-    var reacts = r.reacts || ['like', 'celebrate', 'support', 'insightful'], items = r.items, byKey = {};
-    items.forEach(function(x){ byKey[x.key] = x; });
-    el.innerHTML = '<div class="fd-wrap"><section class="fd-card"><div class="fd-hd" style="margin-bottom:10px"><span class="fd-av ic">' + ph('sun', 'duotone') + '</span><div><b>' + t('fdToday') + '</b></div></div>' + fdToday(r.today || {}) + '</section>' +
-      (items.length ? items.map(function(x, i){ return fdCard(x, i, reacts); }).join('') : '<p class="hr-hint">' + t('fdEmpty') + '</p>') + '</div>';
-    $$('.fd-r', el).forEach(function(b){ b.onclick = function(){
-      var card = b.closest('.fd-card'), x = byKey[card.dataset.k], k = b.dataset.r, prev = x.mine, next = prev === k ? '' : k;
-      // optimistic: show the change at once, put it back if the server refuses
-      var myName = S.me ? S.me.name : '';
-      var apply = function(to){ if (x.mine) x.reactions[x.mine] = Math.max(0, (x.reactions[x.mine] || 1) - 1); x.mine = to; if (to) x.reactions[to] = (x.reactions[to] || 0) + 1;
-        x.reactors = (x.reactors || []).filter(function(n){ return n !== myName; }); if (to && myName) x.reactors.unshift(myName); // my own name first while I react
-        $$('.fd-r', card).forEach(function(o){ var on = o.dataset.r === x.mine; o.setAttribute('aria-pressed', String(on)); o.querySelector('i').outerHTML = ph(FD_ICON[o.dataset.r], on ? 'fill' : ''); });
-        card.querySelector('[data-sum]').innerHTML = fdSum(x, reacts); };
-      apply(next);
-      if (next) { b.classList.remove('fd-pop'); void b.offsetWidth; b.classList.add('fd-pop'); fdBurst(b); }
-      api('feedReact', { key: x.key, kind: k }, true).then(function(y){ if (!y.ok) { apply(prev); toast(errText(y.error)); } });
-    }; });
-  });
+  if (scope === 'company') companyHome(body); else myHome(body);
 }
 
 // ---------------- company ----------------
