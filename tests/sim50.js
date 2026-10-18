@@ -1297,7 +1297,9 @@ const EXPECT = {
   recruitReqSave: 'mgr', recruitBoard: 'mgrX', trainMatrix: 'mgrX', loanDisburse: 'payOnly', loanSettle: 'payOnly', loanSettleVerify: 'payOnly',
   loanPolicySave: 'hrPay', insList: 'hrPay', insCost: 'money', hdList: 'hrPay',
   // Wave 3 (Engage.gs): exit results for the hr role and executives (never an admin alone), recognition stats for HR, executives, admins
-  exitSurveyResults: 'hrExec', kudosStats: 'hrExecA'
+  exitSurveyResults: 'hrExec', kudosStats: 'hrExecA',
+  // final settlement (Payroll.gs): prepare and list by hr role or payroll, decide and pay by payroll only
+  finalSettlementCreate: 'pay', finalSettlementList: 'pay', finalSettlementDecide: 'payOnly', finalSettlementPaid: 'payOnly'
 };
 const T16 = ids['1018'];
 const PROBE = { hrEmpFile: { id: T16 }, perfEmp: { empId: T16, cycleId: CYC.id }, planSave: { plan: { empId: T16, type: 'idp' } }, delegationSave: { delegation: { toEmpId: ids['1003'] } },

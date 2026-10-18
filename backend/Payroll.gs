@@ -201,6 +201,7 @@ function payrollEmps_(month, scope) {
   return readAll_(SHEETS.EMP).filter(function (e) {
     if (!!demo[e.id] !== wantDemo) return false;
     var lwd = String(e.lastWorkingDay || '').slice(0, 10);
+    if (fsPaidMonth_(e.id, month)) return false; // the month's days are paid in the final settlement (its own last day)
     return e.status === 'active' || (lwd && lwd >= first);
   });
 }
@@ -574,3 +575,98 @@ function payslipEmailHtml_(sl) {
     '<tr><td style="padding:10px 8px;font-weight:bold">صافي الراتب</td><td style="padding:10px 8px;font-weight:bold;text-align:left">' + m(sl.net) + ' ر.س</td></tr></table>' +
     '<p style="color:#4A5A4D;font-size:12px">تجد القسيمة كاملة في التطبيق، صفحة ملفي. ' + settings_().companyNameAr + '، إدارة الموارد البشرية.</p></div>';
 }
+
+
+// ======================================================================= final settlement (Wave 3, 2026-10-18)
+// The figures come from api_eosQuote (Art. 84/85 award, leave pay, last month's days unless locked, advances and loans owed).
+// Prepared by a payroll holder or the hr role, approved by a different payroll holder (the numbers freeze), then the payout
+// is recorded with the transfer reference. Approval closes the person's loans (a verified system settlement) and keeps the
+// regular run of the last month from paying that month's days a second time (payrollEmps_).
+function fsPublic_(x, emps) {
+  var q = parseJson_(x.quoteJson, {}), e = emps[x.empId];
+  return { id: x.id, ref: x.ref, emp: empCard_(e), lastDay: String(x.lastDay).slice(0, 10), reason: x.reason, status: x.status, net: Number(x.net) || 0, quote: q,
+    preparedBy: emps[x.preparedBy] ? emps[x.preparedBy].name : '', approvedBy: emps[x.approvedBy] ? emps[x.approvedBy].name : '', approvedAt: x.approvedAt,
+    paidOn: String(x.paidOn || '').slice(0, 10), paidRef: x.paidRef, note: x.note, createdAt: x.createdAt, preparedById: x.preparedBy };
+}
+function fsEmps_() { var o = {}; readAll_(SHEETS.EMP).forEach(function (e) { o[e.id] = e; }); return o; }
+/** Employees whose last month is paid by an approved settlement: the regular run of that month leaves them out. */
+function fsPaidMonth_(empId, month) {
+  return readAll_(SHEETS.FSET).some(function (x) { return x.empId === empId && (x.status === 'approved' || x.status === 'paid') && String(x.lastDay).slice(0, 7) === month && Number(parseJson_(x.quoteJson, {}).lastMonthPay) > 0; });
+}
+function api_finalSettlementCreate(req, me) {
+  if (!canPayroll_(me)) fail_('forbidden');
+  if (req.empId === me.id) fail_('cannot_change_own_salary');
+  var q = api_eosQuote({ empId: req.empId, lastDay: req.lastDay, reason: req.reason }, me).eos;
+  return withLock_(function () {
+    if (readAll_(SHEETS.FSET).some(function (x) { return x.empId === req.empId && x.status !== 'cancelled'; })) fail_('already_exists');
+    var now = new Date().toISOString(), row = { id: newId_('Z'), ref: nextRef_('settlement', refsOf_(SHEETS.FSET)), empId: req.empId, lastDay: q.lastDay, reason: q.reason,
+      quoteJson: JSON.stringify(q), net: q.net, status: 'draft', preparedBy: me.id, preparedAt: now, approvedBy: '', approvedAt: '', paidOn: '', paidRef: '', paidBy: '',
+      note: str_(req.note, 300), createdAt: now, updatedAt: now };
+    append_(SHEETS.FSET, row);
+    audit_(me.id, 'settlement_create', row.empId, { ref: row.ref, net: row.net });
+    return { ok: true, settlement: fsPublic_(row, fsEmps_()) };
+  });
+}
+/** A different payroll holder approves (numbers freeze) or rejects (note). Approval closes the loans still owed. */
+function api_finalSettlementDecide(req, me) {
+  if (!canApprovePayroll_(me)) fail_('forbidden');
+  var decision = req.decision === 'approve' ? 'approve' : req.decision === 'reject' ? 'reject' : '';
+  if (!decision) fail_('bad_request');
+  return withLock_(function () {
+    var x = findBy_(SHEETS.FSET, 'id', req.id), now = new Date().toISOString();
+    if (!x || x.status !== 'draft') fail_('not_found');
+    if (x.empId === me.id) fail_('cannot_decide_own');
+    if (x.preparedBy === me.id) fail_('second_approver_required');
+    if (decision === 'reject') { if (!str_(req.note, 300)) fail_('note_required'); x.status = 'cancelled'; x.note = str_(req.note, 300); }
+    else {
+      x.status = 'approved'; x.approvedBy = me.id; x.approvedAt = now;
+      if (typeof loanRepaidMap_ === 'function') {
+        var done = loanRepaidMap_();
+        readAll_(SHEETS.LOAN).forEach(function (l) {
+          var left = l.empId === x.empId ? loanOutstanding_(l, done) : 0;
+          if (left <= 0) return;
+          var s = parseJson_(l.settlementsJson, []);
+          s.push({ id: newId_('S'), amount: left, on: today_(), reference: x.ref, status: 'verified', by: me.id, at: now, verifiedBy: 'system', verifiedAt: now });
+          l.settlementsJson = JSON.stringify(s); l.closedOn = today_(); l.updatedAt = now; update_(SHEETS.LOAN, l);
+        });
+      }
+    }
+    x.updatedAt = now; update_(SHEETS.FSET, x);
+    audit_(me.id, 'settlement_' + (decision === 'approve' ? 'approved' : 'rejected'), x.empId, { ref: x.ref });
+    return { ok: true, settlement: fsPublic_(x, fsEmps_()) };
+  });
+}
+function api_finalSettlementPaid(req, me) {
+  if (!canApprovePayroll_(me)) fail_('forbidden');
+  var ref = str_(req.paidRef, 60), on = isoDate_(req.paidOn) || today_();
+  if (!ref) fail_('missing_fields');
+  if (on > today_()) fail_('bad_date');
+  return withLock_(function () {
+    var x = findBy_(SHEETS.FSET, 'id', req.id);
+    if (!x || x.status !== 'approved') fail_('not_found');
+    if (x.empId === me.id) fail_('cannot_decide_own');
+    x.status = 'paid'; x.paidOn = on; x.paidRef = ref; x.paidBy = me.id; x.updatedAt = new Date().toISOString();
+    update_(SHEETS.FSET, x);
+    audit_(me.id, 'settlement_paid', x.empId, { ref: x.ref, paidRef: ref });
+    return { ok: true, settlement: fsPublic_(x, fsEmps_()) };
+  });
+}
+function api_finalSettlementList(req, me) {
+  if (!canPayroll_(me)) fail_('forbidden');
+  var emps = fsEmps_();
+  audit_(me.id, 'salary_view', '', { settlements: true });
+  var leavers = Object.keys(emps).map(function (k) { return emps[k]; }).filter(function (e) { return e.lastWorkingDay || e.resignedOn || e.status !== 'active'; })
+    .map(function (e) { return { id: e.id, empNo: String(e.empNo), name: e.name, lastDay: String(e.lastWorkingDay || '').slice(0, 10) }; });
+  return { ok: true, rows: readAll_(SHEETS.FSET).sort(function (a, b) { return a.createdAt < b.createdAt ? 1 : -1; }).map(function (x) { return fsPublic_(x, emps); }),
+    leavers: leavers, canApprove: canApprovePayroll_(me), me: me.id };
+}
+function api_myFinalSettlement(req, me) {
+  var x = readAll_(SHEETS.FSET).filter(function (r) { return r.empId === me.id && (r.status === 'approved' || r.status === 'paid'); })[0];
+  return { ok: true, settlement: x ? fsPublic_(x, fsEmps_()) : null };
+}
+hrisHook_('tasks', function (me, ctx, add) {
+  if (!hasRole_(me, 'payroll')) return;
+  var all = readAll_(SHEETS.FSET);
+  add('settlement_approve', all.filter(function (x) { return x.status === 'draft' && x.preparedBy !== me.id && x.empId !== me.id; }).length, { tab: 'hr', sec: 'settlements' });
+  add('settlement_pay', all.filter(function (x) { return x.status === 'approved' && x.empId !== me.id; }).length, { tab: 'hr', sec: 'settlements' });
+});

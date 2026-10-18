@@ -36,7 +36,7 @@ var SHEETS = { EMP: 'employees', CRED: 'credentials', ZONES: 'zones', PUNCH: 'pu
   REQN: 'requisitions', CAND: 'candidates', INTV: 'interviews', OFFER: 'offers', LOAN: 'loans',
   COURSE: 'courses', TSESS: 'trainSessions', TENR: 'trainEnrol', INSP: 'insPolicies', INSM: 'insMembers', INSMV: 'insMoves',
   ANN: 'announcements', ANNR: 'annReads', HDT: 'hdTickets',
-  EXS: 'exitSurveys', KUD: 'kudos' }; // Wave 3 (Engage.gs): exit interview, recognition
+  EXS: 'exitSurveys', KUD: 'kudos', FSET: 'finalSettlements' }; // Wave 3 (Engage.gs): exit interview, recognition
 
 var HEADERS = {
   employees: ['id', 'empNo', 'name', 'nameEn', 'email', 'phone', 'department', 'title', 'role', 'status',
@@ -157,7 +157,9 @@ var HEADERS = {
     'firstResponseAt', 'resolvedAt', 'closedAt', 'rating', 'ratingNote', 'createdAt', 'updatedAt'],
   // exit interview EXS and recognition (Engage.gs, Wave 3)
   exitSurveys: ['id', 'ref', 'empId', 'status', 'reason', 'answersJson', 'submittedAt', 'createdAt'],
-  kudos: ['id', 'fromId', 'toId', 'value', 'message', 'status', 'createdAt']
+  kudos: ['id', 'fromId', 'toId', 'value', 'message', 'status', 'createdAt'],
+  // final settlement FS (Payroll.gs, Wave 3)
+  finalSettlements: ['id', 'ref', 'empId', 'lastDay', 'reason', 'quoteJson', 'net', 'status', 'preparedBy', 'preparedAt', 'approvedBy', 'approvedAt', 'paidOn', 'paidRef', 'paidBy', 'note', 'createdAt', 'updatedAt']
 };
 
 var ROLES = { employee: 1, hr: 2, admin: 3 };
@@ -223,7 +225,7 @@ var CACHED_TABS_ = { employees: 1, zones: 1, credentials: 1, departments: 1, pos
   govVisas: 1, iqamaRenewals: 1, govFees: 1, ticketRights: 1, ticketUses: 1, expenseClaims: 1, journalLog: 1,
   leaveCycles: 1, approvalFlows: 1,
   requisitions: 1, candidates: 1, interviews: 1, offers: 1, loans: 1, courses: 1, trainSessions: 1, trainEnrol: 1, insPolicies: 1, insMembers: 1, insMoves: 1,
-  announcements: 1, annReads: 1, hdTickets: 1, exitSurveys: 1, kudos: 1 };
+  announcements: 1, annReads: 1, hdTickets: 1, exitSurveys: 1, kudos: 1, finalSettlements: 1 };
 var USE_TAB_CACHE_ = false; // true: every cached tab; an object: only those tabs (sign-in writes credentials)
 // Version tags make app writes and hand edits visible at once; the expiry only bounds what Sheets
 // never reports to onEdit (deleting or sorting rows by hand).
@@ -519,7 +521,7 @@ var REF_DEFAULTS = {
   exit_reentry: 'ERV', final_exit: 'FEX', iqama_renewal: 'IQR', gov_fee: 'GF', ticket: 'TKT', expense: 'EXP', journal: 'JV',
   leavecycle: 'LC', flow: 'AF',
   requisition: 'RQ', candidate: 'CND', interview: 'INT', offer: 'OFR', loan: 'LN', course: 'CRS', training: 'TRS', certificate: 'CRT',
-  ins_policy: 'INP', insurance: 'INS', announcement: 'ANN', helpdesk: 'HD', exit_survey: 'EXS'
+  ins_policy: 'INP', insurance: 'INS', announcement: 'ANN', helpdesk: 'HD', exit_survey: 'EXS', settlement: 'FS'
 };
 var REF_YEARLY = { department: false, position: false, shift: false, asset: false, flow: false, course: false, ins_policy: false };
 
@@ -643,7 +645,7 @@ var PUBLIC_ACTIONS = {
   ping: 1, bootstrapStatus: 1, bootstrap: 1, enrollBegin: 1, enrollFinish: 1,
   authBegin: 1, authFinish: 1, punchBegin: 1, punchFinish: 1, adminRecover: 1, pwLogin: 1, pinChange: 1, diag: 1, demoData: 1
 };
-var EMP_ACTIONS = { me: 1, myHistory: 1, passwordSet: 1, punchPw: 1, myExitSurvey: 1, exitSurveySubmit: 1, kudosSend: 1, kudosFeed: 1, exitSurveyResults: 1, kudosStats: 1,
+var EMP_ACTIONS = { me: 1, myHistory: 1, passwordSet: 1, punchPw: 1, finalSettlementCreate: 1, finalSettlementDecide: 1, finalSettlementPaid: 1, finalSettlementList: 1, myFinalSettlement: 1, myExitSurvey: 1, exitSurveySubmit: 1, kudosSend: 1, kudosFeed: 1, exitSurveyResults: 1, kudosStats: 1,
   myFile: 1, hrEmpFile: 1, hrTeam: 1, hrCompList: 1, hrCompPropose: 1, hrCompDecide: 1,
   myRequests: 1, requestQuote: 1, requestCreate: 1, requestCancel: 1, reqInbox: 1, reqDecide: 1, holidayList: 1, leaveTeam: 1,
   mySlips: 1, payrollList: 1, payrollGet: 1, payrollCreate: 1, payrollRecalc: 1, payrollApprove: 1, payrollDelete: 1, payrollAdjSave: 1,
@@ -675,7 +677,7 @@ var HR_ACTIONS = { resignationDefer: 1, recruitReqClose: 1, recruitCandSave: 1, 
  * Actions that only read (plus the audit line of a salary view). They may use the cached tab copies;
  * update_ refuses a cached row, so a mistake here fails loudly instead of overwriting the Sheet.
  */
-var READ_ONLY_ACTIONS = { myExitSurvey: 1, kudosFeed: 1, exitSurveyResults: 1, kudosStats: 1, me: 1, myHistory: 1, myFile: 1, hrEmpFile: 1, hrTeam: 1, hrCompList: 1, hrDirectory: 1, hrDeptList: 1,
+var READ_ONLY_ACTIONS = { myFinalSettlement: 1, myExitSurvey: 1, kudosFeed: 1, exitSurveyResults: 1, kudosStats: 1, me: 1, myHistory: 1, myFile: 1, hrEmpFile: 1, hrTeam: 1, hrCompList: 1, hrDirectory: 1, hrDeptList: 1,
   hrPositionList: 1, hrDocList: 1, hrExpiring: 1, hrBootstrap: 1, hrImportValidate: 1, board: 1, empList: 1, zoneList: 1, report: 1,
   reviewList: 1, auditList: 1, settingsGet: 1, myRequests: 1, requestQuote: 1, reqInbox: 1, holidayList: 1, leaveTeam: 1, leaveBalances: 1,
   dashboard: 1, mySlips: 1, payrollList: 1, payrollGet: 1, eosQuote: 1, myPerformance: 1, perfTeam: 1, perfEmp: 1, feedbackResults: 1, perfCycleList: 1, perfOverview: 1,

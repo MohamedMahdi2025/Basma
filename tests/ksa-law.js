@@ -213,5 +213,26 @@ ok(d.ok && d.request.resignation.acceptBy === '2026-11-19' && d.request.resignat
 d = call('3001', 'resignationDefer', { id: 'RQT1', until: '2026-11-19', reason: 'مرة ثانية' });
 ok(!d.ok && d.error === 'bad_date', 'it cannot be pushed again past the same limit', d);
 
+
+// ---------------------------------------------------------------- final settlement (FS), 2026-10-18
+console.log('Final settlement (FS) from the EOS quote');
+let fs1 = call('3001', 'finalSettlementCreate', { empId: ids['5001'], lastDay: '2026-10-14', reason: 'resignation' });
+const eq1 = call('3002', 'eosQuote', { empId: ids['5001'], lastDay: '2026-10-14', reason: 'resignation' });
+ok(fs1.ok && /^FS-/.test(fs1.settlement.ref) && near(fs1.settlement.net, eq1.eos.net) && near(fs1.settlement.quote.award, 24029.22), 'HR prepares the settlement: same figures as the EOS quote (award 24,029.22)', fs1.settlement || fs1);
+let fs2 = call('3001', 'finalSettlementCreate', { empId: ids['5001'], lastDay: '2026-10-14', reason: 'resignation' });
+ok(!fs2.ok && fs2.error === 'already_exists', 'one settlement per person', fs2);
+fs2 = call('3001', 'finalSettlementDecide', { id: fs1.settlement.id, decision: 'approve' });
+ok(!fs2.ok && fs2.error === 'forbidden', 'the hr role alone cannot approve it (payroll only)', fs2);
+fs2 = call('3002', 'finalSettlementDecide', { id: fs1.settlement.id, decision: 'approve' });
+ok(fs2.ok && fs2.settlement.status === 'approved', 'a payroll holder who did not prepare it approves it', fs2.settlement || fs2);
+const lastPay = fs2.settlement && fs2.settlement.quote.lastMonthPay;
+const inRun = direct(() => C.payrollEmps_('2026-10', '').some(e => e.id === ids['5001']));
+ok(lastPay > 0 ? !inRun : inRun, 'the October run leaves out the days already paid in the settlement', { lastPay, inRun });
+fs2 = call('3002', 'finalSettlementPaid', { id: fs1.settlement.id, paidRef: '' });
+ok(!fs2.ok && fs2.error === 'missing_fields', 'the payout needs the transfer reference', fs2);
+fs2 = call('3002', 'finalSettlementPaid', { id: fs1.settlement.id, paidRef: 'TRF-889', paidOn: '2026-10-14' });
+ok(fs2.ok && fs2.settlement.status === 'paid' && fs2.settlement.paidRef === 'TRF-889', 'the payout is recorded', fs2.settlement || fs2);
+fs2 = call('5001', 'myFinalSettlement');
+ok(fs2.ok && fs2.settlement && fs2.settlement.ref === fs1.settlement.ref, 'the employee sees their own settlement', fs2);
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);

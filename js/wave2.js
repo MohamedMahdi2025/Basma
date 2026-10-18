@@ -96,6 +96,7 @@ Object.assign(T.ar, {
   row_over_budget:'أعلى من ميزانية الطلب: يلزم ذكر السبب عند الاعتماد.', row_under_budget:'أقل من ميزانية الطلب.', row_nitaqat_half:'أجر السعودي بين 3,000 و3,999: يحتسب نصف موظف في نطاقات.',
   row_nitaqat_zero:'أجر السعودي أقل من 3,000: لا يحتسب في نطاقات.', row_below_expectation:'أقل من الراتب الذي يتوقعه المرشح.',
   // Wave 3: exit interview and recognition
+  fsTitle:'المخالصة النهائية', fsLead:'مستحقات نهاية الخدمة من حاسبة المكافأة (المادتان 84 و85) مع رصيد الإجازة وأيام الشهر الأخير والسلف والقروض. يعدها شخص ويعتمدها شخص آخر من الرواتب، ثم يسجل الصرف بمرجع التحويل.', fsNew:'إعداد مخالصة', fsReason:'سبب انتهاء العلاقة', fsLastDay:'آخر يوم عمل', fsAward:'مكافأة نهاية الخدمة', fsLeave:'بدل رصيد الإجازة', fsLastMonth:'أيام الشهر الأخير', fsAdvances:'سلف مستحقة', fsLoans:'قروض مستحقة', fsNet:'الصافي المستحق', fsYears:'سنوات الخدمة', fsWage:'الأجر الفعلي', fsPay:'تسجيل الصرف', fsPaidRef:'مرجع التحويل', fsPaidOn:'تاريخ الصرف', fsPrint:'طباعة المخالصة', fsDue:'تستحق قبل', fsMy:'مخالصتي النهائية', fsKind:'مخالصة نهائية', fsSignEmp:'توقيع الموظف بالاستلام', fsSignHr:'الموارد البشرية', fsSignPay:'الرواتب', fsStatement:'أقر بأنني استلمت المبالغ الموضحة أعلاه وفق نظام العمل.', fss_draft:'بانتظار الاعتماد', fss_approved:'معتمدة، بانتظار الصرف', fss_paid:'صرفت', fss_cancelled:'ملغاة', fsr_resignation:'استقالة', fsr_termination:'إنهاء من صاحب العمل', fsr_contract_end:'انتهاء العقد', fsr_art80:'فصل وفق المادة 80', fsr_art87_marriage:'المادة 87: زواج', fsr_art87_force_majeure:'المادة 87: قوة قاهرة', fsr_art81:'المادة 81: ترك العمل لإخلال صاحب العمل', fsr_art87_childbirth:'المادة 87: خلال 3 أشهر من الولادة',
   exTitle:'رأي المغادرين', exLead:'مقابلة الخروج: تقييم خمسة جوانب وسبب المغادرة، تعرض مجمعة فقط من 5 إجابات فأكثر، والتعليقات بلا أسماء.', exMy:'مقابلة الخروج', exMyLead:'إجاباتك سرية ولا تظهر باسمك؛ تساعدنا على التحسن.', exArea_manager:'المدير المباشر', exArea_pay:'الراتب والمزايا', exArea_growth:'فرص التطور', exArea_workload:'ضغط العمل', exArea_culture:'بيئة العمل', exReason:'السبب الرئيسي للمغادرة', exRecommend:'هل توصي صديقا بالعمل لدينا؟ (0-10)', exReturn:'سأعود للعمل هنا إن سنحت الفرصة', exComment:'ما الذي كان يمكن أن يبقيك؟', exSend:'إرسال', exThanks:'شكرا لك. وصلتنا إجاباتك.', exr_pay:'الراتب', exr_growth:'التطور الوظيفي', exr_manager:'المدير', exr_workload:'ضغط العمل', exr_relocation:'الانتقال لمدينة أخرى', exr_family:'ظروف عائلية', exr_study:'الدراسة', exr_better_offer:'عرض أفضل', exr_health:'الصحة', exr_other:'أخرى', exCount:'إجابات', exOpen:'بانتظار الإجابة', exHidden:'تظهر النتائج عند وصول 5 إجابات أو أكثر حفاظا على السرية.', exAvg:'متوسط التقييم', exReasons:'أسباب المغادرة', exEnps:'مؤشر التوصية', exBack:'سيعودون', exComments:'تعليقات (بلا أسماء)', kdTitle:'التقدير', kdLead:'شكر الزملاء على قيم الشركة؛ يراه الجميع ويقيس ثقافة التقدير.', kdMy:'شكرا زملائي', kdSend:'أرسل شكرا', kdTo:'إلى', kdValue:'القيمة', kdMsg:'رسالتك', kdFeed:'آخر الشكر في الشركة', kdMine:'شكر وصلني', kdReceived:'وصلك', kdSent:'تم إرسال الشكر', kdLeft:'متبقي اليوم', kdByValue:'حسب القيمة', kdByDept:'حسب القسم', kdTop:'الأكثر تقديرا', kdMonth:'هذا الشهر', kdv_teamwork:'روح الفريق', kdv_customer:'خدمة العميل', kdv_safety:'السلامة أولا', kdv_initiative:'المبادرة', kdv_excellence:'الإتقان', e_kudos_daily_limit:'وصلت إلى 5 رسائل شكر اليوم.',
   e_saudi_only:'هذه وظيفة موطنة: لا يقدم عرض لغير سعودي.', e_offer_expired:'انتهت صلاحية العرض؛ جدده قبل تسجيل القبول.'
 });
@@ -182,6 +183,7 @@ Object.assign(T.en, {
   ros_draft:'Draft', ros_pending:'Waiting for approval', ros_approved:'Approved', ros_rejected:'Rejected', ros_sent:'Sent', ros_accepted:'Accepted', ros_declined:'Declined by the candidate', ros_expired:'Expired', ros_withdrawn:'Withdrawn', ros_hired:'Hired',
   row_over_budget:'Above the request budget: the approver must give the reason.', row_under_budget:'Below the request budget.', row_nitaqat_half:'Saudi wage between 3,000 and 3,999: counts as half in Nitaqat.',
   row_nitaqat_zero:'Saudi wage under 3,000: does not count in Nitaqat.', row_below_expectation:'Below the salary the candidate expects.',
+fsTitle:'Final settlement', fsLead:'End-of-service dues from the award calculator (Art. 84 and 85) with leave balance, the last month\'s days, advances and loans. One person prepares it, a different payroll holder approves it, then the payout is recorded with the transfer reference.', fsNew:'Prepare a settlement', fsReason:'Reason the employment ended', fsLastDay:'Last working day', fsAward:'End-of-service award', fsLeave:'Leave balance pay', fsLastMonth:'Last month\'s days', fsAdvances:'Advances owed', fsLoans:'Loans owed', fsNet:'Net due', fsYears:'Years of service', fsWage:'Actual wage', fsPay:'Record payout', fsPaidRef:'Transfer reference', fsPaidOn:'Paid on', fsPrint:'Print settlement', fsDue:'Due by', fsMy:'My final settlement', fsKind:'Final settlement', fsSignEmp:'Employee\'s receipt', fsSignHr:'Human resources', fsSignPay:'Payroll', fsStatement:'I confirm I received the amounts above under the Labour Law.', fss_draft:'Waiting for approval', fss_approved:'Approved, waiting for payout', fss_paid:'Paid', fss_cancelled:'Cancelled', fsr_resignation:'Resignation', fsr_termination:'Ended by the employer', fsr_contract_end:'Contract ended', fsr_art80:'Dismissal under Art. 80', fsr_art87_marriage:'Art. 87: marriage', fsr_art87_force_majeure:'Art. 87: force majeure', fsr_art81:'Art. 81: left over the employer\'s breach', fsr_art87_childbirth:'Art. 87: within 3 months of giving birth',
   exTitle:'Exit insights', exLead:'Exit interviews: five areas rated and the reason for leaving, shown only as totals from 5 answers, comments without names.', exMy:'Exit interview', exMyLead:'Your answers are confidential and never shown with your name; they help us improve.', exArea_manager:'Your manager', exArea_pay:'Pay and benefits', exArea_growth:'Room to grow', exArea_workload:'Workload', exArea_culture:'Work environment', exReason:'Main reason for leaving', exRecommend:'Would you recommend working here to a friend? (0-10)', exReturn:'I would come back if the chance came', exComment:'What could have kept you?', exSend:'Send', exThanks:'Thank you. We have your answers.', exr_pay:'Pay', exr_growth:'Career growth', exr_manager:'Manager', exr_workload:'Workload', exr_relocation:'Moving city', exr_family:'Family', exr_study:'Study', exr_better_offer:'A better offer', exr_health:'Health', exr_other:'Other', exCount:'answers', exOpen:'Waiting for an answer', exHidden:'Results show from 5 answers, to keep them confidential.', exAvg:'Average rating', exReasons:'Reasons for leaving', exEnps:'Recommend score', exBack:'Would come back', exComments:'Comments (no names)', kdTitle:'Recognition', kdLead:'Thank colleagues against the company values; everyone sees it, and it measures the culture of recognition.', kdMy:'Thank a colleague', kdSend:'Send thanks', kdTo:'To', kdValue:'Value', kdMsg:'Your message', kdFeed:'Latest thanks across the company', kdMine:'Thanks I received', kdReceived:'Received', kdSent:'Thanks sent', kdLeft:'left today', kdByValue:'By value', kdByDept:'By department', kdTop:'Most thanked', kdMonth:'This month', kdv_teamwork:'Teamwork', kdv_customer:'Customer first', kdv_safety:'Safety first', kdv_initiative:'Initiative', kdv_excellence:'Excellence', e_kudos_daily_limit:'You have sent 5 thanks today.',
   e_saudi_only:'This is a localised job: no offer to a non-Saudi.', e_offer_expired:'The offer has expired; renew it before recording the acceptance.'
 });
@@ -1056,9 +1058,81 @@ function kudosSection(body){
   load();
 }
 
+// =================================================================== FINAL SETTLEMENT (Wave 3)
+var FS_CLS = { draft: 'late', approved: 'late', paid: 'in', cancelled: 'off' };
+var FS_REASONS = ['resignation', 'termination', 'contract_end', 'art81', 'art87_marriage', 'art87_childbirth', 'art87_force_majeure', 'art80']; // exactly Payroll.gs EOS_REASONS
+function fsLines(q){
+  return [[t('fsAward'), q.award], [t('fsLeave'), q.leavePay], [t('fsLastMonth') + (q.lastMonthDays ? ' (' + q.lastMonthDays + ')' : ''), q.lastMonthPay], [t('fsAdvances'), -(q.advances || 0)], [t('fsLoans'), -(q.loans || 0)]];
+}
+function fsPrint(x){
+  var lg = S.lang === 'en' ? 'en' : 'ar', T0 = T[lg], E = Doc.esc, q = x.quote || {}, m = function(v){ return Doc.money(v, lg) + ' ' + (lg === 'en' ? 'SAR' : 'ر.س'); };
+  var row = function(k, v){ return '<tr><th>' + E(k) + '</th><td class="n">' + v + '</td></tr>'; };
+  var body = '<p><b>' + E(x.emp ? (lg === 'en' && x.emp.nameEn ? x.emp.nameEn : x.emp.name) : '') + '</b> <span class="num">' + E(x.emp ? x.emp.empNo : '') + '</span></p>' +
+    '<table class="tb"><tbody>' + row(T0.fsReason, E(T0['fsr_' + x.reason] || x.reason)) + row(T0.fsLastDay, E(Doc.dates(x.lastDay, lg))) + row(T0.fsYears, E(String(q.years))) + row(T0.fsWage, m(q.wage)) + '</tbody></table>' +
+    '<table class="tb" style="margin-top:10px"><tbody>' + fsLines(q).map(function(l){ return row(l[0], m(l[1])); }).join('') + '</tbody><tfoot><tr><td>' + E(T0.fsNet) + '</td><td class="n">' + m(x.net) + '<br><small>' + E(Doc.words(x.net, lg)) + '</small></td></tr></tfoot></table>' +
+    (x.paidRef ? '<p class="note">' + E(T0.fsPaidRef) + ': <span class="num">' + E(x.paidRef) + '</span> · ' + E(Doc.dates(x.paidOn, lg)) + '</p>' : '') + '<p class="note">' + E(T0.fsStatement) + '</p>';
+  Doc.open({ lang: lg, kind: T0.fsKind, title: T0.fsTitle, ref: x.ref, body: body, qr: 'FS|' + x.ref + '|' + (x.emp ? x.emp.empNo : '') + '|' + Number(x.net).toFixed(2), by: S.me ? S.me.name : '',
+    signatures: [E(T0.fsSignHr), E(T0.fsSignPay), E(T0.fsSignEmp)] });
+}
+function fsDetail(x, r, again){
+  var q = x.quote || {};
+  var h = '<p class="hr-hint">' + empLine(x.emp) + sep() + '<bdi>' + esc(x.ref) + '</bdi>' + sep() + t('fss_' + x.status) + '</p><div class="mf-kv">' +
+    [[t('fsReason'), t('fsr_' + x.reason)], [t('fsLastDay'), fmt(x.lastDay)], [t('fsYears'), q.years], [t('fsWage'), money(q.wage)]].concat(fsLines(q).map(function(l){ return [l[0], money(l[1])]; }))
+      .concat([[t('fsNet'), '<b>' + money(x.net) + '</b>'], [t('fsDue'), fmt(q.dueBy)]]).map(function(k){ return '<div><span>' + k[0] + '</span><b>' + k[1] + '</b></div>'; }).join('') + '</div>' +
+    (x.preparedBy ? '<p class="hr-hint">' + t('w2By') + ' ' + esc(x.preparedBy) + (x.approvedBy ? sep() + t('w2Approve') + ' ' + esc(x.approvedBy) : '') + (x.paidRef ? sep() + t('fsPaidRef') + ' <bdi>' + esc(x.paidRef) + '</bdi>' : '') + '</p>' : '') +
+    '<div class="btnrow">' + (r && r.canApprove && x.status === 'draft' && x.preparedById !== r.me ? '<button type="button" class="btn btn-dark btn-sm" id="fsOk">' + t('w2Approve') + '</button><button type="button" class="btn btn-line btn-sm" id="fsNo">' + t('w2Reject') + '</button>' : '') +
+    (r && r.canApprove && x.status === 'approved' ? '<button type="button" class="btn btn-dark btn-sm" id="fsPaid">' + ph('bank') + t('fsPay') + '</button>' : '') +
+    (x.status === 'approved' || x.status === 'paid' ? '<button type="button" class="btn btn-line btn-sm" id="fsPr">' + ph('printer') + t('fsPrint') + '</button>' : '') + '</div><p class="hr-bad" id="fsE" role="alert"></p>';
+  var d = drawer('<h3>' + t('fsTitle') + '</h3>' + h);
+  var fin = function(y){ if (!y.ok) return $('#fsE', d).textContent = errText(y.error); d.remove(); toast(t('w2Saved')); refreshTasks(); if (again) again(); };
+  var ok = $('#fsOk', d); if (ok) confirmTap(ok, function(){ api('finalSettlementDecide', { id: x.id, decision: 'approve' }).then(fin); });
+  var no = $('#fsNo', d); if (no) no.onclick = function(){ d.remove(); noteDrawer(t('w2Reject'), esc(x.ref), function(note){ return api('finalSettlementDecide', { id: x.id, decision: 'reject', note: note }); }, again); };
+  var pd = $('#fsPaid', d); if (pd) pd.onclick = function(){ d.remove(); var td = riyadhToday();
+    formDrawer(t('fsPay'), esc(x.ref) + sep() + money(x.net), two(fld(t('fsPaidOn'), '<input name="paidOn" type="date" max="' + td + '" value="' + td + '">'), fld(t('fsPaidRef'), '<input name="paidRef" dir="ltr" maxlength="60" required>')),
+      function(v){ return api('finalSettlementPaid', { id: x.id, paidOn: v.paidOn, paidRef: v.paidRef }); }, again); };
+  var pr = $('#fsPr', d); if (pr) pr.onclick = function(){ fsPrint(x); };
+}
+function settleSection(body){
+  var box = head(body, 'fsTitle', 'fsLead');
+  function load(){
+    busy(box);
+    api('finalSettlementList', {}, true).then(function(r){
+      if (!box.isConnected) return;
+      if (!r.ok) return box.innerHTML = bad(r.error);
+      var h = tiles([[t('fss_draft'), n(r.rows.filter(function(x){ return x.status === 'draft'; }).length), '', true], [t('fss_approved'), n(r.rows.filter(function(x){ return x.status === 'approved'; }).length)],
+        [t('fss_paid'), n(r.rows.filter(function(x){ return x.status === 'paid'; }).length)]]);
+      h += '<div class="toolbar"><span class="sp"></span><button type="button" class="btn btn-dark btn-sm" id="fsNew">' + ph('plus') + t('fsNew') + '</button></div>';
+      h += r.rows.length ? '<div class="list">' + r.rows.map(function(x, i){ return '<div class="row w2-row" data-fs="' + i + '" style="cursor:pointer">' + av(x.emp) + '<div class="main"><b>' + empLine(x.emp) + sep() + money(x.net) + '</b><small><bdi>' + esc(x.ref) + '</bdi>' + sep() + t('fsr_' + x.reason) + sep() + t('fsLastDay') + ' ' + fmt(x.lastDay) + '</small></div>' + chip(t('fss_' + x.status), FS_CLS[x.status]) + '</div>'; }).join('') + '</div>' : empty('handshake', t('w2None'));
+      box.innerHTML = h; wire(box);
+      $$('[data-fs]', box).forEach(function(b){ b.onclick = function(){ fsDetail(r.rows[b.dataset.fs], r, load); }; });
+      $('#fsNew', box).onclick = function(){ people(function(P){
+        var all = r.leavers.concat(P.rows.filter(function(p){ return !r.leavers.some(function(l){ return l.id === p.id; }); }).map(function(p){ return { id: p.id, empNo: p.empNo, name: p.name, lastDay: '' }; }));
+        var d = formDrawer(t('fsNew'), '', fld(t('w2Employee'), '<select name="empId" required>' + opts(all.map(function(p){ return [p.id, p.name + ' (' + p.empNo + ')' + (p.lastDay ? ' · ' + p.lastDay : '')]; }), '', '-') + '</select>') +
+          two(fld(t('fsLastDay'), '<input name="lastDay" type="date" required>'), fld(t('fsReason'), '<select name="reason">' + keyOpts(FS_REASONS, 'fsr_', 'resignation') + '</select>')) + '<div id="fsQ"></div>' + fld(t('w2Note'), '<input name="note" maxlength="300">'),
+          function(v){ return api('finalSettlementCreate', v); }, load, t('fsNew'));
+        var f = $('#w2F', d), qb = $('#fsQ', d), tm = 0;
+        var emp = $('[name=empId]', d); emp.onchange = function(){ var l = all.filter(function(p){ return p.id === emp.value; })[0]; if (l && l.lastDay) $('[name=lastDay]', d).value = l.lastDay; f.oninput(); };
+        f.oninput = function(){ clearTimeout(tm); tm = setTimeout(function(){ var v = formVals(f); if (!v.empId || !v.lastDay) return qb.innerHTML = '';
+          api('eosQuote', { empId: v.empId, lastDay: v.lastDay, reason: v.reason }, true).then(function(q){ if (!qb.isConnected) return; if (!q.ok) return qb.innerHTML = bad(q.error);
+            var e = q.eos; qb.innerHTML = '<div class="mf-kv">' + fsLines(e).map(function(l){ return '<div><span>' + l[0] + '</span><b>' + money(l[1]) + '</b></div>'; }).join('') + '<div><span>' + t('fsNet') + '</span><b>' + money(e.net) + '</b></div></div>'; }); }, 350); };
+      }); };
+    });
+  }
+  load();
+}
+function mySettleCard(el){
+  api('myFinalSettlement', {}, true).then(function(r){
+    if (!el.isConnected || !r.ok || !r.settlement) return;
+    var x = r.settlement, d = el.querySelector('[data-w2=fs]') || document.createElement('div'); d.className = 'mf-card op-card'; d.dataset.w2 = 'fs';
+    d.innerHTML = '<h3><span class="ic">' + ph('handshake') + '</span>' + t('fsMy') + '<span class="sp"></span>' + chip(t('fss_' + x.status), FS_CLS[x.status]) + '</h3><div class="row"><div class="main"><b>' + t('fsNet') + ' ' + money(x.net) + '</b><small><bdi>' + esc(x.ref) + '</bdi>' + sep() + fmt(x.lastDay) + '</small></div><button type="button" class="btn btn-line btn-sm" data-pr="1">' + ph('printer') + t('fsPrint') + '</button></div>';
+    if (!d.isConnected) el.insertBefore(d, el.firstChild);
+    $('[data-pr]', d).onclick = function(){ fsPrint(x); };
+  });
+}
+
 // =================================================================== the employee's own cards
 function myCards(el){
-  myExitCard(el); myAnnCard(el); myKudosCard(el); myLoansCard(el); myInsCard(el); myTrainingCard(el); myDeskCard(el); myInterviewsCard(el);
+  mySettleCard(el); myExitCard(el); myAnnCard(el); myKudosCard(el); myLoansCard(el); myInsCard(el); myTrainingCard(el); myDeskCard(el); myInterviewsCard(el);
 }
 
 window.Loans = { section: loansSection };
@@ -1068,6 +1142,7 @@ window.Ins = { section: insSection };
 window.Training = { section: trainingSection };
 window.Hire = { section: recruitSection };
 window.Exits = { section: exitSection };
+window.Settle = { section: settleSection };
 window.Kudos = { section: kudosSection };
 window.W2 = { myCards: myCards };
 })();
