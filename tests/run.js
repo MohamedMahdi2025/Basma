@@ -291,6 +291,11 @@ ok(r.ok && /laptop/.test(r.punch.flags), 'laptop check-in inside HQ with Wi-Fi a
 B.setNow(B.ctx.Date.now() + 2 * 60000);
 r = punch(oldDev, '4001', { samples: samples(40, 130) });
 ok(!r.ok && r.error === 'accuracy_too_low', 'the same 130 m fix is still too weak for a phone', r);
+B.setNow(B.ctx.Date.now() + 20 * 60000);
+r = lpunch(lap, '482915', { samples: samples(1500, 400) });
+ok(!r.ok && (r.error === 'outside_zone' || r.error === 'accuracy_too_low'), 'a coarse laptop fix centred outside HQ is still refused', r);
+r = lpunch(lap, '482915', { samples: samples(67, 190) });
+ok(r.ok && /weak_fix/.test(r.punch.flags) && r.punch.status === 'review', 'laptop inside HQ at +-190 m (Wi-Fi) counts and goes to HR review (weak_fix)', r.punch || r);
 for (let i = 0; i < 4; i++) r = lapLogin(lap, '000001');
 ok(!r.ok && r.error === 'bad_pin', 'four wrong PINs are refused', r);
 r = lapLogin(lap, '000001');

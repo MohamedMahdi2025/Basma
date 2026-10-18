@@ -509,7 +509,12 @@ function evaluateGeo_(emp, geo, s, type, desktop) {
   var res = { fix: fix, zone: best, distance: distance, radius: radius, flags: flags, samples: samples };
   var outsideOk = type === 'out' && s.allowCheckoutOutside;
   var maxAcc = desktop ? Number(s.maxAccuracyDesktop) : Number(s.maxAccuracy);
-  if (fix.acc > maxAcc && !outsideOk) { res.reject = 'accuracy_too_low'; return res; }
+  if (fix.acc > maxAcc && !outsideOk) {
+    // 2026-10-18: a laptop locates by Wi-Fi (often +-150-400 m). When the fix centre is inside the zone, the punch counts
+    // and goes to HR review (weak_fix) instead of being refused. Phones keep the strict rule.
+    if (desktop && fix.acc <= 1000 && distance <= radius) flags.push('weak_fix');
+    else { res.reject = 'accuracy_too_low'; return res; }
+  }
   if (distance > radius) {
     if (outsideOk) { flags.push('outside_checkout'); return res; }
     res.reject = 'outside_zone';
@@ -523,7 +528,7 @@ function evaluateGeo_(emp, geo, s, type, desktop) {
 
 var RISK_WEIGHTS = {
   static_samples: 35, zero_accuracy: 30, stale_fix: 20, clock_drift: 25, impossible_travel: 40,
-  new_device: 10, few_samples: 10, off_hours: 10, edge: 10, outside_checkout: 30, no_biometric: 10, laptop: 5, password_login: 20
+  new_device: 10, few_samples: 10, off_hours: 10, edge: 10, weak_fix: 30, outside_checkout: 30, no_biometric: 10, laptop: 5, password_login: 20
 };
 
 function riskScore_(emp, cred, req, geo, last, now) {
