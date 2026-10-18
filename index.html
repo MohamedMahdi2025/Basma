@@ -606,6 +606,8 @@ table.tbl{width:100%;border-collapse:collapse;background:var(--card);font-size:1
 .v2-views button{flex:none;border:0;background:none;height:42px;padding:0 12px;font-size:14px;color:var(--ink-2);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
 .v2-views button:hover{color:var(--ink)}
 .v2-views button[aria-selected="true"]{color:var(--ink);font-weight:600;border-color:var(--brand)}
+.v2-views button i{font-size:17px;opacity:.6;transition:opacity .2s,transform .25s var(--ease)}.v2-views button:hover i{opacity:.9}.v2-views button[aria-selected="true"] i{opacity:1;color:inherit}
+@media (prefers-reduced-motion:no-preference){.v2-views button[aria-selected="true"] i{animation:subIco .45s var(--ease)}}@keyframes subIco{0%{transform:scale(.6) rotate(-12deg)}60%{transform:scale(1.15)}100%{transform:none}}
 .v2-views .badge{min-width:18px;height:18px;border-radius:9px;background:var(--warn-bg);color:var(--warn);font-size:11px;display:inline-grid;place-items:center;padding:0 5px}
 .v2-seg{display:inline-flex;gap:2px;padding:3px;background:var(--well);border:1px solid var(--line);border-radius:var(--r-s)}
 .v2-seg button{border:0;background:none;border-radius:6px;padding:5px 12px;font-size:13px;color:var(--ink-2);cursor:pointer}
@@ -2021,7 +2023,7 @@ var MARK = 'data:image/png;base64,iVBORw0KGgoAAAAN' +
 var T = {
   ar: {
     appName:'حضور الناقل الأفضل', company:'شركة الناقل الأفضل للغاز', gateTag:'سجّل حضورك من مقر الشركة بلمسة واحدة، محمية برمزك السري.',
-    pwLogin:'الدخول بكلمة المرور', setPermMax:'ساعات الاستئذان في الطلب', setPermMonth:'ساعات الاستئذان في الشهر', setPerDiemIn:'بدل الانتداب اليومي داخل المملكة (ر.س)', setPerDiemOut:'بدل الانتداب اليومي خارج المملكة (ر.س)', setOtYear:'السقف السنوي للعمل الإضافي (ساعة)', eyeShowPw:'إظهار كلمة المرور', eyeHidePw:'إخفاء كلمة المرور', eyeShowPin:'إظهار الرمز', eyeHidePin:'إخفاء الرمز', forgotPin:'نسيت الرمز السري؟', forgotPw:'نسيت كلمة المرور؟',
+    pwLogin:'الدخول بكلمة المرور', setPermMax:'ساعات الاستئذان في الطلب', swTs:'اعتماد كشوف الدوام قبل إقفال الرواتب', swTsLead:'لا يعتمد مسير الشهر حتى يعتمد المدير أو الموارد البشرية كشف دوام كل موظف فيه.', setPermMonth:'ساعات الاستئذان في الشهر', setPerDiemIn:'بدل الانتداب اليومي داخل المملكة (ر.س)', setPerDiemOut:'بدل الانتداب اليومي خارج المملكة (ر.س)', setOtYear:'السقف السنوي للعمل الإضافي (ساعة)', eyeShowPw:'إظهار كلمة المرور', eyeHidePw:'إخفاء كلمة المرور', eyeShowPin:'إظهار الرمز', eyeHidePin:'إخفاء الرمز', forgotPin:'نسيت الرمز السري؟', forgotPw:'نسيت كلمة المرور؟',
     forgotPinText:'اطلب من الموارد البشرية رمز تفعيل جديد. تفعّل به جهازك مرة أخرى وتختار رمزاً سرياً جديداً.', forgotPwText:'اطلب من الموارد البشرية كلمة مرور مؤقتة. ستُطلب منك كلمة مرور جديدة عند أول دخول.',
     mustChangeTitle:'اختر كلمة مرور جديدة', mustChangeLead:'دخلت بكلمة مرور مؤقتة. اختر كلمة مرورك الخاصة للمتابعة.', pwTemp:'كلمة المرور المؤقتة', continueBtn:'حفظ والمتابعة',
     tempPwBtn:'كلمة مرور مؤقتة', tempPwTitle:'كلمة مرور مؤقتة', tempPwLead:'أرسلها للموظف. تعمل مرة واحدة وتُطلب بعدها كلمة مرور جديدة. تنتهي بها أي جلسة قديمة بكلمة المرور.', tempPwMsg:'رابط تطبيق الحضور: {url}\nالرقم الوظيفي: {no}\nكلمة المرور المؤقتة: {pw}\nستُطلب منك كلمة مرور جديدة عند الدخول.',
@@ -2082,7 +2084,7 @@ var T = {
   },
   en: {
     appName:'Best Gas Attendance', company:'Best Gas Carrier Co.', gateTag:'Check in at head office with one tap, protected by your PIN.',
-    pwLogin:'Sign in with password', setPermMax:'Permission hours per request', setPermMonth:'Permission hours per month', setPerDiemIn:'Daily per diem inside the Kingdom (SAR)', setPerDiemOut:'Daily per diem outside the Kingdom (SAR)', setOtYear:'Yearly overtime ceiling (hours)', eyeShowPw:'Show password', eyeHidePw:'Hide password', eyeShowPin:'Show PIN', eyeHidePin:'Hide PIN', forgotPin:'Forgot your PIN?', forgotPw:'Forgot your password?',
+    pwLogin:'Sign in with password', setPermMax:'Permission hours per request', swTs:'Approve timesheets before the payroll lock', swTsLead:'A month\'s payroll cannot lock until a manager or HR approves every person\'s timesheet.', setPermMonth:'Permission hours per month', setPerDiemIn:'Daily per diem inside the Kingdom (SAR)', setPerDiemOut:'Daily per diem outside the Kingdom (SAR)', setOtYear:'Yearly overtime ceiling (hours)', eyeShowPw:'Show password', eyeHidePw:'Hide password', eyeShowPin:'Show PIN', eyeHidePin:'Hide PIN', forgotPin:'Forgot your PIN?', forgotPw:'Forgot your password?',
     forgotPinText:'Ask HR for a new activation code. Use it to activate this device again and choose a new PIN.', forgotPwText:'Ask HR for a temporary password. You will choose a new one the first time you sign in.',
     mustChangeTitle:'Choose a new password', mustChangeLead:'You signed in with a temporary password. Choose your own to continue.', pwTemp:'Temporary password', continueBtn:'Save and continue',
     tempPwBtn:'Temporary password', tempPwTitle:'Temporary password', tempPwLead:'Send it to the employee. It works once, then a new password is required. Any old password session ends.', tempPwMsg:'Attendance app: {url}\nEmployee number: {no}\nTemporary password: {pw}\nYou will choose a new password when you sign in.',
@@ -3119,6 +3121,14 @@ var AREAS = [
   { id: 'account', i: 'user-circle', foot: true, bare: true, subs: [{ id: 'main', n: 'vwMain', ok: ALL, run: function(){ renderMe(); } }] },
   { id: 'settings', i: 'gear-six', foot: true, subs: [{ id: 'main', n: 'vwMain', ok: isAdmin, adm: 'settings' }] }
 ];
+/** One icon per sub-page tab (2026-10-18 redesign): the same Phosphor set as the side menu and the bell. */
+var SUB_ICON = { punch: 'fingerprint', history: 'calendar-dots', board: 'users-four', review: 'shield-warning', timesheets: 'calendar-check', shifts: 'clock-clockwise', zones: 'map-pin-area',
+  mine: 'tray', inbox: 'check-square', centre: 'stamp', cycles: 'arrows-clockwise', expenses: 'receipt', helpdesk: 'lifebuoy', leave: 'calendar-blank', holidays: 'confetti', flows: 'flow-arrow',
+  slips: 'file-text', runs: 'money', approvals: 'seal-check', compliance: 'scales', journal: 'notebook', settlements: 'handshake', loans: 'hand-coins',
+  me: 'user-focus', cycle: 'target', plans: 'path', pulse: 'heartbeat', payreview: 'trend-up', kudos: 'hands-clapping', training: 'graduation-cap',
+  directory: 'address-book', team: 'users', org: 'buildings', orgchart: 'tree-structure', positions: 'briefcase', recruitment: 'user-plus', onboarding: 'rocket-launch', offboarding: 'sign-out',
+  custody: 'package', relations: 'scales', gov: 'identification-card', insurance: 'first-aid', announce: 'megaphone', exits: 'door-open', customfields: 'textbox', policies: 'book-open-text',
+  expiring: 'hourglass-medium', import: 'upload-simple', accounts: 'devices', dashboard: 'chart-pie-slice', reports: 'file-text', builder: 'table', attendance: 'chart-bar', audit: 'list-magnifying-glass' };
 var ADM = { board: admBoard, emp: admEmp, zones: admZones, review: admReview, reports: admReports, settings: admSettings, audit: admAudit };
 function areaOf(id){ return AREAS.filter(function(a){ return a.id === id; })[0]; }
 function subsOf(a){ return a.subs.filter(function(s){ return s.ok(); }); }
@@ -3359,7 +3369,7 @@ function goArea(area, sub, arg, o){
     // the banner and the tabs form the page's headline, which stays frozen under the top bar while the body scrolls (.pg-head)
     main.innerHTML = '<div class="page v2' + (toPunch ? ' is-punch' : moReduced() || fromArea === a.id ? '' : ' mo-page') + '" data-page="' + a.id + '"><div class="pg-head pg-area">' + heroHtml(a) +
       (subs.length > 1 ? '<div class="v2-views" role="tablist" aria-label="' + areaName(a) + '">' + subs.map(function(x){
-        return '<button type="button" role="tab" data-sub="' + x.id + '" aria-selected="' + (x === s) + '" tabindex="' + (x === s ? 0 : -1) + '">' + t(x.n) + (x.badge ? '<span class="badge hidden num" id="' + x.badge + '"></span>' : '') + '</button>';
+        return '<button type="button" role="tab" data-sub="' + x.id + '" aria-selected="' + (x === s) + '" tabindex="' + (x === s ? 0 : -1) + '">' + (SUB_ICON[x.id] ? ph(SUB_ICON[x.id]) : '') + t(x.n) + (x.badge ? '<span class="badge hidden num" id="' + x.badge + '"></span>' : '') + '</button>';
       }).join('') + '</div>' : '<div style="height:14px"></div>') + '</div>' +
       '<div class="v2-area' + (toPunch ? ' v2-punch' : '') + '" id="v2Body" role="tabpanel"></div></div>';
     var tabs = $$('[data-sub]', main);
@@ -4527,7 +4537,7 @@ function admSettings(){
       '</section>' +
       // HR and payroll rules (settingsSave validates each one and answers bad_setting + key)
       '<section class="set-card"><h3>' + ph('money') + t('secPay') + '</h3><p>' + t('secPayLead') + '</p>' +
-        sw('deductAbsence', t('swAbs'), t('swAbsLead')) + sw('deductLateMinutes', t('swLate'), t('swLateLead')) + sw('payOvertimeFromAttendance', t('swOt'), t('swOtLead')) + sw('adminSeesPay', t('swAdminPay'), t('swAdminPayLead')) +
+        sw('deductAbsence', t('swAbs'), t('swAbsLead')) + sw('deductLateMinutes', t('swLate'), t('swLateLead')) + sw('payOvertimeFromAttendance', t('swOt'), t('swOtLead')) + sw('adminSeesPay', t('swAdminPay'), t('swAdminPayLead')) + sw('timesheetRequired', t('swTs'), t('swTsLead')) +
         '<div class="field"><label for="eosWageBasis">' + t('eosBasis') + '</label><select id="eosWageBasis" name="eosWageBasis">' +
           [['total', t('eosTotal')], ['basic_housing', t('eosBH')]].map(function(o){ return '<option value="' + o[0] + '"' + (st.eosWageBasis === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select><small>' + t('eosBasisHint') + '</small></div>' +
         num('wpsDueDay', t('wpsDay'), t('wpsDayHint'), 1, 28, t('dayOfMonth')) +
@@ -4554,7 +4564,7 @@ function admSettings(){
       $$('[aria-invalid]', f).forEach(function(x){ x.removeAttribute('aria-invalid'); });
       api('settingsSave', { settings: { shiftStart: f.shiftStart.value, shiftEnd: f.shiftEnd.value, graceMin: f.graceMin.value, minPunchGapMin: f.minPunchGapMin.value, maxAccuracy: f.maxAccuracy.value, reviewRiskThreshold: f.reviewRiskThreshold.value,
         workdays: $$('input[name=wd]:checked', f).map(function(x){ return x.value; }).join(',') || '0,1,2,3,4', allowCheckoutOutside: f.allowCheckoutOutside.checked, allowDeviceKey: f.allowDeviceKey.checked, allowDesktop: f.allowDesktop.checked, allowPasswordPunch: f.allowPasswordPunch.checked, maxAccuracyDesktop: f.maxAccuracyDesktop.value,
-        deductAbsence: f.deductAbsence.checked, deductLateMinutes: f.deductLateMinutes.checked, adminSeesPay: f.adminSeesPay.checked, payOvertimeFromAttendance: f.payOvertimeFromAttendance.checked, eosWageBasis: f.eosWageBasis.value, wpsDueDay: Number(f.wpsDueDay.value),
+        deductAbsence: f.deductAbsence.checked, deductLateMinutes: f.deductLateMinutes.checked, adminSeesPay: f.adminSeesPay.checked, timesheetRequired: f.timesheetRequired.checked, payOvertimeFromAttendance: f.payOvertimeFromAttendance.checked, eosWageBasis: f.eosWageBasis.value, wpsDueDay: Number(f.wpsDueDay.value),
         saudizationTarget: f.saudizationTarget.value === '' ? '' : Number(f.saudizationTarget.value), refPrefixes: f.refPrefixes.value.trim(), rostersEnabled: f.rostersEnabled.checked,
         ramadanFrom: f.ramadanFrom.value, ramadanTo: f.ramadanTo.value, ramadanHours: Number(f.ramadanHours.value), permissionMaxHours: Number(f.permissionMaxHours.value), permissionMonthHours: Number(f.permissionMonthHours.value), perDiemInside: Number(f.perDiemInside.value), perDiemAbroad: Number(f.perDiemAbroad.value), overtimeYearHours: Number(f.overtimeYearHours.value), summerBanFrom: f.summerBanFrom.value.trim(), summerBanTo: f.summerBanTo.value.trim(),
         summerBanStart: f.summerBanStart.value, summerBanEnd: f.summerBanEnd.value,
