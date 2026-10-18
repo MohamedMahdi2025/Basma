@@ -147,12 +147,18 @@ function chartCard(id, cls, icon, title, lead, chart, table, dest){
     (lead ? '<p class="lead">' + lead + '</p>' : '') + '<div data-v="chart">' + chart + '</div>' + (table ? '<div data-v="table" class="hidden">' + table + '</div>' : '') + '</section>';
 }
 
+/** Round shortcuts (phone layout, design choice): the six things an employee opens most. */
+function quickRow(){
+  var q = [['time:punch', 'fingerprint', 'vwPunch'], ['requests:new', 'plus-circle', 'vwNewReq'], ['requests:mine', 'tray', 'vwMine'], ['pay:slips', 'receipt', 'vwSlips'], ['requests:claim', 'money', 'vwNewClaim'], ['growth:kudos', 'hands-clapping', 'vwKudos'], ['profile:main', 'identification-card', 'arProfile']];
+  return '<nav class="fb-quick" aria-label="' + t('v2Menu') + '">' + q.map(function(x){ return '<button type="button" data-qk="' + x[0] + '"><span>' + ph(x[1], 'duotone') + '</span>' + esc(t(x[2])) + '</button>'; }).join('') + '</nav>';
+}
 function render(main){
   var company = companyRole(), scope = company ? (S.homeScope || 'company') : 'mine';
   var h = new Date(Date.now() + 180 * 60000).getUTCHours();
   main.innerHTML = '<div class="page v2"><header class="v3-hero hm-banner"><span class="v3-hero-ic">' + ph(h < 12 ? 'sun-horizon' : h < 17 ? 'sun' : 'moon-stars', 'duotone') + '</span><div><h1>' + greet() + '</h1><p>' + dateLine() + '</p></div>' +
     '<div class="v3-hero-stats">' + (company ? '<div class="hm-scope" role="group"><button type="button" data-sc="company" aria-pressed="' + (scope === 'company') + '">' + ph('buildings', 'duotone') + t('hmCompany') + '</button><button type="button" data-sc="mine" aria-pressed="' + (scope === 'mine') + '">' + ph('user', 'duotone') + t('hmMine') + '</button></div>' : '') + '</div></header>' +
-    '<div id="hmBody"></div></div>';
+    quickRow() + '<div id="hmBody"></div></div>';
+  $$('[data-qk]', main).forEach(function(b){ b.onclick = function(){ var p = b.dataset.qk.split(':'); goArea(p[0], p[1]); }; });
   $$('[data-sc]', main).forEach(function(b){ b.onclick = function(){
     if (S.homeScope === b.dataset.sc || (!S.homeScope && b.dataset.sc === 'company')) return;
     S.homeScope = b.dataset.sc; $$('[data-sc]', main).forEach(function(x){ x.setAttribute('aria-pressed', String(x === b)); });

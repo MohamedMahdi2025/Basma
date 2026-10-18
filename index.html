@@ -1354,6 +1354,61 @@ body.v2-on :is(.db-tile b,.kpi b,.stat b,.hm-facts dd,.hm-big b,.hm-k .v,[data-c
   .gate-form,.gate .err:not(:empty){animation:none!important}.gate .pindots i.on{animation:none}.gate .btn-primary::after{display:none}
 }
 </style>
+<style id="dsfb">
+@media (max-width:900px){
+  body.v2-on{--fb-bg:#ECEFEC;--fb-sep:#DDE2DE}
+  body.v2-on .v2-main,body.v2-on #main{background:var(--fb-bg)}
+  /* header: brand name at the start, round grey action buttons at the end */
+  body.v2-on .v2-top{background:var(--card);border-bottom:1px solid var(--fb-sep);box-shadow:0 1px 0 rgba(0,0,0,.02)}
+  body.v2-on .v2-top .fb-brand{display:block;font-weight:800;font-size:22px;letter-spacing:-.02em;color:var(--brand);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40vw}
+  body.v2-on .v2-top :is(.v2-ib,.v2-search,.v2-lang){width:40px;height:40px;min-width:40px;border-radius:50%;background:var(--well,#EEF0EE);border:0;display:grid;place-items:center;padding:0;color:var(--ink)}
+  body.v2-on .v2-top .v2-lang{width:auto;border-radius:999px;padding:0 12px;font-weight:700}
+  body.v2-on .v2-top :is(.v2-ib,.v2-search):active{transform:scale(.92);background:var(--line)}
+  body.v2-on .v2-top .v2-chip{border-radius:999px}
+  /* slim page header instead of the big banner */
+  body.v2-on .page.v2{padding:0 0 calc(24px + env(safe-area-inset-bottom))}
+  body.v2-on .v3-hero{border-radius:0;margin:0 0 8px;padding:12px 16px;min-height:0;box-shadow:none}
+  body.v2-on .v3-hero p,body.v2-on .v3-hero .v3-hero-stats .hm-dt{display:none}
+  body.v2-on .v3-hero h1{font-size:19px;margin:0}
+  body.v2-on .v3-hero .v3-hero-ic{width:38px;height:38px;font-size:20px}
+  /* edge-to-edge cards with thin separators */
+  body.v2-on :is(.hm-card,.mf-card,.fp-card,.db-card,.v2-card,.set-card,.op-card){border-radius:0!important;margin-inline:0!important;border:0!important;border-block:1px solid var(--fb-sep)!important;box-shadow:none!important;background:var(--card)}
+  body.v2-on :is(.hm-grid,.mf-cols,.db-grid,.fp-grid){gap:8px!important}
+  body.v2-on :is(#v2Body > *,.fp-main,.fp-aside) > :is(.list,.tblwrap){border-radius:0}
+  body.v2-on .page.v2 > :not(.v3-hero):not(.fb-quick){padding-inline:0}
+  body.v2-on :is(.hm-kpis){padding-inline:8px}
+  /* swipeable pill tabs */
+  body.v2-on :is(.op-tabs,.v2-views){display:flex;flex-wrap:nowrap;overflow-x:auto;gap:8px;padding:8px 12px;margin:0 0 8px;background:var(--card);border-block:1px solid var(--fb-sep);scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity}
+  body.v2-on :is(.op-tabs,.v2-views)::-webkit-scrollbar{display:none}
+  body.v2-on :is(.op-tabs,.v2-views) > button{flex:none;scroll-snap-align:start;border-radius:999px;height:36px;padding:0 14px;white-space:nowrap}
+  /* round shortcuts row (home) */
+  body.v2-on .fb-quick{display:flex;gap:14px;overflow-x:auto;padding:12px 16px;margin:0 0 8px;background:var(--card);border-block:1px solid var(--fb-sep);scrollbar-width:none}
+  body.v2-on .fb-quick::-webkit-scrollbar{display:none}
+  body.v2-on .fb-quick button{flex:none;width:68px;border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:6px;font:inherit;font-size:11.5px;color:var(--ink);cursor:pointer;text-align:center;line-height:1.25}
+  body.v2-on .fb-quick button > span{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;font-size:26px;color:var(--brand);background:var(--brand-tint,#E4F2E9);box-shadow:0 0 0 2px var(--card),0 0 0 4px var(--brand);transition:transform .15s}
+  body.v2-on .fb-quick button:active > span{transform:scale(.9)}
+  /* tab bar: active marker on top, a quick bounce on the icon */
+  body.v2-on .v2-bottom{border-top:1px solid var(--fb-sep);padding-top:0}
+  body.v2-on .v2-bottom button{position:relative;padding-top:8px}
+  body.v2-on .v2-bottom button[aria-current="page"]::before{content:"";position:absolute;top:0;inset-inline:22%;height:3px;border-radius:0 0 3px 3px;background:var(--brand)}
+  body.v2-on .v2-bottom button[aria-current="page"] i{animation:fbPop .35s cubic-bezier(.3,1.6,.5,1)}
+  body.v2-on .v2-bottom .center{margin-top:-20px}
+  @keyframes fbPop{0%{transform:scale(.7)}100%{transform:none}}
+  /* bottom sheets with a grab handle */
+  body.v2-on .drawer .panel{border-radius:20px 20px 0 0!important}
+  body.v2-on .drawer .panel::before{content:"";display:block;width:40px;height:5px;border-radius:3px;background:var(--line);margin:8px auto 4px}
+  /* tap feedback on rows and cards */
+  body.v2-on :is(.list .row,.hm-card,.mf-card,.fp-card,.oc-card,.w2-row)[style*="cursor"]:active,body.v2-on .list .row:active{background:var(--well,#EEF0EE)}
+  /* shimmer loading */
+  body.v2-on .sk{background:linear-gradient(90deg,var(--line-2,#EEF2F0) 25%,var(--well,#F6F8F6) 37%,var(--line-2,#EEF2F0) 63%)!important;background-size:400% 100%!important;animation:fbShim 1.4s ease infinite}
+  @keyframes fbShim{0%{background-position:100% 50%}100%{background-position:0 50%}}
+}
+.fb-brand,.fb-quick{display:none}
+@media (max-width:900px){body.v2-on .fb-quick{display:flex}}
+@media (prefers-reduced-motion:reduce){body.v2-on .v2-bottom button i,body.v2-on .sk{animation:none!important}}
+:root[data-theme="dark"] body.v2-on,body.v2-on.dark{--fb-bg:#0F1512;--fb-sep:#26302A}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) body.v2-on{--fb-bg:#0F1512;--fb-sep:#26302A}}
+</style>
 </head>
 <body>
 <div id="root"></div>
@@ -3139,7 +3194,7 @@ function areaLead(a){ var k = 'al' + a.id.charAt(0).toUpperCase() + a.id.slice(1
 /** Where the page body goes: the area body in the shell, #main before the shell exists. */
 function view(){ return $('#v2Body') || $('#main'); }
 /** The v2 block must come after every module's own <style>, so equal selectors resolve to v2. */
-function themeLast(){ ['dsv2', 'dsv3', 'dsed', 'dsfp', 'dspg', 'dsdark', 'dsmo', 'dsgate'].forEach(function(id){ var s = document.getElementById(id); if (s) document.head.appendChild(s); }); }
+function themeLast(){ ['dsv2', 'dsv3', 'dsed', 'dsfp', 'dspg', 'dsdark', 'dsmo', 'dsgate', 'dsfb'].forEach(function(id){ var s = document.getElementById(id); if (s) document.head.appendChild(s); }); }
 function loadAll(files){ return files.reduce(function(p, f){ return p.then(function(){ return loadScript(f); }); }, Promise.resolve()); }
 
 /** Where a task from the bell opens. HR sections map to their area; personal items to growth or the profile. */
@@ -3170,6 +3225,7 @@ function renderShell(){
       '<nav class="v2-nav" id="v2Nav" aria-label="' + t('v2Menu') + '"></nav><div class="v2-foot"><nav class="v2-nav" id="v2Foot"></nav><p class="v2-ver num">v' + BUILD + '</p></div></aside>' +
     '<div class="v2-main"><header class="v2-top">' +
       '<button class="v2-ib v2-hamb" type="button" id="v2Hamb" aria-label="' + t('v2Menu') + '">' + ph('list') + '</button>' +
+      '<b class="fb-brand" aria-hidden="true">' + esc(coShort(S.lang)) + '</b>' +
       '<button class="v2-search" type="button" id="v2Find" aria-label="' + t('v2Search') + '">' + ph('magnifying-glass') + '<span>' + t('v2Search') + '</span><kbd>Ctrl K</kbd></button><span class="sp"></span>' +
       '<button class="v2-chip" type="button" id="v2Chip"></button>' +
       '<button class="v2-ib v2-desk" type="button" id="v2Print" aria-label="' + t('v2Print') + '" title="' + t('v2Print') + '">' + ph('printer') + '</button>' +
