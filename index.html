@@ -3917,7 +3917,7 @@ function geoState(){
   if (!S.fix) return { kind:'locating' };
   var n = nearestZone();
   var maxAcc = onDesktopKey() ? ((S.rules && S.rules.maxAccuracyDesktop) || 150) : ((S.rules && S.rules.maxAccuracy) || 100);
-  return { kind: n.d <= n.z.radius ? 'inside' : 'outside', zone: n.z, d: n.d, acc: S.fix.acc, weak: S.fix.acc > maxAcc && !(onDesktopKey() && n.d <= n.z.radius && S.fix.acc <= 1000) }; // a laptop inside the zone counts and goes to HR review (server: weak_fix)
+  return { kind: n.d <= n.z.radius ? 'inside' : 'outside', zone: n.z, d: n.d, acc: S.fix.acc, weak: S.fix.acc > maxAcc && !(n.d <= n.z.radius && S.fix.acc <= (onDesktopKey() ? 1000 : 300)) }; // inside the zone with a coarse fix: counts and goes to HR review (server: weak_fix) // a laptop inside the zone counts and goes to HR review (server: weak_fix)
 }
 
 // ---------------- home: 3D radar + punch ----------------

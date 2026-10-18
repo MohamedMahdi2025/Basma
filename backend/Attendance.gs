@@ -512,7 +512,8 @@ function evaluateGeo_(emp, geo, s, type, desktop) {
   if (fix.acc > maxAcc && !outsideOk) {
     // 2026-10-18: a laptop locates by Wi-Fi (often +-150-400 m). When the fix centre is inside the zone, the punch counts
     // and goes to HR review (weak_fix) instead of being refused. Phones keep the strict rule.
-    if (desktop && fix.acc <= 1000 && distance <= radius) flags.push('weak_fix');
+    // phones too (2026-10-18): indoors GPS is often worse than the limit; centred inside the zone and within 300 m (1000 m on a laptop) it counts and goes to review
+    if (fix.acc <= (desktop ? 1000 : 300) && distance <= radius) flags.push('weak_fix');
     else { res.reject = 'accuracy_too_low'; return res; }
   }
   if (distance > radius) {
