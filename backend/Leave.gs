@@ -98,7 +98,8 @@ function annualBalance_(emp, asOf, reqs, excludeId) {
   reqs.forEach(function (r) {
     if (r.empId !== emp.id || r.type !== 'leave' || r.id === excludeId) return;
     if (r.subtype === 'unpaid' && r.status === 'approved') {
-      var a = maxDate_(String(r.fromDate), start), b = minDate_(String(r.toDate), asOf);
+      // Art. 116: the contract is suspended only for the days beyond the 20th of an unpaid leave, so only those pause accrual
+      var a = maxDate_(maxDate_(String(r.fromDate).slice(0, 10), start), addDays_(String(r.fromDate).slice(0, 10), 20)), b = minDate_(String(r.toDate).slice(0, 10), asOf);
       if (a <= b) accrued -= accrueBetween_(emp, a, b);
     }
     if (r.subtype !== 'annual' || String(r.fromDate) < start) return;
@@ -226,7 +227,8 @@ function quote_(emp, d, excludeId) {
   }
   if (type === 'resignation') {
     if (reqs.some(function (r) { return r.id !== excludeId && r.type === 'resignation' && (r.status === 'pending' || r.status === 'approved'); }) || emp.resignedOn) return { error: 'already_resigned' };
-    var notice = Number(emp.noticeDays) || 30, minLast = addDays_(t, notice); // Art. 75: 30 days from the employee
+    // Art. 75 (amended 2025): the employee gives at least 30 days; a longer contractual notice is kept, a shorter one is not
+    var notice = Math.max(30, Number(emp.noticeDays) || 0), minLast = addDays_(t, notice);
     var last = p.lastDay ? isoDate_(p.lastDay) : minLast;
     if (!last || last < t) return { error: 'bad_date' };
     if (last < minLast) q.warnings.push('short_notice');
@@ -236,6 +238,13 @@ function quote_(emp, d, excludeId) {
   if (type === 'exit_reentry') return govQuote_(emp, d, excludeId, q, reqs, t); // GovServices.gs
   return { error: 'bad_value' };
 }
+
+/**
+ * Labour Law (2025 amendments, resignation article): a resignation the employer has not answered within 30 days of
+ * submission counts as accepted; the employer may defer acceptance up to 60 days in writing for a work need.
+ * Returns the day the 30 days run out (day of submission + 30).
+ */
+function resignationAcceptBy_(r) { return addDays_(String(r.createdAt || '').slice(0, 10), 30); }
 
 function api_requestQuote(req, me) {
   var emp = findBy_(SHEETS.EMP, 'id', me.id) || me;
@@ -397,7 +406,8 @@ function publicReq_(r, ctx, viewer) {
   if (r.type === 'advance' && money) { o.amount = Number(r.amount); o.months = Number(r.months); o.installment = p.installment; o.startMonth = p.startMonth; }
   if (r.type === 'letter') o.letter = { addressee: p.addressee, lang: p.lang };
   if (r.type === 'correction') o.correction = { date: p.date, time: p.time, punchType: p.punchType };
-  if (r.type === 'resignation') o.resignation = { lastDay: p.lastDay, noticeDays: p.noticeDays, minLastDay: p.minLastDay };
+  if (r.type === 'resignation') o.resignation = { lastDay: p.lastDay, noticeDays: p.noticeDays, minLastDay: p.minLastDay, acceptBy: resignationAcceptBy_(r),
+    deemedAccepted: r.status === 'pending' && today_() > resignationAcceptBy_(r) };
   if (r.type === 'data_change' && data) o.fields = p.fields || {};
   else if (r.type === 'data_change') o.fieldNames = Object.keys(p.fields || {});
   if (r.type === 'leave' && p.variant) o.variant = p.variant;

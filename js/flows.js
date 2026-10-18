@@ -121,6 +121,7 @@ var css = '' +
 '.cn-types button[aria-pressed="true"]{background:var(--brand);color:#fff;border-color:var(--brand)}.cn-types .n{font-variant-numeric:tabular-nums;opacity:.8}' +
 '.cn-row{display:flex;gap:10px;align-items:flex-start}.cn-row .main{flex:1;min-width:0}.cn-row .main b{display:block;font-weight:500}.cn-row .main small{display:block;color:var(--ink-2);font-size:12.5px;margin-top:2px}' +
 '.cn-row input[type=checkbox]{width:18px;height:18px;margin-top:10px;flex:none}.cn-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px}' +
+'@media (max-width:640px){#cnB .row{flex-wrap:wrap}#cnB .cn-acts{flex:1 1 100%;justify-content:flex-start;padding-inline-start:46px;margin-top:8px}}' +
 '.cn-acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;flex:none;align-items:center}.row.cn-esc{background:var(--info-bg);border-inline-start:3px solid var(--info)}' +
 '.cn-bulk{position:sticky;bottom:10px;z-index:3;display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:10px 14px;margin-top:12px;box-shadow:0 12px 30px -12px rgba(0,0,0,.4)}' +
 '.cn-bulk .sp{flex:1}.cn-bulk small{opacity:.8;font-size:12px;flex-basis:100%}' +
@@ -289,18 +290,8 @@ function centre(body){
         toast(t('cnSent') + (res.ref ? ' · ' + res.ref : '')); refreshTasks(); load(true);
       });
     };
-    function noteDrawer(x, dec){
-      var req = dec === 'reject' || NOTE_ON_APPROVE[x.type];
-      var d = drawer('<h3>' + (dec === 'reject' ? t('cnReject') : t('cnApprove')) + '</h3><p class="hr-hint">' + t('cnt_' + x.type) + (x.emp ? sep() + empLine(x.emp) : '') + (x.ref ? sep() + '<bdi>' + esc(x.ref) + '</bdi>' : '') + '</p>' +
-        '<form class="form" id="cnF">' + fld(dec === 'reject' ? t('cnNoteReq') : req ? t('cnNote') : t('cnNoteOpt'), '<textarea name="n" rows="3" maxlength="500"' + (req ? ' required' : '') + '></textarea>') +
-        '<p class="hr-bad" id="cnE" role="alert"></p><div class="btnrow"><button class="btn btn-dark" type="submit">' + (dec === 'reject' ? t('cnReject') : t('cnApprove')) + '</button></div></form>');
-      $('#cnF', d).onsubmit = function(ev){
-        ev.preventDefault(); var n = this.elements.n.value.trim(), b = this.querySelector('[type=submit]');
-        if (req && !n) return $('#cnE', d).textContent = errText('note_required');
-        b.disabled = true;
-        act(x, dec, n, function(res){ b.disabled = false; if (res.ok) d.remove(); else $('#cnE', d).textContent = errText(res.error); });
-      };
-    }
+    // a decision that needs a note opens the item's own page with the note field ready (was a drawer)
+    function noteDrawer(x, dec){ itemPage(x, { dec: dec, done: function(){ load(true); } }); }
     $$('[data-ap]', box).forEach(function(b){ var x = shown[b.dataset.ap];
       if (NOTE_ON_APPROVE[x.type]) b.onclick = function(){ noteDrawer(x, 'approve'); };
       else confirmTap(b, function(){ act(x, 'approve', '', function(res){ if (!res.ok) b.disabled = false; }); });
@@ -308,26 +299,105 @@ function centre(body){
     $$('[data-dn]', box).forEach(function(b){ var x = shown[b.dataset.dn]; confirmTap(b, function(){ act(x, 'done', '', function(res){ if (!res.ok) b.disabled = false; }); }); });
     $$('[data-rj]', box).forEach(function(b){ b.onclick = function(){ noteDrawer(shown[b.dataset.rj], 'reject'); }; });
     $$('[data-go]', box).forEach(function(b){ b.onclick = function(){ openLink(shown[b.dataset.go].link); }; });
-    $$('[data-hi]', box).forEach(function(b){ b.onclick = function(){ history(shown[b.dataset.hi]); }; });
+    $$('[data-hi]', box).forEach(function(b){ b.onclick = function(){ itemPage(shown[b.dataset.hi], { done: function(){ load(true); } }); }; });
+    // the item itself (its name and summary) opens its own page: details, SLA, decision and the full history
+    $$('.cn-row .main', box).forEach(function(m, n){ var i = +m.closest('.row').querySelector('[data-hi]').dataset.hi; m.setAttribute('role', 'link'); m.tabIndex = 0; m.classList.add('cn-open');
+      var go = function(){ itemPage(shown[i], { done: function(){ load(true); } }); }; m.onclick = go; m.onkeydown = function(e){ if (e.key === 'Enter') go(); }; });
   }
   load(true);
 }
-/** Who did what, when, with what note and on whose behalf. */
-function history(x){
-  var d = drawer('<h3>' + t('cnHistT') + '</h3><p class="hr-hint">' + t('cnt_' + x.type) + (x.ref ? sep() + '<bdi>' + esc(x.ref) + '</bdi>' : '') + '</p><div id="cnH"><span class="sk"></span><span class="sk" style="width:70%"></span></div>');
-  var el = $('#cnH', d);
-  api('approvalHistory', { type: x.type, id: x.id }, true).then(function(r){
-    if (!r.ok) return el.innerHTML = bad(r.error);
-    var it = r.item || {};
-    el.innerHTML = (it.emp ? '<p>' + empLine(it.emp) + (it.status ? ' ' + chip(esc(tl('rs_' + it.status, tl('ys_' + it.status, it.status)))) : '') + '</p>' : '') +
-      (r.entries.length ? '<ul class="cn-tl">' + r.entries.map(function(e){
-        var no = e.decision === 'reject' || e.decision === 'rejected' || e.decision === 'cancelled' || e.decision === 'decline';
-        var step = e.step && !/^\d{4}-/.test(e.step) ? tl('yct_' + e.step, tl('cl_' + e.step, tl('fwk_' + e.step, ''))) : '';
-        return '<li class="' + (no ? 'no' : '') + '"><b>' + esc(tl('cnd_' + e.decision, e.decision)) + (e.by ? sep() + esc(e.by) : '') + '</b>' +
-          '<small>' + when(e.at) + (step ? sep() + esc(step) : '') + (e.role === 'delegate' || e.onBehalfOf ? sep() + t('cnOnBehalf') + ' ' + esc(e.onBehalfOf || '') : e.role === 'hr_on_behalf' ? sep() + t('cnHrBehalf') : '') + '</small>' +
-          (e.note ? '<small>' + esc(e.note) + '</small>' : '') + '</li>';
-      }).join('') + '</ul>' : '<p class="hr-hint">-</p>');
-  });
+/** Kept for callers: the item's history now lives on the item's own page. */
+function history(x){ return itemPage(x, {}); }
+
+// ---------------- one approval item as a full page (#requests/centre/~item/<type|id|task>) ----------------
+Object.assign(T.ar, { itLead:'التفاصيل والمهلة والقرار وسجل الإجراءات في صفحة واحدة', itDetails:'التفاصيل', itDecide:'قرارك', itSla:'المهلة', itElapsed:'مضى من المهلة', itOverdue:'متأخر',
+  itRef:'المرجع', itKind:'النوع', itStep:'الخطوة الحالية', itNoAct:'لا يحتاج هذا البند قرارا منك؛ هو للعلم.', itDeepOnly:'يتم هذا الإجراء من شاشته الخاصة.', itGone:'لم يعد هذا البند بانتظارك. سجله أدناه.', itDone:'تم. سجل الإجراءات محدث أدناه.' });
+Object.assign(T.en, { itLead:'Details, deadline, decision and the action log on one page', itDetails:'Details', itDecide:'Your decision', itSla:'Deadline', itElapsed:'of the time used', itOverdue:'Overdue',
+  itRef:'Reference', itKind:'Type', itStep:'Current step', itNoAct:'This item needs no decision from you; it is for your information.', itDeepOnly:'This is done on its own screen.', itGone:'This item is no longer waiting for you. Its log is below.', itDone:'Done. The log below is up to date.' });
+function itemKey(x){ return [x.type, x.id].concat(x.task ? [x.task] : []).join('|'); }
+/** From the URL: find the item in my approvals; if it is no longer waiting, the page still shows its history. */
+function openItem(arg){
+  var p = String(arg || '').split('|'), x0 = { type: p[0], id: p[1], task: p[2] || undefined };
+  var d = itemPage(x0, { loading: true });
+  apiFresh('approvalsInbox', {}, function(r){
+    if (!d.isConnected) return;
+    var x = r.ok && r.items.filter(function(y){ return y.type === x0.type && y.id === x0.id && String(y.task || '') === String(x0.task || ''); })[0];
+    d._fill(x || x0, !x);
+  }, true);
+}
+/** o: { dec: 'reject'|'approve' (note asked for), done(): the list under the page reloads, loading: true (draw later) }. */
+function itemPage(x, o){
+  o = o || {};
+  var d = drawer('<div id="itB"><div class="rp-hero" aria-hidden="true"><span class="rp-av sk"></span><div class="rp-skel"><span class="sk" style="width:45%;height:18px"></span><span class="sk" style="width:65%"></span></div></div><div class="fp-grid"><div class="fp-main"><div class="rp-sec">' +
+      '<span class="sk" style="width:40%"></span><span class="sk" style="width:75%;margin-top:10px"></span></div></div><aside class="fp-aside"><div class="rp-sec"><span class="sk"></span></div></aside></div></div>',
+    { key: 'item', arg: itemKey(x), icon: 'seal-check', tint: 'requests', title: t('cnt_' + x.type) === 'cnt_' + x.type ? t('cnTitle') : t('cnt_' + x.type), lead: t('itLead'), bare: true, wide: true });
+  var box = $('#itB', d);
+  d._fill = function(it, gone){ fill(it, gone); };
+  if (!o.loading) fill(x, false);
+  function fill(x, gone){
+    var acts = !gone && x.canAct ? x.actions || [] : [], sla = x.sla || {}, now = Date.now();
+    var since = Date.parse(sla.since), due = Date.parse(sla.dueAt), pct = since && due && due > since ? Math.min(100, Math.max(0, (now - since) / (due - since) * 100)) : null;
+    var tags = [];
+    if (sla.state) tags.push(slaChip(sla));
+    if (x.escalated) tags.push(chip(ph('arrow-fat-up') + t('cnEscTag'), 'review'));
+    if (x.onBehalfOf) tags.push(chip(t('cnOnBehalf') + ' ' + esc(x.onBehalfOf), '')); else if (x.onBehalfRole === 'hr') tags.push(chip(t('cnHrBehalf'), ''));
+    d.setHead({ title: (t('cnt_' + x.type) === 'cnt_' + x.type ? esc(x.type) : t('cnt_' + x.type)) + (x.ref ? ' <bdi class="num">' + esc(x.ref) + '</bdi>' : ''), lead: (x.emp ? empLine(x.emp) + sep() : '') + (x.what ? whatLine(x) : t('itLead')), chips: tags.join('') });
+    var st = stepLabel(x);
+    var ring = pct != null && window.Viz ? '<div class="rp-ring">' + Viz.ring(pct, Math.round(pct) + '%', t('itSla'), { size: 72, warm: sla.state === 'late' || sla.state === 'due_today' }) + '<div><b>' + (sla.state === 'late' ? t('itOverdue') : t('itSla')) + '</b><small>' + Math.round(pct) + '% ' + t('itElapsed') + '<br>' + t('cnDue') + ' ' + when(sla.dueAt) + '</small></div></div>' : '';
+    var facts = '<dl class="fp-facts" style="border-top:0;margin-top:0;padding-top:0">' + [[t('itKind'), t('cnt_' + x.type) === 'cnt_' + x.type ? esc(x.type) : t('cnt_' + x.type)], [t('itRef'), x.ref ? '<bdi class="num">' + esc(x.ref) + '</bdi>' : '-'], [t('itStep'), st ? esc(st) : '-'],
+      [t('cnSince'), sla.since ? when(sla.since) : '-'], [t('cnDue'), sla.dueAt ? when(sla.dueAt) : '-']].map(function(f){ return '<div><dt>' + f[0] + '</dt><dd>' + f[1] + '</dd></div>'; }).join('') + '</dl>' +
+      (x.what ? '<div class="fp-rows" style="margin-top:10px"><div><span>' + t('itDetails') + '</span><b style="font-weight:500">' + whatLine(x) + '</b></div></div>' : '');
+    var needNote = o.dec === 'reject' || (o.dec === 'approve' && NOTE_ON_APPROVE[x.type]) || acts.indexOf('reject') >= 0 || NOTE_ON_APPROVE[x.type];
+    var decide = acts.length ? '<section class="rp-sec" id="itDec"><h2>' + ph('seal-check') + t('itDecide') + '</h2><form class="form" id="itF">' +
+        (needNote ? fld(o.dec === 'reject' ? t('cnNoteReq') : NOTE_ON_APPROVE[x.type] ? t('cnNote') : t('cnNoteOpt'), '<textarea name="n" rows="3" maxlength="500"></textarea>') : '') +
+        '<p class="fp-err" id="itE" role="alert"></p><div class="fp-actions">' +
+        (acts.indexOf('approve') >= 0 ? '<button type="submit" class="btn btn-dark" data-d="approve">' + ph('check') + t('cnApprove') + '</button>' : '') +
+        (acts.indexOf('done') >= 0 ? '<button type="submit" class="btn btn-dark" data-d="done">' + ph('check') + t('cnDone') + '</button>' : '') +
+        (acts.indexOf('reject') >= 0 ? '<button type="submit" class="btn btn-danger" data-d="reject">' + ph('x') + t('cnReject') + '</button>' : '') + '</div></form></section>'
+      : '<section class="rp-sec"><div class="fp-state wait">' + ph('info') + '<span>' + (gone ? t('itGone') : x.canAct && x.link ? t('itDeepOnly') : t('itNoAct')) + '</span></div></section>';
+    box.innerHTML = '<section class="rp-hero"><span class="rp-av">' + (x.emp ? esc(initials(x.emp.name)) : ph('file-text')) + '</span><div class="rp-id"><b>' + (x.emp ? empName(x.emp) : (t('cnt_' + x.type) === 'cnt_' + x.type ? esc(x.type) : t('cnt_' + x.type))) + '</b><small>' + (x.emp ? '<bdi class="num">' + esc(x.emp.empNo) + '</bdi>' + sep() : '') + (t('cnt_' + x.type) === 'cnt_' + x.type ? '' : t('cnt_' + x.type)) + '</small>' +
+        '<div class="rp-tags">' + tags.join('') + '</div></div>' + ring + '</section>' +
+      '<div class="fp-grid"><div class="fp-main"><section class="rp-sec"><h2>' + ph('file-text') + t('itDetails') + (x.link ? '<span class="sp"></span><button type="button" class="btn btn-line btn-sm" data-link>' + ph('arrow-square-out') + t('cnOpen') + '</button>' : '') + '</h2>' + facts + '</section>' + decide + '</div>' +
+      '<aside class="fp-aside"><section class="rp-sec" id="itHist"><h2>' + ph('clock-counter-clockwise') + t('cnHistT') + '</h2><div id="itH"><span class="sk"></span><span class="sk" style="width:70%;margin-top:8px"></span></div></section></aside></div>';
+    var lk = $('[data-link]', box); if (lk) lk.onclick = function(){ openLink(x.link); };
+    var f = $('#itF', box);
+    if (f) {
+      var choice = '';
+      $$('[data-d]', f).forEach(function(b){ b.onclick = function(){ choice = b.dataset.d; }; });
+      if (o.dec) { var ta = f.elements.n; if (ta) setTimeout(function(){ ta.focus({ preventScroll: false }); }, 60); }
+      f.onsubmit = function(ev){
+        ev.preventDefault();
+        var dec = choice || (acts.indexOf('approve') >= 0 ? 'approve' : acts[0]), n = f.elements.n ? f.elements.n.value.trim() : '', er = $('#itE', box);
+        var req = dec === 'reject' || (dec === 'approve' && NOTE_ON_APPROVE[x.type]);
+        if (req && !n) { er.textContent = errText('note_required'); if (f.elements.n) { f.elements.n.setAttribute('aria-invalid', 'true'); f.elements.n.focus(); } return; }
+        $$('[data-d]', f).forEach(function(b){ b.disabled = true; });
+        api('approvalsAct', { items: [{ type: x.type, id: x.id, task: x.task }], decision: dec, note: n }).then(function(a){
+          var res = a.ok ? a.results[0] : { ok: false, error: a.error };
+          if (!res.ok) { $$('[data-d]', f).forEach(function(b){ b.disabled = false; }); er.textContent = errText(res.error); return; }
+          toast(t('cnSent') + (res.ref ? ' · ' + res.ref : '')); refreshTasks(); if (o.done) o.done();
+          var sec = $('#itDec', box); if (sec) sec.innerHTML = '<div class="fp-ok" role="status" style="margin:0"><span class="ic">' + ph('check') + '</span><div><b>' + t('itDone') + '</b></div></div>';
+          loadHist();
+        });
+      };
+    }
+    function loadHist(){
+      var el = $('#itH', box); if (!el) return;
+      api('approvalHistory', { type: x.type, id: x.id }, true).then(function(r){
+        if (!el.isConnected) return;
+        if (!r.ok) return el.innerHTML = bad(r.error);
+        el.innerHTML = r.entries.length ? '<ol class="fp-chain">' + r.entries.map(function(e){
+          var no = e.decision === 'reject' || e.decision === 'rejected' || e.decision === 'cancelled' || e.decision === 'decline';
+          var step = e.step && !/^\d{4}-/.test(e.step) ? tl('yct_' + e.step, tl('cl_' + e.step, tl('fwk_' + e.step, ''))) : '';
+          return '<li class="' + (no ? 'no' : 'done') + '"><span class="fp-dot">' + ph(no ? 'x' : 'check') + '</span><div><b>' + esc(tl('cnd_' + e.decision, e.decision)) + (e.by ? sep() + esc(e.by) : '') + '</b>' +
+            '<small>' + when(e.at) + (step ? sep() + esc(step) : '') + (e.role === 'delegate' || e.onBehalfOf ? sep() + t('cnOnBehalf') + ' ' + esc(e.onBehalfOf || '') : e.role === 'hr_on_behalf' ? sep() + t('cnHrBehalf') : '') + '</small>' +
+            (e.note ? '<div class="note">' + esc(e.note) + '</div>' : '') + '</div></li>';
+        }).join('') + (r.item && r.item.status === 'pending' || (!gone && x.canAct) ? '<li class="now"><span class="fp-dot">' + ph('hourglass-medium') + '</span><div><b>' + (st ? esc(st) : t('rqNow')) + '</b><small>' + t('rqNow') + '</small></div></li>' : '') + '</ol>'
+          : '<p class="hr-hint" style="margin:0">-</p>';
+      });
+    }
+    loadHist();
+  }
+  return d;
 }
 
 // ================= leave cycle =================
@@ -584,5 +654,5 @@ function editFlow(r, ty, done){
   paint();
 }
 
-window.Flows = { centre: centre, cycles: cycles, cycleDrawer: cycleDrawer, myCards: myCards, config: config, history: history, printCycle: printCycle };
+window.Flows = { centre: centre, cycles: cycles, cycleDrawer: cycleDrawer, myCards: myCards, config: config, history: history, printCycle: printCycle, itemPage: itemPage, openItem: openItem };
 })();

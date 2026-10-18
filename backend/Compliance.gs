@@ -97,6 +97,7 @@ function api_wpsFile(req, me) {
   if (!canPayroll_(me)) fail_('forbidden');
   var run = findBy_(SHEETS.RUN, 'id', req.id);
   if (!run || run.status !== 'locked') fail_('run_not_locked');
+  if (isDemoRun_(run)) fail_('demo_run'); // demo payroll never goes to the bank or the ledger
   var emps = {}, priv = {}, rows = [], skipped = [], errors = 0, total = 0;
   readAll_(SHEETS.EMP).forEach(function (e) { emps[e.id] = e; });
   readAll_(SHEETS.PRIV).forEach(function (p) { priv[p.empId] = p; });
@@ -136,6 +137,7 @@ function api_wpsStep(req, me) {
   return withLock_(function () {
     var run = findBy_(SHEETS.RUN, 'id', req.id);
     if (!run || run.status !== 'locked') fail_('run_not_locked');
+    if (isDemoRun_(run)) fail_('demo_run'); // demo payroll never goes to the bank or the ledger
     var w = wpsLogOf_(run.id), now = new Date().toISOString(), step = req.step;
     if (step === 'generated') {
       if (w) fail_('already_exists');
@@ -218,7 +220,12 @@ function api_reconResolve(req, me) {
   });
 }
 /** Payroll approval asks this: an open mismatch for the month blocks it. */
-function reconBlocks_(month) { return readAll_(SHEETS.RECON).some(function (x) { return x.month === month && x.status === 'open'; }); }
+function reconBlocks_(month) {
+  var open = readAll_(SHEETS.RECON).filter(function (x) { return x.month === month && x.status === 'open'; });
+  if (!open.length) return false;
+  var demo = demoKeySet_(SHEETS.RECON); // a loaded demo reconciliation never blocks the company's payroll
+  return open.some(function (x) { return !demo['id:' + x.id]; });
+}
 
 // ---------------- compliance calendar ----------------
 
@@ -235,7 +242,7 @@ function api_complianceCalendar(req, me) {
     if (!e.contractNo) add('qiwa_contract', hire ? addDays_(hire, 30) : '', e, { saudi: bool_(e.isSaudi) });
   });
   api_hrExpiring({ days: 90 }, me).rows.forEach(function (x) { add(x.kind, x.date, ctx.emps[x.empId], { number: x.number }); });
-  var runs = readAll_(SHEETS.RUN).filter(function (r) { return r.status !== 'cancelled'; }), wps = readAll_(SHEETS.WPS);
+  var runs = readAll_(SHEETS.RUN).filter(function (r) { return r.status !== 'cancelled' && !isDemoRun_(r); }), wps = readAll_(SHEETS.WPS); // obligations: the company's runs only
   for (var i = 1; i <= 3; i++) {
     var d = new Date(Date.UTC(+t.slice(0, 4), +t.slice(5, 7) - 1 - i, 1)), m = d.toISOString().slice(0, 7), run = runs.filter(function (r) { return r.month === m; })[0], due = wpsDue_(m, s);
     var w = run && wps.filter(function (x) { return x.runId === run.id; })[0];
@@ -246,6 +253,7 @@ function api_complianceCalendar(req, me) {
   readAll_(SHEETS.INJ).filter(function (x) { return x.status === 'reported'; }).forEach(function (x) { add('injury_gosi', String(x.gosiDue).slice(0, 10), ctx.emps[x.empId], { ref: x.ref }); });
   readAll_(SHEETS.RECON).filter(function (x) { return x.status === 'open'; }).forEach(function (x) { add('recon_open', '', null, { month: x.month, ref: x.ref, count: parseJson_(x.mismatchesJson, []).length, level: 'error' }); });
   extraCalendar_(items, add, ctx, t, me); // Art. 72 grievance answers, government services, expenses, journals (GovServices.gs)
+  hrisHooks_('calendar').forEach(function (fn) { try { fn(add, ctx, t, me); } catch (e) { console.error('calendar hook: ' + (e && e.message)); } }); // Wave 2 modules
   items.forEach(function (x) { if (x.kind === 'recon_open') x.level = 'error'; });
   var target = Number(s.saudizationTarget) || 0;
   if (target) { var dir = api_hrDirectory({}, me).saudization; if (dir.saudiPct < target) items.push({ kind: 'saudization', due: '', daysLeft: null, emp: null, level: 'warn', value: dir.saudiPct, target: target }); }
@@ -289,6 +297,7 @@ function api_myTasks(req, me) {
     .reduce(function (s, v) { return s + v.tasks.filter(function (t) { return t.canTick; }).length; }, 0), { tab: 'hr', sec: 'offboarding' });
   extraTasks_(me, ctx, out, add); // government services, expenses, journals, Art. 72 answer dates (GovServices.gs)
   lcMyTasks_(me, ctx, out, add); // leave-cycle tasks and escalated approvals (Flows.gs)
+  hrisHooks_('tasks').forEach(function (fn) { try { fn(me, ctx, add); } catch (e) { console.error('tasks hook: ' + (e && e.message)); } }); // Wave 2 modules
   var dl = readAll_(SHEETS.DLG).filter(function (d) { return d.toEmpId === me.id && d.status === 'active' && String(d.fromDate).slice(0, 10) <= t && String(d.toDate).slice(0, 10) >= t; });
   if (dl.length) out.push({ kind: 'delegated', count: dl.length, target: { tab: 'hr', sec: 'inbox' }, names: dl.map(function (d) { return ctx.emps[d.fromEmpId] ? ctx.emps[d.fromEmpId].name : ''; }) });
   return { ok: true, tasks: out, total: out.filter(function (x) { return x.kind !== 'delegated'; }).reduce(function (s, x) { return s + x.count; }, 0) };

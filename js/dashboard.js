@@ -18,7 +18,9 @@ Object.assign(T.ar, {
   dbGosiEr:'تأمينات على الشركة', dbOtCost:'تكلفة العمل الإضافي', dbLeaveLiab:'التزام الإجازات غير المستخدمة', dbEosLiab:'التزام مكافأة نهاية الخدمة',
   dbAdvances:'سلف غير مسددة', dbCostTrend:'تكلفة الرواتب الشهرية (الإجمالي والتأمينات على الشركة)', dbCostDept:'تكلفة آخر مسير حسب الإدارة', dbNoRuns:'لا توجد مسيرات معتمدة بعد.',
   dbTable:'جدول', dbChart:'رسم', dbGenerated:'أعدت في', dbReview:'بصمات للمراجعة', dbMissingOut:'بلا انصراف', dbLiabNote:'تقدير حتى اليوم: المكافأة كاملة لكل الموظفين حسب المادة 84، والإجازة بالأجر الإجمالي.',
-  dbNoData:'لا توجد بيانات في هذه الفترة.', dbHideDash:'إخفاء الملخص', dbShowDash:'إظهار الملخص', lt_unpaid_short:'بدون راتب'
+  dbNoData:'لا توجد بيانات في هذه الفترة.', dbHideDash:'إخفاء الملخص', dbShowDash:'إظهار الملخص', lt_unpaid_short:'بدون راتب',
+  dbNoChange:'دون تغيير', dbOpen:'فتح', dbOpenIn:'افتح الشاشة', dbChartView:'عرض الرسم', dbTableView:'عرض الجدول', dbSparkOf:'الاتجاه', dbFromTo:'من {a} إلى {b}',
+  dbLoading:'جار تحميل اللوحة', dbPrevPeriod:'الفترة السابقة', dbBasis:'الأسهم تقارن بالفترة السابقة بنفس الطول ({a} - {b})', dbBasisRun:'الأسهم تقارن بالمسير السابق', dbVsTarget:'عن المستهدف', dbVsLastMonth:'عن الشهر الماضي', dbVsRun:'عن المسير السابق'
 });
 Object.assign(T.en, {
   dbTitle:'Management dashboard', dbThisMonth:'This month', dbLastMonth:'Last month', dbLast30:'Last 30 days', dbLast90:'Last 90 days', dbPrint:'Print',
@@ -34,7 +36,9 @@ Object.assign(T.en, {
   dbGosiEr:'Employer GOSI', dbOtCost:'Overtime cost', dbLeaveLiab:'Unused leave liability', dbEosLiab:'End-of-service liability',
   dbAdvances:'Advances outstanding', dbCostTrend:'Monthly payroll cost (gross plus employer GOSI)', dbCostDept:'Last payroll cost by department', dbNoRuns:'No approved payroll yet.',
   dbTable:'Table', dbChart:'Chart', dbGenerated:'Prepared', dbReview:'Punches to review', dbMissingOut:'No check-out', dbLiabNote:'Estimate as of today: full Art. 84 award for everyone, leave at total wage.',
-  dbNoData:'No data in this period.', dbHideDash:'Hide summary', dbShowDash:'Show summary', lt_unpaid_short:'Unpaid'
+  dbNoData:'No data in this period.', dbHideDash:'Hide summary', dbShowDash:'Show summary', lt_unpaid_short:'Unpaid',
+  dbNoChange:'No change', dbOpen:'Open', dbOpenIn:'Open the screen', dbChartView:'Chart view', dbTableView:'Table view', dbSparkOf:'Trend', dbFromTo:'from {a} to {b}',
+  dbLoading:'Loading the dashboard', dbPrevPeriod:'Previous period', dbBasis:'Arrows compare with the previous period of the same length ({a} - {b})', dbBasisRun:'Arrows compare with the previous payroll run', dbVsTarget:'vs target', dbVsLastMonth:'vs last month', dbVsRun:'vs previous run'
 });
 // Workforce analytics (prefix wa). Arabic counts of people go through plural(n, 'people').
 Object.assign(T.ar, {
@@ -87,17 +91,21 @@ Object.assign(T.en, {
 });
 
 var css = '' +
-'.db{--s1:#2E7D4F;--s2:#C98500;--s3:#2a78d6;--grid:#e1e0d9;--axis:#c3c2b7;--muted:#898781;--wash:#F1EEE6}' +
+// Chart tokens live on body, so charts drawn outside .db (home, my file, reports) read the same validated values.
+// Light (white card): #2E7D4F / #C98500 / #2a78d6, all-pairs CVD dE 10.5, normal 21.5, all >= 3:1.
+// Dark (card #17201B): #1F7A4A / #C98500 / #4688E0, all-pairs CVD dE 11.2, normal 23.0, all >= 3:1 (dataviz validate_palette.js, 2026-10-14).
+'body{--s1:#2E7D4F;--s2:#C98500;--s3:#2a78d6;--grid:#E6E9E6;--axis:#C3C8C4;--muted:#66726A;--wash:#EEF2EF}' +
+'html[data-theme="dark"] body{--s1:#1F7A4A;--s2:#C98500;--s3:#4688E0;--grid:#26322B;--axis:#3A4740;--muted:#93A097;--wash:#1F2A24}' +
 '.db-filters{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:0 0 14px}' +
-'.db-filters button{height:34px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-size:13px;color:var(--ink-2)}' +
-'.db-filters button[aria-pressed="true"]{background:var(--pine);color:var(--cream);border-color:var(--pine)}' +
+'.db-filters button{height:34px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-size:13px;color:var(--ink-2);display:inline-flex;align-items:center;gap:6px}' +
+'.db-filters button[aria-pressed="true"]{background:var(--brand);color:var(--on-brand,#fff);border-color:var(--brand)}' +
 '.db-filters .sp{flex:1}.db-filters small{color:var(--ink-2)}' +
-'.db-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}' +
+'.db-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}@media (max-width:1023px){.db-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}' +
 '.db-tile{background:var(--card);border:1px solid var(--line);border-radius:var(--r-m);padding:12px 14px;min-width:0}' +
 '.db-tile span{display:block;font-size:12.5px;color:var(--ink-2)}' +
 '.db-tile b{display:block;font-size:26px;font-weight:600;line-height:1.2;margin-top:2px}' +
 '.db-tile small{display:block;font-size:12px;color:var(--ink-2);margin-top:2px}' +
-'.db-tile .up{color:#006300}.db-tile .down{color:#b3261e}' +
+'.db-tile .up{color:var(--ok)}.db-tile .down{color:var(--bad)}' +
 '.db-tile.lead{grid-column:1 / -1;background:var(--pine);border-color:var(--pine);color:var(--cream)}.db-tile.lead span,.db-tile.lead small{color:#AFC0AD}' +
 '.db-tile.lead b{font-size:48px}.db-tile.lead .up{color:#9FE0AE}.db-tile.lead .down{color:#F4B4A8}' +
 '.db-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;margin-bottom:14px}' +
@@ -156,11 +164,40 @@ var css = '' +
 '.wa-checks{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 16px}.wa-ck{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;padding:4px 10px;border-radius:999px}' +
 '.wa-ck.warn{background:var(--warn-bg,#FBF1DC);color:var(--warn,#8A5A00)}.wa-ck.info{background:var(--info-bg,#E8F1FC);color:var(--info,#1F5FAE)}' +
 '.wa-flag{display:inline-flex;align-items:center;gap:4px;color:var(--info,#1F5FAE)}.db-card td.wa-who{white-space:normal;min-width:150px}.db-card td.wa-sig{white-space:normal;min-width:240px;text-align:start}' +
-'@media (min-width:1024px){.db-tiles{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}.db-tile.lead{grid-column:span 2}.db-grid.two{grid-template-columns:1.4fr 1fr}.db-grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}}' +
+'@media (min-width:1024px){.db-tiles{grid-template-columns:repeat(4,minmax(0,1fr))}.db-tiles:has(> :nth-child(5)){grid-template-columns:repeat(3,minmax(0,1fr))}.db-tiles:has(> :nth-child(7)){grid-template-columns:repeat(4,minmax(0,1fr))}.db-tiles:not(:has(> :nth-child(4))){grid-template-columns:repeat(3,minmax(0,1fr))}.db-tiles:not(:has(> :nth-child(3))){grid-template-columns:repeat(2,minmax(0,1fr))}.db-tile.lead{grid-column:auto}.db-grid.two{grid-template-columns:1.4fr 1fr}.db-grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}}' +
+// ---- 2026-10-14 (skills: kpi-dashboard-design, dataviz, motion-system): delta pills, sparklines, drill-down tiles, view toggle, empty and loading states ----
+'.db-tile{display:flex;flex-direction:column;gap:2px}' +
+'.db-tile .db-lb{display:flex;align-items:center;gap:6px}.db-tile .db-lb i{font-size:16px;color:var(--t-fg,var(--brand))}' +
+'.db-tf{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin-top:6px;min-height:28px;flex-wrap:wrap}' +
+':root body .db-tile small.db-delta,:root body .hm-k small.db-delta,small.db-delta{display:inline-flex;align-items:center;gap:4px;width:fit-content;max-width:100%;padding:2px 8px;border-radius:999px;font-size:11.5px;font-weight:600;line-height:1.6;margin:0;white-space:normal}' +
+'.db-sr{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}.db-basis{display:flex;align-items:center;gap:6px;margin:-4px 2px 10px;font-size:12.5px;color:var(--ink-3)}.db-basis i{font-size:15px}' +
+'.db-delta i{font-size:13px;flex:none}.db-delta bdi{font-variant-numeric:tabular-nums}' +
+':root body small.db-delta.up{background:var(--ok-bg)!important;color:var(--ok)!important}:root body small.db-delta.down{background:var(--bad-bg)!important;color:var(--bad)!important}:root body small.db-delta.flat{background:var(--well)!important;color:var(--ink-3)!important}:root body small.db-delta.neu{background:var(--info-bg)!important;color:var(--info)!important}' +
+'.db-spark{width:96px;height:28px;flex:none;display:block;overflow:visible;direction:ltr;margin-inline-start:auto}' +
+'.db-spark .l{fill:none;stroke:var(--s1);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}.db-spark .a{fill:var(--s1);opacity:.13;stroke:none}' +
+'.db-spark circle{fill:var(--s1);stroke:var(--card);stroke-width:2}.db-spark.warm .l,.db-spark.warm circle{stroke:var(--s2)}.db-spark.warm circle,.db-spark.warm .a{fill:var(--s2)}.db-spark.warm circle{stroke:var(--card)}' +
+'.db-tile.is-go,.hm-k.is-go{cursor:pointer}:root body .db-tile::before{display:none}' +
+':root body .db-tile > .db-go,:root body .hm-k > .db-go{position:absolute;top:10px;inset-inline-end:10px;width:28px;height:28px;border-radius:9px;display:grid;place-items:center;color:var(--t-fg,var(--brand));font-size:16px;z-index:2;background:color-mix(in srgb,var(--card) 70%,transparent);transition:transform var(--mo-base,.18s) var(--ease-out,ease-out)}' +
+'@media (hover:hover){.is-go:hover > .db-go{transform:translate(calc(var(--mo-x,1) * 2px),-2px)}}' +
+'[dir="rtl"] .is-go{--mo-x:-1}' +
+'.is-go:focus-visible{outline:2px solid var(--brand);outline-offset:2px}' +
+'.db-card h3{flex-wrap:wrap}.db-tools{display:inline-flex;align-items:center;gap:6px}' +
+'.db-seg{display:inline-flex;padding:2px;border-radius:9px;background:var(--well);gap:2px}' +
+'.db-seg button{width:30px;height:26px;border:0;border-radius:7px;background:none;color:var(--ink-3);display:grid;place-items:center;font-size:15px;cursor:pointer;transition:background-color var(--mo-base,.18s),color var(--mo-base,.18s)}' +
+'.db-seg button[aria-pressed="true"]{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(15,28,20,.14)}' +
+'.db-open{height:28px;padding:0 9px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink-2);font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:5px;cursor:pointer}' +
+'.db-open:hover{border-color:var(--input);color:var(--ink)}.db-open i{font-size:14px}' +
+'.db-empty{display:grid;justify-items:center;gap:8px;padding:20px 8px;color:var(--ink-3);font-size:13px;text-align:center}' +
+'.db-empty i{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;background:var(--well);color:var(--ink-3);font-size:26px}' +
+'.db-skc{height:150px;display:flex;align-items:flex-end;gap:6px;padding:14px 4px 0;direction:ltr}.db-skc .sk{flex:1;border-radius:6px 6px 0 0;height:auto}' +
+'.db-skh{display:flex;gap:10px;align-items:center;margin-bottom:8px}.db-skh .sk{height:14px}' +
+'.db-ring{display:block;flex:none;direction:ltr}.db-ring .tr{fill:none;stroke:var(--wash);stroke-width:7}.db-ring .fg{fill:none;stroke:var(--s1);stroke-width:7;stroke-linecap:round}.db-ring.warm .fg{stroke:var(--s2)}' +
+'.db-ring text{fill:var(--ink);font-family:var(--f-num,inherit);font-size:13px;font-weight:700}' +
+'@media print{.db-seg,.db-open,.db-go{display:none!important}}' +
 '@media print{.tabs,.topbar,.hr-rail,.db-filters button,.db-card .tg,.update-bar{display:none!important}.app{padding:0!important}.hr-shell{display:block!important;min-height:0!important}.db-card,.db-tile{break-inside:avoid}body{background:#fff}}';
 var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 
-var tip = null;
+var tip = null, gradN = 0;
 function showTip(ev, html){
   if (!tip) { tip = document.createElement('div'); tip.className = 'db-tip'; document.body.appendChild(tip); }
   tip.innerHTML = html; tip.style.display = 'block';
@@ -175,34 +212,86 @@ function monthShort(m){ return new Date(Date.UTC(+m.slice(0, 4), +m.slice(5, 7) 
 function hm(min){ return String(Math.floor(min / 60)).padStart(2, '0') + ':' + String(min % 60).padStart(2, '0'); }
 function tx(s){ return esc(s == null ? '' : String(s)); }
 
-/** A stat tile. delta: change vs the previous period; goodUp: whether up is good. */
-function tile(label, value, sub, delta, goodUp, hero, unit){
-  var d = '';
-  if (delta != null && isFinite(delta) && Math.abs(delta) >= 0.05) {
-    var up = delta > 0, good = up === goodUp;
-    d = '<small class="' + (good ? 'up' : 'down') + '">' + (up ? '▲ ' : '▼ ') + n1(Math.abs(delta)) + (unit ? ' ' + unit : '') + ' ' + t('dbVsPrev') + '</small>';
-  }
-  return '<div class="db-tile' + (hero ? ' lead' : '') + '"><span>' + label + '</span><b>' + value + '</b>' + d + (sub ? '<small>' + sub + '</small>' : '') + '</div>';
+/** Whether the viewer may open "area:sub" (the same role predicates the shell uses). A list picks the first allowed. */
+function goOk(dest){
+  if (!dest) return null;
+  if (Array.isArray(dest)) { for (var i = 0; i < dest.length; i++) if (goOk(dest[i])) return dest[i]; return null; }
+  if (typeof areaOf !== 'function' || typeof subsOf !== 'function') return null;
+  var p = String(dest).split(':'), a = areaOf(p[0]); if (!a) return null;
+  var subs = subsOf(a); if (!subs.length) return null;
+  return !p[1] || subs.some(function(s){ return s.id === p[1]; }) ? dest : null;
+}
+function goArrow(){ return '<span class="db-go" aria-hidden="true">' + ph(S.lang === 'ar' ? 'arrow-up-left' : 'arrow-up-right') + '</span>'; }
+/** The change against the previous period as a pill: arrow, signed amount, words. Colour follows good/bad, never alone. */
+function delta(d, goodUp, unit, words){
+  if (d == null || !isFinite(d)) return '';
+  // the basis ("vs previous period", "vs yesterday") is said once above the row; in the pill it is a tooltip and screen-reader text
+  var w = words || t('dbVsPrev');
+  if (Math.abs(d) < 0.05) return '<small class="db-delta flat" title="' + tx(w) + '">' + ph('equals') + t('dbNoChange') + '<span class="db-sr"> ' + w + '</span></small>';
+  var up = d > 0, good = up === goodUp; // goodUp null: neither direction is good or bad (cost, overtime): a neutral pill
+  return '<small class="db-delta ' + (goodUp == null ? 'neu' : good ? 'up' : 'down') + '" title="' + tx(w) + '">' + ph(up ? 'trend-up' : 'trend-down') + '<bdi dir="ltr">' + (up ? '+' : '−') + n1(Math.abs(d)) + '</bdi>' + (unit ? ' ' + unit : '') + '<span class="db-sr"> ' + w + '</span></small>';
+}
+/** A sparkline: values oldest first, 96 x 28, 2px line, soft area, a dot on the latest value. Time runs left to right. */
+function spark(vals, opts){
+  opts = opts || {};
+  var v = (vals || []).map(function(x){ return x == null || !isFinite(x) ? null : Number(x); }).filter(function(x){ return x != null; });
+  if (v.length < 2) return '';
+  var W = 96, H = 28, pad = 3, min = opts.min != null ? opts.min : Math.min.apply(null, v), max = opts.max != null ? opts.max : Math.max.apply(null, v);
+  if (max === min) { max = max + 1; min = min - 1; }
+  var x = function(i){ return pad + i * (W - pad * 2) / (v.length - 1); }, y = function(n){ return pad + (H - pad * 2) * (1 - (n - min) / (max - min)); };
+  var line = v.map(function(n, i){ return (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(n).toFixed(1); }).join(' ');
+  var area = line + ' L' + x(v.length - 1).toFixed(1) + ' ' + H + ' L' + x(0).toFixed(1) + ' ' + H + ' Z';
+  var label = (opts.label || t('dbSparkOf')) + ': ' + t('dbFromTo').replace('{a}', n1(v[0])).replace('{b}', n1(v[v.length - 1]));
+  return '<svg class="db-spark' + (opts.warm ? ' warm' : '') + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + tx(label) + '" data-tip="' + tx(label) + '"><path class="a" d="' + area + '"/><path class="l mo-line" pathLength="1" d="' + line + '"/>' +
+    '<circle class="mo-dot" r="3" cx="' + x(v.length - 1).toFixed(1) + '" cy="' + y(v[v.length - 1]).toFixed(1) + '"/></svg>';
+}
+/**
+ * A stat tile. delta: change vs the previous period; goodUp: whether up is good.
+ * o (optional): { spark: [values oldest first], sparkOpts, go: 'area:sub' or a list (first allowed wins), icon }.
+ * With go the whole tile opens that screen (click, Enter or Space) and shows an arrow.
+ */
+function tile(label, value, sub, d, goodUp, hero, unit, o){
+  o = o || {};
+  var dest = goOk(o.go), dl = delta(d, goodUp, unit, o.words), sp = o.spark ? spark(o.spark, o.sparkOpts) : '';
+  var head = o.icon ? '<span class="db-lb">' + ph(o.icon, 'duotone') + label + '</span>' : '<span>' + label + '</span>';
+  var attrs = dest ? ' data-go="' + dest + '" role="link" tabindex="0" aria-label="' + tx(String(label).replace(/<[^>]*>/g, '')) + ': ' + tx(String(value).replace(/<[^>]*>/g, '')) + ' · ' + t('dbOpenIn') + '"' : '';
+  return '<div class="db-tile' + (hero ? ' lead' : '') + (dest ? ' is-go' : '') + '"' + attrs + '>' + head + '<b>' + value + '</b>' +
+    (dl || sp ? '<div class="db-tf">' + dl + sp + '</div>' : '') + (sub ? '<small>' + sub + '</small>' : '') + (dest ? goArrow() : '') + '</div>';
 }
 
-/** A card with a chart and its table view. */
-function card(id, title, lead, chart, table){
-  return '<div class="db-card" data-card="' + id + '"><h3>' + title + '<span class="sp"></span>' + (table ? '<button type="button" class="tg" data-tg="' + id + '" aria-pressed="false">' + t('dbTable') + '</button>' : '') + '</h3>' +
+/** No data yet: an icon in a quiet well and one line. */
+function empty(text, icon){ return '<div class="db-empty">' + ph(icon || 'chart-bar', 'duotone') + '<span>' + (text || t('dbNoData')) + '</span></div>'; }
+
+/** A card with a chart and its table view (a two-button chart / table switch). go: a screen to open from the card. */
+function card(id, title, lead, chart, table, go){
+  var dest = goOk(go === undefined ? CARD_GO[id] : go); // CARD_GO only for the dashboard's own cards (other screens call Viz.card)
+  var tools = (table ? '<span class="db-seg" role="group" aria-label="' + tx(String(title).replace(/<[^>]*>/g, '')) + '"><button type="button" data-tg="' + id + '" data-m="chart" aria-pressed="true" aria-label="' + t('dbChartView') + '" title="' + t('dbChartView') + '">' + ph('chart-bar') + '</button>' +
+      '<button type="button" data-tg="' + id + '" data-m="table" aria-pressed="false" aria-label="' + t('dbTableView') + '" title="' + t('dbTableView') + '">' + ph('table') + '</button></span>' : '') +
+    (dest ? '<button type="button" class="db-open" data-go="' + dest + '">' + t('dbOpen') + ph(S.lang === 'ar' ? 'arrow-up-left' : 'arrow-up-right') + '</button>' : '');
+  return '<div class="db-card" data-card="' + id + '"><h3>' + title + '<span class="sp"></span>' + (tools ? '<span class="db-tools">' + tools + '</span>' : '') + '</h3>' +
     (lead ? '<p>' + lead + '</p>' : '') + '<div data-v="chart">' + chart + '</div>' + (table ? '<div data-v="table" class="hidden">' + table + '</div>' : '') + '</div>';
 }
+/** Where each dashboard card drills to (first allowed screen wins). */
+var CARD_GO = { trend: ['time:board', 'insights:attendance'], wd: ['insights:attendance'], ci: ['time:board'], dept: ['insights:attendance'], late: ['insights:attendance'], abs: ['time:board', 'insights:attendance'],
+  mix: ['people:directory'], ten: ['people:directory'], mov: ['people:onboarding', 'people:offboarding'], lv: ['requests:leave'], rq: ['requests:inbox', 'requests:centre'], pf: ['growth:cycle'],
+  cost: ['pay:runs'], cd: ['pay:runs'], watr: ['people:offboarding', 'insights:reports'], wasp: ['people:offboarding', 'insights:reports'], wate: ['people:directory', 'insights:reports'],
+  wasc: ['people:org', 'people:directory'], waco: ['people:onboarding', 'insights:reports'], wasg: ['growth:plans', 'insights:reports'], wadp: ['growth:plans', 'insights:reports'], wapp: ['growth:plans'] };
 function tbl(head, rows){ return '<div class="tblwrap"><table class="tbl"><thead><tr>' + head.map(function(h){ return '<th>' + h + '</th>'; }).join('') + '</tr></thead><tbody>' + rows.map(function(r){ return '<tr>' + r.map(function(c){ return '<td class="num">' + c + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table></div>'; }
 
 /** Line chart, one series, y from 0 to max; crosshair snaps to the nearest point. */
 function lineChart(pts, opts){
-  if (!pts.length) return '<p class="hr-hint">' + t('dbNoData') + '</p>';
+  if (!pts.length) return empty(null, 'chart-line');
   var W = 640, H = 200, L = 48, R = 10, Tt = 10, Bm = 26, max = opts.max || Math.max.apply(null, pts.map(function(p){ return p.y || 0; }).concat([1]));
   var x = function(i){ return L + (pts.length === 1 ? (W - L - R) / 2 : i * (W - L - R) / (pts.length - 1)); }, y = function(v){ return Tt + (H - Tt - Bm) * (1 - (v || 0) / max); };
   var grid = [0, 0.5, 1].map(function(f){ var v = max * f, yy = y(v); return '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + yy + '" y2="' + yy + '" stroke="var(--grid)" stroke-width="1"/><text x="' + (L - 6) + '" y="' + (yy + 4) + '" text-anchor="end">' + n1(v, 0) + (opts.suffix || '') + '</text>'; }).join('');
   var d = pts.map(function(p, i){ return (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(p.y).toFixed(1); }).join(' ');
   var step = Math.max(1, Math.ceil(pts.length / 6)), labels = pts.map(function(p, i){ var last = pts.length - 1; return (i % step || (i !== last && last - i < step * 0.7)) && i !== last ? '' : '<text x="' + x(i) + '" y="' + (H - 8) + '" text-anchor="middle">' + tx(p.label) + '</text>'; }).join('');
-  var dotsLast = '<circle cx="' + x(pts.length - 1) + '" cy="' + y(pts[pts.length - 1].y) + '" r="4" fill="var(--s1)" stroke="var(--card)" stroke-width="2"/>';
-  return '<svg class="db-svg" dir="ltr" viewBox="0 0 ' + W + ' ' + H + '" data-line=\'' + esc(JSON.stringify({ pts: pts, L: L, R: R, W: W, suffix: opts.suffix || '', fmt: opts.fmt || '' })) + '\' role="img" aria-label="' + tx(opts.aria || '') + '">' + grid +
-    '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(0) + '" y2="' + y(0) + '" stroke="var(--axis)"/>' + '<path d="' + d + '" fill="none" stroke="var(--s1)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>' + dotsLast + labels +
+  var dotsLast = '<circle class="mo-dot" cx="' + x(pts.length - 1) + '" cy="' + y(pts[pts.length - 1].y) + '" r="4" style="fill:var(--s1);stroke:var(--card)" stroke-width="2"/>';
+  var gid = 'dbg' + (++gradN), area = d + ' L' + x(pts.length - 1).toFixed(1) + ' ' + y(0).toFixed(1) + ' L' + x(0).toFixed(1) + ' ' + y(0).toFixed(1) + ' Z';
+  return '<svg class="db-svg" dir="ltr" viewBox="0 0 ' + W + ' ' + H + '" data-line=\'' + esc(JSON.stringify({ pts: pts, L: L, R: R, W: W, suffix: opts.suffix || '', fmt: opts.fmt || '' })) + '\' role="img" aria-label="' + tx(opts.aria || '') + '">' +
+    '<defs><linearGradient id="' + gid + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--s1);stop-opacity:.2"/><stop offset="1" style="stop-color:var(--s1);stop-opacity:0"/></linearGradient></defs>' + grid +
+    '<path class="mo-area" d="' + area + '" fill="url(#' + gid + ')" stroke="none"/>' +
+    '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(0) + '" y2="' + y(0) + '" style="stroke:var(--axis)"/>' + '<path class="mo-line" pathLength="1" d="' + d + '" fill="none" style="stroke:var(--s1)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>' + dotsLast + labels +
     '<line class="xh" x1="0" x2="0" y1="' + Tt + '" y2="' + (H - Bm) + '" stroke="var(--ink-2)" stroke-width="1" style="display:none"/><rect x="' + L + '" y="0" width="' + (W - L - R) + '" height="' + H + '" fill="transparent"/></svg>';
 }
 function wireLines(root){
@@ -214,46 +303,57 @@ function wireLines(root){
       var px = n === 1 ? (o.W - o.L - o.R) / 2 + o.L : o.L + i * (o.W - o.L - o.R) / (n - 1);
       xh.setAttribute('x1', px); xh.setAttribute('x2', px); xh.style.display = '';
       var p = o.pts[i];
-      showTip(ev, '<b>' + (o.fmt === 'sar' ? sar(p.y) : n1(p.y) + o.suffix) + '</b><br><span class="k" style="background:#2E7D4F"></span>' + tx(p.label) + (p.note ? '<br>' + tx(p.note) : ''));
+      showTip(ev, '<b>' + (o.fmt === 'sar' ? sar(p.y) : n1(p.y) + o.suffix) + '</b><br><span class="k" style="background:var(--s1)"></span>' + tx(p.label) + (p.note ? '<br>' + tx(p.note) : ''));
     });
     svg.addEventListener('pointerleave', function(){ xh.style.display = 'none'; hideTip(); });
   });
 }
-/** Columns: items [{label, value, tip}] with optional marker at index. */
+/** Columns: items [{label, value, tip}] with optional marker at index. Bars grow in one after another (--i). */
 function cols(items, opts){
-  if (!items.length) return '<p class="hr-hint">' + t('dbNoData') + '</p>';
+  if (!items.length) return empty();
   var max = Math.max.apply(null, items.map(function(i){ return i.value || 0; }).concat([opts && opts.max || 1]));
-  return '<div class="db-cols">' + items.map(function(i){
+  return '<div class="db-cols">' + items.map(function(i, n){
     return '<div class="c" tabindex="0" data-tip="' + esc(i.tip || (n1(i.value) + ' ' + (i.label || ''))) + '">' + (opts && opts.labels ? '<em>' + (i.value ? n1(i.value, 0) + (opts.suffix || '') : '') + '</em>' : '') +
-      '<i class="' + (i.alt ? 'alt' : '') + '" style="height:' + ((i.value || 0) / max * 100) + '%"></i><span>' + tx(i.label) + '</span></div>';
+      '<i class="' + (i.alt ? 'alt' : '') + '" style="height:' + ((i.value || 0) / max * 100) + '%;--i:' + Math.min(n, 16) + '"></i><span>' + tx(i.label) + '</span></div>';
   }).join('') + '</div>';
 }
 function grouped(items){
+  if (!items.length || items.every(function(i){ return !i.a && !i.b; })) return empty();
   var max = Math.max.apply(null, items.map(function(i){ return Math.max(i.a, i.b); }).concat([1]));
-  return '<div class="db-cols" style="height:140px">' + items.map(function(i){
-    return '<div class="grp" tabindex="0" data-tip="' + esc(tx(i.label) + ': ' + t('dbJoiners') + ' ' + i.a + '، ' + t('dbLeavers') + ' ' + i.b) + '"><i style="height:' + (i.a / max * 100) + '%"></i><i class="b" style="height:' + (i.b / max * 100) + '%"></i><span>' + tx(i.label) + '</span></div>';
+  return '<div class="db-cols" style="height:140px">' + items.map(function(i, n){
+    return '<div class="grp" tabindex="0" data-tip="' + esc(tx(i.label) + ': ' + t('dbJoiners') + ' ' + i.a + '، ' + t('dbLeavers') + ' ' + i.b) + '"><i style="height:' + (i.a / max * 100) + '%;--i:' + Math.min(n, 16) + '"></i><i class="b" style="height:' + (i.b / max * 100) + '%;--i:' + Math.min(n, 16) + '"></i><span>' + tx(i.label) + '</span></div>';
   }).join('') + '</div><div class="db-legend"><span><i style="background:var(--s1)"></i>' + t('dbJoiners') + '</span><span><i style="background:var(--s2)"></i>' + t('dbLeavers') + '</span></div>';
 }
 function hbars(items, opts){
-  if (!items.length) return '<p class="hr-hint">' + t('dbNoData') + '</p>';
+  if (!items.length) return empty(null, 'chart-bar-horizontal');
   var max = opts && opts.max || Math.max.apply(null, items.map(function(i){ return i.value || 0; }).concat([1]));
-  return '<div class="db-hbars">' + items.map(function(i){
-    return '<div class="db-hb" tabindex="0" data-tip="' + esc(i.tip || '') + '"><span class="nm">' + tx(i.label) + '</span><div class="tr"><i class="' + (i.gray ? 'gray' : '') + '" style="width:' + Math.max(0, Math.min(100, (i.value || 0) / max * 100)) + '%"></i></div><b>' + i.text + '</b></div>';
+  return '<div class="db-hbars">' + items.map(function(i, n){
+    return '<div class="db-hb" tabindex="0" data-tip="' + esc(i.tip || '') + '"><span class="nm">' + tx(i.label) + '</span><div class="tr"><i class="' + (i.gray ? 'gray' : '') + '" style="width:' + Math.max(0, Math.min(100, (i.value || 0) / max * 100)) + '%;--i:' + Math.min(n, 12) + '"></i></div><b>' + i.text + '</b></div>';
   }).join('') + '</div>';
 }
 function wireTips(root){
   $$('[data-tip]', root).forEach(function(el){
-    if (!el.getAttribute('data-tip')) return;
+    if (!el.getAttribute('data-tip') || el.dataset.tipOn) return;
+    el.dataset.tipOn = '1';
     el.addEventListener('pointermove', function(ev){ showTip(ev, esc(el.getAttribute('data-tip'))); });
     el.addEventListener('pointerleave', hideTip);
     el.addEventListener('focus', function(){ var r = el.getBoundingClientRect(); showTip({ clientX: r.left + r.width / 2, clientY: r.top }, esc(el.getAttribute('data-tip'))); });
     el.addEventListener('blur', hideTip);
   });
+  // chart / table switch: two pressed-state buttons per card
   $$('[data-tg]', root).forEach(function(b){ b.onclick = function(){
-    var c = b.closest('.db-card'), on = b.getAttribute('aria-pressed') !== 'true';
-    b.setAttribute('aria-pressed', on); b.textContent = on ? t('dbChart') : t('dbTable');
-    c.querySelector('[data-v="chart"]').classList.toggle('hidden', on); c.querySelector('[data-v="table"]').classList.toggle('hidden', !on);
+    var c = b.closest('.db-card, [data-tgbox]'), tab = b.dataset.m === 'table'; if (!c) return;
+    $$('[data-tg]', c).forEach(function(x){ x.setAttribute('aria-pressed', String((x.dataset.m === 'table') === tab)); });
+    c.querySelector('[data-v="chart"]').classList.toggle('hidden', tab); c.querySelector('[data-v="table"]').classList.toggle('hidden', !tab);
   }; });
+  wireGo(root);
+}
+/** Drill-down: any [data-go="area:sub"] opens that screen on click, Enter or Space. */
+function wireGo(root){
+  $$('[data-go*=":"]', root).forEach(function(el){
+    el.onclick = function(){ hideTip(); var p = el.dataset.go.split(':'); if (window.goArea) goArea(p[0], p[1], p[2]); };
+    if (el.tagName !== 'BUTTON' && el.tagName !== 'A') el.onkeydown = function(e){ if (e.target === el && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); el.onclick(e); } };
+  });
 }
 
 function range(k){
@@ -263,30 +363,62 @@ function range(k){
   return [td.slice(0, 8) + '01', td];
 }
 
-function section(body){
-  var k = S.dbRange || 'month';
-  body.innerHTML = '<div class="db"><div class="hr-h"><h2>' + t('dbTitle') + '</h2></div><div class="db-filters">' + [['month', 'dbThisMonth'], ['last', 'dbLastMonth'], ['30', 'dbLast30'], ['90', 'dbLast90']].map(function(x){
-    return '<button type="button" data-r="' + x[0] + '" aria-pressed="' + (k === x[0]) + '">' + t(x[1]) + '</button>'; }).join('') + '<span class="sp"></span><small id="dbGen"></small><button type="button" id="dbPrint">' + ph('printer') + ' ' + t('dbPrint') + '</button></div><div id="dbBody"></div></div>';
-  $$('[data-r]', body).forEach(function(b){ b.onclick = function(){ S.dbRange = b.dataset.r; section(body); }; });
-  $('#dbPrint', body).onclick = function(){ window.print(); };
-  var el = $('#dbBody', body), rg = range(k);
-  el.innerHTML = '<div class="db-tiles">' + [0, 1, 2, 3, 4, 5].map(function(i){ return '<div class="db-tile' + (i ? '' : ' lead') + '"><span class="sk" style="width:60%"></span><span class="sk" style="margin-top:10px;height:22px"></span></div>'; }).join('') + '</div>';
-  apiFresh('dashboard', { from: rg[0], to: rg[1], analytics: 1 }, function(r){
-    if (!el.isConnected) return;
-    if (!r.ok) { el.innerHTML = '<p class="hr-bad">' + errText(r.error) + '</p>'; return; }
-    $('#dbGen', body).textContent = t('dbGenerated') + ' ' + new Date(r.generatedAt).toLocaleTimeString(LOCALE(), { hour: '2-digit', minute: '2-digit' });
-    el.innerHTML = draw(r); wireLines(el); wireTips(el);
-  });
+/** Loading state shaped like the page: a tile row and chart cards with column ghosts. */
+function skelPage(tiles, cards){
+  var col = function(){ return '<div class="db-card" aria-hidden="true"><div class="db-skh"><span class="sk" style="width:38%"></span></div><span class="sk" style="width:62%;height:10px"></span><div class="db-skc">' +
+    [46, 70, 58, 84, 62, 76, 52, 90, 66].map(function(h){ return '<span class="sk" style="height:' + h + '%"></span>'; }).join('') + '</div></div>'; };
+  var h = skeleton(tiles || 6);
+  for (var i = 0; i < (cards || 2); i += 2) h += '<div class="db-grid two">' + col() + col() + '</div>';
+  return '<div role="status" aria-label="' + t('dbLoading') + '">' + h + '</div>';
 }
 
+function section(body){
+  var k = S.dbRange || 'month';
+  body.innerHTML = '<div class="db"><div class="hr-h"><h2>' + t('dbTitle') + '</h2></div><div class="db-filters" role="group" aria-label="' + t('dbTitle') + '">' + [['month', 'dbThisMonth'], ['last', 'dbLastMonth'], ['30', 'dbLast30'], ['90', 'dbLast90']].map(function(x){
+    return '<button type="button" data-r="' + x[0] + '" aria-pressed="' + (k === x[0]) + '">' + t(x[1]) + '</button>'; }).join('') + '<span class="sp"></span><small id="dbGen"></small><button type="button" id="dbPrint">' + ph('printer') + ' ' + t('dbPrint') + '</button></div><div id="dbBody"></div></div>';
+  $$('[data-r]', body).forEach(function(b){ b.onclick = function(){
+    if (b.getAttribute('aria-pressed') === 'true') return;
+    S.dbRange = b.dataset.r; $$('[data-r]', body).forEach(function(x){ x.setAttribute('aria-pressed', String(x === b)); }); load();
+  }; });
+  $('#dbPrint', body).onclick = function(){ window.print(); };
+  var el = $('#dbBody', body), seq = 0;
+  function load(){
+    var rg = range(S.dbRange || 'month'), my = ++seq;
+    el.innerHTML = skelPage(6, 4);
+    apiFresh('dashboard', { from: rg[0], to: rg[1], analytics: 1 }, function(r){
+      if (!el.isConnected || my !== seq) return; // a later period was picked meanwhile
+      if (!r.ok) { el.innerHTML = '<div class="db-empty">' + ph('wifi-slash', 'duotone') + '<span>' + errText(r.error) + '</span><button type="button" class="btn btn-line btn-sm" id="dbRetry">' + t('retry') + '</button></div>'; $('#dbRetry', el).onclick = load; return; }
+      $('#dbGen', body).textContent = t('dbGenerated') + ' ' + new Date(r.generatedAt).toLocaleTimeString(LOCALE(), { hour: '2-digit', minute: '2-digit' });
+      el.innerHTML = draw(r); wireLines(el); wireTips(el);
+    });
+  }
+  load();
+}
+
+/** Headcount at the end of each movement month, worked back from today's count (oldest first). */
+function headcountSeries(now, mv){
+  if (now == null || !mv || !mv.length) return [];
+  var out = [now], hc = now;
+  for (var i = mv.length - 1; i > 0; i--) { hc = hc - (mv[i].joiners || 0) + (mv[i].leavers || 0); out.unshift(hc); }
+  return out;
+}
 function draw(r){
   var A = r.attendance || {}, T0 = A.totals || {}, P = r.attendancePrev || {}, h = '';
   var dRate = P.attendanceRate != null && T0.attendanceRate != null ? T0.attendanceRate - P.attendanceRate : null;
   var dPunct = P.punctuality != null && T0.punctuality != null ? T0.punctuality - P.punctuality : null;
-  h += '<div class="db-tiles">' + tile(t('dbAttRate'), n1(T0.attendanceRate) + '%', plural(T0.present || 0, 'days') + ' / ' + n1(T0.expected, 0), dRate, true, true, t('dbPts')) +
-    tile(t('dbPunct'), n1(T0.punctuality) + '%', '', dPunct, true, false, t('dbPts')) + tile(t('dbAvgLate'), n1(T0.avgLate, 0) + ' ' + t('dbMinutes'), plural(T0.late || 0, 'days')) +
-    tile(t('dbAbsent'), n1(T0.absent, 0), T0.missingOut ? t('dbMissingOut') + ' ' + T0.missingOut : '') + tile(t('dbOvertime'), n1(T0.overtimeHours), '') +
-    tile(t('dbOnLeave'), n1(r.leave && r.leave.onLeaveToday, 0), T0.review ? '<span class="db-status">' + ph('warning') + ' ' + t('dbReview') + ' ' + T0.review + '</span>' : '') + '</div>';
+  var dd = A.daily || [], dif = function(k){ return P[k] != null && T0[k] != null ? T0[k] - P[k] : null; };
+  var ser = function(f){ return dd.map(f); };
+  h += (r.prevFrom ? '<p class="db-basis">' + ph('arrows-left-right') + t('dbBasis').replace('{a}', '<bdi>' + shortDate(r.prevFrom) + '</bdi>').replace('{b}', '<bdi>' + shortDate(r.prevTo) + '</bdi>') + '</p>' : '') +
+    '<div class="db-tiles">' + tile(t('dbAttRate'), n1(T0.attendanceRate) + '%', plural(T0.present || 0, 'days') + ' / ' + n1(T0.expected, 0), dRate, true, true, t('dbPts'),
+      { icon: 'user-check', spark: ser(function(d){ return d.rate; }), sparkOpts: { min: 0, max: 100, label: t('dbAttRate') }, go: ['time:board', 'insights:attendance'] }) +
+    tile(t('dbPunct'), n1(T0.punctuality) + '%', '', dPunct, true, false, t('dbPts'), { icon: 'timer', spark: ser(function(d){ return d.punctual; }), sparkOpts: { min: 0, max: 100, label: t('dbPunct') }, go: ['insights:attendance'] }) +
+    tile(t('dbAvgLate'), n1(T0.avgLate, 0) + ' ' + t('dbMinutes'), plural(T0.late || 0, 'days'), dif('avgLate'), false, false, t('dbMinutes'),
+      { icon: 'clock-countdown', spark: ser(function(d){ return d.late; }), sparkOpts: { min: 0, warm: true, label: t('late') }, go: ['insights:attendance'] }) +
+    tile(t('dbAbsent'), n1(T0.absent, 0), T0.missingOut ? t('dbMissingOut') + ' ' + T0.missingOut : '', dif('absent'), false, false, '',
+      { icon: 'user-minus', spark: ser(function(d){ return Math.max(0, (d.expected || 0) - (d.present || 0)); }), sparkOpts: { min: 0, warm: true, label: t('dbAbsent') }, go: ['time:board', 'insights:attendance'] }) +
+    tile(t('dbOvertime'), n1(T0.overtimeHours), '', dif('overtimeHours'), null, false, t('dbHours'), { icon: 'hourglass-medium', go: ['insights:reports'] }) +
+    tile(t('dbOnLeave'), n1(r.leave && r.leave.onLeaveToday, 0), T0.review ? '<span class="db-status">' + ph('warning') + ' ' + t('dbReview') + ' ' + T0.review + '</span>' : '', null, true, false, '',
+      { icon: 'airplane-tilt', go: ['requests:leave'] }) + '</div>';
 
   // attendance: trend, weekday, check-in times
   var daily = (A.daily || []).map(function(d){ return { label: shortDate(d.date), y: d.rate, note: d.present + ' / ' + d.expected }; });
@@ -301,15 +433,20 @@ function draw(r){
       tbl(['', ''], ci.map(function(c){ return [c.label, c.value]; }))) +
     card('dept', t('dbDepts'), t('dbDeptLead'), hbars((A.departments || []).map(function(d){ return { label: d.department, value: d.rate, text: n1(d.rate) + '% / ' + n1(d.punctuality) + '%', tip: d.department + ': ' + n1(d.rate) + '% / ' + n1(d.punctuality) + '%' }; }), { max: 100 }),
       tbl([t('hrDept'), t('dbAttRate'), t('dbPunct'), t('dbAbsent')], (A.departments || []).map(function(d){ return [tx(d.department), n1(d.rate) + '%', n1(d.punctuality) + '%', d.absent]; }))) + '</div>';
-  h += '<div class="db-grid two">' + card('late', t('dbTopLate'), '', (A.topLate || []).length ? tbl([t('hrName'), t('dbTimes'), t('dbMinutes')], A.topLate.map(function(x){ return [tx(x.emp.name) + ' <small style="color:var(--ink-2)">' + tx(x.emp.department) + '</small>', x.lateDays, x.lateMin]; })) : '<p class="hr-hint">' + t('dbNoData') + '</p>') +
-    card('abs', t('dbTopAbsent'), '', (A.topAbsent || []).length ? tbl([t('hrName'), t('dbDays')], A.topAbsent.map(function(x){ return [tx(x.emp.name) + ' <small style="color:var(--ink-2)">' + tx(x.emp.department) + '</small>', x.absent]; })) : '<p class="hr-hint">' + t('dbNoData') + '</p>') + '</div>';
+  h += '<div class="db-grid two">' + card('late', t('dbTopLate'), '', (A.topLate || []).length ? tbl([t('hrName'), t('dbTimes'), t('dbMinutes')], A.topLate.map(function(x){ return [tx(x.emp.name) + ' <small style="color:var(--ink-2)">' + tx(x.emp.department) + '</small>', x.lateDays, x.lateMin]; })) : empty(null, 'table')) +
+    card('abs', t('dbTopAbsent'), '', (A.topAbsent || []).length ? tbl([t('hrName'), t('dbDays')], A.topAbsent.map(function(x){ return [tx(x.emp.name) + ' <small style="color:var(--ink-2)">' + tx(x.emp.department) + '</small>', x.absent]; })) : empty(null, 'table')) + '</div>';
 
   // workforce
   var Wf = r.workforce || {};
-  h += '<h3 class="db-h">' + t('dbWorkforce') + '</h3><div class="db-tiles">' + tile(t('dbHeadcount'), n1(Wf.headcount, 0), t('dbSaudisK') + ': ' + n1(Wf.saudis || 0, 0), null, true, true) +
-    tile(t('dbSaudization'), n1(Wf.saudiPct) + '%', Wf.target ? t('dbTarget') + ' ' + Wf.target + '%' : '') +
-    tile(t('dbExpiring'), n1(Wf.expiringSoon, 0), '') + tile(t('dbExpired'), '<span class="db-status">' + (Wf.expired ? ph('warning-circle') + ' ' : '') + n1(Wf.expired, 0) + '</span>', '') +
-    tile(t('dbJoiners'), n1((Wf.movement || []).reduce(function(s, m){ return s + m.joiners; }, 0), 0), '12') + tile(t('dbLeavers'), n1((Wf.movement || []).reduce(function(s, m){ return s + m.leavers; }, 0), 0), '12') + '</div>';
+  var mv = Wf.movement || [], hcs = headcountSeries(Wf.headcount, mv);
+  h += '<h3 class="db-h">' + t('dbWorkforce') + '</h3><div class="db-tiles">' + tile(t('dbHeadcount'), n1(Wf.headcount, 0), t('dbSaudisK') + ': ' + n1(Wf.saudis || 0, 0),
+      hcs.length > 1 ? hcs[hcs.length - 1] - hcs[hcs.length - 2] : null, true, true, '', { icon: 'users-three', spark: hcs, sparkOpts: { label: t('dbHeadcount') }, go: ['people:directory'], words: t('dbVsLastMonth') }) +
+    tile(t('dbSaudization'), n1(Wf.saudiPct) + '%', Wf.target ? t('dbTarget') + ' ' + Wf.target + '%' : '', Wf.target && Wf.saudiPct != null ? Wf.saudiPct - Wf.target : null, true, false, t('dbPts'),
+      { icon: 'flag', go: ['people:directory'], words: t('dbVsTarget') }) +
+    tile(t('dbExpiring'), n1(Wf.expiringSoon, 0), '', null, true, false, '', { icon: 'calendar-x', go: ['people:expiring'] }) +
+    tile(t('dbExpired'), '<span class="db-status">' + (Wf.expired ? ph('warning-circle') + ' ' : '') + n1(Wf.expired, 0) + '</span>', '', null, true, false, '', { icon: 'file-x', go: ['people:expiring'] }) +
+    tile(t('dbJoiners'), n1(mv.reduce(function(s, m){ return s + m.joiners; }, 0), 0), '12', null, true, false, '', { icon: 'user-plus', spark: mv.map(function(m){ return m.joiners; }), sparkOpts: { min: 0, label: t('dbJoiners') }, go: ['people:onboarding'] }) +
+    tile(t('dbLeavers'), n1(mv.reduce(function(s, m){ return s + m.leavers; }, 0), 0), '12', null, true, false, '', { icon: 'sign-out', spark: mv.map(function(m){ return m.leavers; }), sparkOpts: { min: 0, warm: true, label: t('dbLeavers') }, go: ['people:offboarding'] }) + '</div>';
   var meter = '<div class="db-meter"><i style="width:' + Math.min(100, Wf.saudiPct || 0) + '%"></i>' + (Wf.target ? '<u style="inset-inline-start:' + Math.min(100, Wf.target) + '%"></u>' : '') + '</div><p class="hr-hint">' + n1(Wf.saudiPct) + '%' + (Wf.target ? '، ' + t('dbTarget') + ' ' + Wf.target + '%' : '، ' + t('dbNoTarget')) + '</p>';
   var mix = (Wf.departments || []).map(function(d){ var n = d.saudi + d.nonSaudi; return '<div class="db-hb" tabindex="0" data-tip="' + esc(d.department + ': ' + t('dbSaudi') + ' ' + d.saudi + '، ' + t('dbNonSaudi') + ' ' + d.nonSaudi) + '"><span class="nm">' + tx(d.department) + '</span><div class="db-stack"><i style="width:' + (d.saudi / (n || 1) * 100) + '%"></i><i style="width:' + (d.nonSaudi / (n || 1) * 100) + '%"></i></div><b>' + d.saudi + ' / ' + n + '</b></div>'; }).join('');
   h += '<div class="db-grid two">' + card('mix', t('dbMix'), '', meter + '<div class="db-hbars">' + mix + '</div><div class="db-legend"><span><i style="background:var(--s1)"></i>' + t('dbSaudi') + '</span><span><i style="background:var(--s3)"></i>' + t('dbNonSaudi') + '</span></div>',
@@ -328,17 +465,22 @@ function draw(r){
       '<p class="hr-hint" style="margin-top:10px">' + t('dbOldest') + ': ' + plural(Rq.oldestOpenDays || 0, 'days') + (Rq.openOver3Days ? '، <span class="db-status">' + ph('warning') + ' ' + t('dbSlow') + ' ' + Rq.openOver3Days + '</span>' : '') + '</p>' +
       ((Rq.speed || []).length ? '<h4 class="hr-sub">' + t('dbSpeed') + '</h4>' + hbars(Rq.speed.map(function(x){ return { label: t('rt_' + x.type), value: x.avgHours, text: n1(x.avgHours) + ' ' + t('dbHours'), tip: t('rt_' + x.type) + ': ' + n1(x.avgHours) + ' ' + t('dbHours') + ' (' + x.n + ')' }; })) : '')) +
     card('pf', t('dbPerf'), Pf.cycle ? tx(lang(Pf.cycle.nameAr, Pf.cycle.nameEn)) + '، ' + Pf.rated + ' / ' + Pf.people + ' ' + t('dbRated') : '',
-      Pf.cycle && !Pf.rated ? '<p class="hr-hint">' + t('dbNotRated') + '</p>' : Pf.cycle ? cols([1, 2, 3, 4, 5].map(function(n){ return { label: String(n), value: Pf.distribution[n], tip: n + ': ' + Pf.distribution[n] }; }), { labels: true }) : '<p class="hr-hint">' + t('dbPerfNone') + '</p>',
+      Pf.cycle && !Pf.rated ? empty(t('dbNotRated'), 'hourglass') : Pf.cycle ? cols([1, 2, 3, 4, 5].map(function(n){ return { label: String(n), value: Pf.distribution[n], tip: n + ': ' + Pf.distribution[n] }; }), { labels: true }) : empty(t('dbPerfNone'), 'chart-bar'),
       Pf.cycle ? tbl(['', ''], [1, 2, 3, 4, 5].map(function(n){ return [n, Pf.distribution[n]]; })) : '') + '</div>';
 
   // money
   if (r.money && r.cost && !r.cost.error) {
     var C = r.cost, last = (C.trend || [])[C.trend.length - 1] || {};
-    h += '<h3 class="db-h">' + t('dbCost') + '</h3><div class="db-tiles">' + tile(t('dbWageBill'), sar(C.monthlyPackage), C.noPackage ? t('pw_no_package') + ' ' + C.noPackage : '', null, true, true) +
-      tile(t('dbLastCost'), sar(last.cost), C.lastMonth ? monthShort(C.lastMonth) : t('dbNoRuns')) + tile(t('dbGosiEr'), sar(last.gosiEmployer), '') + tile(t('dbOtCost'), sar(last.overtime), '') +
-      tile(t('dbLeaveLiab'), sar(C.leaveLiability), '') + tile(t('dbEosLiab'), sar(C.eosLiability), '') + '</div>' +
+    var tr = C.trend || [], prev = tr.length > 1 ? tr[tr.length - 2] : null, ser2 = function(k){ return tr.map(function(m){ return m[k]; }); };
+    var dm = function(k){ return prev && last[k] != null && prev[k] != null ? last[k] - prev[k] : null; };
+    h += '<h3 class="db-h">' + t('dbCost') + '</h3>' + (prev ? '<p class="db-basis">' + ph('arrows-left-right') + t('dbBasisRun') + '</p>' : '') + '<div class="db-tiles">' + tile(t('dbWageBill'), sar(C.monthlyPackage), C.noPackage ? t('pw_no_package') + ' ' + C.noPackage : '', null, true, true, '', { icon: 'wallet', go: ['pay:runs'] }) +
+      tile(t('dbLastCost'), sar(last.cost), C.lastMonth ? monthShort(C.lastMonth) : t('dbNoRuns'), dm('cost'), null, false, t('mfSar'), { icon: 'money', spark: ser2('cost'), sparkOpts: { label: t('dbLastCost') }, go: ['pay:runs'], words: t('dbVsRun') }) +
+      tile(t('dbGosiEr'), sar(last.gosiEmployer), '', dm('gosiEmployer'), null, false, t('mfSar'), { icon: 'bank', spark: ser2('gosiEmployer'), sparkOpts: { label: t('dbGosiEr') }, go: ['pay:compliance', 'pay:runs'], words: t('dbVsRun') }) +
+      tile(t('dbOtCost'), sar(last.overtime), '', dm('overtime'), null, false, t('mfSar'), { icon: 'hourglass-medium', spark: ser2('overtime'), sparkOpts: { min: 0, warm: true, label: t('dbOtCost') }, go: ['pay:runs'], words: t('dbVsRun') }) +
+      tile(t('dbLeaveLiab'), sar(C.leaveLiability), '', null, true, false, '', { icon: 'airplane-tilt', go: ['insights:reports'] }) +
+      tile(t('dbEosLiab'), sar(C.eosLiability), '', null, true, false, '', { icon: 'scales', go: ['insights:reports'] }) + '</div>' +
       '<p class="hr-hint" style="margin:-6px 0 12px">' + t('dbLiabNote') + (C.advancesOutstanding ? '، ' + t('dbAdvances') + ' ' + sar(C.advancesOutstanding) : '') + '</p>' +
-      '<div class="db-grid two">' + card('cost', t('dbCostTrend'), '', (C.trend || []).length ? lineChart(C.trend.map(function(m){ return { label: monthShort(m.month), y: m.cost, note: plural(m.headcount, 'people') }; }), { fmt: 'sar' }) : '<p class="hr-hint">' + t('dbNoRuns') + '</p>',
+      '<div class="db-grid two">' + card('cost', t('dbCostTrend'), '', (C.trend || []).length ? lineChart(C.trend.map(function(m){ return { label: monthShort(m.month), y: m.cost, note: plural(m.headcount, 'people') }; }), { fmt: 'sar' }) : empty(t('dbNoRuns'), 'money'),
         tbl(['', t('prGross'), t('prGosiEr'), t('dbOtCost')], (C.trend || []).map(function(m){ return [monthShort(m.month), sar(m.gross), sar(m.gosiEmployer), sar(m.overtime)]; }))) +
       card('cd', t('dbCostDept'), '', hbars((C.byDepartment || []).map(function(d){ return { label: d.department, value: d.cost, text: sar(d.cost), tip: d.department + ': ' + sar(d.cost) + ' (' + d.headcount + ')' }; })),
         tbl([t('hrDept'), t('prGross'), t('prHead')], (C.byDepartment || []).map(function(d){ return [tx(d.department), sar(d.cost), d.headcount]; }))) + '</div>';
@@ -357,7 +499,7 @@ function waBroken(x){ return !x || !!x.error; }
 function waFail(id, title){ return card(id, title, '', '<p class="hr-hint">' + t('waPartFailed') + '</p>'); }
 /** Columns with two or three series per group (validated series colours s1, s2, s3). items: [{label, v: [..], tip, dim}] */
 function waBars(items, names, opts){
-  if (!items.length) return '<p class="hr-hint">' + t('dbNoData') + '</p>';
+  if (!items.length) return empty(null, 'table');
   var max = opts && opts.max || Math.max.apply(null, items.map(function(i){ return Math.max.apply(null, i.v.map(function(x){ return x || 0; })); }).concat([1])), cls = ['', 'b', 'c'];
   return '<div class="db-cols wa-n' + names.length + '" style="height:150px">' + items.map(function(i){
     return '<div class="grp' + (i.dim ? ' dim' : '') + '" tabindex="0" data-tip="' + esc(i.tip) + '">' + i.v.map(function(x, k){ return '<i class="' + cls[k] + '" style="height:' + ((x || 0) / max * 100) + '%"></i>'; }).join('') + '<span>' + tx(i.label) + '</span></div>';
@@ -367,7 +509,8 @@ function waBars(items, names, opts){
 function waTurnover(Tv){
   if (waBroken(Tv)) return '<div class="db-grid">' + waFail('watr', t('waTurnover')) + '</div>';
   var fy = Tv.firstYear || {}, why = Object.keys(Tv.otherReasons || {});
-  var h = '<div class="db-tiles">' + tile(t('waTurnover'), pc(Tv.rate), t('waLeaversK') + ' ' + n1(Tv.leavers, 0) + ' · ' + t('waAvgHc') + ' ' + n1(Tv.avgHeadcount), null, false, true) +
+  var h = '<div class="db-tiles">' + tile(t('waTurnover'), pc(Tv.rate), t('waLeaversK') + ' ' + n1(Tv.leavers, 0) + ' · ' + t('waAvgHc') + ' ' + n1(Tv.avgHeadcount), null, false, true, '',
+      { icon: 'arrows-clockwise', spark: (Tv.months || []).map(function(m){ return m.rate || 0; }), sparkOpts: { min: 0, warm: true, label: t('waTrend') }, go: ['people:offboarding', 'insights:reports'] }) +
     tile(t('waVoluntary'), pc(Tv.voluntaryRate), t('waLeaversK') + ' ' + n1(Tv.voluntary, 0)) + tile(t('waOther'), pc(Tv.otherRate), t('waLeaversK') + ' ' + n1(Tv.other, 0)) +
     tile(t('waFirstYear'), n1(fy.leavers || 0, 0), fy.share != null ? pc(fy.share) + ' ' + t('waOfLeavers') : '') + '</div>';
   if (why.length) h += '<p class="hr-hint" style="margin:-6px 0 12px">' + t('waOtherWhy') + ': ' + why.map(function(k){ return tx(T[S.lang]['waR_' + k] || k) + ' ' + Tv.otherReasons[k]; }).join('، ') + '</p>';
@@ -456,7 +599,7 @@ function waFlight(F){
       (p.unknown && p.unknown.length ? '<small class="wa-unk">' + t('waUnknown') + ': ' + p.unknown.map(function(k){ return t('waSs_' + k); }).join('، ') + '</small>' : '') + '</td></tr>';
   }).join('');
   return h + '<div class="db-grid">' + card('wapp', t('waPeople'), t('waPeopleLead'), F.people.length ? '<div class="tblwrap"><table class="tbl"><thead><tr><th>' + t('hrName') + '</th><th>' + t('waScore') + '</th><th>' + t('waIndicator') + '</th></tr></thead><tbody>' + rows + '</tbody></table></div>'
-    : '<p class="hr-hint">' + t('waNone') + '</p>') + '</div>';
+    : empty(t('waNone'), 'check-circle')) + '</div>';
 }
 
 function waChecks(C){
@@ -508,11 +651,21 @@ function gauge(v, label, opts){
     (none ? '' : '<g class="needle" data-v="' + val + '" style="transform:rotate(-120deg)"><line x1="115" y1="115" x2="115" y2="34" stroke="var(--ink,#17221A)" stroke-width="3" stroke-linecap="round"/><circle cx="115" cy="115" r="8" fill="var(--ink,#17221A)"/><circle cx="115" cy="115" r="3" fill="var(--card,#fff)"/></g>') +
     '<text class="val" x="115" y="158" text-anchor="middle">' + shown + (none ? '' : '<tspan class="unit" dx="3">%</tspan>') + '</text></svg>';
 }
+/** A progress ring (0-100) with the figure in the middle; the arc draws in (CSS .mo-ring). */
+function ring(pct, centre, label, opts){
+  opts = opts || {};
+  var v = Math.max(0, Math.min(100, Number(pct) || 0)), r = 26, c = 2 * Math.PI * r, sz = opts.size || 72;
+  return '<svg class="db-ring' + (opts.warm ? ' warm' : '') + '" width="' + sz + '" height="' + sz + '" viewBox="0 0 64 64" role="img" aria-label="' + tx(label || '') + '">' +
+    '<circle cx="32" cy="32" r="' + r + '" class="tr"/><circle cx="32" cy="32" r="' + r + '" class="fg mo-ring" style="stroke-dasharray:' + c.toFixed(2) + ';stroke-dashoffset:' + (c * (1 - v / 100)).toFixed(2) + ';--c:' + c.toFixed(2) + '" transform="rotate(-90 32 32)"/>' +
+    '<text x="32" y="36" text-anchor="middle">' + tx(centre == null ? Math.round(v) + '%' : centre) + '</text></svg>';
+}
 function spinGauges(root){ $$('.gauge .needle', root).forEach(function(n){ var v = Number(n.dataset.v); if (!isFinite(v)) return; requestAnimationFrame(function(){ requestAnimationFrame(function(){ n.style.transform = 'rotate(' + (-120 + 240 * v / 100) + 'deg)'; }); }); }); }
 function skeleton(n){ return '<div class="db-tiles">' + Array.apply(null, Array(n || 4)).map(function(_, i){ return '<div class="db-tile' + (i ? '' : ' lead') + '"><span class="sk" style="width:60%"></span><span class="sk" style="margin-top:10px;height:22px"></span></div>'; }).join('') + '</div>'; }
 
 window.Dash = { section: section };
 // Shared chart kit: every other screen draws its own mini dashboard with these, so all charts look and behave alike.
 window.Viz = { tile: tile, card: card, tbl: tbl, lineChart: lineChart, cols: cols, grouped: grouped, hbars: hbars, wireLines: wireLines, wireTips: wireTips,
-  n1: n1, sar: sar, shortDate: shortDate, monthShort: monthShort, range: range, showTip: showTip, hideTip: hideTip, panel: panel, wire: wire, skeleton: skeleton, gauge: gauge, spinGauges: spinGauges };
+  n1: n1, sar: sar, shortDate: shortDate, monthShort: monthShort, range: range, showTip: showTip, hideTip: hideTip, panel: panel, wire: wire, skeleton: skeleton, gauge: gauge, spinGauges: spinGauges,
+  spark: spark, delta: delta, empty: empty, goOk: goOk, wireGo: wireGo, skelPage: skelPage, ring: ring };
+Viz.card = function(id, title, lead, chart, table, go){ return card(id, title, lead, chart, table, go || ''); }; // other screens: no dashboard drill map
 })();

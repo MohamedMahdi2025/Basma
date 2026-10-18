@@ -792,7 +792,7 @@ ok(near2(r.leave.annual.balance, balance('1042', '2026-11-02')) && r.leave.annua
 r = call('1041', 'myRequests');
 ok(near2(r.leave.annual.balance, balance('1041', '2026-11-02')), 'sales rep 1041 passed 5 years on 1 October: 21 a year until then, 30 after', { got: r.leave.annual.balance, want: balance('1041', '2026-11-02') });
 r = call('1026', 'myRequests');
-ok(near2(r.leave.annual.balance, r2(balance('1026', '2026-11-02') - accrue('1026', '2026-10-25', '2026-10-26'))), 'approved unpaid leave pauses accrual (Art. 116)', { got: r.leave.annual.balance });
+ok(near2(r.leave.annual.balance, r2(balance('1026', '2026-11-02'))), 'a 2-day unpaid leave does not pause accrual: only days beyond the 20th suspend the contract (Art. 116)', { got: r.leave.annual.balance });
 function eosWant(n, last, reason) {
   const e = EMP[n], w = total(e), days = daysBetween(e.hire, last) + 1, y = days / 365;
   const full = Math.min(y, 5) * w / 2 + Math.max(0, y - 5) * w;
@@ -1282,7 +1282,8 @@ const MAPS = { EMP: mapOf('EMP_ACTIONS'), HR: mapOf('HR_ACTIONS'), ADMIN: mapOf(
 const COLS = ['employee', 'manager', 'hr', 'payroll', 'executive', 'admin'];
 // Expected with an empty request. Actions that pick their target first are probed with a real target (PROBE).
 const ALLW = { all: COLS, hrA: ['hr', 'admin'], adm: ['admin'], pay: ['hr', 'payroll'], payOnly: ['payroll'], dash: ['hr', 'payroll', 'executive', 'admin'], hrPay: ['hr', 'payroll', 'admin'],
-  mgr: ['manager', 'hr', 'admin'], none: [], fileView: ['manager', 'hr', 'payroll', 'admin'] };
+  mgr: ['manager', 'hr', 'admin'], none: [], fileView: ['manager', 'hr', 'payroll', 'admin'],
+  mgrX: ['manager', 'hr', 'executive', 'admin'], money: ['hr', 'payroll', 'executive'] };
 const EXPECT = {
   hrCompList: 'pay', hrCompPropose: 'pay', hrCompDecide: 'pay', leaveTeam: 'mgr', payrollList: 'pay', payrollGet: 'pay', payrollCreate: 'pay', payrollRecalc: 'pay', payrollApprove: 'payOnly',
   payrollDelete: 'pay', payrollAdjSave: 'pay', payrollAdjDelete: 'pay', payrollExport: 'pay', payrollEmail: 'pay', eosQuote: 'pay', dashboard: 'dash', reportLog: 'hrPay', reportReview: 'hrPay',
@@ -1291,7 +1292,10 @@ const EXPECT = {
   // government services, expenses, journal (GovServices.gs, Expenses.gs, Journal.gs)
   govOverview: 'hrPay', iqamaRenew: 'hrPay', govFeeSave: 'pay', govFeeVerify: 'pay', govFeeVoid: 'pay', ticketUseApprove: 'pay',
   expensePaid: 'pay', expenseReport: 'pay', expenseLimitsSave: 'hrPay',
-  journalList: 'pay', journalBuild: 'pay', journalStep: 'pay', journalMapGet: 'hrPay', journalMapSave: 'hrPay', bankSetupSave: 'pay'
+  journalList: 'pay', journalBuild: 'pay', journalStep: 'pay', journalMapGet: 'hrPay', journalMapSave: 'hrPay', bankSetupSave: 'pay',
+  // Wave 2 (Recruitment.gs, Loans.gs, Training.gs, Insurance.gs, HelpDesk.gs): role checks inside EMP actions
+  recruitReqSave: 'mgr', recruitBoard: 'mgrX', trainMatrix: 'mgrX', loanDisburse: 'payOnly', loanSettle: 'payOnly', loanSettleVerify: 'payOnly',
+  loanPolicySave: 'hrPay', insList: 'hrPay', insCost: 'money', hdList: 'hrPay'
 };
 const T16 = ids['1018'];
 const PROBE = { hrEmpFile: { id: T16 }, perfEmp: { empId: T16, cycleId: CYC.id }, planSave: { plan: { empId: T16, type: 'idp' } }, delegationSave: { delegation: { toEmpId: ids['1003'] } },

@@ -30,7 +30,12 @@ var SHEETS = { EMP: 'employees', CRED: 'credentials', ZONES: 'zones', PUNCH: 'pu
   // Government services, expenses and the accounting journal (GovServices.gs, Expenses.gs, Journal.gs)
   GOV_VISA: 'govVisas', GOV_IQR: 'iqamaRenewals', GOV_FEE: 'govFees', TICKET: 'ticketRights', TICKET_USE: 'ticketUses', EXPENSE: 'expenseClaims', JOURNAL: 'journalLog',
   // Leave cycle and approval flows (Flows.gs)
-  LCYC: 'leaveCycles', FLOW: 'approvalFlows' };
+  LCYC: 'leaveCycles', FLOW: 'approvalFlows',
+  // Wave 2 modules (2026-10-14): recruitment (Recruitment.gs), loans (Loans.gs), training (Training.gs), medical insurance
+  // (Insurance.gs), announcements (Announce.gs), HR help desk (HelpDesk.gs)
+  REQN: 'requisitions', CAND: 'candidates', INTV: 'interviews', OFFER: 'offers', LOAN: 'loans',
+  COURSE: 'courses', TSESS: 'trainSessions', TENR: 'trainEnrol', INSP: 'insPolicies', INSM: 'insMembers', INSMV: 'insMoves',
+  ANN: 'announcements', ANNR: 'annReads', HDT: 'hdTickets' };
 
 var HEADERS = {
   employees: ['id', 'empNo', 'name', 'nameEn', 'email', 'phone', 'department', 'title', 'role', 'status',
@@ -65,7 +70,8 @@ var HEADERS = {
     'status', 'step', 'stepsJson', 'effectJson', 'createdAt', 'updatedAt', 'decidedAt',
     'flowJson'], // the approval flow fixed when the request was made (Flows.gs); empty = the built-in chain
   holidays: ['id', 'date', 'toDate', 'nameAr', 'nameEn', 'createdBy', 'createdAt', 'status'],
-  payrollRuns: ['id', 'ref', 'month', 'status', 'preparedBy', 'preparedAt', 'approvedBy', 'approvedAt', 'totalsJson', 'note', 'emailedAt', 'createdAt', 'updatedAt'],
+  payrollRuns: ['id', 'ref', 'month', 'status', 'preparedBy', 'preparedAt', 'approvedBy', 'approvedAt', 'totalsJson', 'note', 'emailedAt', 'createdAt', 'updatedAt',
+    'scope'], // '' = the company's payroll; 'demo' = a run over the demo company only (Demo.gs), never mixed with the real one
   payslips: ['id', 'ref', 'runId', 'month', 'empId', 'status', 'linesJson', 'gross', 'deductions', 'net', 'gosiEmployee', 'gosiEmployer',
     'paidDays', 'absentDays', 'infoJson', 'emailedAt', 'createdAt', 'updatedAt', 'eosAccrual', 'companyCost'],
   adjustments: ['id', 'ref', 'empId', 'month', 'kind', 'code', 'amount', 'reason', 'enteredBy', 'status', 'createdAt'],
@@ -114,7 +120,40 @@ var HEADERS = {
     'returnedOn', 'returnRecordedAt', 'returnConfirmedOn', 'returnConfirmedBy', 'outcome', 'earlyDays', 'lateDays', 'extensionRef', 'art80Json', 'historyJson',
     'createdBy', 'createdAt', 'updatedAt', 'closedAt'],
   // approval flows per request type, versioned AF-001 (Flows.gs); status active | superseded | default (= back to the built-in chain)
-  approvalFlows: ['id', 'ref', 'type', 'version', 'status', 'stepsJson', 'note', 'createdBy', 'createdAt']
+  approvalFlows: ['id', 'ref', 'type', 'version', 'status', 'stepsJson', 'note', 'createdBy', 'createdAt'],
+  // ---- Wave 2 (2026-10-14) ----
+  // recruitment: requisition RQ -> candidates CND -> interviews INT -> offer OFR -> hire (Recruitment.gs)
+  requisitions: ['id', 'ref', 'titleAr', 'titleEn', 'departmentId', 'positionId', 'headcount', 'employmentType', 'contractType', 'reason', 'replacesEmpId',
+    'hiringManagerId', 'budgetMin', 'budgetMax', 'saudiOnly', 'targetDate', 'justification', 'status', 'stepsJson', 'requestedBy', 'decidedBy', 'decidedAt',
+    'filled', 'closedNote', 'createdAt', 'updatedAt'],
+  candidates: ['id', 'ref', 'reqId', 'name', 'nameEn', 'email', 'phone', 'nationality', 'isSaudi', 'gender', 'birthDate', 'source', 'referredBy', 'currentTitle',
+    'currentEmployer', 'yearsExperience', 'expectedSalary', 'noticeDays', 'cvRef', 'consentAt', 'stage', 'historyJson', 'rating', 'rejectReason', 'note', 'empId',
+    'createdBy', 'createdAt', 'updatedAt', 'purgeAfter'],
+  interviews: ['id', 'ref', 'candidateId', 'reqId', 'at', 'durationMin', 'mode', 'location', 'panelJson', 'status', 'feedbackJson', 'createdBy', 'createdAt', 'updatedAt'],
+  offers: ['id', 'ref', 'candidateId', 'reqId', 'positionId', 'departmentId', 'managerId', 'titleAr', 'startDate', 'contractType', 'contractMonths', 'probationDays',
+    'basic', 'housing', 'transport', 'otherJson', 'annualLeaveDays', 'noticeDays', 'workLocation', 'workDaysPerWeek', 'dailyHours', 'expiresOn', 'warningsJson',
+    'status', 'preparedBy', 'approvedBy', 'approvedAt', 'decisionNote', 'sentAt', 'respondedAt', 'responseNote', 'empId', 'compRef', 'createdAt', 'updatedAt'],
+  // employee loans LN (Loans.gs), apart from salary advances (Leave.gs 'advance'); instalments are payslip lines code 'loan'
+  loans: ['id', 'ref', 'empId', 'kind', 'principal', 'months', 'installment', 'startMonth', 'purpose', 'consentAt', 'status', 'step', 'stepsJson', 'requestedBy',
+    'disbursedOn', 'disbursedRef', 'disbursedBy', 'settlementsJson', 'closedOn', 'createdAt', 'updatedAt', 'decidedAt'],
+  // training: course catalogue CRS, sessions TRS, enrolments and certificates (Training.gs)
+  courses: ['id', 'code', 'titleAr', 'titleEn', 'provider', 'category', 'hours', 'validityMonths', 'costPerPerson', 'mandatoryJson', 'status', 'createdBy', 'createdAt', 'updatedAt'],
+  trainSessions: ['id', 'ref', 'courseId', 'fromDate', 'toDate', 'location', 'trainer', 'capacity', 'cost', 'status', 'note', 'createdBy', 'createdAt', 'updatedAt'],
+  trainEnrol: ['id', 'sessionId', 'courseId', 'empId', 'status', 'requestedBy', 'approvedBy', 'score', 'result', 'certNo', 'issuedOn', 'expiresOn', 'title', 'provider',
+    'hours', 'cost', 'note', 'markedBy', 'createdAt', 'updatedAt'],
+  // medical insurance (CCHI): policies INP, members (employees and dependants), additions/deletions INS (Insurance.gs)
+  insPolicies: ['id', 'ref', 'insurer', 'policyNo', 'fromDate', 'toDate', 'classesJson', 'status', 'note', 'createdBy', 'createdAt', 'updatedAt'],
+  insMembers: ['id', 'policyId', 'empId', 'relation', 'name', 'nameEn', 'birthDate', 'gender', 'idNo', 'insClass', 'memberNo', 'fromDate', 'toDate', 'status',
+    'premium', 'note', 'createdBy', 'createdAt', 'updatedAt'],
+  insMoves: ['id', 'ref', 'memberId', 'policyId', 'empId', 'kind', 'effective', 'fromClass', 'toClass', 'premiumDelta', 'status', 'requestedBy', 'submittedBy',
+    'submittedAt', 'insurerRef', 'confirmedBy', 'confirmedAt', 'note', 'createdAt', 'updatedAt'],
+  // announcements ANN and who read / acknowledged them (Announce.gs)
+  announcements: ['id', 'ref', 'kind', 'titleAr', 'titleEn', 'bodyAr', 'bodyEn', 'audienceJson', 'pinned', 'requireAck', 'publishAt', 'expiresAt', 'status',
+    'createdBy', 'publishedBy', 'publishedAt', 'createdAt', 'updatedAt'],
+  annReads: ['id', 'annId', 'empId', 'readAt', 'ackAt'],
+  // HR help desk HD (HelpDesk.gs)
+  hdTickets: ['id', 'ref', 'empId', 'category', 'subject', 'body', 'priority', 'confidential', 'status', 'assigneeId', 'queue', 'messagesJson', 'slaDue',
+    'firstResponseAt', 'resolvedAt', 'closedAt', 'rating', 'ratingNote', 'createdAt', 'updatedAt']
 };
 
 var ROLES = { employee: 1, hr: 2, admin: 3 };
@@ -178,7 +217,9 @@ var CACHED_TABS_ = { employees: 1, zones: 1, credentials: 1, departments: 1, pos
   jobHistory: 1, documents: 1, requests: 1, holidays: 1, payrollRuns: 1, adjustments: 1, perfCycles: 1, kpis: 1, reviews: 1, feedback360: 1,
   onboarding: 1, surveys: 1, policies: 1, policyAcks: 1, devPlans: 1, delegations: 1, wpsLog: 1, salaryRecon: 1, shifts: 1, roster: 1, discCodes: 1, discCases: 1, injuries: 1, assets: 1, custody: 1, clearance: 1,
   govVisas: 1, iqamaRenewals: 1, govFees: 1, ticketRights: 1, ticketUses: 1, expenseClaims: 1, journalLog: 1,
-  leaveCycles: 1, approvalFlows: 1 };
+  leaveCycles: 1, approvalFlows: 1,
+  requisitions: 1, candidates: 1, interviews: 1, offers: 1, loans: 1, courses: 1, trainSessions: 1, trainEnrol: 1, insPolicies: 1, insMembers: 1, insMoves: 1,
+  announcements: 1, annReads: 1, hdTickets: 1 };
 var USE_TAB_CACHE_ = false; // true: every cached tab; an object: only those tabs (sign-in writes credentials)
 // Version tags make app writes and hand edits visible at once; the expiry only bounds what Sheets
 // never reports to onEdit (deleting or sorting rows by hand).
@@ -396,7 +437,8 @@ var DEFAULT_SETTINGS = {
   expenseLimits: '',         // {"fuel":1500,"meals":600}: SAR per category per calendar month; over it the approver must give a reason
   expenseReceiptOver: 100,   // a line above this amount needs a receipt reference
   glMap: '',                 // account mapping for the payroll journal (journalMapSave)
-  bankFileSetup: ''          // establishment and bank identifiers for the salary files (bankSetupSave)
+  bankFileSetup: '',         // establishment and bank identifiers for the salary files (bankSetupSave)
+  loanPolicy: ''             // JSON {maxSalaries, maxMonths, minServiceMonths, oneActive}: employee loans (Loans.gs, loanPolicySave); empty = the defaults
 };
 
 var SETTINGS_CACHE_KEY = 'settings:v1';
@@ -466,9 +508,11 @@ var REF_DEFAULTS = {
   payroll: 'PR', payslip: 'PS', adjustment: 'ADJ', perf_cycle: 'PC', kpi: 'KPI', review: 'PE', feedback: 'FB', report: 'RPT',
   onboarding: 'ONB', survey: 'SRV', policy: 'POL', idp: 'IDP', pip: 'PIP', delegation: 'DLG', wps: 'WPS', recon: 'REC', shift: 'SH', disciplinary: 'DSC', injury: 'INJ', asset: 'AST', clearance: 'CLR',
   exit_reentry: 'ERV', final_exit: 'FEX', iqama_renewal: 'IQR', gov_fee: 'GF', ticket: 'TKT', expense: 'EXP', journal: 'JV',
-  leavecycle: 'LC', flow: 'AF'
+  leavecycle: 'LC', flow: 'AF',
+  requisition: 'RQ', candidate: 'CND', interview: 'INT', offer: 'OFR', loan: 'LN', course: 'CRS', training: 'TRS', certificate: 'CRT',
+  ins_policy: 'INP', insurance: 'INS', announcement: 'ANN', helpdesk: 'HD'
 };
-var REF_YEARLY = { department: false, position: false, shift: false, asset: false, flow: false };
+var REF_YEARLY = { department: false, position: false, shift: false, asset: false, flow: false, course: false, ins_policy: false };
 
 function refPrefix_(kind) {
   var custom = {};
@@ -606,8 +650,17 @@ var EMP_ACTIONS = { me: 1, myHistory: 1, passwordSet: 1, punchPw: 1,
   myExpenses: 1, expenseCheck: 1, expenseCreate: 1, expenseCancel: 1, expenseInbox: 1, expenseDecide: 1, expensePaid: 1, expenseReport: 1, expenseLimitsSave: 1,
   journalList: 1, journalBuild: 1, journalStep: 1, journalMapGet: 1, journalMapSave: 1, bankSetupSave: 1,
   // leave cycle and approvals centre (Flows.gs): each checks the owner or role inside
-  approvalsInbox: 1, approvalsAct: 1, approvalHistory: 1, leaveCycleList: 1, myLeaveCycles: 1, leaveCycleTask: 1, leaveCycleDepart: 1, leaveCycleReturn: 1, leaveCycleConfirm: 1 };
-var HR_ACTIONS = { flowList: 1, flowSave: 1, flowSettingsSave: 1, leaveCycleOpen: 1, discNotice: 1, govVisaIssue: 1, govVisaCancel: 1, govFinalExit: 1, ticketSave: 1, ticketUse: 1, assetSave: 1, assetAssign: 1, assetReturn: 1, clearanceStart: 1, discCodesSave: 1, discHearing: 1, discDecide: 1, discObjectionDecide: 1, injuryUpdate: 1, shiftSave: 1, rosterSave: 1, rosterDelete: 1, onboardStart: 1, surveySave: 1, surveyClose: 1, policySave: 1, planClose: 1, perfCycleSave: 1, perfCycleList: 1, perfCycleStage: 1, perfOverview: 1, perfCalibrate: 1, feedbackLaunch: 1, hrBootstrap: 1, holidaySave: 1, holidayDelete: 1, leaveBalances: 1, leaveOpeningSave: 1, hrDirectory: 1, hrDeptList: 1, hrDeptSave: 1, hrPositionList: 1, hrPositionSave: 1, hrEmpSave: 1,
+  approvalsInbox: 1, approvalsAct: 1, approvalHistory: 1, leaveCycleList: 1, myLeaveCycles: 1, leaveCycleTask: 1, leaveCycleDepart: 1, leaveCycleReturn: 1, leaveCycleConfirm: 1,
+  // Wave 2 (2026-10-14): each checks its own roles inside (hiring managers, interview panels, payroll holders, executives)
+  recruitReqList: 1, recruitReqSave: 1, recruitReqDecide: 1, recruitCandList: 1, recruitCandGet: 1, recruitInterviewFeedback: 1, recruitOfferDecide: 1, recruitBoard: 1,
+  loanQuote: 1, loanCreate: 1, loanCancel: 1, loanDecide: 1, loanDisburse: 1, loanSettle: 1, loanSettleVerify: 1, myLoans: 1, loanList: 1, loanPolicySave: 1,
+  myTraining: 1, trainRequest: 1, trainDecide: 1, trainSessionList: 1, trainMatrix: 1, courseList: 1, trainEnrol: 1,
+  myInsurance: 1, insDependantRequest: 1, insList: 1, insCost: 1,
+  myAnnouncements: 1, annRead: 1,
+  hdCreate: 1, hdMine: 1, hdList: 1, hdGet: 1, hdReply: 1, hdAssign: 1, hdStatus: 1, hdRate: 1 };
+var HR_ACTIONS = { recruitReqClose: 1, recruitCandSave: 1, recruitCandStage: 1, recruitInterviewSave: 1, recruitOfferSave: 1, recruitOfferSend: 1, recruitOfferRespond: 1,
+  recruitOfferLetter: 1, recruitHire: 1, courseSave: 1, trainSessionSave: 1, trainMark: 1, certRecord: 1, insPolicySave: 1, insPolicyList: 1, insMemberAdd: 1,
+  insMemberDelete: 1, insMoveStep: 1, annSave: 1, annPublish: 1, annArchive: 1, annList: 1, flowList: 1, flowSave: 1, flowSettingsSave: 1, leaveCycleOpen: 1, discNotice: 1, govVisaIssue: 1, govVisaCancel: 1, govFinalExit: 1, ticketSave: 1, ticketUse: 1, assetSave: 1, assetAssign: 1, assetReturn: 1, clearanceStart: 1, discCodesSave: 1, discHearing: 1, discDecide: 1, discObjectionDecide: 1, injuryUpdate: 1, shiftSave: 1, rosterSave: 1, rosterDelete: 1, onboardStart: 1, surveySave: 1, surveyClose: 1, policySave: 1, planClose: 1, perfCycleSave: 1, perfCycleList: 1, perfCycleStage: 1, perfOverview: 1, perfCalibrate: 1, feedbackLaunch: 1, hrBootstrap: 1, holidaySave: 1, holidayDelete: 1, leaveBalances: 1, leaveOpeningSave: 1, hrDirectory: 1, hrDeptList: 1, hrDeptSave: 1, hrPositionList: 1, hrPositionSave: 1, hrEmpSave: 1,
   hrPrivateSave: 1, hrImportValidate: 1, hrImportCommit: 1, hrDocList: 1, hrDocSave: 1, hrExpiring: 1, empPasswordReset: 1, board: 1, empList: 1, zoneList: 1, report: 1, reviewList: 1, reviewDecide: 1, manualPunch: 1, auditList: 1, settingsGet: 1, empSave: 1, empActivation: 1 };
 /**
  * Actions that only read (plus the audit line of a salary view). They may use the cached tab copies;
@@ -619,7 +672,10 @@ var READ_ONLY_ACTIONS = { me: 1, myHistory: 1, myFile: 1, hrEmpFile: 1, hrTeam: 
   dashboard: 1, mySlips: 1, payrollList: 1, payrollGet: 1, eosQuote: 1, myPerformance: 1, perfTeam: 1, perfEmp: 1, feedbackResults: 1, perfCycleList: 1, perfOverview: 1,
   reportCatalog: 1, reportRun: 1, reportLog: 1, onboardList: 1, mySurveys: 1, surveyResults: 1, policyList: 1, planList: 1, myTasks: 1, delegationList: 1, reconList: 1, complianceCalendar: 1, wpsFile: 1, shiftList: 1, rosterList: 1, discCodes: 1, discList: 1, injuryList: 1, assetList: 1, clearanceList: 1,
   myGov: 1, govOverview: 1, myExpenses: 1, expenseCheck: 1, expenseInbox: 1, expenseReport: 1, journalList: 1, journalBuild: 1, journalMapGet: 1,
-  approvalsInbox: 1, approvalHistory: 1, leaveCycleList: 1, myLeaveCycles: 1, flowList: 1 };
+  approvalsInbox: 1, approvalHistory: 1, leaveCycleList: 1, myLeaveCycles: 1, flowList: 1,
+  recruitReqList: 1, recruitCandList: 1, recruitCandGet: 1, recruitBoard: 1, recruitOfferLetter: 1, loanQuote: 1, myLoans: 1, loanList: 1,
+  myTraining: 1, trainSessionList: 1, trainMatrix: 1, courseList: 1, myInsurance: 1, insList: 1, insCost: 1, insPolicyList: 1,
+  myAnnouncements: 1, annList: 1, hdMine: 1, hdList: 1, hdGet: 1 };
 
 var ADMIN_ACTIONS = { hrRolesSave: 1, empResetDevice: 1, zoneSave: 1, zoneDelete: 1, settingsSave: 1 };
 
@@ -652,6 +708,14 @@ function handle_(req) {
 }
 
 function fail_(code) { throw new Error('E:' + code); }
+
+/**
+ * Hooks the Wave 2 modules register at load time (file order does not matter: the lists are read per request).
+ * 'tasks': fn(me, ctx, add) adds bell items in myTasks; 'calendar': fn(add, ctx, today, me) adds compliance-calendar items.
+ */
+var HRIS_HOOKS_ = { tasks: [], calendar: [] };
+function hrisHook_(kind, fn) { (HRIS_HOOKS_[kind] = HRIS_HOOKS_[kind] || []).push(fn); }
+function hrisHooks_(kind) { return HRIS_HOOKS_[kind] || []; }
 
 /** Run once from the Apps Script editor so Google asks the owner to approve the sheet access. */
 function authorize() { ss_(); sheet_(SHEETS.EMP); return 'ok'; }

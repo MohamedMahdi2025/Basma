@@ -413,7 +413,7 @@ function people(body){
       '<div class="toolbar"><input class="grow" id="pq" type="search" placeholder="' + t('hrSearch') + '" value="' + esc(S.hrQ || '') + '">' +
       '<select id="pd">' + opt('', t('hrAllDepts'), S.hrD) + H.depts.map(function(d){ return opt(d.id, lang(d.nameAr, d.nameEn), S.hrD); }).join('') + '</select></div><div id="plist"></div>';
     if (window.Viz) Viz.wire(body);
-    $('#hrAdd').onclick = function(){ if (typeof empDrawer === 'function') empDrawer(null); };
+    $('#hrAdd').onclick = function(){ if (typeof newEmpPage === 'function') newEmpPage(); else if (typeof empDrawer === 'function') empDrawer(null); };
     $('#pq').oninput = function(){ S.hrQ = this.value; list(); };
     $('#pd').onchange = function(){ S.hrD = this.value; list(); };
     list();
@@ -431,35 +431,94 @@ function people(body){
   }
 }
 
-// ---------------- the employee drawer ----------------
+// ---------------- the employee file: a full page (#people/directory/~emp/<id>; managers ~empv/<id>, read only) ----------------
+// Was a side drawer. The page: a frozen headline (name, number, status, key actions), a hero band (avatar, position, tags and
+// the one ring that matters: probation, then a fixed contract, then the service year), fact tiles, the lifecycle strip,
+// then the file's sections as pill tabs. Same server calls and the same tab forms as before.
+Object.assign(T.ar, { epTitle:'ملف الموظف', epService:'مدة الخدمة', epContract:'العقد', epManager:'المدير المباشر', epLeave:'الإجازة السنوية', epNat:'الجنسية', epLoc:'مقر العمل',
+  epProb:'فترة التجربة', epProbLeft:'باقي على نهاية التجربة', epCEnd:'نهاية العقد', epCLeft:'باقي على نهاية العقد', epYear:'سنة الخدمة الحالية', epYearLeft:'باقي على إتمام السنة',
+  epNoHire:'تاريخ التعيين غير مسجل', epActive:'على رأس العمل', epInactive:'موقوف', epUnset:'غير محدد', epPerYear:'في السنة', epSaudi:'سعودي', epOpenAcct:'حساب الدخول', epHelp:'اختر قسما لعرض بياناته أو تعديلها.' });
+Object.assign(T.en, { epTitle:'Employee file', epService:'Service', epContract:'Contract', epManager:'Line manager', epLeave:'Annual leave', epNat:'Nationality', epLoc:'Work location',
+  epProb:'Probation', epProbLeft:'left in probation', epCEnd:'Contract end', epCLeft:'left on the contract', epYear:'Current service year', epYearLeft:'to complete the year',
+  epNoHire:'No hire date on file', epActive:'Active', epInactive:'Suspended', epUnset:'Not set', epPerYear:'a year', epSaudi:'Saudi', epOpenAcct:'Sign-in account', epHelp:'Pick a section to see or edit it.' });
+var EP_TAB_ICON = { job: 'briefcase', personal: 'identification-card', pay: 'money', docs: 'files', hist: 'clock-counter-clockwise' };
+function dayDiff(a, b){ return Math.round((Date.parse(String(b).slice(0, 10) + 'T00:00:00Z') - Date.parse(String(a).slice(0, 10) + 'T00:00:00Z')) / 864e5); }
+/** "3 years 4 months" from the hire date to today. */
+function serviceText(hire){
+  if (!hire) return t('epNoHire');
+  var a = new Date(String(hire).slice(0, 10) + 'T00:00:00Z'), b = new Date(riyadhToday() + 'T00:00:00Z');
+  var m = (b.getUTCFullYear() - a.getUTCFullYear()) * 12 + b.getUTCMonth() - a.getUTCMonth() - (b.getUTCDate() < a.getUTCDate() ? 1 : 0);
+  if (m < 0) return fmtDate(hire);
+  var y = Math.floor(m / 12), mo = m % 12;
+  return (y ? plural(y, 'years') : '') + (y && mo ? ' ' + (S.lang === 'ar' ? 'و' : '') : '') + (mo || !y ? plural(mo, 'months') : '');
+}
+/** The one progress ring for this person: probation if it runs, else a fixed contract, else the current service year. */
+function epRing(f){
+  var j = f.job || {}, td = riyadhToday(), hire = String(j.hireDate || '').slice(0, 10), prob = String(j.probationEnd || '').slice(0, 10), cend = String(j.contractEnd || '').slice(0, 10);
+  var ring = function(pct, centre, b, small, warm){ return '<div class="rp-ring">' + (window.Viz ? Viz.ring(pct, centre, b + ': ' + small, { size: 76, warm: warm }) : '') + '<div><b>' + b + '</b><small>' + small + '</small></div></div>'; };
+  if (hire && prob && prob >= td) { var tot = Math.max(1, dayDiff(hire, prob)), left = dayDiff(td, prob); return ring((tot - left) / tot * 100, String(left), t('epProb'), plural(left, 'days') + ' ' + t('epProbLeft'), left <= 14); }
+  if (j.contractType === 'fixed' && hire && cend && cend >= td) { var ct = Math.max(1, dayDiff(hire, cend)), cl = dayDiff(td, cend); return ring((ct - cl) / ct * 100, String(cl), t('epCEnd') + ' ' + fmtDate(cend), plural(cl, 'days') + ' ' + t('epCLeft'), cl <= 90); }
+  if (!hire) return '';
+  var a = new Date(hire + 'T00:00:00Z'), now = new Date(td + 'T00:00:00Z'), last = new Date(Date.UTC(now.getUTCFullYear(), a.getUTCMonth(), a.getUTCDate()));
+  if (last > now) last.setUTCFullYear(last.getUTCFullYear() - 1);
+  var next = new Date(last); next.setUTCFullYear(next.getUTCFullYear() + 1);
+  var span = Math.max(1, (next - last) / 864e5), gone = (now - last) / 864e5, rest = Math.round(span - gone);
+  return ring(gone / span * 100, String(rest), t('epYear'), plural(rest, 'days') + ' ' + t('epYearLeft'));
+}
+function epFacts(f){
+  var j = f.job || {}, td = riyadhToday(), cend = String(j.contractEnd || '').slice(0, 10), cl = cend ? dayDiff(td, cend) : null;
+  var fact = function(icon, tint, label, value, cls){ return '<div class="rp-fact" data-tint="' + tint + '"><i>' + ph(icon, 'duotone') + '</i><span>' + label + '</span><b class="' + (cls || '') + '" title="' + esc(String(value).replace(/<[^>]*>/g, '')) + '">' + value + '</b></div>'; };
+  return '<div class="rp-facts">' +
+    fact('hourglass-medium', 'time', t('epService'), esc(serviceText(j.hireDate)) + '') +
+    fact('calendar-plus', 'growth', t('fHire'), j.hireDate ? fmtDate(j.hireDate) : t('epUnset')) +
+    fact('file-text', 'requests', t('epContract'), j.contractType ? esc(t('ct_' + j.contractType)) + (cend ? ' · ' + fmtDate(cend) : '') : t('epUnset'), cl != null && cl >= 0 && cl <= 90 ? 'warn' : cl != null && cl < 0 ? 'bad' : '') +
+    fact('user-circle', 'people', t('epManager'), j.manager ? esc(lang(j.manager.name, j.manager.nameEn)) : t('epUnset')) +
+    fact('sun-horizon', 'pay', t('epLeave'), j.annualLeaveDays ? plural(j.annualLeaveDays, 'days') + ' ' + t('epPerYear') : t('epUnset')) +
+    fact('globe-hemisphere-east', 'insights', t('epNat'), j.isSaudi || j.nationality === 'SA' ? t('epSaudi') : esc(j.nationality || t('epUnset'))) +
+    (j.workLocation ? fact('map-pin', 'home', t('epLoc'), esc(j.workLocation)) : '') + '</div>';
+}
 function openEmp(id, readOnly){
-  var d = drawer('<div id="edBody"></div>');
-  d.querySelector('.panel').classList.add('wide');
+  var d = drawer('<div class="ep" id="edBody"></div>', { key: readOnly ? 'empv' : 'emp', arg: id, icon: 'identification-card', tint: 'people', title: t('epTitle'), bare: true, wide: true });
   var box = d.querySelector('#edBody');
-  loading(box);
-  var tab = 'job';
+  box.innerHTML = '<div class="rp-hero" aria-hidden="true"><span class="rp-av sk" style="width:72px;height:72px"></span><div class="rp-skel"><span class="sk" style="width:40%;height:20px"></span><span class="sk" style="width:60%"></span></div></div>' + (window.Viz ? Viz.skeleton(4) : '') + '<div class="rp-sec">' + skl3() + '</div>';
+  var tab = S.epTab || 'job';
+  function skl3(){ return '<span class="sk" style="width:45%"></span><span class="sk" style="width:80%;margin-top:10px"></span><span class="sk" style="width:65%;margin-top:10px"></span>'; }
   function load(){
     Promise.all([api('hrEmpFile', { id: id }, true), readOnly || (H.dir && H.depts && H.pos) ? Promise.resolve(true) : new Promise(function(res){ var once = false; orgThen(function(ok){ if (!once) { once = true; res(ok); } }); })]).then(function(rs){
       var r = rs[0];
-      if (!r.ok) { showErr(box, r); return; }
+      if (!d.isConnected) return;
+      if (!r.ok) { if (r.error === 'network' || !r.error) return failed(box, load); box.innerHTML = '<div class="rp-sec"><div class="empty">' + ph('user-circle-minus') + '<b>' + esc(errText(r.error)) + '</b></div></div>'; return; }
       draw(r.file);
     });
   }
   function draw(f){
-    var e = f.emp, tabs = [['job', t('tJob')]];
+    var e = f.emp, j = f.job || {}, tabs = [['job', t('tJob')]];
     if ('priv' in f) tabs.push(['personal', t('tPersonal')]);
     if ('comp' in f) tabs.push(['pay', t('tPay')]);
     if ('documents' in f) tabs.push(['docs', t('tDocs')]);
     if (f.jobHistory) tabs.push(['hist', t('tHist')]);
-    box.innerHTML = '<div class="hr-who"><div class="av">' + esc(initials(e.name)) + '</div><div><b>' + esc(lang(e.name, e.nameEn)) + '</b><small class="num">' + esc(e.empNo) + (f.job.position ? '، ' + esc(lang(f.job.position.titleAr, f.job.position.titleEn)) : '') + '</small></div></div>' +
-      lifecycle(f) +
-      '<div class="hr-tabs" role="tablist">' + tabs.map(function(x){ return '<button type="button" role="tab" data-t="' + x[0] + '" aria-selected="' + (tab === x[0]) + '">' + x[1] + '</button>'; }).join('') + '</div><div id="edTab"></div>';
-    $$('.hr-tabs button', box).forEach(function(b){ b.onclick = function(){ tab = b.dataset.t; draw(f); }; });
-    $$('[data-lc]', box).forEach(function(b){ b.onclick = function(){ var p = b.dataset.lc.split(':'); d.remove(); if (window.goArea) goArea(p[0], p[1]); }; });
+    if (!tabs.some(function(x){ return x[0] === tab; })) tab = 'job';
+    var pos = j.position ? lang(j.position.titleAr, j.position.titleEn) : (e.title || ''), dept = j.department ? lang(j.department.nameAr, j.department.nameEn) : '';
+    var active = e.status !== 'disabled';
+    var stChip = '<span class="chip ' + (active ? 'in' : 'absent') + '">' + (active ? t('epActive') : t('epInactive')) + '</span>';
+    var acts = !readOnly && (isAdmin() || (isHr() && e.role !== 'admin')) ? '<button type="button" class="btn btn-line btn-sm" data-acct>' + ph('key') + t('epOpenAcct') + '</button>' : '';
+    d.setHead({ title: esc(lang(e.name, e.nameEn)), lead: '<bdi class="num">' + esc(e.empNo) + '</bdi>' + (pos ? ' · ' + esc(pos) : '') + (dept ? ' · ' + esc(dept) : ''), chips: stChip + acts, icon: 'identification-card', tint: 'people' });
+    box.innerHTML = '<section class="rp-hero"><span class="rp-av" aria-hidden="true">' + esc(initials(e.name)) + '</span><div class="rp-id"><b>' + esc(pos || t('epUnset')) + '</b><small>' + esc([dept, j.manager ? t('epManager') + ': ' + lang(j.manager.name, j.manager.nameEn) : ''].filter(Boolean).join(' · ')) + '</small>' +
+        '<div class="rp-tags"><span class="chip num"><bdi>' + esc(e.empNo) + '</bdi></span>' + (j.contractType ? '<span class="chip">' + t('ct_' + j.contractType) + '</span>' : '') + (j.isSaudi || j.nationality === 'SA' ? '<span class="chip in">' + t('epSaudi') + '</span>' : '') + stChip + '</div></div>' + epRing(f) + '</section>' +
+      epFacts(f) + lifecycle(f) +
+      '<section class="rp-sec"><div class="rp-tabs" role="tablist" aria-label="' + t('epTitle') + '">' + tabs.map(function(x){ return '<button type="button" role="tab" id="ept-' + x[0] + '" aria-controls="edTab" data-t="' + x[0] + '" aria-selected="' + (tab === x[0]) + '" tabindex="' + (tab === x[0] ? 0 : -1) + '">' + ph(EP_TAB_ICON[x[0]] || 'circle') + x[1] + '</button>'; }).join('') + '</div><div id="edTab" role="tabpanel" aria-labelledby="ept-' + tab + '"></div></section>';
+    var tbs = $$('.rp-tabs button', box);
+    tbs.forEach(function(b, n){
+      b.onclick = function(){ tab = S.epTab = b.dataset.t; draw(f); var nb = $('[data-t="' + tab + '"]', box); if (nb) nb.focus(); };
+      b.onkeydown = function(ev){ var fwd = S.lang === 'ar' ? 'ArrowLeft' : 'ArrowRight', bk = S.lang === 'ar' ? 'ArrowRight' : 'ArrowLeft', m = ev.key === fwd ? (n + 1) % tbs.length : ev.key === bk ? (n - 1 + tbs.length) % tbs.length : -1; if (m >= 0) { ev.preventDefault(); tbs[m].click(); } };
+    });
+    $$('[data-lc]', box).forEach(function(b){ b.onclick = function(){ var p = b.dataset.lc.split(':'); if (window.goArea) goArea(p[0], p[1]); }; });
+    var ab = $('[data-acct]', d); if (ab) ab.onclick = function(){ if (window.openAcct) openAcct(e.id); };
     var el = $('#edTab', box);
     ({ job: jobTab, personal: personalTab, pay: payTab, docs: docsTab, hist: histTab })[tab](el, f, load, readOnly || !roles().hr);
   }
   load();
+  return d;
 }
 
 Object.assign(T.ar, { lcTitle:'دورة حياة الموظف', lc_hire:'التعيين', lc_onb:'التهيئة', lc_prob:'فترة التجربة', lc_work:'الدوام والإجازات', lc_perf:'الأداء', lc_pay:'الرواتب',
@@ -918,12 +977,13 @@ function inbox(body){
       $$('[data-id="' + id + '"]', el).forEach(function(x){ x.disabled = true; });
       api('reqDecide', { id: id, decision: b.dataset.dec, note: note }).then(function(x){
         if (!x.ok) { $$('[data-id="' + id + '"]', el).forEach(function(y){ y.disabled = false; }); var e = el.querySelector('[data-err="' + id + '"]'); if (e) e.textContent = errText(x.error); return; }
+        if (Req.keepReq) Req.keepReq(x.request);
         toast((b.dataset.dec === 'approve' ? t('inDone') : t('inRejectedT')) + ' ' + x.request.ref); inbox(body);
       });
     }; });
     $$('[data-hrprint]', el).forEach(function(b){ b.onclick = function(){
       var o = r.rows.filter(function(x){ return x.id === b.dataset.hrprint; })[0];
-      api('hrEmpFile', { id: o.emp.id }).then(function(f){ if (f.ok) Req.printLetter(o, f.file); else toast(errText(f.error)); });
+      if (o && o.emp) Req.printFetched(o, function(){ return api('hrEmpFile', { id: o.emp.id }); });
     }; });
   });
   function actions(o){
@@ -936,7 +996,7 @@ function inbox(body){
         '<div class="err" data-err="' + o.id + '" style="color:var(--red)"></div><div class="btnrow" style="margin:0"><button type="button" class="btn btn-dark btn-sm" data-dec="approve" data-id="' + o.id + '">' + ph('check') + t('inApprove') + '</button>' +
         '<button type="button" class="btn btn-line btn-sm" data-dec="reject" data-id="' + o.id + '">' + t('inReject') + '</button></div></div>';
     }
-    if (o.type === 'letter' && o.status === 'approved' && roles().hr) h += '<div class="btnrow" style="margin:0 0 12px"><button type="button" class="btn btn-dark btn-sm" data-hrprint="' + o.id + '">' + ph('printer') + t('rqPrint') + '</button></div>';
+    if (o.type === 'letter' && o.status === 'approved' && roles().hr && (o.subtype !== 'salary_certificate' || salaryOk())) h += '<div class="btnrow" style="margin:0 0 12px"><button type="button" class="btn btn-dark btn-sm" data-hrprint="' + o.id + '">' + ph('printer') + t('rqPrint') + '</button></div>';
     return h;
   }
 }

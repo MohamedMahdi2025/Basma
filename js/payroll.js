@@ -36,7 +36,7 @@ Object.assign(T.ar, {
   prEosDue:'يدفع في موعد أقصاه',
   prEosYears:'مدة الخدمة', prEosWage:'الأجر المعتمد للحساب', prEosFull:'المكافأة الكاملة', prEosFactor:'النسبة المستحقة', prEosAward:'المكافأة المستحقة', prEosLeave:'بدل رصيد الإجازة', prEosTotal:'الإجمالي المستحق', prYears:'سنة',
   pw_no_iban:'لا يوجد آيبان', pw_no_package:'لا يوجد راتب معتمد', pw_gosi_cohort_missing:'فئة التأمينات غير محددة', pw_fine_capped:'الجزاء خفض إلى 5 أيام', pw_advance_deferred:'أجل جزء من السلفة (50%)',
-  pw_deductions_capped:'خفضت الخصومات إلى نصف الأجر', pw_net_negative:'الصافي سالب', e_run_exists:'يوجد مسير لهذا الشهر.', e_future_month:'لا يمكن إعداد مسير لشهر لم يأت.',
+  pw_deductions_capped:'خفضت الخصومات إلى نصف الأجر', pw_gosi_housing_zero:'لا بدل سكن نقدي: إن كان السكن عينيا يحسب للتأمينات بأجر شهرين أساسي سنويا', pw_gosi_gcc_national:'مواطن خليجي: تطبق نسب بلده (مد الحماية التأمينية)', pw_eos_basis_below_actual:'المكافأة حسبت على الأجر الفعلي (المادة 84)؛ إعداد الأساسي والسكن أقل من النظام', pw_net_negative:'الصافي سالب', e_run_exists:'يوجد مسير لهذا الشهر.', e_future_month:'لا يمكن إعداد مسير لشهر لم يأت.',
   e_month_locked:'مسير هذا الشهر معتمد ومقفل. أضف البند في الشهر التالي.', e_email_not_configured:'البريد غير مفعل بعد.', e_missing_hire_date:'تاريخ المباشرة غير مسجل.',
   prRecalcDone:'أعيد الحساب', prApproved:'اعتمد المسير وأقفل', prGosiNote:'حصة الشركة في التأمينات'
 });
@@ -65,7 +65,7 @@ Object.assign(T.en, {
   prEosDue:'Pay no later than',
   prEosYears:'Service', prEosWage:'Wage used', prEosFull:'Full award', prEosFactor:'Share due', prEosAward:'Award due', prEosLeave:'Unused leave pay', prEosTotal:'Total due', prYears:'years',
   pw_no_iban:'No IBAN', pw_no_package:'No approved salary', pw_gosi_cohort_missing:'GOSI group not set', pw_fine_capped:'Fine cut to 5 days', pw_advance_deferred:'Part of the advance deferred (50%)',
-  pw_deductions_capped:'Deductions cut to half the wage', pw_net_negative:'Net below zero', e_run_exists:'This month already has a run.', e_future_month:'That month has not come yet.',
+  pw_deductions_capped:'Deductions cut to half the wage', pw_gosi_housing_zero:'No cash housing: housing in kind counts as two months basic a year for GOSI', pw_gosi_gcc_national:'GCC national: home-country GOSI rates apply (GCC extension)', pw_eos_basis_below_actual:'Award on the actual wage (Art. 84); the basic + housing setting is below the law', pw_net_negative:'Net below zero', e_run_exists:'This month already has a run.', e_future_month:'That month has not come yet.',
   e_month_locked:'This month is approved and locked. Add the line next month.', e_email_not_configured:'Email is not switched on yet.', e_missing_hire_date:'No start date on file.',
   prRecalcDone:'Recalculated', prApproved:'Payroll approved and locked', prGosiNote:'Employer GOSI share'
 });
@@ -94,7 +94,8 @@ var css = '' +
 '.ps-note{display:flex;gap:8px;align-items:flex-start;margin:8px 0 0;padding:8px 10px;border-radius:10px;background:#FEF0C7;color:#7A3E00;font-size:12.5px}.ps-note i{font-size:17px}' +
 '.ps-facts{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}.ps-facts div{background:#fff;border-radius:12px;padding:10px;text-align:center;box-shadow:0 1px 2px rgba(15,28,20,.05)}' +
 '.ps-facts i{font-size:20px;color:var(--brand)}.ps-facts span{display:block;font-size:11.5px;color:var(--ink-3)}.ps-facts b{font-size:17px;font-weight:800}.ps-warn{display:flex;gap:6px;flex-wrap:wrap}' +
-'@media (max-width:700px){.ps-net,.ps-cols{grid-template-columns:1fr}.ps-facts{grid-template-columns:repeat(3,minmax(0,1fr))}}';
+'@media (max-width:700px){.ps-net,.ps-cols{grid-template-columns:1fr}.ps-facts{grid-template-columns:repeat(3,minmax(0,1fr))}}' +
+'.ps-nav{display:inline-flex;gap:6px}.ps-nav .btn{width:38px;padding:0;justify-content:center}.fp-rows b.neg{color:var(--bad)}';
 var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 
 function lab(l){ var m = L[S.lang] || L.ar; if (l.code !== 'allowance') return m[l.code] || l.code; var n = String(l.label || ''); return /^(بدل|allowance)/i.test(n) ? n : m.allowance + ' ' + n; }
@@ -194,13 +195,57 @@ function myCard(el, me){
     el.innerHTML = '<h3>' + ph('money') + t('prMine') + '</h3>' + (r.rows.length ? r.rows.slice(0, 12).map(function(s){
       return '<div class="pr-month" data-slip="' + s.id + '" tabindex="0"><div class="av">' + ph('receipt') + '</div><div class="main"><b>' + esc(monthName(s.month)) + '</b><small><bdi>' + esc(s.ref) + '</bdi></small></div><b class="num">' + money(s.net) + '</b></div>';
     }).join('') : '<p>' + t('prMineEmpty') + '</p>');
-    $$('[data-slip]', el).forEach(function(x){ x.onclick = function(){ var s = r.rows.filter(function(y){ return y.id === x.dataset.slip; })[0]; openSlip(s, me); }; });
+    $$('[data-slip]', el).forEach(function(x){ var go = function(){ var s = r.rows.filter(function(y){ return y.id === x.dataset.slip; })[0]; openSlip(s, me, { mine: r.rows }); }; x.onclick = go; x.setAttribute('role', 'link'); x.onkeydown = function(e){ if (e.key === 'Enter') go(); }; });
   });
 }
-function openSlip(s, who){
-  var d = drawer('<h3>' + esc(monthName(s.month)) + '</h3><p class="hr-hint" style="margin-top:-8px"><bdi>' + esc(s.ref) + '</bdi>' + (s.emp ? '، ' + esc(s.emp.name) : '') + '</p>' + slipHtml(s) +
-    '<div class="btnrow"><button type="button" class="btn btn-dark btn-sm" id="psPrint">' + ph('printer') + t('prPrint') + '</button></div>');
-  $('#psPrint', d).onclick = function(){ printSlip(s, who); };
+// ---------------- the payslip: a full page (#pay/slips/~slip/me.<id>, HR: ~slip/<runId>.<slipId>) ----------------
+Object.assign(T.ar, { psPageLead:'صافي الراتب وتفاصيله وتكلفة الشركة', psSplit:'من الإجمالي إلى الصافي', psNetShare:'الصافي', psDedShare:'الخصومات', psTrend:'صافي آخر الأشهر', psPrev:'الشهر السابق', psNext:'الشهر التالي',
+  psVsPrev:'عن الشهر السابق', psNotFound:'لم نجد هذه القسيمة، أو لا تملك صلاحية عرضها.', psLoading:'جار تحميل القسيمة' });
+Object.assign(T.en, { psPageLead:'Net pay, its lines and the company cost', psSplit:'From gross to net', psNetShare:'Net', psDedShare:'Deductions', psTrend:'Net over recent months', psPrev:'Previous month', psNext:'Next month',
+  psVsPrev:'vs previous month', psNotFound:'This payslip was not found, or you cannot see it.', psLoading:'Loading the payslip' });
+/** Reopen from the URL: "me.<slipId>" (my own) or "<runId>.<slipId>" (HR, from a run). */
+function openSlipRef(arg){
+  var p = String(arg).split('.'), d = slipShell(), box = $('#psBody', d);
+  var miss = function(err){ if (!d.isConnected) return; box.innerHTML = '<div class="rp-sec"><div class="empty">' + ph(err ? 'wifi-slash' : 'receipt-x') + '<b>' + (err ? esc(errText(err)) : t('psNotFound')) + '</b>' + (err ? '<div class="btnrow" style="justify-content:center;margin-top:10px"><button class="btn btn-dark btn-sm" type="button" data-retry>' + t('retry') + '</button></div>' : '') + '</div></div>'; var rb = $('[data-retry]', box); if (rb) rb.onclick = function(){ d.remove(); openSlipRef(arg); }; };
+  if (p[0] === 'me') return apiFresh('mySlips', {}, function(r){ if (!d.isConnected) return; if (!r.ok) return miss(r.error); var s = r.rows.filter(function(x){ return x.id === p[1]; })[0]; if (!s) return miss(); slipInto(d, s, S.me, { mine: r.rows }); }, true);
+  api('payrollGet', { id: p[0] }, true).then(function(r){ if (!d.isConnected) return; if (!r.ok) return miss(r.error === 'not_found' ? '' : r.error); var s = r.slips.filter(function(x){ return x.id === p[1]; })[0]; if (!s) return miss(); slipInto(d, s, null, { run: r.run }); });
+}
+function slipShell(o){
+  var d = drawer('<div id="psBody"><div class="fp-grid"><div class="fp-main"><div class="rp-sec" role="status" aria-label="' + t('psLoading') + '"><span class="sk" style="height:96px;border-radius:16px"></span><span class="sk" style="width:70%;margin-top:14px"></span><span class="sk" style="width:55%;margin-top:10px"></span></div></div><aside class="fp-aside"><div class="rp-sec"><span class="sk" style="width:50%"></span><span class="sk" style="margin-top:12px;height:12px"></span></div></aside></div></div>',
+    Object.assign({ key: 'slip', icon: 'receipt', tint: 'pay', title: t('psKind'), lead: t('psPageLead'), bare: true, wide: true }, o || {}));
+  return d;
+}
+/** Kept for every caller: opens the payslip page. ctx: { mine: my slips (for previous / next), run: the HR run it came from }. */
+function openSlip(s, who, ctx){
+  if (!s) return;
+  ctx = ctx || {};
+  var d = slipShell({ arg: ctx.mine ? 'me.' + s.id : ctx.run ? ctx.run.id + '.' + s.id : '' });
+  slipInto(d, s, who, ctx);
+  return d;
+}
+function slipInto(d, s, who, ctx){
+  var box = $('#psBody', d), mine = (ctx.mine || []).slice().sort(function(a, b){ return a.month < b.month ? -1 : 1; }), at = -1;
+  mine.forEach(function(x, i){ if (x.id === s.id) at = i; });
+  var prev = at > 0 ? mine[at - 1] : null, next = at >= 0 && at < mine.length - 1 ? mine[at + 1] : null, en = S.lang === 'en';
+  var nav = mine.length > 1 ? '<span class="ps-nav" role="group" aria-label="' + t('psTrend') + '"><button type="button" class="btn btn-line btn-sm" data-mv="-1"' + (prev ? '' : ' disabled') + ' aria-label="' + t('psPrev') + '" title="' + t('psPrev') + '">' + ph(en ? 'caret-left' : 'caret-right') + '</button>' +
+    '<button type="button" class="btn btn-line btn-sm" data-mv="1"' + (next ? '' : ' disabled') + ' aria-label="' + t('psNext') + '" title="' + t('psNext') + '">' + ph(en ? 'caret-right' : 'caret-left') + '</button></span>' : '';
+  d.setHead({ title: esc(t('psTitle').replace('{m}', monthName(s.month))), lead: '<bdi class="num">' + esc(s.ref) + '</bdi>' + (s.emp ? ' · ' + esc(s.emp.name) : ''), chips: nav + '<button type="button" class="btn btn-dark btn-sm" data-print>' + ph('printer') + t('prPrint') + '</button>' });
+  var gross = Math.max(0, Number(s.gross) || 0), ded = Math.max(0, Number(s.deductions) || 0), net = Math.max(0, Number(s.net) || 0), base = gross || 1;
+  var change = prev && prev.net ? (s.net - prev.net) / prev.net * 100 : null;
+  var trend = mine.slice(Math.max(0, at - 5), at + 1);
+  var split = '<section class="rp-sec"><h2>' + ph('chart-donut') + t('psSplit') + '</h2>' +
+    '<div class="fp-split" role="img" aria-label="' + t('psNetShare') + ' ' + money(net) + ', ' + t('psDedShare') + ' ' + money(ded) + '"><i style="width:' + (net / base * 100) + '%;background:var(--s1)"></i><i style="width:' + (ded / base * 100) + '%;background:var(--s2)"></i></div>' +
+    '<div class="fp-legend" style="margin-top:8px"><span><i style="background:var(--s1)"></i>' + t('psNetShare') + ' ' + Math.round(net / base * 100) + '%</span><span><i style="background:var(--s2)"></i>' + t('psDedShare') + ' ' + Math.round(ded / base * 100) + '%</span></div>' +
+    '<div class="fp-rows" style="margin-top:12px"><div><span>' + t('prGross') + '</span><b class="num">' + money(gross) + '</b></div><div><span>' + t('prDed') + '</span><b class="num">' + money(ded) + '</b></div><div><span>' + t('prNet') + '</span><b class="num">' + money(s.net) + '</b></div>' +
+    (change != null ? '<div><span>' + t('psVsPrev') + '</span><b class="num ' + (change >= 0 ? '' : 'neg') + '">' + (change >= 0 ? '+' : '') + change.toFixed(1) + '%</b></div>' : '') + '</div></section>';
+  var trendCard = trend.length > 1 && window.Viz ? '<section class="rp-sec"><h2>' + ph('chart-line-up') + t('psTrend') + '</h2>' +
+    Viz.cols(trend.map(function(x){ return { label: Viz.monthShort(x.month), value: Number(x.net) || 0, tip: monthName(x.month) + ': ' + money(x.net), alt: x.id !== s.id }; }), { labels: true }) +
+    '<div class="sr-only">' + trend.map(function(x){ return esc(monthName(x.month)) + ' ' + money(x.net); }).join('، ') + '</div></section>' : '';
+  box.innerHTML = '<div class="fp-grid"><div class="fp-main"><div class="pr-slip-page">' + slipHtml(s) + '</div></div><aside class="fp-aside">' + split + trendCard + '</aside></div>' +
+    '<div class="fp-bar"><div class="fp-sumline"><span>' + t('prNet') + '</span><b class="num">' + money(s.net) + ' ' + t('mfSar') + '</b></div><button type="button" class="btn btn-dark" data-print>' + ph('printer') + t('prPrint') + '</button></div>';
+  if (window.Viz) Viz.wire(box);
+  $$('[data-print]', d).forEach(function(b){ b.onclick = function(){ printSlip(s, who); }; });
+  $$('[data-mv]', d).forEach(function(b){ b.onclick = function(){ var to = +b.dataset.mv < 0 ? prev : next; if (!to) return; d.setArg('me.' + to.id); slipInto(d, to, who, ctx); var f = $('[data-mv="' + b.dataset.mv + '"]', d); if (f && !f.disabled) f.focus(); }; });
 }
 
 // ---------------- HR console: payroll ----------------
@@ -279,7 +324,7 @@ function runView(body, id){
       '<h3 class="hr-sub">' + t('prAdj') + '</h3><div id="prAdj"></div>';
     $('#prBack', el).onclick = function(){ S.prRun = null; section(body); };
     if (window.Viz) Viz.wire(el);
-    $$('[data-s]', el).forEach(function(x){ x.onclick = function(){ openSlip(r.slips.filter(function(s){ return s.id === x.dataset.s; })[0]); }; });
+    $$('[data-s]', el).forEach(function(x){ var go = function(){ openSlip(r.slips.filter(function(s){ return s.id === x.dataset.s; })[0], null, { run: run }); }; x.onclick = go; x.onkeydown = function(e){ if (e.key === 'Enter') go(); }; });
     var msg = $('#prMsg', el), act = function(action, done){ return function(){ this.disabled = true; var b = this; api(action, { id: run.id }).then(function(x){ b.disabled = false; if (!x.ok) { msg.textContent = errText(x.error); if (x.error === 'email_not_configured') msg.textContent = t('prEmailNo'); return; } done(x); }); }; };
     if ($('#prRe', el)) $('#prRe', el).onclick = act('payrollRecalc', function(){ toast(t('prRecalcDone')); runView(body, id); });
     if ($('#prOk', el)) $('#prOk', el).onclick = act('payrollApprove', function(){ toast(t('prApproved')); runView(body, id); });
@@ -377,5 +422,5 @@ function printEos(q, name){
   w.document.open(); w.document.write(html); w.document.close();
 }
 
-window.Payroll = { section: section, myCard: myCard, openSlip: openSlip, printSlip: printSlip };
+window.Payroll = { section: section, myCard: myCard, openSlip: openSlip, openSlipRef: openSlipRef, printSlip: printSlip };
 })();

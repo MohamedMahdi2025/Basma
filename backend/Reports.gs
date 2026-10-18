@@ -97,7 +97,7 @@ function api_reportCatalog(req, me) {
   var scope = reportScope_(me, ctx);
   var emps = Object.keys(ctx.emps).map(function (k) { return ctx.emps[k]; }).filter(function (e) { return !scope || scope[e.id]; })
     .map(function (e) { return { id: e.id, empNo: String(e.empNo), name: e.name, departmentId: e.departmentId, status: e.status }; });
-  var runs = canPayroll_(me) || hasRole_(me, 'executive') ? readAll_(SHEETS.RUN).filter(function (r) { return r.status !== 'cancelled'; }).map(function (r) { return { id: r.id, ref: r.ref, month: r.month, status: r.status }; }).sort(function (a, b) { return a.month < b.month ? 1 : -1; }) : [];
+  var runs = canPayroll_(me) || hasRole_(me, 'executive') ? readAll_(SHEETS.RUN).filter(function (r) { return r.status !== 'cancelled'; }).map(function (r) { return { id: r.id, ref: r.ref, month: r.month, status: r.status, scope: runScope_(r) }; }).sort(function (a, b) { return a.month < b.month ? 1 : -1; }) : [];
   var cycles = readAll_(SHEETS.CYC).filter(function (c) { return c.status !== 'deleted'; }).map(publicCycle_);
   return { ok: true, reports: out, depts: depts, emps: emps, runs: runs, cycles: cycles, teamOnly: !!scope };
 }
@@ -435,7 +435,7 @@ var REPORT_FNS = {
     var run = findBy_(SHEETS.RUN, 'id', p.run) || currentRun_();
     if (!run) return { columns: [], rows: [], checks: [{ level: 'info', code: 'no_run', count: 0 }] };
     p.run = run.id;
-    var prev = readAll_(SHEETS.RUN).filter(function (r) { return r.status === 'locked' && r.month < run.month; }).sort(function (a, b) { return a.month < b.month ? 1 : -1; })[0];
+    var prev = readAll_(SHEETS.RUN).filter(function (r) { return r.status === 'locked' && r.month < run.month && runScope_(r) === runScope_(run); }).sort(function (a, b) { return a.month < b.month ? 1 : -1; })[0];
     var slipsOf = function (r) { var o = {}; if (!r) return o; readAll_(SHEETS.SLIP).forEach(function (sl) { if (sl.runId === r.id && sl.status !== 'void') o[sl.empId] = sl; }); return o; };
     var cur = slipsOf(run), old = slipsOf(prev), ds = deptSet_(p, ctx), rows = [], flagged = 0;
     Object.keys(cur).concat(Object.keys(old).filter(function (k) { return !cur[k]; })).forEach(function (k) {
@@ -503,7 +503,7 @@ var REPORT_FNS = {
       var hire = String(e.hireDate || '').slice(0, 10), c = comps[e.id];
       if (!hire) { noHire++; return; } if (!c) { noPkg++; return; }
       var mine = reqs.filter(function (r) { return r.empId === e.id; }), svc = eosService_(e, hire, p.asOf, mine);
-      var w = s.eosWageBasis === 'basic_housing' ? c.basic + c.housing : c.total, full = eosAward_(svc.years, w, 'termination'), res = eosAward_(svc.years, w, 'resignation');
+      var w = c.total, full = eosAward_(svc.years, w, 'termination'), res = eosAward_(svc.years, w, 'resignation');
       var bal = annualBalance_(e, p.asOf, mine, null), lp = Math.max(0, bal.balance) * c.total / 30;
       rows.push(Object.assign(base_(e, ctx), { hireDate: hire, years: r2_(svc.years), excludedDays: svc.excluded, wage: r2_(w), awardFull: r2_(full.award), awardResignation: r2_(res.award),
         leaveDays: r2_(Math.max(0, bal.balance)), leavePay: r2_(lp), liability: r2_(full.award + lp) }));
@@ -570,7 +570,7 @@ var REPORT_FNS = {
   }
 };
 function currentRun_() {
-  return readAll_(SHEETS.RUN).filter(function (r) { return r.status !== 'cancelled'; }).sort(function (a, b) { return a.month < b.month ? 1 : -1; })[0] || null;
+  return runsRealFirst_(readAll_(SHEETS.RUN)).filter(function (r) { return r.status !== 'cancelled'; }).sort(function (a, b) { return a.month < b.month ? 1 : -1; })[0] || null;
 }
 
 // ---------------- numbered, fingerprinted exports; review; verification ----------------
@@ -1157,7 +1157,7 @@ function rxRunPair_(p) {
   var runs = readAll_(SHEETS.RUN).filter(function (r) { return r.status !== 'cancelled'; }), run = runs.filter(function (r) { return r.id === p.run; })[0] || currentRun_();
   if (!run) return null;
   p.run = run.id;
-  var prev = runs.filter(function (r) { return r.status === 'locked' && r.month < run.month; }).sort(function (a, b) { return a.month < b.month ? 1 : -1; })[0] || null;
+  var prev = runs.filter(function (r) { return r.status === 'locked' && r.month < run.month && runScope_(r) === runScope_(run); }).sort(function (a, b) { return a.month < b.month ? 1 : -1; })[0] || null;
   return { run: run, prev: prev, runs: runs };
 }
 /** Payslips of the given runs, { runId: { empId: slip } }, after the department filter: one read of the tab. */
@@ -1187,7 +1187,7 @@ function rxEos_(e, sl, s) {
   if (rxHas_(sl.eosAccrual)) return Number(sl.eosAccrual) || 0;
   var inf = rxInfo_(sl).info || {}, pk = inf.package, hire = e ? (isoDate_(e.hireDate) || joinedDate_(e)) : '', to = inf.to || monthLast_(String(sl.month));
   if (!pk || !hire) return 0;
-  var wage = s.eosWageBasis === 'basic_housing' ? Number(pk.basic) + Number(pk.housing) : Number(inf.monthly) || 0;
+  var wage = Number(inf.monthly) || 0; // Art. 2 + 84: actual wage
   var years = Math.max(0, (Date.parse(to) - Date.parse(hire)) / (365.25 * 864e5));
   return r2_((years >= 5 ? wage / 12 : wage / 24) * (Number(sl.paidDays) || 0) / 30);
 }
@@ -1203,7 +1203,7 @@ function rxHide_(me, row, n, keys) {
 function rxRunsByMonth_(p, ctx) {
   var months = rxMonths_(p.from, p.to); if (!months.length) return null;
   var first = rxAddMonth_(months[0], -1), runs = {}, ids = {};
-  readAll_(SHEETS.RUN).forEach(function (r) { if (r.status !== 'cancelled' && r.month >= first && r.month <= months[months.length - 1]) { runs[r.month] = r; ids[r.id] = 1; } });
+  runsRealFirst_(readAll_(SHEETS.RUN)).forEach(function (r) { if (r.status !== 'cancelled' && r.month >= first && r.month <= months[months.length - 1]) { runs[r.month] = r; ids[r.id] = 1; } });
   return { months: months, runs: runs, slips: rxSlipsBy_(ids, deptSet_(p, ctx), ctx) };
 }
 
@@ -1984,7 +1984,7 @@ Object.assign(REPORT_FNS, {
   cmp_wps: function (p, me, ctx, scope, s) {
     var months = rxMonths_(p.from, p.to); if (!months.length) return rxEmpty_();
     var t = today_(), runs = {}, wps = {}, rec = {}, rows = [], overdue = 0, open = 0, notLocked = 0;
-    readAll_(SHEETS.RUN).forEach(function (r) { if (r.status !== 'cancelled' && months.indexOf(r.month) >= 0) runs[r.month] = r; });
+    readAll_(SHEETS.RUN).forEach(function (r) { if (r.status !== 'cancelled' && !isDemoRun_(r) && months.indexOf(r.month) >= 0) runs[r.month] = r; }); // WPS duty: the company's runs
     readAll_(SHEETS.WPS).forEach(function (w) { wps[w.runId] = w; });
     readAll_(SHEETS.RECON).forEach(function (x) { var k = x.month + '|' + x.source; if (!rec[k] || String(x.at) > String(rec[k].at)) rec[k] = x; });
     months.forEach(function (m) {

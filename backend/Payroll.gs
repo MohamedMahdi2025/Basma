@@ -7,6 +7,8 @@
 // GOSI employee / employer % by cohort and month (Social Insurance Law; new law for first-time contributors from Jul 2024)
 var GOSI_NEW = [['2024-07', 9.75, 11.75], ['2025-07', 10.25, 12.25], ['2026-07', 10.75, 12.75], ['2027-07', 11.25, 13.25], ['2028-07', 11.75, 13.75]];
 var GOSI_LEGACY = [9.75, 11.75], GOSI_NON_SAUDI_ER = 2, GOSI_MIN = 1500, GOSI_MAX = 45000;
+// GCC states other than KSA (ISO 2 and 3 letter codes): covered by the GCC extension, see calcSlip_
+var GOSI_GCC = { KW: 1, KWT: 1, BH: 1, BHR: 1, QA: 1, QAT: 1, AE: 1, ARE: 1, OM: 1, OMN: 1 };
 var ADJ_CODES = { bonus: 'earning', commission: 'earning', other_earning: 'earning', overtime_hours: 'hours', fine: 'deduction', other_deduction: 'deduction',
   reimbursement: 'earning' }; // an approved expense claim (Expenses.gs): paid with the salary, not wage (no GOSI, outside the Art. 93 base)
 var ADJ_NON_WAGE = { reimbursement: 1 };
@@ -136,12 +138,18 @@ function calcSlip_(emp, x) {
   if (regWage && Math.abs(regWage - pkgWage) > 1) out.warnings.push('gosi_wage_differs');
   var base = Math.min(GOSI_MAX, Math.max(saudi ? GOSI_MIN : 0, gWage)) * f;
   out.info.gosi = { base: r2_(base), empRate: rates.emp, erRate: rates.er, cohort: rates.cohort, registered: regWage || null, packageWage: r2_(pkgWage) };
+  // Social Insurance Law: housing given in kind counts at two months' basic wage a year (basic x 2/12). The package has no
+  // in-kind flag, so with no cash housing and no registered wage the slip shows that figure for HR to register with GOSI.
+  if (!(Number(comp.housing) > 0) && !regWage) { out.warnings.push('gosi_housing_zero'); out.info.gosi.inKindWage = r2_(comp.basic * 14 / 12); }
+  // GCC nationals: GOSI collects under the GCC extension of insurance protection at the home country's rates, not the
+  // 2% expatriate hazards rate. Those rates differ by country, so HR records the registered rates; the slip warns.
+  if (!saudi && GOSI_GCC[String(emp.nationality || '').trim().toUpperCase()]) out.warnings.push('gosi_gcc_national');
   if (rates.emp) add({ kind: 'deduction', code: 'gosi', rate: rates.emp, amount: base * rates.emp / 100, cap: true, statutory: true });
   out.gosiEmployer = r2_(base * rates.er / 100);
 
   // end of service the company sets aside this month (Art. 84): half a month's wage a year for the first five years,
   // a full month after; the wage follows the eosWageBasis setting. A provision, never paid on the slip.
-  var eosWage = x.s.eosWageBasis === 'basic_housing' ? pkgWage : monthly;
+  var eosWage = monthly; // Art. 2 + 84: the actual wage, whatever eosWageBasis says (the setting no longer lowers the provision)
   var years = hire ? Math.max(0, (Date.parse(to) - Date.parse(hire)) / (365.25 * 864e5)) : 0;
   out.eosAccrual = r2_((years >= 5 ? eosWage / 12 : eosWage / 24) * f);
   out.info.eos = { wage: r2_(eosWage), years: Math.round(years * 100) / 100, perYear: years >= 5 ? 1 : 0.5 };
@@ -153,18 +161,20 @@ function calcSlip_(emp, x) {
     if (!pl.startMonth || x.month < pl.startMonth || left <= 0) return;
     add({ kind: 'deduction', code: 'advance', ref: r.ref, amount: Math.min(Number(pl.installment) || left, left), cap: true, deferrable: true });
   });
+  // employee loans (Loans.gs): an instalment each month from the start month until repaid, deferred like advances
+  if (typeof loanSlipLines_ === 'function') loanSlipLines_(emp, x, add);
 
   // Art. 92-93: deductions at most half the wage due; advances wait first, then other deductions, then fines
   var due = sumOf_(out.lines, 'earning') - out.lines.filter(function (l) { return (l.kind === 'deduction' && l.cap === false) || (l.kind === 'earning' && l.nonWage); }).reduce(function (t, l) { return t + l.amount; }, 0);
   var capped = function () { return out.lines.filter(function (l) { return l.cap; }).reduce(function (t, l) { return t + l.amount; }, 0); };
   var limit = Math.max(0, due) * 0.5;
-  ['advance', 'other_deduction', 'fine'].forEach(function (code) {
+  ['advance', 'loan', 'other_deduction', 'fine'].forEach(function (code) {
     out.lines.filter(function (l) { return l.code === code; }).forEach(function (l) {
       var over = capped() - limit;
       if (over <= 0.004) return;
       var cut = Math.min(l.amount, over);
       l.amount = r2_(l.amount - cut); l.reduced = r2_(cut);
-      out.warnings.push(code === 'advance' ? 'advance_deferred' : 'deductions_capped');
+      out.warnings.push(code === 'advance' || code === 'loan' ? 'advance_deferred' : 'deductions_capped');
     });
   });
   out.lines = out.lines.filter(function (l) { return l.amount > 0; });
@@ -185,10 +195,11 @@ function finish_(out) {
   return out;
 }
 
-/** Employees paid in a month: active, or leaving during it. */
-function payrollEmps_(month) {
-  var first = month + '-01';
+/** Employees paid in a month: active, or leaving during it. scope 'demo': the demo people only; else never them (Demo.gs). */
+function payrollEmps_(month, scope) {
+  var first = month + '-01', demo = demoEmpIds_(), wantDemo = scope === 'demo';
   return readAll_(SHEETS.EMP).filter(function (e) {
+    if (!!demo[e.id] !== wantDemo) return false;
     var lwd = String(e.lastWorkingDay || '').slice(0, 10);
     return e.status === 'active' || (lwd && lwd >= first);
   });
@@ -224,12 +235,12 @@ function api_payrollCreate(req, me) {
   if (!/^\d{4}-\d{2}$/.test(month)) fail_('bad_date');
   if (month > today_().slice(0, 7)) fail_('future_month');
   return withLock_(function () {
-    if (readAll_(SHEETS.RUN).some(function (r) { return r.month === month && r.status !== 'cancelled'; })) fail_('run_exists');
+    if (readAll_(SHEETS.RUN).some(function (r) { return r.month === month && r.status !== 'cancelled' && !isDemoRun_(r); })) fail_('run_exists'); // a demo run never blocks
     var now = new Date().toISOString(), x = payrollCtx_(month);
     var run = { id: newId_('P'), ref: nextRef_('payroll', refsOf_(SHEETS.RUN)), month: month, status: 'draft', preparedBy: me.id, preparedAt: now,
-      approvedBy: '', approvedAt: '', totalsJson: '', note: str_(req.note, 300), emailedAt: '', createdAt: now, updatedAt: now };
+      approvedBy: '', approvedAt: '', totalsJson: '', note: str_(req.note, 300), emailedAt: '', createdAt: now, updatedAt: now, scope: '' };
     var rows = [];
-    payrollEmps_(month).forEach(function (e) { var c = calcSlip_(e, x); if (c) rows.push(slipRow_(e, run, c, null)); });
+    payrollEmps_(month, '').forEach(function (e) { var c = calcSlip_(e, x); if (c) rows.push(slipRow_(e, run, c, null)); });
     var refs = nextRefs_('payslip', rows.length, refsOf_(SHEETS.SLIP));
     rows.forEach(function (r, i) { r.ref = refs[i]; });
     run.totalsJson = JSON.stringify(totals_(rows));
@@ -249,7 +260,7 @@ function api_payrollRecalc(req, me) {
     var x = payrollCtx_(run.month), existing = {}, now = new Date().toISOString();
     readAll_(SHEETS.SLIP).forEach(function (s) { if (s.runId === run.id) existing[s.empId] = s; });
     var upd = [], add = [], seen = {};
-    payrollEmps_(run.month).forEach(function (e) {
+    payrollEmps_(run.month, runScope_(run)).forEach(function (e) {
       var c = calcSlip_(e, x); if (!c) return;
       seen[e.id] = 1;
       if (existing[e.id]) upd.push(slipRow_(e, run, c, existing[e.id])); else add.push(slipRow_(e, run, c, null));
@@ -304,7 +315,7 @@ function api_payrollDelete(req, me) {
 function publicRun_(r) {
   var t = {}; try { t = JSON.parse(r.totalsJson || '{}'); } catch (e) {}
   return { id: r.id, ref: r.ref, month: r.month, status: r.status, preparedBy: r.preparedBy, preparedAt: r.preparedAt, approvedBy: r.approvedBy,
-    approvedAt: r.approvedAt, totals: t, note: r.note, emailedAt: r.emailedAt };
+    approvedAt: r.approvedAt, totals: t, note: r.note, emailedAt: r.emailedAt, scope: runScope_(r) };
 }
 function publicSlip_(s, emps) {
   var info = {}; try { info = JSON.parse(s.infoJson || '{}'); } catch (e) {}
@@ -343,8 +354,12 @@ function api_payrollGet(req, me) {
 
 // ---------------- adjustments (one month, one line each) ----------------
 
+/** A locked run of the person's own scope (demo people: a demo run; everyone else: a real run) closes the month for them. */
 function monthLocked_(empId, month) {
-  return readAll_(SHEETS.RUN).some(function (r) { return r.month === month && r.status === 'locked'; });
+  var runs = readAll_(SHEETS.RUN).filter(function (r) { return r.month === month && r.status === 'locked'; });
+  if (!runs.length) return false;
+  var sc = demoEmpIds_()[empId] ? 'demo' : '';
+  return runs.some(function (r) { return runScope_(r) === sc; });
 }
 function api_payrollAdjSave(req, me) {
   if (!canPayroll_(me)) fail_('forbidden');
@@ -469,26 +484,31 @@ function api_eosQuote(req, me) {
   var comp = compOn_(emp.id, last, readAll_(SHEETS.COMP));
   if (!comp) fail_('no_package');
   var s = settings_(), reqs = readAll_(SHEETS.REQ).filter(function (r) { return r.empId === emp.id; });
-  var wage = s.eosWageBasis === 'basic_housing' ? comp.basic + comp.housing : comp.total;
+  // Art. 84 pays on the last wage, and Art. 2 reads "wage" as the actual wage (basic plus every regular allowance).
+  // A basic + housing basis would pay less than the law, which Art. 8 voids, so the settlement always uses the
+  // actual wage; the eosWageBasis setting only shapes provisions, and the quote warns when it is lower.
+  var eosWarn = [], wage = comp.total;
+  if (s.eosWageBasis === 'basic_housing' && comp.basic + comp.housing < comp.total) eosWarn.push('eos_basis_below_actual');
   var svc = eosService_(emp, hire, last, reqs), aw = eosAward_(svc.years, wage, reason);
   var bal = annualBalance_(emp, last, reqs, null);
   var leaveDays = Math.max(0, bal.balance), leavePay = leaveDays * comp.total / 30;
   // salary for the final month's days, unless that month is already in a locked payroll
-  var m = last.slice(0, 7), locked = readAll_(SHEETS.RUN).some(function (r) { return r.month === m && r.status === 'locked'; });
+  var m = last.slice(0, 7), locked = monthLocked_(emp.id, m);
   var lastDays = locked ? 0 : Math.min(30, daysBetween_(maxDate_(m + '-01', hire), last) + 1), lastPay = lastDays * comp.total / 30;
   // advances still owed
   var done = {};
   readAll_(SHEETS.SLIP).forEach(function (sl) { if (sl.status === 'locked') lines_(sl).forEach(function (l) { if (l.code === 'advance' && l.ref) done[l.ref] = (done[l.ref] || 0) + l.amount; }); });
   var advances = 0;
   reqs.forEach(function (r) { if (r.type === 'advance' && r.status === 'approved') advances += Math.max(0, Number(r.amount) - (done[r.ref] || 0)); });
-  var gross = aw.award + leavePay + lastPay, net = gross - advances;
+  var loans = typeof loansOwed_ === 'function' ? loansOwed_(emp.id) : 0; // employee loans still owed (Loans.gs)
+  var gross = aw.award + leavePay + lastPay, net = gross - advances - loans;
   var dueDays = reason === 'resignation' ? 14 : 7;
   audit_(me.id, 'salary_view', emp.id, { eos: true, lastDay: last, reason: reason });
-  return { ok: true, eos: { hireDate: hire, lastDay: last, reason: reason, basis: s.eosWageBasis === 'basic_housing' ? 'basic_housing' : 'total',
+  return { ok: true, eos: { hireDate: hire, lastDay: last, reason: reason, basis: 'total', warnings: eosWarn,
     serviceDays: svc.days, unpaidExcluded: svc.excluded, years: r2_(svc.years), wage: r2_(wage),
     first5: r2_(aw.first5), after5: r2_(aw.after5), fullAward: r2_(aw.full), factor: r2_(aw.factor), award: r2_(aw.award),
     leaveDays: r2_(leaveDays), leavePay: r2_(leavePay), lastMonthDays: lastDays, lastMonthPay: r2_(lastPay), lastMonthLocked: locked,
-    advances: r2_(advances), gross: r2_(gross), net: r2_(net), total: r2_(aw.award + leavePay), dueBy: addDays_(last, dueDays), dueDays: dueDays } };
+    advances: r2_(advances), loans: r2_(loans), gross: r2_(gross), net: r2_(net), total: r2_(aw.award + leavePay), dueBy: addDays_(last, dueDays), dueDays: dueDays } };
 }
 
 // ---------------- payslip email (Microsoft 365, switched on later) ----------------

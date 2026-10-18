@@ -137,8 +137,8 @@ button{cursor:pointer}
 .topbar .who span{font-size:12px;color:#AFC0AD}
 .tk-bell{position:relative}.tk-bell i{font-size:20px}.tk-n{position:absolute;top:-4px;inset-inline-end:-4px;min-width:19px;height:19px;padding:0 5px;border-radius:10px;background:var(--amber);color:#1C2A1F;font-size:11px;font-weight:700;display:grid;place-items:center;box-shadow:0 0 0 2px var(--pine)}
 .tk-list{display:grid;gap:8px}.tk-row{display:flex;align-items:center;gap:12px;width:100%;text-align:start;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:var(--card);cursor:pointer;color:var(--ink);font-size:14.5px;transition:background-color .2s,transform .12s}
-.tk-row:hover{background:#FAF8F3}.tk-row:active{transform:translateY(1px)}.tk-row:focus-visible{outline:2px solid var(--brand);outline-offset:2px}.tk-ic{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:#E6EFE7;color:var(--brand);font-size:20px;flex:none}
-.tk-row.info .tk-ic{background:#E3EEFA;color:#2a78d6}.tk-t{flex:1;min-width:0}.tk-c{min-width:30px;height:28px;border-radius:9px;background:var(--pine);color:var(--cream);display:grid;place-items:center;font-size:13.5px;padding:0 8px}.tk-go{color:var(--ink-2)}
+.tk-row:hover{background:var(--well)}.tk-row:active{transform:translateY(1px)}.tk-row:focus-visible{outline:2px solid var(--brand);outline-offset:2px}.tk-ic{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:var(--brand-tint);color:var(--brand);font-size:20px;flex:none}
+.tk-row.info .tk-ic{background:var(--info-bg);color:var(--info)}.tk-t{flex:1;min-width:0}.tk-c{min-width:30px;height:28px;border-radius:9px;background:var(--pine);color:var(--cream);display:grid;place-items:center;font-size:13.5px;padding:0 8px}.tk-go{color:var(--ink-2)}
 .iconbtn{width:40px;height:40px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:var(--cream);display:grid;place-items:center;transition:transform .12s var(--ease)}
 .iconbtn:active{transform:scale(.92)}
 main{flex:1;display:flex;flex-direction:column}
@@ -552,7 +552,7 @@ table.tbl{width:100%;border-collapse:collapse;background:var(--card);font-size:1
   #map{height:440px}
 }
 @media (prefers-reduced-motion:reduce){
-  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+  *,*::before,*::after{animation-duration:.001ms!important;animation-delay:0s!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
 }
 </style>
 <style id="dsv2">
@@ -724,13 +724,7 @@ body.v2-on .tblwrap{overflow-x:auto}
 @keyframes v2in{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
 @keyframes v2pulse{0%{transform:scale(1);opacity:.55}70%,100%{transform:scale(2.6);opacity:0}}
 @media (prefers-reduced-motion:no-preference){
-  body.v2-on .v2-area :is(.list > .row,.db-tiles > *,.mf-cols > *),body.v2-on .hm-grid > *{animation:v2in .26s var(--ease) both}
-  body.v2-on .v2-area .list > .row:nth-child(2),body.v2-on .hm-grid > :nth-child(2),body.v2-on .v2-area .db-tiles > :nth-child(2){animation-delay:30ms}
-  body.v2-on .v2-area .list > .row:nth-child(3),body.v2-on .hm-grid > :nth-child(3),body.v2-on .v2-area .db-tiles > :nth-child(3){animation-delay:60ms}
-  body.v2-on .v2-area .list > .row:nth-child(4),body.v2-on .hm-grid > :nth-child(4),body.v2-on .v2-area .db-tiles > :nth-child(4){animation-delay:90ms}
-  body.v2-on .v2-area .list > .row:nth-child(5),body.v2-on .hm-grid > :nth-child(5),body.v2-on .v2-area .db-tiles > :nth-child(5){animation-delay:120ms}
-  body.v2-on .v2-area .list > .row:nth-child(6),body.v2-on .hm-grid > :nth-child(6),body.v2-on .v2-area .db-tiles > :nth-child(6){animation-delay:150ms}
-  body.v2-on .v2-area .list > .row:nth-child(n+7),body.v2-on .hm-grid > :nth-child(n+7),body.v2-on .v2-area .db-tiles > :nth-child(n+7){animation-delay:180ms}
+  /* entrance cascade moved to the motion system <style id="dsmo"> (2026-10-14) */
   .v2-chip.in i.dot{position:relative}
   .v2-chip.in i.dot::after{content:"";position:absolute;inset:0;border-radius:50%;background:currentColor;animation:v2pulse 2.4s var(--ease) infinite}
 }
@@ -859,9 +853,10 @@ body.v2-on :is(.num,.db-tile b,.kpi b,.stat b,.hm-facts dd,.hm-big b,.kpi .v){fo
 .v2-nav a[aria-current="page"]::before{content:"";position:absolute;inset-inline-start:-14px;top:9px;bottom:9px;width:4px;border-radius:0 4px 4px 0;background:var(--brand)}
 [dir="rtl"] .v2-nav a[aria-current="page"]::before{border-radius:4px 0 0 4px}
 .v2-nav .cnt{background:#FDE7C8;color:#8A4B00;font-family:var(--f-num)}
-[data-area="home"]{--a-bg:#E4F2E9;--a-fg:#1D6B43}[data-area="time"]{--a-bg:#D7F3EF;--a-fg:#0E7C70}[data-area="requests"]{--a-bg:#FEF0C7;--a-fg:#B54708}
-[data-area="pay"]{--a-bg:#DCFAE6;--a-fg:#067647}[data-area="growth"]{--a-bg:#D1E9FF;--a-fg:#175CD3}[data-area="people"]{--a-bg:#FCE7F6;--a-fg:#C11574}
-[data-area="insights"]{--a-bg:#E0EAFF;--a-fg:#3538CD}[data-area="settings"],[data-area="account"]{--a-bg:#EEF2F0;--a-fg:#44524A}[data-area="profile"]{--a-bg:#E4F2E9;--a-fg:#1D6B43}
+/* area tints: [data-area] is the nav (it routes); [data-tint] only colours (request-type tiles, page icons) and never routes */
+:is([data-area="home"],[data-tint="home"]){--a-bg:#E4F2E9;--a-fg:#1D6B43}:is([data-area="time"],[data-tint="time"]){--a-bg:#D7F3EF;--a-fg:#0E7C70}:is([data-area="requests"],[data-tint="requests"]){--a-bg:#FEF0C7;--a-fg:#B54708}
+:is([data-area="pay"],[data-tint="pay"]){--a-bg:#DCFAE6;--a-fg:#067647}:is([data-area="growth"],[data-tint="growth"]){--a-bg:#D1E9FF;--a-fg:#175CD3}:is([data-area="people"],[data-tint="people"]){--a-bg:#FCE7F6;--a-fg:#C11574}
+:is([data-area="insights"],[data-tint="insights"]){--a-bg:#E0EAFF;--a-fg:#3538CD}:is([data-area="settings"],[data-area="account"],[data-tint="settings"],[data-tint="account"]){--a-bg:#EEF2F0;--a-fg:#44524A}:is([data-area="profile"],[data-tint="profile"]){--a-bg:#E4F2E9;--a-fg:#1D6B43}
 /* ---- top bar: light glass ---- */
 .v2-top{height:64px;background:rgba(244,246,245,.86);backdrop-filter:saturate(160%) blur(12px);-webkit-backdrop-filter:saturate(160%) blur(12px);border-bottom:1px solid var(--line-2)}
 .v2-search{background:#fff;border-color:var(--line);border-radius:12px;height:40px;box-shadow:0 1px 2px rgba(15,28,20,.04)}
@@ -937,17 +932,7 @@ body.v2-on .drawer .panel{border-radius:20px 20px 0 0}
 @keyframes v3rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 @keyframes v3grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
 @keyframes v3pop{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}
-@media (prefers-reduced-motion:no-preference){
-  .v3-hero{animation:v3pop .45s var(--ease) both}
-  .v2-views{animation:v3rise .4s .05s var(--ease) both}
-  body.v2-on .v2-area > *,body.v2-on .hm-grid > *,body.v2-on :is(.db-tiles,.kpis,.stats) > *,body.v2-on .db-grid > *,body.v2-on .mf-cols > *{animation:v3rise .45s var(--ease) both}
-  body.v2-on :is(.hm-grid,.db-tiles,.kpis,.stats,.db-grid,.mf-cols) > :nth-child(2){animation-delay:.05s}
-  body.v2-on :is(.hm-grid,.db-tiles,.kpis,.stats,.db-grid,.mf-cols) > :nth-child(3){animation-delay:.1s}
-  body.v2-on :is(.hm-grid,.db-tiles,.kpis,.stats,.db-grid,.mf-cols) > :nth-child(4){animation-delay:.15s}
-  body.v2-on :is(.hm-grid,.db-tiles,.kpis,.stats,.db-grid,.mf-cols) > :nth-child(5){animation-delay:.2s}
-  body.v2-on :is(.hm-grid,.db-tiles,.kpis,.stats,.db-grid,.mf-cols) > :nth-child(n+6){animation-delay:.25s}
-  body.v2-on :is(.hbar i,.bar i,.hm-bar i,.db-hbar i,.meter i,.tr i,.pg-bar i){transform-origin:inline-start;animation:v3grow .9s .15s var(--ease) both}
-}
+/* rise, cascade, grow and count-up now live in the motion system <style id="dsmo"> (2026-10-14) */
 @media (max-width:900px){
   .v3-hero{grid-template-columns:auto minmax(0,1fr);padding:16px 18px;border-radius:18px;margin-bottom:12px}
   .v3-hero-stats{grid-column:1 / -1;justify-content:flex-start}
@@ -973,6 +958,292 @@ body.v2-on :is(.btn-dark,.btn-brand){border-radius:4px 4px var(--r-s) var(--r-s)
 body.v2-on :is(.btn,input,select,textarea,.v2-ib,.v2-search):focus-visible{outline:2px solid var(--brand);outline-offset:2px}
 body.v2-on main a:not(.btn):not([class]){text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;text-decoration-color:color-mix(in srgb,var(--brand) 45%,transparent)}
 body.v2-on main a:not(.btn):not([class]):hover{text-decoration-color:var(--brand)}
+</style>
+<style id="dsdark">
+/* ============ Dark appearance (2026-10-14; skills: dataviz, impeccable). Opt-in from the avatar menu (light / dark / system).
+   html[data-theme="dark"] remaps the v2/v3 tokens and the few white surfaces the layers hard-code. Check-in keeps its pine.
+   Chart series step to #1F7A4A / #C98500 / #4688E0 (validated on the #17201B card, see js/dashboard.js). ============ */
+html[data-theme="dark"] body.v2-on{color-scheme:dark}
+.v2-menu-th{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px;padding:2px 6px 2px 10px;font-size:14px;color:var(--ink)}.v2-menu-th > span{display:flex;align-items:center;gap:10px}.v2-menu-th > span i{font-size:18px;color:var(--ink-2)}
+.v2-menu-th > div{display:inline-flex;padding:2px;border-radius:9px;background:var(--well);gap:2px}.v2-menu .v2-menu-th button{width:34px;height:30px;padding:0;justify-content:center;border-radius:7px}.v2-menu .v2-menu-th button[aria-checked="true"]{background:var(--card);box-shadow:var(--sh-1)}.v2-menu .v2-menu-th button[aria-checked="true"] i{color:var(--ink)}
+html[data-theme="dark"] body.v2-on{
+  --paper:#0E1411; --frame:#121A15; --card:#17201B; --well:#1E2822; --ink:#E8EEE9; --ink-2:#BAC5BD; --ink-3:#95A299;
+  --line:#28342D; --line-2:#202B25; --input:#5A6A60; --brand:#7CCB9B; --brand-h:#9BDBB4; --brand-tint:rgba(124,203,155,.14); --on-brand:#0B1A11;
+  --ok:#6FD39A; --ok-bg:rgba(46,125,79,.26); --warn:#F2B957; --warn-bg:rgba(201,133,0,.22); --bad:#F4938A; --bad-bg:rgba(180,35,24,.28); --info:#8AB8F5; --info-bg:rgba(23,92,211,.26);
+  --sh-card:0 0 0 1px var(--line); --sh-lift:0 0 0 1px #34433A,0 18px 36px -18px rgba(0,0,0,.7); --sh-1:0 1px 2px rgba(0,0,0,.4); --sh-3:0 24px 60px -20px rgba(0,0,0,.75);
+  --pine:#2F6B48; background:var(--paper); color:var(--ink)
+}
+html[data-theme="dark"] body.v2-on :is(.home-wide,.hm-clock,.stamp,.v2-bottom){--pine:#1C2A1F}
+html[data-theme="dark"] .app.v2,html[data-theme="dark"] .v2-side{background:var(--frame)}
+html[data-theme="dark"] .v2-top{background:rgba(14,20,17,.86)}
+html[data-theme="dark"] :is(.v2-search,.v2-ib:hover,.v2-views button:not([aria-selected="true"])){background:var(--card)}
+html[data-theme="dark"] .v2-nav a:hover{background:var(--well)}
+html[data-theme="dark"] .v2-nav .cnt,html[data-theme="dark"] .v2-views .badge,html[data-theme="dark"] .v3-pill.hot{background:#5B3A0A;color:#FFD9A0}
+html[data-theme="dark"] :is([data-area],[data-tint]){--a-bg:rgba(124,203,155,.13);--a-fg:#8FD6AB}
+html[data-theme="dark"] .v2-views button[aria-selected="true"],html[data-theme="dark"] body.v2-on :is(.btn-dark,.btn-brand),html[data-theme="dark"] .v2 .mf-btn.pri,html[data-theme="dark"] .hm-btn{color:var(--on-brand)!important}
+html[data-theme="dark"] body.v2-on :is(.db-card,.mf-card,.hm-card,.v2-card,.set-card,.list,.tblwrap,.rp-grp,.rp-filt,.rp-tw,.cp-box,.cp-item,.mcal,.lc button,.lc .lc-x,.db-tile,.kpi,.stat,.hm-k){background:var(--card)!important}
+html[data-theme="dark"] body.v2-on .db-panel{background:transparent!important}
+html[data-theme="dark"] body.v2-on :is(.db-tiles,.kpis,.stats,.hm-kpis) > *{--t-bg:rgba(124,203,155,.12)}
+html[data-theme="dark"] body.v2-on :is(.db-tile,.kpi,.stat)::before{box-shadow:none}
+html[data-theme="dark"] body.v2-on :is(.row.click:hover,.tbl tbody tr:hover td,.tbl th){background:var(--well)}
+html[data-theme="dark"] body.v2-on .empty i{box-shadow:0 0 0 10px rgba(124,203,155,.06),0 0 0 20px rgba(124,203,155,.03)}
+html[data-theme="dark"] .sk{background:linear-gradient(90deg,#1E2822 0,#29352E 40%,#1E2822 80%);background-size:300% 100%}
+html[data-theme="dark"] body.v2-on :is(input,textarea)::placeholder{color:#7D8A81}
+html[data-theme="dark"] .v2-bottom{background:rgba(18,26,21,.94)}
+html[data-theme="dark"] .v3-hero{background:radial-gradient(120% 160% at 100% 0%,rgba(110,190,140,.28) 0%,transparent 55%),linear-gradient(135deg,#0F2B1C 0%,#1E4A31 58%,#2A6343 100%)}
+html[data-theme="dark"] .hm-k .ic{background:var(--well)!important}
+html[data-theme="dark"] .hm-k::after{opacity:.18}
+html[data-theme="dark"] .db-tip{background:#E8EEE9;color:#0E1411}
+html[data-theme="dark"] body.v2-on :is(.ps-box,.ps-facts div,.ps-net-side,.pn-side,.tk-row:hover,.rp-t tr.gh td,.rp-t tbody tr:hover td){background:var(--well)!important;color:var(--ink)}
+html[data-theme="dark"] .gauge .needle line,html[data-theme="dark"] .gauge .needle circle:first-of-type{stroke:var(--ink);fill:var(--ink)}
+@media print{html[data-theme="dark"]{color-scheme:light}}
+</style>
+<style id="dsfp">
+/* ============ Full pages (2026-10-14): a new request, a request's own page, a new claim. Same v3 / editorial language:
+   a back row, a quiet title block (no banner), numbered section cards on the start side, a sticky summary on the end side.
+   Phones: one column, the summary after the fields, the send button in a bar that stays above the bottom navigation. ============ */
+.fp-page{max-width:1180px!important}
+.fp-top{display:flex;align-items:center;gap:10px;margin:0 0 14px;flex-wrap:wrap}
+.fp-back{height:38px;padding:0 14px 0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-size:13.5px;font-weight:600;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.fp-back:hover{border-color:var(--input)}.fp-back i{font-size:17px}
+.fp-crumb{font-size:12.5px;color:var(--ink-3);display:flex;gap:6px;align-items:center;flex-wrap:wrap}.fp-crumb i{font-size:12px}
+.fp-title{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:16px;align-items:center;margin:0 0 20px}
+.fp-ic{width:56px;height:56px;border-radius:16px;display:grid;place-items:center;background:var(--brand-tint);color:var(--brand);font-size:28px}
+.fp-title h1{margin:0;font-size:27px;line-height:1.25;text-wrap:balance}.fp-title p{margin:3px 0 0;color:var(--ink-2);font-size:14px;max-width:70ch}
+.fp-chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;align-items:center}
+.fp-grid{display:grid;grid-template-columns:minmax(0,1fr) 370px;gap:20px;align-items:start}
+.fp-main,.fp-aside{display:grid;gap:16px;min-width:0}
+.fp-aside{position:sticky;top:12px}
+.fp-card{background:var(--card);border-radius:var(--r-m);box-shadow:var(--sh-card);padding:18px 20px;min-width:0}
+.fp-card > h2{margin:0 0 14px;font-size:16px;display:flex;align-items:center;gap:10px;line-height:1.35}
+.fp-card > h2 .sp{flex:1}
+.fp-n{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;flex:none;background:var(--brand);color:var(--on-brand,#fff);font-family:var(--f-num);font-size:13px;font-weight:700}
+.fp-card > h2 > i{font-size:19px;color:var(--brand)}
+.fp-who{display:grid;grid-template-columns:auto minmax(0,1fr);gap:14px;align-items:center}
+.fp-av{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;background:var(--brand-tint);color:var(--brand);font-family:var(--f-head);font-size:18px;font-weight:700}
+.fp-who b{display:block;font-size:16px}.fp-who small{display:block;color:var(--ink-3);font-size:12.5px}
+.fp-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:2px 16px;margin:14px 0 0;padding:12px 0 0;border-top:1px solid var(--line-2)}
+.fp-facts div{padding:4px 0}.fp-facts dt{font-size:12px;color:var(--ink-3)}.fp-facts dd{margin:0;font-size:14px;font-weight:600}
+.fp-sum{display:grid;gap:12px}
+.fp-big{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.fp-big b{font-family:var(--f-num);font-size:38px;font-weight:800;line-height:1.05;letter-spacing:-.02em;font-variant-numeric:tabular-nums}.fp-big span{color:var(--ink-2);font-size:14px}
+.fp-rows{display:grid;border-top:1px solid var(--line-2)}.fp-rows > div{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line-2);font-size:13.5px}
+.fp-rows > div > span{color:var(--ink-2)}.fp-rows > div > b{font-weight:600;text-align:end}
+.fp-state{display:flex;gap:10px;align-items:flex-start;border-radius:12px;padding:10px 12px;font-size:13.5px;line-height:1.55}
+.fp-state i{font-size:19px;flex:none;margin-top:1px}
+.fp-state.wait{background:var(--well);color:var(--ink-2)}.fp-state.ok{background:var(--ok-bg);color:var(--ok)}.fp-state.bad{background:var(--bad-bg);color:var(--bad)}.fp-state.warn{background:var(--warn-bg);color:var(--warn)}
+.fp-split{display:flex;height:12px;border-radius:6px;overflow:hidden;gap:2px;background:var(--well)}.fp-split i{display:block;height:100%}
+.fp-legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--ink-2)}.fp-legend span{display:inline-flex;align-items:center;gap:6px}.fp-legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.fp-chain{list-style:none;margin:0;padding:0;display:grid}
+.fp-chain li{display:grid;grid-template-columns:30px minmax(0,1fr);gap:10px;position:relative;padding-bottom:16px}
+.fp-chain li:last-child{padding-bottom:0}
+.fp-chain li::before{content:"";position:absolute;inset-inline-start:14px;top:30px;bottom:2px;width:2px;background:var(--line);border-radius:1px}
+.fp-chain li:last-child::before{display:none}
+.fp-chain li.done::before{background:var(--s1)}
+.fp-dot{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:15px;background:var(--well);color:var(--ink-3);position:relative;z-index:1}
+.fp-chain li.done .fp-dot{background:var(--ok-bg);color:var(--ok)}.fp-chain li.now .fp-dot{background:var(--brand);color:var(--on-brand,#fff);box-shadow:0 0 0 4px var(--brand-tint)}
+.fp-chain li.no .fp-dot{background:var(--bad-bg);color:var(--bad)}.fp-chain li.off .fp-dot{background:var(--well);color:var(--ink-3)}
+.fp-chain b{display:block;font-size:14px;line-height:1.4}.fp-chain small{display:block;color:var(--ink-3);font-size:12.5px;line-height:1.5}
+.fp-chain .note{margin-top:6px;padding:8px 10px;border-radius:10px;background:var(--well);color:var(--ink-2);font-size:13px}
+@media (prefers-reduced-motion:no-preference){.fp-chain li.now .fp-dot::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:2px solid var(--brand);opacity:0;animation:fpPulse 2.4s var(--ease-out) infinite}}@keyframes fpPulse{0%{transform:scale(.9);opacity:.6}70%,100%{transform:scale(1.35);opacity:0}}
+.fp-hints{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.fp-hints li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px;font-size:13px;line-height:1.6;color:var(--ink-2)}.fp-hints li i{font-size:18px;color:var(--info);margin-top:1px}
+.fp-mini{display:grid}.fp-mini > div{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line-2)}.fp-mini > div:first-child{border-top:0}
+.fp-mini .m{flex:1;min-width:0}.fp-mini .m b{display:block;font-size:13.5px;font-weight:600}.fp-mini .m small{display:block;color:var(--ink-3);font-size:12px}
+.fp-mini [data-open]{cursor:pointer}.fp-mini [data-open]:hover b{color:var(--brand)}
+.fp-drop{display:flex;gap:12px;align-items:center;border:1.5px dashed var(--input);border-radius:14px;padding:14px;color:var(--ink-2);font-size:13px;line-height:1.55}
+.fp-drop i{font-size:26px;color:var(--ink-3);flex:none}
+.fp-actions{display:grid;gap:8px}.fp-actions .btn{width:100%;justify-content:center;height:46px}
+.fp-types{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+.fp-type{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center;text-align:start;padding:16px;border-radius:var(--r-m);border:1px solid transparent;background:var(--card);box-shadow:var(--sh-card);color:var(--ink);font:inherit;cursor:pointer;transition:transform var(--mo-fast) var(--ease-out),box-shadow var(--mo-base) var(--ease-out),border-color var(--mo-base)}
+.fp-type .ti{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-size:24px;background:var(--a-bg,var(--brand-tint));color:var(--a-fg,var(--brand))}
+.fp-type b{display:block;font-size:15px}.fp-type small{display:block;color:var(--ink-3);font-size:12.5px;line-height:1.5;margin-top:2px}
+.fp-type > i{font-size:18px;color:var(--ink-3)}
+@media (hover:hover) and (pointer:fine){.fp-type:hover{transform:translateY(-2px);box-shadow:var(--sh-lift);border-color:var(--line)}}
+.fp-type:active{transform:scale(.98)}
+.fp-ok{display:grid;grid-template-columns:auto minmax(0,1fr);gap:14px;align-items:center;padding:16px 18px;border-radius:var(--r-m);background:var(--ok-bg);color:var(--ok);margin:0 0 18px}
+.fp-ok .ic{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:var(--ok);color:var(--card);font-size:24px}
+.fp-ok b{display:block;font-size:16px;color:var(--ink)}.fp-ok small{display:block;color:var(--ink-2);font-size:13px}
+@media (prefers-reduced-motion:no-preference){.fp-ok .ic{animation:moDot var(--mo-enter) var(--ease-spring) backwards;animation-delay:120ms}}
+.fp-bar{display:none}
+.fp-err{color:var(--bad);font-size:13.5px;margin:0}
+@media (max-width:1023px){
+  .fp-grid{grid-template-columns:minmax(0,1fr)}
+  .fp-aside{position:static}
+  .fp-title{grid-template-columns:auto minmax(0,1fr)}.fp-chips{grid-column:1 / -1;justify-content:flex-start}
+  .fp-title h1{font-size:22px}.fp-ic{width:46px;height:46px;font-size:23px;border-radius:14px}
+  .fp-aside .fp-actions.fp-desk{display:none}
+  /* the bar sits on the page's bottom padding; below 900px the bottom navigation already carries the safe area */
+  .fp-bar{display:flex;gap:10px;position:sticky;bottom:0;z-index:5;margin:16px calc(-1 * var(--pg-px,14px)) -28px;padding:10px var(--pg-px,14px) max(10px, env(safe-area-inset-bottom));background:color-mix(in srgb,var(--paper) 92%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid var(--line-2)}
+  .fp-bar .btn{flex:1;justify-content:center;height:48px}
+  .fp-bar .fp-sumline{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;font-size:12px;color:var(--ink-3)}.fp-bar .fp-sumline b{font-size:15px;color:var(--ink)}
+}
+@media print{.fp-top,.fp-bar,.fp-actions{display:none!important}.fp-grid{display:block}.fp-card{break-inside:avoid;margin-bottom:10px}}
+/* shared by the request and expense pages (moved from requests.js, 2026-10-14) */
+.rq-mini-av{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex:none;background:var(--brand-tint);color:var(--brand);font-size:17px}
+.rq-page .form .field{margin:0 0 14px}.rq-page .form .field:last-child{margin-bottom:0}
+@media (max-width:900px){.fp-bar{padding-bottom:10px}}
+</style>
+<style id="dspg">
+/* ============ Record pages and frozen headlines (2026-10-14). Skills: redesign-existing-projects, impeccable, ui-ux-pro-max,
+   design-taste-frontend, high-end-visual-design, stitch-design-taste, visual-hierarchy, motion-system, improve-animations,
+   kpi-dashboard-design, dataviz, accessibility-review.
+   1. Every page's headline (.pg-head: an area's banner + tabs, or a page's back row + title block) is sticky under the top bar,
+      solid paper behind it, a hairline shadow once stuck (.is-stuck) and a compact height when the page has room (.is-compact).
+   2. A record or form opened from a list is a full page (.dp-page) on top of that list, never a pop-up.
+   3. Table heads stick under the headline when the table fits its box (desktop). ============ */
+.page.v2{--pg-px:26px;--pg-pt:22px}
+@media (max-width:900px){.page.v2{--pg-px:14px;--pg-pt:14px}}
+.app.v2 > .v2-main > main{scroll-padding-top:calc(var(--head-h,0px) + 12px)} /* focus and in-page jumps never land under the headline (WCAG 2.4.11) */
+.pg-sent{display:block;height:1px;margin-bottom:-1px;pointer-events:none}
+.pg-head{position:sticky;top:0;z-index:6;background:var(--paper);margin:calc(-1 * var(--pg-pt)) calc(-1 * var(--pg-px)) 0;padding:var(--pg-pt) var(--pg-px) 0;transition:box-shadow var(--mo-base) var(--ease-out)}
+.pg-head.is-stuck{box-shadow:0 1px 0 var(--line-2),0 12px 20px -18px rgba(15,28,20,.45)}
+.pg-head.fp-head{padding-bottom:2px}
+.pg-head.fp-head.is-stuck{padding-bottom:10px}
+.pg-head .fp-title{margin-bottom:16px}
+.pg-head.is-stuck .fp-title{margin-bottom:0}
+.pg-head.is-compact{padding-top:8px}
+.pg-head.is-compact .fp-crumb,.pg-head.is-compact .fp-title p{display:none}
+.pg-head.is-compact .fp-top{margin-bottom:6px}
+.pg-head.is-compact .fp-ic{width:38px;height:38px;border-radius:11px;font-size:20px}
+.pg-head.is-compact .fp-title{gap:12px}
+.pg-head.is-compact .fp-title h1{font-size:19px}
+.pg-head.is-compact .fp-back{height:34px}
+/* an area's headline: the banner shrinks to one line, the tabs stay */
+.pg-head.pg-area.is-compact .v3-hero{padding:10px 16px;border-radius:14px;margin-bottom:10px;gap:12px}
+.pg-head.pg-area.is-compact .v3-hero p,.pg-head.pg-area.is-compact .v3-hero-stats .v3-pill:not(.hot){display:none}
+.pg-head.pg-area.is-compact .v3-hero-ic{width:36px;height:36px;border-radius:11px}.pg-head.pg-area.is-compact .v3-hero-ic i{font-size:20px}
+.pg-head.pg-area.is-compact .v3-hero h1{font-size:18px}
+.pg-head.pg-area.is-compact .v3-hero-stats{grid-column:auto}
+.pg-head.pg-area .v2-views{margin-bottom:0;padding-bottom:12px}
+.pg-head.pg-area.is-compact .v2-views{padding-bottom:8px}
+.pg-head.pg-area + .v2-area,.pg-head.pg-area ~ #v2Body{margin-top:6px}
+/* the check-in screen keeps its own flowing layout: nothing sticks there */
+.is-punch .pg-head{position:static;margin:0;padding:0;background:none;box-shadow:none}
+.is-punch .pg-sent{display:none}
+/* the old sticky summary column now sits under the frozen headline */
+.fp-aside{top:calc(var(--head-h,0px) + 12px)}
+/* table heads: a table that fits loses its own scroll box (pgFit) so its head row can stick under the headline */
+@media (min-width:901px){
+  body.v2-on .v2-main .tblwrap.fits{overflow:visible}
+  body.v2-on .v2-main .tblwrap.fits .tbl th{top:var(--head-h,0px);z-index:2}
+}
+/* ---- record pages (the drawer replacement) ---- */
+.dp-under{display:none!important}
+.dp-page{padding-top:var(--pg-pt)}
+.dp-panel{position:static;background:var(--card);border-radius:var(--r-m);box-shadow:var(--sh-card);padding:22px 24px;max-width:820px;margin-top:4px}
+.dp-panel.wide{max-width:none}
+.dp-panel.bare{background:none;box-shadow:none;padding:0;max-width:none;border-radius:0}
+.dp-panel > .dp-h3{display:none}
+.dp-panel > h3:not(.dp-h3),.dp-panel h4{font-family:var(--f-head)}
+.dp-panel .form{max-width:none}
+.dp-panel .lead{color:var(--ink-2)}
+/* forms: on phones the action row stays reachable above the bottom navigation */
+@media (max-width:900px){
+  .dp-panel{padding:16px;border-radius:var(--r-m)}
+  .dp-panel.bare{padding:0}
+  .dp-panel form > .btnrow:last-child,.dp-panel form > .btnrow:last-of-type:not(:first-child){position:sticky;bottom:0;z-index:4;margin:14px -16px -16px;padding:10px 16px;background:color-mix(in srgb,var(--card) 94%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid var(--line-2);border-radius:0 0 var(--r-m) var(--r-m)}
+  .dp-panel form > .btnrow:last-child .btn{flex:1;justify-content:center}
+}
+/* motion: a page arrives from the inline end (forward), the screen under it returns from the inline start (back) */
+@keyframes moPush{from{opacity:0;transform:translateX(calc(var(--mo-side,1) * 28px))}}
+.mo-push{animation:moPush var(--mo-enter) var(--ease-out) backwards;--mo-side:1}
+.mo-pop{animation:moPush var(--mo-enter) var(--ease-out) backwards;--mo-side:-1}
+[dir="rtl"] .mo-push{--mo-side:-1}[dir="rtl"] .mo-pop{--mo-side:1}
+@media (prefers-reduced-motion:reduce){.mo-push,.mo-pop{animation:none}}
+@media print{.pg-head{position:static!important;box-shadow:none!important;margin:0!important;padding:0!important}.pg-sent{display:none}.dp-panel{box-shadow:none;padding:0;max-width:none}}
+
+/* ---- record page building blocks (employee file, payslip, approval item, new employee) ---- */
+.rp-hero{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:20px;align-items:center;background:var(--card);border-radius:var(--r-l);box-shadow:var(--sh-card);padding:20px 22px;margin:4px 0 16px;position:relative;overflow:hidden}
+.rp-hero::before{content:"";position:absolute;inset-block:0;inset-inline-start:0;width:5px;background:var(--brand)}
+.rp-av{width:72px;height:72px;border-radius:20px;display:grid;place-items:center;font-family:var(--f-head);font-size:26px;font-weight:700;background:var(--brand-tint);color:var(--brand)}
+.rp-id b{display:block;font-family:var(--f-head);font-size:22px;line-height:1.3}.rp-id small{display:block;color:var(--ink-3);font-size:13px;margin-top:2px}
+.rp-id .rp-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.rp-ring{display:flex;align-items:center;gap:12px}.rp-ring > div b{display:block;font-size:14px}.rp-ring > div small{display:block;color:var(--ink-3);font-size:12px;max-width:22ch}
+.rp-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:0 0 16px}
+.rp-fact{background:var(--card);border-radius:14px;box-shadow:var(--sh-card);padding:12px 14px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 10px;align-items:center;min-width:0}
+.rp-fact > i{grid-row:span 2;width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:var(--a-bg,var(--brand-tint));color:var(--a-fg,var(--brand));font-size:19px}
+.rp-fact span{font-size:12px;color:var(--ink-3)}.rp-fact b{font-size:14.5px;font-weight:700;line-height:1.35;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.rp-fact b.warn{color:var(--warn)}.rp-fact b.bad{color:var(--bad)}
+.rp-sec{background:var(--card);border-radius:var(--r-m);box-shadow:var(--sh-card);padding:18px 20px;margin:0 0 16px;min-width:0}
+.rp-sec > h2{margin:0 0 14px;font-size:16px;display:flex;align-items:center;gap:10px;font-family:var(--f-head)}.rp-sec > h2 > i{font-size:20px;color:var(--brand)}.rp-sec > h2 .sp{flex:1}
+.rp-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px}
+.rp-tabs button{height:38px;padding:0 15px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink-2);font:inherit;font-weight:600;font-size:13.5px;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.rp-tabs button i{font-size:17px}
+.rp-tabs button[aria-selected="true"]{background:var(--brand);border-color:var(--brand);color:var(--on-brand,#fff)}
+.rp-grid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+.rp-grid > aside{position:sticky;top:calc(var(--head-h,0px) + 12px);display:grid;gap:16px}
+.rp-num{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+.rp-skel{display:grid;gap:14px}
+.rp-skel .sk{height:14px}
+@media (max-width:1023px){.rp-grid{grid-template-columns:minmax(0,1fr)}.rp-grid > aside{position:static}}
+@media (max-width:700px){.rp-hero{grid-template-columns:auto minmax(0,1fr);padding:16px}.rp-hero .rp-ring{grid-column:1 / -1}.rp-av{width:56px;height:56px;font-size:20px;border-radius:16px}.rp-id b{font-size:19px}}
+.cn-open{cursor:pointer;border-radius:8px}.cn-open:hover > b{color:var(--brand)}.cn-open:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.fp-top{flex-wrap:nowrap}.fp-crumb{flex:1;min-width:0;flex-wrap:nowrap;white-space:nowrap;overflow:hidden;mask-image:linear-gradient(to left,#000 85%,transparent);-webkit-mask-image:linear-gradient(to left,#000 85%,transparent)}[dir="ltr"] .fp-crumb{mask-image:linear-gradient(to right,#000 85%,transparent);-webkit-mask-image:linear-gradient(to right,#000 85%,transparent)}.fp-crumb span{flex:none}
+.sr-only{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+/* the frozen headline's key actions */
+.fp-chips .btn{height:38px}
+@media (max-width:1023px){.pg-head.is-compact .fp-chips{display:none}}
+</style>
+<style id="dsmo">
+/* ============ Motion system (2026-10-14; skills: anthropic-skills:motion-system, improve-animations / Emil Kowalski's rules).
+   One vocabulary for every screen. Principles: motion explains a change and never decorates; UI motion stays under 300 ms;
+   enter with a strong ease-out, never ease-in; only transform and opacity move; nothing scales from 0; every entrance
+   uses fill "backwards", so the end state is the element's own style (print and reduced motion lose nothing).
+   Tokens: --mo-fast press and toggles · --mo-base hover, small state changes · --mo-enter content entering, page and tab
+   changes · --mo-panel drawers and sheets · --mo-draw charts drawing in and numbers counting (JS reads --mo-count).
+   Reduced motion: every token drops to 1 ms (and the old global rule stops loops); count-up, needle and draw-in are skipped. ============ */
+:root{
+  --mo-fast:120ms; --mo-base:180ms; --mo-enter:260ms; --mo-panel:320ms; --mo-draw:620ms; --mo-count:700ms; --mo-stagger:36ms;
+  --ease-out:cubic-bezier(.23,1,.32,1); --ease-in-out:cubic-bezier(.77,0,.175,1); --ease-drawer:cubic-bezier(.32,.72,0,1); --ease-spring:cubic-bezier(.34,1.36,.64,1);
+}
+@media (prefers-reduced-motion:reduce){:root{--mo-fast:1ms;--mo-base:1ms;--mo-enter:1ms;--mo-panel:1ms;--mo-draw:1ms;--mo-count:1ms;--mo-stagger:0ms}}
+@keyframes moRise{from{opacity:0;transform:translateY(8px)}}
+@keyframes moFade{from{opacity:0}}
+@keyframes moSlide{from{opacity:0;transform:translateX(calc(var(--mo-dir,1) * 16px))}}
+@keyframes moSheet{from{opacity:0;transform:translateY(32px)}}
+@keyframes moSide{from{opacity:.4;transform:translateX(calc(var(--mo-side,1) * 40px))}}
+@keyframes moGrowY{from{transform:scaleY(0)}}
+@keyframes moGrowX{from{transform:scaleX(0)}}
+@keyframes moDraw{from{stroke-dashoffset:1}}
+@keyframes moRing{from{stroke-dashoffset:var(--c)}}
+@keyframes moDot{from{opacity:0;transform:scale(.5)}}
+/* 1. page and tab changes (goArea adds .mo-page for a new area, .mo-sub with --mo-dir for a tab; never on check-in) */
+.mo-page{animation:moRise var(--mo-enter) var(--ease-out) backwards}
+.mo-sub{animation:moSlide var(--mo-enter) var(--ease-out) backwards}
+/* 2. entrance cascade: one rule for every grid of cards and every list; --i is set per child (capped at 8) by v3Enhance */
+body.v2-on :is(.hm-grid,.hm-kpis,.db-tiles,.kpis,.stats,.db-grid,.mf-cols,.v2-area .list) > *{animation:moRise var(--mo-enter) var(--ease-out) backwards;animation-delay:calc(min(var(--i,0),8) * var(--mo-stagger))}
+body.v2-on :is(.hm-grid,.hm-kpis,.db-tiles,.kpis,.stats,.db-grid,.mf-cols,.v2-area .list) > :nth-child(2){--i:1}body.v2-on :is(.hm-grid,.hm-kpis,.db-tiles,.kpis,.stats,.db-grid,.mf-cols,.v2-area .list) > :nth-child(3){--i:2}body.v2-on :is(.hm-grid,.hm-kpis,.db-tiles,.kpis,.stats,.db-grid,.mf-cols,.v2-area .list) > :nth-child(4){--i:3}body.v2-on :is(.hm-grid,.hm-kpis,.db-tiles,.kpis,.stats,.db-grid,.mf-cols,.v2-area .list) > :nth-child(5){--i:4}body.v2-on :is(.hm-grid,.hm-kpis,.db-tiles,.kpis,.stats,.db-grid,.mf-cols,.v2-area .list) > :nth-child(6){--i:5}body.v2-on :is(.hm-grid,.hm-kpis,.db-tiles,.kpis,.stats,.db-grid,.mf-cols,.v2-area .list) > :nth-child(7){--i:6}body.v2-on :is(.hm-grid,.hm-kpis,.db-tiles,.kpis,.stats,.db-grid,.mf-cols,.v2-area .list) > :nth-child(8){--i:7}body.v2-on :is(.hm-grid,.hm-kpis,.db-tiles,.kpis,.stats,.db-grid,.mf-cols,.v2-area .list) > :nth-child(n+9){--i:8}body.v2-on :is(.hm-grid,.hm-kpis,.db-tiles,.kpis,.stats,.db-grid,.mf-cols,.v2-area .list) > .mo-swap{animation:moFade var(--mo-base) var(--ease-out) backwards;animation-delay:0s}
+body.v2-on .v2-area > *,body.v2-on .v3-hero,body.v2-on .v2-views{animation:none}
+/* 3. charts draw in: columns rise from the baseline, bars grow from their start, lines draw, areas and end dots follow */
+body.v2-on :is(.db-cols .c i,.db-cols .grp i){transform-origin:50% 100%;animation:moGrowY var(--mo-draw) var(--ease-out) backwards;animation-delay:calc(120ms + min(var(--i,0),16) * 22ms)}
+body.v2-on :is(.db-hb .tr i,.db-meter i,.hm-bar i,.stat .hbar i,.kpi .bar i,.pg-bar i,.meter i){transform-origin:0 50%;animation:moGrowX var(--mo-draw) var(--ease-out) backwards;animation-delay:calc(120ms + min(var(--i,0),12) * 30ms)}
+[dir="rtl"] body.v2-on :is(.db-hb .tr i,.db-meter i,.hm-bar i,.stat .hbar i,.kpi .bar i,.pg-bar i,.meter i){transform-origin:100% 50%}
+body.v2-on .db-stack{transform-origin:0 50%;animation:moGrowX var(--mo-draw) var(--ease-out) backwards}
+[dir="rtl"] body.v2-on .db-stack{transform-origin:100% 50%}
+body.v2-on .mo-line{stroke-dasharray:1;animation:moDraw calc(var(--mo-draw) * 1.4) var(--ease-in-out) backwards;animation-delay:100ms}
+body.v2-on .mo-area{animation:moFade var(--mo-draw) var(--ease-out) backwards;animation-delay:calc(var(--mo-draw) * .7)}
+body.v2-on .mo-dot{transform-box:fill-box;transform-origin:center;animation:moDot var(--mo-enter) var(--ease-spring) backwards;animation-delay:calc(var(--mo-draw) * 1.3)}
+body.v2-on .mo-ring{animation:moRing calc(var(--mo-draw) * 1.3) var(--ease-out) backwards;animation-delay:120ms}
+/* charts below the fold wait until they scroll into view (moObserve adds and removes .mo-wait) */
+.mo-wait,.mo-wait *{animation-play-state:paused!important}
+.mo-still > *,.mo-still > * *{animation:none!important}
+/* 4. hover and press: lift only on real pointers (touch fires false hovers), a 3% press everywhere */
+body.v2-on :is(.db-card,.mf-card,.hm-card,.set-card,.v2-card){transition:transform var(--mo-base) var(--ease-out),box-shadow var(--mo-base) var(--ease-out)}
+@media (hover:none){body.v2-on :is(.db-card,.mf-card,.hm-card,.set-card,.v2-card,.hm-k,.db-tile):hover{transform:none}}
+body.v2-on :is(.btn,.hm-mini,.hm-btn,.db-open,.db-filters button,.v2-views button,.hm-scope button,.v2-bottom button,.v2-ib,.v2-chip,.is-go){transition:transform var(--mo-fast) var(--ease-out),background-color var(--mo-base),border-color var(--mo-base),color var(--mo-base),box-shadow var(--mo-base)}
+body.v2-on :is(.btn,.hm-mini,.hm-btn,.db-open,.db-filters button,.v2-views button,.hm-scope button,.v2-bottom button,.v2-ib,.v2-chip):active{transform:scale(.97)}
+body.v2-on .is-go:active{transform:scale(.985)}
+@media (hover:hover) and (pointer:fine){body.v2-on .is-go:hover{transform:translateY(-2px);box-shadow:var(--sh-lift)!important}}
+/* 5. drawers: a sheet rises on phones; on desktop the panel slides in from the inline end; the scrim fades */
+body.v2-on .drawer{animation:moFade var(--mo-base) var(--ease-out) backwards}
+body.v2-on .drawer .panel{animation:moSheet var(--mo-panel) var(--ease-drawer) backwards}
+@media (min-width:1024px){body.v2-on .drawer .panel{animation-name:moSide}[dir="ltr"] body.v2-on .drawer .panel{--mo-side:1}[dir="rtl"] body.v2-on .drawer .panel{--mo-side:-1}}
+.v2-menu{animation:moRise var(--mo-base) var(--ease-out) backwards;transform-origin:top}
+/* 6. numbers never shift the layout while they count */
+body.v2-on :is(.db-tile b,.kpi b,.stat b,.hm-facts dd,.hm-big b,.hm-k .v,[data-count]){font-variant-numeric:tabular-nums}
+/* 7. theme switch cross-fades through the View Transitions API where the browser has it */
+::view-transition-old(root),::view-transition-new(root){animation-duration:var(--mo-enter);animation-timing-function:var(--ease-out)}
+@media print{.mo-page,.mo-sub,.mo-wait,.mo-wait *{animation:none!important}}
 </style>
 </head>
 <body>
@@ -1670,9 +1941,9 @@ var T = {
     oldPhone:'هاتفي لا يدعم Face ID / البصمة', tapMode:'تسجيل بالنقر', bioMode:'Face ID / بصمة', unlockTap:'دخول', allowDk:'السماح للأجهزة القديمة بالتسجيل بالنقر (بدون بصمة، داخل النطاق فقط)', f_no_biometric:'جهاز بدون بصمة (تسجيل بالنقر)', e_device_key_disabled:'التسجيل بالنقر موقوف، تواصل مع الموارد البشرية', e_no_devicekey:'هذا المتصفح قديم جداً، حدّث المتصفح',
     readyIn:'جاهز لتسجيل الحضور', readyOut:'جاهز لتسجيل الانصراف', moveCloser:'اقترب من المقر لتفعيل الزر', weakGps:'إشارة الموقع ضعيفة، اقترب من نافذة أو انتظر قليلاً',
     firstIn:'الحضور', lastOut:'الانصراف', worked:'ساعات العمل', shift:'الدوام', late:'تأخير', min:'د', h:'س',
-    doneIn:'تم تسجيل الحضور', doneOut:'تم تسجيل الانصراف', reviewNote:'سُجّل وسيُراجع من الموارد البشرية', close:'تم', closeX:'إغلاق', tkTitle:'مهامي', tkNone:'لا شيء ينتظرك الآن', tkNoneLead:'ستظهر هنا الطلبات والموافقات والمهام التي تحتاج إجراءك.',
+    doneIn:'تم تسجيل الحضور', doneOut:'تم تسجيل الانصراف', reviewNote:'سُجّل وسيُراجع من الموارد البشرية', close:'تم', closeX:'إغلاق', tkTitle:'مهامي', tkLead:'كل ما ينتظر قرارك أو إجراءك، مرتبا حسب القسم.', tkWaitingN:'بانتظارك: {n}', tkClear:'لا شيء معلق', tkNone:'لا شيء ينتظرك الآن', tkNoneLead:'ستظهر هنا الطلبات والموافقات والمهام التي تحتاج إجراءك.',
     tk_requests:'طلبات تنتظر قرارك', tk_salaries:'رواتب تنتظر اعتمادك', tk_payroll:'مسيرات رواتب تنتظر اعتمادك', tk_reports:'تقارير صادرة تنتظر مراجعتك', tk_recon:'فروقات أجور (التأمينات أو قوى) تنتظر إغلاقك',
-    tk_wps:'رفع ملف حماية الأجور ينتظر تأكيدك', tk_onboarding:'مهام انضمام مستحقة خلال أسبوع', tk_policies:'سياسات تحتاج إقرارك', tk_survey:'استبيان ينتظر مشاركتك', tk_plans:'خطة تطوير تنتظر اطلاعك', tk_delegated:'مفوض بالموافقات نيابة عن', tk_disc_respond:'مخالفة تنتظر ردك', tk_disc_decide:'قضايا تأديبية تنتظر القرار', tk_disc_objection:'تظلمات تنتظر البت', tk_injury:'إصابات عمل تنتظر المتابعة', tk_asset_ack:'عهد تنتظر إقرارك باستلامها', tk_asset_charge:'خصومات عهد تنتظر اعتمادك', tk_clearance:'مهام إخلاء طرف لك', tk_escalated:'بنود مصعدة إليك للعلم', tk_leavecycle:'مهام دورات إجازة لفريقك', tk_leavecycle_me:'مهام في إجازتك أو إجازة زميل تغطيه', tk_expense_approve:'مطالبات مصروفات تنتظر قرارك', tk_expense_pay:'مطالبات معتمدة تنتظر تسجيل الصرف', tk_gov_visa_issue:'تأشيرات معتمدة تنتظر التسجيل', tk_gov_visa_return:'لم يعودوا بعد انتهاء التأشيرة', tk_iqama_renewal:'إقامات تنتهي خلال 30 يوما', tk_ticket_due:'تذاكر سنوية مستحقة', tk_gov_fee_verify:'رسوم حكومية تنتظر التحقق', tk_ticket_approve:'تكاليف تذاكر تنتظر اعتمادك', tk_journal_import:'قيد رواتب ينتظر الاستيراد في أودو', tk_journal_confirm:'قيد رواتب ينتظر تأكيدك',
+    tk_wps:'رفع ملف حماية الأجور ينتظر تأكيدك', tk_onboarding:'مهام انضمام مستحقة خلال أسبوع', tk_policies:'سياسات تحتاج إقرارك', tk_survey:'استبيان ينتظر مشاركتك', tk_plans:'خطة تطوير تنتظر اطلاعك', tk_delegated:'مفوض بالموافقات نيابة عن', tk_disc_respond:'مخالفة تنتظر ردك', tk_disc_decide:'قضايا تأديبية تنتظر القرار', tk_disc_objection:'تظلمات تنتظر البت', tk_injury:'إصابات عمل تنتظر المتابعة', tk_asset_ack:'عهد تنتظر إقرارك باستلامها', tk_asset_charge:'خصومات عهد تنتظر اعتمادك', tk_clearance:'مهام إخلاء طرف لك', tk_escalated:'بنود مصعدة إليك للعلم', tk_leavecycle:'مهام دورات إجازة لفريقك', tk_leavecycle_me:'مهام في إجازتك أو إجازة زميل تغطيه', tk_expense_approve:'مطالبات مصروفات تنتظر قرارك', tk_expense_pay:'مطالبات معتمدة تنتظر تسجيل الصرف', tk_gov_visa_issue:'تأشيرات معتمدة تنتظر التسجيل', tk_gov_visa_return:'لم يعودوا بعد انتهاء التأشيرة', tk_iqama_renewal:'إقامات تنتهي خلال 30 يوما', tk_ticket_due:'تذاكر سنوية مستحقة', tk_gov_fee_verify:'رسوم حكومية تنتظر التحقق', tk_ticket_approve:'تكاليف تذاكر تنتظر اعتمادك', tk_journal_import:'قيد رواتب ينتظر الاستيراد في أودو', tk_journal_confirm:'قيد رواتب ينتظر تأكيدك', tk_recruit_req_approve:'طلبات توظيف تنتظر قرارك', tk_recruit_offer_approve:'عروض وظيفية تنتظر اعتمادك', tk_recruit_feedback:'مقابلات تنتظر تقييمك', tk_recruit_hire:'عروض مقبولة تنتظر التعيين', tk_recruit_purge:'بيانات مرشحين حان موعد محوها', tk_loan_approve:'طلبات قروض تنتظر قرارك', tk_loan_disburse:'قروض معتمدة تنتظر تسجيل الصرف', tk_loan_settle_verify:'سدادات مبكرة تنتظر التحقق', tk_training_request:'طلبات تدريب تنتظر قرارك', tk_training_mark:'دورات انتهت تنتظر تسجيل النتائج', tk_insurance_move:'حركات تأمين طبي تنتظر الإجراء', tk_insurance_request:'طلبات إضافة مرافقين للتأمين', tk_announcement_ack:'إعلانات تنتظر إقرارك', tk_hd_unassigned:'طلبات دعم بلا مسؤول', tk_hd_assigned:'طلبات دعم مسندة إليك', tk_hd_reply:'طلب دعم ينتظر ردك',
     punchFailed:'لم يتم التسجيل', todayTitle:'اليوم',
     histTitle:'سجل الحضور', present:'أيام الحضور', totalHours:'مجموع الساعات', lateDays:'أيام التأخير', absent:'غياب',
     st_in:'داخل الدوام', st_present:'حاضر', st_absent:'غائب', st_leave:'في إجازة', st_holiday:'عطلة رسمية', kLeave:'في إجازة', st_off:'عطلة', st_upcoming:'لم يحضر بعد', st_missing_out:'بلا انصراف',
@@ -1731,9 +2002,9 @@ var T = {
     oldPhone:'My phone has no Face ID / fingerprint', tapMode:'Tap check-in', bioMode:'Face ID / fingerprint', unlockTap:'Sign in', allowDk:'Let older phones check in with a tap (no biometric, inside the zone only)', f_no_biometric:'No biometric (tap check-in)', e_device_key_disabled:'Tap check-in is switched off. Contact HR.', e_no_devicekey:'This browser is too old. Update it.',
     readyIn:'Ready to check in', readyOut:'Ready to check out', moveCloser:'Move closer to HQ to enable the button', weakGps:'Weak location signal. Move near a window or wait a moment',
     firstIn:'In', lastOut:'Out', worked:'Worked', shift:'Shift', late:'Late', min:'m', h:'h',
-    doneIn:'Checked in', doneOut:'Checked out', reviewNote:'Recorded, HR will review it', close:'Done', closeX:'Close', tkTitle:'My tasks', tkNone:'Nothing is waiting for you', tkNoneLead:'Requests, approvals and tasks that need your action appear here.',
+    doneIn:'Checked in', doneOut:'Checked out', reviewNote:'Recorded, HR will review it', close:'Done', closeX:'Close', tkTitle:'My tasks', tkLead:'Everything waiting for your decision or action, by area.', tkWaitingN:'Waiting for you: {n}', tkClear:'All clear', tkNone:'Nothing is waiting for you', tkNoneLead:'Requests, approvals and tasks that need your action appear here.',
     tk_requests:'Requests waiting for your decision', tk_salaries:'Salaries waiting for your approval', tk_payroll:'Payroll runs waiting for your approval', tk_reports:'Exported reports waiting for your review', tk_recon:'Wage mismatches (GOSI or Qiwa) waiting for you',
-    tk_wps:'WPS upload waiting for your confirmation', tk_onboarding:'Onboarding tasks due within a week', tk_policies:'Policies to acknowledge', tk_survey:'A survey waiting for you', tk_plans:'A development plan to read', tk_delegated:'Approving on behalf of', tk_disc_respond:'A violation waiting for your reply', tk_disc_decide:'Disciplinary cases waiting for a decision', tk_disc_objection:'Objections waiting for a ruling', tk_injury:'Work injuries to follow up', tk_asset_ack:'Assets to confirm you received', tk_asset_charge:'Asset charges waiting for your approval', tk_clearance:'Clearance tasks for you', tk_escalated:'Items escalated to you for information', tk_leavecycle:'Leave-cycle tasks for your team', tk_leavecycle_me:'Tasks in your leave or a colleague\'s you cover', tk_expense_approve:'Expense claims waiting for your decision', tk_expense_pay:'Approved claims waiting for payment', tk_gov_visa_issue:'Approved visas to record', tk_gov_visa_return:'Not back after the visa expired', tk_iqama_renewal:'Iqamas expiring within 30 days', tk_ticket_due:'Annual tickets due', tk_gov_fee_verify:'Government fees to verify', tk_ticket_approve:'Ticket costs waiting for your approval', tk_journal_import:'Payroll journal waiting for the Odoo import', tk_journal_confirm:'Payroll journal waiting for your confirmation',
+    tk_wps:'WPS upload waiting for your confirmation', tk_onboarding:'Onboarding tasks due within a week', tk_policies:'Policies to acknowledge', tk_survey:'A survey waiting for you', tk_plans:'A development plan to read', tk_delegated:'Approving on behalf of', tk_disc_respond:'A violation waiting for your reply', tk_disc_decide:'Disciplinary cases waiting for a decision', tk_disc_objection:'Objections waiting for a ruling', tk_injury:'Work injuries to follow up', tk_asset_ack:'Assets to confirm you received', tk_asset_charge:'Asset charges waiting for your approval', tk_clearance:'Clearance tasks for you', tk_escalated:'Items escalated to you for information', tk_leavecycle:'Leave-cycle tasks for your team', tk_leavecycle_me:'Tasks in your leave or a colleague\'s you cover', tk_expense_approve:'Expense claims waiting for your decision', tk_expense_pay:'Approved claims waiting for payment', tk_gov_visa_issue:'Approved visas to record', tk_gov_visa_return:'Not back after the visa expired', tk_iqama_renewal:'Iqamas expiring within 30 days', tk_ticket_due:'Annual tickets due', tk_gov_fee_verify:'Government fees to verify', tk_ticket_approve:'Ticket costs waiting for your approval', tk_journal_import:'Payroll journal waiting for the Odoo import', tk_journal_confirm:'Payroll journal waiting for your confirmation', tk_recruit_req_approve:'Hiring requests waiting for your decision', tk_recruit_offer_approve:'Job offers waiting for your approval', tk_recruit_feedback:'Interviews waiting for your score', tk_recruit_hire:'Accepted offers waiting to be hired', tk_recruit_purge:'Candidate data due for erasure', tk_loan_approve:'Loan requests waiting for your decision', tk_loan_disburse:'Approved loans waiting for the payout', tk_loan_settle_verify:'Early repayments waiting for verification', tk_training_request:'Training requests waiting for your decision', tk_training_mark:'Finished sessions waiting for results', tk_insurance_move:'Medical insurance changes to process', tk_insurance_request:'Requests to add dependants to insurance', tk_announcement_ack:'Announcements to acknowledge', tk_hd_unassigned:'Help desk tickets with nobody assigned', tk_hd_assigned:'Help desk tickets assigned to you', tk_hd_reply:'A help desk ticket waiting for your reply',
     punchFailed:'Not recorded', todayTitle:'Today',
     histTitle:'Attendance record', present:'Days present', totalHours:'Total hours', lateDays:'Late days', absent:'Absent',
     st_in:'On shift', st_present:'Present', st_absent:'Absent', st_leave:'On leave', st_holiday:'Public holiday', kLeave:'On leave', st_off:'Day off', st_upcoming:'Not in yet', st_missing_out:'No check-out',
@@ -1787,7 +2058,9 @@ function toast(msg){ var d = document.createElement('div'); d.className = 'toast
 var PLURALS = {
   people: { ar: ['موظف واحد', 'موظفان', 'موظفين', 'موظفا', 'موظف'], en: ['person', 'people'] },
   days: { ar: ['يوم واحد', 'يومان', 'أيام', 'يوما', 'يوم'], en: ['day', 'days'] },
-  rows: { ar: ['صف واحد', 'صفان', 'صفوف', 'صفا', 'صف'], en: ['row', 'rows'] }
+  rows: { ar: ['صف واحد', 'صفان', 'صفوف', 'صفا', 'صف'], en: ['row', 'rows'] },
+  months: { ar: ['شهر واحد', 'شهران', 'أشهر', 'شهرا', 'شهر'], en: ['month', 'months'] },
+  years: { ar: ['سنة واحدة', 'سنتان', 'سنوات', 'سنة', 'سنة'], en: ['year', 'years'] }
 };
 function plural(n, key){
   var f = PLURALS[key][S.lang] || PLURALS[key].en, num = Number(n).toLocaleString(LOCALE());
@@ -1878,7 +2151,8 @@ function api(action, payload, quiet){
 // Screens already seen show their last answer at once while a fresh one loads (kept in memory only,
 // dropped on lock and after any change). Most clicks then feel instant instead of waiting ~2 s for Google.
 var READ_CACHE = {};
-var CLIENT_READS = { shiftList: 1, rosterList: 1, discCodes: 1, discList: 1, injuryList: 1, assetList: 1, clearanceList: 1, myFile: 1, myRequests: 1, hrBootstrap: 1, hrCompList: 1, hrExpiring: 1, hrTeam: 1, hrEmpFile: 1, reqInbox: 1,
+var CLIENT_READS = { recruitReqList: 1, recruitCandList: 1, recruitCandGet: 1, recruitBoard: 1, recruitOfferLetter: 1, loanQuote: 1, myLoans: 1, loanList: 1, myTraining: 1, trainSessionList: 1, trainMatrix: 1, courseList: 1,
+  myInsurance: 1, insList: 1, insCost: 1, insPolicyList: 1, myAnnouncements: 1, annList: 1, hdMine: 1, hdList: 1, hdGet: 1, shiftList: 1, rosterList: 1, discCodes: 1, discList: 1, injuryList: 1, assetList: 1, clearanceList: 1, myFile: 1, myRequests: 1, hrBootstrap: 1, hrCompList: 1, hrExpiring: 1, hrTeam: 1, hrEmpFile: 1, reqInbox: 1,
   leaveTeam: 1, holidayList: 1, leaveBalances: 1, myHistory: 1, me: 1, board: 1, empList: 1, zoneList: 1, report: 1, reviewList: 1,
   auditList: 1, settingsGet: 1, requestQuote: 1, dashboard: 1, mySlips: 1, payrollList: 1, eosQuote: 1, myPerformance: 1, perfTeam: 1, perfEmp: 1, feedbackResults: 1, perfCycleList: 1, perfOverview: 1, reportCatalog: 1, reportRun: 1, reportLog: 1, reportVerify: 1, myTasks: 1, delegationList: 1, reconList: 1, complianceCalendar: 1, wpsFile: 1, onboardList: 1, mySurveys: 1, surveyResults: 1, policyList: 1, planList: 1, hrDirectory: 1, hrDeptList: 1, hrPositionList: 1, hrDocList: 1, hrImportValidate: 1,
   authBegin: 1, punchBegin: 1, bootstrapStatus: 1, ping: 1 };
@@ -2296,6 +2570,10 @@ function renderLock(){
   READ_CACHE = {};
   // Locking destroys the session in the browser: the PIN lock is not just a screen over a live token.
   S.auth = 'dev'; S.token = null; store('token', null); S.me = null;
+  // nothing of the last person's screens survives a lock: kept records, open pages, typed drafts, the page in the URL
+  S.reqSeen = null; S.xpSeen = null; S.fullPage = ''; S.subArg = ''; S.pendingPage = null; S.draft = null; S.reqJust = null; S.xpJust = null;
+  if (typeof DP === 'object' && DP) { DP.stack = []; DP.queue = []; DP.pending = 0; }
+  try { sessionStorage.removeItem('bgReqKept'); } catch (e) {}
   clearInterval(lockRefresh);
   if (S.pwOnly) return renderPwLogin(S.empNo);
   rerender = renderLock;
@@ -2503,9 +2781,13 @@ var LOGO_INK = '';
 function logoInk(){ return LOGO_INK || LOGO; }
 /** #area or #area/sub; the old #hr and #file links still land somewhere sensible. */
 function areaFromHash(){
-  var h = location.hash.replace(/^#/, '').split('/'), a = { hr: 'people', file: 'profile', me: 'account', admin: 'time', history: 'time' }[h[0]] || h[0];
+  // #area/sub[/arg]/~key/arg: the part after "~" is a record page opened on top (reopened by renderShell once the area is up)
+  var raw = location.hash.replace(/^#/, ''), ti = raw.indexOf('/~');
+  S.pendingPage = ti >= 0 ? { seg: raw.slice(ti + 2), o: {} } : null;
+  var h = (ti >= 0 ? raw.slice(0, ti) : raw).split('/'), a ={ hr: 'people', file: 'profile', me: 'account', admin: 'time', history: 'time' }[h[0]] || h[0];
   S.sub = S.sub || {};
   if (h[0] === 'history') S.sub.time = 'history'; else if (h[0] === 'admin') S.sub.time = 'board'; else if (h[1]) S.sub[a] = h[1];
+  S.subArg = h[2] ? decodeURIComponent(h[2]) : '';
   return areaOf(a) ? a : 'home';
 }
 function enterApp(home){
@@ -2541,7 +2823,7 @@ Object.assign(T.ar, {
   vwMine:'طلباتي', vwInbox:'الموافقات', vwLeave:'تقويم الإجازات', vwHolidays:'العطل الرسمية',
   vwSlips:'قسائمي', vwRuns:'مسيرات الرواتب', vwApprovals:'اعتماد الرواتب', vwCompliance:'الامتثال',
   vwGrowth:'أدائي', vwCycle:'دورة التقييم', vwPlans:'خطط التطوير', vwPulse:'نبض الموظفين',
-  vwDirectory:'الدليل', vwTeam:'فريقي', vwOrg:'الهيكل', vwPositions:'الوظائف', vwOnboarding:'التهيئة', vwOffboarding:'إخلاء الطرف', vwCustody:'العهد', vwCentre:'مركز الموافقات', vwCycles:'دورة الإجازة', vwExpenses:'المصروفات', vwFlows:'مسارات الموافقة', vwGov:'الخدمات الحكومية', vwJournal:'قيد الرواتب',
+  vwDirectory:'الدليل', vwTeam:'فريقي', vwOrg:'الهيكل', vwPositions:'الوظائف', vwOnboarding:'التهيئة', vwOffboarding:'إخلاء الطرف', vwCustody:'العهد', vwCentre:'مركز الموافقات', vwCycles:'دورة الإجازة', vwExpenses:'المصروفات', vwNewReq:'طلب جديد', vwReqView:'تفاصيل الطلب', vwNewClaim:'مطالبة مصروفات جديدة', vwClaimView:'مطالبة مصروفات', fpBack:'رجوع', fpCrumb:'مسار الصفحة', vwFlows:'مسارات الموافقة', vwGov:'الخدمات الحكومية', vwRecruit:'التوظيف', vwTraining:'التدريب والشهادات', vwInsurance:'التأمين الطبي', vwLoans:'القروض', vwHelpdesk:'مكتب الدعم', vwAnnounce:'الإعلانات', vwJournal:'قيد الرواتب',
   vwRelations:'علاقات العمل', vwPolicies:'السياسات', vwExpiring:'وثائق تنتهي', vwImport:'استيراد', vwAccounts:'الدخول والأجهزة',
   vwDashboard:'لوحة الإدارة', vwReports:'التقارير', vwAttendance:'تقرير الحضور', vwAudit:'سجل التدقيق', vwMain:'',
   v2System:'نظام الموارد البشرية', v2Search:'ابحث عن موظف أو صفحة', v2Menu:'القائمة', v2More:'المزيد', v2Punch:'بصمة', v2MyPay:'راتبي', v2Req:'الطلبات', v2PeopleS:'الموظفون',
@@ -2564,6 +2846,7 @@ Object.assign(T.ar, {
   secCo:'ملف الشركة', secCoLead:'الاسم والسجل التجاري والرقم الضريبي والعنوان. تظهر في رأس كل خطاب وشهادة وقسيمة راتب وتقرير.',
   coNameAr:'اسم الشركة بالعربية', coNameEn:'اسم الشركة بالإنجليزية', coShortAr:'الاسم المختصر بالعربية', coShortEn:'الاسم المختصر بالإنجليزية',
   coCr:'رقم السجل التجاري (10 أرقام)', coVat:'الرقم الضريبي (15 رقما)', coAddrAr:'العنوان بالعربية', coAddrEn:'العنوان بالإنجليزية',
+  v2Theme:'المظهر', thLight:'فاتح', thDark:'داكن', thSystem:'حسب الجهاز',
   v2Print:'طباعة', v2Excel:'تصدير إلى Excel', v2NoTable:'لا توجد جداول أو قوائم في هذه الصفحة لتصديرها.', v2PrintedBy:'طبعه', v2PrintedAt:'التاريخ',
   v2Sheets:'عدد الأوراق', v2Exported:'نزل ملف Excel', v2XlNote:'كل جدول في الصفحة في ورقة مستقلة. الإجماليات تتبع المرشحات المطبقة في Excel.',
   e_bad_setting:'قيمة غير صحيحة في الإعداد: {key}.', e_cannot_change_own_roles:'لا يمكنك منح صلاحياتك الإضافية أو سحبها بنفسك؛ يغيّرها مسؤول نظام آخر.',
@@ -2586,7 +2869,7 @@ Object.assign(T.en, {
   vwMine:'My requests', vwInbox:'Approvals', vwLeave:'Leave calendar', vwHolidays:'Public holidays',
   vwSlips:'My payslips', vwRuns:'Payroll runs', vwApprovals:'Salary approvals', vwCompliance:'Compliance',
   vwGrowth:'My growth', vwCycle:'Review cycle', vwPlans:'Development plans', vwPulse:'Pulse survey',
-  vwDirectory:'Directory', vwTeam:'My team', vwOrg:'Organisation', vwPositions:'Positions', vwOnboarding:'Onboarding', vwOffboarding:'Offboarding', vwCustody:'Assets', vwCentre:'Approvals centre', vwCycles:'Leave cycle', vwExpenses:'Expenses', vwFlows:'Approval flows', vwGov:'Government services', vwJournal:'Payroll journal',
+  vwDirectory:'Directory', vwTeam:'My team', vwOrg:'Organisation', vwPositions:'Positions', vwOnboarding:'Onboarding', vwOffboarding:'Offboarding', vwCustody:'Assets', vwCentre:'Approvals centre', vwCycles:'Leave cycle', vwExpenses:'Expenses', vwNewReq:'New request', vwReqView:'Request details', vwNewClaim:'New expense claim', vwClaimView:'Expense claim', fpBack:'Back', fpCrumb:'Breadcrumb', vwFlows:'Approval flows', vwGov:'Government services', vwRecruit:'Recruitment', vwTraining:'Training and certificates', vwInsurance:'Medical insurance', vwLoans:'Loans', vwHelpdesk:'Help desk', vwAnnounce:'Announcements', vwJournal:'Payroll journal',
   vwRelations:'Employee relations', vwPolicies:'Policies', vwExpiring:'Expiring documents', vwImport:'Import', vwAccounts:'Logins & devices',
   vwDashboard:'Dashboard', vwReports:'Reports', vwAttendance:'Attendance report', vwAudit:'Audit log', vwMain:'',
   v2System:'HR system', v2Search:'Search people or pages', v2Menu:'Menu', v2More:'More', v2Punch:'Punch', v2MyPay:'My pay', v2Req:'Requests', v2PeopleS:'People',
@@ -2609,6 +2892,7 @@ Object.assign(T.en, {
   secCo:'Company profile', secCoLead:'Name, commercial registration, VAT number and address. They head every letter, certificate, payslip and report.',
   coNameAr:'Company name in Arabic', coNameEn:'Company name in English', coShortAr:'Short name in Arabic', coShortEn:'Short name in English',
   coCr:'Commercial registration (10 digits)', coVat:'VAT number (15 digits)', coAddrAr:'Address in Arabic', coAddrEn:'Address in English',
+  v2Theme:'Appearance', thLight:'Light', thDark:'Dark', thSystem:'Device',
   v2Print:'Print', v2Excel:'Export to Excel', v2NoTable:'This page has no table or list to export.', v2PrintedBy:'Printed by', v2PrintedAt:'Date',
   v2Sheets:'Sheets', v2Exported:'Excel file downloaded', v2XlNote:'Each table on the page is its own sheet. Totals follow the filters you apply in Excel.',
   e_bad_setting:'Invalid value for the setting: {key}.', e_cannot_change_own_roles:'You cannot grant or remove your own extra roles; another administrator must do it.',
@@ -2627,11 +2911,13 @@ function any(){ var ks = Array.prototype.slice.call(arguments); return function(
 function ALL(){ return true; }
 /** Pay amounts: the hr role or a payroll holder. An admin alone gets forbidden on the server, so the pages stay hidden. */
 function salaryOk(){ var r = R(); return r.payroll || (r.hr && !isAdmin()); }
-var MY_FILES = ['js/dashboard.js', 'js/doc.js', 'js/my-file.js', 'js/requests.js', 'js/payroll.js', 'js/performance.js', 'js/engage.js', 'js/ops.js', 'js/flows.js', 'js/gov.js'];
+var MY_FILES = ['js/dashboard.js', 'js/doc.js', 'js/my-file.js', 'js/requests.js', 'js/payroll.js', 'js/performance.js', 'js/engage.js', 'js/ops.js', 'js/flows.js', 'js/gov.js', 'js/wave2.js'];
 var FLOW_FILES = ['js/dashboard.js', 'js/doc.js', 'js/requests.js', 'js/flows.js'];
 function approverOk(){ return isHr() || any('hr', 'payroll', 'manager', 'executive')(); }
 var HR_FILES = ['js/doc.js', 'js/my-file.js', 'js/requests.js', 'js/payroll.js', 'js/performance.js', 'js/dashboard.js', 'js/reports.js', 'js/engage.js', 'js/compliance.js', 'js/hr-console.js'];
 var OPS_FILES = HR_FILES.concat(['js/ops.js']);
+/** Wave 2 (2026-10-18): recruitment, loans, training, insurance, announcements, help desk in one module. */
+var W2_FILES = ['js/dashboard.js', 'js/doc.js', 'js/wave2.js'];
 var AREAS = [
   { id: 'home', i: 'house', bare: true, subs: [{ id: 'main', n: 'vwMain', ok: ALL, files: ['js/dashboard.js', 'js/compliance.js', 'js/home.js'], run: function(b){ Home.render(b); } }] },
   { id: 'time', i: 'clock', subs: [
@@ -2647,30 +2933,41 @@ var AREAS = [
     { id: 'centre', n: 'vwCentre', ok: approverOk, files: FLOW_FILES, run: function(b){ Flows.centre(b); } },
     { id: 'cycles', n: 'vwCycles', ok: function(){ return isHr() || any('hr', 'payroll', 'manager')(); }, files: FLOW_FILES, run: function(b){ Flows.cycles(b); } },
     { id: 'expenses', n: 'vwExpenses', ok: ALL, files: ['js/doc.js', 'js/expenses.js'], run: function(b){ Expense.page(b); } },
+    { id: 'helpdesk', n: 'vwHelpdesk', ok: function(){ return isHr() || any('hr', 'payroll')(); }, files: W2_FILES, run: function(b){ Desk.section(b); } },
     { id: 'leave', n: 'vwLeave', ok: any('hr', 'manager'), sec: 'leave' },
     { id: 'holidays', n: 'vwHolidays', ok: any('hr'), sec: 'holidays' },
-    { id: 'flows', n: 'vwFlows', ok: isHr, files: FLOW_FILES, run: function(b){ Flows.config(b); } }] },
+    { id: 'flows', n: 'vwFlows', ok: isHr, files: FLOW_FILES, run: function(b){ Flows.config(b); } },
+    // full pages (2026-10-14): a new request, a request's own page, a new expense claim; routed as #requests/new/leave, #requests/view/<id>
+    { id: 'new', n: 'vwNewReq', ok: ALL, page: 1, files: MY_FILES, run: function(b, arg){ Req.newPage(b, arg); } },
+    { id: 'view', n: 'vwReqView', ok: ALL, page: 1, files: MY_FILES, run: function(b, arg){ Req.viewPage(b, arg); } },
+    { id: 'claim', n: 'vwNewClaim', ok: ALL, page: 1, files: ['js/dashboard.js', 'js/doc.js', 'js/expenses.js'], run: function(b){ Expense.newPage(b); } },
+    { id: 'claimview', n: 'vwClaimView', ok: ALL, page: 1, files: ['js/dashboard.js', 'js/doc.js', 'js/expenses.js'], run: function(b, arg){ Expense.viewPage(b, arg); } }] },
   { id: 'pay', i: 'wallet', subs: [
     { id: 'slips', n: 'vwSlips', ok: ALL, files: MY_FILES, run: mySlipsView },
     { id: 'runs', n: 'vwRuns', ok: salaryOk, sec: 'payroll' },
     { id: 'approvals', n: 'vwApprovals', ok: salaryOk, sec: 'approvals' },
     { id: 'compliance', n: 'vwCompliance', ok: salaryOk, sec: 'compliance' },
-    { id: 'journal', n: 'vwJournal', ok: salaryOk, files: ['js/doc.js', 'js/journal.js'], run: function(b){ Journal.section(b); } }] },
+    { id: 'journal', n: 'vwJournal', ok: salaryOk, files: ['js/doc.js', 'js/journal.js'], run: function(b){ Journal.section(b); } },
+    { id: 'loans', n: 'vwLoans', ok: function(){ return isHr() || any('hr', 'payroll')(); }, files: W2_FILES, run: function(b){ Loans.section(b); } }] },
   { id: 'growth', i: 'trend-up', subs: [
     { id: 'me', n: 'vwGrowth', ok: ALL, files: MY_FILES, run: myGrowthView },
     { id: 'cycle', n: 'vwCycle', ok: any('hr', 'manager'), sec: 'performance' },
     { id: 'plans', n: 'vwPlans', ok: any('hr', 'manager'), sec: 'plans' },
-    { id: 'pulse', n: 'vwPulse', ok: any('hr', 'executive', 'payroll'), sec: 'engagement' }] },
+    { id: 'pulse', n: 'vwPulse', ok: any('hr', 'executive', 'payroll'), sec: 'engagement' },
+    { id: 'training', n: 'vwTraining', ok: function(){ return isHr() || any('hr', 'manager', 'executive')(); }, files: W2_FILES, run: function(b){ Training.section(b); } }] },
   { id: 'people', i: 'users-three', subs: [
     { id: 'directory', n: 'vwDirectory', ok: any('hr'), sec: 'people' },
     { id: 'team', n: 'vwTeam', ok: any('manager'), sec: 'team' },
     { id: 'org', n: 'vwOrg', ok: any('hr'), sec: 'org' },
     { id: 'positions', n: 'vwPositions', ok: any('hr'), sec: 'positions' },
+    { id: 'recruitment', n: 'vwRecruit', ok: function(){ return isHr() || any('hr', 'manager', 'executive', 'payroll')(); }, files: W2_FILES, run: function(b){ Hire.section(b); } },
     { id: 'onboarding', n: 'vwOnboarding', ok: any('hr', 'manager'), sec: 'onboarding' },
     { id: 'offboarding', n: 'vwOffboarding', ok: any('hr', 'payroll', 'manager'), sec: 'offboarding', ops: 1 },
     { id: 'custody', n: 'vwCustody', ok: any('hr', 'payroll'), sec: 'custody', ops: 1 },
     { id: 'relations', n: 'vwRelations', ok: any('hr', 'manager'), sec: 'relations', ops: 1 },
     { id: 'gov', n: 'vwGov', ok: function(){ return isHr() || any('hr', 'payroll')(); }, files: ['js/dashboard.js', 'js/doc.js', 'js/requests.js', 'js/gov.js'], run: function(b){ Gov.section(b); } },
+    { id: 'insurance', n: 'vwInsurance', ok: function(){ return isHr() || any('hr', 'payroll')(); }, files: W2_FILES, run: function(b){ Ins.section(b); } },
+    { id: 'announce', n: 'vwAnnounce', ok: isHr, files: W2_FILES, run: function(b){ Ann.section(b); } },
     { id: 'policies', n: 'vwPolicies', ok: any('hr'), sec: 'policies' },
     { id: 'expiring', n: 'vwExpiring', ok: any('hr'), sec: 'expiring' },
     { id: 'import', n: 'vwImport', ok: any('hr'), sec: 'import' },
@@ -2693,14 +2990,15 @@ function areaLead(a){ var k = 'al' + a.id.charAt(0).toUpperCase() + a.id.slice(1
 /** Where the page body goes: the area body in the shell, #main before the shell exists. */
 function view(){ return $('#v2Body') || $('#main'); }
 /** The v2 block must come after every module's own <style>, so equal selectors resolve to v2. */
-function themeLast(){ ['dsv2', 'dsv3', 'dsed'].forEach(function(id){ var s = document.getElementById(id); if (s) document.head.appendChild(s); }); }
+function themeLast(){ ['dsv2', 'dsv3', 'dsed', 'dsfp', 'dspg', 'dsdark', 'dsmo'].forEach(function(id){ var s = document.getElementById(id); if (s) document.head.appendChild(s); }); }
 function loadAll(files){ return files.reduce(function(p, f){ return p.then(function(){ return loadScript(f); }); }, Promise.resolve()); }
 
 /** Where a task from the bell opens. HR sections map to their area; personal items to growth or the profile. */
 var SEC_DEST = { inbox: 'requests:inbox', leave: 'requests:leave', approvals: 'pay:approvals', payroll: 'pay:runs', compliance: 'pay:compliance', reports: 'insights:reports', dashboard: 'insights:dashboard',
   onboarding: 'people:onboarding', offboarding: 'people:offboarding', custody: 'people:custody', relations: 'people:relations', team: 'people:team', people: 'people:directory', shifts: 'time:shifts',
   performance: 'growth:cycle', plans: 'growth:plans', engagement: 'growth:pulse',
-  approvalcentre: 'requests:centre', leavecycle: 'requests:cycles', expenses: 'requests:expenses', flows: 'requests:flows', gov: 'people:gov', journal: 'pay:journal' };
+  approvalcentre: 'requests:centre', leavecycle: 'requests:cycles', expenses: 'requests:expenses', flows: 'requests:flows', gov: 'people:gov', journal: 'pay:journal',
+  recruitment: 'people:recruitment', loans: 'pay:loans', training: 'growth:training', insurance: 'people:insurance', helpdesk: 'requests:helpdesk', announce: 'people:announce' };
 var MINE_DEST = { survey: 'growth:me', policies: 'growth:me', onboarding: 'growth:me', plans: 'growth:me' };
 function taskDest(x){ var g = x.target || {}; return g.tab === 'hr' ? SEC_DEST[g.sec] || 'home' : MINE_DEST[x.kind] || 'profile'; }
 function areaCounts(){
@@ -2711,6 +3009,12 @@ function areaCounts(){
 
 function renderShell(){
   rerender = renderShell;
+  // drawing the shell again (language switch, new roles): keep the record page on top and anything typed on the screen
+  if ($('.app.v2')) {
+    var top = DP.stack[DP.stack.length - 1];
+    if (top && top.key) S.pendingPage = { seg: encodeURIComponent(top.key) + (top.arg ? '/' + encodeURIComponent(top.arg) : ''), o: { replace: true, pushed: top.pushed } };
+    draftSave();
+  }
   if (!S.fileRoles) S.fileRoles = hrAccessFromStore();
   root('<div class="app v2">' +
     '<aside class="v2-side" id="v2Side" aria-label="' + t('v2Menu') + '"><div class="v2-brand"><span class="v2-mark" role="img" aria-label="' + esc(coShort('en')) + '" style="-webkit-mask-image:url(' + MARK + ');mask-image:url(' + MARK + ')"></span><div><b>' + t('company') + '</b><small>' + t('v2System') + '</small></div></div>' +
@@ -2735,7 +3039,29 @@ function renderShell(){
   paintNav(); paintChip();
   var a = areaOf(S.tab) || AREAS[0];
   setTimeout(loadTasks, a.id === 'time' ? 1500 : 200); // never before the check-in screen is ready
-  goArea(a.id, (S.sub || {})[a.id]);
+  if (S.fullPage) goArea(a.id, S.fullPage, S.subArg, { replace: true }); else goArea(a.id, (S.sub || {})[a.id], S.subArg, { replace: true });
+  if (S.pendingPage) { var pp = S.pendingPage; S.pendingPage = null; dpRestore(pp.seg, pp.o); }
+}
+/** A typed form survives a redraw of the shell: the values are put back when the same form (by id) appears again. */
+function draftSave(){
+  var pg = curPage(), forms = {}, n = 0;
+  if (!pg || !pg.querySelectorAll || !typedOnPage) return;
+  $$('form[id]', pg).forEach(function(f){ var v = {}; Array.prototype.forEach.call(f.elements, function(x){ if (!x.name || x.type === 'file' || x.type === 'submit' || x.type === 'button') return; v[x.name + '|' + x.type] = x.type === 'checkbox' || x.type === 'radio' ? (x.checked ? x.value || 'on' : null) : x.value; }); forms[f.id] = v; n++; });
+  S.draft = n ? { forms: forms, until: Date.now() + 20000 } : null;
+}
+function draftApply(){
+  var dr = S.draft; if (!dr) return;
+  if (Date.now() > dr.until) { S.draft = null; return; }
+  Object.keys(dr.forms).forEach(function(id){
+    var f = document.getElementById(id); if (!f || f.closest('.dp-under')) return;
+    var v = dr.forms[id]; delete dr.forms[id];
+    Array.prototype.forEach.call(f.elements, function(x){
+      var k = x.name + '|' + x.type; if (!x.name || !(k in v)) return;
+      if (x.type === 'checkbox' || x.type === 'radio') x.checked = v[k] != null && (x.type === 'checkbox' || v[k] === x.value); else if (v[k] != null) x.value = v[k];
+    });
+    try { f.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
+  });
+  if (!Object.keys(dr.forms).length) S.draft = null;
 }
 
 function paintNav(){
@@ -2749,7 +3075,7 @@ function paintNav(){
   var bn = [['home', 'house', 'arHome'], ['requests', 'tray', 'v2Req'], ['time:punch', 'fingerprint', 'v2Punch', 1], fourth, ['more', 'dots-three-outline', 'v2More']];
   bot.innerHTML = bn.map(function(b){ var id = b[0].split(':')[0];
     return '<button type="button" data-area="' + b[0] + '" class="' + (b[3] ? 'center' : '') + '"' + (!b[3] && S.tab === id ? ' aria-current="page"' : '') + ' aria-label="' + t(b[2]) + '">' + ph(b[1], b[3] ? 'fill' : 'duotone') + (b[3] ? '' : '<span>' + t(b[2]) + '</span>') + '</button>'; }).join('');
-  $$('[data-area]', $('#root')).forEach(function(el){ el.onclick = function(e){
+  $$('#v2Side [data-area], #v2Bottom [data-area]').forEach(function(el){ el.onclick = function(e){ // only the nav routes; tiles elsewhere use data-tint
     e.preventDefault();
     if (el.dataset.area === 'more') return openSide();
     var p = el.dataset.area.split(':'); goArea(p[0], p[1]);
@@ -2776,49 +3102,128 @@ function heroHtml(a){
     '<div class="v3-hero-stats">' + (n ? '<span class="v3-pill hot">' + ph('bell-ringing', 'fill') + '<b class="num">' + n + '</b>' + t('v3Waiting') + '</span>' : '') +
     '<span class="v3-pill">' + ph('calendar-blank') + esc(today) + '</span></div></header>';
 }
-/** Numbers count up once when they appear (a tile, a fact, a big figure); the final text is restored exactly. */
+/** Motion system (2026-10-14): durations come from the CSS tokens in <style id="dsmo">; reduced motion skips all of it. */
+function moReduced(){ return !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches); }
+function moMs(name, dflt){ var v = parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name)); return isFinite(v) && v > 0 ? v : dflt; }
+/** Numbers count up once when they come into view (a tile, a fact, a big figure); the final text is restored exactly. */
 function countUp(el){
   if (el.dataset.cu) return; el.dataset.cu = '1';
   var tn = Array.prototype.filter.call(el.childNodes, function(n){ return n.nodeType === 3 && /\d/.test(n.nodeValue); })[0]; if (!tn) return;
-  var raw = tn.nodeValue, m = /^([^\d-]*)(-?[\d,\u066C]*\.?\d+)([\s\S]*)$/.exec(raw); if (!m) return;
-  var sep = m[2].indexOf('\u066C') >= 0 ? '\u066C' : ',', target = parseFloat(m[2].replace(/[,\u066C]/g, '')); if (!isFinite(target) || !target) return;
-  var dec = (m[2].split('.')[1] || '').length, group = /[,\u066C]/.test(m[2]);
+  var raw = tn.nodeValue, m = /^([^\d-]*)(-?[\d,٬]*\.?\d+)([\s\S]*)$/.exec(raw); if (!m) return;
+  var sep = m[2].indexOf('٬') >= 0 ? '٬' : ',', target = parseFloat(m[2].replace(/[,٬]/g, '')); if (!isFinite(target) || !target) return;
+  var dec = (m[2].split('.')[1] || '').length, group = /[,٬]/.test(m[2]);
   var fmt = function(v){ var x = group ? v.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec }).replace(/,/g, sep) : v.toFixed(dec); return m[1] + x + m[3]; };
-  var t0 = performance.now();
-  setTimeout(function(){ if (tn.isConnected) tn.nodeValue = raw; }, 900); // frames pause in background tabs: always land on the real value
-  (function step(now){ var p = Math.min(1, (now - t0) / 800), e = 1 - Math.pow(1 - p, 3); if (!tn.isConnected) return; tn.nodeValue = p < 1 ? fmt(target * e) : raw; if (p < 1) requestAnimationFrame(step); })(t0);
+  var dur = moMs('--mo-count', 700), t0 = performance.now();
+  setTimeout(function(){ if (tn.isConnected) tn.nodeValue = raw; }, dur + 120); // frames pause in background tabs: always land on the real value
+  (function step(now){ var p = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - p, 4); if (!tn.isConnected) return; tn.nodeValue = p < 1 ? fmt(target * e) : raw; if (p < 1) requestAnimationFrame(step); })(t0);
+}
+/** Charts and number rows below the fold wait (animations paused, .mo-wait) until they scroll into view, then play once. */
+var moIO = window.IntersectionObserver ? new IntersectionObserver(function(es){
+  es.forEach(function(e){ if (!e.isIntersecting) return; moIO.unobserve(e.target); e.target.classList.remove('mo-wait'); $$(MO_COUNT, e.target).forEach(countUp); });
+}, { rootMargin: '0px 0px -8% 0px' }) : null;
+var MO_COUNT = '.db-tile b, .kpi b, .stat b, .hm-facts dd, .hm-big b, .hm-k .v, .v3-pill b, [data-count]';
+var MO_WAIT = '.db-card, .db-tiles, .hm-kpis, .hm-card, .mf-card, .kpis, .stats';
+function moObserve(root){
+  $$(MO_WAIT, root).forEach(function(el){
+    if (!el.dataset.mo) {
+      el.dataset.mo = '1';
+      var r = moIO && el.closest('.v2-main') ? el.getBoundingClientRect() : null;
+      if (r && r.height && r.top > window.innerHeight * 0.96) { el.classList.add('mo-wait'); moIO.observe(el); return; }
+    }
+    if (!el.classList.contains('mo-wait')) $$(MO_COUNT, el).forEach(countUp);
+  });
 }
 var V3PAL = [['#E4F2E9', '#1D6B43'], ['#D1E9FF', '#175CD3'], ['#FEF0C7', '#B54708'], ['#FCE7F6', '#C11574'], ['#D7F3EF', '#0E7C70'], ['#E0EAFF', '#3538CD'], ['#FDE7E3', '#B42318'], ['#EEF2F0', '#44524A']];
-/** Every new screen: each avatar gets its own stable colour, numbers count up. */
+var MO_STAGGER = '.hm-grid, .hm-kpis, .db-tiles, .kpis, .stats, .db-grid, .mf-cols, .v2-area .list';
+/** Every new screen: each avatar gets its own stable colour; cascades get their order (--i); numbers count up in view. */
 function v3Enhance(root){
   $$('.av:not([data-av])', root).forEach(function(a){ a.dataset.av = '1'; if (a.style.background) return; var s = a.textContent || '', h = 0; for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; var p = V3PAL[h % V3PAL.length]; a.style.background = p[0]; a.style.color = p[1]; });
-  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  $$('.db-tile b, .kpi b, .stat b, .hm-facts dd, .hm-big b, .v3-pill b, [data-count]', root).forEach(countUp);
+  pgWire(root); // frozen headlines and sticky table heads
+  if (S.draft) draftApply();
+  if (moReduced() || (typeof onPunch === 'function' && onPunch())) return; // the check-in screen never waits on decoration
+  // a grid that already played its cascade (skeleton first) only fades its new content in: no second cascade
+  $$(MO_STAGGER, root).forEach(function(g){ if (!g.dataset.moSeen) { g.dataset.moSeen = '1'; Array.prototype.forEach.call(g.children, function(c){ c.dataset.moIn = '1'; }); return; }
+    Array.prototype.forEach.call(g.children, function(c){ if (!c.dataset.moIn) { c.dataset.moIn = '1'; c.classList.add('mo-swap'); } }); });
+  moObserve(root);
+  $$(MO_COUNT, root).forEach(function(el){ if (!el.closest('.mo-wait') && !el.closest(MO_WAIT)) countUp(el); });
 }
 var v3q = 0;
-new MutationObserver(function(){ if (v3q) return; v3q = requestAnimationFrame(function(){ v3q = 0; if (document.body.classList.contains('v2-on')) v3Enhance(document.body); }); }).observe(document.body, { childList: true, subtree: true });
+// a frame, or 150 ms when frames are paused (a background tab): the headline must stick even if the page was drawn unseen
+new MutationObserver(function(){ if (v3q) return; var run = function(){ if (!v3q) return; cancelAnimationFrame(v3q.f); clearTimeout(v3q.t); v3q = 0; if (document.body.classList.contains('v2-on')) v3Enhance(document.body); }; v3q = { f: requestAnimationFrame(run), t: setTimeout(run, 150) }; }).observe(document.body, { childList: true, subtree: true });
+
+/** Appearance: light (default), dark or system; per device. The switch cross-fades where View Transitions exist. */
+function themeOf(){ var v = store('theme'); return v === 'dark' || v === 'system' ? v : 'light'; }
+function applyTheme(){
+  var p = themeOf(), dark = p === 'dark' || (p === 'system' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
+  if (dark) document.documentElement.setAttribute('data-theme', 'dark'); else document.documentElement.removeAttribute('data-theme');}
+function setTheme(v){
+  store('theme', v);
+  if (document.startViewTransition && !moReduced()) document.startViewTransition(applyTheme); else applyTheme();
+}
+window.addEventListener('beforeprint', function(){ document.documentElement.removeAttribute('data-theme'); });
+window.addEventListener('afterprint', applyTheme);
+if (window.matchMedia) { try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(){ if (themeOf() === 'system') applyTheme(); }); } catch (e) {} }
+applyTheme();
 
 /** Open an area and one of its sub-pages (or the last one used there, or the first). */
-function goArea(area, sub){
+/**
+ * Open an area and one of its sub-pages. A sub-page marked page:1 is a full page (a form or one record): it is not a tab,
+ * has no banner, takes an argument (#requests/new/leave) and gets its own history entry, so the phone's back returns.
+ * o: { replace: true } swaps the current history entry (after sending a form); { pop: true } comes from the back button.
+ */
+function goArea(area, sub, arg, o){
+  o = o || {};
+  typedOnPage = false; // pushState fires no hashchange: a new screen starts with nothing typed
+  dpReset(); // record pages opened on top of the old screen go with it (their history entries stay behind as plain back steps)
   var a = areaOf(area); if (!a || !areaOk(a)) a = AREAS[0];
-  var subs = subsOf(a); S.sub = S.sub || {};
-  var s = subs.filter(function(x){ return x.id === sub; })[0] || subs.filter(function(x){ return x.id === S.sub[a.id]; })[0] || subs[0];
-  var wasPunch = S.tab === 'time' && S.sub.time === 'punch';
-  S.tab = a.id; S.sub[a.id] = s.id;
+  var all = subsOf(a), subs = all.filter(function(x){ return !x.page; }); S.sub = S.sub || {};
+  var full = all.filter(function(x){ return x.page && x.id === sub; })[0];
+  var s = full || subs.filter(function(x){ return x.id === sub; })[0] || subs.filter(function(x){ return x.id === S.sub[a.id]; })[0] || subs[0];
+  var wasPunch = S.tab === 'time' && S.sub.time === 'punch', fromArea = S.tab, fromSub = S.fullPage ? '' : S.sub[a.id];
+  S.tab = a.id; S.fullPage = full ? s.id : ''; S.subArg = full ? String(arg == null ? '' : arg) : '';
+  if (!full) S.sub[a.id] = s.id;
   if (wasPunch && !(a.id === 'time' && s.id === 'punch')) Brand3D.destroy();
-  try { history.replaceState(null, '', '#' + a.id + (s !== subs[0] ? '/' + s.id : '')); } catch (e) {}
+  var hash = '#' + a.id + (full ? '/' + s.id + (S.subArg ? '/' + encodeURIComponent(S.subArg) : '') : s !== subs[0] ? '/' + s.id : '');
+  // { fp: 1 } marks an entry this app pushed, so Back may go history.back() safely. A replace keeps the marker only when the
+  // entry already had it: a cold deep link or a reload stays unmarked and Back goes to the area instead of out of the app.
+  S.baseHash = hash;
+  histDo(function(){ try {
+    if (o.pop || location.hash === hash) history.replaceState(history.state, '', hash);
+    else if (full && !o.replace) history.pushState({ fp: 1 }, '', hash);
+    else history.replaceState(full && history.state && history.state.fp ? { fp: 1 } : null, '', hash);
+  } catch (e) {} });
   closeSide(); closeMenus();
   var main = $('#main'); if (!main) return;
   $$('#v2Nav [data-area], #v2Foot [data-area], #v2Bottom [data-area]').forEach(function(el){ var id = el.dataset.area.split(':')[0]; if (!el.classList.contains('center') && id === a.id) el.setAttribute('aria-current', 'page'); else el.removeAttribute('aria-current'); });
+  var toPunch = a.id === 'time' && s.id === 'punch', page = full ? null : $('.page.v2[data-page="' + a.id + '"]:not(.fp-page)', main);
+  if (full) {
+    main.scrollTop = 0;
+    main.innerHTML = '<div class="page v2 fp-page' + (moReduced() ? '' : ' mo-page') + '" data-page="' + a.id + '"><div class="v2-area" id="v2Body"></div></div>';
+    return runSub(s, $('#v2Body', main));
+  }
+  // Same area, another tab: keep the banner and the tabs, swap only the body and slide it in from the side it came from.
+  if (!a.bare && page && fromArea === a.id && fromSub && !wasPunch && !toPunch && $('#v2Body', page)) {
+    $$('[data-sub]', page).forEach(function(b){ var on = b.dataset.sub === s.id; b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1; });
+    var old = $('#v2Body', page), body = document.createElement('div');
+    body.className = 'v2-area'; body.id = 'v2Body'; body.setAttribute('role', 'tabpanel');
+    var ids = subs.map(function(x){ return x.id; }), fwd = ids.indexOf(s.id) >= ids.indexOf(fromSub);
+    if (fromSub !== s.id && !moReduced()) { body.classList.add('mo-sub'); body.style.setProperty('--mo-dir', String((fwd ? 1 : -1) * (S.lang === 'ar' ? -1 : 1))); }
+    old.replaceWith(body);
+    // scrolled down: bring the new tab's top to just under the frozen headline (where the headline starts sticking)
+    var sent = $('.pg-sent', page), y = sent ? sent.getBoundingClientRect().top - main.getBoundingClientRect().top + main.scrollTop : 0;
+    if (sent && main.scrollTop > y) main.scrollTop = y;
+    return runSub(s, body);
+  }
   main.scrollTop = 0;
-  if (a.bare) main.innerHTML = '<div id="v2Body" class="v2-bare"></div>';
+  if (a.bare) main.innerHTML = '<div id="v2Body" class="v2-bare' + (moReduced() ? '' : ' mo-page') + '"></div>';
   else {
     var lead = areaLead(a);
-    main.innerHTML = '<div class="page v2' + (a.id === 'time' && s.id === 'punch' ? ' is-punch' : '') + '">' + heroHtml(a) +
+    // the banner and the tabs form the page's headline, which stays frozen under the top bar while the body scrolls (.pg-head)
+    main.innerHTML = '<div class="page v2' + (toPunch ? ' is-punch' : moReduced() || fromArea === a.id ? '' : ' mo-page') + '" data-page="' + a.id + '"><div class="pg-head pg-area">' + heroHtml(a) +
       (subs.length > 1 ? '<div class="v2-views" role="tablist" aria-label="' + areaName(a) + '">' + subs.map(function(x){
         return '<button type="button" role="tab" data-sub="' + x.id + '" aria-selected="' + (x === s) + '" tabindex="' + (x === s ? 0 : -1) + '">' + t(x.n) + (x.badge ? '<span class="badge hidden num" id="' + x.badge + '"></span>' : '') + '</button>';
-      }).join('') + '</div>' : '<div style="height:14px"></div>') +
-      '<div class="v2-area' + (a.id === 'time' && s.id === 'punch' ? ' v2-punch' : '') + '" id="v2Body" role="tabpanel"></div></div>';
+      }).join('') + '</div>' : '<div style="height:14px"></div>') + '</div>' +
+      '<div class="v2-area' + (toPunch ? ' v2-punch' : '') + '" id="v2Body" role="tabpanel"></div></div>';
     var tabs = $$('[data-sub]', main);
     tabs.forEach(function(b, n){
       b.onclick = function(){ goArea(a.id, b.dataset.sub); };
@@ -2832,11 +3237,239 @@ function goArea(area, sub){
   }
   runSub(s, $('#v2Body'));
 }
+/**
+ * The top of a full page: a back button, a breadcrumb, then the title block (icon, title, lead, chips).
+ * o: { icon, title, lead, chips (html), crumb: [labels] }. Wire the back button with fpWire(root, area, sub).
+ */
+function fpTop(o){
+  return '<div class="pg-head fp-head">' + fpHeadInner(o) + '</div>';
+}
+/** The inside of a page headline (no wrapper): back + breadcrumb, then icon, title, lead and the chips / key actions slot. */
+function fpHeadInner(o){
+  var crumb = (o.crumb || []).map(function(x){ return '<span>' + x + '</span>'; }).join(ph(S.lang === 'ar' ? 'caret-left' : 'caret-right'));
+  return '<div class="fp-top"><button type="button" class="fp-back" data-fp-back>' + ph(S.lang === 'ar' ? 'arrow-right' : 'arrow-left') + t('fpBack') + '</button>' +
+    (crumb ? '<nav class="fp-crumb" aria-label="' + t('fpCrumb') + '">' + crumb + '</nav>' : '') + '</div>' +
+    '<header class="fp-title"><span class="fp-ic"' + (o.tint ? ' data-tint="' + o.tint + '"' : '') + '>' + ph(o.icon || 'file', 'duotone') + '</span><div class="fp-tt"><h1 tabindex="-1">' + o.title + '</h1>' + (o.lead ? '<p>' + o.lead + '</p>' : '') + '</div><div class="fp-chips">' + (o.chips || '') + '</div></header>';
+}
+function fpWire(root, area, sub){ $$('[data-fp-back]', root).forEach(function(b){ b.onclick = function(){ fpBack(area, sub); }; }); }
+/** Leave a full page: back in history when we came from inside the app, else to the area's first tab. */
+function fpBack(area, sub){
+  if (history.state && history.state.fp && history.length > 1) { history.back(); return; }
+  goArea(area || S.tab, sub, null, { replace: true });
+}
+
+/* ================= Record pages instead of pop-ups (2026-10-14) =================
+ * drawer(html, o) no longer opens a side panel: it opens a full page on top of the current screen, inside #main, with the
+ * page headline (back, breadcrumb, icon, title, lead, key actions), its own history entry and URL (#area/sub/~key/arg).
+ * The screen underneath is kept (hidden), so its filters, scroll and callbacks still work; Back, d.remove() and Escape
+ * return to it. Pages registered with pageRoute(key, files, open) also reopen from a deep link, after a reload and after
+ * a language switch. Every existing caller keeps working: d is the page, d.querySelector('.panel') its body, d.remove()
+ * closes it. Tiny confirmations stay inline (confirmTap and friends); only the command palette remains an overlay. */
+var DP = { stack: [], seq: 0, pending: 0, queue: [], timer: 0, next: null };
+var PAGES = {};
+// pages that reopen from a URL, a reload or a language switch (anything else falls back to the screen under it)
+// pageRoute is a hoisted function, so these register while the script loads
+pageRoute('emp', HR_FILES, function(id){ if (id) HrConsole.openEmp(id); });
+pageRoute('empv', HR_FILES, function(id){ if (id) HrConsole.openEmp(id, true); });
+pageRoute('newemp', [], function(){ if (isHr()) newEmpPage(); });
+pageRoute('acct', [], function(id){ if (isHr() && id) openAcct(id); });
+pageRoute('tasks', [], function(){ openTasks(); });
+pageRoute('slip', MY_FILES, function(arg){ if (arg) Payroll.openSlipRef(arg); });
+pageRoute('item', FLOW_FILES, function(arg){ if (arg) Flows.openItem(arg); });
+/** History writes wait while a back step we started is still travelling, so a close-then-navigate lands on the right entry. */
+function histDo(fn){ if (DP.pending) DP.queue.push(fn); else fn(); }
+function histFlush(){ DP.pending = 0; clearTimeout(DP.timer); var q = DP.queue; DP.queue = []; q.forEach(function(fn){ try { fn(); } catch (e) {} }); }
+function histGo(n){ DP.pending++; clearTimeout(DP.timer); DP.timer = setTimeout(histFlush, 900); try { history.go(-n); } catch (e) { histFlush(); } }
+function hashBase(h){ return String(h || '').replace(/\/~.*$/, ''); }
+/** key: the page's name in the URL; files: modules to load first; open(arg): draws it (through drawer with the same key). */
+function pageRoute(key, files, open){ PAGES[key] = { files: files || [], open: open }; }
+function openPage(key, arg, o){
+  var p = PAGES[key]; if (!p) return Promise.resolve();
+  return loadAll(p.files).then(function(){ DP.next = o || null; setTimeout(function(){ DP.next = null; }, 4000); p.open(arg == null ? '' : String(arg)); });
+}
+/** "key/arg" from the URL after "~" (a page without a key cannot be rebuilt; its base screen shows instead). */
+function dpRestore(seg, o){
+  var i = String(seg || '').indexOf('/'), key = decodeURIComponent(i < 0 ? seg : seg.slice(0, i)), arg = i < 0 ? '' : decodeURIComponent(seg.slice(i + 1));
+  if (key && PAGES[key]) return openPage(key, arg, o);
+  if (o && o.replace) histDo(function(){ try { history.replaceState(history.state, '', S.baseHash || hashBase(location.hash)); } catch (e) {} });
+}
+function dpTop(){ var s = DP.stack[DP.stack.length - 1]; return s ? s.el : null; }
+/** The page on screen: the top record page, else the area page. */
+function curPage(){ return dpTop() || $('#main .page.v2') || $('#v2Body') || $('#main'); }
+/** Every record page closes with no history step (another screen is replacing them all). */
+function dpReset(){
+  if (!DP.stack.length) return;
+  DP.stack.forEach(function(s){ Element.prototype.remove.call(s.el); if (s.under) s.under.classList.remove('dp-under'); });
+  DP.stack = [];
+}
+function dpCrumb(title){
+  var a = areaOf(S.tab) || AREAS[0], ss = subsOf(a).filter(function(x){ return !x.page; }), s = ss.filter(function(x){ return x.id === (S.sub || {})[a.id]; })[0] || ss[0];
+  var c = [areaName(a)];
+  if (S.fullPage) { var fs = subsOf(a).filter(function(x){ return x.id === S.fullPage; })[0]; if (fs) c.push(t(fs.n)); }
+  else if (ss.length > 1 && s) c.push(t(s.n));
+  DP.stack.forEach(function(x){ if (x.title) c.push(x.title); });
+  return c.concat(title ? [title] : []);
+}
+/** Redraw a page's headline: { title, lead, chips, icon, tint }. Modules call d.setHead(...) once the record has loaded. */
+function dpHead(d, h){
+  var st = DP.stack.filter(function(x){ return x.el === d; })[0]; if (!st) return;
+  Object.keys(h || {}).forEach(function(k){ if (h[k] != null) st.head[k] = h[k]; });
+  var plain = String(st.head.title || '').replace(/<[^>]*>/g, '').trim();
+  st.title = plain;
+  var below = []; DP.stack.some(function(x){ if (x.el === d) return true; if (x.title) below.push(x.title); });
+  var crumbs = dpCrumb('').slice(0, dpCrumb('').length - DP.stack.filter(function(x){ return x.title; }).length).concat(below); // area › tab › pages under this one
+  var hd = $('.pg-head', d), focus = hd && hd.contains(document.activeElement);
+  hd.innerHTML = fpHeadInner({ icon: st.head.icon, tint: st.head.tint, title: st.head.title || '', lead: st.head.lead, chips: st.head.chips, crumb: crumbs.concat([plain]) });
+  $$('[data-fp-back]', hd).forEach(function(b){ b.onclick = function(){ dpClose(d); }; });
+  if (focus) { var h1 = $('h1', hd); if (h1) h1.focus({ preventScroll: true }); }
+  pgMeasure();
+}
+/** Before the shell exists (sign-in, setup) a panel is still a sheet: those screens have no page to stand on. */
+function sheetDrawer(html){
+  var d = document.createElement('div'); d.className = 'drawer';
+  d.innerHTML = '<div class="panel" role="dialog" aria-modal="true"><button type="button" class="dr-x" aria-label="' + t('closeX') + '" title="' + t('closeX') + '">' + ph('x') + '</button>' + html + '</div>';
+  var back = document.activeElement;
+  function close(){ if (d.isConnected) d.remove(); }
+  var mo = new MutationObserver(function(){ if (!d.isConnected) { mo.disconnect(); document.removeEventListener('keydown', onKey); if (back && back.isConnected && back.focus) back.focus(); } });
+  function onKey(e){ if (e.key === 'Escape' && document.querySelector('.drawer:last-of-type') === d) close(); }
+  d.onclick = function(e){ if (e.target === d) close(); };
+  d.querySelector('.dr-x').onclick = close;
+  document.addEventListener('keydown', onKey);
+  document.body.appendChild(d);
+  mo.observe(document.body, { childList: true });
+  var first = d.querySelector('.panel input:not([type=hidden]),.panel select,.panel textarea'); (first || d.querySelector('.dr-x')).focus();
+  return d;
+}
+/**
+ * Open a record or a form as a full page. html: the body (a leading <h3> becomes the page title and a following hint
+ * paragraph its lead). o: { key, arg (URL), icon, tint, title, lead, chips, wide, bare (no card around the body), replace }.
+ */
+function drawer(html, o){
+  var main = $('#main');
+  if (!main || !$('.app.v2')) return sheetDrawer(html);
+  o = Object.assign({}, DP.next || {}, o || {}); DP.next = null;
+  var a = areaOf(S.tab) || AREAS[0], id = ++DP.seq;
+  var under = dpTop() || main.firstElementChild;
+  var d = document.createElement('div');
+  d.className = 'page v2 fp-page dp-page' + (moReduced() ? '' : ' mo-push');
+  d.setAttribute('data-page', a.id); d.dataset.dp = id;
+  d.innerHTML = '<div class="pg-head fp-head"></div><div class="panel dp-panel v2-area' + (o.wide ? ' wide' : '') + (o.bare ? ' bare' : '') + '" role="region"></div>';
+  var panel = $('.dp-panel', d);
+  panel.innerHTML = html;
+  var h3 = panel.firstElementChild && panel.firstElementChild.tagName === 'H3' ? panel.firstElementChild : null, lead = o.lead;
+  if (h3) {
+    var nx = h3.nextElementSibling;
+    if (lead == null && nx && nx.tagName === 'P' && /(^|\s)(hr-hint|lead)(\s|$)/.test(nx.className)) { lead = nx.innerHTML; nx.remove(); }
+    h3.classList.add('dp-h3'); // kept (hidden) for any caller that reads it; the headline shows the title
+  }
+  var st = history.state || {}, pushed = !o.replace || !!o.pushed;
+  var hash = (S.baseHash || hashBase(location.hash) || '#' + a.id) + '/~' + (o.key ? encodeURIComponent(o.key) + (o.arg != null && o.arg !== '' ? '/' + encodeURIComponent(o.arg) : '') : '');
+  var rec = { id: id, el: d, under: under, key: o.key || '', arg: o.arg == null ? '' : String(o.arg), pushed: pushed, hash: hash, scroll: main.scrollTop, back: document.activeElement, title: '',
+    head: { icon: o.icon || a.i, tint: o.tint || '', title: o.title || (h3 ? h3.innerHTML : areaName(a)), lead: lead || '', chips: o.chips || '' } };
+  histDo(function(){ try {
+    if (o.replace) history.replaceState({ fp: pushed ? 1 : (st.fp || 0), dp: id, pushed: pushed }, '', hash);
+    else history.pushState({ fp: 1, dp: id, pushed: true }, '', hash);
+  } catch (e) {} });
+  if (under) under.classList.add('dp-under');
+  DP.stack.push(rec);
+  main.appendChild(d);
+  main.scrollTop = 0;
+  d.remove = function(){ dpClose(d); };
+  d.setHead = function(h){ dpHead(d, h); };
+  // the page now shows another record of the same kind (next month's payslip): same history entry, new URL
+  d.setArg = function(arg){ if (!rec.key) return; rec.arg = String(arg == null ? '' : arg); rec.hash = hashBase(rec.hash) + '/~' + encodeURIComponent(rec.key) + (rec.arg ? '/' + encodeURIComponent(rec.arg) : ''); histDo(function(){ try { if ((history.state || {}).dp === rec.id) history.replaceState(history.state, '', rec.hash); } catch (e) {} }); };
+  dpHead(d, {});
+  typedOnPage = false;
+  var h1 = $('.pg-head h1', d); if (h1) h1.focus({ preventScroll: true }); // a new page: focus its title (screen readers hear where they are)
+  return d;
+}
+/** Close a page (and any opened from it). fromPop: the browser already moved back, so no history step here. */
+function dpClose(d, fromPop){
+  var i = -1; DP.stack.forEach(function(s, n){ if (s.el === d) i = n; });
+  if (i < 0) { Element.prototype.remove.call(d); return; }
+  var gone = DP.stack.splice(i), first = gone[0], main = $('#main');
+  gone.forEach(function(s){ Element.prototype.remove.call(s.el); });
+  if (first.under && first.under.isConnected) {
+    first.under.classList.remove('dp-under');
+    if (!moReduced()) { first.under.classList.remove('mo-pop'); void first.under.offsetWidth; first.under.classList.add('mo-pop'); }
+  }
+  if (main) main.scrollTop = first.scroll || 0;
+  pgMeasure();
+  if (first.back && first.back.isConnected && first.back.focus) try { first.back.focus({ preventScroll: true }); } catch (e) {}
+  if (fromPop) return;
+  var st = history.state || {}, mine = gone.some(function(s){ return s.id === st.dp; });
+  if (!mine) return; // another screen already took this entry (a navigation from inside the page)
+  var n = gone.filter(function(s){ return s.pushed; }).length;
+  if (n) histGo(n);
+  else histDo(function(){ try { var b = DP.stack[DP.stack.length - 1]; history.replaceState(b ? { fp: 1, dp: b.id, pushed: b.pushed } : null, '', b ? b.hash : S.baseHash); } catch (e) {} });
+}
+window.addEventListener('popstate', function(){
+  if (DP.pending) { DP.pending--; if (!DP.pending) histFlush(); return; }
+  if (!$('.app.v2') || !S.me) return;
+  if (S.busy) return; // a punch is in flight: the check-in screen never moves under it
+  var st = history.state || {}, raw = location.hash.replace(/^#/, ''), ti = raw.indexOf('/~');
+  if (DP.stack.length) {
+    var keep = -1; DP.stack.forEach(function(s, n){ if (s.id === st.dp) keep = n; });
+    if (keep + 1 < DP.stack.length) dpClose(DP.stack[keep + 1].el, true);
+    if (keep >= 0) return; // landed on a page that is still open
+    if (ti < 0 && '#' + raw === S.baseHash) return; // landed on the screen under the pages
+  }
+  var h = (ti >= 0 ? raw.slice(0, ti) : raw).split('/');
+  if (!h[0] || !areaOf(h[0])) return;
+  goArea(h[0], h[1], h[2] ? decodeURIComponent(h[2]) : '', { pop: true });
+  if (ti >= 0) dpRestore(raw.slice(ti + 2), { replace: true, pushed: true }); // forward into a page
+});
+document.addEventListener('keydown', function(e){
+  if (e.key !== 'Escape' || !DP.stack.length || e.defaultPrevented || $('.v2-pal-back') || $('.v2-menu') || $('#v2Side.on')) return;
+  var tg = e.target && e.target.tagName; if (tg === 'INPUT' || tg === 'TEXTAREA' || tg === 'SELECT') return;
+  dpClose(dpTop());
+});
+
+/* ---- the frozen headline: .pg-head sticks under the top bar; a sentinel just above it says when it is stuck ---- */
+var pgIO = null, pgRO = window.ResizeObserver ? new ResizeObserver(function(){ pgMeasure(); }) : null;
+function pgObserver(){
+  var main = $('#main'); if (!main || !window.IntersectionObserver) return null;
+  if (pgIO && pgIO.root === main) return pgIO;
+  if (pgIO) pgIO.disconnect();
+  pgIO = new IntersectionObserver(function(es){ es.forEach(function(e){
+    var hd = e.target.nextElementSibling; if (!hd || !hd.classList.contains('pg-head')) return;
+    var stuck = !e.isIntersecting && e.rootBounds && e.boundingClientRect.top < e.rootBounds.top;
+    hd.classList.toggle('is-stuck', !!stuck);
+    // compact only when the page can afford the space it gives back (else the shorter page would unstick it again)
+    hd.classList.toggle('is-compact', !!stuck && main.scrollHeight - main.clientHeight > 220);
+    pgMeasure();
+  }); }, { root: main, threshold: 0 });
+  return pgIO;
+}
+function pgWire(root){
+  var io = pgObserver();
+  $$('.pg-head:not([data-pg])', root).forEach(function(hd){
+    hd.dataset.pg = '1';
+    var s = document.createElement('i'); s.className = 'pg-sent'; s.setAttribute('aria-hidden', 'true');
+    hd.parentNode.insertBefore(s, hd);
+    if (io) io.observe(s);
+    if (pgRO) pgRO.observe(hd);
+  });
+  if (window.innerWidth > 900) $$('.v2-main .tblwrap', root).forEach(pgFit);
+  pgMeasure();
+}
+/** A table that fits its box may lose its own scroll box, so its header row can stick under the headline too. */
+function pgFit(w){
+  if (w.style.maxHeight || w.closest('.dp-under')) return;
+  var fits = w.scrollWidth <= w.clientWidth + 1 || (w.classList.contains('fits') && w.scrollWidth <= w.parentNode.clientWidth + 1);
+  w.classList.toggle('fits', fits);
+}
+window.addEventListener('resize', function(){ clearTimeout(pgWire.t); pgWire.t = setTimeout(function(){ $$('.v2-main .tblwrap').forEach(function(w){ w.classList.remove('fits'); if (window.innerWidth > 900) pgFit(w); }); pgMeasure(); }, 150); });
+function pgMeasure(){
+  var main = $('#main'); if (!main) return;
+  var pg = curPage(), hd = pg && pg.querySelector ? pg.querySelector('.pg-head') : null, h = hd && hd.offsetParent && getComputedStyle(hd).position === 'sticky' ? hd.offsetHeight : 0;
+  main.style.setProperty('--head-h', h + 'px');
+}
 function runSub(s, body){
   if (s.adm) { S.adm = s.adm; body.innerHTML = '<div class="adm-body" id="admBody"></div>'; ADM[s.adm](); themeLast(); return; }
   if (s.sec) return lazyScreen(s.ops ? OPS_FILES : HR_FILES, function(){ HrConsole.section(s.sec, body); themeLast(); }, body);
-  if (s.files) return lazyScreen(s.files, function(){ s.run(body); themeLast(); }, body);
-  s.run(body); themeLast();
+  if (s.files) return lazyScreen(s.files, function(){ s.run(body, S.subArg); themeLast(); }, body);
+  s.run(body, S.subArg); themeLast();
 }
 
 // ---- personal sub-pages built from the module cards ----
@@ -2894,12 +3527,15 @@ function openAvMenu(){
   var it = function(k, icon, label){ return '<button type="button" role="menuitem" data-m="' + k + '">' + ph(icon) + '<span>' + label + '</span></button>'; };
   m.innerHTML = '<div class="v2-menu-h"><b>' + esc(S.me.name) + '</b><small class="num">' + esc(S.me.empNo) + ' · ' + t('r_' + S.me.role) + '</small></div>' +
     it('profile', 'identification-card', t('arProfile')) + it('account', 'user-circle', t('arAccount')) + it('lang', 'translate', t('langBtn')) +
-    it('print', 'printer', t('v2Print')) + it('xl', 'microsoft-excel-logo', t('v2Excel')) + '<hr>' + it('lock', 'sign-out', t('signOut'));
+    it('print', 'printer', t('v2Print')) + it('xl', 'microsoft-excel-logo', t('v2Excel')) +
+    '<div class="v2-menu-th" role="group" aria-label="' + t('v2Theme') + '"><span>' + ph('circle-half', 'duotone') + t('v2Theme') + '</span><div>' + [['light', 'sun'], ['dark', 'moon'], ['system', 'device-mobile']].map(function(x){
+      return '<button type="button" role="menuitemradio" data-m="th-' + x[0] + '" aria-checked="' + (themeOf() === x[0]) + '" title="' + t('th' + x[0].charAt(0).toUpperCase() + x[0].slice(1)) + '" aria-label="' + t('th' + x[0].charAt(0).toUpperCase() + x[0].slice(1)) + '">' + ph(x[1]) + '</button>'; }).join('') + '</div></div>' +
+    '<hr>' + it('lock', 'sign-out', t('signOut'));
   $('.v2-top').appendChild(m);
   $('#v2Av').setAttribute('aria-expanded', 'true');
   $$('[data-m]', m).forEach(function(b){ b.onclick = function(){
     var k = b.dataset.m; closeMenus();
-    if (k === 'lang') toggleLang(); else if (k === 'lock') renderLock(); else if (k === 'print') printView(); else if (k === 'xl') exportView(); else goArea(k);
+    if (k.indexOf('th-') === 0) setTheme(k.slice(3)); else if (k === 'lang') toggleLang(); else if (k === 'lock') renderLock(); else if (k === 'print') printView(); else if (k === 'xl') exportView(); else goArea(k);
   }; });
   var items = $$('[data-m]', m); items[0].focus();
   m.onkeydown = function(e){
@@ -2919,8 +3555,7 @@ document.addEventListener('keydown', function(e){
 /** The page's name as people see it: area, and the sub-page when the area has several. */
 function viewTitle(){
   var a = areaOf(S.tab) || AREAS[0], ss = subsOf(a), s = ss.filter(function(x){ return x.id === (S.sub || {})[a.id]; })[0] || ss[0];
-  var dr = document.querySelector('.drawer:last-of-type .panel h3, .drawer:last-of-type .panel .hr-who b');
-  if (document.querySelector('.drawer') && dr) return dr.textContent.trim();
+  var top = DP.stack[DP.stack.length - 1]; if (top && top.title) return top.title; // a record page: its own title
   return areaName(a) + (ss.length > 1 && s ? ' · ' + t(s.n) : '');
 }
 function nowLine(){ var d = new Date(); return d.toLocaleDateString(LOCALE(), { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Riyadh' }) + ' ' + d.toLocaleTimeString(LOCALE(), { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Riyadh' }); }
@@ -2928,7 +3563,7 @@ function nowLine(){ var d = new Date(); return d.toLocaleDateString(LOCALE(), { 
 function printView(){
   closeMenus();
   var dr = document.querySelector('.drawer:last-of-type .panel');
-  var host = dr || $('#main .page') || $('#v2Body') || $('#main'); if (!host) return;
+  var host = dr || curPage(); if (!host) return; // the page on screen (a record page prints itself, not the list under it)
   var head = document.createElement('div'); head.className = 'print-head';
   head.innerHTML = '<img src="' + logoInk() + '" alt=""><div><b>' + esc(coName()) + '</b><span>' + esc(viewTitle()) + '</span><small>' + esc(t('v2PrintedBy') + ' ' + S.me.name + ' (' + S.me.empNo + ') · ' + nowLine()) + '</small></div>';
   host.insertBefore(head, host.firstChild);
@@ -2940,7 +3575,7 @@ function printView(){
 /** Every table and list on the screen (or in the open panel) becomes a formatted sheet in one workbook. */
 function exportView(){
   closeMenus();
-  var dr = document.querySelector('.drawer:last-of-type .panel'), root = dr || $('#v2Body') || $('#main'); if (!root) return;
+  var dr = document.querySelector('.drawer:last-of-type .panel'), root = dr || (dpTop() && $('.dp-panel', dpTop())) || $('#v2Body') || $('#main'); if (!root) return;
   var title = viewTitle(), en = S.lang === 'en';
   loadScript('js/xl.js').then(function(){
     var sheets = XL.sheetsFrom(root, en, title);
@@ -2961,7 +3596,7 @@ function openPalette(){
     '<p class="v2-pal-keys">' + t('v2Keys') + '</p></div>';
   document.body.appendChild(ov);
   var q = $('#palQ', ov), res = $('#palRes', ov), people = null, list = [], sel = 0, pages = [];
-  AREAS.filter(areaOk).forEach(function(a){ var ss = subsOf(a); ss.forEach(function(s){ pages.push({ area: a.id, sub: s.id, icon: a.i, label: ss.length > 1 ? areaName(a) + ' · ' + t(s.n) : areaName(a), key: areaName(a) + ' ' + t(s.n) + ' ' + areaLead(a) }); }); });
+  AREAS.filter(areaOk).forEach(function(a){ var ss = subsOf(a).filter(function(s){ return !s.page || s.id === 'new' || s.id === 'claim'; }); ss.forEach(function(s){ pages.push({ area: a.id, sub: s.id, icon: a.i, label: ss.length > 1 ? areaName(a) + ' · ' + t(s.n) : areaName(a), key: areaName(a) + ' ' + t(s.n) + ' ' + areaLead(a) }); }); });
   if (R().hr) apiFresh('hrBootstrap', {}, function(r){ if (r.ok && ov.isConnected) { people = r.rows; draw(); } }, true);
   var norm = function(s){ return String(s == null ? '' : s).toLowerCase().replace(/[ً-ْ]/g, '').replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي'); };
   function close(){ if (ov.isConnected) ov.remove(); document.removeEventListener('keydown', onKey, true); if (back && back.isConnected && back.focus) back.focus(); }
@@ -3012,33 +3647,47 @@ function loadTasks(){
     var b = $('#tkBell'); if (b) b.setAttribute('aria-label', t('tkTitle') + (r.total ? ' (' + r.total + ')' : ''));
   }, true);
 }
+/** The bell: everything waiting for me, as a page (#.../~tasks), grouped by the area that handles it, oldest kinds first. */
 function openTasks(){
-  var d = drawer('<h3>' + t('tkTitle') + '</h3><div id="tkList"><span class="sk"></span><span class="sk" style="width:70%"></span></div>');
+  if (dpTop() && DP.stack[DP.stack.length - 1].key === 'tasks') return; // already open
+  var d = drawer('<div id="tkList"><div class="rp-facts" aria-hidden="true">' + [0, 1, 2].map(function(){ return '<div class="rp-fact"><span class="sk" style="width:60%"></span><span class="sk" style="width:40%;height:18px"></span></div>'; }).join('') + '</div><div class="rp-sec">' + skl(4) + '</div></div>',
+    { key: 'tasks', icon: 'bell-ringing', title: t('tkTitle'), lead: t('tkLead'), bare: true, wide: true });
   var el = $('#tkList', d);
   function draw(r){
-    if (!r || !r.ok) { el.innerHTML = '<p class="hr-bad">' + errText(r && r.error) + '</p>'; return; }
-    var list = r.tasks;
-    if (!list.length) { el.innerHTML = '<div class="empty" style="padding:30px 10px">' + ph('check-circle') + '<b>' + t('tkNone') + '</b><p style="color:var(--ink-2);margin:6px 0 0">' + t('tkNoneLead') + '</p></div>'; return; }
-    el.innerHTML = '<div class="tk-list">' + list.map(function(x, i){
-      var label = x.kind === 'delegated' ? t('tk_delegated') + ' ' + (x.names || []).map(esc).join('، ') : t('tk_' + x.kind);
-      return '<button type="button" class="tk-row' + (x.kind === 'delegated' ? ' info' : '') + '" data-i="' + i + '"><span class="tk-ic">' + ph(TK_ICON[x.kind] || 'circle') + '</span><span class="tk-t">' + label + '</span>' +
-        (x.kind === 'delegated' ? '' : '<b class="tk-c num">' + x.count + '</b>') + '<span class="tk-go">' + (S.lang === 'ar' ? ph('caret-left') : ph('caret-right')) + '</span></button>';
-    }).join('') + '</div>';
+    if (!r || !r.ok) return failBox(el, function(){ api('myTasks', {}, true).then(draw); });
+    var list = r.tasks.slice(), work = list.filter(function(x){ return x.kind !== 'delegated'; }), total = work.reduce(function(n, x){ return n + (x.count || 0); }, 0);
+    d.setHead({ lead: total ? t('tkWaitingN').replace('{n}', total) : t('tkNoneLead'), chips: total ? '' : '<span class="chip in">' + t('tkClear') + '</span>' });
+    if (!list.length) { el.innerHTML = '<div class="rp-sec"><div class="empty" style="padding:36px 10px">' + ph('check-circle') + '<b>' + t('tkNone') + '</b><p style="color:var(--ink-2);margin:6px 0 0">' + t('tkNoneLead') + '</p></div></div>'; return; }
+    var byArea = {}, order = [];
+    list.forEach(function(x, i){ var a = x.kind === 'delegated' ? 'info' : taskDest(x).split(':')[0]; if (!byArea[a]) { byArea[a] = []; order.push(a); } byArea[a].push(i); });
+    var tiles = order.filter(function(a){ return a !== 'info'; }).map(function(a){ var ar = areaOf(a), n = byArea[a].reduce(function(s, i){ return s + (list[i].count || 0); }, 0);
+      return '<div class="rp-fact" data-tint="' + a + '"><i>' + ph(ar ? ar.i : 'circle', 'duotone') + '</i><span>' + (ar ? areaName(ar) : esc(a)) + '</span><b class="num">' + n + '</b></div>'; }).join('');
+    el.innerHTML = (tiles ? '<div class="rp-facts">' + tiles + '</div>' : '') + order.map(function(a){
+      var ar = areaOf(a);
+      return '<section class="rp-sec"><h2>' + ph(a === 'info' ? 'handshake' : ar ? ar.i : 'circle') + (a === 'info' ? t('tk_delegated') : ar ? areaName(ar) : esc(a)) + '</h2><div class="tk-list">' + byArea[a].map(function(i){
+        var x = list[i], label = x.kind === 'delegated' ? t('tk_delegated') + ' ' + (x.names || []).map(esc).join('، ') : t('tk_' + x.kind);
+        return '<button type="button" class="tk-row' + (x.kind === 'delegated' ? ' info' : '') + '" data-i="' + i + '"><span class="tk-ic">' + ph(TK_ICON[x.kind] || 'circle') + '</span><span class="tk-t">' + label + '</span>' +
+          (x.kind === 'delegated' ? '' : '<b class="tk-c num">' + x.count + '</b>') + '<span class="tk-go">' + (S.lang === 'ar' ? ph('caret-left') : ph('caret-right')) + '</span></button>'; }).join('') + '</div></section>';
+    }).join('');
     $$('.tk-row', el).forEach(function(b){ b.onclick = function(){
       var x = list[b.dataset.i], g = x.target || {}, dest = taskDest(x).split(':');
-      d.remove();
+      if (x.kind === 'delegated') return;
       if (g.view) S.rpJump = g.view;
-      goArea(dest[0], dest[1]);
+      goArea(dest[0], dest[1]); // the bell's entry becomes the destination: Back returns to where the bell was opened
     }; });
   }
   if (TASKS) draw(TASKS);
   api('myTasks', {}, true).then(function(r){ if (r.ok) TASKS = r; if (d.isConnected) draw(r); loadTasks(); });
+  return d;
 }
 var TK_ICON = { requests: 'tray', salaries: 'seal-check', payroll: 'money', reports: 'file-text', recon: 'scales', wps: 'bank', onboarding: 'rocket-launch', policies: 'book-open-text',
   survey: 'heartbeat', plans: 'path', delegated: 'handshake', disc_respond: 'scales', disc_decide: 'gavel', disc_objection: 'gavel', injury: 'first-aid-kit', asset_ack: 'package',
   asset_charge: 'package', clearance: 'sign-out', escalated: 'arrow-fat-up', leavecycle: 'airplane-tilt', leavecycle_me: 'airplane-tilt', expense_approve: 'receipt', expense_pay: 'money',
   gov_visa_issue: 'airplane-takeoff', gov_visa_return: 'airplane-landing', iqama_renewal: 'identification-card', ticket_due: 'ticket', gov_fee_verify: 'receipt', ticket_approve: 'ticket',
-  journal_import: 'notebook', journal_confirm: 'notebook' };
+  journal_import: 'notebook', journal_confirm: 'notebook',
+  recruit_req_approve: 'user-plus', recruit_offer_approve: 'handshake', recruit_feedback: 'chats-circle', recruit_hire: 'user-check', recruit_purge: 'eraser',
+  loan_approve: 'hand-coins', loan_disburse: 'money', loan_settle_verify: 'hand-coins', training_request: 'graduation-cap', training_mark: 'certificate',
+  insurance_move: 'first-aid', insurance_request: 'first-aid', announcement_ack: 'megaphone', hd_unassigned: 'lifebuoy', hd_assigned: 'lifebuoy', hd_reply: 'lifebuoy' };
 
 // ---------------- location ----------------
 function startWatch(){
@@ -3434,79 +4083,108 @@ function admEmp(){
   });
 }
 
-/** Every panel: a close (x) button in the corner, Escape, and a tap outside all close it. */
-function drawer(html){
-  var d = document.createElement('div'); d.className = 'drawer';
-  d.innerHTML = '<div class="panel" role="dialog" aria-modal="true"><button type="button" class="dr-x" aria-label="' + t('closeX') + '" title="' + t('closeX') + '">' + ph('x') + '</button>' + html + '</div>';
-  var back = document.activeElement;
-  function close(){ if (d.isConnected) d.remove(); }
-  var mo = new MutationObserver(function(){ if (!d.isConnected) { mo.disconnect(); document.removeEventListener('keydown', onKey); if (back && back.isConnected && back.focus) back.focus(); } });
-  function onKey(e){ if (e.key === 'Escape' && document.querySelector('.drawer:last-of-type') === d) close(); }
-  d.onclick = function(e){ if (e.target === d) close(); };
-  d.querySelector('.dr-x').onclick = close;
-  document.addEventListener('keydown', onKey);
-  document.body.appendChild(d);
-  mo.observe(document.body, { childList: true });
-  var first = d.querySelector('.panel input:not([type=hidden]),.panel select,.panel textarea'); (first || d.querySelector('.dr-x')).focus();
-  return d;
-}
+// drawer() (record and form pages) lives with the router, after goArea: see "Record pages instead of pop-ups".
 
+/**
+ * The sign-in account of a person (attendance: number, role, zones, hours, devices): a full page, new or existing.
+ * #people/accounts/~newemp and #people/accounts/~acct/<id>. Same fields, names and server calls as the old drawer.
+ */
+Object.assign(T.ar, { neLead:'أنشئ حساب الدخول والحضور. بعد الحفظ يظهر رمز التفعيل لترسله للموظف.', neIdentity:'الهوية والصلاحية', neWork:'العمل', neContact:'التواصل', neAttend:'الحضور والدوام',
+  neSummary:'الملخص', neNext:'ما الذي يحدث بعد الحفظ', neStep1:'يحفظ الحساب', neStep1s:'يظهر في الحسابات فورا', neStep2:'رمز التفعيل', neStep2s:'صالح 72 ساعة، 5 محاولات', neStep3:'يفعل الموظف جهازه', neStep3s:'بصمة الوجه أو الإصبع',
+  neStep4:'أول تسجيل حضور', neStep4s:'داخل نطاق موقع معتمد', neZonesN:'مواقع', neDaysN:'أيام العمل', neNoZones:'لا مواقع مفعلة بعد. أضفها من شاشة المواقع.', neTools:'أدوات الحساب', neNameHint:'كما في الهوية', neAll:'الكل',
+  neLoadFail:'تعذر تحميل الحساب.', neFill:'أكمل الرقم الوظيفي والاسم.', neNotFound:'لم نجد هذا الحساب.' });
+Object.assign(T.en, { neLead:'Create the sign-in and attendance account. After saving, the activation code appears for you to send.', neIdentity:'Identity and access', neWork:'Work', neContact:'Contact', neAttend:'Attendance and hours',
+  neSummary:'Summary', neNext:'What happens after saving', neStep1:'The account is saved', neStep1s:'It shows in accounts at once', neStep2:'Activation code', neStep2s:'Valid 72 hours, 5 tries', neStep3:'The employee activates a device', neStep3s:'Face or fingerprint',
+  neStep4:'First check-in', neStep4s:'Inside an approved zone', neZonesN:'Zones', neDaysN:'Working days', neNoZones:'No active zones yet. Add them on the zones screen.', neTools:'Account tools', neNameHint:'As on the ID', neAll:'All',
+  neLoadFail:'The account could not load.', neFill:'Fill in the employee number and the name.', neNotFound:'This account was not found.' });
+/** Open an existing account by id (from the employee file or a deep link): the list call gives the record and the zones. */
+function openAcct(id){
+  var go = function(){ var e = (S.empRows || []).filter(function(x){ return x.id === id; })[0]; if (e) return empDrawer(e); toast(t('neNotFound')); };
+  if (S.empRows && S.zoneRows && (S.empRows || []).some(function(x){ return x.id === id; })) return go();
+  Promise.all([api('empList', {}, true), api('zoneList', {}, true)]).then(function(res){ if (res[1].ok) S.zoneRows = res[1].rows; if (!res[0].ok) return toast(t('neLoadFail')); S.empRows = res[0].rows; go(); });
+}
+/** A new account: zones first (the form lists them), then the page. */
+function newEmpPage(){
+  if (S.zoneRows) return empDrawer(null);
+  api('zoneList', {}, true).then(function(r){ S.zoneRows = r.ok ? r.rows : []; empDrawer(null); });
+}
+/** Refresh whichever list is under the page after a change (the accounts screen, or the HR directory). */
+function acctChanged(){ if ($('#admBody') && S.adm === 'emp') admEmp(); S.empRows = null; }
 function empDrawer(e){
-  var z = S.zoneRows || [], ids = e ? String(e.zoneIds || '').split(',') : [];
+  var z = (S.zoneRows || []).filter(function(x){ return x.status === 'active'; }), ids = e ? String(e.zoneIds || '').split(',') : [];
   var wd = e && e.workdays ? e.workdays.split(',') : [];
   var roles = isAdmin() ? ['employee', 'hr', 'admin'] : ['employee'];
-  var d = drawer('<h3>' + (e ? t('editEmp') : t('addEmp')) + '</h3><form class="form" id="ef">' +
-    '<div class="two"><div class="field"><label>' + t('empNo') + '</label><input name="empNo" required inputmode="numeric" value="' + esc(e ? e.empNo : '') + '"></div>' +
-    '<div class="field"><label>' + t('role') + '</label><select name="role">' + roles.map(function(x){ return '<option value="' + x + '"' + (e && e.role === x ? ' selected' : '') + '>' + t('r_' + x) + '</option>'; }).join('') + '</select></div></div>' +
-    '<div class="field"><label>' + t('fullName') + '</label><input name="name" required value="' + esc(e ? e.name : '') + '"></div>' +
-    '<div class="field"><label>' + t('nameEn') + '</label><input name="nameEn" dir="ltr" value="' + esc(e ? e.nameEn : '') + '"></div>' +
-    '<div class="two"><div class="field"><label>' + t('dept') + '</label><input name="department" value="' + esc(e ? e.department : '') + '"></div>' +
-    '<div class="field"><label>' + t('title') + '</label><input name="title" value="' + esc(e ? e.title : '') + '"></div></div>' +
-    '<div class="two"><div class="field"><label>' + t('phone') + '</label><input name="phone" dir="ltr" inputmode="tel" value="' + esc(e ? e.phone : '') + '"></div>' +
-    '<div class="field"><label>' + t('email') + '</label><input name="email" dir="ltr" type="email" value="' + esc(e ? e.email : '') + '"></div></div>' +
-    '<div class="field"><label>' + t('zonesFor') + '</label><div class="checks">' + z.filter(function(x){ return x.status === 'active'; }).map(function(x){ return '<label><input type="checkbox" name="zone" value="' + x.id + '"' + (ids.indexOf(x.id) >= 0 ? ' checked' : '') + '>' + esc(x.name) + '</label>'; }).join('') + '</div></div>' +
-    '<div class="field"><label>' + t('shiftOverride') + '</label><div class="two"><input name="shiftStart" type="time" value="' + esc(e ? e.shiftStart : '') + '"><input name="shiftEnd" type="time" value="' + esc(e ? e.shiftEnd : '') + '"></div></div>' +
-    '<div class="field"><label>' + t('workdays') + '</label><div class="checks">' + t('dows').map(function(n, i){ return '<label><input type="checkbox" name="wd" value="' + i + '"' + (wd.indexOf(String(i)) >= 0 ? ' checked' : '') + '>' + n + '</label>'; }).join('') + '</div></div>' +
-    (e ? '<div class="field"><label>' + t('status') + '</label><select name="status"><option value="active">' + t('s_active') + '</option><option value="disabled"' + (e.status === 'disabled' ? ' selected' : '') + '>' + t('s_disabled') + '</option></select></div>' : '') +
-    (e && e.devices && e.devices.length ? '<div class="field"><label>' + t('devices') + '</label><div class="list">' + e.devices.map(function(dv){
-      return '<div class="row"><div class="av">' + (dv.platform === 'desktop' ? I.desk : I.phone) + '</div><div class="main"><b>' + esc(dv.label || '') + '</b><small>' + deviceKindLabel(dv) + (dv.status === 'locked' ? ' · <span class="chip absent">' + t('locked') + '</span>' : '') + '</small></div>' +
-        (isAdmin() ? '<button type="button" class="btn btn-line btn-sm" data-unlink="' + esc(dv.credId) + '">' + t('unlink') + '</button>' : '') + '</div>';
-    }).join('') + '</div></div>' : '') +
-    (e ? '<div class="field"><label>' + t('pwStatus') + '</label><div>' + (e.hasPassword ? '<span class="chip in">' + t('pwSet') + '</span>' : '<span class="chip">' + t('pwNone') + '</span>') +
-      (e.passwordLocked ? ' <span class="chip absent">' + t('pwLockedChip') + '</span>' : '') + (e.mustChangePassword ? ' <span class="chip late">' + t('pwMustChip') + '</span>' : '') + '</div></div>' : '') +
-    '<div class="err" id="eerr" style="color:var(--red)"></div>' +
-    '<div class="btnrow"><button class="btn btn-dark">' + t('save') + '</button><button type="button" class="btn btn-line" id="ecancel">' + t('cancel') + '</button></div>' +
-    (e ? '<div class="btnrow" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line)"><button type="button" class="btn btn-line btn-sm" id="ecode">' + t('newCode') + '</button>' +
-      '<button type="button" class="btn btn-line btn-sm" id="eman">' + t('manual') + '</button>' +
-      ((isAdmin() || e.role === 'employee') && e.id !== S.me.id ? '<button type="button" class="btn btn-line btn-sm" id="etpw">' + t('tempPwBtn') + '</button>' : '') +
-      (isAdmin() && e.device ? '<button type="button" class="btn btn-danger btn-sm" id="ereset">' + t('resetDevice') + '</button>' : '') + '</div>' : '') +
-    '</form>');
+  var fld = function(label, html, hint){ return '<div class="field"><label>' + label + '</label>' + html + (hint ? '<small>' + hint + '</small>' : '') + '</div>'; };
+  var send = '<button class="btn btn-dark" type="submit" form="ef" data-send>' + ph('floppy-disk') + t('save') + '</button>';
+  var tools = e ? '<section class="fp-card"><h2>' + ph('wrench') + t('neTools') + '</h2>' +
+      (e.devices && e.devices.length ? '<div class="fp-mini">' + e.devices.map(function(dv){
+        return '<div><span class="rq-mini-av">' + (dv.platform === 'desktop' ? ph('desktop') : ph('device-mobile')) + '</span><div class="m"><b>' + esc(dv.label || '') + '</b><small>' + deviceKindLabel(dv) + (dv.status === 'locked' ? ' · ' + t('locked') : '') + '</small></div>' +
+          (isAdmin() ? '<button type="button" class="btn btn-line btn-sm" data-unlink="' + esc(dv.credId) + '">' + t('unlink') + '</button>' : '') + '</div>'; }).join('') + '</div>' : '') +
+      '<div class="fp-rows" style="margin:10px 0 12px"><div><span>' + t('pwStatus') + '</span><b>' + (e.hasPassword ? '<span class="chip in">' + t('pwSet') + '</span>' : '<span class="chip">' + t('pwNone') + '</span>') +
+        (e.passwordLocked ? ' <span class="chip absent">' + t('pwLockedChip') + '</span>' : '') + (e.mustChangePassword ? ' <span class="chip late">' + t('pwMustChip') + '</span>' : '') + '</b></div></div>' +
+      '<div class="fp-actions"><button type="button" class="btn btn-line" id="ecode">' + ph('key') + t('newCode') + '</button>' +
+      '<button type="button" class="btn btn-line" id="eman">' + ph('clock-clockwise') + t('manual') + '</button>' +
+      ((isAdmin() || e.role === 'employee') && e.id !== S.me.id ? '<button type="button" class="btn btn-line" id="etpw">' + ph('password') + t('tempPwBtn') + '</button>' : '') +
+      (isAdmin() && e.device ? '<button type="button" class="btn btn-danger" id="ereset">' + ph('device-mobile-slash') + t('resetDevice') + '</button>' : '') + '</div></section>' : '';
+  var next = e ? '' : '<section class="fp-card"><h2>' + ph('flow-arrow') + t('neNext') + '</h2><ol class="fp-chain">' + [['floppy-disk', 'neStep1', 'neStep1s', 'now'], ['key', 'neStep2', 'neStep2s', 'off'], ['fingerprint', 'neStep3', 'neStep3s', 'off'], ['map-pin', 'neStep4', 'neStep4s', 'off']]
+    .map(function(x){ return '<li class="' + x[3] + '"><span class="fp-dot">' + ph(x[0]) + '</span><div><b>' + t(x[1]) + '</b><small>' + t(x[2]) + '</small></div></li>'; }).join('') + '</ol></section>';
+  var d = drawer('<form class="form" id="ef" novalidate><div class="fp-grid"><div class="fp-main">' +
+      '<section class="fp-card"><h2><span class="fp-n">1</span>' + t('neIdentity') + '</h2><div class="two">' + fld(t('empNo'), '<input name="empNo" required inputmode="numeric" dir="ltr" value="' + esc(e ? e.empNo : '') + '">') +
+        fld(t('role'), '<select name="role">' + roles.map(function(x){ return '<option value="' + x + '"' + (e && e.role === x ? ' selected' : '') + '>' + t('r_' + x) + '</option>'; }).join('') + '</select>') + '</div>' +
+        fld(t('fullName'), '<input name="name" required value="' + esc(e ? e.name : '') + '">', t('neNameHint')) + fld(t('nameEn'), '<input name="nameEn" dir="ltr" value="' + esc(e ? e.nameEn : '') + '">') +
+        (e ? fld(t('status'), '<select name="status"><option value="active">' + t('s_active') + '</option><option value="disabled"' + (e.status === 'disabled' ? ' selected' : '') + '>' + t('s_disabled') + '</option></select>') : '') + '</section>' +
+      '<section class="fp-card"><h2><span class="fp-n">2</span>' + t('neWork') + '</h2><div class="two">' + fld(t('dept'), '<input name="department" value="' + esc(e ? e.department : '') + '">') + fld(t('title'), '<input name="title" value="' + esc(e ? e.title : '') + '">') + '</div></section>' +
+      '<section class="fp-card"><h2><span class="fp-n">3</span>' + t('neContact') + '</h2><div class="two">' + fld(t('phone'), '<input name="phone" dir="ltr" inputmode="tel" value="' + esc(e ? e.phone : '') + '">') + fld(t('email'), '<input name="email" dir="ltr" type="email" value="' + esc(e ? e.email : '') + '">') + '</div></section>' +
+      '<section class="fp-card"><h2><span class="fp-n">4</span>' + t('neAttend') + '</h2>' +
+        fld(t('zonesFor'), z.length ? '<div class="checks">' + z.map(function(x){ return '<label><input type="checkbox" name="zone" value="' + x.id + '"' + (ids.indexOf(x.id) >= 0 ? ' checked' : '') + '>' + esc(x.name) + '</label>'; }).join('') + '</div>' : '<p class="hr-hint" style="margin:0">' + t('neNoZones') + '</p>') +
+        fld(t('shiftOverride'), '<div class="two"><input name="shiftStart" type="time" aria-label="' + t('shiftOverride') + '" value="' + esc(e ? e.shiftStart : '') + '"><input name="shiftEnd" type="time" aria-label="' + t('shiftOverride') + '" value="' + esc(e ? e.shiftEnd : '') + '"></div>') +
+        fld(t('workdays'), '<div class="checks">' + t('dows').map(function(n, i){ return '<label><input type="checkbox" name="wd" value="' + i + '"' + (wd.indexOf(String(i)) >= 0 ? ' checked' : '') + '>' + n + '</label>'; }).join('') + '</div>') + '</section>' +
+    '</div><aside class="fp-aside"><section class="fp-card" aria-live="polite"><h2>' + ph('identification-badge') + t('neSummary') + '</h2><div id="neSum"></div>' +
+      '<p class="fp-err" id="eerr" role="alert"></p><div class="fp-actions fp-desk" style="margin-top:14px">' + send + '<button type="button" class="btn btn-line" id="ecancel">' + t('cancel') + '</button></div></section>' + next + tools + '</aside></div>' +
+    '<div class="fp-bar"><div class="fp-sumline"><span>' + (e ? t('editEmp') : t('addEmp')) + '</span><b id="neLine">-</b></div>' + send + '</div></form>',
+    { key: e ? 'acct' : 'newemp', arg: e ? e.id : '', icon: e ? 'user-gear' : 'user-plus', tint: 'people', title: e ? t('editEmp') : t('addEmp'),
+      lead: e ? esc(e.name) + ' · <bdi class="num">' + esc(e.empNo) + '</bdi>' : t('neLead'), chips: e ? (e.status === 'disabled' ? '<span class="chip absent">' + t('s_disabled') + '</span>' : e.device ? '<span class="chip in">' + (e.device.kind === 'devicekey' ? t('tapMode') : t('bioMode')) + '</span>' : '<span class="chip late">' + t('notEnrolled') + '</span>') : '', bare: true, wide: true });
+  var form = $('#ef', d), sending = false;
+  function paintSum(){
+    var f = form, nm = f.name.value.trim(), zn = $$('input[name=zone]:checked', f).length, dn = $$('input[name=wd]:checked', f).length;
+    $('#neSum', d).innerHTML = '<div class="fp-who"><span class="fp-av">' + esc(initials(nm || '?')) + '</span><div><b>' + esc(nm || '-') + '</b><small><bdi class="num">' + esc(f.empNo.value.trim() || '-') + '</bdi> · ' + t('r_' + f.role.value) + '</small></div></div>' +
+      '<div class="fp-rows" style="margin-top:12px"><div><span>' + t('neZonesN') + '</span><b class="num">' + zn + ' / ' + z.length + '</b></div><div><span>' + t('neDaysN') + '</span><b class="num">' + (dn || t('neAll')) + '</b></div>' +
+      (f.shiftStart.value && f.shiftEnd.value ? '<div><span>' + t('shiftOverride') + '</span><b><bdi dir="ltr">' + esc(f.shiftStart.value + ' - ' + f.shiftEnd.value) + '</bdi></b></div>' : '') + '</div>';
+    var l = $('#neLine', d); if (l) l.textContent = nm || '-';
+  }
+  form.oninput = form.onchange = paintSum; paintSum();
   $('#ecancel', d).onclick = function(){ d.remove(); };
-  $('#ef', d).onsubmit = function(ev){
-    ev.preventDefault(); var f = ev.target;
+  form.onsubmit = function(ev){
+    ev.preventDefault(); if (sending) return;
+    var f = form, er = $('#eerr', d); er.textContent = '';
+    var bad = ['empNo', 'name'].filter(function(k){ var x = f.elements[k]; x.removeAttribute('aria-invalid'); return !x.value.trim(); });
+    if (bad.length) { bad.forEach(function(k){ f.elements[k].setAttribute('aria-invalid', 'true'); }); f.elements[bad[0]].focus(); er.textContent = t('neFill'); return; }
     var emp = { id: e ? e.id : '', empNo: f.empNo.value, name: f.name.value, nameEn: f.nameEn.value, department: f.department.value, title: f.title.value,
       phone: f.phone.value, email: f.email.value, role: f.role.value, shiftStart: f.shiftStart.value, shiftEnd: f.shiftEnd.value,
       zoneIds: $$('input[name=zone]:checked', f).map(function(x){ return x.value; }).join(','), workdays: $$('input[name=wd]:checked', f).map(function(x){ return x.value; }).join(','),
       status: f.status ? f.status.value : 'active' };
+    sending = true; $$('[data-send]', d).forEach(function(b){ b.disabled = true; });
     api('empSave', { emp: emp }).then(function(r){
-      if (!r.ok) return $('#eerr', d).textContent = errText(r.error);
+      sending = false; $$('[data-send]', d).forEach(function(b){ b.disabled = false; });
+      if (!r.ok) return er.textContent = errText(r.error);
       d.remove(); toast(t('saved'));
       if (r.activationCode) showCode(r.emp, r.activationCode);
-      admEmp();
+      acctChanged();
     });
   };
   if (e) {
     $('#ecode', d).onclick = function(){ api('empActivation', { id: e.id }).then(function(r){ if (r.ok) { d.remove(); showCode(e, r.activationCode); } else toast(errText(r.error)); }); };
     $('#eman', d).onclick = function(){ d.remove(); manualDrawer(e); };
     var tp = $('#etpw', d);
-    if (tp) tp.onclick = function(){ if (!window.confirm(t('confirmTempPw'))) return; api('empPasswordReset', { id: e.id }).then(function(r){ if (r.ok) { d.remove(); showTempPw(e, r.tempPassword); admEmp(); } else toast(errText(r.error)); }); };
+    if (tp) tp.onclick = function(){ if (!window.confirm(t('confirmTempPw'))) return; api('empPasswordReset', { id: e.id }).then(function(r){ if (r.ok) { d.remove(); showTempPw(e, r.tempPassword); acctChanged(); } else toast(errText(r.error)); }); };
     $$('[data-unlink]', d).forEach(function(bt){ bt.onclick = function(){
       if (!window.confirm(t('confirmUnlink'))) return;
-      api('empResetDevice', { id: e.id, credId: bt.dataset.unlink }).then(function(r){ if (r.ok) { d.remove(); showCode(e, r.activationCode); admEmp(); } else toast(errText(r.error)); });
+      api('empResetDevice', { id: e.id, credId: bt.dataset.unlink }).then(function(r){ if (r.ok) { d.remove(); showCode(e, r.activationCode); acctChanged(); } else toast(errText(r.error)); });
     }; });
     var rs = $('#ereset', d);
-    if (rs) rs.onclick = function(){ if (!window.confirm(t('confirmReset'))) return; api('empResetDevice', { id: e.id }).then(function(r){ if (r.ok) { d.remove(); showCode(e, r.activationCode); admEmp(); } else toast(errText(r.error)); }); };
+    if (rs) rs.onclick = function(){ if (!window.confirm(t('confirmReset'))) return; api('empResetDevice', { id: e.id }).then(function(r){ if (r.ok) { d.remove(); showCode(e, r.activationCode); acctChanged(); } else toast(errText(r.error)); }); };
   }
+  return d;
 }
 
 function appUrl(){ return location.origin + location.pathname; }
@@ -3746,7 +4424,7 @@ document.addEventListener('input', function(){ lastTypedAt = Date.now(); typedOn
 window.addEventListener('hashchange', function(){ typedOnPage = false; });
 function updateSafeNow(){
   var a = document.activeElement, tag = a && a.tagName;
-  return !S.busy && !typedOnPage && !document.querySelector('.drawer') && tag !== 'INPUT' && tag !== 'TEXTAREA' && tag !== 'SELECT' && Date.now() - lastTypedAt > 60000;
+  return !S.busy && !typedOnPage && !document.querySelector('.drawer, .dp-page') && tag !== 'INPUT' && tag !== 'TEXTAREA' && tag !== 'SELECT' && Date.now() - lastTypedAt > 60000;
 }
 function updateTried(build, mark){
   try { if (mark) sessionStorage.setItem('updTried', build); return sessionStorage.getItem('updTried') === build; } catch (e) { return true; }

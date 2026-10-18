@@ -1,6 +1,7 @@
 # KSA HRIS documentation study: what the Saudi leaders actually document (2026-10-08)
 
-**Status:** IN PROGRESS (written vendor by vendor so a crash loses little).
+**Status:** COMPLETE 2026-10-14 (vendor notes 2026-10-08; Workday/SAP, the statutory comparison, the code audit and the
+gap table added 2026-10-14, see the last four sections).
 
 **Question.** The owner wants the strongest HRIS in KSA. The 2026-10-04 matrix
 (`2026-10-04-feature-gap-matrix.md`) compared 96 sub-features from product pages. This study goes one level deeper:
@@ -145,3 +146,86 @@ per month; Qoyod HR SAR 49 base; Mawared on-premises, project priced.
 [palm-law24]: https://palmhr.net/en/resources/changes-to-the-saudi-labor-law-august-2024
 [palm-pay]: https://palmhr.net/en/products/pay
 [palm-price]: https://palmhr.net/en/pricing
+
+### Workday and SAP SuccessFactors (global suites)
+
+| Area | What the documentation says | Source |
+|---|---|---|
+| SAP SuccessFactors / SAP HCM | A Saudi payroll country version exists: EOS configuration ("old method" and "new method") under Payroll: Saudi Arabia in SPRO; an SAP KBA covers EOS not generated (wage type /670, rule SA91). KSA partner job posts list GOSI, WPS, EOSB and Labour Law localisation as implementation work, i.e. partner-configured, not out of the box | [sap-eos1], [sap-eos2], [sap-kba], [sap-job] |
+| Workday | No public Workday page on KSA payroll, GOSI, Mudad or EOS was found in this pass; Workday KSA payroll is normally run through a partner payroll (PECI/Cloud Connect). **unverified** | (search, no primary page) |
+| Takeaway | The global suites win on scale and audit, lose on KSA statutory depth: every GOSI / Mudad / Muqeem / Qiwa piece is a partner project. The local vendors (Jisr, ZenHR, Bayzat) sell exactly those connectors | |
+
+[sap-eos1]: https://blogs.sap.com/2015/12/15/eos-benefit-calculation-with-new-method-for-saudi-arabia-payroll-part-01/
+[sap-eos2]: https://blogs.sap.com/2015/12/20/eos-benefit-calculation-with-new-method-for-saudi-arabia-payroll-part-02/
+[sap-kba]: https://userapps.support.sap.com/sap/support/knowledge/en/3758669
+[sap-job]: https://www.founditgulf.com/job/sap-successfactors-employee-central-payroll-ecp-consultant-ejada-saudi-arabia-59199465
+
+---
+
+## The statutory rules in force on 2026-10-14
+
+| Rule | Value used | Source |
+|---|---|---|
+| GOSI legacy (registered before 3 Jul 2024) | employee 9 annuity + 0.75 SANED = 9.75%; employer 9 + 0.75 + 2 hazards = 11.75% | [gosi-new], [noqta-gosi] |
+| GOSI new law (Royal Decree M/273, first registered from 3 Jul 2024) | annuity +0.5% each side every July 2025-2028: 9.75/11.75 (to Jun 2025), 10.25/12.25 (Jul 2025), **10.75/12.75 (Jul 2026, in force now)**, 11.25/13.25 (Jul 2027), 11.75/13.75 (Jul 2028+). Sources differ on whether the first step was Jul 2025 or Jul 2026; Argaam, Ramco and Payspace support Jul 2025 / Jul 2026 steps as coded | [argaam-gosi], [payspace-gosi], [mercans-gosi] |
+| Non-Saudi | employer 2% occupational hazards only | [payspace-gosi] |
+| GCC nationals | GOSI collects at the home-country rates (GCC extension of insurance protection) + 2% hazards; rates per country, published tables disagree | [sov-gcc], [lenvica] |
+| Contribution wage | basic + housing (cash, or in kind valued at two months' basic a year); other allowances excluded; min 1,500, max 45,000 | [qoyod-cw] |
+| Nitaqat | Saudi counts 1 at wage >= 4,000, 0.5 at 3,000-3,999, 0 below | [argaam-nit] |
+| Labour Law amendments (Royal Decree M/44, in force 19 Feb 2025) | notice 30 days from the employee / 60 from the employer (indefinite contracts); resignation deemed accepted after 30 days unanswered, deferrable up to 60 days in writing; probation up to 180 days if written; maternity 12 weeks; sibling bereavement 3 days; paternity 3 days; expat contract silent on term = 1 year; Art. 107 overtime may be compensated with paid leave by agreement | [tamimi-25], [ml-25], [qoyod-aw] |
+| Unchanged by the 2025 amendments | Art. 2 wage definitions, Art. 84 EOS (last **actual** wage), Art. 92-93 deductions; Art. 70 fines at most 5 days' (actual) wage a month | [qoyod-aw], [qoyod-fine] |
+
+---
+
+## Code audit against those rules (2026-10-14)
+
+Locked by `tests/ksa-law.js` (65 golden numbers worked by hand: EOS at 1.5/2/3/5/7/10/12 years for resignation, termination,
+Art. 80 and Art. 87; GOSI per cohort for Jun vs Jul 2026, cap, floor, non-Saudi, GCC, in-kind housing; Art. 107 overtime;
+Art. 117 sick tiers; Art. 70 fines; Art. 93 half-wage cap; Art. 109 accrual; Art. 116; Art. 75 notice; Art. 88 due dates).
+
+| # | Finding | Fix |
+|---|---|---|
+| 1 | `api_eosQuote` paid the award on basic + housing when `eosWageBasis = basic_housing`; Art. 84 + Art. 2 require the last actual wage (Art. 8 voids less favourable terms) | Settlement always on the total wage; warning `eos_basis_below_actual` (Payroll.gs) |
+| 2 | Any approved unpaid leave paused annual-leave accrual; Art. 116 suspends the contract only beyond the 20th day | `annualBalance_` pauses only days 21+ (Leave.gs); reports/sim50 expectations updated |
+| 3 | Resignation notice took `noticeDays` as is, so 1-29 days was accepted; Art. 75 (2025) floor is 30 | `Math.max(30, noticeDays)` (Leave.gs) |
+| 4 | No trace of the 2025 deemed-acceptance rule for resignations | `resignationAcceptBy_` (submission + 30 days), `acceptBy` and `deemedAccepted` on the request (Leave.gs) |
+| 5 | GCC nationals were silently treated as expats (0% / 2%) | Warning `gosi_gcc_national` on the slip (Payroll.gs) |
+| 6 | Housing in kind was invisible to GOSI (base = basic only) | Warning `gosi_housing_zero` with `info.gosi.inKindWage = basic x 14/12` (Payroll.gs) |
+| ok | GOSI rate table, cap, floor, non-Saudi; Art. 107 (hourly actual + 50% basic hourly); Art. 70 on actual wage; Art. 93 with advances deferred first; Art. 92 10% loan warning; Art. 117 30/60/30; Art. 109 21/30; Art. 85 bands; Art. 80/81/87; Art. 88 7/14 days; Art. 53 180 days; Art. 37; maternity 84, iddah 130/15, sibling 3, paternity 3 within 7 | no change |
+
+---
+
+## What we still miss (prioritised)
+
+| P | Gap | Why it matters | Who has it |
+|---|---|---|---|
+| P1 | EOS provision (`calcSlip_`), dashboard and reports liability still follow `eosWageBasis`; with basic_housing they understate the liability | Accounts and board figures below the legal amount | Jisr (basis selectable, but defaults full) |
+| P1 | Mudad / WPS: file only, no API submission or payment-status read-back; template to confirm with the bank | Buyer checklist item 1; WPS non-compliance blocks Qiwa services | Jisr, ZenHR, Bayzat, Menaitech |
+| P1 | GOSI: no register/update/terminate connector; no in-kind housing flag on the package; GCC home-country rates not modelled (warning only) | Wage drift between payroll and GOSI = penalties | Jisr, ZenHR (salary-on-GOSI sync) |
+| P1 | Resignation auto-acceptance is shown, not enforced: no task at day 25, no automatic approval at day 30, no 60-day written deferral | 2025 amendment | Jisr (auto-approve after N days) |
+| P2 | Art. 77 compensation for termination without a valid reason (15 days per year, min 2 months; fixed term: remaining term) and employer 60-day notice pay in the EOS quote | Final settlement incomplete on unfair dismissal | Labour courts' standard; none documented by vendors |
+| P2 | Maternity pay by service (Art. 151: half pay at 1-3 years, full from 3) not applied on the payslip | Over/under payment risk | ZenHR (article map) |
+| P2 | Overtime compensated with paid leave (Art. 107 as amended) | 2025 option | none documented |
+| P2 | Expat contract with no end date: default 1 year (2025) | Contract register accuracy | ZenHR (Qiwa contract tracking) |
+| P2 | GOSI part-month: contributions prorated by paid days; confirm with GOSI whether the month of joining/leaving is charged in full | Small reconciliation differences | n/a |
+| P3 | Qiwa contract authentication and Muqeem connectors (manual today) | Workload | Jisr (Muqeem), ZenHR (both), Menaitech |
+| P3 | Nitaqat forecast before a hire or exit (we show the current weighted %) | Buyer checklist item 2 | Bayzat guide, ZenHR |
+| P3 | Hijri dates on payslips and contracts (only on printed reports today) | Buyer checklist item 4 | Bayzat guide |
+
+[gosi-new]: https://saudipedia.com/en/social-insurance-law-in-saudi-arabia
+[noqta-gosi]: https://noqta.tn/en/blog/gosi-contribution-rate-salary-deduction-saudi-2026
+[argaam-gosi]: https://www.argaam.com/en/article/articledetail/id/1824657
+[payspace-gosi]: https://payspace.com/blog/saudi-arabia-gosi-contribution-rates-increase-1-july-2026-new-employee-employer-rates
+[mercans-gosi]: https://mercans.com/resources/statutory-alerts/saudi-arabia-new-social-security-law-3-july-2025
+[sov-gcc]: https://www.sovereigngroup.com/news/gcc-nationals-pension-contributions-across-the-gcc/
+[lenvica]: https://lenvica.com/gosi-general-organization-for-social-insurance-in-saudi-arabia/
+[qoyod-cw]: https://www.qoyod.com/en/glossary/contributory-wage/
+[argaam-nit]: https://www.argaam.com/en/article/articledetail/id/1460333
+[tamimi-25]: https://turtl.tamimi.com/story/amendments-to-labour-law
+[ml-25]: https://www.morganlewis.com/pubs/2024/08/key-amendments-to-the-kingdom-of-saudi-arabia-labour-law-announced
+[qoyod-aw]: https://www.qoyod.com/en/glossary/actual-wage/
+[qoyod-fine]: https://www.qoyod.com/en/glossary/disciplinary-fine/
+
+Caveat: the HRSD (hrsd.gov.sa) and GOSI portals did not return the law texts to automated reads in this pass; the rule
+table rests on law-firm and payroll-vendor summaries that agree with each other. Re-check against the official texts
+before a legal opinion relies on it.

@@ -100,8 +100,8 @@ function claimRow(x, i, who){
 function mine(el, me, again){
   el.innerHTML = '<div class="toolbar"><span class="hr-hint">' + (me.receiptOver ? t('xpReceiptOver') + ' ' + money(me.receiptOver) + sep() : '') + t('xpMaxAge') + '</span><span class="sp"></span><button type="button" class="btn btn-dark btn-sm" id="xpNew">' + ph('plus') + t('xpNew') + '</button></div>' +
     (me.rows.length ? '<div class="list">' + me.rows.map(function(x, i){ return claimRow(x, i, false); }).join('') + '</div>' : empty('receipt', t('xpNone')));
-  $('#xpNew', el).onclick = function(){ newClaim(me, again); };
-  $$('[data-v]', el).forEach(function(b){ b.onclick = function(){ view(me.rows[b.dataset.v], again); }; });
+  $('#xpNew', el).onclick = function(){ goArea('requests', 'claim'); };
+  seen(me.rows); $$('[data-v]', el).forEach(function(b){ b.onclick = function(){ goArea('requests', 'claimview', me.rows[b.dataset.v].id); }; });
 }
 function inbox(el, scope, again){
   busy(el);
@@ -109,33 +109,8 @@ function inbox(el, scope, again){
     if (!el.isConnected) return;
     if (!r.ok) return el.innerHTML = bad(r.error);
     el.innerHTML = r.rows.length ? '<div class="list">' + r.rows.map(function(x, i){ return claimRow(x, i, true); }).join('') + '</div>' : empty('seal-check', t('xpNone'));
-    $$('[data-v]', el).forEach(function(b){ b.onclick = function(){ view(r.rows[b.dataset.v], again); }; });
+    seen(r.rows); $$('[data-v]', el).forEach(function(b){ b.onclick = function(){ goArea('requests', 'claimview', r.rows[b.dataset.v].id); }; });
   });
-}
-/** One claim: its lines, warnings and history, and the actions the viewer may take. */
-function view(x, again){
-  var d = drawer('<h3>' + esc(x.title || t('xpTitle')) + ' <bdi>' + esc(x.ref) + '</bdi></h3><p class="hr-hint">' + empLine(x.emp) + sep() + stChip(x) + '</p>' +
-    '<div class="tblwrap"><table class="tbl"><thead><tr><th>' + t('xpDate') + '</th><th>' + t('xpCat') + '</th><th>' + t('xpDesc') + '</th><th>' + t('xpReceipt') + '</th><th>' + t('xpVat') + '</th><th>' + t('xpAmount') + '</th></tr></thead><tbody>' +
-    x.lines.map(function(l){ return '<tr><td class="num">' + esc(l.date) + '</td><td>' + t('xc_' + l.category) + '</td><td>' + esc(l.description) + (l.merchant ? ' <small>' + esc(l.merchant) + '</small>' : '') + '</td><td><bdi>' + esc(l.receiptRef || '') + '</bdi></td><td class="num">' + Number(l.vat || 0).toFixed(2) + '</td><td class="num">' + Number(l.amount).toFixed(2) + '</td></tr>'; }).join('') +
-    '</tbody></table></div><p><b>' + t('xpTotal') + ': ' + money(x.total) + '</b> (' + t('xpVat') + ' ' + money(x.vat) + ')</p>' +
-    (x.flags.length ? '<div class="xp-chk warn">' + x.flags.map(flagText).join('<br>') + '</div>' : '') +
-    (x.history.length ? '<ul class="cn-tl" style="list-style:none;padding:0">' + x.history.map(function(h){ return '<li><b>' + esc(T[S.lang]['cnd_' + h.decision] || h.decision) + sep() + esc(h.by) + '</b> <small>' + fmt(day(h.at)) + (h.note ? sep() + esc(h.note) : '') + '</small></li>'; }).join('') + '</ul>' : '') +
-    '<div id="xpAct"></div><p class="hr-bad" id="xpE" role="alert"></p><div class="btnrow"><button type="button" class="btn btn-line btn-sm" id="xpPr">' + ph('printer') + t('xpPrint') + '</button></div>');
-  var act = $('#xpAct', d), er = $('#xpE', d), h = '';
-  var done = function(r, b){ if (b) b.disabled = false; if (!r.ok) return er.textContent = errText(r.error); d.remove(); toast(t('xpSaved')); refreshTasks(); again(); };
-  if (x.canAct) h += '<form class="form op-box" id="xpD">' + (x.step === 'payroll' ? fld(t('xpPayout'), '<select name="payout"><option value="payroll">' + t('xpViaPayroll') + '</option><option value="outside">' + t('xpOutside') + '</option></select>') : '') +
-    fld(x.flags.length && x.step === 'payroll' ? t('xpNoteReq') : t('xpNoteOpt'), '<input name="note" maxlength="300">') + '<div class="btnrow"><button class="btn btn-dark btn-sm" type="submit">' + ph('check') + t('xpApprove') + '</button><button type="button" class="btn btn-line btn-sm" id="xpRj">' + t('xpReject') + '</button></div></form>';
-  if (x.canPay) h += '<form class="form op-box" id="xpP"><div class="two">' + fld(t('xpPaidRef'), '<input name="ref" dir="ltr" maxlength="60" required>') + fld(t('xpPaidOn'), '<input name="on" type="date" value="' + riyadhToday() + '" max="' + riyadhToday() + '">') + '</div><div class="btnrow"><button class="btn btn-dark btn-sm" type="submit">' + t('xpPaid') + '</button></div></form>';
-  if (x.canCancel) h += '<form class="form op-box" id="xpC">' + (x.mine ? '' : fld(t('xpNoteReq'), '<input name="note" maxlength="300">')) + '<div class="btnrow"><button class="btn btn-line btn-sm" type="submit">' + (x.mine ? t('xpCancel') : t('xpCancelPay')) + '</button></div></form>';
-  act.innerHTML = h;
-  var fd = $('#xpD', d);
-  if (fd) {
-    fd.onsubmit = function(ev){ ev.preventDefault(); var b = fd.querySelector('[type=submit]'); b.disabled = true; api('expenseDecide', { id: x.id, decision: 'approve', note: fd.elements.note.value.trim(), payout: fd.elements.payout ? fd.elements.payout.value : '' }).then(function(r){ done(r, b); }); };
-    $('#xpRj', d).onclick = function(){ var n = fd.elements.note.value.trim(); if (!n) return er.textContent = errText('note_required'); api('expenseDecide', { id: x.id, decision: 'reject', note: n }).then(function(r){ done(r); }); };
-  }
-  var fp = $('#xpP', d); if (fp) fp.onsubmit = function(ev){ ev.preventDefault(); var b = fp.querySelector('[type=submit]'); b.disabled = true; api('expensePaid', { id: x.id, paidRef: fp.elements.ref.value.trim(), paidOn: fp.elements.on.value }).then(function(r){ done(r, b); }); };
-  var fc = $('#xpC', d); if (fc) fc.onsubmit = function(ev){ ev.preventDefault(); var b = fc.querySelector('[type=submit]'); b.disabled = true; api('expenseCancel', { id: x.id, note: fc.elements.note ? fc.elements.note.value.trim() : '' }).then(function(r){ done(r, b); }); };
-  $('#xpPr', d).onclick = function(){ voucher(x); };
 }
 /** The claim on A4 with its lines, totals in words and three signature lines. */
 function voucher(x){
@@ -150,50 +125,178 @@ function voucher(x){
     (x.flags.length ? '<section><p class="note warn">' + D.esc(x.flags.map(function(f){ var tmp = document.createElement('div'); tmp.innerHTML = flagText(f); return tmp.textContent; }).join(' / ')) + '</p></section>' : '');
   D.open({ lang: en ? 'en' : 'ar', kind: t('xpVoucherKind'), title: t('xpVoucher'), ref: x.ref, body: body, qr: x.ref + '|' + x.total, by: S.me && S.me.name, signatures: [t('xpSignEmp'), t('xpSignMgr'), t('xpSignPay')] });
 }
-function newClaim(me, again){
-  var cats = me.categories || ['fuel', 'tolls', 'parking', 'meals', 'per_diem', 'phone', 'vehicle', 'travel', 'other'], td = riyadhToday();
-  var lines = [{ category: cats[0], date: td, amount: '', vat: '', merchant: '', description: '', receiptRef: '' }];
-  var d = drawer('<h3>' + t('xpNew') + '</h3><form class="form" id="xnF">' + fld(t('xpTitleF'), '<input name="title" maxlength="120">') + '<h4 class="hr-sub">' + t('xpLines') + '</h4><div id="xnL"></div>' +
-    '<div class="btnrow"><button type="button" class="btn btn-line btn-sm" id="xnAdd">' + ph('plus') + t('xpAddLine') + '</button></div><div class="xp-chk" id="xnC" aria-live="polite"></div>' +
-    '<div class="btnrow"><button class="btn btn-dark" type="submit" id="xnGo" disabled>' + t('xpSend') + '</button></div></form>');
-  var box = $('#xnL', d), chk = $('#xnC', d), go = $('#xnGo', d), timer = null, seq = 0;
-  function paint(){
-    box.innerHTML = lines.map(function(l, i){
-      return '<div class="xp-line" data-i="' + i + '">' + fld(t('xpCat'), '<select data-k="category">' + cats.map(function(c){ return '<option value="' + c + '"' + (l.category === c ? ' selected' : '') + '>' + t('xc_' + c) + '</option>'; }).join('') + '</select>') +
-        fld(t('xpDate'), '<input data-k="date" type="date" max="' + td + '" value="' + esc(l.date) + '">') + fld(t('xpAmount'), '<input data-k="amount" type="number" min="0.01" step="0.01" inputmode="decimal" value="' + esc(l.amount) + '">') +
-        fld(t('xpVat'), '<input data-k="vat" type="number" min="0" step="0.01" inputmode="decimal" value="' + esc(l.vat) + '">') + '<div class="wide">' + fld(t('xpDesc'), '<input data-k="description" maxlength="300" value="' + esc(l.description) + '">') + '</div>' +
-        fld(t('xpMerchant'), '<input data-k="merchant" maxlength="120" value="' + esc(l.merchant) + '">') + fld(t('xpReceipt'), '<input data-k="receiptRef" dir="ltr" maxlength="60" value="' + esc(l.receiptRef) + '">') +
-        (lines.length > 1 ? '<button type="button" class="btn btn-line btn-sm rm" data-rm aria-label="' + t('xpRemove') + '">' + ph('trash') + '</button>' : '') + '</div>';
-    }).join('');
-    $$('.xp-line', box).forEach(function(row){ var i = +row.dataset.i;
-      $$('[data-k]', row).forEach(function(x){ x.oninput = x.onchange = function(){ lines[i][x.dataset.k] = x.value; check(); }; });
-      var rm = $('[data-rm]', row); if (rm) rm.onclick = function(){ lines.splice(i, 1); paint(); check(); };
-    });
-  }
-  function check(){
-    clearTimeout(timer); chk.className = 'xp-chk'; chk.textContent = t('xpChecking'); go.disabled = true;
-    timer = setTimeout(function(){
-      var my = ++seq;
-      api('expenseCheck', { claim: { lines: lines } }, true).then(function(r){
-        if (my !== seq || !chk.isConnected) return;
-        var c = r.ok ? r.check : { error: r.error };
-        if (c.error) { chk.className = 'xp-chk bad'; chk.textContent = (c.line != null ? t('xpLineN') + ' ' + (c.line + 1) + ': ' : '') + errText(c.error); return; }
-        go.disabled = false;
-        chk.className = 'xp-chk' + (c.flags.length ? ' warn' : '');
-        chk.innerHTML = t('xpTotal') + ': <b>' + money(c.total) + '</b> (' + t('xpVat') + ' ' + money(c.vat) + ')' + (c.flags.length ? '<br>' + c.flags.map(flagText).join('<br>') + '<br>' + t('xpOverLead') : '<br>' + t('xpOk'));
-      });
-    }, 400);
-  }
-  $('#xnAdd', d).onclick = function(){ if (lines.length >= 40) return; var last = lines[lines.length - 1]; lines.push({ category: last.category, date: last.date, amount: '', vat: '', merchant: '', description: '', receiptRef: '' }); paint(); check(); };
-  $('#xnF', d).onsubmit = function(ev){
-    ev.preventDefault(); go.disabled = true;
-    api('expenseCreate', { claim: { title: this.elements.title.value.trim(), lines: lines } }).then(function(r){
-      if (!r.ok) { go.disabled = false; chk.className = 'xp-chk bad'; chk.textContent = errText(r.error); return; }
-      d.remove(); toast(t('xpSent') + ' ' + r.claim.ref); refreshTasks(); again();
-    });
-  };
-  paint(); check();
+// ---------------- full pages (2026-10-14): a new claim (#requests/claim) and one claim (#requests/claimview/<id>) ----------------
+Object.assign(T.ar, { xpWho:'مقدم المطالبة', xpSum:'الملخص', xpByCat:'حسب الفئة', xpPath:'مسار الاعتماد', xpPathLead:'يعتمدها مديرك ثم الرواتب، ثم تصرف.', xpGuide:'قبل أن ترسل',
+  xpG1:'أضف كل مصروف في بند مستقل بتاريخه ومبلغه شامل الضريبة.', xpG2:'تقبل المصروفات خلال آخر 90 يوما فقط.', xpRecent:'آخر مطالباتك', xpStepMgr:'المدير المباشر', xpStepPay:'الرواتب', xpStepPaid:'الصرف',
+  xpSendIt:'ترسل المطالبة', xpLinesN:'عدد البنود', xpSentT:'أرسلت مطالبتك', xpSentL:'تابع خطواتها هنا.', xpNotFound:'لم نجد هذه المطالبة، أو لا تملك صلاحية عرضها.', xpDecide:'قرارك', xpView:'المطالبة', xpEmpNo:'الرقم الوظيفي', xpTimeline:'سير المطالبة', xpFillFirst:'أدخل المبلغ والوصف لكل بند ليظهر الحساب.', xpAttach:'رفع صور الإيصالات غير متاح بعد. اكتب رقم كل إيصال في بنده واحتفظ بالأصل.' });
+Object.assign(T.en, { xpWho:'Claimant', xpSum:'Summary', xpByCat:'By category', xpPath:'Approval path', xpPathLead:'Your manager approves, then payroll, then it is paid.', xpGuide:'Before you send',
+  xpG1:'Put each expense on its own line with its date and the amount including VAT.', xpG2:'Only expenses from the last 90 days are accepted.', xpRecent:'Your recent claims', xpStepMgr:'Line manager', xpStepPay:'Payroll', xpStepPaid:'Payment',
+  xpSendIt:'You send it', xpLinesN:'Lines', xpSentT:'Your claim is sent', xpSentL:'Follow its steps here.', xpNotFound:'This claim was not found, or you cannot see it.', xpDecide:'Your decision', xpView:'Claim', xpEmpNo:'Employee no.', xpTimeline:'Progress', xpFillFirst:'Enter the amount and description of each line to see the check.', xpAttach:'Receipt photos cannot be attached yet. Type each receipt number on its line and keep the original.' });
+var css2 = '.xp-page .xp-line{grid-template-columns:repeat(4,minmax(0,1fr));padding:14px 0}.xp-page .xp-line + .xp-line{border-top:1px dashed var(--line)}' +
+  '.xp-ln{grid-column:1 / -1;display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;color:var(--ink-3)}.xp-ln .sp{flex:1}' +
+  '.xp-ln b{width:22px;height:22px;border-radius:7px;display:grid;place-items:center;background:var(--well);color:var(--ink-2);font-size:12px}' +
+  '@media (max-width:640px){.xp-page .xp-line{grid-template-columns:repeat(2,minmax(0,1fr))}}';
+var st2 = document.createElement('style'); st2.textContent = css2; document.head.appendChild(st2);
+function seen(rows){ S.xpSeen = S.xpSeen || {}; (rows || []).forEach(function(x){ S.xpSeen[x.id] = x; }); }
+function back2(pg){ $$('[data-fp-back]', pg).forEach(function(b){ b.onclick = function(){ if (history.state && history.state.fp && history.length > 1) history.back(); else goArea('requests', 'expenses', '', { replace: true }); }; }); }
+function chainHtml(x){
+  var node = function(cls, icon, b, small, note){ return '<li class="' + cls + '"><span class="fp-dot">' + ph(icon) + '</span><div><b>' + b + '</b>' + (small ? '<small>' + small + '</small>' : '') + (note ? '<div class="note">' + esc(note) + '</div>' : '') + '</div></li>'; };
+  if (!x) return '<ol class="fp-chain">' + node('now', 'paper-plane-tilt', t('xpSendIt'), '') + node('off', 'user', t('xpStepMgr'), '') + node('off', 'money', t('xpStepPay'), '') + node('off', 'seal-check', t('xpStepPaid'), '') + '</ol>';
+  var li = [node('done', 'paper-plane-tilt', t('xpSendIt'), empLine(x.emp) + sep() + fmt(day(x.createdAt)))], ended = false;
+  (x.steps || ['manager', 'payroll']).forEach(function(st){
+    if (ended) return;
+    var h = (x.history || []).filter(function(y){ return y.step === st && (y.decision === 'approve' || y.decision === 'reject'); })[0], name = st === 'manager' ? t('xpStepMgr') : st === 'payroll' ? t('xpStepPay') : esc(st);
+    if (h && h.decision === 'reject') { li.push(node('no', 'x', name + ': ' + t('xpReject'), esc(h.by) + sep() + fmt(day(h.at)), h.note)); ended = true; }
+    else if (h) li.push(node('done', 'check', name + ': ' + t('xpApprove'), esc(h.by) + sep() + fmt(day(h.at)), h.note));
+    else if (x.status === 'pending' && x.step === st) li.push(node('now', 'hourglass-medium', name, ''));
+    else li.push(node('off', 'circle-dashed', name, ''));
+  });
+  var c = (x.history || []).filter(function(y){ return y.decision === 'cancelled' || y.decision === 'cancel'; })[0];
+  if (c) li.push(node('no', 'arrow-u-up-left', t('xps_cancelled'), esc(c.by) + sep() + fmt(day(c.at)), c.note));
+  else if (x.status === 'paid') li.push(node('done', 'seal-check', t('xpStepPaid'), (x.paidOn ? fmt(x.paidOn) : '') + (x.paidRef ? sep() + '<bdi>' + esc(x.paidRef) + '</bdi>' : '')));
+  else if (!ended) li.push(node(x.status === 'approved' ? 'now' : 'off', 'seal-check', t('xpStepPaid'), x.payMonth ? esc(monthName(x.payMonth)) : ''));
+  return '<ol class="fp-chain">' + li.join('') + '</ol>';
 }
+function catBars(lines){
+  var by = {}, tot = 0;
+  lines.forEach(function(l){ var a = Number(l.amount) || 0; if (a > 0) { by[l.category] = (by[l.category] || 0) + a; tot += a; } });
+  var ks = Object.keys(by).sort(function(a, b){ return by[b] - by[a]; });
+  if (!ks.length || !window.Viz) return '';
+  return '<h3 class="hr-sub" style="font-size:13.5px;margin:4px 0 8px">' + t('xpByCat') + '</h3>' + Viz.hbars(ks.map(function(k){ return { label: t('xc_' + k), value: by[k], text: Number(by[k]).toLocaleString(LOCALE(), { maximumFractionDigits: 2 }), tip: t('xc_' + k) + ': ' + by[k].toFixed(2) }; }), { max: tot });
+}
+function newPage(body){
+  var top = fpTop({ icon: 'receipt', title: t('xpNew'), lead: t('xpLead'), crumb: [t('arRequests'), t('xpTitle'), t('xpNew')] });
+  body.innerHTML = '<div class="rq-page xp-page">' + top + (window.Viz ? Viz.skelPage(3, 2) : '') + '</div>';
+  back2(body);
+  var ME = null, F = null, drawn = false;
+  apiFresh('myExpenses', {}, function(r){ if (!body.isConnected) return; if (!r.ok) return $('.xp-page', body).insertAdjacentHTML('beforeend', bad(r.error)); ME = r; seen(r.rows); if (F !== null) draw(); }, true);
+  apiFresh('myFile', {}, function(r){ if (!body.isConnected) return; F = r.ok ? r.file : false; if (ME) draw(); }, true);
+  function draw(){
+    if (drawn) return; drawn = true;
+    var pg = $('.xp-page', body), me = ME, cats = me.categories || ['fuel', 'tolls', 'parking', 'meals', 'per_diem', 'phone', 'vehicle', 'travel', 'other'], td = riyadhToday();
+    var lines = [{ category: cats[0], date: td, amount: '', vat: '', merchant: '', description: '', receiptRef: '' }];
+    var who = F && window.Req ? '' : '<section class="fp-card"><h2>' + ph('identification-badge') + t('xpWho') + '</h2><div class="fp-who"><span class="fp-av">' + esc(initials(S.me.name)) + '</span><div><b>' + esc(S.me.name) + '</b><small><bdi>' + esc(S.me.empNo) + '</bdi></small></div></div></section>';
+    if (F) { var j = F.job || {}, e = F.emp || {}; who = '<section class="fp-card"><h2>' + ph('identification-badge') + t('xpWho') + '</h2><div class="fp-who"><span class="fp-av">' + esc(initials(e.name)) + '</span><div><b>' + esc(lang(e.name, e.nameEn)) + '</b><small>' +
+      esc([j.position ? lang(j.position.titleAr, j.position.titleEn) : '', j.department ? lang(j.department.nameAr, j.department.nameEn) : ''].filter(Boolean).join(sep())) + '</small></div></div><dl class="fp-facts"><div><dt>' + t('xpEmpNo') + '</dt><dd><bdi class="num">' + esc(e.empNo) + '</bdi></dd></div>' +
+      (j.manager ? '<div><dt>' + t('xpStepMgr') + '</dt><dd>' + esc(lang(j.manager.name, j.manager.nameEn)) + '</dd></div>' : '') + (j.department && j.department.costCenter ? '<div><dt>' + t('xpCc') + '</dt><dd><bdi>' + esc(j.department.costCenter) + '</bdi></dd></div>' : '') + '</dl></section>'; }
+    var recent = me.rows.slice(0, 3);
+    var send = '<button class="btn btn-dark" type="submit" form="xnF" data-send disabled>' + ph('paper-plane-tilt') + t('xpSend') + '</button>';
+    pg.innerHTML = top + '<form class="form" id="xnF" novalidate><div class="fp-grid"><div class="fp-main">' + who +
+      '<section class="fp-card"><h2><span class="fp-n">1</span>' + t('xpTitleF') + '</h2>' + fld(t('xpTitleF'), '<input name="title" maxlength="120">') + '</section>' +
+      '<section class="fp-card"><h2><span class="fp-n">2</span>' + t('xpLines') + '<span class="sp"></span><button type="button" class="btn btn-line btn-sm" id="xnAdd">' + ph('plus') + t('xpAddLine') + '</button></h2><div id="xnL"></div><div class="fp-drop" style="margin-top:12px">' + ph('paperclip') + '<span>' + t('xpAttach') + '</span></div></section>' +
+      '<section class="fp-card"><h2>' + ph('clock-counter-clockwise') + t('xpRecent') + '</h2>' + (recent.length ? '<div class="fp-mini">' + recent.map(function(x){ return '<div data-open="' + x.id + '" role="link" tabindex="0"><span class="rq-mini-av">' + ph('receipt') + '</span><div class="m"><b>' + esc(x.title || t('xpTitle')) + '</b><small><bdi>' + esc(x.ref) + '</bdi>' + sep() + money(x.total) + '</small></div>' + stChip(x) + '</div>'; }).join('') + '</div>' : '<p class="hr-hint" style="margin:0">' + t('xpNone') + '</p>') + '</section></div>' +
+      '<aside class="fp-aside"><section class="fp-card" aria-live="polite"><h2><span class="fp-n">3</span>' + t('xpSum') + '</h2><div id="xnC"></div><p class="fp-err" id="xnE" role="alert"></p><div class="fp-actions fp-desk" style="margin-top:14px">' + send + '<button type="button" class="btn btn-line" data-fp-back>' + t('cancel') + '</button></div></section>' +
+        '<section class="fp-card"><h2>' + ph('flow-arrow') + t('xpPath') + '</h2>' + chainHtml(null) + '<p class="hr-hint" style="margin:10px 0 0;font-size:12px">' + t('xpPathLead') + '</p></section>' +
+        '<section class="fp-card"><h2>' + ph('lightbulb') + t('xpGuide') + '</h2><ul class="fp-hints"><li>' + ph('info') + '<span>' + t('xpG1') + '</span></li><li>' + ph('info') + '<span>' + t('xpG2') + '</span></li>' +
+          (me.receiptOver ? '<li>' + ph('info') + '<span>' + t('xpReceiptOver') + ' ' + money(me.receiptOver) + '</span></li>' : '') + '<li>' + ph('info') + '<span>' + t('xpOverLead') + '</span></li></ul></section></aside></div>' +
+      '<div class="fp-bar"><div class="fp-sumline"><span>' + t('xpTotal') + '</span><b id="xnTot">-</b></div>' + send + '</div></form>';
+    back2(pg);
+    $$('[data-open]', pg).forEach(function(el){ el.onclick = function(){ goArea('requests', 'claimview', el.dataset.open); }; el.onkeydown = function(e){ if (e.key === 'Enter') el.onclick(); }; });
+    var box = $('#xnL', pg), chk = $('#xnC', pg), timer = null, seq = 0, sending = false, ready = false;
+    var setSend = function(on){ ready = !!on; $$('[data-send]', pg).forEach(function(b){ b.disabled = !on || sending; }); };
+    function paint(){
+      box.innerHTML = lines.map(function(l, i){
+        return '<div class="xp-line" data-i="' + i + '"><div class="xp-ln"><b class="num">' + (i + 1) + '</b>' + t('xpLineN') + '<span class="sp"></span>' + (lines.length > 1 ? '<button type="button" class="btn btn-line btn-sm" data-rm aria-label="' + t('xpRemove') + '">' + ph('trash') + '</button>' : '') + '</div>' +
+          fld(t('xpCat'), '<select data-k="category">' + cats.map(function(c){ return '<option value="' + c + '"' + (l.category === c ? ' selected' : '') + '>' + t('xc_' + c) + '</option>'; }).join('') + '</select>') +
+          fld(t('xpDate'), '<input data-k="date" type="date" max="' + td + '" value="' + esc(l.date) + '">') + fld(t('xpAmount'), '<input data-k="amount" type="number" min="0.01" step="0.01" inputmode="decimal" value="' + esc(l.amount) + '">') +
+          fld(t('xpVat'), '<input data-k="vat" type="number" min="0" step="0.01" inputmode="decimal" value="' + esc(l.vat) + '">') + '<div class="wide">' + fld(t('xpDesc'), '<input data-k="description" maxlength="300" value="' + esc(l.description) + '">') + '</div>' +
+          fld(t('xpMerchant'), '<input data-k="merchant" maxlength="120" value="' + esc(l.merchant) + '">') + fld(t('xpReceipt'), '<input data-k="receiptRef" dir="ltr" maxlength="60" value="' + esc(l.receiptRef) + '">') + '</div>';
+      }).join('');
+      $$('.xp-line', box).forEach(function(row){ var i = +row.dataset.i;
+        $$('[data-k]', row).forEach(function(x){ x.oninput = x.onchange = function(){ lines[i][x.dataset.k] = x.value; check(); }; });
+        var rm = $('[data-rm]', row); if (rm) rm.onclick = function(){ lines.splice(i, 1); paint(); check(); };
+      });
+    }
+    function check(){
+      clearTimeout(timer); setSend(false); $('#xnE', pg).textContent = '';
+      // nothing filled in yet: a neutral hint, not a red error, until every line has an amount and a description
+      if (lines.some(function(l){ return !(Number(l.amount) > 0) || !String(l.description || '').trim(); })) {
+        ++seq; $('#xnTot', pg).textContent = '-';
+        chk.innerHTML = '<div class="fp-state wait">' + ph('pencil-simple-line') + '<span>' + t('xpFillFirst') + '</span></div>'; return;
+      }
+      chk.innerHTML = '<div class="fp-state wait">' + ph('hourglass-medium') + '<span>' + t('xpChecking') + '</span></div>';
+      timer = setTimeout(function(){
+        var my = ++seq;
+        api('expenseCheck', { claim: { lines: lines } }, true).then(function(r){
+          if (my !== seq || !chk.isConnected) return;
+          var c = r.ok ? r.check : { error: r.error };
+          if (c.error) { chk.innerHTML = '<div class="fp-state bad" role="alert">' + ph('warning-circle') + '<span>' + (c.line != null ? t('xpLineN') + ' ' + (c.line + 1) + ': ' : '') + esc(errText(c.error)) + '</span></div>'; $('#xnTot', pg).textContent = '-'; return; }
+          setSend(true);
+          $('#xnTot', pg).innerHTML = money(c.total);
+          chk.innerHTML = '<div class="fp-sum"><div class="fp-big"><b class="num">' + Number(c.total || 0).toLocaleString(LOCALE(), { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</b><span>' + sar() + '</span></div>' +
+            '<div class="fp-rows"><div><span>' + t('xpVat') + '</span><b>' + money(c.vat) + '</b></div><div><span>' + t('xpLinesN') + '</span><b class="num">' + lines.length + '</b></div></div>' + catBars(lines) +
+            (c.flags.length ? c.flags.map(function(f){ return '<div class="fp-state warn">' + ph('warning') + '<span>' + flagText(f) + '</span></div>'; }).join('') : '<div class="fp-state ok">' + ph('check-circle') + '<span>' + t('xpOk') + '</span></div>') + '</div>';
+          if (window.Viz) Viz.wire(chk);
+        });
+      }, 380);
+    }
+    $('#xnAdd', pg).onclick = function(){ if (lines.length >= 40) return; var last = lines[lines.length - 1]; lines.push({ category: last.category, date: last.date, amount: '', vat: '', merchant: '', description: '', receiptRef: '' }); paint(); check(); var rows = $$('.xp-line', box); if (rows.length) { var inp = rows[rows.length - 1].querySelector('[data-k="amount"]'); if (inp) inp.focus(); } };
+    $('#xnF', pg).onsubmit = function(ev){
+      ev.preventDefault();
+      if (sending || !ready) return; // one send at a time: a double tap must never file two claims
+      var was = ready; sending = true; setSend(false);
+      api('expenseCreate', { claim: { title: this.elements.title.value.trim(), lines: lines } }).then(function(r){
+        sending = false;
+        if (!r.ok) { setSend(was); $('#xnE', pg).textContent = errText(r.error); return; }
+        S.xpJust = r.claim.id; seen([r.claim]); refreshTasks();
+        goArea('requests', 'claimview', r.claim.id, { replace: true }); // the form's entry becomes the claim: Back returns to where the form was opened
+      });
+    };
+    paint(); check();
+  }
+}
+/** One claim on its own page: lines, warnings, timeline, and the actions the viewer may take. */
+function viewPage(body, id){
+  var hit = (S.xpSeen || {})[id], shown = '', justSent = S.xpJust === id;
+  if (justSent) S.xpJust = null;
+  var top = function(x){ return fpTop({ icon: 'receipt', title: x ? esc(x.title || t('xpTitle')) : t('xpView'), lead: x ? '<bdi class="num">' + esc(x.ref) + '</bdi>' : '', crumb: [t('arRequests'), t('xpTitle'), t('xpView')], chips: x ? stChip(x) : '' }); };
+  body.innerHTML = '<div class="rq-page xp-page">' + top(null) + (window.Viz ? Viz.skelPage(2, 2) : '') + '</div>';
+  back2(body);
+  if (hit) draw(hit);
+  var again = function(){ S.xpSeen = {}; viewPage(body, id); };
+  var scopes = [null, {}, { scope: 'team' }, { scope: 'all' }], k = 0;
+  (function next(){
+    var sc = scopes[k++]; if (k > scopes.length) { if (!hit) missing(); return; }
+    var call = sc === null ? function(cb){ apiFresh('myExpenses', {}, cb, true); } : function(cb){ api('expenseInbox', sc, true).then(cb); };
+    call(function(r){
+      if (!body.isConnected) return;
+      var x = r && r.ok && r.rows.filter(function(y){ return y.id === id; })[0];
+      if (r && r.ok) seen(r.rows);
+      if (x) draw(x); else next();
+    });
+  })();
+  function missing(){ var pg = $('.xp-page', body); pg.innerHTML = top(null) + '<div class="db-empty">' + ph('file-x', 'duotone') + '<span>' + t('xpNotFound') + '</span></div>'; back2(pg); }
+  function draw(x){
+    var key = JSON.stringify(x); if (key === shown) return; shown = key;
+    var pg = $('.xp-page', body); if (!pg) return;
+    var just = justSent;
+    var acts = '';
+    if (x.canAct) acts += '<section class="fp-card"><h2>' + ph('seal-check') + t('xpDecide') + '</h2><form class="form" id="xpD">' + (x.step === 'payroll' ? fld(t('xpPayout'), '<select name="payout"><option value="payroll">' + t('xpViaPayroll') + '</option><option value="outside">' + t('xpOutside') + '</option></select>') : '') +
+      fld(x.flags.length && x.step === 'payroll' ? t('xpNoteReq') : t('xpNoteOpt'), '<input name="note" maxlength="300">') + '<div class="fp-actions"><button class="btn btn-dark" type="submit">' + ph('check') + t('xpApprove') + '</button><button type="button" class="btn btn-danger" id="xpRj">' + ph('x') + t('xpReject') + '</button></div></form></section>';
+    if (x.canPay) acts += '<section class="fp-card"><h2>' + ph('bank') + t('xpPaid') + '</h2><form class="form" id="xpP"><div class="two">' + fld(t('xpPaidRef'), '<input name="ref" dir="ltr" maxlength="60" required>') + fld(t('xpPaidOn'), '<input name="on" type="date" value="' + riyadhToday() + '" max="' + riyadhToday() + '">') + '</div><div class="fp-actions"><button class="btn btn-dark" type="submit">' + t('xpPaid') + '</button></div></form></section>';
+    if (x.canCancel) acts += '<section class="fp-card"><form class="form" id="xpC">' + (x.mine ? '' : fld(t('xpNoteReq'), '<input name="note" maxlength="300">')) + '<div class="fp-actions"><button class="btn btn-line" type="submit">' + ph('arrow-u-up-left') + (x.mine ? t('xpCancel') : t('xpCancelPay')) + '</button></div></form></section>';
+    pg.innerHTML = top(x) + (just ? '<div class="fp-ok" role="status"><span class="ic">' + ph('check') + '</span><div><b>' + t('xpSentT') + '</b><small>' + t('xpSentL') + '</small></div></div>' : '') +
+      '<div class="fp-grid"><div class="fp-main"><section class="fp-card"><h2>' + ph('list-bullets') + t('xpLines') + '<span class="sp"></span><button type="button" class="btn btn-line btn-sm" id="xpPr">' + ph('printer') + t('xpPrint') + '</button></h2>' +
+        '<div class="tblwrap"><table class="tbl"><thead><tr><th>' + t('xpDate') + '</th><th>' + t('xpCat') + '</th><th>' + t('xpDesc') + '</th><th>' + t('xpReceipt') + '</th><th>' + t('xpVat') + '</th><th>' + t('xpAmount') + '</th></tr></thead><tbody>' +
+        x.lines.map(function(l){ return '<tr><td class="num">' + esc(l.date) + '</td><td>' + t('xc_' + l.category) + '</td><td>' + esc(l.description) + (l.merchant ? ' <small>' + esc(l.merchant) + '</small>' : '') + '</td><td><bdi>' + esc(l.receiptRef || '') + '</bdi></td><td class="num">' + Number(l.vat || 0).toFixed(2) + '</td><td class="num">' + Number(l.amount).toFixed(2) + '</td></tr>'; }).join('') +
+        '</tbody></table></div>' + (x.flags.length ? x.flags.map(function(f){ return '<div class="fp-state warn" style="margin-top:10px">' + ph('warning') + '<span>' + flagText(f) + '</span></div>'; }).join('') : '') + '</section>' +
+        '<section class="fp-card"><h2>' + ph('identification-badge') + t('xpWho') + '</h2><div class="fp-who"><span class="fp-av">' + esc(initials(x.emp ? x.emp.name : '')) + '</span><div><b>' + (x.emp ? esc(lang(x.emp.name, x.emp.nameEn)) : '') + '</b><small>' + esc([x.department, x.costCenter].filter(Boolean).join(sep())) + '</small></div></div></section>' + acts + '</div>' +
+      '<aside class="fp-aside"><section class="fp-card"><h2>' + ph('calculator') + t('xpSum') + '</h2><div class="fp-sum"><div class="fp-big"><b class="num">' + Number(x.total || 0).toLocaleString(LOCALE(), { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</b><span>' + sar() + '</span></div>' +
+        '<div class="fp-rows"><div><span>' + t('xpVat') + '</span><b>' + money(x.vat) + '</b></div><div><span>' + t('xpLinesN') + '</span><b class="num">' + x.lines.length + '</b></div>' + (x.payMonth ? '<div><span>' + t('xpPayout') + '</span><b>' + esc(monthName(x.payMonth)) + '</b></div>' : '') + '</div>' + catBars(x.lines) + '</div></section>' +
+        '<section class="fp-card"><h2>' + ph('flow-arrow') + t('xpTimeline') + '</h2>' + chainHtml(x) + '</section><p class="fp-err" id="xpE" role="alert"></p></aside></div>';
+    back2(pg); if (window.Viz) Viz.wire(pg);
+    var er = $('#xpE', pg), done = function(r, b){ if (b) b.disabled = false; if (!r.ok) return er.textContent = errText(r.error); toast(t('xpSaved')); refreshTasks(); again(); };
+    var fd = $('#xpD', pg);
+    if (fd) {
+      fd.onsubmit = function(ev){ ev.preventDefault(); var b = fd.querySelector('[type=submit]'); b.disabled = true; api('expenseDecide', { id: x.id, decision: 'approve', note: fd.elements.note.value.trim(), payout: fd.elements.payout ? fd.elements.payout.value : '' }).then(function(r){ done(r, b); }); };
+      $('#xpRj', pg).onclick = function(){ var n = fd.elements.note.value.trim(); if (!n) return er.textContent = errText('note_required'); api('expenseDecide', { id: x.id, decision: 'reject', note: n }).then(function(r){ done(r); }); };
+    }
+    var fp = $('#xpP', pg); if (fp) fp.onsubmit = function(ev){ ev.preventDefault(); var b = fp.querySelector('[type=submit]'); b.disabled = true; api('expensePaid', { id: x.id, paidRef: fp.elements.ref.value.trim(), paidOn: fp.elements.on.value }).then(function(r){ done(r, b); }); };
+    var fc = $('#xpC', pg); if (fc) fc.onsubmit = function(ev){ ev.preventDefault(); var b = fc.querySelector('[type=submit]'); b.disabled = true; api('expenseCancel', { id: x.id, note: fc.elements.note ? fc.elements.note.value.trim() : '' }).then(function(r){ done(r, b); }); };
+    $('#xpPr', pg).onclick = function(){ voucher(x); };
+  }
+}
+
 function report(el){
   var to = riyadhToday().slice(0, 7), y = +to.slice(0, 4), m = +to.slice(5, 7) - 11, from = (m <= 0 ? (y - 1) + '-' + String(m + 12).padStart(2, '0') : y + '-' + String(m).padStart(2, '0'));
   el.innerHTML = '<form class="toolbar" id="xrF"><label class="hr-hint">' + t('xpFrom') + '</label><input type="month" name="from" value="' + from + '"><label class="hr-hint">' + t('xpTo') + '</label><input type="month" name="to" value="' + to + '"><button class="btn btn-dark btn-sm" type="submit">' + t('xpShow') + '</button><span class="sp"></span><button type="button" class="btn btn-line btn-sm" id="xrX" disabled>' + ph('microsoft-excel-logo') + t('xpExcel') + '</button></form><div id="xrB"></div>';
@@ -235,5 +338,5 @@ function limits(el, me, again){
   };
 }
 
-window.Expense = { page: page, view: view, voucher: voucher };
+window.Expense = { page: page, view: function(x){ goArea('requests', 'claimview', x.id); }, voucher: voucher, newPage: newPage, viewPage: viewPage };
 })();

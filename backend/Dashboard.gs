@@ -175,7 +175,7 @@ function dashPerformance_(ctx) {
 // ---------------- cost and liabilities (money roles only) ----------------
 
 function dashCost_(emps, ctx, reqs, t, s) {
-  var runs = readAll_(SHEETS.RUN).filter(function (r) { return r.status === 'locked'; }).sort(function (a, b) { return a.month < b.month ? -1 : 1; }).slice(-12);
+  var runs = runsRealFirst_(readAll_(SHEETS.RUN)).filter(function (r) { return r.status === 'locked'; }).sort(function (a, b) { return a.month < b.month ? -1 : 1; }).slice(-12); // one run a month: the real one when it exists
   var slips = readAll_(SHEETS.SLIP), byRun = {};
   slips.forEach(function (sl) { if (sl.status === 'locked') (byRun[sl.runId] = byRun[sl.runId] || []).push(sl); });
   var trend = runs.map(function (r) {
@@ -199,7 +199,7 @@ function dashCost_(emps, ctx, reqs, t, s) {
     var bal = annualBalance_(e, t, reqs.filter(function (r) { return r.empId === e.id; }), null);
     leaveLiab += Math.max(0, bal.balance) * c.total / 30;
     if (e.hireDate) { // as if everyone left today on the full award (Art. 84), service net of Art. 116 exclusions
-      var svc = eosService_(e, String(e.hireDate).slice(0, 10), t, reqs), w = s.eosWageBasis === 'basic_housing' ? c.basic + c.housing : c.total;
+      var svc = eosService_(e, String(e.hireDate).slice(0, 10), t, reqs), w = c.total; // Art. 2 + 84: actual wage
       eosLiab += eosAward_(svc.years, w, 'termination').award;
     }
   });

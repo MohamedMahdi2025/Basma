@@ -64,7 +64,7 @@ function journalOf_(run) {
       } else {
         ded += h;
         if (GL_REDUCE[l.code]) put('cr', 'pay_reduction', an, '', h, dn);
-        else if (l.code === 'advance') put('cr', 'advances', '', partner, h, '', 'advances');
+        else if (l.code === 'advance' || l.code === 'loan') put('cr', 'advances', '', partner, h, '', 'advances'); // employee loans (Loans.gs) clear the same employee receivable
         else if (GL_DEDUCT[l.code]) put('cr', GL_DEDUCT[l.code], '', '', h, '');
         else { problems.push({ code: 'unknown_line', line: l.code, payslip: s.ref }); put('cr', 'other_deductions', '', '', h, ''); }
       }
@@ -101,7 +101,7 @@ function publicJournal_(j, me) {
 function api_journalList(req, me) {
   if (!canPayroll_(me)) fail_('forbidden');
   var logs = readAll_(SHEETS.JOURNAL), map = glMap_();
-  var runs = readAll_(SHEETS.RUN).filter(function (r) { return r.status === 'locked'; }).sort(function (a, b) { return a.month < b.month ? 1 : -1; }).slice(0, 24).map(function (r) {
+  var runs = readAll_(SHEETS.RUN).filter(function (r) { return r.status === 'locked' && !isDemoRun_(r); }).sort(function (a, b) { return a.month < b.month ? 1 : -1; }).slice(0, 24).map(function (r) {
     var o = publicRun_(r), j = logs.filter(function (x) { return x.runId === r.id && x.status !== 'cancelled'; })[0];
     o.journal = publicJournal_(j, me);
     return o;
@@ -112,6 +112,7 @@ function api_journalBuild(req, me) {
   if (!canPayroll_(me)) fail_('forbidden');
   var run = findBy_(SHEETS.RUN, 'id', req.id);
   if (!run || run.status !== 'locked') fail_('run_not_locked');
+  if (isDemoRun_(run)) fail_('demo_run'); // demo payroll never goes to the bank or the ledger
   var j = journalOf_(run), log = journalLogOf_(run.id);
   audit_(me.id, 'journal_build', run.id, { ref: run.ref, lines: j.lines.length, balanced: j.balanced });
   return { ok: true, run: publicRun_(run), entry: j, log: publicJournal_(log, me), changed: !!log && log.hash !== j.hash };
@@ -122,6 +123,7 @@ function api_journalStep(req, me) {
   return withLock_(function () {
     var run = findBy_(SHEETS.RUN, 'id', req.id);
     if (!run || run.status !== 'locked') fail_('run_not_locked');
+    if (isDemoRun_(run)) fail_('demo_run'); // demo payroll never goes to the bank or the ledger
     var log = journalLogOf_(run.id), now = new Date().toISOString(), step = req.step;
     if (step === 'generated') {
       if (log) fail_('already_exists');
@@ -194,7 +196,7 @@ function journalCalendar_(add, t) {
   if (!Object.keys(glMap_().accounts).length) return;
   var logs = readAll_(SHEETS.JOURNAL);
   readAll_(SHEETS.RUN).forEach(function (r) {
-    if (r.status !== 'locked' || r.month < govAddMonths_(t.slice(0, 7) + '-01', -3).slice(0, 7)) return;
+    if (r.status !== 'locked' || isDemoRun_(r) || r.month < govAddMonths_(t.slice(0, 7) + '-01', -3).slice(0, 7)) return;
     var j = logs.filter(function (x) { return x.runId === r.id && x.status !== 'cancelled'; })[0];
     if (!j || j.status !== 'confirmed') add('journal_pending', addDays_(monthLast_(r.month), 10), null, { month: r.month, run: r.ref, status: j ? j.status : '' });
   });

@@ -2,6 +2,8 @@
 //   SIM_EXPORT=sim.json node tests/sim50.js     (makes the export; every check must pass first)
 //   node tools/demo-load.js status
 //   node tools/demo-load.js load sim.json        (dates moved by whole weeks so the simulated month ends by today)
+//   node tools/demo-load.js payroll 2026-07 2026-09   (a locked demo payroll for each month in the range, demo people only;
+//                                                      months that already have a demo run are skipped)
 //   node tools/demo-load.js purge                (deletes every row the load added, nothing else)
 // The setup key is read from ../apps-script/SETUP-KEY.txt and never printed.
 'use strict';
@@ -77,12 +79,35 @@ function prepare(dump) {
   return { days, end, replayed: p_replayed, tabs: out };
 }
 
-module.exports = { prepare, shifter };
+/** Every month from the earliest to the latest argument, inclusive: ['2026-07', '2026-09'] -> 07, 08, 09. */
+function payrollMonths(args) {
+  const ms = args.filter(a => /^\d{4}-(0[1-9]|1[0-2])$/.test(a)).sort();
+  if (!ms.length) return [];
+  const out = [];
+  for (let m = ms[0]; m <= ms[ms.length - 1]; ) {
+    out.push(m);
+    const [y, mo] = m.split('-').map(Number);
+    m = mo === 12 ? (y + 1) + '-01' : y + '-' + String(mo + 1).padStart(2, '0');
+  }
+  return out;
+}
+
+module.exports = { prepare, shifter, payrollMonths };
 if (require.main === module) (async () => {
   const [mode, file] = process.argv.slice(2);
   if (mode === 'status') return console.log(JSON.stringify(await api({ mode: 'status' }), null, 1));
   if (mode === 'purge') return console.log(JSON.stringify(await api({ mode: 'purge' }), null, 1));
-  if (mode !== 'load' || !file) throw new Error('usage: status | load <sim.json> | purge');
+  if (mode === 'payroll') {
+    const months = payrollMonths(process.argv.slice(3));
+    if (!months.length) throw new Error('usage: payroll <YYYY-MM> [YYYY-MM]   (every month from the first to the last)');
+    for (const month of months) {
+      const r = await api({ mode: 'payroll', month });
+      if (!r.ok) throw new Error(month + ': ' + JSON.stringify(r));
+      console.log('  ' + month + '  ' + (r.skipped ? 'already has a demo run (' + r.run.ref + ', ' + r.run.status + ')' : 'locked ' + r.run.ref + ', ' + r.headcount + ' payslips, net ' + r.run.totals.net));
+    }
+    return console.log('done');
+  }
+  if (mode !== 'load' || !file) throw new Error('usage: status | load <sim.json> | payroll <from YYYY-MM> [to YYYY-MM] | purge');
   const p = prepare(JSON.parse(fs.readFileSync(file, 'utf8')));
   const st = await api({ mode: 'status' });
   if (!st.ok) throw new Error(JSON.stringify(st));

@@ -395,7 +395,7 @@ ok(x.projected === 35.29 && x.excess === 14.29 && x.perMonth === 7.02 && x.risk 
 r = run('5001', 'leave_yearend_risk', { asOf: '2026-10-31' });
 ok(r.ok && !r.columns.some(c => c.key === 'liability') && !r.rows.some(y => y.empNo === '5004'), 'a manager: own team, no money column');
 x = rowOf(RES.leave_liability_trend, y => y.month === '2026-10');
-ok(x.headcount === 3 && x.liability === 19122.3 && x.prev === 17100 && x.change === 2022.3 && x.changePct === 11.8, 'leave liability: 12.55 x 405 + 11.55 x 225 + 31.78 x 360 = 19,122.30 against 17,100 at September end', x);
+ok(x.headcount === 3 && x.liability === 19174.05 && x.prev === 17100 && x.change === 2074.05 && x.changePct === 12.1, 'leave liability: 12.55 x 405 + 11.78 x 225 + 31.78 x 360 = 19,174.05 against 17,100 at September end (unpaid leave up to 20 days still accrues, Art. 116)', x);
 
 x = rowOf(RES.pay_company_cost, emp('5002'));
 ok(x.gross === 12150 && x.gosiEmployer === 1321.88 && x.eosAccrual === 1012.5 && x.companyCost === 14484.38 && x.prev === 15984.38 && x.change === -1500 && x.changePct === -9.4 && x.share === 43,
