@@ -372,6 +372,7 @@ function eosBox(el){
   el.innerHTML = '<form class="form" id="eosF"><div class="two"><div class="field"><label>' + t('prEosEmp') + '</label><select name="empId" id="eosEmp"></select></div>' +
     '<div class="field"><label>' + t('prEosLast') + '</label><input type="date" name="lastDay" value="' + riyadhToday() + '" required></div></div>' +
     '<div class="field"><label>' + t('prEosReason') + '</label><select name="reason">' + ['resignation', 'termination', 'contract_end', 'art81', 'art87_force_majeure', 'art87_marriage', 'art87_childbirth', 'art80'].map(function(x){ return '<option value="' + x + '">' + t('eos_' + x) + '</option>'; }).join('') + '</select></div>' +
+    '<div class="field"><label>' + t('a77Label') + '</label><select name="art77"><option value="">' + t('a77None') + '</option><option value="employer">' + t('a77Employer') + '</option><option value="employee">' + t('a77Employee') + '</option></select></div>' +
     '<div class="btnrow"><button class="btn btn-line btn-sm">' + ph('calculator') + t('prEosCalc') + '</button></div><div id="eosOut"></div></form>';
   apiFresh('hrBootstrap', {}, function(r){
     var sel = $('#eosEmp', el); if (!sel) return;
@@ -380,7 +381,7 @@ function eosBox(el){
   }, true);
   $('#eosF', el).onsubmit = function(ev){
     ev.preventDefault(); var f = this, out = $('#eosOut', el);
-    api('eosQuote', { empId: f.elements.empId ? f.elements.empId.value : '', empNo: f.elements.empNo ? f.elements.empNo.value : '', lastDay: f.elements.lastDay.value, reason: f.elements.reason.value }).then(function(r){
+    api('eosQuote', { empId: f.elements.empId ? f.elements.empId.value : '', empNo: f.elements.empNo ? f.elements.empNo.value : '', lastDay: f.elements.lastDay.value, reason: f.elements.reason.value, art77: f.elements.art77 ? f.elements.art77.value : '' }).then(function(r){
       if (!r.ok) { out.innerHTML = '<p class="hr-bad">' + errText(r.error) + '</p>'; return; }
       var q = r.eos, name = f.elements.empId && f.elements.empId.selectedOptions && f.elements.empId.selectedOptions[0] ? f.elements.empId.selectedOptions[0].textContent : (f.elements.empNo ? f.elements.empNo.value : '');
       out.innerHTML = eosHtml(q) + '<div class="btnrow"><button type="button" class="btn btn-dark btn-sm" id="eosPrint">' + ph('printer') + t('prEosPrint') + '</button></div>';
@@ -402,7 +403,9 @@ function eosHtml(q){
     '<dt style="font-weight:600">' + t('prEosAward') + '</dt><dd style="font-weight:600">' + money(q.award) + '</dd></dl>' +
     '<h4>' + t('prEosSettlement') + '</h4><dl>' + row(t('prEosAward'), '', q.award) + row(t('prEosLeave'), plural(Math.round(q.leaveDays * 10) / 10, 'days') + ' (111)', q.leavePay) +
     row(t('prEosLastMonth'), q.lastMonthLocked ? t('prEosLastLocked') : plural(q.lastMonthDays, 'days'), q.lastMonthPay) +
+    (q.art77 && q.art77.party === 'employer' ? row(t('a77Label'), t(q.art77.basis === 'fixed_remaining' ? 'a77Fixed' : 'a77Open') + (q.art77.computed < q.art77.minimum ? ' · ' + t('a77Min') : '') + ' (77)', q.art77.amount) : '') +
     (q.advances ? row(t('prEosAdvances'), '', q.advances, true) : '') + '</dl>' +
+    (q.art77 && q.art77.party === 'employee' ? '<dl><dt>' + t('a77Claim') + '<small>' + t(q.art77.basis === 'fixed_remaining' ? 'a77Fixed' : 'a77Open') + ' (77)</small></dt><dd>' + money(q.art77.amount) + '</dd></dl><p class="hr-hint">' + t('w_art77_claim_not_deducted') + '</p>' : '') +
     '<dl class="tot"><dt>' + t('prEosNet') + '</dt><dd>' + money(q.net) + ' ' + t('mfSar') + '</dd></dl>' +
     '<p class="hr-hint">' + t('prEosDue') + ' ' + esc(q.dueBy) + ' (' + plural(q.dueDays, 'days') + '، 88)</p></div>';
 }

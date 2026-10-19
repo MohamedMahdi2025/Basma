@@ -178,6 +178,23 @@ ok(r.ok && (r.eos.warnings || []).indexOf('eos_basis_below_actual') >= 0, 'and s
 ok(r.ok && r.eos.dueDays === 14 && r.eos.dueBy === '2026-10-28', 'Art. 88: resignation settled within two weeks', r.eos && r.eos.dueBy);
 r = call('3002', 'eosQuote', { empId: ids['5001'], lastDay: '2026-10-14', reason: 'termination' });
 ok(r.ok && near(r.eos.award, 36043.84) && r.eos.dueDays === 7, 'termination: full award, due within a week', r.eos);
+// Art. 77 (2026-10-19): 7.0055 years x 15 days x 8,000/30 = 28,021.92 (above the two-month floor of 16,000)
+{
+  const base = call('3002', 'eosQuote', { empId: ids['5001'], lastDay: '2026-10-14', reason: 'termination' }).eos;
+  let q = call('3002', 'eosQuote', { empId: ids['5001'], lastDay: '2026-10-14', reason: 'termination', art77: 'employer' });
+  ok(q.ok && q.eos.art77.basis === 'open_15_days' && near(q.eos.art77.amount, 28021.92) && near(q.eos.net, base.net + 28021.92), 'Art. 77, open-ended contract: 15 days a year of service, added to the settlement', q.eos && q.eos.art77);
+  ok(call('3002', 'eosQuote', { empId: ids['5001'], lastDay: '2026-10-14', reason: 'art80', art77: 'employer' }).error === 'art77_reason', 'no Art. 77 compensation with an Art. 80 dismissal');
+  q = call('3002', 'eosQuote', { empId: ids['5001'], lastDay: '2026-10-14', reason: 'resignation', art77: 'employee' });
+  const res = call('3002', 'eosQuote', { empId: ids['5001'], lastDay: '2026-10-14', reason: 'resignation' }).eos;
+  ok(q.ok && q.eos.art77.party === 'employee' && near(q.eos.net, res.net) && q.eos.warnings.indexOf('art77_claim_not_deducted') >= 0, 'an employee leaving without a valid reason: a company claim, never deducted (Art. 92/93)', q.eos && q.eos.art77);
+  call('3001', 'hrEmpSave', { emp: { id: ids['5001'], contractType: 'fixed', contractEnd: '2026-12-14' } });
+  q = call('3002', 'eosQuote', { empId: ids['5001'], lastDay: '2026-10-14', reason: 'termination', art77: 'employer' });
+  ok(q.ok && q.eos.art77.basis === 'fixed_remaining' && q.eos.art77.remainingDays === 61 && near(q.eos.art77.amount, 16266.67), 'fixed-term: the wage for the 61 days left on the contract', q.eos && q.eos.art77);
+  call('3001', 'hrEmpSave', { emp: { id: ids['5001'], contractEnd: '2026-11-14' } });
+  q = call('3002', 'eosQuote', { empId: ids['5001'], lastDay: '2026-10-14', reason: 'termination', art77: 'employer' });
+  ok(q.ok && near(q.eos.art77.computed, 8266.67) && q.eos.art77.amount === 16000, 'never less than two months\' wage', q.eos && q.eos.art77);
+  call('3001', 'hrEmpSave', { emp: { id: ids['5001'], contractType: 'indefinite', contractEnd: '' } });
+}
 
 // ---------------------------------------------------------------- resignation deemed acceptance, enforced (2025, 2026-10-18)
 console.log('Resignation deemed acceptance (enforced) and the written deferral up to 60 days');

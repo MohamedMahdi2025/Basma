@@ -7,6 +7,7 @@
 'use strict';
 
 Object.assign(T.ar, {
+  a77Label:'تعويض المادة 77', a77None:'لا يوجد', a77Employer:'الشركة أنهت العقد دون سبب مشروع (يضاف للموظف)', a77Employee:'الموظف ترك العمل دون سبب مشروع (مطالبة للشركة)', a77Claim:'مطالبة للشركة (لا تخصم تلقائيا)', a77Fixed:'أجر المدة الباقية من العقد', a77Open:'15 يوم أجر عن كل سنة خدمة', a77Min:'الحد الأدنى أجر شهرين', w_art77_claim_not_deducted:'مطالبة المادة 77 على الموظف لا تخصم من المستحقات تلقائيا؛ تتم باتفاق مكتوب أو حكم (المادتان 92 و93).', e_art77_reason:'تعويض المادة 77 لصالح الموظف لا يجتمع مع الاستقالة أو الفصل وفق المادة 80.',
   w2Save:'حفظ', w2New:'جديد', w2Approve:'اعتماد', w2Reject:'رفض', w2Cancel:'إلغاء', w2Note:'ملاحظة', w2NoteReq:'ملاحظة (مطلوبة)', w2None:'لا توجد سجلات.', w2Saved:'تم الحفظ',
   w2Employee:'الموظف', w2Status:'الحالة', w2All:'الكل', w2Date:'التاريخ', w2Amount:'المبلغ', w2Ref:'المرجع', w2Details:'التفاصيل', w2Print:'طباعة', w2Close:'إغلاق', w2Kind:'النوع',
   w2From:'من', w2To:'إلى', w2History:'السجل', w2By:'بواسطة', w2Open:'فتح', w2Edit:'تعديل', w2Yes:'نعم', w2No:'لا', w2Dept:'القسم', w2Position:'المسمى', w2Months:'الأشهر',
@@ -106,6 +107,7 @@ Object.assign(T.ar, {
   e_saudi_only:'هذه وظيفة موطنة: لا يقدم عرض لغير سعودي.', e_offer_expired:'انتهت صلاحية العرض؛ جدده قبل تسجيل القبول.'
 });
 Object.assign(T.en, {
+  a77Label:'Art. 77 compensation', a77None:'None', a77Employer:'The company ended the contract without a valid reason (paid to the employee)', a77Employee:'The employee left without a valid reason (company claim)', a77Claim:'Company claim (not deducted automatically)', a77Fixed:'Wage for the remaining contract period', a77Open:'15 days\' wage per year of service', a77Min:'Minimum two months\' wage', w_art77_claim_not_deducted:'An Art. 77 claim against the employee is not deducted from the settlement automatically; it needs a written agreement or a court ruling (Art. 92 and 93).', e_art77_reason:'Art. 77 compensation for the employee does not go with a resignation or an Art. 80 dismissal.',
   w2Save:'Save', w2New:'New', w2Approve:'Approve', w2Reject:'Reject', w2Cancel:'Cancel', w2Note:'Note', w2NoteReq:'Note (required)', w2None:'Nothing here.', w2Saved:'Saved',
   w2Employee:'Employee', w2Status:'Status', w2All:'All', w2Date:'Date', w2Amount:'Amount', w2Ref:'Reference', w2Details:'Details', w2Print:'Print', w2Close:'Close', w2Kind:'Kind',
   w2From:'From', w2To:'To', w2History:'History', w2By:'By', w2Open:'Open', w2Edit:'Edit', w2Yes:'Yes', w2No:'No', w2Dept:'Department', w2Position:'Position', w2Months:'Months',
@@ -1081,7 +1083,11 @@ function kudosSection(body){
 var FS_CLS = { draft: 'late', approved: 'late', paid: 'in', cancelled: 'off' };
 var FS_REASONS = ['resignation', 'termination', 'contract_end', 'art81', 'art87_marriage', 'art87_childbirth', 'art87_force_majeure', 'art80']; // exactly Payroll.gs EOS_REASONS
 function fsLines(q){
-  return [[t('fsAward'), q.award], [t('fsLeave'), q.leavePay], [t('fsLastMonth') + (q.lastMonthDays ? ' (' + q.lastMonthDays + ')' : ''), q.lastMonthPay], [t('fsAdvances'), -(q.advances || 0)], [t('fsLoans'), -(q.loans || 0)]];
+  var l = [[t('fsAward'), q.award], [t('fsLeave'), q.leavePay], [t('fsLastMonth') + (q.lastMonthDays ? ' (' + q.lastMonthDays + ')' : ''), q.lastMonthPay]];
+  if (q.art77 && q.art77.party === 'employer') l.push([t('a77Label') + ' (' + t(q.art77.basis === 'fixed_remaining' ? 'a77Fixed' : 'a77Open') + ')', q.art77.amount]);
+  l.push([t('fsAdvances'), -(q.advances || 0)], [t('fsLoans'), -(q.loans || 0)]);
+  if (q.art77 && q.art77.party === 'employee') l.push([t('a77Claim'), q.art77.amount]);
+  return l;
 }
 function fsPrint(x){
   var lg = S.lang === 'en' ? 'en' : 'ar', T0 = T[lg], E = Doc.esc, q = x.quote || {}, m = function(v){ return Doc.money(v, lg) + ' ' + (lg === 'en' ? 'SAR' : 'ر.س'); };
@@ -1127,13 +1133,13 @@ function settleSection(body){
       $('#fsNew', box).onclick = function(){ people(function(P){
         var all = r.leavers.concat(P.rows.filter(function(p){ return !r.leavers.some(function(l){ return l.id === p.id; }); }).map(function(p){ return { id: p.id, empNo: p.empNo, name: p.name, lastDay: '' }; }));
         var d = formDrawer(t('fsNew'), '', fld(t('w2Employee'), '<select name="empId" required>' + opts(all.map(function(p){ return [p.id, p.name + ' (' + p.empNo + ')' + (p.lastDay ? ' · ' + p.lastDay : '')]; }), '', '-') + '</select>') +
-          two(fld(t('fsLastDay'), '<input name="lastDay" type="date" required>'), fld(t('fsReason'), '<select name="reason">' + keyOpts(FS_REASONS, 'fsr_', 'resignation') + '</select>')) + '<div id="fsQ"></div>' + fld(t('w2Note'), '<input name="note" maxlength="300">'),
+          two(fld(t('fsLastDay'), '<input name="lastDay" type="date" required>'), fld(t('fsReason'), '<select name="reason">' + keyOpts(FS_REASONS, 'fsr_', 'resignation') + '</select>')) + fld(t('a77Label'), '<select name="art77">' + opts([['', t('a77None')], ['employer', t('a77Employer')], ['employee', t('a77Employee')]], '') + '</select>') + '<div id="fsQ"></div>' + fld(t('w2Note'), '<input name="note" maxlength="300">'),
           function(v){ return api('finalSettlementCreate', v); }, load, t('fsNew'));
         var f = $('#w2F', d), qb = $('#fsQ', d), tm = 0;
         var emp = $('[name=empId]', d); emp.onchange = function(){ var l = all.filter(function(p){ return p.id === emp.value; })[0]; if (l && l.lastDay) $('[name=lastDay]', d).value = l.lastDay; f.oninput(); };
         f.oninput = function(){ clearTimeout(tm); tm = setTimeout(function(){ var v = formVals(f); if (!v.empId || !v.lastDay) return qb.innerHTML = '';
-          api('eosQuote', { empId: v.empId, lastDay: v.lastDay, reason: v.reason }, true).then(function(q){ if (!qb.isConnected) return; if (!q.ok) return qb.innerHTML = bad(q.error);
-            var e = q.eos; qb.innerHTML = '<div class="mf-kv">' + fsLines(e).map(function(l){ return '<div><span>' + l[0] + '</span><b>' + money(l[1]) + '</b></div>'; }).join('') + '<div><span>' + t('fsNet') + '</span><b>' + money(e.net) + '</b></div></div>'; }); }, 350); };
+          api('eosQuote', { empId: v.empId, lastDay: v.lastDay, reason: v.reason, art77: v.art77 }, true).then(function(q){ if (!qb.isConnected) return; if (!q.ok) return qb.innerHTML = bad(q.error);
+            var e = q.eos; qb.innerHTML = (e.warnings || []).map(function(w){ return '<p class="w2-warn">' + ph('warning') + ' ' + t('w_' + w) + '</p>'; }).join('') + '<div class="mf-kv">' + fsLines(e).map(function(l){ return '<div><span>' + l[0] + '</span><b>' + money(l[1]) + '</b></div>'; }).join('') + '<div><span>' + t('fsNet') + '</span><b>' + money(e.net) + '</b></div></div>'; }); }, 350); };
       }); };
     });
   }

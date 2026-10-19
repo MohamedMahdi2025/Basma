@@ -503,14 +503,29 @@ function api_eosQuote(req, me) {
   var advances = 0;
   reqs.forEach(function (r) { if (r.type === 'advance' && r.status === 'approved') advances += Math.max(0, Number(r.amount) - (done[r.ref] || 0)); });
   var loans = typeof loansOwed_ === 'function' ? loansOwed_(emp.id) : 0; // employee loans still owed (Loans.gs)
-  var gross = aw.award + leavePay + lastPay, net = gross - advances - loans;
+  // Art. 77 (as amended 2019): a contract ended for no valid reason entitles the other party to compensation, on top of the
+  // award: a fixed-term contract the wage for its remaining period, an open-ended one 15 days' wage per year of service,
+  // never less than two months' wage (the contract may set a higher amount; a court decides disputes).
+  //  - 'employer': the company ended it without a valid reason; the compensation is added to what the employee receives.
+  //  - 'employee': the employee left without notice or a valid reason; shown as a claim the company may pursue, never
+  //    deducted here (Art. 92/93 limit deductions from wages).
+  var a77 = null, party = req.art77 === 'employer' || req.art77 === 'employee' ? req.art77 : '';
+  if (party) {
+    if (party === 'employer' && (reason === 'art80' || reason === 'resignation')) fail_('art77_reason');
+    var fixed = String(emp.contractType || '') === 'fixed' && emp.contractEnd, end = fixed ? String(emp.contractEnd).slice(0, 10) : '';
+    var remain = fixed && end > last ? daysBetween_(last, end) : 0;
+    var computed = fixed ? remain * wage / 30 : svc.years * 15 * wage / 30, minimum = 2 * wage;
+    a77 = { party: party, basis: fixed ? 'fixed_remaining' : 'open_15_days', remainingDays: remain, contractEnd: end, computed: r2_(computed), minimum: r2_(minimum), amount: r2_(Math.max(computed, minimum)) };
+    if (party === 'employee') eosWarn.push('art77_claim_not_deducted');
+  }
+  var gross = aw.award + leavePay + lastPay + (a77 && a77.party === 'employer' ? a77.amount : 0), net = gross - advances - loans;
   var dueDays = reason === 'resignation' ? 14 : 7;
   audit_(me.id, 'salary_view', emp.id, { eos: true, lastDay: last, reason: reason });
   return { ok: true, eos: { hireDate: hire, lastDay: last, reason: reason, basis: 'total', warnings: eosWarn,
     serviceDays: svc.days, unpaidExcluded: svc.excluded, years: r2_(svc.years), wage: r2_(wage),
     first5: r2_(aw.first5), after5: r2_(aw.after5), fullAward: r2_(aw.full), factor: r2_(aw.factor), award: r2_(aw.award),
     leaveDays: r2_(leaveDays), leavePay: r2_(leavePay), lastMonthDays: lastDays, lastMonthPay: r2_(lastPay), lastMonthLocked: locked,
-    advances: r2_(advances), loans: r2_(loans), gross: r2_(gross), net: r2_(net), total: r2_(aw.award + leavePay), dueBy: addDays_(last, dueDays), dueDays: dueDays } };
+    advances: r2_(advances), loans: r2_(loans), art77: a77, gross: r2_(gross), net: r2_(net), total: r2_(aw.award + leavePay), dueBy: addDays_(last, dueDays), dueDays: dueDays } };
 }
 
 // ---------------- payslip email (Microsoft 365, switched on later) ----------------
@@ -597,7 +612,7 @@ function fsPaidMonth_(empId, month) {
 function api_finalSettlementCreate(req, me) {
   if (!canPayroll_(me)) fail_('forbidden');
   if (req.empId === me.id) fail_('cannot_change_own_salary');
-  var q = api_eosQuote({ empId: req.empId, lastDay: req.lastDay, reason: req.reason }, me).eos;
+  var q = api_eosQuote({ empId: req.empId, lastDay: req.lastDay, reason: req.reason, art77: req.art77 }, me).eos;
   return withLock_(function () {
     if (readAll_(SHEETS.FSET).some(function (x) { return x.empId === req.empId && x.status !== 'cancelled'; })) fail_('already_exists');
     var now = new Date().toISOString(), row = { id: newId_('Z'), ref: nextRef_('settlement', refsOf_(SHEETS.FSET)), empId: req.empId, lastDay: q.lastDay, reason: q.reason,
