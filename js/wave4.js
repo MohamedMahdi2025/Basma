@@ -142,7 +142,8 @@ function adForm(x, again){
   K.formDrawer(x.post ? t('cpEdit') : t('cpPublish'), esc(x.ref),
     K.two(K.fld(t('cpTitleAr'), '<input name="titleAr" maxlength="120" value="' + esc(p.titleAr || x.titleAr || '') + '">'), K.fld(t('cpTitleEn'), '<input name="titleEn" maxlength="120" dir="ltr" value="' + esc(p.titleEn || x.titleEn || '') + '">')) +
     ta('summaryAr', 'cpSumAr', p.summaryAr) + ta('summaryEn', 'cpSumEn', p.summaryEn) + ta('requirementsAr', 'cpReqAr', p.requirementsAr) + ta('requirementsEn', 'cpReqEn', p.requirementsEn) +
-    K.two(K.fld(t('cpCity'), '<input name="city" maxlength="60" value="' + esc(p.city || '') + '">'), K.fld(t('cpCloses'), '<input type="date" name="closesOn" value="' + esc(p.closesOn || '') + '">')),
+    K.two(K.fld(t('cpCity'), '<input name="city" maxlength="60" value="' + esc(p.city || '') + '">'), K.fld(t('cpCloses'), '<input type="date" name="closesOn" value="' + esc(p.closesOn || '') + '">')) +
+    K.fld(t('cpAudience'), '<select name="audience">' + K.opts([['public', t('cpaPublic')], ['internal', t('cpaInternal')]], p.audience || 'public') + '</select>'),
     function(v){ v.reqId = x.reqId; v.status = 'open'; return api('careerPostSave', { post: v }); }, again);
 }
 window.CareersAdmin = { section: careersAdmin };
@@ -377,6 +378,57 @@ function rolesSection(body){
   });
 }
 window.Roles = { section: rolesSection };
+
+// =================================================================== INTERNAL MOBILITY (2026-10-20)
+Object.assign(T.ar, {
+  mbTitle:'التنقل الداخلي والمسار الوظيفي', mbLead:'الوظائف المفتوحة داخل الشركة يمكنك التقدم لها مباشرة، ومسارات الترقي من وظيفتك الحالية ومتطلباتها. يتقدم الموظف بعد إكمال الحد الأدنى من الخدمة في وظيفته.',
+  mbJobs:'وظائف داخلية', mbPaths:'المسارات الوظيفية', mbApply:'أتقدم لهذه الوظيفة', mbApplied:'تقدمت', mbInternalOnly:'داخلية فقط', mbNotYet:'يمكنك التقدم للوظائف الداخلية من {d} (بعد {m} أشهر خدمة).',
+  mbFromMine:'من وظيفتك الحالية', mbAll:'كل المسارات', mbYears:'سنوات عادة', mbReq:'المتطلبات', mbNewPath:'مسار جديد', mbFrom:'من وظيفة', mbTo:'إلى وظيفة', mbNoPos:'لا توجد وظيفة مسجلة لك؛ تواصل مع الموارد البشرية.',
+  mbRemove:'حذف المسار', mbNote:'لماذا تناسبك هذه الوظيفة؟ (اختياري)', cpAudience:'من يراها', cpaPublic:'الموظفون وصفحة الوظائف العامة', cpaInternal:'الموظفون فقط', e_too_early:'لم تكمل بعد الحد الأدنى من الخدمة للتقدم الداخلي.'
+});
+Object.assign(T.en, {
+  mbTitle:'Internal mobility and career paths', mbLead:'Open jobs inside the company you can apply for directly, and the paths up from your current position with what they need. Employees apply after the minimum service in their role.',
+  mbJobs:'Internal jobs', mbPaths:'Career paths', mbApply:'Apply for this job', mbApplied:'Applied', mbInternalOnly:'Internal only', mbNotYet:'You can apply for internal jobs from {d} (after {m} months of service).',
+  mbFromMine:'From your position', mbAll:'All paths', mbYears:'years typically', mbReq:'Requirements', mbNewPath:'New path', mbFrom:'From position', mbTo:'To position', mbNoPos:'No position is recorded for you; contact HR.',
+  mbRemove:'Remove the path', mbNote:'Why does this job suit you? (optional)', cpAudience:'Who sees it', cpaPublic:'Employees and the public careers page', cpaInternal:'Employees only', e_too_early:'You have not yet completed the minimum service to apply internally.'
+});
+function mobilitySection(body){
+  var box = K.head(body, 'mbTitle', 'mbLead'), tab = S.mbTab || 'jobs';
+  function load(){
+    K.busy(box);
+    Promise.all([api('internalJobs', {}, true), api('careerPathList', {}, true)]).then(function(res){
+      if (!box.isConnected) return;
+      var j = res[0], p = res[1];
+      if (!j.ok) return box.innerHTML = K.bad(j.error);
+      var h = '<div class="toolbar">' + K.tabsBar(tab, [['jobs', 'briefcase', 'mbJobs'], ['paths', 'path', 'mbPaths']]) + '<span class="sp"></span>' + (tab === 'paths' && p.canEdit ? '<button type="button" class="btn btn-dark btn-sm" id="mbN">' + ph('plus') + t('mbNewPath') + '</button>' : '') + '</div>';
+      if (tab === 'jobs') {
+        if (!j.eligible) h += '<p class="w2-warn">' + ph('info') + ' ' + t('mbNotYet').replace('{d}', K.fmt(j.eligibleFrom)).replace('{m}', j.minMonths) + '</p>';
+        h += j.rows.length ? '<div class="list">' + j.rows.map(function(x, i){
+          return '<div class="row w2-row"><div class="main"><b>' + esc(K.lang(x.titleAr, x.titleEn)) + '</b><small>' + [K.lang(x.deptAr, x.deptEn), x.city, x.closesOn ? t('cpCloses') + ' ' + K.fmt(x.closesOn) : ''].filter(String).map(esc).join(' · ') + '</small>' +
+            (K.lang(x.summaryAr, x.summaryEn) ? '<small>' + esc(K.lang(x.summaryAr, x.summaryEn)).slice(0, 220) + '</small>' : '') + '</div><div class="act" style="display:flex;gap:6px;align-items:center">' + (x.internalOnly ? K.chip(t('mbInternalOnly'), '') : '') +
+            (x.applied ? K.chip(t('mbApplied'), 'in') : j.eligible ? '<button type="button" class="btn btn-dark btn-sm" data-ap="' + i + '">' + t('mbApply') + '</button>' : '') + '</div></div>';
+        }).join('') + '</div>' : K.empty('briefcase', t('w2None'));
+      } else {
+        var mine = p.rows.filter(function(x){ return x.from.id === p.myPositionId; }), rest = p.rows.filter(function(x){ return x.from.id !== p.myPositionId; });
+        var card = function(x, i){ return '<div class="row w2-row"><div class="main"><b>' + esc(K.lang(x.from.titleAr, x.from.titleEn)) + ' ' + ph(S.lang === 'en' ? 'arrow-right' : 'arrow-left') + ' ' + esc(K.lang(x.to.titleAr, x.to.titleEn)) + (x.to.grade ? ' <small>(' + esc(x.to.grade) + ')</small>' : '') + '</b><small>' + (x.years ? x.years + ' ' + t('mbYears') : '') + '</small>' + (K.lang(x.requirementsAr, x.requirementsEn) ? '<small style="white-space:pre-wrap">' + t('mbReq') + ': ' + esc(K.lang(x.requirementsAr, x.requirementsEn)) + '</small>' : '') + '</div>' + (p.canEdit ? '<div class="act"><button type="button" class="btn btn-line btn-sm" data-pe="' + p.rows.indexOf(x) + '">' + t('w2Edit') + '</button></div>' : '') + '</div>'; };
+        h += '<h3 style="margin:8px 0">' + t('mbFromMine') + '</h3>' + (p.myPositionId ? (mine.length ? '<div class="list">' + mine.map(card).join('') + '</div>' : K.empty('path', t('w2None'))) : '<p class="hr-hint">' + t('mbNoPos') + '</p>') +
+          (rest.length ? '<h3 style="margin:16px 0 8px">' + t('mbAll') + '</h3><div class="list">' + rest.map(card).join('') + '</div>' : '');
+      }
+      box.innerHTML = h; K.wire(box);
+      $$('[data-tab]', box).forEach(function(b){ b.onclick = function(){ tab = S.mbTab = b.dataset.tab; load(); }; });
+      $$('[data-ap]', box).forEach(function(b){ b.onclick = function(){ var x = j.rows[b.dataset.ap];
+        K.formDrawer(t('mbApply'), esc(K.lang(x.titleAr, x.titleEn)), K.fld(t('mbNote'), '<textarea name="note" rows="3" maxlength="1000"></textarea>'), function(v){ return api('internalApply', { postId: x.id, note: v.note }); }, load, t('mbApply')); }; });
+      var pf = function(x){ var po = p.positions.map(function(q){ return [q.id, K.lang(q.titleAr, q.titleEn) + (q.grade ? ' (' + q.grade + ')' : '')]; });
+        K.formDrawer(x.id ? t('w2Edit') : t('mbNewPath'), '', K.two(K.fld(t('mbFrom'), '<select name="fromPositionId" required>' + K.opts(po, x.from ? x.from.id : '', t('w2Pick')) + '</select>'), K.fld(t('mbTo'), '<select name="toPositionId" required>' + K.opts(po, x.to ? x.to.id : '', t('w2Pick')) + '</select>')) +
+          K.fld(t('mbYears'), '<input type="number" name="years" min="0" max="30" value="' + (x.years || 2) + '">') + K.fld(t('mbReq') + ' (AR)', '<textarea name="requirementsAr" rows="3" maxlength="1000">' + esc(x.requirementsAr || '') + '</textarea>') + K.fld(t('mbReq') + ' (EN)', '<textarea name="requirementsEn" rows="3" maxlength="1000" dir="ltr">' + esc(x.requirementsEn || '') + '</textarea>') + (x.id ? K.chk('remove', t('mbRemove'), false) : ''),
+          function(v){ v.id = x.id; v.years = Number(v.years); return api('careerPathSave', { path: v }); }, load); };
+      var nb = $('#mbN', box); if (nb) nb.onclick = function(){ pf({}); };
+      $$('[data-pe]', box).forEach(function(b){ b.onclick = function(){ pf(p.rows[b.dataset.pe]); }; });
+    });
+  }
+  load();
+}
+window.Mobility = { section: mobilitySection };
 
 window.OpenShifts = { section: openShiftsSection };
 })();

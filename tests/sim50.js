@@ -1357,6 +1357,32 @@ cycle('Roles and permissions overview (2026-10-19)');
   ok(!JSON.stringify(o).match(/basic|iban|nationalId|phone/i), 'no salary, ID or contact data');
   ok(call(1009, 'rolesOverview', {}).error === 'forbidden' && call(1016, 'rolesOverview', {}).error === 'forbidden', 'payroll and managers cannot open it');
 }
+cycle('Internal mobility and career paths (2026-10-20)');
+{
+  let q = call(1015, 'recruitReqSave', { requisition: { titleAr: 'مشرف توزيع', titleEn: 'Distribution supervisor', headcount: 1, contractType: 'indefinite', budgetMin: 8000, budgetMax: 11000, reason: 'growth', justification: 'فرع جديد', positionId: PID.sup } });
+  ok(q.ok, 'a manager asks for a supervisor', q.error);
+  ok(call(1011, 'recruitReqDecide', { id: q.requisition.id, decision: 'approve' }).ok, 'HR approves it');
+  r = call(1011, 'careerPostSave', { post: { reqId: q.requisition.id, summaryAr: 'قيادة فريق توزيع', audience: 'internal' } });
+  ok(r.ok, 'HR posts it to employees only', r);
+  ok(!B.call({ action: 'careersList' }).rows.some(x => x.titleAr === 'مشرف توزيع'), 'an internal-only job is not on the public careers page');
+  let j = call(1018, 'internalJobs', {});
+  const job = j.rows.find(x => x.titleAr === 'مشرف توزيع');
+  ok(j.ok && j.eligible && job && job.internalOnly, 'a driver with 6 years of service sees it as internal', j.rows.map(x => x.titleAr));
+  ok(!call(1015, 'internalJobs', {}).rows.some(x => x.titleAr === 'مشرف توزيع'), 'the hiring manager does not see their own requisition as a job');
+  ok(B.call({ action: 'careersApply', application: { postId: job.id, name: 'x', phone: '0551234567', consent: true } }).error === 'not_found', 'nobody outside can apply to it');
+  r = call(1018, 'internalApply', { postId: job.id, note: 'أعرف المسارات والفريق' });
+  ok(r.ok, 'the driver applies with one tap', r);
+  ok(call(1018, 'internalApply', { postId: job.id }).error === 'already_exists', 'once');
+  ok(call(1018, 'internalJobs', {}).rows.find(x => x.id === job.id).applied === 'applied', 'and sees that they applied');
+  const c = call(1011, 'recruitCandList', { reqId: q.requisition.id }).rows.find(x => x.source === 'internal');
+  ok(c && c.name && c.stage === 'applied', 'HR sees an internal candidate with the driver\'s name', c);
+  j = call(1049, 'internalJobs', {});
+  ok(!j.eligible && call(1049, 'internalApply', { postId: job.id }).error === 'too_early', 'someone hired last week must wait the minimum service');
+  ok(call(1018, 'careerPathSave', { path: { fromPositionId: PID.drv, toPositionId: PID.sup, years: 3 } }).error === 'forbidden', 'only HR defines career paths');
+  ok(call(1011, 'careerPathSave', { path: { fromPositionId: PID.drv, toPositionId: PID.sup, years: 3, requirementsAr: 'سجل سلامة نظيف ودورة قيادة' } }).ok, 'HR maps driver -> supervisor');
+  const pl = call(1018, 'careerPathList', {});
+  ok(pl.ok && pl.myPositionId === PID.drv && pl.rows.some(x => x.from.id === PID.drv && x.to.id === PID.sup && x.years === 3), 'the driver sees the path from their own position', pl.rows);
+}
 cycle('Access matrix');
 const code = fs.readFileSync(path.join(__dirname, '..', 'backend', 'Code.gs'), 'utf8');
 const mapOf = n => (code.match(new RegExp('var ' + n + ' = \\{([^}]*)\\}'))[1].match(/[a-zA-Z]+(?=:)/g));

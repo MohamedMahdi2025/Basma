@@ -549,7 +549,7 @@ function api_careersList(req) {
   var t = today_(), reqs = {}, depts = {};
   readAll_(SHEETS.REQN).forEach(function (q) { reqs[q.id] = q; });
   readAll_(SHEETS.DEPT).forEach(function (d) { depts[d.id] = d; });
-  return { ok: true, company: companyOf_(settings_()), rows: readAll_(SHEETS.CPOST).filter(function (p) { return careerOpen_(p, reqs[p.reqId], t); }).map(function (p) { return publicPost_(p, reqs[p.reqId], depts); }) };
+  return { ok: true, company: companyOf_(settings_()), rows: readAll_(SHEETS.CPOST).filter(function (p) { return p.audience !== 'internal' && careerOpen_(p, reqs[p.reqId], t); }).map(function (p) { return publicPost_(p, reqs[p.reqId], depts); }) };
 }
 function api_careersApply(req) {
   var d = req.application || {};
@@ -562,7 +562,7 @@ function api_careersApply(req) {
   if (!rateLimit_('careers', 40, 3600) || !rateLimit_('careers:' + phone, 3, 86400) || (email && !rateLimit_('careers:' + email, 3, 86400))) fail_('too_many_attempts');
   return withLock_(function () {
     var p = findBy_(SHEETS.CPOST, 'id', d.postId), q = p ? findBy_(SHEETS.REQN, 'id', p.reqId) : null;
-    if (!p || !careerOpen_(p, q, today_())) fail_('not_found');
+    if (!p || p.audience === 'internal' || !careerOpen_(p, q, today_())) fail_('not_found');
     var dup = readAll_(SHEETS.CAND).some(function (x) { return x.reqId === q.id && x.stage !== 'erased' && (String(x.phone) === phone || (email && x.email === email)); });
     if (dup) return { ok: true };
     var now = new Date().toISOString(), nat = str_(d.nationality, 40);
@@ -585,7 +585,7 @@ function api_careerPostList(req, me) {
   var rows = readAll_(SHEETS.REQN).filter(function (q) { return q.status === 'approved' || posts[q.id]; }).map(function (q) {
     var p = posts[q.id];
     return { reqId: q.id, ref: q.ref, titleAr: q.titleAr, titleEn: q.titleEn, reqStatus: q.status, headcount: Number(q.headcount) || 1, filled: Number(q.filled) || 0,
-      post: p ? Object.assign(publicPost_(p, q, depts), { status: p.status, live: careerOpen_(p, q, t), applications: Number(p.applications) || 0 }) : null };
+      post: p ? Object.assign(publicPost_(p, q, depts), { status: p.status, audience: p.audience || 'public', live: careerOpen_(p, q, t), applications: Number(p.applications) || 0 }) : null };
   });
   return { ok: true, rows: rows };
 }
@@ -605,7 +605,7 @@ function api_careerPostSave(req, me) {
     if (!p) p = { id: newId_('J'), reqId: q.id, applications: 0, createdBy: me.id, createdAt: now };
     p.status = status; p.titleAr = str_(x.titleAr, 120) || q.titleAr; p.titleEn = str_(x.titleEn, 120) || q.titleEn;
     p.summaryAr = str_(x.summaryAr, 2000); p.summaryEn = str_(x.summaryEn, 2000); p.requirementsAr = str_(x.requirementsAr, 2000); p.requirementsEn = str_(x.requirementsEn, 2000);
-    p.city = str_(x.city, 60); p.closesOn = closes; p.updatedAt = now;
+    p.city = str_(x.city, 60); p.closesOn = closes; p.audience = x.audience === 'internal' ? 'internal' : 'public'; p.updatedAt = now;
     if (fresh) append_(SHEETS.CPOST, p); else update_(SHEETS.CPOST, p);
     audit_(me.id, 'career_post_save', '', { req: q.ref, status: status });
     return { ok: true };
@@ -672,5 +672,71 @@ function api_workforcePlanSave(req, me) {
     if (p._row) update_(SHEETS.WFP, p); else append_(SHEETS.WFP, p);
     audit_(me.id, 'workforce_plan_save', '', { dept: d.code || d.id, year: year, from: was, to: planned });
     return { ok: true };
+  });
+}
+
+/**
+ * Internal mobility (2026-10-20; Menaitech career paths, SAP internal mobility; rebuilt as our own). Tab careerPaths.
+ *  - Internal job board: every open career post is shown to employees too; a post with audience 'internal' is shown only
+ *    to employees, never on the public page. An employee applies with one tap after `internalMinMonths` (6) of service;
+ *    the application is a candidate with source 'internal' (their job title and contact come from their record).
+ *  - Career paths: HR links a position to the positions that usually follow it, with typical years and requirements.
+ *    Everyone sees the paths from their own position (and may browse all paths).
+ */
+function api_internalJobs(req, me) {
+  var t = today_(), reqs = {}, depts = {}, emp = findBy_(SHEETS.EMP, 'id', me.id) || me, mine = {};
+  readAll_(SHEETS.REQN).forEach(function (q) { reqs[q.id] = q; });
+  readAll_(SHEETS.DEPT).forEach(function (d) { depts[d.id] = d; });
+  readAll_(SHEETS.CAND).forEach(function (c) { if (c.source === 'internal' && c.empId === me.id && c.stage !== 'erased') mine[c.reqId] = c.stage; });
+  var rows = readAll_(SHEETS.CPOST).filter(function (p) { return careerOpen_(p, reqs[p.reqId], t) && reqs[p.reqId].hiringManagerId !== me.id; }).map(function (p) {
+    var o = publicPost_(p, reqs[p.reqId], depts); o.internalOnly = p.audience === 'internal'; o.applied = mine[p.reqId] || ''; return o;
+  });
+  var hire = String(emp.hireDate || '').slice(0, 10), minM = Number(settings_().internalMinMonths) || 6;
+  var eligibleFrom = hire ? addDays_(hire, Math.round(minM * 30.44)) : '';
+  return { ok: true, rows: rows, eligible: !eligibleFrom || eligibleFrom <= t, eligibleFrom: eligibleFrom, minMonths: minM };
+}
+function api_internalApply(req, me) {
+  var emp = findBy_(SHEETS.EMP, 'id', me.id);
+  if (!emp || emp.status !== 'active') fail_('forbidden');
+  var minM = Number(settings_().internalMinMonths) || 6, hire = String(emp.hireDate || '').slice(0, 10);
+  if (hire && addDays_(hire, Math.round(minM * 30.44)) > today_()) fail_('too_early');
+  return withLock_(function () {
+    var p = findBy_(SHEETS.CPOST, 'id', req.postId), q = p ? findBy_(SHEETS.REQN, 'id', p.reqId) : null;
+    if (!p || !careerOpen_(p, q, today_())) fail_('not_found');
+    if (q.hiringManagerId === me.id) fail_('forbidden');
+    if (readAll_(SHEETS.CAND).some(function (c) { return c.reqId === q.id && c.source === 'internal' && c.empId === me.id && c.stage !== 'erased' && c.stage !== 'withdrawn'; })) fail_('already_exists');
+    var now = new Date().toISOString(), pos = emp.positionId ? findBy_(SHEETS.POS, 'id', emp.positionId) : null;
+    var c = { id: newId_('K'), ref: nextRef_('candidate', refsOf_(SHEETS.CAND)), reqId: q.id, name: emp.name, nameEn: emp.nameEn || '', email: String(emp.email || '').toLowerCase(), phone: String(emp.phone || ''),
+      nationality: emp.nationality || '', isSaudi: bool_(emp.isSaudi) || SAUDI_RE.test(String(emp.nationality || '')), gender: emp.gender || '', birthDate: '', source: 'internal', referredBy: '',
+      currentTitle: pos ? (pos.titleAr || pos.title || '') : (emp.title || ''), currentEmployer: '', yearsExperience: hire ? Math.floor(daysBetween_(hire, today_()) / 365) : 0, expectedSalary: '', noticeDays: '',
+      cvRef: '', consentAt: now, stage: 'applied', historyJson: JSON.stringify([{ from: '', to: 'applied', by: me.id, at: now }]), rating: '', rejectReason: '', note: str_(req.note, 1000),
+      empId: me.id, createdBy: me.id, createdAt: now, updatedAt: now, purgeAfter: '' };
+    append_(SHEETS.CAND, c);
+    audit_(me.id, 'internal_apply', me.id, { ref: c.ref, req: q.ref });
+    return { ok: true, ref: c.ref };
+  });
+}
+function api_careerPathList(req, me) {
+  var emp = findBy_(SHEETS.EMP, 'id', me.id) || me, pos = {};
+  readAll_(SHEETS.POS).forEach(function (p) { if (p.status !== 'inactive') pos[p.id] = { id: p.id, titleAr: p.titleAr || p.title, titleEn: p.titleEn, grade: p.grade || '', code: p.code || '' }; });
+  var rows = readAll_(SHEETS.CPATH).filter(function (x) { return x.status !== 'deleted' && pos[x.fromPositionId] && pos[x.toPositionId]; }).map(function (x) {
+    return { id: x.id, from: pos[x.fromPositionId], to: pos[x.toPositionId], years: Number(x.years) || 0, requirementsAr: x.requirementsAr || '', requirementsEn: x.requirementsEn || '' };
+  });
+  return { ok: true, myPositionId: emp.positionId || '', rows: rows, positions: Object.keys(pos).map(function (k) { return pos[k]; }), canEdit: isHr_(me) };
+}
+function api_careerPathSave(req, me) {
+  if (!isHr_(me)) fail_('forbidden');
+  var x = req.path || {};
+  if (!x.fromPositionId || !x.toPositionId || x.fromPositionId === x.toPositionId) fail_('bad_value');
+  var yrs = Number(x.years || 0); if (!(yrs >= 0 && yrs <= 30)) fail_('bad_value');
+  return withLock_(function () {
+    if (!findBy_(SHEETS.POS, 'id', x.fromPositionId) || !findBy_(SHEETS.POS, 'id', x.toPositionId)) fail_('not_found');
+    var now = new Date().toISOString(), row = x.id ? findBy_(SHEETS.CPATH, 'id', x.id) : readAll_(SHEETS.CPATH).filter(function (r) { return r.fromPositionId === x.fromPositionId && r.toPositionId === x.toPositionId && r.status !== 'deleted'; })[0];
+    if (x.id && !row) fail_('not_found');
+    if (!row) row = { id: newId_('C'), status: 'active', createdBy: me.id, createdAt: now };
+    row.fromPositionId = x.fromPositionId; row.toPositionId = x.toPositionId; row.years = yrs; row.requirementsAr = str_(x.requirementsAr, 1000); row.requirementsEn = str_(x.requirementsEn, 1000);
+    if (x.remove) row.status = 'deleted'; row.updatedAt = now;
+    if (row._row) update_(SHEETS.CPATH, row); else append_(SHEETS.CPATH, row);
+    return { ok: true, id: row.id };
   });
 }
