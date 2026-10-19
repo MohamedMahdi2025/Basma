@@ -4099,6 +4099,29 @@ function locHelpHtml(code){
   return '<div class="loc-help" role="status"><button type="button" class="btn btn-brand" id="locAsk">' + ph('crosshair') + t('locBtn') + '</button>' +
     (code === 1 || code === 2 ? '<details><summary>' + t(denied ? 'locDeniedTitle' : 'locOffTitle') + '</summary><ol>' + steps.map(function(s){ return '<li>' + s + '</li>'; }).join('') + '</ol></details>' : '') + '</div>';
 }
+// Inside the iPhone / Android app (native/, Capacitor; 2026-10-19). In a browser this does nothing.
+//  - BGNative.openSettings(): one tap opens this app's own page in the phone's Settings (location switch included).
+//  - navigator.geolocation is served by the native plugin: one native permission question (not the web view's second one).
+(function(){
+  var C = window.Capacitor; if (!C || !C.isNativePlatform || !C.isNativePlatform()) return;
+  var P = C.Plugins || {}, G = P.Geolocation, NS = P.NativeSettings, plat = C.getPlatform && C.getPlatform();
+  window.BGNative = { platform: plat, openSettings: function(){ if (!NS) return; return plat === 'ios' ? NS.openIOS({ option: 'app' }) : NS.openAndroid({ option: 'application_details' }); } };
+  if (!G) return;
+  var conv = function(p){ return { coords: p.coords, timestamp: p.timestamp || Date.now() }; };
+  var errOf = function(e){ var m = String(e && (e.message || e)); return { code: /denied|permission|not authori/i.test(m) ? 1 : /timeout|timed out/i.test(m) ? 3 : 2, message: m }; };
+  var ids = {}, gone = {}, n = 0;
+  var geo = {
+    getCurrentPosition: function(ok, bad, o){ G.getCurrentPosition(o || {}).then(function(p){ ok(conv(p)); }, function(e){ if (bad) bad(errOf(e)); }); },
+    watchPosition: function(ok, bad, o){
+      var id = ++n;
+      G.watchPosition(o || {}, function(p, e){ if (gone[id]) return; if (e) { if (bad) bad(errOf(e)); } else if (p) ok(conv(p)); })
+        .then(function(cid){ if (gone[id]) G.clearWatch({ id: cid }); else ids[id] = cid; });
+      return id;
+    },
+    clearWatch: function(id){ gone[id] = 1; if (ids[id]) { G.clearWatch({ id: ids[id] }); delete ids[id]; } }
+  };
+  try { Object.defineProperty(navigator, 'geolocation', { value: geo, configurable: true }); } catch (e) {}
+})();
 // when the person changes the browser permission, pick it up at once
 try { navigator.permissions && navigator.permissions.query({ name: 'geolocation' }).then(function(p){ p.onchange = function(){ if (p.state === 'granted' && S.locErr) requestLoc(); }; }); } catch (e) {}
 
