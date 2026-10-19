@@ -1295,6 +1295,34 @@ cycle('Workforce plan (2026-10-19)');
   w = call(1002, 'workforcePlan', { year: 2026 });
   ok(w.ok && w.cost && w.rows.length >= 10, 'the executive sees the whole plan with cost');
 }
+cycle('1:1 meetings and goals (2026-10-19)');
+{
+  const emp1016 = call(1015, 'oneOnOneList', {}).team.find(e => e.empNo === '1016');
+  ok(!!emp1016, 'the manager sees their report in the 1:1 picker');
+  ok(call(1016, 'oneOnOneSave', { empId: call(1015, 'oneOnOneList', {}).team[0].id, date: '2026-11-10' }).error === 'forbidden', 'an employee cannot book a 1:1 on someone else');
+  r = call(1015, 'oneOnOneSave', { empId: emp1016.id, date: '2026-11-10' });
+  ok(r.ok, 'the manager books a 1:1', r);
+  const mid = r.id;
+  ok(call(1016, 'oneOnOneUpdate', { id: mid, agendaItem: 'طلب تدريب على القيادة' }).ok, 'the employee adds an agenda item');
+  ok(call(1016, 'oneOnOneUpdate', { id: mid, notes: 'x' }).error === 'forbidden', 'the employee cannot write the meeting notes');
+  r = call(1015, 'oneOnOneUpdate', { id: mid, notes: 'اتفقنا على دورة', privateNote: 'يحتاج متابعة في الانضباط', actionItem: 'التسجيل في الدورة', actionOwner: 'emp' });
+  ok(r.ok && r.row.privateNote === 'يحتاج متابعة في الانضباط', 'the manager writes shared notes, a private note and an action item');
+  let v = call(1016, 'oneOnOneList', {}).rows.find(x => x.id === mid);
+  ok(v.notes === 'اتفقنا على دورة' && v.privateNote === undefined && v.actions.length === 1 && v.agenda.length === 1, 'the employee sees the shared notes and actions, never the private note', v);
+  v = call(1011, 'oneOnOneList', { empId: emp1016.id }).rows.find(x => x.id === mid);
+  ok(v && v.privateNote === undefined, 'HR does not see the manager\'s private note either');
+  ok(call(1016, 'oneOnOneUpdate', { id: mid, actionDone: 0 }).row.actions[0].done === true, 'the employee ticks their action item');
+  ok(call(1003, 'oneOnOneList', { empId: emp1016.id }).error === 'forbidden', 'a colleague cannot read someone else\'s 1:1s');
+  r = call(1016, 'goalSave', { goal: { title: 'خفض زمن التوزيع 10%', measure: 'متوسط زمن الرحلة', dueDate: '2026-12-31' } });
+  ok(r.ok && r.goal.setBy === 'self', 'the employee sets their own goal', r);
+  const gid = r.goal.id;
+  r = call(1015, 'goalCheckIn', { id: gid, progress: 50, note: 'منتصف الطريق' });
+  ok(r.ok && r.goal.progress === 50, 'the manager checks in progress');
+  ok(call(1016, 'goalList', {}).rows.find(x => x.id === gid).checkins.length === 1, 'the employee sees the check-in history');
+  ok(call(1003, 'goalCheckIn', { id: gid, progress: 90 }).error === 'forbidden', 'a colleague cannot change it');
+  ok(call(1016, 'goalCheckIn', { id: gid, progress: 120 }).error === 'bad_value', 'progress is 0-100');
+  ok(call(1016, 'goalCheckIn', { id: gid, progress: 100 }).goal.status === 'done', 'at 100% the goal is done');
+}
 cycle('Access matrix');
 const code = fs.readFileSync(path.join(__dirname, '..', 'backend', 'Code.gs'), 'utf8');
 const mapOf = n => (code.match(new RegExp('var ' + n + ' = \\{([^}]*)\\}'))[1].match(/[a-zA-Z]+(?=:)/g));
@@ -1323,7 +1351,7 @@ const EXPECT = {
   // annual pay review (Payroll.gs): cycles by hr role / payroll; managers list and propose for their people
   compCycleSave: 'pay', compCycleClose: 'pay', compCycleList: 'mgrPay', compPropose: 'mgrPay',
   // timesheets (Attendance.gs): HR (incl. admin) and managers
-  timesheetList: 'mgr', timesheetApprove: 'mgr', openShiftPost: 'mgr', shiftOfferDecide: 'mgr', workforcePlan: 'mgrAll', workforcePlanSave: 'hrA',
+  timesheetList: 'mgr', timesheetApprove: 'mgr', openShiftPost: 'mgr', shiftOfferDecide: 'mgr', workforcePlan: 'mgrAll', workforcePlanSave: 'hrA', oneOnOneSave: 'none',
   // custom fields (Hr.gs): definitions and values written by HR (incl. admin); everyone may list and read what they may see
   customFieldSave: 'hrA', customValuesSave: 'hrA', customValuesAll: 'hrA'
 };

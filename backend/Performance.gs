@@ -430,3 +430,115 @@ function api_feedbackResults(req, me) {
   if (!self) audit_(me.id, 'fb360_view', subject.id, { cycle: cycle.ref });
   return { ok: true, cycle: publicCycle_(cycle), subject: empCard_(subject), competencies: list, groups: groups, others: others, comments: comments, minGroup: FB_MIN_GROUP };
 }
+
+/**
+ * 1:1 meetings and continuous goals (2026-10-19, gap list item 5; seen in HiBob and Workday, rebuilt as our own).
+ * Tabs oneOnOnes and goals. Separate from the review cycle: nothing here is rated.
+ *  - 1:1: the manager (anyone in the person's manager chain) or HR books it; both sides add agenda items; shared notes and
+ *    action items are seen by both; private notes are seen only by the person who wrote them (not HR, not the employee).
+ *  - Goals: the employee sets their own, or their manager sets them; both check in progress (0-100) with a note; the history
+ *    of check-ins is kept. Managers and HR see the goals of the people they look after.
+ */
+function ooTeam_(me, ctx) {
+  return Object.keys(ctx.emps).map(function (k) { return ctx.emps[k]; }).filter(function (e) { return e.status === 'active' && e.id !== me.id && (isHr_(me) || manages_(me, e, ctx)); });
+}
+function ooCanSee_(me, empId, ctx) {
+  if (empId === me.id) return true;
+  var e = ctx.emps[empId];
+  return !!e && (isHr_(me) || manages_(me, e, ctx));
+}
+function publicOO_(x, me, ctx) {
+  var mine = x.privateBy === me.id;
+  return { id: x.id, emp: empCard_(ctx.emps[x.empId]), manager: empCard_(ctx.emps[x.managerId]), date: String(x.date).slice(0, 10), status: x.status,
+    agenda: parseJson_(x.agendaJson, []), notes: x.notesShared || '', actions: parseJson_(x.actionsJson, []), privateNote: mine ? x.notesPrivate || '' : undefined,
+    canEdit: x.managerId === me.id || isHr_(me), isMine: x.empId === me.id };
+}
+function api_oneOnOneList(req, me) {
+  var ctx = orgCtx_(), empId = req.empId || me.id;
+  if (!ooCanSee_(me, empId, ctx)) fail_('forbidden');
+  var rows = readAll_(SHEETS.OOO).filter(function (x) { return x.empId === empId && x.status !== 'cancelled'; }).map(function (x) { return publicOO_(x, me, ctx); })
+    .sort(function (a, b) { return a.date < b.date ? 1 : -1; });
+  return { ok: true, empId: empId, rows: rows, team: ooTeam_(me, ctx).map(empCard_) };
+}
+function api_oneOnOneSave(req, me) {
+  var ctx = orgCtx_(), e = ctx.emps[req.empId], date = isoDate_(req.date);
+  if (!e || e.id === me.id || !(isHr_(me) || manages_(me, e, ctx))) fail_('forbidden');
+  if (!date) fail_('bad_date');
+  return withLock_(function () {
+    var now = new Date().toISOString(), x = req.id ? findBy_(SHEETS.OOO, 'id', req.id) : null;
+    if (req.id && (!x || x.empId !== e.id)) fail_('not_found');
+    if (!x) x = { id: newId_('M'), empId: e.id, managerId: me.id, status: 'planned', agendaJson: '[]', actionsJson: '[]', notesShared: '', notesPrivate: '', privateBy: '', createdAt: now };
+    x.date = date; if (req.cancel) x.status = 'cancelled'; x.updatedAt = now;
+    if (x._row) update_(SHEETS.OOO, x); else append_(SHEETS.OOO, x);
+    audit_(me.id, 'one_on_one_save', e.id, { date: date });
+    return { ok: true, id: x.id };
+  });
+}
+/** Either side adds an agenda item; the manager (or HR) writes notes, action items, and closes it. */
+function api_oneOnOneUpdate(req, me) {
+  var ctx = orgCtx_();
+  return withLock_(function () {
+    var x = findBy_(SHEETS.OOO, 'id', req.id);
+    if (!x || x.status === 'cancelled') fail_('not_found');
+    var side = x.empId === me.id ? 'emp' : (x.managerId === me.id || isHr_(me) || (ctx.emps[x.empId] && manages_(me, ctx.emps[x.empId], ctx))) ? 'mgr' : '';
+    if (!side) fail_('forbidden');
+    var now = new Date().toISOString();
+    if (str_(req.agendaItem, 300)) { var ag = parseJson_(x.agendaJson, []); if (ag.length >= 30) fail_('bad_value'); ag.push({ text: str_(req.agendaItem, 300), by: side, at: now }); x.agendaJson = JSON.stringify(ag); }
+    if (req.actionDone != null) { var ac = parseJson_(x.actionsJson, []), i = Number(req.actionDone); if (!ac[i]) fail_('not_found'); ac[i].done = !ac[i].done; x.actionsJson = JSON.stringify(ac); }
+    if (side === 'mgr') {
+      if ('notes' in req) x.notesShared = str_(req.notes, 4000);
+      if ('privateNote' in req) { x.notesPrivate = str_(req.privateNote, 4000); x.privateBy = me.id; }
+      if (str_(req.actionItem, 300)) { var a2 = parseJson_(x.actionsJson, []); a2.push({ text: str_(req.actionItem, 300), owner: req.actionOwner === 'mgr' ? 'mgr' : 'emp', done: false }); x.actionsJson = JSON.stringify(a2); }
+      if (req.done) x.status = 'done';
+    } else if ('notes' in req || 'privateNote' in req || req.actionItem || req.done) fail_('forbidden');
+    x.updatedAt = now; update_(SHEETS.OOO, x);
+    return { ok: true, row: publicOO_(x, me, ctx) };
+  });
+}
+function publicGoal_(g, me) {
+  var ci = parseJson_(g.checkinsJson, []);
+  return { id: g.id, empId: g.empId, title: g.title, measure: g.measure || '', dueDate: g.dueDate ? String(g.dueDate).slice(0, 10) : '', progress: Number(g.progress) || 0,
+    status: g.status, checkins: ci.slice(-10), setBy: g.createdBy === g.empId ? 'self' : 'manager', canEdit: g.empId === me.id || g.createdBy === me.id || isHr_(me) };
+}
+function api_goalList(req, me) {
+  var ctx = orgCtx_(), empId = req.empId || me.id;
+  if (!ooCanSee_(me, empId, ctx)) fail_('forbidden');
+  return { ok: true, empId: empId, rows: readAll_(SHEETS.GOAL).filter(function (g) { return g.empId === empId && g.status !== 'deleted'; }).map(function (g) { return publicGoal_(g, me); }),
+    team: ooTeam_(me, ctx).map(empCard_) };
+}
+function api_goalSave(req, me) {
+  var ctx = orgCtx_(), d = req.goal || {}, empId = d.empId || me.id;
+  if (!ooCanSee_(me, empId, ctx)) fail_('forbidden');
+  var title = str_(d.title, 200);
+  if (!title) fail_('missing_fields');
+  var due = d.dueDate ? isoDate_(d.dueDate) : '';
+  if (d.dueDate && !due) fail_('bad_date');
+  return withLock_(function () {
+    var now = new Date().toISOString(), g = d.id ? findBy_(SHEETS.GOAL, 'id', d.id) : null;
+    if (d.id && (!g || g.empId !== empId)) fail_('not_found');
+    if (!g) { if (readAll_(SHEETS.GOAL).filter(function (x) { return x.empId === empId && x.status === 'active'; }).length >= 15) fail_('too_many');
+      g = { id: newId_('G'), empId: empId, progress: 0, status: 'active', checkinsJson: '[]', createdBy: me.id, createdAt: now }; }
+    g.title = title; g.measure = str_(d.measure, 300); g.dueDate = due; g.updatedAt = now;
+    if (d.status === 'deleted' || d.status === 'dropped') g.status = d.status;
+    if (g._row) update_(SHEETS.GOAL, g); else append_(SHEETS.GOAL, g);
+    return { ok: true, goal: publicGoal_(g, me) };
+  });
+}
+function api_goalCheckIn(req, me) {
+  var ctx = orgCtx_(), p = Math.round(Number(req.progress));
+  if (!(p >= 0 && p <= 100)) fail_('bad_value');
+  return withLock_(function () {
+    var g = findBy_(SHEETS.GOAL, 'id', req.id);
+    if (!g || g.status === 'deleted') fail_('not_found');
+    if (!ooCanSee_(me, g.empId, ctx)) fail_('forbidden');
+    var ci = parseJson_(g.checkinsJson, []), now = new Date().toISOString();
+    ci.push({ at: now, by: (ctx.emps[me.id] || me).name, progress: p, note: str_(req.note, 500) }); if (ci.length > 60) ci = ci.slice(-60);
+    g.checkinsJson = JSON.stringify(ci); g.progress = p; g.status = p >= 100 ? 'done' : 'active'; g.updatedAt = now;
+    update_(SHEETS.GOAL, g);
+    return { ok: true, goal: publicGoal_(g, me) };
+  });
+}
+hrisHook_('tasks', function (me, ctx, add) {
+  var t = today_(), soon = addDays_(t, 2);
+  add('one_on_one', readAll_(SHEETS.OOO).filter(function (x) { return x.status === 'planned' && (x.empId === me.id || x.managerId === me.id) && String(x.date).slice(0, 10) >= t && String(x.date).slice(0, 10) <= soon; }).length, { tab: 'file' });
+});

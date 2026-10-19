@@ -21,7 +21,7 @@ var CONFIG = {
   ACTIVATION_MAX_TRIES: 5
 };
 
-var SHEETS = { WFP: 'workforcePlans', CPOST: 'careerPosts', OSH: 'shiftOffers', EMP: 'employees', CRED: 'credentials', ZONES: 'zones', PUNCH: 'punches', AUDIT: 'audit', SET: 'settings',
+var SHEETS = { GOAL: 'goals', OOO: 'oneOnOnes', WFP: 'workforcePlans', CPOST: 'careerPosts', OSH: 'shiftOffers', EMP: 'employees', CRED: 'credentials', ZONES: 'zones', PUNCH: 'punches', AUDIT: 'audit', SET: 'settings',
   DEPT: 'departments', POS: 'positions', PRIV: 'empPrivate', COMP: 'compensation', JOBH: 'jobHistory', DOCS: 'documents',
   REQ: 'requests', HOL: 'holidays', RUN: 'payrollRuns', SLIP: 'payslips', ADJ: 'adjustments',
   CYC: 'perfCycles', KPI: 'kpis', REV: 'reviews', FB: 'feedback360', RLOG: 'reportLog',
@@ -39,6 +39,8 @@ var SHEETS = { WFP: 'workforcePlans', CPOST: 'careerPosts', OSH: 'shiftOffers', 
   EXS: 'exitSurveys', KUD: 'kudos', FSET: 'finalSettlements', CRC: 'compCycles', CRP: 'compProposals', TSH: 'timesheets', CFD: 'customFields', CFV: 'empCustom' }; // Wave 3 (Engage.gs): exit interview, recognition
 
 var HEADERS = {
+  goals: ['id', 'empId', 'title', 'measure', 'dueDate', 'progress', 'status', 'checkinsJson', 'createdBy', 'createdAt', 'updatedAt'],
+  oneOnOnes: ['id', 'empId', 'managerId', 'date', 'status', 'agendaJson', 'actionsJson', 'notesShared', 'notesPrivate', 'privateBy', 'createdAt', 'updatedAt'],
   workforcePlans: ['id', 'year', 'deptId', 'planned', 'note', 'updatedBy', 'updatedAt'],
   careerPosts: ['id', 'reqId', 'status', 'titleAr', 'titleEn', 'summaryAr', 'summaryEn', 'requirementsAr', 'requirementsEn', 'city', 'closesOn', 'applications', 'createdBy', 'createdAt', 'updatedAt'],
   shiftOffers: ['id', 'ref', 'kind', 'shiftId', 'peerShiftId', 'date', 'deptId', 'note', 'status', 'postedBy', 'empId', 'peerId', 'warnings', 'decidedBy', 'decidedAt', 'decisionNote', 'createdAt', 'updatedAt'],
@@ -230,7 +232,7 @@ function forget_(name) { delete READ_MEMO_[name]; }
  * be written back (update_ refuses), so the copy cannot overwrite the Sheet.
  */
 // Every small tab can be served from the copy; punches and audit grow without end and are always read.
-var CACHED_TABS_ = { workforcePlans: 1, careerPosts: 1, shiftOffers: 1, employees: 1, zones: 1, credentials: 1, departments: 1, positions: 1, empPrivate: 1, compensation: 1,
+var CACHED_TABS_ = { goals: 1, oneOnOnes: 1, workforcePlans: 1, careerPosts: 1, shiftOffers: 1, employees: 1, zones: 1, credentials: 1, departments: 1, positions: 1, empPrivate: 1, compensation: 1,
   jobHistory: 1, documents: 1, requests: 1, holidays: 1, payrollRuns: 1, adjustments: 1, perfCycles: 1, kpis: 1, reviews: 1, feedback360: 1,
   onboarding: 1, surveys: 1, policies: 1, policyAcks: 1, devPlans: 1, delegations: 1, wpsLog: 1, salaryRecon: 1, shifts: 1, roster: 1, discCodes: 1, discCases: 1, injuries: 1, assets: 1, custody: 1, clearance: 1,
   govVisas: 1, iqamaRenewals: 1, govFees: 1, ticketRights: 1, ticketUses: 1, expenseClaims: 1, journalLog: 1,
@@ -658,7 +660,7 @@ var PUBLIC_ACTIONS = { careersList: 1, careersApply: 1,
   ping: 1, bootstrapStatus: 1, bootstrap: 1, enrollBegin: 1, enrollFinish: 1,
   authBegin: 1, authFinish: 1, punchBegin: 1, punchFinish: 1, adminRecover: 1, pwLogin: 1, pinChange: 1, diag: 1, demoData: 1
 };
-var EMP_ACTIONS = { workforcePlan: 1, workforcePlanSave: 1, pinEnrollBegin: 1, pinEnrollFinish: 1, shiftOfferList: 1, openShiftPost: 1, openShiftClaim: 1, shiftSwapAsk: 1, shiftSwapAnswer: 1, shiftOfferDecide: 1, shiftOfferCancel: 1, me: 1, myHistory: 1, passwordSet: 1, punchPw: 1, searchAll: 1, customFieldList: 1, customFieldSave: 1, customValuesGet: 1, customValuesSave: 1, customValuesAll: 1, timesheetList: 1, timesheetApprove: 1, compCycleSave: 1, compCycleList: 1, compPropose: 1, compCycleClose: 1, finalSettlementCreate: 1, finalSettlementDecide: 1, finalSettlementPaid: 1, finalSettlementList: 1, myFinalSettlement: 1, myExitSurvey: 1, exitSurveySubmit: 1, kudosSend: 1, kudosFeed: 1, exitSurveyResults: 1, kudosStats: 1,
+var EMP_ACTIONS = { oneOnOneList: 1, oneOnOneSave: 1, oneOnOneUpdate: 1, goalList: 1, goalSave: 1, goalCheckIn: 1, workforcePlan: 1, workforcePlanSave: 1, pinEnrollBegin: 1, pinEnrollFinish: 1, shiftOfferList: 1, openShiftPost: 1, openShiftClaim: 1, shiftSwapAsk: 1, shiftSwapAnswer: 1, shiftOfferDecide: 1, shiftOfferCancel: 1, me: 1, myHistory: 1, passwordSet: 1, punchPw: 1, searchAll: 1, customFieldList: 1, customFieldSave: 1, customValuesGet: 1, customValuesSave: 1, customValuesAll: 1, timesheetList: 1, timesheetApprove: 1, compCycleSave: 1, compCycleList: 1, compPropose: 1, compCycleClose: 1, finalSettlementCreate: 1, finalSettlementDecide: 1, finalSettlementPaid: 1, finalSettlementList: 1, myFinalSettlement: 1, myExitSurvey: 1, exitSurveySubmit: 1, kudosSend: 1, kudosFeed: 1, exitSurveyResults: 1, kudosStats: 1,
   myFile: 1, hrEmpFile: 1, hrTeam: 1, hrCompList: 1, hrCompPropose: 1, hrCompDecide: 1,
   myRequests: 1, requestQuote: 1, requestCreate: 1, requestCancel: 1, reqInbox: 1, reqDecide: 1, holidayList: 1, leaveTeam: 1,
   mySlips: 1, payrollList: 1, payrollGet: 1, payrollCreate: 1, payrollRecalc: 1, payrollApprove: 1, payrollDelete: 1, payrollAdjSave: 1,
@@ -690,7 +692,7 @@ var HR_ACTIONS = { careerPostList: 1, careerPostSave: 1, resignationDefer: 1, re
  * Actions that only read (plus the audit line of a salary view). They may use the cached tab copies;
  * update_ refuses a cached row, so a mistake here fails loudly instead of overwriting the Sheet.
  */
-var READ_ONLY_ACTIONS = { workforcePlan: 1, careersList: 1, careerPostList: 1, shiftOfferList: 1, searchAll: 1, customFieldList: 1, customValuesGet: 1, customValuesAll: 1, myFinalSettlement: 1, myExitSurvey: 1, kudosFeed: 1, exitSurveyResults: 1, kudosStats: 1, me: 1, myHistory: 1, myFile: 1, hrEmpFile: 1, hrTeam: 1, hrCompList: 1, hrDirectory: 1, hrDeptList: 1,
+var READ_ONLY_ACTIONS = { oneOnOneList: 1, goalList: 1, workforcePlan: 1, careersList: 1, careerPostList: 1, shiftOfferList: 1, searchAll: 1, customFieldList: 1, customValuesGet: 1, customValuesAll: 1, myFinalSettlement: 1, myExitSurvey: 1, kudosFeed: 1, exitSurveyResults: 1, kudosStats: 1, me: 1, myHistory: 1, myFile: 1, hrEmpFile: 1, hrTeam: 1, hrCompList: 1, hrDirectory: 1, hrDeptList: 1,
   hrPositionList: 1, hrDocList: 1, hrExpiring: 1, hrBootstrap: 1, hrImportValidate: 1, board: 1, empList: 1, zoneList: 1, report: 1,
   reviewList: 1, auditList: 1, settingsGet: 1, myRequests: 1, requestQuote: 1, reqInbox: 1, holidayList: 1, leaveTeam: 1, leaveBalances: 1,
   dashboard: 1, mySlips: 1, payrollList: 1, payrollGet: 1, eosQuote: 1, myPerformance: 1, perfTeam: 1, perfEmp: 1, feedbackResults: 1, perfCycleList: 1, perfOverview: 1,

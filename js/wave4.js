@@ -189,5 +189,81 @@ function workforceSection(body){
 }
 window.Workforce = { section: workforceSection };
 
+// =================================================================== 1:1s AND GOALS (2026-10-19)
+Object.assign(T.ar, {
+  ooTitle:'لقاءات 1:1 والأهداف', ooLead:'لقاءات منتظمة بين الموظف ومديره، بجدول أعمال يضيف إليه الطرفان، وملاحظات وإجراءات يراها الاثنان، وملاحظة خاصة لا يراها إلا كاتبها. وأهداف مستمرة يتابع تقدمها الموظف ومديره، منفصلة عن تقييم الأداء.',
+  ooWho:'الموظف', ooMe:'أنا', ooMeetings:'اللقاءات', ooGoals:'الأهداف', ooBook:'حجز لقاء', ooAgenda:'جدول الأعمال', ooAddItem:'إضافة بند', ooNotes:'ملاحظات مشتركة', ooPrivate:'ملاحظة خاصة (لك وحدك)',
+  ooActions:'الإجراءات', ooAddAction:'إضافة إجراء', ooOwnerEmp:'على الموظف', ooOwnerMgr:'على المدير', ooDone:'إغلاق اللقاء', ooNone:'لا توجد لقاءات بعد.',
+  oos_planned:'مجدول', oos_done:'تم', ooNewGoal:'هدف جديد', ooGoal:'الهدف', ooMeasure:'كيف نقيس النجاح', ooDue:'الموعد', ooProgress:'التقدم', ooCheckIn:'تحديث التقدم', ooBySelf:'وضعه الموظف', ooByMgr:'وضعه المدير',
+  ooDrop:'إلغاء الهدف', ooHistory:'آخر التحديثات', ooSaveNotes:'حفظ الملاحظات', e_too_many:'وصلت إلى الحد الأعلى.'
+});
+Object.assign(T.en, {
+  ooTitle:'1:1s and goals', ooLead:'Regular meetings between a person and their manager: an agenda both add to, notes and action items both see, and a private note only its writer sees. Ongoing goals both follow, separate from the review cycle.',
+  ooWho:'Person', ooMe:'Me', ooMeetings:'Meetings', ooGoals:'Goals', ooBook:'Book a 1:1', ooAgenda:'Agenda', ooAddItem:'Add an item', ooNotes:'Shared notes', ooPrivate:'Private note (only you)',
+  ooActions:'Action items', ooAddAction:'Add an action', ooOwnerEmp:'For the employee', ooOwnerMgr:'For the manager', ooDone:'Close the meeting', ooNone:'No meetings yet.',
+  oos_planned:'Planned', oos_done:'Done', ooNewGoal:'New goal', ooGoal:'Goal', ooMeasure:'How success is measured', ooDue:'Due', ooProgress:'Progress', ooCheckIn:'Update progress', ooBySelf:'Set by the employee', ooByMgr:'Set by the manager',
+  ooDrop:'Drop the goal', ooHistory:'Latest updates', ooSaveNotes:'Save notes', e_too_many:'You have reached the limit.'
+});
+function oneOnOneSection(body){
+  var box = K.head(body, 'ooTitle', 'ooLead'), who = S.ooWho || '', tab = S.ooTab || 'meetings';
+  function load(){
+    K.busy(box);
+    Promise.all([api('oneOnOneList', who ? { empId: who } : {}, true), api('goalList', who ? { empId: who } : {}, true)]).then(function(res){
+      if (!box.isConnected) return;
+      var m = res[0], g = res[1];
+      if (!m.ok) return box.innerHTML = K.bad(m.error);
+      var other = who && who !== S.me.id, team = m.team || [];
+      var h = '<div class="toolbar">' + (team.length ? '<label>' + t('ooWho') + ' <select id="ooW">' + K.opts([['', t('ooMe')]].concat(team.map(function(e){ return [e.id, K.lang(e.name, e.nameEn) + ' (' + e.empNo + ')']; })), who) + '</select></label>' : '') +
+        K.tabsBar(tab, [['meetings', 'chats-circle', 'ooMeetings'], ['goals', 'target', 'ooGoals']]) + '<span class="sp"></span>' +
+        (tab === 'meetings' && other ? '<button type="button" class="btn btn-dark btn-sm" id="ooBk">' + ph('calendar-plus') + t('ooBook') + '</button>' : '') +
+        (tab === 'goals' ? '<button type="button" class="btn btn-dark btn-sm" id="ooNg">' + ph('plus') + t('ooNewGoal') + '</button>' : '') + '</div>';
+      if (tab === 'meetings') h += m.rows.length ? m.rows.map(meetingCard).join('') : K.empty('chats-circle', t('ooNone'));
+      else h += g.ok && g.rows.length ? '<div class="list">' + g.rows.map(goalRow).join('') + '</div>' : K.empty('target', t('w2None'));
+      box.innerHTML = h; K.wire(box);
+      var sel = $('#ooW', box); if (sel) sel.onchange = function(){ who = S.ooWho = this.value; load(); };
+      $$('[data-tab]', box).forEach(function(b){ b.onclick = function(){ tab = S.ooTab = b.dataset.tab; load(); }; });
+      var bk = $('#ooBk', box); if (bk) bk.onclick = function(){ K.formDrawer(t('ooBook'), '', K.fld(t('w2Date'), '<input type="date" name="date" required>'), function(v){ return api('oneOnOneSave', { empId: who, date: v.date }); }, load); };
+      var ng = $('#ooNg', box); if (ng) ng.onclick = function(){ goalForm({ empId: who || S.me.id }, load); };
+      var upd = function(id, extra){ return api('oneOnOneUpdate', Object.assign({ id: id }, extra)).then(function(r){ if (!r.ok) return toast(errText(r.error)); load(); }); };
+      $$('[data-ag]', box).forEach(function(f){ f.onsubmit = function(ev){ ev.preventDefault(); var v = f.item.value.trim(); if (v) upd(f.dataset.ag, { agendaItem: v }); }; });
+      $$('[data-ac]', box).forEach(function(f){ f.onsubmit = function(ev){ ev.preventDefault(); var v = f.item.value.trim(); if (v) upd(f.dataset.ac, { actionItem: v, actionOwner: f.owner.value }); }; });
+      $$('[data-tick]', box).forEach(function(c){ c.onchange = function(){ var p = c.dataset.tick.split(':'); upd(p[0], { actionDone: Number(p[1]) }); }; });
+      $$('[data-nt]', box).forEach(function(b){ b.onclick = function(){ var c = b.closest('.oo-card'), x = { notes: $('[name=notes]', c).value }; var pv = $('[name=private]', c); if (pv) x.privateNote = pv.value; upd(b.dataset.nt, x).then(function(){ toast(t('w2Saved')); }); }; });
+      $$('[data-dn]', box).forEach(function(b){ K.confirmTap(b, function(){ upd(b.dataset.dn, { done: true }); }); });
+      $$('[data-ci]', box).forEach(function(b){ b.onclick = function(){ var x = g.rows[b.dataset.ci];
+        K.formDrawer(t('ooCheckIn'), esc(x.title), K.fld(t('ooProgress') + ' %', '<input type="number" name="progress" min="0" max="100" required value="' + x.progress + '">') + K.fld(t('w2Note'), '<input name="note" maxlength="500">'),
+          function(v){ return api('goalCheckIn', { id: x.id, progress: Number(v.progress), note: v.note }); }, load); }; });
+      $$('[data-ge]', box).forEach(function(b){ b.onclick = function(){ goalForm(g.rows[b.dataset.ge], load); }; });
+    });
+  }
+  function meetingCard(x){
+    var mgr = x.canEdit, ag = x.agenda.map(function(a){ return '<li>' + esc(a.text) + ' <small>(' + (a.by === 'emp' ? t('ooOwnerEmp').replace(/^.*? /, '') : t('ooOwnerMgr').replace(/^.*? /, '')) + ')</small></li>'; }).join('');
+    var ac = x.actions.map(function(a, i){ return '<li><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" data-tick="' + x.id + ':' + i + '"' + (a.done ? ' checked' : '') + '> <span' + (a.done ? ' style="text-decoration:line-through"' : '') + '>' + esc(a.text) + '</span> <small>' + t(a.owner === 'mgr' ? 'ooOwnerMgr' : 'ooOwnerEmp') + '</small></label></li>'; }).join('');
+    return '<div class="db-card oo-card" style="padding:14px;margin-bottom:10px"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>' + K.fmt(x.date) + '</b>' + K.sep() + K.empLine(x.manager) + '<span class="sp" style="flex:1"></span>' + K.chip(t('oos_' + x.status), x.status === 'done' ? 'in' : '') + '</div>' +
+      '<h4 style="margin:10px 0 4px">' + t('ooAgenda') + '</h4><ul style="margin:0;padding-inline-start:18px">' + ag + '</ul>' +
+      (x.status === 'planned' ? '<form class="toolbar" data-ag="' + x.id + '"><input name="item" maxlength="300" placeholder="' + t('ooAddItem') + '" style="flex:1;min-width:0"><button class="btn btn-line btn-sm" type="submit">' + ph('plus') + '</button></form>' : '') +
+      '<h4 style="margin:10px 0 4px">' + t('ooActions') + '</h4><ul style="margin:0;padding:0;list-style:none">' + ac + '</ul>' +
+      (mgr && x.status === 'planned' ? '<form class="toolbar" data-ac="' + x.id + '"><input name="item" maxlength="300" placeholder="' + t('ooAddAction') + '" style="flex:1;min-width:0"><select name="owner"><option value="emp">' + t('ooOwnerEmp') + '</option><option value="mgr">' + t('ooOwnerMgr') + '</option></select><button class="btn btn-line btn-sm" type="submit">' + ph('plus') + '</button></form>' : '') +
+      (mgr ? K.fld(t('ooNotes'), '<textarea name="notes" rows="3" maxlength="4000">' + esc(x.notes) + '</textarea>') + K.fld(t('ooPrivate'), '<textarea name="private" rows="2" maxlength="4000">' + esc(x.privateNote || '') + '</textarea>') +
+        '<div class="btnrow"><button type="button" class="btn btn-line btn-sm" data-nt="' + x.id + '">' + t('ooSaveNotes') + '</button>' + (x.status === 'planned' ? ' <button type="button" class="btn btn-dark btn-sm" data-dn="' + x.id + '">' + t('ooDone') + '</button>' : '') + '</div>'
+        : (x.notes ? '<h4 style="margin:10px 0 4px">' + t('ooNotes') + '</h4><p style="white-space:pre-wrap">' + esc(x.notes) + '</p>' : '')) + '</div>';
+  }
+  function goalRow(x, i){
+    var last = x.checkins[x.checkins.length - 1];
+    return '<div class="row w2-row"><div class="main"><b>' + esc(x.title) + '</b><small>' + (x.measure ? esc(x.measure) + K.sep() : '') + (x.dueDate ? t('ooDue') + ' ' + K.fmt(x.dueDate) + K.sep() : '') + t(x.setBy === 'self' ? 'ooBySelf' : 'ooByMgr') + '</small>' +
+      '<div style="height:6px;border-radius:3px;background:var(--line);margin:6px 0;max-width:320px"><i style="display:block;height:6px;border-radius:3px;width:' + x.progress + '%;background:var(--brand)"></i></div>' +
+      (last ? '<small>' + esc(last.by) + K.sep() + K.fmtT(last.at) + (last.note ? K.sep() + esc(last.note) : '') + '</small>' : '') + '</div>' +
+      '<div class="act" style="display:flex;gap:6px;align-items:center"><b class="num">' + x.progress + '%</b>' + (x.status === 'active' ? '<button type="button" class="btn btn-dark btn-sm" data-ci="' + i + '">' + t('ooCheckIn') + '</button>' : K.chip(t('oos_done'), 'in')) +
+      (x.canEdit ? '<button type="button" class="btn btn-line btn-sm" data-ge="' + i + '">' + t('w2Edit') + '</button>' : '') + '</div></div>';
+  }
+  function goalForm(x, again){
+    K.formDrawer(x.id ? t('w2Edit') : t('ooNewGoal'), '', K.fld(t('ooGoal'), '<input name="title" maxlength="200" required value="' + esc(x.title || '') + '">') + K.fld(t('ooMeasure'), '<input name="measure" maxlength="300" value="' + esc(x.measure || '') + '">') +
+      K.fld(t('ooDue'), '<input type="date" name="dueDate" value="' + esc(x.dueDate || '') + '">') + (x.id ? K.chk('drop', t('ooDrop'), false) : ''),
+      function(v){ return api('goalSave', { goal: { id: x.id, empId: x.empId, title: v.title, measure: v.measure, dueDate: v.dueDate, status: v.drop ? 'dropped' : undefined } }); }, again);
+  }
+  load();
+}
+window.OneOnOne = { section: oneOnOneSection };
+
 window.OpenShifts = { section: openShiftsSection };
 })();
