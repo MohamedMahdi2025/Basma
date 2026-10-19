@@ -542,3 +542,89 @@ hrisHook_('tasks', function (me, ctx, add) {
   var t = today_(), soon = addDays_(t, 2);
   add('one_on_one', readAll_(SHEETS.OOO).filter(function (x) { return x.status === 'planned' && (x.empId === me.id || x.managerId === me.id) && String(x.date).slice(0, 10) >= t && String(x.date).slice(0, 10) <= soon; }).length, { tab: 'file' });
 });
+
+/**
+ * Talent review: 9-box and succession (2026-10-19, gap list item 8; seen in SAP, Oracle and Workday, rebuilt as our own).
+ * Tabs potentialRatings and successionPlans. Confidential: never shown to the person rated, and no API returns it to them.
+ *  - 9-box: performance = the final rating of the person's latest closed review cycle (1-2 low, 3 medium, 4-5 high);
+ *    potential = low / medium / high, set by their manager or HR with a note. Managers see and rate their own people only;
+ *    HR and executives see everyone. Nobody rates their own potential.
+ *  - Succession: HR marks key positions, records the incumbent's flight risk and 1-4 successors with readiness
+ *    (now, 1-2 years, 3+ years). HR edits; HR and executives view. A position with no "ready now" successor is a gap.
+ */
+var POT_LEVELS = { low: 1, medium: 2, high: 3 }, READINESS = { now: 1, '1-2y': 2, '3y+': 3 }, FLIGHT = { low: 1, medium: 2, high: 3 };
+function talentAll_(me) { return isHr_(me) || hasRole_(me, 'executive'); }
+function perfBand_(rating) { var r = Number(rating); return !(r >= 1) ? null : r <= 2 ? 'low' : r < 4 ? 'medium' : 'high'; }
+function latestRatings_() {
+  var closed = {}, out = {};
+  readAll_(SHEETS.CYC).forEach(function (c) { if (c.status === 'closed') closed[c.id] = String(c.updatedAt || c.createdAt || ''); });
+  readAll_(SHEETS.REV).forEach(function (r) {
+    if (!closed[r.cycleId] || r.finalRating === '' || r.finalRating == null) return;
+    var at = closed[r.cycleId];
+    if (!out[r.empId] || at > out[r.empId].at) out[r.empId] = { rating: Number(r.finalRating), at: at };
+  });
+  return out;
+}
+function api_nineBox(req, me) {
+  var ctx = orgCtx_(), all = talentAll_(me);
+  if (!all && !managesAnyone_(me, ctx)) fail_('forbidden');
+  var ratings = latestRatings_(), pot = {};
+  readAll_(SHEETS.POT).forEach(function (p) { if (!pot[p.empId] || String(p.at) > String(pot[p.empId].at)) pot[p.empId] = p; });
+  var people = Object.keys(ctx.emps).map(function (k) { return ctx.emps[k]; }).filter(function (e) { return e.status === 'active' && e.id !== me.id && (all || manages_(me, e, ctx)); });
+  var rows = people.map(function (e) {
+    var rt = ratings[e.id], p = pot[e.id];
+    return { emp: empCard_(e), rating: rt ? rt.rating : null, performance: rt ? perfBand_(rt.rating) : null, potential: p ? p.potential : null, note: p ? p.note || '' : '', ratedAt: p ? String(p.at).slice(0, 10) : '' };
+  });
+  var grid = {};
+  rows.forEach(function (x) { if (x.performance && x.potential) { var k = x.performance + '|' + x.potential; grid[k] = (grid[k] || 0) + 1; } });
+  return { ok: true, rows: rows, grid: grid, placed: rows.filter(function (x) { return x.performance && x.potential; }).length, unrated: rows.filter(function (x) { return !x.potential; }).length, noReview: rows.filter(function (x) { return !x.performance; }).length };
+}
+function api_potentialSave(req, me) {
+  var ctx = orgCtx_(), e = ctx.emps[req.empId];
+  if (!e || e.status !== 'active') fail_('not_found');
+  if (e.id === me.id) fail_('cannot_edit_own');
+  if (!(isHr_(me) || manages_(me, e, ctx))) fail_('forbidden');
+  if (!POT_LEVELS[req.potential]) fail_('bad_value');
+  if (!str_(req.note, 300)) fail_('note_required');
+  return withLock_(function () {
+    append_(SHEETS.POT, { id: newId_('P'), empId: e.id, potential: req.potential, note: str_(req.note, 300), by: me.id, at: new Date().toISOString() });
+    audit_(me.id, 'potential_save', e.id, { potential: req.potential });
+    return { ok: true };
+  });
+}
+function api_successionList(req, me) {
+  if (!talentAll_(me)) fail_('forbidden');
+  var ctx = orgCtx_(), pos = {}, ratings = latestRatings_();
+  readAll_(SHEETS.POS).forEach(function (p) { pos[p.id] = p; });
+  var rows = readAll_(SHEETS.SUCC).filter(function (s) { return s.status !== 'deleted'; }).map(function (s) {
+    var p = pos[s.positionId] || {}, inc = ctx.emps[s.incumbentEmpId], succ = parseJson_(s.successorsJson, []);
+    var list = succ.map(function (x) { var e = ctx.emps[x.empId]; return { emp: empCard_(e), readiness: x.readiness, note: x.note || '', rating: ratings[x.empId] ? ratings[x.empId].rating : null, active: !!(e && e.status === 'active') }; });
+    return { id: s.id, positionId: s.positionId, position: { titleAr: p.titleAr || p.title || '', titleEn: p.titleEn || '', code: p.code || '' }, incumbent: empCard_(inc), flightRisk: s.flightRisk || '',
+      successors: list, readyNow: list.filter(function (x) { return x.readiness === 'now' && x.active; }).length, note: s.note || '', updatedAt: String(s.updatedAt || '').slice(0, 10) };
+  });
+  return { ok: true, rows: rows, gaps: rows.filter(function (x) { return !x.readyNow; }).length, highRisk: rows.filter(function (x) { return x.flightRisk === 'high'; }).length, canEdit: isHr_(me),
+    positions: isHr_(me) ? readAll_(SHEETS.POS).filter(function (p) { return p.status !== 'inactive'; }).map(function (p) { return { id: p.id, titleAr: p.titleAr || p.title, titleEn: p.titleEn, code: p.code }; }) : [] };
+}
+function api_successionSave(req, me) {
+  if (!isHr_(me)) fail_('forbidden');
+  var x = req.plan || {}, ctx = orgCtx_();
+  var succ = (Array.isArray(x.successors) ? x.successors : []).slice(0, 4).map(function (s) {
+    if (!ctx.emps[s.empId] || !READINESS[s.readiness]) fail_('bad_value');
+    if (s.empId === x.incumbentEmpId) fail_('bad_value');
+    return { empId: s.empId, readiness: s.readiness, note: str_(s.note, 200) };
+  });
+  if (succ.some(function (s, i) { return succ.findIndex(function (y) { return y.empId === s.empId; }) !== i; })) fail_('bad_value');
+  if (x.flightRisk && !FLIGHT[x.flightRisk]) fail_('bad_value');
+  return withLock_(function () {
+    if (!findBy_(SHEETS.POS, 'id', x.positionId)) fail_('not_found');
+    var now = new Date().toISOString(), s = x.id ? findBy_(SHEETS.SUCC, 'id', x.id) : readAll_(SHEETS.SUCC).filter(function (r) { return r.positionId === x.positionId && r.status !== 'deleted'; })[0];
+    if (x.id && !s) fail_('not_found');
+    if (!s) s = { id: newId_('S'), positionId: x.positionId, status: 'active', createdAt: now };
+    s.incumbentEmpId = ctx.emps[x.incumbentEmpId] ? x.incumbentEmpId : ''; s.flightRisk = x.flightRisk || ''; s.successorsJson = JSON.stringify(succ); s.note = str_(x.note, 400);
+    if (x.remove) s.status = 'deleted';
+    s.updatedBy = me.id; s.updatedAt = now;
+    if (s._row) update_(SHEETS.SUCC, s); else append_(SHEETS.SUCC, s);
+    audit_(me.id, 'succession_save', s.incumbentEmpId, { position: x.positionId, successors: succ.length });
+    return { ok: true, id: s.id };
+  });
+}

@@ -1323,6 +1323,31 @@ cycle('1:1 meetings and goals (2026-10-19)');
   ok(call(1016, 'goalCheckIn', { id: gid, progress: 120 }).error === 'bad_value', 'progress is 0-100');
   ok(call(1016, 'goalCheckIn', { id: gid, progress: 100 }).goal.status === 'done', 'at 100% the goal is done');
 }
+cycle('Talent: 9-box and succession (2026-10-19)');
+{
+  const id = no => call(1011, 'nineBox', {}).rows.find(x => x.emp.empNo === String(no)).emp.id;
+  let g = call(1016, 'nineBox', {});
+  const r19 = g.rows.find(x => x.emp.empNo === '1019'), r18 = g.rows.find(x => x.emp.empNo === '1018');
+  ok(g.ok && r19 && r19.performance === 'high' && r19.rating === 5 && r18.performance === 'medium', 'the supervisor sees their drivers with performance from the closed review (5 high, 3 medium)', [r19, r18]);
+  ok(!g.rows.some(x => x.emp.empNo === '1006'), 'and nobody outside their team');
+  ok(call(1016, 'potentialSave', { empId: r19.emp.id, potential: 'high' }).error === 'note_required', 'a potential rating needs a reason');
+  ok(call(1016, 'potentialSave', { empId: r19.emp.id, potential: 'high', note: 'يقود الفريق في غياب المشرف' }).ok, 'the supervisor rates 1019 high potential');
+  ok(call(1019, 'nineBox', {}).error === 'forbidden', 'the driver cannot see the grid');
+  ok(call(1019, 'potentialSave', { empId: r19.emp.id, potential: 'high', note: 'x' }).error === 'cannot_edit_own', 'nobody rates their own potential');
+  ok(!JSON.stringify(call(1019, 'myFile', {})).includes('potential'), 'the potential rating is not in the person\'s own file');
+  g = call(1011, 'nineBox', {});
+  ok(g.grid['high|high'] === 1 && g.rows.length > 40, 'HR sees the whole company; 1019 is a star (high/high)', g.grid);
+  ok(call(1016, 'successionList', {}).error === 'forbidden', 'managers do not see succession plans');
+  r = call(1011, 'successionSave', { plan: { positionId: PID.sup, incumbentEmpId: id(1016), flightRisk: 'high', successors: [{ empId: id(1019), readiness: '1-2y' }, { empId: id(1016), readiness: 'now' }] } });
+  ok(!r.ok && r.error === 'bad_value', 'the incumbent cannot be their own successor');
+  r = call(1011, 'successionSave', { plan: { positionId: PID.sup, incumbentEmpId: id(1016), flightRisk: 'high', successors: [{ empId: id(1019), readiness: '1-2y' }] } });
+  ok(r.ok, 'HR records the supervisor role as key, high flight risk, one successor in 1-2 years', r);
+  let s = call(1002, 'successionList', {});
+  ok(s.ok && s.rows.length === 1 && s.gaps === 1 && s.highRisk === 1 && s.rows[0].successors[0].rating === 5 && !s.canEdit, 'the executive sees it: a gap (nobody ready now) and a high risk', s.rows);
+  ok(call(1002, 'successionSave', { plan: { positionId: PID.sup } }).error === 'forbidden', 'only HR edits succession');
+  call(1011, 'successionSave', { plan: { id: s.rows[0].id, positionId: PID.sup, incumbentEmpId: id(1016), flightRisk: 'high', successors: [{ empId: id(1019), readiness: 'now' }] } });
+  ok(call(1011, 'successionList', {}).gaps === 0, 'once a successor is ready now, the gap closes');
+}
 cycle('Access matrix');
 const code = fs.readFileSync(path.join(__dirname, '..', 'backend', 'Code.gs'), 'utf8');
 const mapOf = n => (code.match(new RegExp('var ' + n + ' = \\{([^}]*)\\}'))[1].match(/[a-zA-Z]+(?=:)/g));
@@ -1351,7 +1376,7 @@ const EXPECT = {
   // annual pay review (Payroll.gs): cycles by hr role / payroll; managers list and propose for their people
   compCycleSave: 'pay', compCycleClose: 'pay', compCycleList: 'mgrPay', compPropose: 'mgrPay',
   // timesheets (Attendance.gs): HR (incl. admin) and managers
-  timesheetList: 'mgr', timesheetApprove: 'mgr', openShiftPost: 'mgr', shiftOfferDecide: 'mgr', workforcePlan: 'mgrAll', workforcePlanSave: 'hrA', oneOnOneSave: 'none',
+  timesheetList: 'mgr', timesheetApprove: 'mgr', openShiftPost: 'mgr', shiftOfferDecide: 'mgr', workforcePlan: 'mgrAll', workforcePlanSave: 'hrA', oneOnOneSave: 'none', nineBox: 'mgrX', successionList: 'hrExecA', successionSave: 'hrA',
   // custom fields (Hr.gs): definitions and values written by HR (incl. admin); everyone may list and read what they may see
   customFieldSave: 'hrA', customValuesSave: 'hrA', customValuesAll: 'hrA'
 };

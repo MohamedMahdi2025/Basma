@@ -265,5 +265,70 @@ function oneOnOneSection(body){
 }
 window.OneOnOne = { section: oneOnOneSection };
 
+// =================================================================== TALENT: 9-BOX AND SUCCESSION (2026-10-19)
+Object.assign(T.ar, {
+  tlTitle:'المواهب والتعاقب', tlLead:'مصفوفة الأداء والإمكانات (9 مربعات) وخطط التعاقب على الوظائف الحرجة. سرية: لا يراها الموظف المعني. الأداء من آخر تقييم مغلق؛ الإمكانات يحددها المدير أو الموارد البشرية مع ملاحظة.',
+  tlGrid:'مصفوفة الأداء والإمكانات', tlSucc:'التعاقب', tlPerf:'الأداء', tlPot:'الإمكانات', tlLow:'منخفض', tlMed:'متوسط', tlHigh:'مرتفع', tlRate:'تحديد الإمكانات', tlUnrated:'بلا إمكانات', tlNoReview:'بلا تقييم مغلق',
+  tlPlaced:'في المصفوفة', tlNote:'سبب التقدير', tlKey:'وظيفة حرجة', tlIncumbent:'شاغل الوظيفة', tlFlight:'خطر المغادرة', tlSuccessors:'المرشحون للخلافة', tlReady:'الجاهزية', tlr_now:'جاهز الآن', 'tlr_1-2y':'خلال 1-2 سنة', 'tlr_3y+':'3 سنوات أو أكثر',
+  tlGaps:'وظائف بلا خليفة جاهز', tlHighRisk:'خطر مغادرة مرتفع', tlAddPlan:'إضافة وظيفة حرجة', tlPerson:'الموظف', tlNoPerson:'-',
+  tb_11:'أداء منخفض · إمكانات منخفضة', tb_12:'أداء منخفض · إمكانات متوسطة', tb_13:'إمكانات مرتفعة · أداء منخفض', tb_21:'أداء متوسط · إمكانات منخفضة', tb_22:'الركيزة الأساسية', tb_23:'نجم صاعد', tb_31:'خبير موثوق', tb_32:'أداء مرتفع', tb_33:'نجم'
+});
+Object.assign(T.en, {
+  tlTitle:'Talent and succession', tlLead:'The performance and potential grid (9-box) and succession plans for key positions. Confidential: never shown to the person concerned. Performance comes from the latest closed review; potential is set by the manager or HR, with a note.',
+  tlGrid:'Performance and potential grid', tlSucc:'Succession', tlPerf:'Performance', tlPot:'Potential', tlLow:'Low', tlMed:'Medium', tlHigh:'High', tlRate:'Set potential', tlUnrated:'No potential set', tlNoReview:'No closed review',
+  tlPlaced:'On the grid', tlNote:'Reason', tlKey:'Key position', tlIncumbent:'Incumbent', tlFlight:'Flight risk', tlSuccessors:'Successors', tlReady:'Readiness', tlr_now:'Ready now', 'tlr_1-2y':'In 1-2 years', 'tlr_3y+':'3+ years',
+  tlGaps:'Positions with no ready successor', tlHighRisk:'High flight risk', tlAddPlan:'Add a key position', tlPerson:'Person', tlNoPerson:'-',
+  tb_11:'Low performance · low potential', tb_12:'Low performance · medium potential', tb_13:'High potential · low performance', tb_21:'Medium performance · low potential', tb_22:'Core player', tb_23:'Rising star', tb_31:'Trusted expert', tb_32:'High performer', tb_33:'Star'
+});
+function talentSection(body){
+  var box = K.head(body, 'tlTitle', 'tlLead'), tab = S.tlTab || 'grid', lv = { low: 'tlLow', medium: 'tlMed', high: 'tlHigh' }, n3 = { low: 1, medium: 2, high: 3 };
+  function load(){
+    K.busy(box);
+    var calls = [api('nineBox', {}, true)]; if (R().hr || R().executive || isHr()) calls.push(api('successionList', {}, true));
+    Promise.all(calls).then(function(res){
+      if (!box.isConnected) return;
+      var g = res[0], sc = res[1];
+      if (!g.ok) return box.innerHTML = K.bad(g.error);
+      var tabs = [['grid', 'squares-four', 'tlGrid']]; if (sc && sc.ok) tabs.push(['succ', 'tree-structure', 'tlSucc']); else tab = 'grid';
+      var h = '<div class="toolbar">' + K.tabsBar(tab, tabs) + '</div>';
+      if (tab === 'grid') {
+        h += K.tiles([[t('tlPlaced'), K.n(g.placed)], [t('tlUnrated'), K.n(g.unrated), '', g.unrated > 0], [t('tlNoReview'), K.n(g.noReview)]]);
+        var cell = function(p, q){ var k = p + '|' + q, ppl = g.rows.filter(function(x){ return x.performance === p && x.potential === q; });
+          var tone = n3[p] + n3[q] >= 5 ? 'background:#E3F1E7' : n3[p] + n3[q] <= 3 ? 'background:#FBE9E7' : 'background:var(--paper)';
+          return '<div style="' + tone + ';border-radius:12px;padding:8px;min-height:86px"><b style="font-size:12px">' + t('tb_' + n3[p] + n3[q]) + '</b><div class="num" style="font-size:22px;font-weight:800">' + (g.grid[k] || 0) + '</div><small style="display:block;color:var(--ink-3)">' + ppl.slice(0, 4).map(function(x){ return esc(K.lang(x.emp.name, x.emp.nameEn)); }).join('، ') + (ppl.length > 4 ? ' +' + (ppl.length - 4) : '') + '</small></div>'; };
+        h += '<div class="db-card" style="padding:14px;margin-bottom:12px"><div style="display:grid;grid-template-columns:28px repeat(3,1fr);gap:6px;align-items:stretch">' +
+          ['high', 'medium', 'low'].map(function(q){ return '<div style="writing-mode:vertical-rl;transform:rotate(180deg);font-size:11px;text-align:center;color:var(--ink-3)">' + t('tlPot') + ' ' + t(lv[q]) + '</div>' + ['low', 'medium', 'high'].map(function(p){ return cell(p, q); }).join(''); }).join('') +
+          '<div></div>' + ['low', 'medium', 'high'].map(function(p){ return '<div style="text-align:center;font-size:11px;color:var(--ink-3)">' + t('tlPerf') + ' ' + t(lv[p]) + '</div>'; }).join('') + '</div></div>';
+        h += g.rows.length ? '<div class="list">' + g.rows.map(function(x, i){ return '<div class="row w2-row"><div class="main"><b>' + K.empLine(x.emp) + '</b><small>' + t('tlPerf') + ': ' + (x.performance ? t(lv[x.performance]) + ' (' + x.rating + ')' : t('tlNoReview')) + K.sep() + t('tlPot') + ': ' + (x.potential ? t(lv[x.potential]) : '-') + (x.note ? K.sep() + esc(x.note) : '') + '</small></div><div class="act"><button type="button" class="btn btn-line btn-sm" data-pt="' + i + '">' + t('tlRate') + '</button></div></div>'; }).join('') + '</div>' : K.empty('users', t('w2None'));
+      } else {
+        h += K.tiles([[t('tlKey'), K.n(sc.rows.length)], [t('tlGaps'), K.n(sc.gaps), '', sc.gaps > 0], [t('tlHighRisk'), K.n(sc.highRisk), '', sc.highRisk > 0]]) +
+          (sc.canEdit ? '<div class="toolbar"><span class="sp"></span><button type="button" class="btn btn-dark btn-sm" id="tlAdd">' + ph('plus') + t('tlAddPlan') + '</button></div>' : '');
+        h += sc.rows.length ? sc.rows.map(function(p, i){ return '<div class="db-card" style="padding:14px;margin-bottom:10px"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>' + esc(K.lang(p.position.titleAr, p.position.titleEn)) + '</b>' + (p.readyNow ? K.chip(t('tlr_now') + ' ' + p.readyNow, 'in') : K.chip(t('tlGaps'), 'out')) + (p.flightRisk ? K.chip(t('tlFlight') + ': ' + t(lv[p.flightRisk]), p.flightRisk === 'high' ? 'late' : '') : '') + '<span style="flex:1"></span>' + (sc.canEdit ? '<button type="button" class="btn btn-line btn-sm" data-sp="' + i + '">' + t('w2Edit') + '</button>' : '') + '</div>' +
+          '<small>' + t('tlIncumbent') + ': ' + (p.incumbent ? K.empLine(p.incumbent) : '-') + '</small><ol style="margin:8px 0 0;padding-inline-start:20px">' + p.successors.map(function(s){ return '<li>' + K.empLine(s.emp) + ' · ' + t('tlr_' + s.readiness) + (s.rating ? ' · ' + t('tlPerf') + ' ' + s.rating : '') + (s.note ? ' · ' + esc(s.note) : '') + '</li>'; }).join('') + '</ol></div>'; }).join('') : K.empty('tree-structure', t('w2None'));
+      }
+      box.innerHTML = h; K.wire(box);
+      $$('[data-tab]', box).forEach(function(b){ b.onclick = function(){ tab = S.tlTab = b.dataset.tab; load(); }; });
+      $$('[data-pt]', box).forEach(function(b){ b.onclick = function(){ var x = g.rows[b.dataset.pt];
+        K.formDrawer(t('tlRate'), K.empLine(x.emp), K.fld(t('tlPot'), '<select name="potential">' + K.opts([['low', t('tlLow')], ['medium', t('tlMed')], ['high', t('tlHigh')]], x.potential || 'medium') + '</select>') + K.fld(t('tlNote'), '<input name="note" maxlength="300" required value="' + esc(x.note) + '">'),
+          function(v){ return api('potentialSave', { empId: x.emp.id, potential: v.potential, note: v.note }); }, load); }; });
+      var add = $('#tlAdd', box); if (add) add.onclick = function(){ planForm({}, sc, load); };
+      $$('[data-sp]', box).forEach(function(b){ b.onclick = function(){ planForm(sc.rows[b.dataset.sp], sc, load); }; });
+    });
+  }
+  function planForm(p, sc, again){
+    K.people(function(P){
+      var emps = P.rows.map(function(e){ return [e.id, e.name + ' (' + e.empNo + ')']; }), su = (p.successors || []).concat([{}, {}, {}, {}]).slice(0, 4);
+      var rd = [['now', t('tlr_now')], ['1-2y', t('tlr_1-2y')], ['3y+', t('tlr_3y+')]];
+      K.formDrawer(p.id ? t('w2Edit') : t('tlAddPlan'), '', K.fld(t('tlKey'), '<select name="positionId" required>' + K.opts(sc.positions.map(function(x){ return [x.id, K.lang(x.titleAr, x.titleEn) + (x.code ? ' · ' + x.code : '')]; }), p.positionId || '', t('w2Pick')) + '</select>') +
+        K.two(K.fld(t('tlIncumbent'), '<select name="incumbentEmpId">' + K.opts(emps, p.incumbent ? p.incumbent.id : '', t('tlNoPerson')) + '</select>'), K.fld(t('tlFlight'), '<select name="flightRisk">' + K.opts([['low', t('tlLow')], ['medium', t('tlMed')], ['high', t('tlHigh')]], p.flightRisk || '', '-') + '</select>')) +
+        su.map(function(s, i){ return K.two(K.fld(t('tlSuccessors') + ' ' + (i + 1), '<select name="s' + i + '">' + K.opts(emps, s.emp ? s.emp.id : '', '-') + '</select>'), K.fld(t('tlReady'), '<select name="r' + i + '">' + K.opts(rd, s.readiness || '1-2y') + '</select>')); }).join(''),
+        function(v){ var list = [0, 1, 2, 3].filter(function(i){ return v['s' + i]; }).map(function(i){ return { empId: v['s' + i], readiness: v['r' + i] }; });
+          return api('successionSave', { plan: { id: p.id, positionId: v.positionId, incumbentEmpId: v.incumbentEmpId, flightRisk: v.flightRisk, successors: list } }); }, again);
+    });
+  }
+  load();
+}
+window.Talent = { section: talentSection };
+
 window.OpenShifts = { section: openShiftsSection };
 })();
