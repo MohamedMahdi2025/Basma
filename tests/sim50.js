@@ -1303,7 +1303,7 @@ const EXPECT = {
   // annual pay review (Payroll.gs): cycles by hr role / payroll; managers list and propose for their people
   compCycleSave: 'pay', compCycleClose: 'pay', compCycleList: 'mgrPay', compPropose: 'mgrPay',
   // timesheets (Attendance.gs): HR (incl. admin) and managers
-  timesheetList: 'mgr', timesheetApprove: 'mgr',
+  timesheetList: 'mgr', timesheetApprove: 'mgr', openShiftPost: 'mgr', shiftOfferDecide: 'mgr',
   // custom fields (Hr.gs): definitions and values written by HR (incl. admin); everyone may list and read what they may see
   customFieldSave: 'hrA', customValuesSave: 'hrA', customValuesAll: 'hrA'
 };

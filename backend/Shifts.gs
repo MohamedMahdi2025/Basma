@@ -129,3 +129,201 @@ function summerWarnings_(rows, ctx, s, from, to) {
   });
   return out;
 }
+
+/**
+ * Open shifts and shift swaps (2026-10-19, gap list item 2; seen in UKG and Jisr, rebuilt as our own flow). Tab shiftOffers, ref OSH.
+ *  - Open shift: a manager (for a department they head or manage people in) or HR posts a shift on a date, one row per slot.
+ *    An eligible employee claims it; the claimant's manager or HR approves; approval writes a one-day roster row.
+ *  - Swap: A asks a team-mate B to swap their rostered shifts on one date; B accepts; A's manager or HR approves;
+ *    approval writes two one-day roster rows (A gets B's shift, B gets A's).
+ *  - Both need rosters on (setting rostersEnabled), a date from today on, and nobody approves a change that involves themself.
+ *  - A claim on someone's weekly rest day is allowed with a warning (Art. 104: work on the rest day is paid as overtime).
+ */
+var OSH_OPEN_ = { open: 1, claimed: 1, peer: 1, manager: 1 };
+function rostersOn_(s) { return s.rostersEnabled === true || String(s.rostersEnabled) === 'true'; }
+function onLeave_(empId, date) {
+  return readAll_(SHEETS.REQ).some(function (r) { return r.empId === empId && r.type === 'leave' && r.status === 'approved' && String(r.fromDate).slice(0, 10) <= date && String(r.toDate).slice(0, 10) >= date; });
+}
+/** Writes a one-day roster row for empId on date and trims or splits the rows it overlaps. Call inside the lock. */
+function rosterPut_(empId, shiftId, date, me, now) {
+  var cut = [], add = [];
+  readAll_(SHEETS.ROSTER).forEach(function (r) {
+    var f = String(r.fromDate).slice(0, 10), t = String(r.toDate).slice(0, 10);
+    if (r.status !== 'active' || r.empId !== empId || t < date || f > date) return;
+    if (f < date && t > date) add.push({ id: newId_('Y'), empId: empId, shiftId: r.shiftId, fromDate: addDays_(date, 1), toDate: t, status: 'active', createdBy: me.id, createdAt: now });
+    if (f < date) r.toDate = addDays_(date, -1); else if (t > date) r.fromDate = addDays_(date, 1); else r.status = 'replaced';
+    cut.push(r);
+  });
+  if (cut.length) updateMany_(SHEETS.ROSTER, cut);
+  add.push({ id: newId_('Y'), empId: empId, shiftId: shiftId, fromDate: date, toDate: date, status: 'active', createdBy: me.id, createdAt: now });
+  appendMany_(SHEETS.ROSTER, add);
+}
+function rosterRow_(empId, date) {
+  var hit = null;
+  readAll_(SHEETS.ROSTER).some(function (r) { if (r.status === 'active' && r.empId === empId && String(r.fromDate).slice(0, 10) <= date && String(r.toDate).slice(0, 10) >= date) { hit = r; return true; } return false; });
+  return hit;
+}
+function teamMates_(emp, ctx) {
+  return Object.keys(ctx.emps).map(function (k) { return ctx.emps[k]; }).filter(function (x) {
+    return x.id !== emp.id && x.status === 'active' && ((emp.managerId && x.managerId === emp.managerId) || (emp.departmentId && x.departmentId === emp.departmentId));
+  });
+}
+function oshCanDecide_(me, x, ctx) {
+  if (x.empId === me.id || x.peerId === me.id) return false;
+  var e = ctx.emps[x.empId];
+  return isHr_(me) || !!(e && manages_(me, e, ctx));
+}
+function oshCanPost_(me, deptId, ctx) {
+  if (isHr_(me)) return true;
+  if (!managesAnyone_(me, ctx)) return false;
+  return !deptId || Object.keys(ctx.emps).some(function (k) { var e = ctx.emps[k]; return e.departmentId === deptId && manages_(me, e, ctx); });
+}
+function publicOffer_(x, ctx, shifts, me) {
+  var sh = shifts[x.shiftId], ps = shifts[x.peerShiftId];
+  return { id: x.id, ref: x.ref, kind: x.kind, date: String(x.date).slice(0, 10), status: x.status, note: x.note || '', deptId: x.deptId || '',
+    shift: sh ? publicShift_(sh) : null, peerShift: ps ? publicShift_(ps) : null, emp: empCard_(ctx.emps[x.empId]), peer: empCard_(ctx.emps[x.peerId]),
+    postedBy: (ctx.emps[x.postedBy] || {}).name || '', decisionNote: x.decisionNote || '', warnings: String(x.warnings || '').split(',').filter(String),
+    canDecide: (x.status === 'claimed' || x.status === 'manager') && oshCanDecide_(me, x, ctx), mine: x.empId === me.id, askedMe: x.status === 'peer' && x.peerId === me.id };
+}
+
+function api_shiftOfferList(req, me) {
+  var ctx = orgCtx_(), s = settings_(), t = today_(), hr = isHr_(me), mgr = managesAnyone_(me, ctx), shifts = {};
+  readAll_(SHEETS.SHIFT).forEach(function (x) { shifts[x.id] = x; });
+  var self = ctx.emps[me.id] || me, rows = [];
+  readAll_(SHEETS.OSH).forEach(function (x) {
+    var d = String(x.date).slice(0, 10), e = ctx.emps[x.empId];
+    var mineRow = x.empId === me.id || x.peerId === me.id || x.postedBy === me.id;
+    var openForMe = x.status === 'open' && d >= t && (!x.deptId || x.deptId === self.departmentId);
+    var scope = hr || (e && manages_(me, e, ctx)) || (x.status === 'open' && oshCanPost_(me, x.deptId, ctx) && x.postedBy === me.id);
+    if (!(mineRow || openForMe || scope)) return;
+    if (d < addDays_(t, -60)) return;
+    rows.push(publicOffer_(x, ctx, shifts, me));
+  });
+  rows.sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; });
+  var mine = rosterRow_(me.id, isoDate_(req.date) || t);
+  return { ok: true, enabled: rostersOn_(s), rows: rows, canPost: hr || mgr, shifts: (hr || mgr) ? readAll_(SHEETS.SHIFT).filter(function (x) { return x.status === 'active'; }).map(publicShift_) : [],
+    depts: (hr || mgr) ? readAll_(SHEETS.DEPT).filter(function (d) { return d.status !== 'inactive' && oshCanPost_(me, d.id, ctx); }).map(function (d) { return { id: d.id, nameAr: d.nameAr || d.name, nameEn: d.nameEn }; }) : [],
+    mates: teamMates_(self, ctx).map(empCard_), myShift: mine && shifts[mine.shiftId] ? publicShift_(shifts[mine.shiftId]) : null };
+}
+function api_openShiftPost(req, me) {
+  var ctx = orgCtx_(), deptId = String(req.deptId || ''), date = isoDate_(req.date), slots = Math.floor(Number(req.slots) || 1);
+  if (!oshCanPost_(me, deptId, ctx)) fail_('forbidden');
+  if (!rostersOn_(settings_())) fail_('rosters_off');
+  if (!date) fail_('bad_value');
+  if (date < today_()) fail_('past_date');
+  if (slots < 1 || slots > 20) fail_('bad_value');
+  return withLock_(function () {
+    var sh = findBy_(SHEETS.SHIFT, 'id', req.shiftId);
+    if (!sh || sh.status !== 'active') fail_('not_found');
+    var now = new Date().toISOString(), refs = nextRefs_('open_shift', slots, refsOf_(SHEETS.OSH)), rows = [];
+    for (var i = 0; i < slots; i++) rows.push({ id: newId_('O'), ref: refs[i], kind: 'open', shiftId: sh.id, date: date, deptId: deptId, note: str_(req.note, 200), status: 'open', postedBy: me.id, createdAt: now, updatedAt: now });
+    appendMany_(SHEETS.OSH, rows);
+    audit_(me.id, 'open_shift_post', '', { shift: sh.code, date: date, slots: slots });
+    return { ok: true, count: rows.length };
+  });
+}
+function api_openShiftClaim(req, me) {
+  var ctx = orgCtx_(), s = settings_(), emp = ctx.emps[me.id];
+  if (!emp || emp.status !== 'active') fail_('forbidden');
+  return withLock_(function () {
+    var x = findBy_(SHEETS.OSH, 'id', req.id);
+    if (!x || x.kind !== 'open') fail_('not_found');
+    if (x.status !== 'open') fail_('bad_state');
+    var d = String(x.date).slice(0, 10);
+    if (d < today_()) fail_('past_date');
+    if (x.deptId && x.deptId !== emp.departmentId) fail_('not_eligible');
+    if (onLeave_(me.id, d)) fail_('on_leave');
+    if (readAll_(SHEETS.OSH).some(function (o) { return o.kind === 'open' && o.empId === me.id && OSH_OPEN_[o.status] && String(o.date).slice(0, 10) === d; })) fail_('already_claimed');
+    var warn = [], day = new Date(d + 'T12:00:00Z').getUTCDay(), own = shiftOf_(emp, s);
+    if (own.workdays.indexOf(day) < 0) warn.push('rest_day');
+    if (rosterRow_(me.id, d)) warn.push('replaces_shift');
+    x.status = 'claimed'; x.empId = me.id; x.warnings = warn.join(','); x.updatedAt = new Date().toISOString();
+    update_(SHEETS.OSH, x);
+    audit_(me.id, 'open_shift_claim', me.id, { ref: x.ref });
+    return { ok: true, warnings: warn };
+  });
+}
+function api_shiftSwapAsk(req, me) {
+  var ctx = orgCtx_(), emp = ctx.emps[me.id], date = isoDate_(req.date), peer = ctx.emps[req.peerId];
+  if (!emp || emp.status !== 'active') fail_('forbidden');
+  if (!rostersOn_(settings_())) fail_('rosters_off');
+  if (!date) fail_('bad_value');
+  if (date < today_()) fail_('past_date');
+  if (!peer || peer.status !== 'active' || peer.id === me.id || teamMates_(emp, ctx).indexOf(peer) < 0) fail_('not_eligible');
+  return withLock_(function () {
+    var a = rosterRow_(me.id, date), b = rosterRow_(peer.id, date);
+    if (!a || !b) fail_('not_rostered');
+    if (a.shiftId === b.shiftId) fail_('same_shift');
+    if (onLeave_(me.id, date) || onLeave_(peer.id, date)) fail_('on_leave');
+    if (readAll_(SHEETS.OSH).some(function (o) { return o.kind === 'swap' && OSH_OPEN_[o.status] && String(o.date).slice(0, 10) === date && [o.empId, o.peerId].some(function (id) { return id === me.id || id === peer.id; }); })) fail_('already_claimed');
+    var now = new Date().toISOString(), row = { id: newId_('O'), ref: nextRef_('open_shift', refsOf_(SHEETS.OSH)), kind: 'swap', shiftId: a.shiftId, peerShiftId: b.shiftId, date: date,
+      note: str_(req.note, 200), status: 'peer', postedBy: me.id, empId: me.id, peerId: peer.id, createdAt: now, updatedAt: now };
+    append_(SHEETS.OSH, row);
+    audit_(me.id, 'shift_swap_ask', peer.id, { ref: row.ref, date: date });
+    return { ok: true, ref: row.ref };
+  });
+}
+function api_shiftSwapAnswer(req, me) {
+  return withLock_(function () {
+    var x = findBy_(SHEETS.OSH, 'id', req.id);
+    if (!x || x.kind !== 'swap' || x.peerId !== me.id) fail_('not_found');
+    if (x.status !== 'peer') fail_('bad_state');
+    x.status = req.accept ? 'manager' : 'rejected'; if (!req.accept) x.decisionNote = str_(req.note, 200);
+    x.updatedAt = new Date().toISOString(); update_(SHEETS.OSH, x);
+    audit_(me.id, 'shift_swap_answer', x.empId, { ref: x.ref, accept: !!req.accept });
+    return { ok: true, status: x.status };
+  });
+}
+function api_shiftOfferDecide(req, me) {
+  var ctx = orgCtx_();
+  if (!isHr_(me) && !managesAnyone_(me, ctx)) fail_('forbidden');
+  return withLock_(function () {
+    var x = findBy_(SHEETS.OSH, 'id', req.id);
+    if (!x) fail_('not_found');
+    if (x.status !== 'claimed' && x.status !== 'manager') fail_('bad_state');
+    if (x.empId === me.id || x.peerId === me.id) fail_('cannot_decide_own');
+    if (!oshCanDecide_(me, x, ctx)) fail_('forbidden');
+    var now = new Date().toISOString(), d = String(x.date).slice(0, 10);
+    if (!req.approve) {
+      if (!str_(req.note, 300)) fail_('note_required');
+      if (x.kind === 'open') { x.status = 'open'; x.empId = ''; x.warnings = ''; } else x.status = 'rejected';
+      x.decisionNote = str_(req.note, 300); x.decidedBy = me.id; x.decidedAt = now; x.updatedAt = now; update_(SHEETS.OSH, x);
+      audit_(me.id, 'shift_offer_reject', x.empId, { ref: x.ref });
+      return { ok: true, status: x.status };
+    }
+    if (d < today_()) fail_('past_date');
+    if (x.kind === 'open') rosterPut_(x.empId, x.shiftId, d, me, now);
+    else {
+      var a = rosterRow_(x.empId, d), b = rosterRow_(x.peerId, d);
+      if (!a || !b || a.shiftId !== x.shiftId || b.shiftId !== x.peerShiftId) fail_('roster_changed');
+      rosterPut_(x.empId, x.peerShiftId, d, me, now); rosterPut_(x.peerId, x.shiftId, d, me, now);
+    }
+    x.status = 'approved'; x.decidedBy = me.id; x.decidedAt = now; x.decisionNote = str_(req.note, 300); x.updatedAt = now; update_(SHEETS.OSH, x);
+    audit_(me.id, 'shift_offer_approve', x.empId, { ref: x.ref, kind: x.kind, date: d });
+    return { ok: true, status: 'approved' };
+  });
+}
+function api_shiftOfferCancel(req, me) {
+  return withLock_(function () {
+    var x = findBy_(SHEETS.OSH, 'id', req.id);
+    if (!x) fail_('not_found');
+    if (!OSH_OPEN_[x.status]) fail_('bad_state');
+    var now = new Date().toISOString();
+    if (x.kind === 'open' && x.status === 'claimed' && x.empId === me.id) { x.status = 'open'; x.empId = ''; x.warnings = ''; }
+    else if (x.postedBy === me.id || (x.kind === 'open' && isHr_(me))) x.status = 'cancelled';
+    else fail_('forbidden');
+    x.updatedAt = now; update_(SHEETS.OSH, x);
+    audit_(me.id, 'shift_offer_cancel', x.empId || '', { ref: x.ref });
+    return { ok: true, status: x.status };
+  });
+}
+hrisHook_('tasks', function (me, ctx, add) {
+  var t = today_(), peer = 0, dec = 0;
+  readAll_(SHEETS.OSH).forEach(function (x) {
+    if (String(x.date).slice(0, 10) < t) return;
+    if (x.status === 'peer' && x.peerId === me.id) peer++;
+    if ((x.status === 'claimed' || x.status === 'manager') && oshCanDecide_(me, x, ctx)) dec++;
+  });
+  add('swap_ask', peer, { tab: 'file' });
+  add('shift_offer', dec, { tab: 'hr', sec: 'openshifts' });
+});

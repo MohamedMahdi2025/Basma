@@ -1372,4 +1372,6 @@ window.CustomFields = { section: customFieldsSection };
 window.ReportBuilder = { section: reportBuilderSection };
 window.Kudos = { section: kudosSection };
 window.W2 = { myCards: myCards };
+/** The screen kit, shared with js/wave4.js (2026-10-19). */
+window.W2K = { lang: lang, fmt: fmt, fmtT: fmtT, money: money, sep: sep, busy: busy, bad: bad, chip: chip, empLine: empLine, av: av, empty: empty, fld: fld, chk: chk, opts: opts, mopts: mopts, two: two, refreshTasks: refreshTasks, confirmTap: confirmTap, formVals: formVals, formDrawer: formDrawer, noteDrawer: noteDrawer, tabsBar: tabsBar, head: head, tiles: tiles, n: n, wire: wire, warnList: warnList, people: people, empOpts: empOpts, deptOpts: deptOpts, posOpts: posOpts };
 })();

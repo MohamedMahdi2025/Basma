@@ -92,5 +92,56 @@ ok(wd('2027-02-23T03:00:00+03:00') === '2027-02-22', 'a punch at 03:00 files und
 ok(wd('2027-02-23T13:00:00+03:00') === '2027-02-23', 'after midday it is the new day again', wd('2027-02-23T13:00:00+03:00'));
 const dayEmp = direct(() => B.ctx.findBy_('employees', 'empNo', '5002'));
 ok(direct(() => B.ctx.workDate_(dayEmp, new Date('2027-02-23T03:00:00+03:00'), B.ctx.settings_())) === '2027-02-23', 'a day-shift employee is never moved to the previous day');
+
+console.log('Open shifts and swaps');
+const rosterOn = (no, ds) => direct(() => B.ctx.readAll_('roster')).filter(x => x.status === 'active' && x.empId === ids[no] && String(x.fromDate).slice(0, 10) <= ds && String(x.toDate).slice(0, 10) >= ds).map(x => x.shiftId);
+r = call('5003', 'openShiftPost', { shiftId: mid.id, date: '2027-03-10' });
+ok(!r.ok && r.error === 'forbidden', 'an employee with no team cannot post an open shift', r);
+r = call('5001', 'openShiftPost', { shiftId: mid.id, date: '2027-02-10' });
+ok(!r.ok && r.error === 'past_date', 'no open shift in the past', r);
+r = call('5001', 'openShiftPost', { shiftId: mid.id, date: '2027-03-10', slots: 2, note: 'ضغط توزيع' });
+ok(r.ok && r.count === 2, 'a manager posts two places on the evening shift', r);
+r = call('5002', 'shiftOfferList', {});
+ok(r.ok && r.rows.filter(x => x.status === 'open').length === 2 && /^OSH-2027-0000[12]$/.test(r.rows[0].ref), 'the driver sees both places, numbered OSH-2027-...', r.rows && r.rows.map(x => x.ref));
+const open = r.rows;
+r = call('5002', 'openShiftClaim', { id: open[0].id });
+ok(r.ok && r.warnings.indexOf('replaces_shift') >= 0, 'the driver claims one; told it replaces the morning shift that day', r);
+r = call('5002', 'openShiftClaim', { id: open[1].id });
+ok(!r.ok && r.error === 'already_claimed', 'one claim per person per day', r);
+r = call('5001', 'myTasks', {});
+ok(r.ok && r.tasks.some(x => x.kind === 'shift_offer' && x.count === 1), 'the manager\'s bell shows one shift to approve', r.tasks && r.tasks.map(x => x.kind));
+r = call('5001', 'shiftOfferDecide', { id: open[0].id, approve: false });
+ok(!r.ok && r.error === 'note_required', 'declining needs a note', r);
+r = call('3001', 'shiftOfferDecide', { id: open[0].id, approve: true });
+ok(r.ok && r.status === 'approved', 'HR may approve it too', r);
+ok(rosterOn('5002', '2027-03-10').join() === mid.id && rosterOn('5002', '2027-03-09').join() === early.id && rosterOn('5002', '2027-03-11').join() === early.id,
+  'the roster changes for 10 March only; the days around it keep the morning shift', [rosterOn('5002', '2027-03-09'), rosterOn('5002', '2027-03-10'), rosterOn('5002', '2027-03-11')]);
+r = call('5001', 'shiftOfferCancel', { id: open[1].id });
+ok(r.ok && r.status === 'cancelled', 'the poster withdraws the unused place', r);
+
+call('3001', 'hrEmpSave', { emp: { id: ids['5003'], managerId: ids['5001'] } });
+r = call('5002', 'shiftSwapAsk', { peerId: ids['5003'], date: '2027-03-05' });
+ok(!r.ok && r.error === 'same_shift', 'no swap when both have the same shift', r);
+r = call('5002', 'shiftSwapAsk', { peerId: ids['3001'], date: '2027-03-20' });
+ok(!r.ok && r.error === 'not_eligible', 'swaps only with a team-mate', r);
+r = call('5002', 'shiftSwapAsk', { peerId: ids['5003'], date: '2027-03-20', note: 'موعد طبي' });
+ok(r.ok, 'the driver asks a team-mate to swap on 20 March', r);
+r = call('5003', 'myTasks', {});
+ok(r.ok && r.tasks.some(x => x.kind === 'swap_ask'), 'the team-mate\'s bell shows the swap request', r.tasks && r.tasks.map(x => x.kind));
+let sw = call('5003', 'shiftOfferList', {}).rows.find(x => x.kind === 'swap');
+r = call('5001', 'shiftOfferDecide', { id: sw.id, approve: true });
+ok(!r.ok && r.error === 'bad_state', 'the manager cannot approve before the team-mate accepts', r);
+r = call('5002', 'shiftSwapAnswer', { id: sw.id, accept: true });
+ok(!r.ok && r.error === 'not_found', 'the asker cannot accept their own request', r);
+r = call('5003', 'shiftSwapAnswer', { id: sw.id, accept: true });
+ok(r.ok && r.status === 'manager', 'the team-mate accepts', r);
+r = call('5001', 'shiftOfferDecide', { id: sw.id, approve: true });
+ok(r.ok, 'the manager approves', r);
+ok(rosterOn('5002', '2027-03-20').join() === mid.id && rosterOn('5003', '2027-03-20').join() === early.id && rosterOn('5003', '2027-03-21').join() === mid.id,
+  'on 20 March the two shifts are swapped; the next day is as before', [rosterOn('5002', '2027-03-20'), rosterOn('5003', '2027-03-20'), rosterOn('5003', '2027-03-21')]);
+setting('rostersEnabled', 'false');
+r = call('5002', 'shiftSwapAsk', { peerId: ids['5003'], date: '2027-03-25' });
+ok(!r.ok && r.error === 'rosters_off', 'with rosters off nothing can be swapped', r);
+setting('rostersEnabled', 'true');
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);

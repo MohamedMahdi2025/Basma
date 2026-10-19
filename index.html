@@ -1366,23 +1366,20 @@ body.v2-on :is(.db-tile b,.kpi b,.stat b,.hm-facts dd,.hm-big b,.hm-k .v,[data-c
   body.v2-on .v2-top :is(.v2-ib,.v2-search):active{transform:scale(.92);background:var(--line)}
   body.v2-on .v2-top .v2-chip{border-radius:999px}
   /* slim page header instead of the big banner */
-  body.v2-on .page.v2{padding:0 0 calc(24px + env(safe-area-inset-bottom))}
-  body.v2-on .v3-hero{border-radius:0;margin:0 0 8px;padding:12px 16px;min-height:0;box-shadow:none}
+  body.v2-on .v3-hero{padding:12px 16px;min-height:0;box-shadow:none}
   body.v2-on .v3-hero p,body.v2-on .v3-hero .v3-hero-stats .hm-dt{display:none}
   body.v2-on .v3-hero h1{font-size:19px;margin:0}
   body.v2-on .v3-hero .v3-hero-ic{width:38px;height:38px;font-size:20px}
   /* edge-to-edge cards with thin separators */
-  body.v2-on :is(.hm-card,.mf-card,.fp-card,.db-card,.v2-card,.set-card,.op-card){border-radius:0!important;margin-inline:0!important;border:0!important;border-block:1px solid var(--fb-sep)!important;box-shadow:none!important;background:var(--card)}
+  body.v2-on :is(.hm-card,.mf-card,.fp-card,.db-card,.v2-card,.set-card,.op-card){border-radius:10px!important;border:1px solid var(--fb-sep)!important;box-shadow:none!important;background:var(--card)}
   body.v2-on :is(.hm-grid,.mf-cols,.db-grid,.fp-grid){gap:8px!important}
-  body.v2-on :is(#v2Body > *,.fp-main,.fp-aside) > :is(.list,.tblwrap){border-radius:0}
-  body.v2-on .page.v2 > :not(.v3-hero):not(.fb-quick){padding-inline:0}
   body.v2-on :is(.hm-kpis){padding-inline:8px}
   /* swipeable pill tabs */
-  body.v2-on :is(.op-tabs,.v2-views){display:flex;flex-wrap:nowrap;overflow-x:auto;gap:8px;padding:8px 12px;margin:0 0 8px;background:var(--card);border-block:1px solid var(--fb-sep);scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity}
+  body.v2-on :is(.op-tabs,.v2-views){display:flex;flex-wrap:nowrap;overflow-x:auto;gap:8px;padding:8px 2px;margin:0 0 8px;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity}
   body.v2-on :is(.op-tabs,.v2-views)::-webkit-scrollbar{display:none}
   body.v2-on :is(.op-tabs,.v2-views) > button{flex:none;scroll-snap-align:start;border-radius:999px;height:36px;padding:0 14px;white-space:nowrap}
   /* round shortcuts row (home) */
-  body.v2-on .fb-quick{display:flex;gap:14px;overflow-x:auto;padding:12px 16px;margin:0 0 8px;background:var(--card);border-block:1px solid var(--fb-sep);scrollbar-width:none}
+  body.v2-on .fb-quick{display:flex;gap:14px;overflow-x:auto;padding:12px 16px;margin:0 -14px 8px;background:var(--card);border-block:1px solid var(--fb-sep);scrollbar-width:none}
   body.v2-on .fb-quick::-webkit-scrollbar{display:none}
   body.v2-on .fb-quick button{flex:none;width:68px;border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:6px;font:inherit;font-size:11.5px;color:var(--ink);cursor:pointer;text-align:center;line-height:1.25}
   body.v2-on .fb-quick button > span{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;font-size:26px;color:var(--brand);background:var(--brand-tint,#E4F2E9);box-shadow:0 0 0 2px var(--card),0 0 0 4px var(--brand);transition:transform .15s}
@@ -2315,7 +2312,7 @@ function api(action, payload, quiet){
 // Screens already seen show their last answer at once while a fresh one loads (kept in memory only,
 // dropped on lock and after any change). Most clicks then feel instant instead of waiting ~2 s for Google.
 var READ_CACHE = {};
-var CLIENT_READS = { searchAll: 1, customFieldList: 1, customValuesGet: 1, customValuesAll: 1, timesheetList: 1, compCycleList: 1, myFinalSettlement: 1, finalSettlementList: 1, myExitSurvey: 1, kudosFeed: 1, exitSurveyResults: 1, kudosStats: 1, recruitReqList: 1, recruitCandList: 1, recruitCandGet: 1, recruitBoard: 1, recruitOfferLetter: 1, loanQuote: 1, myLoans: 1, loanList: 1, myTraining: 1, trainSessionList: 1, trainMatrix: 1, courseList: 1,
+var CLIENT_READS = { shiftOfferList: 1, searchAll: 1, customFieldList: 1, customValuesGet: 1, customValuesAll: 1, timesheetList: 1, compCycleList: 1, myFinalSettlement: 1, finalSettlementList: 1, myExitSurvey: 1, kudosFeed: 1, exitSurveyResults: 1, kudosStats: 1, recruitReqList: 1, recruitCandList: 1, recruitCandGet: 1, recruitBoard: 1, recruitOfferLetter: 1, loanQuote: 1, myLoans: 1, loanList: 1, myTraining: 1, trainSessionList: 1, trainMatrix: 1, courseList: 1,
   myInsurance: 1, insList: 1, insCost: 1, insPolicyList: 1, myAnnouncements: 1, annList: 1, hdMine: 1, hdList: 1, hdGet: 1, shiftList: 1, rosterList: 1, discCodes: 1, discList: 1, injuryList: 1, assetList: 1, clearanceList: 1, myFile: 1, myRequests: 1, hrBootstrap: 1, hrCompList: 1, hrExpiring: 1, hrTeam: 1, hrEmpFile: 1, reqInbox: 1,
   leaveTeam: 1, holidayList: 1, leaveBalances: 1, myHistory: 1, me: 1, board: 1, empList: 1, zoneList: 1, report: 1, reviewList: 1,
   auditList: 1, settingsGet: 1, requestQuote: 1, dashboard: 1, mySlips: 1, payrollList: 1, eosQuote: 1, myPerformance: 1, perfTeam: 1, perfEmp: 1, feedbackResults: 1, perfCycleList: 1, perfOverview: 1, reportCatalog: 1, reportRun: 1, reportLog: 1, reportVerify: 1, myTasks: 1, delegationList: 1, reconList: 1, complianceCalendar: 1, wpsFile: 1, onboardList: 1, mySurveys: 1, surveyResults: 1, policyList: 1, planList: 1, hrDirectory: 1, hrDeptList: 1, hrPositionList: 1, hrDocList: 1, hrImportValidate: 1,
@@ -3011,7 +3008,7 @@ Object.assign(T.ar, {
   vwMine:'طلباتي', vwInbox:'الموافقات', vwLeave:'تقويم الإجازات', vwHolidays:'العطل الرسمية',
   vwSlips:'قسائمي', vwRuns:'مسيرات الرواتب', vwApprovals:'اعتماد الرواتب', vwCompliance:'الامتثال',
   vwGrowth:'أدائي', vwCycle:'دورة التقييم', vwPlans:'خطط التطوير', vwPulse:'نبض الموظفين',
-  vwDirectory:'الدليل', vwTeam:'فريقي', vwOrg:'الهيكل', vwPositions:'الوظائف', vwOnboarding:'التهيئة', vwOffboarding:'إخلاء الطرف', vwCustody:'العهد', vwCentre:'مركز الموافقات', vwCycles:'دورة الإجازة', vwExpenses:'المصروفات', vwNewReq:'طلب جديد', vwReqView:'تفاصيل الطلب', vwNewClaim:'مطالبة مصروفات جديدة', vwClaimView:'مطالبة مصروفات', fpBack:'رجوع', fpCrumb:'مسار الصفحة', vwFlows:'مسارات الموافقة', vwGov:'الخدمات الحكومية', vwRecruit:'التوظيف', vwTraining:'التدريب والشهادات', vwInsurance:'التأمين الطبي', vwLoans:'القروض', vwHelpdesk:'مكتب الدعم', vwAnnounce:'الإعلانات', vwExits:'رأي المغادرين', vwKudos:'التقدير', vwSettle:'المخالصات', vwPayReview:'مراجعة الرواتب', vwTimesheets:'كشوف الدوام', vwOrgChart:'الهيكل المرئي', vwCustomFields:'الحقول المخصصة', vwBuilder:'منشئ التقارير', vwJournal:'قيد الرواتب',
+  vwDirectory:'الدليل', vwTeam:'فريقي', vwOrg:'الهيكل', vwPositions:'الوظائف', vwOnboarding:'التهيئة', vwOffboarding:'إخلاء الطرف', vwCustody:'العهد', vwCentre:'مركز الموافقات', vwCycles:'دورة الإجازة', vwExpenses:'المصروفات', vwNewReq:'طلب جديد', vwReqView:'تفاصيل الطلب', vwNewClaim:'مطالبة مصروفات جديدة', vwClaimView:'مطالبة مصروفات', fpBack:'رجوع', fpCrumb:'مسار الصفحة', vwFlows:'مسارات الموافقة', vwGov:'الخدمات الحكومية', vwRecruit:'التوظيف', vwTraining:'التدريب والشهادات', vwInsurance:'التأمين الطبي', vwLoans:'القروض', vwHelpdesk:'مكتب الدعم', vwAnnounce:'الإعلانات', vwExits:'رأي المغادرين', vwKudos:'التقدير', vwSettle:'المخالصات', vwPayReview:'مراجعة الرواتب', vwTimesheets:'كشوف الدوام', vwOpenShifts:'الورديات المفتوحة', tk_swap_ask:'زميل يطلب تبديل وردية معك', tk_shift_offer:'ورديات وتبديلات بانتظار اعتمادك', vwOrgChart:'الهيكل المرئي', vwCustomFields:'الحقول المخصصة', vwBuilder:'منشئ التقارير', vwJournal:'قيد الرواتب',
   vwRelations:'علاقات العمل', vwPolicies:'السياسات', vwExpiring:'وثائق تنتهي', vwImport:'استيراد', vwAccounts:'الدخول والأجهزة',
   vwDashboard:'لوحة الإدارة', vwReports:'التقارير', vwAttendance:'تقرير الحضور', vwAudit:'سجل التدقيق', vwMain:'',
   v2System:'نظام الموارد البشرية', v2Search:'ابحث عن موظف أو صفحة', v2Menu:'القائمة', v2More:'المزيد', v2Punch:'بصمة', v2MyPay:'راتبي', v2Req:'الطلبات', v2PeopleS:'الموظفون',
@@ -3057,7 +3054,7 @@ Object.assign(T.en, {
   vwMine:'My requests', vwInbox:'Approvals', vwLeave:'Leave calendar', vwHolidays:'Public holidays',
   vwSlips:'My payslips', vwRuns:'Payroll runs', vwApprovals:'Salary approvals', vwCompliance:'Compliance',
   vwGrowth:'My growth', vwCycle:'Review cycle', vwPlans:'Development plans', vwPulse:'Pulse survey',
-  vwDirectory:'Directory', vwTeam:'My team', vwOrg:'Organisation', vwPositions:'Positions', vwOnboarding:'Onboarding', vwOffboarding:'Offboarding', vwCustody:'Assets', vwCentre:'Approvals centre', vwCycles:'Leave cycle', vwExpenses:'Expenses', vwNewReq:'New request', vwReqView:'Request details', vwNewClaim:'New expense claim', vwClaimView:'Expense claim', fpBack:'Back', fpCrumb:'Breadcrumb', vwFlows:'Approval flows', vwGov:'Government services', vwRecruit:'Recruitment', vwTraining:'Training and certificates', vwInsurance:'Medical insurance', vwLoans:'Loans', vwHelpdesk:'Help desk', vwAnnounce:'Announcements', vwExits:'Exit insights', vwKudos:'Recognition', vwSettle:'Settlements', vwPayReview:'Pay review', vwTimesheets:'Timesheets', vwOrgChart:'Org chart', vwCustomFields:'Custom fields', vwBuilder:'Report builder', vwJournal:'Payroll journal',
+  vwDirectory:'Directory', vwTeam:'My team', vwOrg:'Organisation', vwPositions:'Positions', vwOnboarding:'Onboarding', vwOffboarding:'Offboarding', vwCustody:'Assets', vwCentre:'Approvals centre', vwCycles:'Leave cycle', vwExpenses:'Expenses', vwNewReq:'New request', vwReqView:'Request details', vwNewClaim:'New expense claim', vwClaimView:'Expense claim', fpBack:'Back', fpCrumb:'Breadcrumb', vwFlows:'Approval flows', vwGov:'Government services', vwRecruit:'Recruitment', vwTraining:'Training and certificates', vwInsurance:'Medical insurance', vwLoans:'Loans', vwHelpdesk:'Help desk', vwAnnounce:'Announcements', vwExits:'Exit insights', vwKudos:'Recognition', vwSettle:'Settlements', vwPayReview:'Pay review', vwTimesheets:'Timesheets', vwOpenShifts:'Open shifts', tk_swap_ask:'A colleague asks to swap a shift with you', tk_shift_offer:'Shifts and swaps waiting for your approval', vwOrgChart:'Org chart', vwCustomFields:'Custom fields', vwBuilder:'Report builder', vwJournal:'Payroll journal',
   vwRelations:'Employee relations', vwPolicies:'Policies', vwExpiring:'Expiring documents', vwImport:'Import', vwAccounts:'Logins & devices',
   vwDashboard:'Dashboard', vwReports:'Reports', vwAttendance:'Attendance report', vwAudit:'Audit log', vwMain:'',
   v2System:'HR system', v2Search:'Search people or pages', v2Menu:'Menu', v2More:'More', v2Punch:'Punch', v2MyPay:'My pay', v2Req:'Requests', v2PeopleS:'People',
@@ -3106,6 +3103,7 @@ var HR_FILES = ['js/doc.js', 'js/my-file.js', 'js/requests.js', 'js/payroll.js',
 var OPS_FILES = HR_FILES.concat(['js/ops.js']);
 /** Wave 2 (2026-10-18): recruitment, loans, training, insurance, announcements, help desk in one module. */
 var W2_FILES = ['js/dashboard.js', 'js/doc.js', 'js/wave2.js'];
+var W4_FILES = W2_FILES.concat(['js/wave4.js']);
 var AREAS = [
   { id: 'home', i: 'house', bare: true, subs: [{ id: 'main', n: 'vwMain', ok: ALL, files: ['js/dashboard.js', 'js/compliance.js', 'js/home.js'], run: function(b){ Home.render(b); } }] },
   { id: 'time', i: 'clock', subs: [
@@ -3115,6 +3113,7 @@ var AREAS = [
     { id: 'review', n: 'vwReview', ok: isHr, adm: 'review', badge: 'revBadge' },
     { id: 'shifts', n: 'vwShifts', ok: any('hr', 'manager'), sec: 'shifts', ops: 1 },
     { id: 'timesheets', n: 'vwTimesheets', ok: function(){ return isHr() || any('hr', 'manager')(); }, files: W2_FILES, run: function(b){ Timesheets.section(b); } },
+    { id: 'openshifts', n: 'vwOpenShifts', ok: ALL, files: W4_FILES, run: function(b){ OpenShifts.section(b); } },
     { id: 'zones', n: 'vwZones', ok: isAdmin, adm: 'zones' }] },
   { id: 'requests', i: 'tray', subs: [
     { id: 'mine', n: 'vwMine', ok: ALL, files: MY_FILES, run: myRequestsView },
@@ -3178,7 +3177,7 @@ var AREAS = [
   { id: 'settings', i: 'gear-six', foot: true, subs: [{ id: 'main', n: 'vwMain', ok: isAdmin, adm: 'settings' }] }
 ];
 /** One icon per sub-page tab (2026-10-18 redesign): the same Phosphor set as the side menu and the bell. */
-var SUB_ICON = { punch: 'fingerprint', history: 'calendar-dots', board: 'users-four', review: 'shield-warning', timesheets: 'calendar-check', shifts: 'clock-clockwise', zones: 'map-pin-area',
+var SUB_ICON = { openshifts: 'calendar-plus', punch: 'fingerprint', history: 'calendar-dots', board: 'users-four', review: 'shield-warning', timesheets: 'calendar-check', shifts: 'clock-clockwise', zones: 'map-pin-area',
   mine: 'tray', inbox: 'check-square', centre: 'stamp', cycles: 'arrows-clockwise', expenses: 'receipt', helpdesk: 'lifebuoy', leave: 'calendar-blank', holidays: 'confetti', flows: 'flow-arrow',
   slips: 'file-text', runs: 'money', approvals: 'seal-check', compliance: 'scales', journal: 'notebook', settlements: 'handshake', loans: 'hand-coins',
   me: 'user-focus', cycle: 'target', plans: 'path', pulse: 'heartbeat', payreview: 'trend-up', kudos: 'hands-clapping', training: 'graduation-cap',
@@ -3198,12 +3197,12 @@ function themeLast(){ ['dsv2', 'dsv3', 'dsed', 'dsfp', 'dspg', 'dsdark', 'dsmo',
 function loadAll(files){ return files.reduce(function(p, f){ return p.then(function(){ return loadScript(f); }); }, Promise.resolve()); }
 
 /** Where a task from the bell opens. HR sections map to their area; personal items to growth or the profile. */
-var SEC_DEST = { inbox: 'requests:inbox', leave: 'requests:leave', approvals: 'pay:approvals', payroll: 'pay:runs', compliance: 'pay:compliance', reports: 'insights:reports', dashboard: 'insights:dashboard',
+var SEC_DEST = { openshifts: 'time:openshifts', inbox: 'requests:inbox', leave: 'requests:leave', approvals: 'pay:approvals', payroll: 'pay:runs', compliance: 'pay:compliance', reports: 'insights:reports', dashboard: 'insights:dashboard',
   onboarding: 'people:onboarding', offboarding: 'people:offboarding', custody: 'people:custody', relations: 'people:relations', team: 'people:team', people: 'people:directory', shifts: 'time:shifts',
   performance: 'growth:cycle', plans: 'growth:plans', engagement: 'growth:pulse',
   approvalcentre: 'requests:centre', leavecycle: 'requests:cycles', expenses: 'requests:expenses', flows: 'requests:flows', gov: 'people:gov', journal: 'pay:journal',
   recruitment: 'people:recruitment', loans: 'pay:loans', training: 'growth:training', insurance: 'people:insurance', helpdesk: 'requests:helpdesk', announce: 'people:announce', settlements: 'pay:settlements', payreview: 'growth:payreview', timesheets: 'time:timesheets' };
-var MINE_DEST = { survey: 'growth:me', policies: 'growth:me', onboarding: 'growth:me', plans: 'growth:me' };
+var MINE_DEST = { swap_ask: 'time:openshifts', survey: 'growth:me', policies: 'growth:me', onboarding: 'growth:me', plans: 'growth:me' };
 function taskDest(x){ var g = x.target || {}; return g.tab === 'hr' ? SEC_DEST[g.sec] || 'home' : MINE_DEST[x.kind] || 'profile'; }
 function areaCounts(){
   var c = {};
@@ -3928,7 +3927,7 @@ function openTasks(){
   api('myTasks', {}, true).then(function(r){ if (r.ok) TASKS = r; if (d.isConnected) draw(r); loadTasks(); });
   return d;
 }
-var TK_ICON = { requests: 'tray', salaries: 'seal-check', payroll: 'money', reports: 'file-text', recon: 'scales', wps: 'bank', onboarding: 'rocket-launch', policies: 'book-open-text',
+var TK_ICON = { swap_ask: 'arrows-left-right', shift_offer: 'calendar-plus', requests: 'tray', salaries: 'seal-check', payroll: 'money', reports: 'file-text', recon: 'scales', wps: 'bank', onboarding: 'rocket-launch', policies: 'book-open-text',
   survey: 'heartbeat', plans: 'path', delegated: 'handshake', disc_respond: 'scales', disc_decide: 'gavel', disc_objection: 'gavel', injury: 'first-aid-kit', asset_ack: 'package',
   asset_charge: 'package', clearance: 'sign-out', escalated: 'arrow-fat-up', leavecycle: 'airplane-tilt', leavecycle_me: 'airplane-tilt', expense_approve: 'receipt', expense_pay: 'money',
   gov_visa_issue: 'airplane-takeoff', gov_visa_return: 'airplane-landing', iqama_renewal: 'identification-card', ticket_due: 'ticket', gov_fee_verify: 'receipt', ticket_approve: 'ticket',
