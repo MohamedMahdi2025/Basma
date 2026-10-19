@@ -477,5 +477,55 @@ function welcomeSection(body){
   });
 }
 window.Welcome = { section: welcomeSection };
+// =================================================================== PERKS AND WELLNESS (2026-10-20)
+Object.assign(T.ar, {
+  pkTitle:'المزايا والرفاهية', pkLead:'خصومات ومزايا الموظفين وبرامج الصحة والرفاهية، وكيف تستفيد من كل منها.', pkNew:'ميزة جديدة', pkAll:'الكل', pkHow:'كيف أستفيد', pkProvider:'المقدم', pkUntil:'سارية حتى', pkLink:'الرابط (https)', pkOpenLink:'فتح الرابط', pkViews:'مشاهدات',
+  pkTitleAr:'العنوان بالعربية', pkTitleEn:'العنوان بالإنجليزية', pkDescAr:'الوصف بالعربية', pkDescEn:'الوصف بالإنجليزية', pkHowAr:'طريقة الاستفادة بالعربية', pkHowEn:'طريقة الاستفادة بالإنجليزية', pkStatus:'الحالة', pks_active:'ظاهرة', pks_hidden:'مخفية', pks_deleted:'محذوفة',
+  pkc_discount:'خصومات', pkc_health:'الصحة', pkc_family:'العائلة', pkc_learning:'التعلم', pkc_transport:'التنقل', pkc_wellbeing:'الرفاهية', pkc_other:'أخرى'
+});
+Object.assign(T.en, {
+  pkTitle:'Perks and wellbeing', pkLead:'Staff discounts and benefits, health and wellbeing programmes, and how to use each one.', pkNew:'New perk', pkAll:'All', pkHow:'How to use it', pkProvider:'Provider', pkUntil:'Valid until', pkLink:'Link (https)', pkOpenLink:'Open the link', pkViews:'Views',
+  pkTitleAr:'Title (Arabic)', pkTitleEn:'Title (English)', pkDescAr:'Description (Arabic)', pkDescEn:'Description (English)', pkHowAr:'How to use (Arabic)', pkHowEn:'How to use (English)', pkStatus:'Status', pks_active:'Shown', pks_hidden:'Hidden', pks_deleted:'Deleted',
+  pkc_discount:'Discounts', pkc_health:'Health', pkc_family:'Family', pkc_learning:'Learning', pkc_transport:'Transport', pkc_wellbeing:'Wellbeing', pkc_other:'Other'
+});
+var PK_IC = { discount: 'tag', health: 'heartbeat', family: 'baby', learning: 'graduation-cap', transport: 'car', wellbeing: 'flower-lotus', other: 'gift' };
+function perksSection(body){
+  var box = K.head(body, 'pkTitle', 'pkLead'), cat = S.pkCat || '';
+  function load(){
+    K.busy(box);
+    api('perkList', {}, true).then(function(r){
+      if (!box.isConnected) return;
+      if (!r.ok) return box.innerHTML = K.bad(r.error);
+      var rows = r.rows.filter(function(p){ return !cat || p.category === cat; });
+      var h = '<div class="toolbar"><div class="op-tabs" role="tablist"><button type="button" role="tab" data-pc="" aria-selected="' + !cat + '">' + t('pkAll') + '</button>' + r.categories.filter(function(c){ return r.rows.some(function(p){ return p.category === c; }); }).map(function(c){ return '<button type="button" role="tab" data-pc="' + c + '" aria-selected="' + (cat === c) + '">' + ph(PK_IC[c]) + t('pkc_' + c) + '</button>'; }).join('') + '</div><span class="sp"></span>' +
+        (r.canEdit ? '<button type="button" class="btn btn-dark btn-sm" id="pkN">' + ph('plus') + t('pkNew') + '</button>' : '') + '</div>';
+      h += rows.length ? '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px">' + rows.map(function(p, i){
+        return '<button type="button" class="db-card" data-pk="' + i + '" style="text-align:start;padding:14px;font:inherit;color:inherit;cursor:pointer;display:grid;gap:6px;border:1px solid var(--line);border-radius:16px;background:var(--card)">' +
+          '<span style="width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:#E6F0E8;color:var(--brand);font-size:22px">' + ph(PK_IC[p.category] || 'gift', 'duotone') + '</span><b>' + esc(K.lang(p.titleAr, p.titleEn)) + '</b><small style="color:var(--ink-3)">' + esc(p.provider) + (p.validTo ? ' · ' + t('pkUntil') + ' ' + K.fmt(p.validTo) : '') + '</small>' +
+          (r.canEdit ? '<small>' + (p.status !== 'active' ? K.chip(t('pks_' + p.status), 'late') + ' ' : '') + t('pkViews') + ' ' + p.views + '</small>' : '') + '</button>';
+      }).join('') + '</div>' : K.empty('gift', t('w2None'));
+      box.innerHTML = h; K.wire(box);
+      $$('[data-pc]', box).forEach(function(b){ b.onclick = function(){ cat = S.pkCat = b.dataset.pc; load(); }; });
+      $$('[data-pk]', box).forEach(function(b){ b.onclick = function(){ var p = rows[b.dataset.pk]; if (p.status === 'active') api('perkView', { id: p.id });
+        var d = drawer('<h3>' + esc(K.lang(p.titleAr, p.titleEn)) + '</h3><p class="hr-hint">' + t('pkc_' + p.category) + (p.provider ? ' · ' + esc(p.provider) : '') + (p.validTo ? ' · ' + t('pkUntil') + ' ' + K.fmt(p.validTo) : '') + '</p>' +
+          (K.lang(p.descAr, p.descEn) ? '<p style="white-space:pre-wrap">' + esc(K.lang(p.descAr, p.descEn)) + '</p>' : '') + (K.lang(p.howAr, p.howEn) ? '<h4>' + t('pkHow') + '</h4><p style="white-space:pre-wrap">' + esc(K.lang(p.howAr, p.howEn)) + '</p>' : '') +
+          '<div class="btnrow">' + (p.link ? '<a class="btn btn-dark btn-sm" href="' + esc(p.link) + '" target="_blank" rel="noopener noreferrer">' + ph('arrow-square-out') + t('pkOpenLink') + '</a>' : '') + (r.canEdit ? ' <button type="button" class="btn btn-line btn-sm" id="pkE">' + t('w2Edit') + '</button>' : '') + '</div>');
+        var e = $('#pkE', d); if (e) e.onclick = function(){ d.remove(); perkForm(p, r.categories, load); }; }; });
+      var nb = $('#pkN', box); if (nb) nb.onclick = function(){ perkForm({}, r.categories, load); };
+    });
+  }
+  load();
+}
+function perkForm(p, cats, again){
+  K.formDrawer(p.id ? t('w2Edit') : t('pkNew'), '', K.two(K.fld(t('w2Kind'), '<select name="category">' + K.opts(cats.map(function(c){ return [c, t('pkc_' + c)]; }), p.category || 'discount') + '</select>'), K.fld(t('pkStatus'), '<select name="status">' + K.opts([['active', t('pks_active')], ['hidden', t('pks_hidden')], ['deleted', t('pks_deleted')]], p.status || 'active') + '</select>')) +
+    K.fld(t('pkTitleAr'), '<input name="titleAr" maxlength="120" required value="' + esc(p.titleAr || '') + '">') + K.fld(t('pkTitleEn'), '<input name="titleEn" maxlength="120" dir="ltr" value="' + esc(p.titleEn || '') + '">') +
+    K.two(K.fld(t('pkProvider'), '<input name="provider" maxlength="80" value="' + esc(p.provider || '') + '">'), K.fld(t('pkUntil'), '<input type="date" name="validTo" value="' + esc(p.validTo || '') + '">')) +
+    K.fld(t('pkDescAr'), '<textarea name="descAr" rows="3" maxlength="1500">' + esc(p.descAr || '') + '</textarea>') + K.fld(t('pkDescEn'), '<textarea name="descEn" rows="3" maxlength="1500" dir="ltr">' + esc(p.descEn || '') + '</textarea>') +
+    K.fld(t('pkHowAr'), '<textarea name="howAr" rows="3" maxlength="1000">' + esc(p.howAr || '') + '</textarea>') + K.fld(t('pkHowEn'), '<textarea name="howEn" rows="3" maxlength="1000" dir="ltr">' + esc(p.howEn || '') + '</textarea>') +
+    K.fld(t('pkLink'), '<input type="url" name="link" maxlength="300" dir="ltr" placeholder="https://" value="' + esc(p.link || '') + '">'),
+    function(v){ v.id = p.id; return api('perkSave', { perk: v }); }, again);
+}
+window.Perks = { section: perksSection };
+
 window.OpenShifts = { section: openShiftsSection };
 })();

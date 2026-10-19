@@ -520,3 +520,47 @@ function api_welcomeSave(req, me) {
     return { ok: true };
   });
 }
+
+/**
+ * Perks and wellness (2026-10-20; ZenHR and Bayzat perks, ADP wellness; rebuilt as our own). Tab perks.
+ * HR lists perks by category with how to use each and an optional https link and end date; everyone browses the live
+ * ones; opening one counts a view (HR sees which perks are used). No payment, no third-party calls.
+ */
+var PERK_CATS = ['discount', 'health', 'family', 'learning', 'transport', 'wellbeing', 'other'];
+function publicPerk_(p, hr) {
+  var o = { id: p.id, category: p.category, titleAr: p.titleAr, titleEn: p.titleEn, provider: p.provider || '', descAr: p.descAr || '', descEn: p.descEn || '', howAr: p.howAr || '', howEn: p.howEn || '',
+    link: p.link || '', validTo: p.validTo ? String(p.validTo).slice(0, 10) : '', status: p.status };
+  if (hr) o.views = Number(p.views) || 0;
+  return o;
+}
+function api_perkList(req, me) {
+  var hr = isHr_(me), t = today_();
+  var rows = readAll_(SHEETS.PERK).filter(function (p) { return hr ? p.status !== 'deleted' : p.status === 'active' && (!p.validTo || String(p.validTo).slice(0, 10) >= t); }).map(function (p) { return publicPerk_(p, hr); });
+  return { ok: true, rows: rows, categories: PERK_CATS, canEdit: hr };
+}
+function api_perkView(req, me) {
+  return withLock_(function () {
+    var p = findBy_(SHEETS.PERK, 'id', req.id);
+    if (!p || p.status !== 'active') fail_('not_found');
+    if (rateLimit_('perk:' + me.id + ':' + p.id, 1, 86400)) { p.views = (Number(p.views) || 0) + 1; update_(SHEETS.PERK, p); }
+    return { ok: true };
+  });
+}
+function api_perkSave(req, me) {
+  if (!isHr_(me)) fail_('forbidden');
+  var x = req.perk || {};
+  if (PERK_CATS.indexOf(x.category) < 0) fail_('bad_value');
+  if (!str_(x.titleAr, 120)) fail_('missing_fields');
+  var link = str_(x.link, 300); if (link && !/^https:\/\/[^\s]+$/.test(link)) fail_('bad_value');
+  var until = x.validTo ? isoDate_(x.validTo) : ''; if (x.validTo && !until) fail_('bad_date');
+  return withLock_(function () {
+    var now = new Date().toISOString(), p = x.id ? findBy_(SHEETS.PERK, 'id', x.id) : null;
+    if (x.id && !p) fail_('not_found');
+    if (!p) p = { id: newId_('W'), views: 0, createdBy: me.id, createdAt: now };
+    p.category = x.category; p.titleAr = str_(x.titleAr, 120); p.titleEn = str_(x.titleEn, 120); p.provider = str_(x.provider, 80); p.descAr = str_(x.descAr, 1500); p.descEn = str_(x.descEn, 1500);
+    p.howAr = str_(x.howAr, 1000); p.howEn = str_(x.howEn, 1000); p.link = link; p.validTo = until; p.status = x.status === 'hidden' ? 'hidden' : x.status === 'deleted' ? 'deleted' : 'active'; p.updatedAt = now;
+    if (p._row) update_(SHEETS.PERK, p); else append_(SHEETS.PERK, p);
+    audit_(me.id, 'perk_save', '', { title: p.titleAr, status: p.status });
+    return { ok: true, perk: publicPerk_(p, true) };
+  });
+}

@@ -238,5 +238,20 @@ console.log('Pre-boarding welcome (2026-10-20)');
   ok(call('5003', 'welcome', {}).show === false, 'someone hired years ago does not');
   ok(call('3001', 'welcome', { preview: true }).ok && call('3001', 'welcome', { preview: true }).docs.length === 2, 'HR can preview it');
 }
+console.log('Perks and wellbeing (2026-10-20)');
+{
+  ok(call('5002', 'perkSave', { perk: { category: 'health', titleAr: 'x' } }).error === 'forbidden', 'only HR lists perks');
+  ok(call('3001', 'perkSave', { perk: { category: 'health', titleAr: 'نادي', link: 'http://insecure.example' } }).error === 'bad_value', 'links must be https');
+  let r = call('3001', 'perkSave', { perk: { category: 'health', titleAr: 'خصم النادي الرياضي 30%', provider: 'نادي اللياقة', howAr: 'أبرز بطاقة الموظف عند التسجيل', link: 'https://example.com/gym' } });
+  ok(r.ok && r.perk.status === 'active', 'HR adds a gym discount', r);
+  const gym = r.perk.id;
+  call('3001', 'perkSave', { perk: { category: 'discount', titleAr: 'عرض منتهي', validTo: '2026-10-01' } });
+  call('3001', 'perkSave', { perk: { category: 'family', titleAr: 'مخفي', status: 'hidden' } });
+  let l = call('5002', 'perkList', {});
+  ok(l.ok && l.rows.length === 1 && l.rows[0].id === gym && !('views' in l.rows[0]), 'employees see only live perks (not expired or hidden), without the view counts', l.rows.map(x => x.titleAr));
+  call('5002', 'perkView', { id: gym }); call('5002', 'perkView', { id: gym }); call('5003', 'perkView', { id: gym });
+  l = call('3001', 'perkList', {});
+  ok(l.rows.length === 3 && l.rows.find(x => x.id === gym).views === 2, 'HR sees every perk and its views (one per person per day)', l.rows.map(x => [x.titleAr, x.views]));
+}
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);
