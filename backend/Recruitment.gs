@@ -526,3 +526,88 @@ hrisHook_('tasks', function (me, ctx, add) {
     add('recruit_purge', readAll_(SHEETS.CAND).filter(function (c) { return c.purgeAfter && String(c.purgeAfter).slice(0, 10) <= t && c.stage !== 'erased'; }).length, { tab: 'hr', sec: 'recruitment' });
   }
 });
+
+/**
+ * Public careers page (2026-10-19, gap list item 3; seen in Jisr 2026, rebuilt as our own flow). Tab careerPosts.
+ *  - HR publishes an approved requisition with a public ad (title, summary, requirements, city, closing date). Internal
+ *    fields (budget, justification, hiring manager, replaced employee) never leave the server on the public actions.
+ *  - careersList and careersApply need no sign-in. An application is a candidate with source 'website', recorded only with
+ *    the PDPL consent ticked; a hidden field catches simple bots (they get the same answer and nothing is stored);
+ *    rate limits: 40 applications an hour in total, 3 a day per phone or e-mail. A repeat application answers ok too, so
+ *    the page never reveals who has applied.
+ */
+function careerOpen_(p, q, t) {
+  return p.status === 'open' && q && q.status === 'approved' && (Number(q.filled) || 0) < (Number(q.headcount) || 1) && (!p.closesOn || String(p.closesOn).slice(0, 10) >= t);
+}
+function publicPost_(p, q, depts) {
+  var d = depts[q.departmentId] || {};
+  return { id: p.id, ref: q.ref, titleAr: p.titleAr || q.titleAr, titleEn: p.titleEn || q.titleEn, deptAr: d.nameAr || d.name || '', deptEn: d.nameEn || '',
+    summaryAr: p.summaryAr, summaryEn: p.summaryEn, requirementsAr: p.requirementsAr, requirementsEn: p.requirementsEn, city: p.city || '',
+    closesOn: p.closesOn ? String(p.closesOn).slice(0, 10) : '', employmentType: q.employmentType || '', saudiOnly: bool_(q.saudiOnly) };
+}
+function api_careersList(req) {
+  var t = today_(), reqs = {}, depts = {};
+  readAll_(SHEETS.REQN).forEach(function (q) { reqs[q.id] = q; });
+  readAll_(SHEETS.DEPT).forEach(function (d) { depts[d.id] = d; });
+  return { ok: true, company: companyOf_(settings_()), rows: readAll_(SHEETS.CPOST).filter(function (p) { return careerOpen_(p, reqs[p.reqId], t); }).map(function (p) { return publicPost_(p, reqs[p.reqId], depts); }) };
+}
+function api_careersApply(req) {
+  var d = req.application || {};
+  if (str_(d.website, 200)) return { ok: true }; // the hidden field: bots fill it, people never see it
+  var name = str_(d.name, 100), phone = String(d.phone || '').replace(/[^\d+]/g, '').slice(0, 20), email = str_(d.email, 120).toLowerCase();
+  if (!name || !phone) fail_('missing_fields');
+  if (!/^\+?\d{9,15}$/.test(phone)) fail_('bad_phone');
+  if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) fail_('bad_value');
+  if (d.consent !== true) fail_('consent_required');
+  if (!rateLimit_('careers', 40, 3600) || !rateLimit_('careers:' + phone, 3, 86400) || (email && !rateLimit_('careers:' + email, 3, 86400))) fail_('too_many_attempts');
+  return withLock_(function () {
+    var p = findBy_(SHEETS.CPOST, 'id', d.postId), q = p ? findBy_(SHEETS.REQN, 'id', p.reqId) : null;
+    if (!p || !careerOpen_(p, q, today_())) fail_('not_found');
+    var dup = readAll_(SHEETS.CAND).some(function (x) { return x.reqId === q.id && x.stage !== 'erased' && (String(x.phone) === phone || (email && x.email === email)); });
+    if (dup) return { ok: true };
+    var now = new Date().toISOString(), nat = str_(d.nationality, 40);
+    var c = { id: newId_('K'), ref: nextRef_('candidate', refsOf_(SHEETS.CAND)), reqId: q.id, name: name, nameEn: '', email: email, phone: phone, nationality: nat,
+      isSaudi: SAUDI_RE.test(nat), gender: '', birthDate: '', source: 'website', referredBy: '', currentTitle: str_(d.currentTitle, 100), currentEmployer: str_(d.currentEmployer, 100),
+      yearsExperience: Math.max(0, Math.min(60, Number(d.yearsExperience) || 0)), expectedSalary: '', noticeDays: '', cvRef: str_(d.cvLink, 200), consentAt: now, stage: 'applied',
+      historyJson: JSON.stringify([{ from: '', to: 'applied', by: 'website', at: now }]), rating: '', rejectReason: '', note: str_(d.message, 1000), empId: '',
+      createdBy: 'website', createdAt: now, updatedAt: now, purgeAfter: '' };
+    append_(SHEETS.CAND, c);
+    p.applications = (Number(p.applications) || 0) + 1; p.updatedAt = now; update_(SHEETS.CPOST, p);
+    audit_('', 'careers_apply', '', { ref: c.ref, req: q.ref });
+    return { ok: true };
+  });
+}
+function api_careerPostList(req, me) {
+  if (!isHr_(me)) fail_('forbidden');
+  var t = today_(), posts = {}, depts = {};
+  readAll_(SHEETS.CPOST).forEach(function (p) { posts[p.reqId] = p; });
+  readAll_(SHEETS.DEPT).forEach(function (d) { depts[d.id] = d; });
+  var rows = readAll_(SHEETS.REQN).filter(function (q) { return q.status === 'approved' || posts[q.id]; }).map(function (q) {
+    var p = posts[q.id];
+    return { reqId: q.id, ref: q.ref, titleAr: q.titleAr, titleEn: q.titleEn, reqStatus: q.status, headcount: Number(q.headcount) || 1, filled: Number(q.filled) || 0,
+      post: p ? Object.assign(publicPost_(p, q, depts), { status: p.status, live: careerOpen_(p, q, t), applications: Number(p.applications) || 0 }) : null };
+  });
+  return { ok: true, rows: rows };
+}
+function api_careerPostSave(req, me) {
+  if (!isHr_(me)) fail_('forbidden');
+  var x = req.post || {};
+  return withLock_(function () {
+    var q = findBy_(SHEETS.REQN, 'id', x.reqId);
+    if (!q) fail_('not_found');
+    var p = readAll_(SHEETS.CPOST).filter(function (r) { return r.reqId === q.id; })[0], now = new Date().toISOString();
+    var status = x.status === 'closed' ? 'closed' : 'open';
+    if (status === 'open' && q.status !== 'approved') fail_('bad_state');
+    var closes = x.closesOn ? isoDate_(x.closesOn) : '';
+    if (x.closesOn && !closes) fail_('bad_date');
+    if (status === 'open' && !str_(x.summaryAr, 2000) && !str_(x.summaryEn, 2000)) fail_('missing_fields');
+    var fresh = !p;
+    if (!p) p = { id: newId_('J'), reqId: q.id, applications: 0, createdBy: me.id, createdAt: now };
+    p.status = status; p.titleAr = str_(x.titleAr, 120) || q.titleAr; p.titleEn = str_(x.titleEn, 120) || q.titleEn;
+    p.summaryAr = str_(x.summaryAr, 2000); p.summaryEn = str_(x.summaryEn, 2000); p.requirementsAr = str_(x.requirementsAr, 2000); p.requirementsEn = str_(x.requirementsEn, 2000);
+    p.city = str_(x.city, 60); p.closesOn = closes; p.updatedAt = now;
+    if (fresh) append_(SHEETS.CPOST, p); else update_(SHEETS.CPOST, p);
+    audit_(me.id, 'career_post_save', '', { req: q.ref, status: status });
+    return { ok: true };
+  });
+}

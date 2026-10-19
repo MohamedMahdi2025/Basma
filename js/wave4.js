@@ -99,5 +99,53 @@ function askForm(r, again){
     function(v){ return api('shiftSwapAsk', v); }, again);
 }
 
+// =================================================================== CAREERS PAGE ADMIN (2026-10-19)
+Object.assign(T.ar, {
+  cpTitle:'صفحة الوظائف', cpLead:'انشر الوظائف المعتمدة على صفحة عامة يقدم منها المتقدمون مباشرة، مع موافقتهم على حفظ بياناتهم. يصل كل طلب إلى التوظيف كمرشح مصدره الموقع. لا يظهر للعامة إلا نص الإعلان.',
+  cpLink:'رابط الصفحة', cpCopy:'نسخ الرابط', cpCopied:'تم النسخ', cpPublish:'نشر', cpEdit:'تعديل الإعلان', cpClose:'إيقاف النشر', cpLive:'منشورة', cpOff:'غير منشورة', cpApps:'طلبات من الموقع',
+  cpTitleAr:'عنوان الإعلان بالعربية', cpTitleEn:'عنوان الإعلان بالإنجليزية', cpSumAr:'نبذة بالعربية', cpSumEn:'نبذة بالإنجليزية', cpReqAr:'المتطلبات بالعربية', cpReqEn:'المتطلبات بالإنجليزية',
+  cpCity:'المدينة', cpCloses:'آخر موعد للتقديم', cpOpenSeats:'المقاعد', cpOpenPage:'فتح الصفحة'
+});
+Object.assign(T.en, {
+  cpTitle:'Careers page', cpLead:'Publish approved jobs on a public page where people apply directly, with their consent to keep their data. Each application reaches recruitment as a candidate from the website. Only the ad text is public.',
+  cpLink:'Page link', cpCopy:'Copy link', cpCopied:'Copied', cpPublish:'Publish', cpEdit:'Edit the ad', cpClose:'Unpublish', cpLive:'Published', cpOff:'Not published', cpApps:'Applications from the website',
+  cpTitleAr:'Ad title (Arabic)', cpTitleEn:'Ad title (English)', cpSumAr:'Summary (Arabic)', cpSumEn:'Summary (English)', cpReqAr:'Requirements (Arabic)', cpReqEn:'Requirements (English)',
+  cpCity:'City', cpCloses:'Applications close', cpOpenSeats:'Places', cpOpenPage:'Open the page'
+});
+function careersAdmin(body){
+  var box = K.head(body, 'cpTitle', 'cpLead'), url = location.origin + location.pathname + '#careers';
+  function load(){
+    K.busy(box);
+    api('careerPostList', {}, true).then(function(r){
+      if (!box.isConnected) return;
+      if (!r.ok) return box.innerHTML = K.bad(r.error);
+      var live = r.rows.filter(function(x){ return x.post && x.post.live; }), apps = r.rows.reduce(function(s, x){ return s + (x.post ? x.post.applications : 0); }, 0);
+      box.innerHTML = K.tiles([[t('cpLive'), K.n(live.length)], [t('cpApps'), K.n(apps)]]) +
+        '<div class="toolbar"><input readonly dir="ltr" value="' + esc(url) + '" aria-label="' + t('cpLink') + '" style="flex:1;min-width:0"> <button type="button" class="btn btn-line btn-sm" id="cpC">' + ph('copy') + t('cpCopy') + '</button> <a class="btn btn-line btn-sm" href="' + esc(url) + '" target="_blank" rel="noopener">' + ph('arrow-square-out') + t('cpOpenPage') + '</a></div>' +
+        (r.rows.length ? '<div class="list">' + r.rows.map(function(x, i){
+          var p = x.post;
+          return '<div class="row w2-row"><div class="main"><b><bdi>' + esc(x.ref) + '</bdi>' + K.sep() + esc(K.lang(x.titleAr, x.titleEn)) + '</b><small>' + t('cpOpenSeats') + ' ' + (x.headcount - x.filled) + (p ? K.sep() + t('cpApps') + ' ' + p.applications + (p.closesOn ? K.sep() + t('cpCloses') + ' ' + K.fmt(p.closesOn) : '') : '') + '</small></div>' +
+            '<div class="act" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">' + K.chip(p && p.live ? t('cpLive') : t('cpOff'), p && p.live ? 'in' : '') +
+            (x.reqStatus === 'approved' ? '<button type="button" class="btn btn-dark btn-sm" data-cp="' + i + '">' + (p ? t('cpEdit') : t('cpPublish')) + '</button>' : '') +
+            (p && p.status === 'open' ? '<button type="button" class="btn btn-line btn-sm" data-cx="' + i + '">' + t('cpClose') + '</button>' : '') + '</div></div>';
+        }).join('') + '</div>' : K.empty('briefcase', t('w2None')));
+      $('#cpC', box).onclick = function(){ try { navigator.clipboard.writeText(url).then(function(){ toast(t('cpCopied')); }); } catch (e) {} };
+      $$('[data-cp]', box).forEach(function(b){ b.onclick = function(){ adForm(r.rows[b.dataset.cp], load); }; });
+      $$('[data-cx]', box).forEach(function(b){ K.confirmTap(b, function(){ var x = r.rows[b.dataset.cx], p = x.post;
+        api('careerPostSave', { post: Object.assign({}, p, { reqId: x.reqId, status: 'closed' }) }).then(function(y){ if (!y.ok) return toast(errText(y.error)); toast(t('w2Saved')); load(); }); }); });
+    });
+  }
+  load();
+}
+function adForm(x, again){
+  var p = x.post || {}, ta = function(name, label, v){ return K.fld(t(label), '<textarea name="' + name + '" rows="4" maxlength="2000">' + esc(v || '') + '</textarea>'); };
+  K.formDrawer(x.post ? t('cpEdit') : t('cpPublish'), esc(x.ref),
+    K.two(K.fld(t('cpTitleAr'), '<input name="titleAr" maxlength="120" value="' + esc(p.titleAr || x.titleAr || '') + '">'), K.fld(t('cpTitleEn'), '<input name="titleEn" maxlength="120" dir="ltr" value="' + esc(p.titleEn || x.titleEn || '') + '">')) +
+    ta('summaryAr', 'cpSumAr', p.summaryAr) + ta('summaryEn', 'cpSumEn', p.summaryEn) + ta('requirementsAr', 'cpReqAr', p.requirementsAr) + ta('requirementsEn', 'cpReqEn', p.requirementsEn) +
+    K.two(K.fld(t('cpCity'), '<input name="city" maxlength="60" value="' + esc(p.city || '') + '">'), K.fld(t('cpCloses'), '<input type="date" name="closesOn" value="' + esc(p.closesOn || '') + '">')),
+    function(v){ v.reqId = x.reqId; v.status = 'open'; return api('careerPostSave', { post: v }); }, again);
+}
+window.CareersAdmin = { section: careersAdmin };
+
 window.OpenShifts = { section: openShiftsSection };
 })();

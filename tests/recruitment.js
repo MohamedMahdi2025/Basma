@@ -144,5 +144,34 @@ ok(call('5003', 'recruitBoard').error === 'forbidden', 'the board is not for eve
 ok(call('3001', 'recruitReqClose', { id: Q2.id }).error === 'note_required', 'closing a requisition needs a note');
 ok(call('3001', 'recruitReqClose', { id: Q2.id, note: 'تجميد التوظيف' }).requisition.status === 'closed', 'HR closes the Saudi-only requisition');
 
+console.log('Public careers page (2026-10-19)');
+{
+  const Q = call('5001', 'recruitReqSave', { requisition: Object.assign({}, RQ, { titleAr: 'محاسب', titleEn: 'Accountant', headcount: 1, justification: 'سري: بديل موظف' }) }).requisition;
+  ok(call('3001', 'careerPostSave', { post: { reqId: Q.id, summaryAr: 'x' } }).error === 'bad_state', 'a pending requisition cannot be published');
+  call('3001', 'recruitReqDecide', { id: Q.id, decision: 'approve' });
+  ok(call('5001', 'careerPostSave', { post: { reqId: Q.id, summaryAr: 'x' } }).error === 'forbidden', 'only HR publishes');
+  ok(call('3001', 'careerPostSave', { post: { reqId: Q.id } }).error === 'missing_fields', 'a published ad needs a summary');
+  r = call('3001', 'careerPostSave', { post: { reqId: Q.id, summaryAr: 'نبحث عن محاسب', requirementsAr: 'بكالوريوس محاسبة', city: 'الرياض', closesOn: '2026-12-31' } });
+  ok(r.ok, 'HR publishes the approved job', r);
+  r = B.call({ action: 'careersList' });
+  const job = r.rows && r.rows.find(x => x.titleAr === 'محاسب');
+  ok(r.ok && job && job.city === 'الرياض' && !('budgetMax' in job) && !JSON.stringify(r).includes('سري') && !('hiringManager' in job), 'anyone sees the ad without signing in, and nothing internal (budget, justification, manager)', job);
+  const A = { postId: job.id, name: 'سلمى أحمد', phone: '0551112223', email: 'salma@mail.com', nationality: 'SA', yearsExperience: 4 };
+  ok(B.call({ action: 'careersApply', application: A }).error === 'consent_required', 'no application without the PDPL consent');
+  ok(B.call({ action: 'careersApply', application: Object.assign({}, A, { phone: '12', consent: true }) }).error === 'bad_phone', 'a bad mobile number is refused');
+  const before = call('3001', 'recruitCandList', { reqId: Q.id }).rows.length;
+  r = B.call({ action: 'careersApply', application: Object.assign({}, A, { consent: true, website: 'http://spam' }) });
+  ok(r.ok && call('3001', 'recruitCandList', { reqId: Q.id }).rows.length === before, 'a bot filling the hidden field gets ok and nothing is stored');
+  r = B.call({ action: 'careersApply', application: Object.assign({}, A, { consent: true }) });
+  const rows = call('3001', 'recruitCandList', { reqId: Q.id }).rows;
+  ok(r.ok && rows.length === before + 1 && rows.some(c => c.source === 'website' && c.stage === 'applied'), 'the application becomes a candidate from the website', rows.map(c => [c.source, c.stage]));
+  r = B.call({ action: 'careersApply', application: Object.assign({}, A, { consent: true }) });
+  ok(r.ok && call('3001', 'recruitCandList', { reqId: Q.id }).rows.length === before + 1, 'applying twice answers ok but keeps one candidate (nothing to learn from the reply)');
+  ok(call('3001', 'careerPostList').rows.find(x => x.reqId === Q.id).post.applications === 1, 'HR sees one application from the website');
+  call('3001', 'careerPostSave', { post: { reqId: Q.id, summaryAr: 'نبحث عن محاسب', status: 'closed' } });
+  ok(!B.call({ action: 'careersList' }).rows.some(x => x.titleAr === 'محاسب'), 'unpublished jobs disappear from the public page');
+  ok(B.call({ action: 'careersApply', application: Object.assign({}, A, { phone: '0551112299', consent: true }) }).error === 'not_found', 'and take no more applications');
+}
+
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);

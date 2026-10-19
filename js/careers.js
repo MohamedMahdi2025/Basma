@@ -93,7 +93,7 @@ document.head.appendChild(css);
 
 window.Careers = { render: function(){
   document.title = t('crTitle');
-  shell('<p class="cr-lead">' + t('w2Loading') + '…</p>');
+  shell('<p class="cr-lead">…</p>');
   api('careersList', {}, true).then(function(r){ DATA = r.ok ? r : { rows: [] }; list(); });
 } };
 })();
