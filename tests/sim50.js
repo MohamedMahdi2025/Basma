@@ -1007,7 +1007,7 @@ at('2026-11-08', '10:00');
 const ROLE = { employee: '1006', manager: '1016', hr: '1011', payroll: '1009', executive: '1002', admin: '1045' };
 const REPORTS = B.ctx.REPORTS;
 const RIDS = Object.keys(REPORTS);
-ok(RIDS.length === 64, '64 reports in the catalogue (19 registers + 45 analytical)', RIDS.length);
+ok(RIDS.length === 68, '68 reports in the catalogue (19 registers + 45 analytical + 4 talent)', RIDS.length);
 const prm = id => {
   const ps = REPORTS[id].params, o = {};
   if (ps.some(p => /^range/.test(p))) Object.assign(o, id === 'hr_movement' ? { from: '2026-01-01', to: '2026-12-31' } : { from: '2026-10-01', to: '2026-10-31' });
@@ -1382,6 +1382,24 @@ cycle('Internal mobility and career paths (2026-10-20)');
   ok(call(1011, 'careerPathSave', { path: { fromPositionId: PID.drv, toPositionId: PID.sup, years: 3, requirementsAr: 'سجل سلامة نظيف ودورة قيادة' } }).ok, 'HR maps driver -> supervisor');
   const pl = call(1018, 'careerPathList', {});
   ok(pl.ok && pl.myPositionId === PID.drv && pl.rows.some(x => x.from.id === PID.drv && x.to.id === PID.sup && x.years === 3), 'the driver sees the path from their own position', pl.rows);
+}
+cycle('Talent reports (2026-10-20)');
+{
+  const run = (no, id, params) => call(no, 'reportRun', { reportId: id, params: params || {} });
+  let r = run(1011, 'rec_pipeline');
+  const sup = r.ok && r.rows.find(x => x.title === 'مشرف توزيع');
+  ok(r.ok && sup && sup.candidates === 1 && sup.internal === 1 && sup.status === 'approved' && sup.daysOpen >= 0, 'hiring funnel: the supervisor requisition with one internal candidate', sup || r.error);
+  ok(run(1009, 'rec_pipeline').error === 'forbidden' && run(1016, 'rec_pipeline').error === 'forbidden', 'candidate reports are HR only (not payroll, not managers)');
+  r = run(1011, 'rec_sources', { from: '2026-01-01', to: '2026-12-31' });
+  ok(r.ok && r.rows.some(x => x.source === 'internal' && x.candidates === 1 && x.hireRate === 0), 'sources: the internal channel counted', r.rows || r.error);
+  r = run(1011, 'ins_coverage');
+  ok(r.ok && r.rows.length > 40 && r.rows.every(x => x.covered === 'yes' || x.covered === 'no'), 'insurance coverage: one row per person', r.error);
+  const nsu = r.rows.filter(x => x.saudi === 'non_saudi' && x.covered === 'no').length;
+  ok(nsu === 0 ? !r.checks.length : r.checks.some(c => c.code === 'non_saudi_uncovered' && c.count === nsu), 'non-Saudis without cover are flagged as an error', r.checks);
+  r = run(1016, 'trn_hours', { from: '2026-01-01', to: '2026-12-31' });
+  ok(r.ok && r.rows.length >= 2 && r.rows.length < 10, 'training hours: a manager sees only their team', r.rows && r.rows.length);
+  r = run(1011, 'trn_hours', { from: '2026-01-01', to: '2026-12-31' });
+  ok(r.ok && r.rows.length > 40 && r.columns.some(c => c.key === 'cost' && c.type === 'money'), 'HR sees the whole company with cost', r.error);
 }
 cycle('Access matrix');
 const code = fs.readFileSync(path.join(__dirname, '..', 'backend', 'Code.gs'), 'utf8');

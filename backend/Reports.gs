@@ -72,6 +72,11 @@ var REPORTS = {
   cmp_injuries:     { group: 'compliance', access: 'people', params: ['range365', 'depts'] },
   cmp_custody:      { group: 'compliance', access: 'people', params: ['depts', 'emps'] },
   cmp_clearance:    { group: 'compliance', access: 'people', params: ['depts'] },
+  // talent analytics (2026-10-20): recruitment funnel and sources (HR only: candidate data), training and insurance coverage
+  rec_pipeline:     { group: 'talent',     access: 'audit',  params: ['depts'] },
+  rec_sources:      { group: 'talent',     access: 'audit',  params: ['range365'] },
+  trn_hours:        { group: 'talent',     access: 'people', params: ['range365', 'depts', 'emps'] },
+  ins_coverage:     { group: 'talent',     access: 'people', params: ['depts', 'nationality'] },
   cmp_wps:          { group: 'compliance', access: 'cost',   params: ['range365'] },
   audit_log:        { group: 'audit',      access: 'audit',  params: ['range', 'auditAction'] }
 };
@@ -1981,6 +1986,71 @@ Object.assign(REPORT_FNS, {
 
   // WPS and wage reconciliation month by month: the run, the WPS file (generated, uploaded with the bank / Mudad reference,
   // confirmed), the due date and days late, and the latest GOSI and Qiwa uploads with their mismatches. Totals only.
+  rec_pipeline: function (p, me, ctx, scope, s) {
+    var ds = deptSet_(p, ctx), t = today_(), cands = {}, intv = {}, offs = {}, rows = [], stale = 0;
+    readAll_(SHEETS.CAND).forEach(function (c) { if (c.stage === 'erased') return; var x = cands[c.reqId] = cands[c.reqId] || { n: 0, hired: 0, internal: 0 }; x.n++; if (c.stage === 'hired') x.hired++; if (c.source === 'internal') x.internal++; });
+    readAll_(SHEETS.INTV).forEach(function (i) { intv[i.reqId] = (intv[i.reqId] || 0) + 1; });
+    readAll_(SHEETS.OFFER).forEach(function (o) { offs[o.reqId] = (offs[o.reqId] || 0) + 1; });
+    readAll_(SHEETS.REQN).forEach(function (q) {
+      if (ds && !ds[q.departmentId]) return;
+      var c = cands[q.id] || { n: 0, hired: 0, internal: 0 }, opened = String(q.decidedAt || q.createdAt || '').slice(0, 10), open = q.status === 'approved';
+      var days = opened ? daysBetween_(opened, t) : null;
+      if (open && days > 60) stale++;
+      rows.push({ ref: q.ref, title: q.titleAr, department: ctx.depts[q.departmentId] ? ctx.depts[q.departmentId].nameAr : '', status: q.status, headcount: Number(q.headcount) || 1, filled: Number(q.filled) || 0,
+        candidates: c.n, internal: c.internal, interviews: intv[q.id] || 0, offers: offs[q.id] || 0, hired: c.hired, daysOpen: open ? days : null });
+    });
+    return { columns: [col_('ref', 'id'), col_('title'), col_('department', 'text', { group: true }), col_('status', 'status', { group: true }), col_('headcount', 'int', { sum: true }), col_('filled', 'int', { sum: true }),
+      col_('candidates', 'int', { sum: true }), col_('internal', 'int', { sum: true }), col_('interviews', 'int', { sum: true }), col_('offers', 'int', { sum: true }), col_('hired', 'int', { sum: true }), col_('daysOpen', 'days')],
+      rows: rows, checks: stale ? [{ level: 'warn', code: 'req_open_60', count: stale }] : [], chart: { type: 'bars', by: 'department', value: 'candidates' } };
+  },
+
+  rec_sources: function (p, me, ctx, scope, s) {
+    var by = {}, intv = {}, offs = {};
+    readAll_(SHEETS.INTV).forEach(function (i) { intv[i.candidateId] = 1; });
+    readAll_(SHEETS.OFFER).forEach(function (o) { offs[o.candidateId] = 1; });
+    readAll_(SHEETS.CAND).forEach(function (c) {
+      var d = String(c.createdAt || '').slice(0, 10); if (c.stage === 'erased' || d < p.from || d > p.to) return;
+      var x = by[c.source || 'other'] = by[c.source || 'other'] || { candidates: 0, interviewed: 0, offered: 0, hired: 0 };
+      x.candidates++; if (intv[c.id]) x.interviewed++; if (offs[c.id]) x.offered++; if (c.stage === 'hired') x.hired++;
+    });
+    var rows = Object.keys(by).map(function (k) { var x = by[k]; return { source: k, candidates: x.candidates, interviewed: x.interviewed, offered: x.offered, hired: x.hired, hireRate: x.candidates ? Math.round(x.hired / x.candidates * 1000) / 10 : 0 }; })
+      .sort(function (a, b) { return b.candidates - a.candidates; });
+    return { columns: [col_('source', 'code', { group: true }), col_('candidates', 'int', { sum: true }), col_('interviewed', 'int', { sum: true }), col_('offered', 'int', { sum: true }), col_('hired', 'int', { sum: true }), col_('hireRate', 'pct')],
+      rows: rows, checks: [], chart: { type: 'hbar', label: 'source', value: 'candidates' } };
+  },
+
+  trn_hours: function (p, me, ctx, scope, s) {
+    var emps = reportEmps_(p, ctx, scope), t = today_(), soon = addDays_(t, 90), by = {}, rows = [], expiring = 0, none = 0;
+    readAll_(SHEETS.TENR).forEach(function (x) {
+      var d = String(x.issuedOn || x.updatedAt || '').slice(0, 10);
+      var r = by[x.empId] = by[x.empId] || { done: 0, hours: 0, cost: 0, expiring: 0 };
+      var exp = String(x.expiresOn || '').slice(0, 10);
+      if (exp && exp >= t && exp <= soon) r.expiring++;
+      if (x.status !== 'completed' && x.result !== 'passed' && x.status !== 'passed') return;
+      if (d && (d < p.from || d > p.to)) return;
+      r.done++; r.hours += Number(x.hours) || 0; r.cost += Number(x.cost) || 0;
+    });
+    emps.forEach(function (e) { var r = by[e.id] || { done: 0, hours: 0, cost: 0, expiring: 0 }; if (!r.done) none++; expiring += r.expiring ? 1 : 0;
+      rows.push(Object.assign(base_(e, ctx), { courses: r.done, hours: Math.round(r.hours * 10) / 10, cost: Math.round(r.cost * 100) / 100, certExpiring: r.expiring })); });
+    return { columns: EMP_COLS.concat([col_('courses', 'int', { sum: true }), col_('hours', 'hours', { sum: true }), col_('cost', 'money', { sum: true }), col_('certExpiring', 'int', { sum: true })]), rows: rows,
+      checks: [none ? { level: 'info', code: 'no_training', count: none } : null, expiring ? { level: 'warn', code: 'cert_expiring', count: expiring } : null].filter(Boolean), chart: { type: 'bars', by: 'department', value: 'hours' } };
+  },
+
+  ins_coverage: function (p, me, ctx, scope, s) {
+    var emps = reportEmps_(p, ctx, scope), self = {}, deps = {}, rows = [], uncovered = 0;
+    readAll_(SHEETS.INSM).forEach(function (m) {
+      if (m.status !== 'active' && m.status !== 'pending_delete') return;
+      if (m.relation === 'self') self[m.empId] = m; else deps[m.empId] = (deps[m.empId] || 0) + 1;
+    });
+    emps.forEach(function (e) {
+      var m = self[e.id], saudi = bool_(e.isSaudi);
+      if (!m && !saudi) uncovered++;
+      rows.push(Object.assign(base_(e, ctx), { saudi: saudi ? 'saudi' : 'non_saudi', covered: m ? 'yes' : 'no', insClass: m ? m.insClass || '' : '', dependants: deps[e.id] || 0, memberNo: m ? String(m.memberNo || '') : '' }));
+    });
+    return { columns: EMP_COLS.concat([col_('saudi', 'code', { group: true }), col_('covered', 'code', { group: true }), col_('insClass', 'text', { group: true }), col_('dependants', 'int', { sum: true }), col_('memberNo', 'text')]), rows: rows,
+      checks: uncovered ? [{ level: 'error', code: 'non_saudi_uncovered', count: uncovered }] : [], chart: { type: 'bars', by: 'department', value: 'count' } };
+  },
+
   cmp_wps: function (p, me, ctx, scope, s) {
     var months = rxMonths_(p.from, p.to); if (!months.length) return rxEmpty_();
     var t = today_(), runs = {}, wps = {}, rec = {}, rows = [], overdue = 0, open = 0, notLocked = 0;

@@ -82,7 +82,7 @@ ok(r.ok && r.reports.some(x => x.id === 'audit_log') && !r.reports.some(x => x.a
 r = call('3005', 'reportCatalog');
 ok(r.ok && r.reports.some(x => x.id === 'pay_cost') && !r.reports.some(x => x.id === 'pay_register'), 'executive: department cost, never the per-person register');
 r = call('3002', 'reportCatalog');
-ok(r.ok && r.reports.some(x => x.id === 'pay_register') && r.reports.length === Object.keys(B.ctx.REPORTS).length - 1, 'payroll: every report except the audit log', r.reports.length);
+ok(r.ok && r.reports.some(x => x.id === 'pay_register') && r.reports.length === Object.keys(B.ctx.REPORTS).length - 3, 'payroll: every report except the audit log and the two candidate reports (HR only)', r.reports.length);
 r = run('1000', 'pay_register');
 ok(!r.ok && r.error === 'forbidden', 'admin cannot run the payroll register', r);
 
@@ -301,7 +301,7 @@ const rowOf = (res, f) => (res.rows || []).find(f) || {};
 const emp = no => x => x.empNo === no;
 
 console.log('Analytical reports: shape, strings, access, one read per tab');
-ok(NEW.length === 45 && NEW.every(id => B.ctx.REPORTS[id] && B.ctx.REPORT_FNS[id]) && Object.keys(B.ctx.REPORTS).length === 19 + NEW.length, '45 new reports, each in the catalogue with its function', Object.keys(B.ctx.REPORTS).length);
+ok(NEW.length === 45 && NEW.every(id => B.ctx.REPORTS[id] && B.ctx.REPORT_FNS[id]) && Object.keys(B.ctx.REPORTS).length === 19 + NEW.length + 4, '45 new reports (plus the 4 talent reports, tested in sim50), each in the catalogue with its function', Object.keys(B.ctx.REPORTS).length);
 // Every report id, column key, check code and code value has its Arabic and English text in js/reports.js.
 const JS = fs.readFileSync(path.join(__dirname, '..', 'js', 'reports.js'), 'utf8');
 const block = name => { const i = JS.indexOf('var ' + name + ' = {'); const j = JS.indexOf('\n};', i); return i < 0 ? '' : JS.slice(i, j); };

@@ -7,6 +7,10 @@
 var V = window.Viz;
 
 var RPT = {
+  rec_pipeline: ['مسار التوظيف حسب الطلب', 'Hiring funnel by requisition', 'لكل طلب توظيف: المرشحون (والداخليون منهم) والمقابلات والعروض والتعيينات وأيام الفتح.', 'Per requisition: candidates (internal among them), interviews, offers, hires and days open.'],
+  rec_sources: ['مصادر المرشحين', 'Candidate sources', 'لكل مصدر: المرشحون ومن قوبل ومن عرض عليه ومن عين ونسبة التعيين.', 'Per source: candidates, interviewed, offered, hired and the hire rate.'],
+  trn_hours: ['ساعات التدريب وتكلفته', 'Training hours and cost', 'لكل موظف: الدورات المكتملة وساعاتها وتكلفتها والشهادات التي تنتهي خلال 90 يوما.', 'Per person: completed courses, hours, cost and certificates expiring within 90 days.'],
+  ins_coverage: ['تغطية التأمين الطبي', 'Medical insurance coverage', 'لكل موظف: مغطى أم لا، الفئة، عدد المرافقين. غير السعودي بلا تغطية مخالفة لنظام الضمان الصحي.', 'Per person: covered or not, class, dependants. A non-Saudi without cover breaches the health insurance law.'],
   att_daily: ['الحضور اليومي التفصيلي', 'Daily attendance detail', 'كل يوم عمل لكل موظف: الحضور والانصراف والتأخير والإضافي ومصدر البصمة. حتى 31 يوما.', 'Every working day per person: in, out, lateness, overtime and punch source. Up to 31 days.'],
   att_monthly: ['كشف الحضور الشهري', 'Monthly attendance sheet', 'شبكة الشهر يوما بيوم بالرموز مع مجاميع الحضور والغياب والتأخير. جاهز للتوقيع.', 'The month day by day in codes, with totals. Ready to sign.'],
   att_summary: ['ملخص الحضور والانضباط', 'Attendance and punctuality summary', 'لكل موظف: الأيام المتوقعة والحضور والغياب والتأخير ونسبتا الحضور والانضباط.', 'Per person: expected days, present, absent, late, attendance and on-time rates.'],
@@ -75,9 +79,12 @@ var RPT = {
 };
 var GROUPS = [['attendance', 'clock-countdown', 'الحضور والانصراف', 'Attendance'], ['leave', 'calendar-dots', 'الإجازات والطلبات', 'Leave and requests'],
   ['people', 'users-three', 'الموظفون', 'People'], ['payroll', 'money', 'الرواتب', 'Payroll'], ['performance', 'target', 'الأداء', 'Performance'],
-  ['requests', 'flow-arrow', 'الطلبات والموافقات', 'Requests and approvals'], ['compliance', 'scales', 'الامتثال وعلاقات العمل', 'Compliance and relations'], ['audit', 'shield-check', 'التدقيق', 'Audit']];
+  ['requests', 'flow-arrow', 'الطلبات والموافقات', 'Requests and approvals'], ['compliance', 'scales', 'الامتثال وعلاقات العمل', 'Compliance and relations'], ['talent', 'graduation-cap', 'التوظيف والتدريب والتأمين', 'Hiring, training and insurance'], ['audit', 'shield-check', 'التدقيق', 'Audit']];
 
 var COLS = {
+  ref: ['المرجع', 'Ref'], title: ['المسمى', 'Title'], headcount: ['العدد المطلوب', 'Headcount'], filled: ['المشغول', 'Filled'], candidates: ['المرشحون', 'Candidates'], internal: ['داخليون', 'Internal'], interviews: ['المقابلات', 'Interviews'], offers: ['العروض', 'Offers'], hired: ['التعيينات', 'Hired'], daysOpen: ['أيام الفتح', 'Days open'],
+  source: ['المصدر', 'Source'], interviewed: ['قوبلوا', 'Interviewed'], offered: ['عرض عليهم', 'Offered'], hireRate: ['نسبة التعيين', 'Hire rate'], courses: ['الدورات', 'Courses'], hours: ['الساعات', 'Hours'], cost: ['التكلفة', 'Cost'], certExpiring: ['شهادات تنتهي قريبا', 'Certificates expiring'],
+  covered: ['مغطى', 'Covered'], insClass: ['الفئة', 'Class'], dependants: ['المرافقون', 'Dependants'], memberNo: ['رقم العضوية', 'Member no.'],
   empNo: ['الرقم', 'No.'], name: ['الاسم', 'Name'], department: ['الإدارة', 'Department'], date: ['التاريخ', 'Date'], shift: ['الدوام', 'Shift'],
   checkIn: ['الحضور', 'In'], checkOut: ['الانصراف', 'Out'], worked: ['ساعات العمل', 'Hours worked'], late: ['تأخير (د)', 'Late (min)'], early: ['خروج مبكر (د)', 'Early (min)'],
   overtime: ['إضافي (س)', 'Overtime (h)'], status: ['الحالة', 'Status'], source: ['المصدر', 'Source'], leaveType: ['نوع الإجازة', 'Leave type'], holiday: ['العطلة', 'Holiday'],
@@ -152,6 +159,8 @@ var COLS = {
   qiwaMismatches: ['فروقات قوى', 'Qiwa mismatches'], saudiTarget: ['الهدف %', 'Target %'], needed: ['سعوديون مطلوبون', 'Saudis needed'], prevPct: ['النسبة الشهر السابق %', 'Last month %']
 };
 var CODES = {
+  yes: ['نعم', 'Yes'], no: ['لا', 'No'], referral: ['ترشيح', 'Referral'], linkedin: ['لينكدإن', 'LinkedIn'], jadarat: ['جدارات', 'Jadarat'], bayt: ['بيت.كوم', 'Bayt'], website: ['صفحة الوظائف', 'Careers page'], agency: ['وكالة', 'Agency'], walk_in: ['حضور مباشر', 'Walk-in'], internal: ['داخلي', 'Internal'], other: ['أخرى', 'Other'],
+  pending: ['بانتظار القرار', 'Pending'], closed: ['مغلق', 'Closed'], saudi: ['سعودي', 'Saudi'], non_saudi: ['غير سعودي', 'Non-Saudi'],
   review: ['للمراجعة', 'Review'], rejected: ['مرفوض', 'Rejected'], manual: ['يدوي', 'Manual'], approved: ['معتمد', 'Approved'], ok: ['سليم', 'OK'], app: ['التطبيق', 'App'],
   hr: ['الموارد البشرية', 'HR'], request: ['طلب', 'Request'], in: ['حضور', 'In'], out: ['انصراف', 'Out'], active: ['نشط', 'Active'], disabled: ['موقوف', 'Disabled'],
   new: ['جديد', 'New'], missing: ['غير موجود هذا الشهر', 'Not in this run'], changed: ['تغير', 'Changed'], same: ['دون تغيير يذكر', 'No material change'], joined: ['انضم', 'Joined'], left: ['غادر', 'Left'],
@@ -183,6 +192,8 @@ var CODES = {
   card: ['بطاقة', 'Card'], tool: ['أداة', 'Tool'], other: ['أخرى', 'Other'], termination: ['إنهاء من الشركة', 'Termination'], retirement: ['تقاعد', 'Retirement'], unrecorded: ['غير مسجل', 'Not recorded']
 };
 var CHECKS = {
+  req_open_60: ['طلبات توظيف مفتوحة أكثر من 60 يوما: {n}', 'Requisitions open more than 60 days: {n}'], no_training: ['بلا أي تدريب مكتمل في الفترة: {n}', 'No completed training in the period: {n}'],
+  cert_expiring: ['لديهم شهادات تنتهي خلال 90 يوما: {n}', 'With certificates expiring within 90 days: {n}'], non_saudi_uncovered: ['غير سعوديين بلا تأمين طبي: {n}', 'Non-Saudis with no medical cover: {n}'],
   missing_out: ['أيام بلا تسجيل انصراف: {n}', 'Days with no check-out: {n}'], punch_review: ['بصمات تنتظر المراجعة: {n}', 'Punches waiting for review: {n}'],
   opening_missing: ['بلا رصيد افتتاحي، يحتسب رصيدهم من بدء النظام فقط: {n}', 'No opening balance, counted from go-live only: {n}'],
   no_iban: ['بلا آيبان مسجل: {n}', 'No IBAN on file: {n}'], id_expired: ['هويات أو إقامات منتهية: {n}', 'Expired IDs or iqamas: {n}'], expired: ['وثائق انتهت فعلا: {n}', 'Already expired: {n}'],
