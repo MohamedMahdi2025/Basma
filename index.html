@@ -1355,56 +1355,96 @@ body.v2-on :is(.db-tile b,.kpi b,.stat b,.hm-facts dd,.hm-big b,.hm-k .v,[data-c
 }
 </style>
 <style id="dsfb">
+/* Phone design 2026 (2026-10-19). Patterns from the public 2026 platform guidance (Apple HIG for iOS 26, Material 3
+   Expressive), applied in our own brand: a calm top bar with at most three actions, large-title page headers, a page picker
+   in a bottom sheet instead of side-scrolling tab strips, grids instead of horizontal rows, 44px touch targets, a pill marker
+   on the active tab. Measured before and after with REA (docs/research/2026-10-19-mobile-design-rea.md). Phones only. */
 @media (max-width:900px){
-  body.v2-on{--fb-bg:#ECEFEC;--fb-sep:#DDE2DE}
-  body.v2-on .v2-main,body.v2-on #main{background:var(--fb-bg)}
-  /* header: brand name at the start, round grey action buttons at the end */
-  body.v2-on .v2-top{background:var(--card);border-bottom:1px solid var(--fb-sep);box-shadow:0 1px 0 rgba(0,0,0,.02)}
-  body.v2-on .v2-top .fb-brand{display:block;font-weight:800;font-size:22px;letter-spacing:-.02em;color:var(--brand);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40vw}
-  body.v2-on .v2-top :is(.v2-ib,.v2-search,.v2-lang){width:40px;height:40px;min-width:40px;border-radius:50%;background:var(--well,#EEF0EE);border:0;display:grid;place-items:center;padding:0;color:var(--ink)}
-  body.v2-on .v2-top .v2-lang{width:auto;border-radius:999px;padding:0 12px;font-weight:700}
-  body.v2-on .v2-top :is(.v2-ib,.v2-search):active{transform:scale(.92);background:var(--line)}
-  body.v2-on .v2-top .v2-chip{border-radius:999px}
-  /* slim page header instead of the big banner */
-  body.v2-on .v3-hero{padding:12px 16px;min-height:0;box-shadow:none}
-  body.v2-on .v3-hero p,body.v2-on .v3-hero .v3-hero-stats .hm-dt{display:none}
-  body.v2-on .v3-hero h1{font-size:19px;margin:0}
-  body.v2-on .v3-hero .v3-hero-ic{width:38px;height:38px;font-size:20px}
-  /* edge-to-edge cards with thin separators */
-  body.v2-on :is(.hm-card,.mf-card,.fp-card,.db-card,.v2-card,.set-card,.op-card){border-radius:10px!important;border:1px solid var(--fb-sep)!important;box-shadow:none!important;background:var(--card)}
-  body.v2-on :is(.hm-grid,.mf-cols,.db-grid,.fp-grid){gap:8px!important}
-  body.v2-on :is(.hm-kpis){padding-inline:8px}
-  /* swipeable pill tabs */
-  body.v2-on :is(.op-tabs,.v2-views){display:flex;flex-wrap:nowrap;overflow-x:auto;gap:8px;padding:8px 2px;margin:0 0 8px;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity}
-  body.v2-on :is(.op-tabs,.v2-views)::-webkit-scrollbar{display:none}
-  body.v2-on :is(.op-tabs,.v2-views) > button{flex:none;scroll-snap-align:start;border-radius:999px;height:36px;padding:0 14px;white-space:nowrap}
-  /* round shortcuts row (home) */
-  body.v2-on .fb-quick{display:flex;gap:14px;overflow-x:auto;padding:12px 16px;margin:0 -14px 8px;background:var(--card);border-block:1px solid var(--fb-sep);scrollbar-width:none}
-  body.v2-on .fb-quick::-webkit-scrollbar{display:none}
-  body.v2-on .fb-quick button{flex:none;width:68px;border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:6px;font:inherit;font-size:11.5px;color:var(--ink);cursor:pointer;text-align:center;line-height:1.25}
-  body.v2-on .fb-quick button > span{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;font-size:26px;color:var(--brand);background:var(--brand-tint,#E4F2E9);box-shadow:0 0 0 2px var(--card),0 0 0 4px var(--brand);transition:transform .15s}
-  body.v2-on .fb-quick button:active > span{transform:scale(.9)}
-  /* tab bar: active marker on top, a quick bounce on the icon */
-  body.v2-on .v2-bottom{border-top:1px solid var(--fb-sep);padding-top:0}
-  body.v2-on .v2-bottom button{position:relative;padding-top:8px}
-  body.v2-on .v2-bottom button[aria-current="page"]::before{content:"";position:absolute;top:0;inset-inline:22%;height:3px;border-radius:0 0 3px 3px;background:var(--brand)}
-  body.v2-on .v2-bottom button[aria-current="page"] i{animation:fbPop .35s cubic-bezier(.3,1.6,.5,1)}
-  body.v2-on .v2-bottom .center{margin-top:-20px}
-  @keyframes fbPop{0%{transform:scale(.7)}100%{transform:none}}
-  /* bottom sheets with a grab handle */
-  body.v2-on .drawer .panel{border-radius:20px 20px 0 0!important}
-  body.v2-on .drawer .panel::before{content:"";display:block;width:40px;height:5px;border-radius:3px;background:var(--line);margin:8px auto 4px}
-  /* tap feedback on rows and cards */
-  body.v2-on :is(.list .row,.hm-card,.mf-card,.fp-card,.oc-card,.w2-row)[style*="cursor"]:active,body.v2-on .list .row:active{background:var(--well,#EEF0EE)}
-  /* shimmer loading */
-  body.v2-on .sk{background:linear-gradient(90deg,var(--line-2,#EEF2F0) 25%,var(--well,#F6F8F6) 37%,var(--line-2,#EEF2F0) 63%)!important;background-size:400% 100%!important;animation:fbShim 1.4s ease infinite}
-  @keyframes fbShim{0%{background-position:100% 50%}100%{background-position:0 50%}}
+  body.v2-on{--m-bg:var(--paper,#F6F5F0);--m-sep:rgba(28,42,31,.08);--m-tint:#E6F0E8;--m-r:18px}
+  body.v2-on .v2-main,body.v2-on #main{background:var(--m-bg)}
+  /* top bar: menu, the company name, then search, bell and the avatar; language, print and the status chip live in the avatar menu */
+  body.v2-on .v2-top{height:56px;min-height:56px;gap:2px;padding:0 6px;padding-top:env(safe-area-inset-top);background:color-mix(in srgb,var(--m-bg) 86%,transparent);-webkit-backdrop-filter:saturate(1.6) blur(14px);backdrop-filter:saturate(1.6) blur(14px);border-bottom:1px solid var(--m-sep);box-shadow:none}
+  body.v2-on .v2-top :is(#v2Chip,#v2Lang,.v2-desk){display:none!important}
+  body.v2-on .v2-top .fb-brand{display:block;flex:0 1 auto;min-width:0;font-weight:700;font-size:17px;letter-spacing:-.01em;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:52vw;padding-inline:4px}
+  body.v2-on #main{scrollbar-width:none}body.v2-on #main::-webkit-scrollbar{display:none}
+  body.v2-on .v2-top :is(.v2-ib,.v2-search){width:44px;height:44px;min-width:44px;border-radius:50%;background:transparent;border:0;box-shadow:none!important;display:grid;place-items:center;padding:0;color:var(--ink);font-size:22px}
+  body.v2-on .v2-top .v2-search span,body.v2-on .v2-top .v2-search kbd{display:none}
+  body.v2-on .v2-top :is(.v2-ib,.v2-search):active{background:var(--m-sep)}
+  body.v2-on .v2-top .v2-av{width:34px;height:34px;margin-inline-start:4px}
+  /* large-title headers: no banner, no pattern, the page name big and calm */
+  body.v2-on .pg-head{background:var(--m-bg)}
+  body.v2-on .v3-hero{background:none!important;color:var(--ink)!important;box-shadow:none!important;border:0!important;border-radius:0!important;padding:14px 2px 6px!important;min-height:0!important;margin:0!important;display:block}
+  body.v2-on .v3-hero::before,body.v2-on .v3-hero::after{display:none!important}
+  body.v2-on .v3-hero :is(.v3-hero-ic,p,.v3-pill:not(.hot)){display:none!important}
+  body.v2-on .is-punch .v3-hero{display:none!important}body.v2-on .is-punch .m-pick{margin-top:12px}
+  body.v2-on .v3-hero h1{font-size:30px;line-height:1.15;font-weight:800;letter-spacing:-.02em;color:var(--ink)!important;margin:0}
+  body.v2-on .v3-hero .v3-hero-stats{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap}
+  body.v2-on .v3-hero .v3-pill.hot{background:#FDE7C8;color:#7A3E00;border:0}
+  /* Home: the scope switch as a segmented control */
+  body.v2-on .hm-scope{background:rgba(28,42,31,.06)!important;border:0!important;padding:3px!important;border-radius:12px!important;width:100%;display:grid!important;grid-template-columns:1fr 1fr}
+  body.v2-on .hm-scope button{color:var(--ink-2)!important;border-radius:9px!important;height:38px;justify-content:center}
+  body.v2-on .hm-scope button[aria-pressed="true"]{background:var(--card)!important;color:var(--ink)!important;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+  /* the page picker replaces the side-scrolling strip of sub-pages */
+  body.v2-on .v2-views{display:none!important}
+  body.v2-on .m-pick{display:flex;align-items:center;gap:12px;width:100%;min-height:56px;margin:10px 0 14px;padding:8px 14px;border-radius:var(--m-r);border:1px solid var(--m-sep);background:var(--card);font:inherit;color:var(--ink);text-align:start;cursor:pointer}
+  body.v2-on .m-pick .ic{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:var(--m-tint);color:var(--brand);font-size:20px;flex:none}
+  body.v2-on .m-pick b{font-size:16px;font-weight:700;display:block}
+  body.v2-on .m-pick small{color:var(--ink-3);font-size:12.5px}
+  body.v2-on .m-pick .ch{margin-inline-start:auto;font-size:18px;color:var(--ink-3)}
+  body.v2-on .m-pick:active{transform:scale(.99);background:var(--line-2,#F1F3F1)}
+  /* Home shortcuts: a 4-column grid, never a side-scrolling row */
+  body.v2-on .fb-quick{display:grid!important;grid-template-columns:repeat(4,1fr);gap:14px 6px;padding:16px 8px;margin:6px 0 14px;background:var(--card);border-radius:var(--m-r);border:1px solid var(--m-sep);overflow:visible}
+  body.v2-on .fb-quick button{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:7px;font:inherit;font-size:12px;line-height:1.25;color:var(--ink);cursor:pointer;text-align:center;min-height:44px;padding:0 2px}
+  body.v2-on .fb-quick button > span{width:54px;height:54px;border-radius:17px;display:grid;place-items:center;font-size:26px;color:var(--brand);background:var(--m-tint);transition:transform .15s}
+  body.v2-on .fb-quick button:active > span{transform:scale(.92)}
+  body.v2-on .fb-quick button{overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical}
+  body.v2-on .fb-quick button{display:flex}
+  /* cards: calm surfaces, no decoration */
+  body.v2-on :is(.hm-k,.db-card,.mf-card,.fp-card,.v2-card,.set-card,.op-card){border-radius:var(--m-r)!important;box-shadow:none!important;border:1px solid var(--m-sep)!important;background:var(--card)!important}
+  body.v2-on .hm-k::before,body.v2-on .hm-k::after,body.v2-on .hm-k .db-go,body.v2-on .hm-k .db-tf{display:none!important}
+  body.v2-on .hm-k{padding:14px!important;min-height:0!important}
+  body.v2-on .hm-kpis{gap:10px!important}
+  body.v2-on .hm-rowh{font-size:18px;font-weight:700}
+  /* tabs inside a page wrap into chips; nothing scrolls sideways */
+  body.v2-on :is(.op-tabs,.hr-seg,.v2-seg,.cp-seg){display:flex!important;flex-wrap:wrap!important;overflow:visible!important;gap:8px;padding:0;margin:0 0 12px;background:none;border:0}
+  body.v2-on :is(.op-tabs,.hr-seg,.v2-seg,.cp-seg) > button{flex:0 0 auto;min-height:40px;border-radius:999px;padding:0 14px;white-space:nowrap}
+  body.v2-on .toolbar{flex-wrap:wrap;gap:8px}
+  body.v2-on .btn-sm{min-height:40px}
+  /* bottom tab bar: a pill behind the active icon */
+  body.v2-on .v2-bottom{border-top:1px solid var(--m-sep);background:color-mix(in srgb,var(--card) 90%,transparent);-webkit-backdrop-filter:saturate(1.6) blur(14px);backdrop-filter:saturate(1.6) blur(14px);padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
+  body.v2-on .v2-bottom button{position:relative;gap:4px;font-size:11px;min-height:52px}
+  body.v2-on .v2-bottom button:not(.center)::before{content:"";position:absolute;top:4px;left:50%;width:56px;height:30px;margin-left:-28px;border-radius:15px;background:transparent;transition:background .2s}
+  body.v2-on .v2-bottom button:not(.center) i{position:relative;font-size:22px}
+  body.v2-on .v2-bottom button[aria-current="page"]::before{background:var(--m-tint)}
+  body.v2-on .v2-bottom button[aria-current="page"] i{color:var(--brand)}
+  body.v2-on .v2-bottom button[aria-current="page"]{color:var(--ink);font-weight:700}
+  body.v2-on .v2-bottom .center{width:58px;height:58px;border-radius:19px;margin-top:-22px;box-shadow:0 10px 24px -10px rgba(28,42,31,.6)}
+  /* every panel is a bottom sheet with a grab handle */
+  body.v2-on .drawer .panel{border-radius:24px 24px 0 0!important}
+  body.v2-on .drawer .panel::before{content:"";display:block;width:36px;height:5px;border-radius:3px;background:var(--line);margin:4px auto 10px}
+  body.v2-on .list .row:active{background:var(--line-2,#F1F3F1)}
+  body.v2-on .sk{background:linear-gradient(90deg,var(--line-2,#EEF2F0) 25%,var(--card,#fff) 37%,var(--line-2,#EEF2F0) 63%)!important;background-size:400% 100%!important;animation:m26Shim 1.4s ease infinite}
+  @keyframes m26Shim{0%{background-position:100% 50%}100%{background-position:0 50%}}
 }
-.fb-brand,.fb-quick{display:none}
-@media (max-width:900px){body.v2-on .fb-quick{display:flex}}
-@media (prefers-reduced-motion:reduce){body.v2-on .v2-bottom button i,body.v2-on .sk{animation:none!important}}
-:root[data-theme="dark"] body.v2-on,body.v2-on.dark{--fb-bg:#0F1512;--fb-sep:#26302A}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) body.v2-on{--fb-bg:#0F1512;--fb-sep:#26302A}}
+/* the page picker sheet (phones) */
+.m-sheet{position:fixed;inset:0;z-index:1200;display:flex;flex-direction:column;justify-content:flex-end}
+.m-sheet .m-scrim{position:absolute;inset:0;background:rgba(10,18,12,.38);animation:m26Fade .2s ease both}
+.m-sheet .m-panel{position:relative;background:var(--card,#fff);border-radius:26px 26px 0 0;padding:8px 16px calc(18px + env(safe-area-inset-bottom));max-height:82dvh;overflow:auto;animation:m26Up .28s cubic-bezier(.2,.9,.25,1) both}
+.m-sheet .m-grab{width:36px;height:5px;border-radius:3px;background:var(--line,#DDE2DE);margin:2px auto 8px}
+.m-sheet .m-h{display:flex;align-items:center;gap:8px;margin:0 0 10px}.m-sheet .m-h h3{font-size:20px;font-weight:800;margin:0;flex:1}
+.m-sheet .m-x{width:44px;height:44px;border-radius:50%;border:0;background:var(--line-2,#F1F3F1);font-size:20px;display:grid;place-items:center;cursor:pointer;color:var(--ink)}
+.m-sheet .m-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.m-sheet .m-grid button{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:8px;min-height:96px;padding:12px 6px;border-radius:16px;border:1px solid transparent;background:var(--paper,#F6F5F0);font:inherit;font-size:12.5px;line-height:1.3;color:var(--ink);text-align:center;cursor:pointer}
+.m-sheet .m-grid .mi{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:var(--card,#fff);color:var(--brand,#4D6D51);font-size:22px}
+.m-sheet .m-grid button[aria-current="page"]{border-color:var(--brand,#4D6D51);background:#E6F0E8;font-weight:700}
+.m-sheet .m-grid button:active{transform:scale(.97)}
+@keyframes m26Up{from{transform:translateY(100%)}to{transform:none}}@keyframes m26Fade{from{opacity:0}to{opacity:1}}
+.fb-brand,.fb-quick,.m-pick{display:none}
+@media (max-width:900px){body.v2-on .fb-quick{display:grid!important}body.v2-on .m-pick{display:flex}}
+@media (prefers-reduced-motion:reduce){.m-sheet .m-panel,.m-sheet .m-scrim,body.v2-on .sk{animation:none!important}}
+:root[data-theme="dark"] body.v2-on,html[data-theme="dark"] body.v2-on{--m-bg:#0F1512;--m-sep:rgba(255,255,255,.08);--m-tint:#1F3326}
+html[data-theme="dark"] .m-sheet .m-grid button[aria-current="page"]{background:#1F3326}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) body.v2-on{--m-bg:#0F1512;--m-sep:rgba(255,255,255,.08);--m-tint:#1F3326}}
 </style>
 </head>
 <body>
@@ -3041,7 +3081,7 @@ Object.assign(T.ar, {
   vwMine:'طلباتي', vwInbox:'الموافقات', vwLeave:'تقويم الإجازات', vwHolidays:'العطل الرسمية',
   vwSlips:'قسائمي', vwRuns:'مسيرات الرواتب', vwApprovals:'اعتماد الرواتب', vwCompliance:'الامتثال',
   vwGrowth:'أدائي', vwCycle:'دورة التقييم', vwPlans:'خطط التطوير', vwPulse:'نبض الموظفين',
-  vwDirectory:'الدليل', vwTeam:'فريقي', vwOrg:'الهيكل', vwPositions:'الوظائف', vwOnboarding:'التهيئة', vwOffboarding:'إخلاء الطرف', vwCustody:'العهد', vwCentre:'مركز الموافقات', vwCycles:'دورة الإجازة', vwExpenses:'المصروفات', vwNewReq:'طلب جديد', vwReqView:'تفاصيل الطلب', vwNewClaim:'مطالبة مصروفات جديدة', vwClaimView:'مطالبة مصروفات', fpBack:'رجوع', fpCrumb:'مسار الصفحة', vwFlows:'مسارات الموافقة', vwGov:'الخدمات الحكومية', vwRecruit:'التوظيف', vwTraining:'التدريب والشهادات', vwInsurance:'التأمين الطبي', vwLoans:'القروض', vwHelpdesk:'مكتب الدعم', vwAnnounce:'الإعلانات', vwExits:'رأي المغادرين', vwKudos:'التقدير', vwSettle:'المخالصات', vwPayReview:'مراجعة الرواتب', vwTimesheets:'كشوف الدوام', vwOneOnOne:'لقاءات 1:1 والأهداف', tk_one_on_one:'لقاء 1:1 خلال يومين', vwWorkforce:'خطة القوى العاملة', vwCareers:'صفحة الوظائف', pinOfferTitle:'اجعل الرمز السري طريقة دخولك', pinOfferLead:'ادخل من هذا الجهاز برمز سري من 6 أرقام بدل كلمة المرور أو بصمة الوجه. لا يلزم رمز تفعيل من الموارد البشرية.', pinOfferBtn:'اعتماد الرمز السري', pinOfferLater:'لاحقا', pinOfferPw:'كلمة المرور الحالية', pinOfferDone:'تم. ستدخل من هذا الجهاز بالرمز السري.', vwOpenShifts:'الورديات المفتوحة', tk_swap_ask:'زميل يطلب تبديل وردية معك', tk_shift_offer:'ورديات وتبديلات بانتظار اعتمادك', vwOrgChart:'الهيكل المرئي', vwCustomFields:'الحقول المخصصة', vwBuilder:'منشئ التقارير', vwJournal:'قيد الرواتب',
+  vwDirectory:'الدليل', vwTeam:'فريقي', vwOrg:'الهيكل', vwPositions:'الوظائف', vwOnboarding:'التهيئة', vwOffboarding:'إخلاء الطرف', vwCustody:'العهد', vwCentre:'مركز الموافقات', vwCycles:'دورة الإجازة', vwExpenses:'المصروفات', vwNewReq:'طلب جديد', vwReqView:'تفاصيل الطلب', vwNewClaim:'مطالبة مصروفات جديدة', vwClaimView:'مطالبة مصروفات', fpBack:'رجوع', fpCrumb:'مسار الصفحة', vwFlows:'مسارات الموافقة', vwGov:'الخدمات الحكومية', vwRecruit:'التوظيف', vwTraining:'التدريب والشهادات', vwInsurance:'التأمين الطبي', vwLoans:'القروض', vwHelpdesk:'مكتب الدعم', vwAnnounce:'الإعلانات', vwExits:'رأي المغادرين', vwKudos:'التقدير', vwSettle:'المخالصات', vwPayReview:'مراجعة الرواتب', vwTimesheets:'كشوف الدوام', mPages:'صفحات', w2Close:'إغلاق', vwOneOnOne:'لقاءات 1:1 والأهداف', tk_one_on_one:'لقاء 1:1 خلال يومين', vwWorkforce:'خطة القوى العاملة', vwCareers:'صفحة الوظائف', pinOfferTitle:'اجعل الرمز السري طريقة دخولك', pinOfferLead:'ادخل من هذا الجهاز برمز سري من 6 أرقام بدل كلمة المرور أو بصمة الوجه. لا يلزم رمز تفعيل من الموارد البشرية.', pinOfferBtn:'اعتماد الرمز السري', pinOfferLater:'لاحقا', pinOfferPw:'كلمة المرور الحالية', pinOfferDone:'تم. ستدخل من هذا الجهاز بالرمز السري.', vwOpenShifts:'الورديات المفتوحة', tk_swap_ask:'زميل يطلب تبديل وردية معك', tk_shift_offer:'ورديات وتبديلات بانتظار اعتمادك', vwOrgChart:'الهيكل المرئي', vwCustomFields:'الحقول المخصصة', vwBuilder:'منشئ التقارير', vwJournal:'قيد الرواتب',
   vwRelations:'علاقات العمل', vwPolicies:'السياسات', vwExpiring:'وثائق تنتهي', vwImport:'استيراد', vwAccounts:'الدخول والأجهزة',
   vwDashboard:'لوحة الإدارة', vwReports:'التقارير', vwAttendance:'تقرير الحضور', vwAudit:'سجل التدقيق', vwMain:'',
   v2System:'نظام الموارد البشرية', v2Search:'ابحث عن موظف أو صفحة', v2Menu:'القائمة', v2More:'المزيد', v2Punch:'بصمة', v2MyPay:'راتبي', v2Req:'الطلبات', v2PeopleS:'الموظفون',
@@ -3087,7 +3127,7 @@ Object.assign(T.en, {
   vwMine:'My requests', vwInbox:'Approvals', vwLeave:'Leave calendar', vwHolidays:'Public holidays',
   vwSlips:'My payslips', vwRuns:'Payroll runs', vwApprovals:'Salary approvals', vwCompliance:'Compliance',
   vwGrowth:'My growth', vwCycle:'Review cycle', vwPlans:'Development plans', vwPulse:'Pulse survey',
-  vwDirectory:'Directory', vwTeam:'My team', vwOrg:'Organisation', vwPositions:'Positions', vwOnboarding:'Onboarding', vwOffboarding:'Offboarding', vwCustody:'Assets', vwCentre:'Approvals centre', vwCycles:'Leave cycle', vwExpenses:'Expenses', vwNewReq:'New request', vwReqView:'Request details', vwNewClaim:'New expense claim', vwClaimView:'Expense claim', fpBack:'Back', fpCrumb:'Breadcrumb', vwFlows:'Approval flows', vwGov:'Government services', vwRecruit:'Recruitment', vwTraining:'Training and certificates', vwInsurance:'Medical insurance', vwLoans:'Loans', vwHelpdesk:'Help desk', vwAnnounce:'Announcements', vwExits:'Exit insights', vwKudos:'Recognition', vwSettle:'Settlements', vwPayReview:'Pay review', vwTimesheets:'Timesheets', vwOneOnOne:'1:1s and goals', tk_one_on_one:'A 1:1 within two days', vwWorkforce:'Workforce plan', vwCareers:'Careers page', pinOfferTitle:'Make the PIN your sign-in', pinOfferLead:'Sign in on this device with a 6-digit PIN instead of the password or Face ID. No activation code from HR is needed.', pinOfferBtn:'Use the PIN', pinOfferLater:'Later', pinOfferPw:'Current password', pinOfferDone:'Done. This device now signs in with your PIN.', vwOpenShifts:'Open shifts', tk_swap_ask:'A colleague asks to swap a shift with you', tk_shift_offer:'Shifts and swaps waiting for your approval', vwOrgChart:'Org chart', vwCustomFields:'Custom fields', vwBuilder:'Report builder', vwJournal:'Payroll journal',
+  vwDirectory:'Directory', vwTeam:'My team', vwOrg:'Organisation', vwPositions:'Positions', vwOnboarding:'Onboarding', vwOffboarding:'Offboarding', vwCustody:'Assets', vwCentre:'Approvals centre', vwCycles:'Leave cycle', vwExpenses:'Expenses', vwNewReq:'New request', vwReqView:'Request details', vwNewClaim:'New expense claim', vwClaimView:'Expense claim', fpBack:'Back', fpCrumb:'Breadcrumb', vwFlows:'Approval flows', vwGov:'Government services', vwRecruit:'Recruitment', vwTraining:'Training and certificates', vwInsurance:'Medical insurance', vwLoans:'Loans', vwHelpdesk:'Help desk', vwAnnounce:'Announcements', vwExits:'Exit insights', vwKudos:'Recognition', vwSettle:'Settlements', vwPayReview:'Pay review', vwTimesheets:'Timesheets', mPages:'pages', w2Close:'Close', vwOneOnOne:'1:1s and goals', tk_one_on_one:'A 1:1 within two days', vwWorkforce:'Workforce plan', vwCareers:'Careers page', pinOfferTitle:'Make the PIN your sign-in', pinOfferLead:'Sign in on this device with a 6-digit PIN instead of the password or Face ID. No activation code from HR is needed.', pinOfferBtn:'Use the PIN', pinOfferLater:'Later', pinOfferPw:'Current password', pinOfferDone:'Done. This device now signs in with your PIN.', vwOpenShifts:'Open shifts', tk_swap_ask:'A colleague asks to swap a shift with you', tk_shift_offer:'Shifts and swaps waiting for your approval', vwOrgChart:'Org chart', vwCustomFields:'Custom fields', vwBuilder:'Report builder', vwJournal:'Payroll journal',
   vwRelations:'Employee relations', vwPolicies:'Policies', vwExpiring:'Expiring documents', vwImport:'Import', vwAccounts:'Logins & devices',
   vwDashboard:'Dashboard', vwReports:'Reports', vwAttendance:'Attendance report', vwAudit:'Audit log', vwMain:'',
   v2System:'HR system', v2Search:'Search people or pages', v2Menu:'Menu', v2More:'More', v2Punch:'Punch', v2MyPay:'My pay', v2Req:'Requests', v2PeopleS:'People',
@@ -3462,7 +3502,7 @@ function goArea(area, sub, arg, o){
     main.innerHTML = '<div class="page v2' + (toPunch ? ' is-punch' : moReduced() || fromArea === a.id ? '' : ' mo-page') + '" data-page="' + a.id + '"><div class="pg-head pg-area">' + heroHtml(a) +
       (subs.length > 1 ? '<div class="v2-views" role="tablist" aria-label="' + areaName(a) + '">' + subs.map(function(x){
         return '<button type="button" role="tab" data-sub="' + x.id + '" aria-selected="' + (x === s) + '" tabindex="' + (x === s ? 0 : -1) + '">' + (SUB_ICON[x.id] ? ph(SUB_ICON[x.id]) : '') + t(x.n) + (x.badge ? '<span class="badge hidden num" id="' + x.badge + '"></span>' : '') + '</button>';
-      }).join('') + '</div>' : '<div style="height:14px"></div>') + '</div>' +
+      }).join('') + '</div>' + '<button type="button" class="m-pick" id="mPick" aria-haspopup="dialog"><span class="ic">' + ph(SUB_ICON[s.id] || a.i, 'duotone') + '</span><span><b>' + t(s.n) + '</b><small>' + areaName(a) + ' · ' + subs.length + ' ' + t('mPages') + '</small></span><span class="ch">' + ph('caret-down') + '</span></button>' : '<div style="height:14px"></div>') + '</div>' +
       '<div class="v2-area' + (toPunch ? ' v2-punch' : '') + '" id="v2Body" role="tabpanel"></div></div>';
     var tabs = $$('[data-sub]', main);
     tabs.forEach(function(b, n){
@@ -3473,9 +3513,24 @@ function goArea(area, sub, arg, o){
         if (m >= 0) { ev.preventDefault(); goArea(a.id, tabs[m].dataset.sub); var f = $('[data-sub="' + tabs[m].dataset.sub + '"]'); if (f) f.focus(); }
       };
     });
-    var cur = $('[data-sub][aria-selected="true"]', main); if (cur && cur.scrollIntoView && subs.length > 4) cur.scrollIntoView({ block: 'nearest', inline: 'center' });
+    var cur = $('[data-sub][aria-selected="true"]', main); if (cur && cur.scrollIntoView && subs.length > 4 && innerWidth > 900) cur.scrollIntoView({ block: 'nearest', inline: 'center' });
+    var mp = $('#mPick', main); if (mp) mp.onclick = function(){ openPagePicker(a, subs, s, mp); };
   }
   runSub(s, $('#v2Body'));
+}
+/** Phones (2026-10-19): the area's pages in a bottom sheet, a grid of icons, instead of a strip that scrolls sideways.
+ *  Close (x), Escape and a tap outside all close it; focus returns to the picker. */
+function openPagePicker(a, subs, cur, opener){
+  var el = document.createElement('div'); el.className = 'm-sheet'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('aria-label', areaName(a));
+  el.innerHTML = '<div class="m-scrim"></div><div class="m-panel"><div class="m-grab"></div><div class="m-h"><h3>' + areaName(a) + '</h3><button type="button" class="m-x" aria-label="' + t('w2Close') + '">' + ph('x') + '</button></div><div class="m-grid">' +
+    subs.map(function(x){ return '<button type="button" data-pk="' + x.id + '"' + (x === cur ? ' aria-current="page"' : '') + '><span class="mi">' + ph(SUB_ICON[x.id] || 'file') + '</span><span>' + t(x.n) + '</span></button>'; }).join('') + '</div></div>';
+  document.body.appendChild(el);
+  function close(){ document.removeEventListener('keydown', key); el.remove(); if (opener && opener.isConnected) opener.focus(); }
+  function key(ev){ if (ev.key === 'Escape') close(); }
+  document.addEventListener('keydown', key);
+  $('.m-scrim', el).onclick = close; $('.m-x', el).onclick = close;
+  $$('[data-pk]', el).forEach(function(b){ b.onclick = function(){ close(); goArea(a.id, b.dataset.pk); }; });
+  var f = $('[aria-current="page"]', el) || $('[data-pk]', el); if (f) f.focus();
 }
 /**
  * The top of a full page: a back button, a breadcrumb, then the title block (icon, title, lead, chips).

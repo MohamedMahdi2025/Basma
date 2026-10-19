@@ -149,7 +149,7 @@ function chartCard(id, cls, icon, title, lead, chart, table, dest){
 
 /** Round shortcuts (phone layout, design choice): the six things an employee opens most. */
 function quickRow(){
-  var q = [['time:punch', 'fingerprint', 'vwPunch'], ['requests:new', 'plus-circle', 'vwNewReq'], ['requests:mine', 'tray', 'vwMine'], ['pay:slips', 'receipt', 'vwSlips'], ['requests:claim', 'money', 'vwNewClaim'], ['growth:kudos', 'hands-clapping', 'vwKudos'], ['profile:main', 'identification-card', 'arProfile']];
+  var q = [['time:punch', 'fingerprint', 'vwPunch'], ['requests:new', 'plus-circle', 'vwNewReq'], ['requests:mine', 'tray', 'vwMine'], ['pay:slips', 'receipt', 'vwSlips'], ['requests:claim', 'money', 'vwNewClaim'], ['growth:oneonone', 'target', 'vwOneOnOne'], ['growth:kudos', 'hands-clapping', 'vwKudos'], ['profile:main', 'identification-card', 'arProfile']];
   return '<nav class="fb-quick" aria-label="' + t('v2Menu') + '">' + q.map(function(x){ return '<button type="button" data-qk="' + x[0] + '"><span>' + ph(x[1], 'duotone') + '</span>' + esc(t(x[2])) + '</button>'; }).join('') + '</nav>';
 }
 function render(main){
