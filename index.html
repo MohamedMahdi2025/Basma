@@ -4126,7 +4126,7 @@ function renderHome(){
       '<button class="punch' + (next === 'out' ? ' out' : '') + '" id="punch" type="button" aria-disabled="true">' +
         '<svg class="ring" viewBox="0 0 142 142"><circle class="track" cx="71" cy="71" r="66"/><circle class="prog" id="prog" cx="71" cy="71" r="66"/></svg>' +
         '<span class="lbl">' + (onDesktopKey() ? I.click : S.kind === 'devicekey' ? I.tap : I.finger) + '<b>' + (next === 'out' ? t('btnOut') : t('btnIn')) + '</b><small>' + t('hold') + '</small></span></button>' +
-      '<div class="punchinfo"><div class="clock num" id="clock" title="' + t('recordedAt') + '"></div><div class="date" id="cdate"></div><h2 id="pTitle">' + t('locating') + '</h2><p id="pHint">' + hintText() + '</p></div></div>' +
+      '<div class="punchinfo"><div class="clock num" id="clock" title="' + t('recordedAt') + '"></div><div class="date" id="cdate"></div><h2 id="pTitle">' + t('locating') + '</h2><small id="locDiag" dir="ltr" style="display:block;font-size:10.5px;color:var(--ink-3);opacity:.75;margin:2px 0 4px;word-break:break-all"></small><p id="pHint">' + hintText() + '</p></div></div>' +
       '<div id="todayBox"></div></section></div>';
   renderToday();
   Brand3D.mount();
@@ -4177,8 +4177,19 @@ function tickWorked(){
   }, 30000);
 }
 
+/** One short line under the check-in card (2026-10-19) so a screenshot tells support why location fails:
+ *  device, home-screen app or browser, permission state, last error, accuracy, how long it has waited, the build. No coordinates. */
+function locDiag(){
+  var el = $('#locDiag'); if (!el) return;
+  var d = locDevice(), app = (navigator.standalone || (window.matchMedia && matchMedia('(display-mode: standalone)').matches)) ? 'app' : 'web';
+  var parts = [d.os + '/' + d.br, app, 'perm:' + (S.locPerm || '?'), 'err:' + (S.locErr == null ? '-' : S.locErr), 'acc:' + (S.fix ? Math.round(S.fix.acc) + 'm' : '-'),
+    'age:' + (S.fix ? Math.round((Date.now() - S.fix.t) / 1000) + 's' : '-'), 'wait:' + (S.locStart && !S.fix ? Math.round((Date.now() - S.locStart) / 1000) + 's' : '-'), 'n:' + S.samples.length, 'v' + BUILD];
+  el.textContent = parts.join(' · ');
+}
+try { navigator.permissions && navigator.permissions.query({ name: 'geolocation' }).then(function(p){ S.locPerm = p.state; p.addEventListener('change', function(){ S.locPerm = p.state; locDiag(); }); }); } catch (e) {}
 function updateRadar(){
   var hero = $('#hero'); if (!hero) return;
+  setTimeout(locDiag, 0);
   var g = geoState(), zoneEl = $('#zone'), pin = $('#mepin'), btn = $('#punch');
   var stateTxt = $('#stateTxt'), distTxt = $('#distTxt'), subTxt = $('#subTxt'), pTitle = $('#pTitle'), pHint = $('#pHint');
   hero.classList.toggle('inside', g.kind === 'inside');
