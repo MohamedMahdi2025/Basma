@@ -147,5 +147,47 @@ function adForm(x, again){
 }
 window.CareersAdmin = { section: careersAdmin };
 
+// =================================================================== WORKFORCE PLAN (2026-10-19)
+Object.assign(T.ar, {
+  wfTitle:'خطة القوى العاملة', wfLead:'العدد المخطط لكل قسم في السنة مقابل الموظفين الحاليين وطلبات التوظيف المعتمدة والمنتظرة. الفجوة = المخطط − الحاليون − المعتمد غير المشغول. تكلفة الفجوة تقديرية بمتوسط رواتب القسم، وتظهر للأقسام التي فيها 3 أشخاص أو أكثر.',
+  wfYear:'السنة', wfDept:'القسم', wfStaff:'الحاليون', wfSaudi:'سعوديون', wfOpen:'معتمد غير مشغول', wfPending:'بانتظار الاعتماد', wfPlanned:'المخطط', wfGap:'الفجوة', wfCost:'تكلفة الفجوة سنويا',
+  wfSet:'تحديد', wfTotal:'الإجمالي', wfNoPlan:'بلا خطة', wfOver:'زيادة عن الخطة', wfNote:'ملاحظة'
+});
+Object.assign(T.en, {
+  wfTitle:'Workforce plan', wfLead:'Planned headcount per department for the year against current staff and approved and pending requisitions. Gap = planned - staff - approved but unfilled. The gap cost is an estimate from the department\'s average pay, shown for departments of 3 or more.',
+  wfYear:'Year', wfDept:'Department', wfStaff:'Staff', wfSaudi:'Saudi', wfOpen:'Approved, unfilled', wfPending:'Awaiting approval', wfPlanned:'Planned', wfGap:'Gap', wfCost:'Gap cost a year',
+  wfSet:'Set', wfTotal:'Total', wfNoPlan:'No plan', wfOver:'Over plan', wfNote:'Note'
+});
+function workforceSection(body){
+  var box = K.head(body, 'wfTitle', 'wfLead'), year = S.wfYear || new Date().getFullYear();
+  function load(){
+    K.busy(box);
+    api('workforcePlan', { year: year }, true).then(function(r){
+      if (!box.isConnected) return;
+      if (!r.ok) return box.innerHTML = K.bad(r.error);
+      var T0 = r.totals, gapTxt = function(g){ return g == null ? '<small>' + t('wfNoPlan') + '</small>' : g > 0 ? '<b class="num">+' + g + '</b>' : g < 0 ? K.chip(t('wfOver') + ' ' + (-g), 'late') : '<span class="num">0</span>'; };
+      var h = K.tiles([[t('wfPlanned'), K.n(T0.planned)], [t('wfStaff'), K.n(T0.staff)], [t('wfOpen'), K.n(T0.open)], [t('wfGap'), K.n(T0.gap), '', T0.gap > 0]].concat(r.cost ? [[t('wfCost'), K.money(T0.gapCostYear)]] : [])) +
+        '<div class="toolbar"><label>' + t('wfYear') + ' <input type="number" id="wfY" min="2020" max="2100" value="' + year + '" style="width:90px"></label></div>';
+      h += r.rows.length ? '<div class="w2-mx"><table><thead><tr><th>' + t('wfDept') + '</th><th>' + t('wfPlanned') + '</th><th>' + t('wfStaff') + '</th><th>' + t('wfSaudi') + '</th><th>' + t('wfOpen') + '</th><th>' + t('wfPending') + '</th><th>' + t('wfGap') + '</th>' + (r.cost ? '<th>' + t('wfCost') + '</th>' : '') + (r.canEdit ? '<th></th>' : '') + '</tr></thead><tbody>' +
+        r.rows.map(function(x, i){
+          var pct = x.planned ? Math.min(100, Math.round((x.staff / x.planned) * 100)) : 0;
+          return '<tr><td>' + esc(K.lang(x.nameAr, x.nameEn)) + (x.note ? '<br><small>' + esc(x.note) + '</small>' : '') + '</td><td class="num">' + (x.planned == null ? '-' : x.planned) +
+            (x.planned ? '<div style="height:4px;border-radius:2px;background:var(--line);margin-top:4px"><i style="display:block;height:4px;border-radius:2px;width:' + pct + '%;background:var(--brand)"></i></div>' : '') + '</td>' +
+            '<td class="num">' + x.staff + '</td><td class="num">' + x.saudi + '</td><td class="num">' + x.open + '</td><td class="num">' + x.pending + '</td><td>' + gapTxt(x.gap) + '</td>' +
+            (r.cost ? '<td>' + (x.gapCostYear != null ? K.money(x.gapCostYear) : '-') + '</td>' : '') +
+            (r.canEdit ? '<td><button type="button" class="btn btn-line btn-sm" data-wf="' + i + '">' + t('wfSet') + '</button></td>' : '') + '</tr>';
+        }).join('') + '</tbody></table></div>' : K.empty('users-three', t('w2None'));
+      box.innerHTML = h; K.wire(box);
+      $('#wfY', box).onchange = function(){ year = S.wfYear = Number(this.value) || year; load(); };
+      $$('[data-wf]', box).forEach(function(b){ b.onclick = function(){ var x = r.rows[b.dataset.wf];
+        K.formDrawer(t('wfPlanned') + ' · ' + esc(K.lang(x.nameAr, x.nameEn)), String(year),
+          K.fld(t('wfPlanned'), '<input type="number" name="planned" min="0" max="100000" required value="' + (x.planned == null ? x.staff + x.open : x.planned) + '">') + K.fld(t('wfNote'), '<input name="note" maxlength="300" value="' + esc(x.note) + '">'),
+          function(v){ return api('workforcePlanSave', { year: year, deptId: x.deptId, planned: Number(v.planned), note: v.note }); }, load); }; });
+    });
+  }
+  load();
+}
+window.Workforce = { section: workforceSection };
+
 window.OpenShifts = { section: openShiftsSection };
 })();

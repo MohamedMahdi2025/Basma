@@ -1275,6 +1275,26 @@ if (visBad.length) NOTES.push('CLIENT: sections shown in the menu but refused by
 ok(true, 'visible sections checked for the six roles (' + visBad.length + ' client notes)');
 
 // =====================================================================================================
+cycle('Workforce plan (2026-10-19)');
+{
+  let w = call(1011, 'workforcePlan', { year: 2026 });
+  ok(w.ok && w.rows.length >= 10 && w.cost && w.totals.staff >= 40, 'HR sees every department with staff counts and cost', w.error || w.totals);
+  const big = w.rows.filter(x => x.staff >= 3), small = w.rows.filter(x => x.staff > 0 && x.staff < 3);
+  ok(big.length && big.every(x => x.avgMonthly > 0) && small.every(x => !('avgMonthly' in x)), 'average pay only for departments of 3 or more (an average of one or two people is their salary)', [big.length, small.length]);
+  const d = big[0];
+  r = call(1011, 'workforcePlanSave', { year: 2026, deptId: d.deptId, planned: d.staff + d.open + 2, note: 'توسع' });
+  ok(r.ok, 'HR sets the planned headcount for a department', r);
+  w = call(1011, 'workforcePlan', { year: 2026 });
+  const d2 = w.rows.find(x => x.deptId === d.deptId);
+  ok(d2.gap === 2 && d2.gapCostYear === 2 * d2.avgMonthly * 12 && d2.note === 'توسع', 'gap = planned - staff - open, costed for a year', d2);
+  ok(call(1011, 'workforcePlanSave', { year: 2026, deptId: d.deptId, planned: -1 }).error === 'bad_value', 'a negative plan is refused');
+  w = call(1015, 'workforcePlan', { year: 2026 });
+  ok(w.ok && w.rows.length >= 1 && w.rows.length < 5 && !w.cost && w.rows.every(x => !('avgMonthly' in x) && !('gapCostYear' in x)) && !('gapCostYear' in w.totals), 'a manager sees their own departments, without any pay', w.rows && w.rows.map(x => x.nameAr));
+  ok(call(1015, 'workforcePlanSave', { year: 2026, deptId: d.deptId, planned: 5 }).error === 'forbidden', 'only HR changes the plan');
+  ok(call(1003, 'workforcePlan', {}).error === 'forbidden', 'an employee who manages nobody has no plan view');
+  w = call(1002, 'workforcePlan', { year: 2026 });
+  ok(w.ok && w.cost && w.rows.length >= 10, 'the executive sees the whole plan with cost');
+}
 cycle('Access matrix');
 const code = fs.readFileSync(path.join(__dirname, '..', 'backend', 'Code.gs'), 'utf8');
 const mapOf = n => (code.match(new RegExp('var ' + n + ' = \\{([^}]*)\\}'))[1].match(/[a-zA-Z]+(?=:)/g));
@@ -1283,7 +1303,7 @@ const COLS = ['employee', 'manager', 'hr', 'payroll', 'executive', 'admin'];
 // Expected with an empty request. Actions that pick their target first are probed with a real target (PROBE).
 const ALLW = { all: COLS, hrA: ['hr', 'admin'], adm: ['admin'], pay: ['hr', 'payroll'], payOnly: ['payroll'], dash: ['hr', 'payroll', 'executive', 'admin'], hrPay: ['hr', 'payroll', 'admin'],
   mgr: ['manager', 'hr', 'admin'], none: [], fileView: ['manager', 'hr', 'payroll', 'admin'],
-  mgrX: ['manager', 'hr', 'executive', 'admin'], money: ['hr', 'payroll', 'executive'], hrExec: ['hr', 'executive'], hrExecA: ['hr', 'executive', 'admin'], mgrPay: ['manager', 'hr', 'payroll', 'admin'] };
+  mgrX: ['manager', 'hr', 'executive', 'admin'], money: ['hr', 'payroll', 'executive'], hrExec: ['hr', 'executive'], hrExecA: ['hr', 'executive', 'admin'], mgrPay: ['manager', 'hr', 'payroll', 'admin'], mgrAll: ['manager', 'hr', 'payroll', 'executive', 'admin'] };
 const EXPECT = {
   hrCompList: 'pay', hrCompPropose: 'pay', hrCompDecide: 'pay', leaveTeam: 'mgr', payrollList: 'pay', payrollGet: 'pay', payrollCreate: 'pay', payrollRecalc: 'pay', payrollApprove: 'payOnly',
   payrollDelete: 'pay', payrollAdjSave: 'pay', payrollAdjDelete: 'pay', payrollExport: 'pay', payrollEmail: 'pay', eosQuote: 'pay', dashboard: 'dash', reportLog: 'hrPay', reportReview: 'hrPay',
@@ -1303,7 +1323,7 @@ const EXPECT = {
   // annual pay review (Payroll.gs): cycles by hr role / payroll; managers list and propose for their people
   compCycleSave: 'pay', compCycleClose: 'pay', compCycleList: 'mgrPay', compPropose: 'mgrPay',
   // timesheets (Attendance.gs): HR (incl. admin) and managers
-  timesheetList: 'mgr', timesheetApprove: 'mgr', openShiftPost: 'mgr', shiftOfferDecide: 'mgr',
+  timesheetList: 'mgr', timesheetApprove: 'mgr', openShiftPost: 'mgr', shiftOfferDecide: 'mgr', workforcePlan: 'mgrAll', workforcePlanSave: 'hrA',
   // custom fields (Hr.gs): definitions and values written by HR (incl. admin); everyone may list and read what they may see
   customFieldSave: 'hrA', customValuesSave: 'hrA', customValuesAll: 'hrA'
 };

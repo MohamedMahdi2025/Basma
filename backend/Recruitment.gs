@@ -611,3 +611,66 @@ function api_careerPostSave(req, me) {
     return { ok: true };
   });
 }
+
+/**
+ * Workforce / headcount plan (2026-10-19, gap list item 4; seen in Deel and Workday, rebuilt as our own). Tab workforcePlans.
+ * Per department and year: the planned headcount (set by HR) against active staff, approved requisitions still open and
+ * requisitions waiting for approval. Gap = planned - staff - open. Cost of the gap = gap x the department's average monthly
+ * package x 12, shown only to hr, payroll and executive, and only for departments of 3 or more (an average of one or two
+ * people is their salary). Managers see their own departments, without cost.
+ */
+function wfpScope_(me, ctx) {
+  if (isHr_(me) || hasRole_(me, 'executive') || hasRole_(me, 'payroll')) return null; // all departments
+  var mine = {};
+  Object.keys(ctx.emps).forEach(function (k) { var e = ctx.emps[k]; if (e.departmentId && e.status === 'active' && manages_(me, e, ctx)) mine[e.departmentId] = 1; });
+  if (!Object.keys(mine).length) fail_('forbidden');
+  return mine;
+}
+function api_workforcePlan(req, me) {
+  var ctx = orgCtx_(), scope = wfpScope_(me, ctx), year = Math.floor(Number(req.year) || Number(today_().slice(0, 4)));
+  var cost = me.role === 'hr' || hasRole_(me, 'payroll') || hasRole_(me, 'executive');
+  var comp = cost ? currentCompMap_(today_()) : {}, plans = {}, by = {};
+  readAll_(SHEETS.WFP).forEach(function (p) { if (Number(p.year) === year) plans[p.deptId] = p; });
+  readAll_(SHEETS.DEPT).forEach(function (d) {
+    if (d.status === 'inactive' || (scope && !scope[d.id])) return;
+    by[d.id] = { deptId: d.id, nameAr: d.nameAr || d.name, nameEn: d.nameEn, staff: 0, saudi: 0, open: 0, pending: 0, pay: 0, paid: 0,
+      planned: plans[d.id] ? Number(plans[d.id].planned) : null, note: plans[d.id] ? plans[d.id].note || '' : '' };
+  });
+  Object.keys(ctx.emps).forEach(function (k) {
+    var e = ctx.emps[k], r = by[e.departmentId];
+    if (!r || e.status !== 'active') return;
+    r.staff++; if (bool_(e.isSaudi) || SAUDI_RE.test(String(e.nationality || ''))) r.saudi++;
+    if (comp[e.id]) { r.pay += comp[e.id].total; r.paid++; }
+  });
+  readAll_(SHEETS.REQN).forEach(function (q) {
+    var r = by[q.departmentId], left = Math.max(0, (Number(q.headcount) || 1) - (Number(q.filled) || 0));
+    if (!r) return;
+    if (q.status === 'approved') r.open += left; else if (q.status === 'pending') r.pending += left;
+  });
+  var rows = Object.keys(by).map(function (k) {
+    var r = by[k], out = { deptId: r.deptId, nameAr: r.nameAr, nameEn: r.nameEn, staff: r.staff, saudi: r.saudi, open: r.open, pending: r.pending, planned: r.planned, note: r.note };
+    out.gap = r.planned == null ? null : r.planned - r.staff - r.open;
+    if (cost && r.paid >= 3) { out.avgMonthly = Math.round(r.pay / r.paid); out.gapCostYear = out.gap ? Math.round(out.gap * out.avgMonthly * 12) : 0; }
+    return out;
+  }).sort(function (a, b) { return String(a.nameAr).localeCompare(String(b.nameAr)); });
+  var tot = { staff: 0, open: 0, pending: 0, planned: 0, gap: 0, gapCostYear: 0 };
+  rows.forEach(function (r) { tot.staff += r.staff; tot.open += r.open; tot.pending += r.pending; tot.planned += r.planned || 0; tot.gap += r.gap || 0; tot.gapCostYear += r.gapCostYear || 0; });
+  if (!cost) delete tot.gapCostYear;
+  return { ok: true, year: year, rows: rows, totals: tot, canEdit: isHr_(me), cost: cost };
+}
+function api_workforcePlanSave(req, me) {
+  if (!isHr_(me)) fail_('forbidden');
+  var year = Math.floor(Number(req.year)), planned = Number(req.planned);
+  if (!(year >= 2020 && year <= 2100) || !(planned >= 0 && planned <= 100000) || Math.floor(planned) !== planned) fail_('bad_value');
+  return withLock_(function () {
+    var d = findBy_(SHEETS.DEPT, 'id', req.deptId);
+    if (!d) fail_('not_found');
+    var p = readAll_(SHEETS.WFP).filter(function (x) { return x.deptId === d.id && Number(x.year) === year; })[0], now = new Date().toISOString();
+    var was = p ? Number(p.planned) : null;
+    if (!p) p = { id: newId_('W'), year: year, deptId: d.id };
+    p.planned = planned; p.note = str_(req.note, 300); p.updatedBy = me.id; p.updatedAt = now;
+    if (p._row) update_(SHEETS.WFP, p); else append_(SHEETS.WFP, p);
+    audit_(me.id, 'workforce_plan_save', '', { dept: d.code || d.id, year: year, from: was, to: planned });
+    return { ok: true };
+  });
+}
