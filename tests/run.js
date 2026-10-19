@@ -530,6 +530,24 @@ console.log('A new hire added before the first day');
 console.log('Tokens');
 r = B.call({ action: 'me', token: adminToken.slice(0, -2) + 'xx' });
 ok(!r.ok && r.error === 'session_expired', 'a forged token is refused', r);
+console.log('PIN as the default sign-in (2026-10-19)');
+{
+  const tk = (() => { const b = B.call({ action: 'authBegin', empNo: '3001' }); return B.call({ action: 'authFinish', credential: hrDev.get(b.options) }).token; })();
+  const pinDev = new DeviceKey();
+  let c = B.call({ action: 'pinEnrollBegin', token: tk });
+  ok(c.ok && c.challenge, 'a signed-in person gets a one-time challenge to switch this device to a PIN', c);
+  r = B.call({ action: 'pinEnrollFinish', token: tk, deviceKey: pinDev.create({ challenge: c.challenge }), pin: '123456' });
+  ok(!r.ok && r.error === 'weak_pin', 'a weak PIN is refused', r);
+  c = B.call({ action: 'pinEnrollBegin', token: tk });
+  r = B.call({ action: 'pinEnrollFinish', token: tk, deviceKey: pinDev.create({ challenge: c.challenge }), pin: '591736', label: 'iPhone' });
+  ok(r.ok && r.token && r.credId, 'the Face ID phone switches to the PIN without an HR code', r);
+  r = B.call({ action: 'pinEnrollFinish', token: tk, deviceKey: pinDev.create({ challenge: c.challenge }), pin: '591736' });
+  ok(!r.ok, 'the challenge cannot be used twice', r);
+  r = (() => { const b = B.call({ action: 'authBegin', empNo: '3001' }); return B.call({ action: 'authFinish', credential: pinDev.get(b.options), pin: '591736' }); })();
+  ok(r.ok && r.token, 'from then on the device signs in with the PIN', r.error);
+  r = (() => { const b = B.call({ action: 'authBegin', empNo: '3001' }); return B.call({ action: 'authFinish', credential: hrDev.get(b.options) }); })();
+  ok(!r.ok, 'the old Face ID credential on that phone is retired', r);
+}
 B.setNow(T0 + 30 * 24 * 3600000);
 r = B.call({ action: 'me', token: hrToken });
 ok(!r.ok && r.error === 'session_expired', 'tokens expire', r);

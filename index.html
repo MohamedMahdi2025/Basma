@@ -2975,13 +2975,44 @@ function areaFromHash(){
   S.subArg = h[2] ? decodeURIComponent(h[2]) : '';
   return areaOf(a) ? a : 'home';
 }
+/** PIN as the default sign-in (2026-10-19): someone signed in with a password or an older Face ID device is offered, once a
+ *  week until they accept, to make the 6-digit PIN this device's sign-in. No HR code needed; a password session retypes it. */
+function offerPin(){
+  if (!S.me || (S.kind === 'devicekey' && S.hasPin) || !hasDeviceKeySupport()) return;
+  var last = Number(store('pinOfferAt') || 0); if (Date.now() - last < 7 * 86400000) return;
+  var pw = S.auth === 'pw';
+  var d = drawer('<h3>' + ph('lock-key') + ' ' + t('pinOfferTitle') + '</h3><p class="hr-hint">' + t('pinOfferLead') + '</p><form class="form" id="poF" autocomplete="off">' +
+    '<div class="field"><label for="po1">' + t('pinNew') + '</label><input id="po1" class="pinin" type="password" inputmode="numeric" pattern="\d{6}" maxlength="6" autocomplete="new-password" required dir="ltr"></div>' +
+    '<div class="field"><label for="po2">' + t('pinAgain') + '</label><input id="po2" class="pinin" type="password" inputmode="numeric" pattern="\d{6}" maxlength="6" autocomplete="new-password" required dir="ltr"></div>' +
+    (pw ? '<div class="field"><label for="po3">' + t('pinOfferPw') + '</label><input id="po3" type="password" autocomplete="current-password" required dir="ltr"></div>' : '') +
+    '<p class="err" id="poE" role="alert"></p><div class="btnrow"><button class="btn btn-dark" type="submit">' + t('pinOfferBtn') + '</button> <button class="btn btn-line" type="button" id="poL">' + t('pinOfferLater') + '</button></div></form>');
+  $('#poL', d).onclick = function(){ store('pinOfferAt', String(Date.now())); d.remove(); };
+  $('#poF', d).onsubmit = function(ev){
+    ev.preventDefault();
+    var a = $('#po1', d).value, b = $('#po2', d).value, e = $('#poE', d), btn = $('#poF [type=submit]', d);
+    if (!validPin(a)) return e.textContent = t('e_bad_pin_format');
+    if (a !== b) return e.textContent = t('e_pin_mismatch');
+    btn.disabled = true; e.textContent = '';
+    api('pinEnrollBegin', {}).then(function(r){
+      if (!r.ok) throw r.error;
+      return dkCreate(r.challenge);
+    }).then(function(dk){
+      return api('pinEnrollFinish', { deviceKey: dk, pin: a, password: pw ? $('#po3', d).value : undefined, label: deviceLabel(), platform: isDesktopDevice() ? 'desktop' : 'mobile' });
+    }).then(function(f){
+      if (!f.ok) throw f.error;
+      S.kind = 'devicekey'; store('kind', 'devicekey'); S.dkId = f.credId; store('dkId', f.credId); S.platform = f.platform; store('platform', f.platform);
+      S.hasPin = true; store('hasPin', '1'); S.pwOnly = false; store('pwOnly', null); store('empNo', S.empNo = S.empNo || String(S.me.empNo)); S.auth = 'dev';
+      d.remove(); toast(t('pinOfferDone'));
+    }).catch(function(code){ btn.disabled = false; e.textContent = errText(typeof code === 'string' ? code : 'network'); });
+  };
+}
 function enterApp(home){
   if (!home) home = null;
   store('name', S.me ? S.me.name : '');
   function go(r){
     applyHome(r); armIdleLock();
     S.fileRoles = null;
-    S.tab = areaFromHash(); renderShell(); startWatch(); schedulePunchPrefetch(true);
+    S.tab = areaFromHash(); renderShell(); startWatch(); schedulePunchPrefetch(true); setTimeout(offerPin, 2500);
     setTimeout(function(){
       if (!S.me) return;
       loadScript('js/my-file.js').catch(function(){});
@@ -3008,7 +3039,7 @@ Object.assign(T.ar, {
   vwMine:'طلباتي', vwInbox:'الموافقات', vwLeave:'تقويم الإجازات', vwHolidays:'العطل الرسمية',
   vwSlips:'قسائمي', vwRuns:'مسيرات الرواتب', vwApprovals:'اعتماد الرواتب', vwCompliance:'الامتثال',
   vwGrowth:'أدائي', vwCycle:'دورة التقييم', vwPlans:'خطط التطوير', vwPulse:'نبض الموظفين',
-  vwDirectory:'الدليل', vwTeam:'فريقي', vwOrg:'الهيكل', vwPositions:'الوظائف', vwOnboarding:'التهيئة', vwOffboarding:'إخلاء الطرف', vwCustody:'العهد', vwCentre:'مركز الموافقات', vwCycles:'دورة الإجازة', vwExpenses:'المصروفات', vwNewReq:'طلب جديد', vwReqView:'تفاصيل الطلب', vwNewClaim:'مطالبة مصروفات جديدة', vwClaimView:'مطالبة مصروفات', fpBack:'رجوع', fpCrumb:'مسار الصفحة', vwFlows:'مسارات الموافقة', vwGov:'الخدمات الحكومية', vwRecruit:'التوظيف', vwTraining:'التدريب والشهادات', vwInsurance:'التأمين الطبي', vwLoans:'القروض', vwHelpdesk:'مكتب الدعم', vwAnnounce:'الإعلانات', vwExits:'رأي المغادرين', vwKudos:'التقدير', vwSettle:'المخالصات', vwPayReview:'مراجعة الرواتب', vwTimesheets:'كشوف الدوام', vwOpenShifts:'الورديات المفتوحة', tk_swap_ask:'زميل يطلب تبديل وردية معك', tk_shift_offer:'ورديات وتبديلات بانتظار اعتمادك', vwOrgChart:'الهيكل المرئي', vwCustomFields:'الحقول المخصصة', vwBuilder:'منشئ التقارير', vwJournal:'قيد الرواتب',
+  vwDirectory:'الدليل', vwTeam:'فريقي', vwOrg:'الهيكل', vwPositions:'الوظائف', vwOnboarding:'التهيئة', vwOffboarding:'إخلاء الطرف', vwCustody:'العهد', vwCentre:'مركز الموافقات', vwCycles:'دورة الإجازة', vwExpenses:'المصروفات', vwNewReq:'طلب جديد', vwReqView:'تفاصيل الطلب', vwNewClaim:'مطالبة مصروفات جديدة', vwClaimView:'مطالبة مصروفات', fpBack:'رجوع', fpCrumb:'مسار الصفحة', vwFlows:'مسارات الموافقة', vwGov:'الخدمات الحكومية', vwRecruit:'التوظيف', vwTraining:'التدريب والشهادات', vwInsurance:'التأمين الطبي', vwLoans:'القروض', vwHelpdesk:'مكتب الدعم', vwAnnounce:'الإعلانات', vwExits:'رأي المغادرين', vwKudos:'التقدير', vwSettle:'المخالصات', vwPayReview:'مراجعة الرواتب', vwTimesheets:'كشوف الدوام', pinOfferTitle:'اجعل الرمز السري طريقة دخولك', pinOfferLead:'ادخل من هذا الجهاز برمز سري من 6 أرقام بدل كلمة المرور أو بصمة الوجه. لا يلزم رمز تفعيل من الموارد البشرية.', pinOfferBtn:'اعتماد الرمز السري', pinOfferLater:'لاحقا', pinOfferPw:'كلمة المرور الحالية', pinOfferDone:'تم. ستدخل من هذا الجهاز بالرمز السري.', vwOpenShifts:'الورديات المفتوحة', tk_swap_ask:'زميل يطلب تبديل وردية معك', tk_shift_offer:'ورديات وتبديلات بانتظار اعتمادك', vwOrgChart:'الهيكل المرئي', vwCustomFields:'الحقول المخصصة', vwBuilder:'منشئ التقارير', vwJournal:'قيد الرواتب',
   vwRelations:'علاقات العمل', vwPolicies:'السياسات', vwExpiring:'وثائق تنتهي', vwImport:'استيراد', vwAccounts:'الدخول والأجهزة',
   vwDashboard:'لوحة الإدارة', vwReports:'التقارير', vwAttendance:'تقرير الحضور', vwAudit:'سجل التدقيق', vwMain:'',
   v2System:'نظام الموارد البشرية', v2Search:'ابحث عن موظف أو صفحة', v2Menu:'القائمة', v2More:'المزيد', v2Punch:'بصمة', v2MyPay:'راتبي', v2Req:'الطلبات', v2PeopleS:'الموظفون',
@@ -3054,7 +3085,7 @@ Object.assign(T.en, {
   vwMine:'My requests', vwInbox:'Approvals', vwLeave:'Leave calendar', vwHolidays:'Public holidays',
   vwSlips:'My payslips', vwRuns:'Payroll runs', vwApprovals:'Salary approvals', vwCompliance:'Compliance',
   vwGrowth:'My growth', vwCycle:'Review cycle', vwPlans:'Development plans', vwPulse:'Pulse survey',
-  vwDirectory:'Directory', vwTeam:'My team', vwOrg:'Organisation', vwPositions:'Positions', vwOnboarding:'Onboarding', vwOffboarding:'Offboarding', vwCustody:'Assets', vwCentre:'Approvals centre', vwCycles:'Leave cycle', vwExpenses:'Expenses', vwNewReq:'New request', vwReqView:'Request details', vwNewClaim:'New expense claim', vwClaimView:'Expense claim', fpBack:'Back', fpCrumb:'Breadcrumb', vwFlows:'Approval flows', vwGov:'Government services', vwRecruit:'Recruitment', vwTraining:'Training and certificates', vwInsurance:'Medical insurance', vwLoans:'Loans', vwHelpdesk:'Help desk', vwAnnounce:'Announcements', vwExits:'Exit insights', vwKudos:'Recognition', vwSettle:'Settlements', vwPayReview:'Pay review', vwTimesheets:'Timesheets', vwOpenShifts:'Open shifts', tk_swap_ask:'A colleague asks to swap a shift with you', tk_shift_offer:'Shifts and swaps waiting for your approval', vwOrgChart:'Org chart', vwCustomFields:'Custom fields', vwBuilder:'Report builder', vwJournal:'Payroll journal',
+  vwDirectory:'Directory', vwTeam:'My team', vwOrg:'Organisation', vwPositions:'Positions', vwOnboarding:'Onboarding', vwOffboarding:'Offboarding', vwCustody:'Assets', vwCentre:'Approvals centre', vwCycles:'Leave cycle', vwExpenses:'Expenses', vwNewReq:'New request', vwReqView:'Request details', vwNewClaim:'New expense claim', vwClaimView:'Expense claim', fpBack:'Back', fpCrumb:'Breadcrumb', vwFlows:'Approval flows', vwGov:'Government services', vwRecruit:'Recruitment', vwTraining:'Training and certificates', vwInsurance:'Medical insurance', vwLoans:'Loans', vwHelpdesk:'Help desk', vwAnnounce:'Announcements', vwExits:'Exit insights', vwKudos:'Recognition', vwSettle:'Settlements', vwPayReview:'Pay review', vwTimesheets:'Timesheets', pinOfferTitle:'Make the PIN your sign-in', pinOfferLead:'Sign in on this device with a 6-digit PIN instead of the password or Face ID. No activation code from HR is needed.', pinOfferBtn:'Use the PIN', pinOfferLater:'Later', pinOfferPw:'Current password', pinOfferDone:'Done. This device now signs in with your PIN.', vwOpenShifts:'Open shifts', tk_swap_ask:'A colleague asks to swap a shift with you', tk_shift_offer:'Shifts and swaps waiting for your approval', vwOrgChart:'Org chart', vwCustomFields:'Custom fields', vwBuilder:'Report builder', vwJournal:'Payroll journal',
   vwRelations:'Employee relations', vwPolicies:'Policies', vwExpiring:'Expiring documents', vwImport:'Import', vwAccounts:'Logins & devices',
   vwDashboard:'Dashboard', vwReports:'Reports', vwAttendance:'Attendance report', vwAudit:'Audit log', vwMain:'',
   v2System:'HR system', v2Search:'Search people or pages', v2Menu:'Menu', v2More:'More', v2Punch:'Punch', v2MyPay:'My pay', v2Req:'Requests', v2PeopleS:'People',

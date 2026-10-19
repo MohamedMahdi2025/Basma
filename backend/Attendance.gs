@@ -791,3 +791,40 @@ hrisHook_('tasks', function (me, ctx, add) {
   readAll_(SHEETS.TSH).forEach(function (x) { if (x.month === prev && x.status === 'approved') have[x.empId] = 1; });
   add('timesheet', Object.keys(ctx.emps).filter(function (k) { var e = ctx.emps[k]; return e.status === 'active' && !have[k] && e.id !== me.id && !isHr_(me) && manages_(me, e, ctx); }).length, { tab: 'hr', sec: 'timesheets' });
 });
+
+/**
+ * PIN as the default sign-in (2026-10-19, owner's request). A person signed in with a password, or on an older Face ID
+ * (passkey) device, can switch this device to the 6-digit PIN without a new HR activation code: a fresh device key is
+ * bound to their account under a one-time challenge, with the PIN. A password session must type the password again.
+ * Like a new enrolment, it retires the earlier credential of the same platform (phone or laptop) and ends its sessions.
+ */
+function api_pinEnrollBegin(req, me) {
+  return { ok: true, challenge: newChallenge_({ purpose: 'reg_self', empId: me.id }) };
+}
+function api_pinEnrollFinish(req, me) {
+  var platform = req.platform === 'desktop' ? 'desktop' : 'mobile', st = settings_();
+  if (platform === 'desktop' && !st.allowDesktop) fail_('desktop_disabled');
+  if (platform === 'mobile' && !st.allowDeviceKey) fail_('device_key_disabled');
+  var pin = String(req.pin || '');
+  if (!/^\d{6}$/.test(pin)) fail_('bad_pin_format');
+  if (weakPin_(pin)) fail_('weak_pin');
+  var reg = verifyDeviceKeyRegistration_(req.deviceKey);
+  return withLock_(function () {
+    var emp = findBy_(SHEETS.EMP, 'id', me.id);
+    if (!emp || emp.status !== 'active') fail_('forbidden');
+    if (me._auth === 'pw' && !(emp.pwHash && safeEqual_(pwHash_(String(req.password || ''), emp.pwSalt), emp.pwHash))) fail_('bad_current_password');
+    var ch = takeChallenge_(reg.challenge);
+    if (!ch || ch.purpose !== 'reg_self' || ch.empId !== emp.id) fail_('challenge_expired');
+    if (findBy_(SHEETS.CRED, 'credId', reg.credId)) fail_('bad_credential');
+    var retired = 0, now = new Date().toISOString(), salt = bytesToB64u_(randomBytes_(16));
+    readAll_(SHEETS.CRED).forEach(function (c) {
+      if (c.empId === emp.id && c.status === 'active' && (c.platform || 'mobile') === platform) { c.status = 'retired'; update_(SHEETS.CRED, c); retired++; }
+    });
+    append_(SHEETS.CRED, { credId: reg.credId, empId: emp.id, x: reg.x, y: reg.y, signCount: reg.signCount, label: String(req.label || '').slice(0, 80), status: 'active',
+      createdAt: now, lastUsedAt: now, aaguid: reg.aaguid, kind: 'devicekey', platform: platform, pinHash: pinHash_(pin, salt), pinSalt: salt, pinTries: 0 });
+    if (retired) emp.tokenVer = Number(emp.tokenVer || 0) + 1;
+    emp.updatedAt = now; update_(SHEETS.EMP, emp);
+    audit_(emp.id, 'pin_device_set', emp.id, { credId: reg.credId.slice(0, 12), platform: platform, replaced: retired, from: me._auth || 'dev' });
+    return { ok: true, token: issueToken_(emp), credId: reg.credId, platform: platform };
+  });
+}
