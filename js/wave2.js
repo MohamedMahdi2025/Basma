@@ -443,6 +443,7 @@ function hdForm(again){
     '<p class="hr-hint" id="hdCn" hidden>' + ph('lock') + ' ' + t('hdConduct') + '</p>' + fld(t('hdSubject'), '<input name="subject" maxlength="150" required>') + fld(t('hdBody'), '<textarea name="body" rows="5" maxlength="4000" required></textarea>'),
     function(v){ return api('hdCreate', { ticket: v }); }, again, t('hdSend'));
   var sel = $('[name=category]', d); sel.onchange = function(){ $('#hdCn', d).hidden = sel.value !== 'conduct'; };
+  kbSuggest(d, function(){ d.remove(); });
   return d;
 }
 function deskSection(body){
@@ -475,6 +476,7 @@ function myDeskCard(el){
     if (!d.isConnected) el.appendChild(d);
     var again = function(){ myDeskCard(el); };
     $('[data-ask]', d).onclick = function(){ hdForm(again); };
+    var kbb = document.createElement('button'); kbb.type = 'button'; kbb.className = 'btn btn-line btn-sm'; kbb.innerHTML = ph('books') + t('kbBrowse'); kbb.onclick = function(){ goArea('requests', 'kb'); }; $('[data-ask]', d).before(kbb);
     $$('[data-hd]', d).forEach(function(b){ b.onclick = function(){ hdOpen(r.rows[b.dataset.hd].id, again); }; });
   }, true);
 }
@@ -1357,6 +1359,87 @@ function myCards(el){
   mySettleCard(el); myExitCard(el); myAnnCard(el); myKudosCard(el); myLoansCard(el); myInsCard(el); myTrainingCard(el); myDeskCard(el); myInterviewsCard(el); myCustomCard(el);
 }
 
+
+// =================================================================== KNOWLEDGE BASE (2026-10-19)
+Object.assign(T.ar, {
+  kbTitle:'قاعدة المعرفة', kbLead:'مقالات قصيرة تجيب عن الأسئلة المتكررة، تظهر للموظف وهو يكتب طلب الدعم قبل إرساله. تقيس المقالات المفيدة والطلبات التي تم تجنبها.',
+  kbNew:'مقال جديد', kbSeed:'تحميل مقالات بداية', kbSeedLead:'ست مقالات بداية كمسودات؛ راجعها مع سياسة الشركة قبل النشر.', kbCat:'التصنيف', kbTitleAr:'العنوان بالعربية', kbTitleEn:'العنوان بالإنجليزية', kbBodyAr:'النص بالعربية', kbBodyEn:'النص بالإنجليزية',
+  kbKeywords:'كلمات مفتاحية (للبحث)', kbStatus:'الحالة', kbs_published:'منشور', kbs_draft:'مسودة', kbs_archived:'مؤرشف', kbViews:'مشاهدات', kbHelpful:'مفيد', kbNotHelpful:'غير مفيد', kbDeflected:'طلبات تم تجنبها',
+  kbSuggest:'قد تجد الجواب هنا قبل الإرسال', kbDidHelp:'هل أجاب هذا عن سؤالك؟', kbYes:'نعم، شكرا', kbNo:'لا، أكمل الطلب', kbThanks:'شكرا لك', kbBrowse:'مقالات المساعدة', kbSearch:'ابحث في المقالات'
+});
+Object.assign(T.en, {
+  kbTitle:'Knowledge base', kbLead:'Short articles that answer common questions. They show to employees while they type a help desk ticket, before it is sent. Tracks helpful articles and tickets avoided.',
+  kbNew:'New article', kbSeed:'Load starter articles', kbSeedLead:'Six starter articles as drafts; check them against company policy before publishing.', kbCat:'Category', kbTitleAr:'Title (Arabic)', kbTitleEn:'Title (English)', kbBodyAr:'Text (Arabic)', kbBodyEn:'Text (English)',
+  kbKeywords:'Keywords (for search)', kbStatus:'Status', kbs_published:'Published', kbs_draft:'Draft', kbs_archived:'Archived', kbViews:'Views', kbHelpful:'Helpful', kbNotHelpful:'Not helpful', kbDeflected:'Tickets avoided',
+  kbSuggest:'You may find the answer here before sending', kbDidHelp:'Did this answer your question?', kbYes:'Yes, thanks', kbNo:'No, continue', kbThanks:'Thank you', kbBrowse:'Help articles', kbSearch:'Search the articles'
+});
+function kbArticle(id, fromTicket, onYes){
+  api('kbGet', { id: id }).then(function(r){
+    if (!r.ok) return toast(errText(r.error));
+    var a = r.article, body = lang(a.bodyAr, a.bodyEn);
+    var d = drawer('<h3>' + esc(lang(a.titleAr, a.titleEn)) + '</h3><p class="hr-hint"><bdi>' + esc(a.ref) + '</bdi> · ' + t('hdc_' + a.category) + '</p><div style="white-space:pre-wrap;line-height:1.8">' + esc(body) + '</div>' +
+      (a.status === 'published' ? '<div class="kb-fb" style="margin-top:16px;padding:12px;border-radius:12px;background:var(--paper)"><b>' + t('kbDidHelp') + '</b><div class="btnrow" style="margin-top:8px"><button type="button" class="btn btn-dark btn-sm" data-kb="1">' + t('kbYes') + '</button> <button type="button" class="btn btn-line btn-sm" data-kb="0">' + t(fromTicket ? 'kbNo' : 'w2No') + '</button></div></div>' : ''));
+    $$('[data-kb]', d).forEach(function(b){ b.onclick = function(){
+      var yes = b.dataset.kb === '1';
+      api('kbFeedback', { id: a.id, helpful: yes, deflected: yes && !!fromTicket });
+      d.remove(); if (yes) { toast(t('kbThanks')); if (onYes) onYes(); }
+    }; });
+  });
+}
+/** While an employee writes a ticket: suggestions under the subject (debounced; nothing sent under 3 letters). */
+function kbSuggest(d, closeForm){
+  var subj = $('[name=subject]', d), cat = $('[name=category]', d), box = document.createElement('div'), tm = 0, last = '';
+  box.className = 'kb-sug'; box.hidden = true; subj.closest('.field').after(box);
+  function run(){
+    var q = subj.value.trim(), key = q + '|' + cat.value;
+    if (key === last) return; last = key;
+    if (q.length < 3) { box.hidden = true; return; }
+    api('kbSearch', { q: q, category: cat.value }, true).then(function(r){
+      if (!r.ok || !r.rows.length || !d.isConnected) { box.hidden = true; return; }
+      box.hidden = false;
+      box.innerHTML = '<p class="hr-hint" style="margin:0 0 6px">' + ph('lightbulb') + ' ' + t('kbSuggest') + '</p>' + r.rows.map(function(a){
+        return '<button type="button" class="kb-row" data-id="' + esc(a.id) + '" style="display:block;width:100%;text-align:start;padding:10px 12px;margin:0 0 6px;border-radius:12px;border:1px solid var(--line);background:var(--card);font:inherit;cursor:pointer"><b>' + esc(lang(a.titleAr, a.titleEn)) + '</b><small style="display:block;color:var(--ink-3)">' + esc(lang(a.snippetAr, a.snippetEn)) + '…</small></button>';
+      }).join('');
+      $$('.kb-row', box).forEach(function(b){ b.onclick = function(){ kbArticle(b.dataset.id, true, closeForm); }; });
+    });
+  }
+  subj.addEventListener('input', function(){ clearTimeout(tm); tm = setTimeout(run, 450); });
+  cat.addEventListener('change', run);
+}
+function kbSection(body){
+  var box = head(body, 'kbTitle', 'kbLead'), q = '';
+  function load(){
+    busy(box);
+    api('kbList', {}, true).then(function(r){
+      if (!box.isConnected) return;
+      if (!r.ok) return box.innerHTML = bad(r.error);
+      var rows = r.rows.filter(function(a){ return !q || (a.titleAr + ' ' + a.titleEn + ' ' + a.snippetAr).toLowerCase().indexOf(q.toLowerCase()) >= 0; });
+      var tot = function(k){ return r.rows.reduce(function(s, a){ return s + (a[k] || 0); }, 0); };
+      var h = r.canEdit ? tiles([[t('kbs_published'), n(r.rows.filter(function(a){ return a.status === 'published'; }).length)], [t('kbViews'), n(tot('views'))], [t('kbHelpful'), n(tot('helpful'))], [t('kbDeflected'), n(tot('deflected')), '', true]]) : '';
+      h += '<div class="toolbar"><input type="search" id="kbQ" value="' + esc(q) + '" placeholder="' + t('kbSearch') + '" style="flex:1;min-width:0">' + (r.canEdit ? ' <button type="button" class="btn btn-dark btn-sm" id="kbN">' + ph('plus') + t('kbNew') + '</button>' + (r.rows.length ? '' : ' <button type="button" class="btn btn-line btn-sm" id="kbS">' + ph('books') + t('kbSeed') + '</button>') : '') + '</div>';
+      h += rows.length ? '<div class="list">' + rows.map(function(a){
+        return '<div class="row w2-row" data-a="' + esc(a.id) + '" style="cursor:pointer"><div class="main"><b>' + esc(lang(a.titleAr, a.titleEn)) + '</b><small>' + t('hdc_' + a.category) + (r.canEdit ? sep() + t('kbViews') + ' ' + a.views + sep() + t('kbHelpful') + ' ' + a.helpful + '/' + (a.helpful + a.notHelpful) + sep() + t('kbDeflected') + ' ' + a.deflected : '') + '</small></div>' +
+          '<div class="act" style="display:flex;gap:6px;align-items:center">' + (a.status !== 'published' ? chip(t('kbs_' + a.status), 'late') : '') + (r.canEdit ? '<button type="button" class="btn btn-line btn-sm" data-e="' + esc(a.id) + '">' + t('w2Edit') + '</button>' : '') + '</div></div>';
+      }).join('') + '</div>' : empty('books', t('w2None'));
+      box.innerHTML = h; wire(box);
+      var qi = $('#kbQ', box); qi.oninput = function(){ q = qi.value; var p = qi.selectionStart; load(); setTimeout(function(){ var x = $('#kbQ', box); if (x) { x.focus(); x.setSelectionRange(p, p); } }, 60); };
+      $$('[data-a]', box).forEach(function(rw){ rw.onclick = function(ev){ if (ev.target.closest('[data-e]')) return; kbArticle(rw.dataset.a, false); }; });
+      $$('[data-e]', box).forEach(function(b){ b.onclick = function(){ api('kbGet', { id: b.dataset.e }).then(function(x){ if (x.ok) kbForm(x.article, r.categories, load); }); }; });
+      var nb = $('#kbN', box); if (nb) nb.onclick = function(){ kbForm({}, r.categories, load); };
+      var sb = $('#kbS', box); if (sb) confirmTap(sb, function(){ api('kbSeed', {}).then(function(x){ if (!x.ok) return toast(errText(x.error)); toast(t('kbSeedLead')); load(); }); });
+    });
+  }
+  load();
+}
+function kbForm(a, cats, again){
+  formDrawer(a.id ? t('w2Edit') : t('kbNew'), a.ref ? esc(a.ref) : '', two(fld(t('kbCat'), '<select name="category">' + keyOpts(cats, 'hdc_', a.category || 'other') + '</select>'), fld(t('kbStatus'), '<select name="status">' + keyOpts(['published', 'draft', 'archived'], 'kbs_', a.status || 'published') + '</select>')) +
+    fld(t('kbTitleAr'), '<input name="titleAr" maxlength="150" required value="' + esc(a.titleAr || '') + '">') + fld(t('kbTitleEn'), '<input name="titleEn" maxlength="150" dir="ltr" value="' + esc(a.titleEn || '') + '">') +
+    fld(t('kbBodyAr'), '<textarea name="bodyAr" rows="6" maxlength="6000" required>' + esc(a.bodyAr || '') + '</textarea>') + fld(t('kbBodyEn'), '<textarea name="bodyEn" rows="6" maxlength="6000" dir="ltr">' + esc(a.bodyEn || '') + '</textarea>') +
+    fld(t('kbKeywords'), '<input name="keywords" maxlength="300" value="' + esc(a.keywords || '') + '">'),
+    function(v){ v.id = a.id; return api('kbSave', { article: v }); }, again);
+}
+
+window.KBase = { section: kbSection };
 window.Loans = { section: loansSection };
 window.Desk = { section: deskSection };
 window.Ann = { section: annSection };

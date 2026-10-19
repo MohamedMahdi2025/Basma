@@ -164,3 +164,95 @@ hrisHook_('tasks', function (me, ctx, add) {
   add('hd_assigned', all.filter(function (x) { return HD_OPEN[x.status] && x.assigneeId === me.id && x.status !== 'waiting_employee' && hdCanWork_(me, x); }).length, { tab: 'hr', sec: 'helpdesk' });
   add('hd_reply', all.filter(function (x) { return x.empId === me.id && x.status === 'waiting_employee'; }).length, { tab: 'file' });
 });
+
+// ---------------- knowledge base (2026-10-19, gap list item 7; seen in Oracle and Jisr, rebuilt as our own) ----------------
+/**
+ * Tab kbArticles, refs KB. HR writes articles by help desk category, in Arabic and English, published or draft.
+ * kbSearch suggests up to 5 published articles while an employee types a ticket (Arabic letters normalised: alef forms,
+ * ta marbuta, alef maqsura, diacritics). "Did this answer your question?" counts helpful / not helpful; a yes from the
+ * ticket form also counts as a ticket avoided (deflected). One vote per person per article a day.
+ */
+function kbNorm_(s) {
+  return String(s || '').toLowerCase().replace(/[ً-ْـ]/g, '').replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي').replace(/[^؀-ۿa-z0-9]+/g, ' ').trim();
+}
+function kbTokens_(s) { return kbNorm_(s).split(' ').filter(function (w) { return w.length >= 2 && ['في', 'من', 'على', 'عن', 'الى', 'ما', 'هل', 'كيف', 'the', 'to', 'of', 'and', 'my', 'how', 'is', 'do', 'can', 'a', 'an', 'for'].indexOf(w) < 0; }); }
+function publicKb_(a, full) {
+  var o = { id: a.id, ref: a.ref, category: a.category, titleAr: a.titleAr, titleEn: a.titleEn, status: a.status, updatedAt: String(a.updatedAt || '').slice(0, 10) };
+  if (full) { o.bodyAr = a.bodyAr; o.bodyEn = a.bodyEn; o.keywords = a.keywords || ''; }
+  else { o.snippetAr = String(a.bodyAr || '').slice(0, 160); o.snippetEn = String(a.bodyEn || '').slice(0, 160); }
+  return o;
+}
+function api_kbSearch(req, me) {
+  var q = kbTokens_(req.q), cat = String(req.category || '');
+  if (!q.length && !cat) return { ok: true, rows: [] };
+  var rows = readAll_(SHEETS.KB).filter(function (a) { return a.status === 'published'; }).map(function (a) {
+    var title = kbNorm_(a.titleAr + ' ' + a.titleEn), kw = kbNorm_(a.keywords), body = kbNorm_(a.bodyAr + ' ' + a.bodyEn), sc = 0;
+    q.forEach(function (w) { if (title.indexOf(w) >= 0) sc += 3; if (kw.indexOf(w) >= 0) sc += 2; if (body.indexOf(w) >= 0) sc += 1; });
+    if (cat && a.category === cat) sc += q.length ? 2 : 1;
+    return { a: a, sc: sc };
+  }).filter(function (x) { return x.sc >= (q.length ? 2 : 1); }).sort(function (x, y) { return y.sc - x.sc; }).slice(0, 5);
+  return { ok: true, rows: rows.map(function (x) { return publicKb_(x.a, false); }) };
+}
+function api_kbList(req, me) {
+  var hr = isHr_(me);
+  var rows = readAll_(SHEETS.KB).filter(function (a) { return a.status === 'published' || (hr && a.status === 'draft'); }).map(function (a) {
+    var o = publicKb_(a, false);
+    if (hr) { o.views = Number(a.views) || 0; o.helpful = Number(a.helpful) || 0; o.notHelpful = Number(a.notHelpful) || 0; o.deflected = Number(a.deflected) || 0; }
+    return o;
+  });
+  return { ok: true, rows: rows, canEdit: hr, categories: HD_CATS };
+}
+function api_kbGet(req, me) {
+  return withLock_(function () {
+    var a = findBy_(SHEETS.KB, 'id', req.id);
+    if (!a || (a.status !== 'published' && !isHr_(me))) fail_('not_found');
+    a.views = (Number(a.views) || 0) + 1; update_(SHEETS.KB, a);
+    return { ok: true, article: publicKb_(a, true) };
+  });
+}
+function api_kbFeedback(req, me) {
+  if (!rateLimit_('kb:' + me.id + ':' + req.id, 1, 86400)) return { ok: true, counted: false };
+  return withLock_(function () {
+    var a = findBy_(SHEETS.KB, 'id', req.id);
+    if (!a || a.status !== 'published') fail_('not_found');
+    if (req.helpful) { a.helpful = (Number(a.helpful) || 0) + 1; if (req.deflected) a.deflected = (Number(a.deflected) || 0) + 1; }
+    else a.notHelpful = (Number(a.notHelpful) || 0) + 1;
+    update_(SHEETS.KB, a);
+    return { ok: true, counted: true };
+  });
+}
+function api_kbSave(req, me) {
+  if (!isHr_(me)) fail_('forbidden');
+  var x = req.article || {};
+  if (HD_CATS.indexOf(x.category) < 0) fail_('bad_value');
+  if (!str_(x.titleAr, 150) || !str_(x.bodyAr, 6000)) fail_('missing_fields');
+  return withLock_(function () {
+    var now = new Date().toISOString(), a = x.id ? findBy_(SHEETS.KB, 'id', x.id) : null;
+    if (x.id && !a) fail_('not_found');
+    if (!a) a = { id: newId_('B'), ref: nextRef_('kb', refsOf_(SHEETS.KB)), views: 0, helpful: 0, notHelpful: 0, deflected: 0, createdAt: now };
+    a.category = x.category; a.titleAr = str_(x.titleAr, 150); a.titleEn = str_(x.titleEn, 150); a.bodyAr = str_(x.bodyAr, 6000); a.bodyEn = str_(x.bodyEn, 6000);
+    a.keywords = str_(x.keywords, 300); a.status = x.status === 'draft' ? 'draft' : x.status === 'archived' ? 'archived' : 'published'; a.updatedBy = me.id; a.updatedAt = now;
+    if (a._row) update_(SHEETS.KB, a); else append_(SHEETS.KB, a);
+    audit_(me.id, 'kb_save', '', { ref: a.ref, status: a.status });
+    return { ok: true, article: publicKb_(a, true) };
+  });
+}
+/** Starter articles (drafts, for HR to check against company policy before publishing). */
+var KB_STARTERS = [
+  ['leave', 'كيف أعرف رصيد إجازتي؟', 'How do I see my leave balance?', 'رصيد إجازتك السنوية يظهر في «ملفي» وفي نموذج طلب الإجازة قبل الإرسال: الرصيد المرحل + ما تستحقه حتى اليوم - ما اعتمد. الطلبات المعلقة محجوزة من الرصيد حتى يبت فيها. الحد الأدنى 21 يوما في السنة و30 يوما بعد خمس سنوات خدمة (المادة 109).', 'Your annual leave balance shows in "My file" and on the leave form before you send it: carried over + earned to date - approved. Pending requests are held from the balance until decided. The minimum is 21 days a year, 30 after five years of service (Art. 109).', 'رصيد إجازة سنوية أيام leave balance annual days'],
+  ['payroll', 'أين أجد قسيمة راتبي؟', 'Where is my payslip?', 'من «الرواتب» ثم «قسائمي». تظهر القسيمة بعد اعتماد مسير الشهر وإقفاله. يمكنك طباعتها أو حفظها PDF. إن رأيت خطأ في القسيمة افتح طلب دعم من تصنيف «الرواتب».', 'Go to Pay > My payslips. A payslip appears once the month\'s payroll is approved and locked. You can print it or save it as PDF. If something looks wrong, open a help desk ticket under Payroll.', 'قسيمة راتب payslip salary slip'],
+  ['letters', 'كيف أطلب خطاب تعريف بالراتب؟', 'How do I ask for a salary certificate?', 'من «الطلبات» ثم «طلب جديد» ثم «خطاب». اختر نوع الخطاب والجهة الموجه إليها. يعتمده الموارد البشرية ويصلك الخطاب مرقما وجاهزا للطباعة.', 'Go to Requests > New request > Letter. Choose the letter type and who it is addressed to. HR approves it and you receive a numbered letter ready to print.', 'خطاب تعريف شهادة راتب salary certificate letter'],
+  ['gosi', 'متى أظهر في التأمينات الاجتماعية؟', 'When am I registered with GOSI?', 'يسجل صاحب العمل الموظف في التأمينات الاجتماعية خلال 15 يوما من مباشرة العمل. نسبة الاشتراك تعتمد على تاريخ أول تسجيل لك. إن لم تظهر بياناتك في تطبيق التأمينات بعد ذلك افتح طلب دعم من تصنيف «التأمينات الاجتماعية».', 'Your employer registers you with GOSI within 15 days of starting work. The contribution rate depends on the date you were first registered. If your record does not show in the GOSI app after that, open a ticket under GOSI.', 'تأمينات اجتماعية تسجيل gosi registration'],
+  ['insurance', 'كيف أضيف مرافقا إلى التأمين الطبي؟', 'How do I add a dependant to medical insurance?', 'من «ملفي» ثم بطاقة «تأميني الطبي» ثم «طلب إضافة مرافق». أدخل بيانات المرافق وصلة القرابة. يرسل الموارد البشرية الطلب لشركة التأمين ويصلك إشعار عند التأكيد.', 'Go to My file > My medical insurance > Request a dependant. Enter the dependant\'s details and relationship. HR sends it to the insurer and you are told when it is confirmed.', 'تأمين طبي مرافق إضافة medical insurance dependant'],
+  ['gov_services', 'كيف أطلب تأشيرة خروج وعودة؟', 'How do I ask for an exit re-entry visa?', 'من «الطلبات» ثم «طلب جديد» ثم «تأشيرة خروج وعودة». حدد التواريخ وعدد الأشهر. يصدرها الموارد البشرية بعد الاعتماد ويرسل لك رقمها. تأكد من صلاحية إقامتك وجواز سفرك قبل الطلب.', 'Go to Requests > New request > Exit re-entry visa. Set the dates and the number of months. HR issues it after approval and sends you its number. Check that your iqama and passport are valid first.', 'تأشيرة خروج وعودة exit re-entry visa iqama']
+];
+function api_kbSeed(req, me) {
+  if (!isHr_(me)) fail_('forbidden');
+  return withLock_(function () {
+    if (readAll_(SHEETS.KB).length) fail_('already_exists');
+    var now = new Date().toISOString(), refs = nextRefs_('kb', KB_STARTERS.length, refsOf_(SHEETS.KB));
+    appendMany_(SHEETS.KB, KB_STARTERS.map(function (s, i) { return { id: newId_('B'), ref: refs[i], category: s[0], titleAr: s[1], titleEn: s[2], bodyAr: s[3], bodyEn: s[4], keywords: s[5], status: 'draft', views: 0, helpful: 0, notHelpful: 0, deflected: 0, updatedBy: me.id, updatedAt: now, createdAt: now }; }));
+    audit_(me.id, 'kb_seed', '', { count: KB_STARTERS.length });
+    return { ok: true, count: KB_STARTERS.length };
+  });
+}

@@ -96,5 +96,32 @@ ok(!call('3001', 'hdList').rows.some(x => x.id === r.ticket.id), 'an HR person\'
 ok(call('3001', 'hdAssign', { id: r.ticket.id }).error === 'not_found', 'and they cannot take it');
 ok(call('3002', 'hdAssign', { id: r.ticket.id }).ok, 'a colleague can');
 
+console.log('Knowledge base (2026-10-19)');
+{
+  ok(call('5001', 'kbSeed', {}).error === 'forbidden', 'only HR loads the starter articles');
+  let r = call('3001', 'kbSeed', {});
+  ok(r.ok && r.count === 6, 'HR loads six starter articles', r);
+  ok(call('3001', 'kbSeed', {}).error === 'already_exists', 'only once');
+  ok(call('5001', 'kbList', {}).rows.length === 0, 'starters are drafts: employees see none yet');
+  ok(call('5001', 'kbSearch', { q: 'رصيد الاجازة' }).rows.length === 0, 'and search finds no drafts');
+  const all = call('3001', 'kbList', {}).rows;
+  ok(all.length === 6 && all.every(a => a.status === 'draft'), 'HR sees the drafts with their stats');
+  const leave = all.find(a => a.category === 'leave');
+  const full = call('3001', 'kbGet', { id: leave.id }).article;
+  ok(call('3001', 'kbSave', { article: Object.assign({}, full, { status: 'published' }) }).ok, 'HR checks and publishes the leave article');
+  ok(call('5001', 'kbSave', { article: { category: 'leave', titleAr: 'x', bodyAr: 'y' } }).error === 'forbidden', 'employees cannot write articles');
+  r = call('5001', 'kbSearch', { q: 'كم رصيد إجازتي السنوية؟', category: 'leave' });
+  ok(r.ok && r.rows.length === 1 && r.rows[0].id === leave.id && r.rows[0].snippetAr, 'typing a question finds it (hamza and ta marbuta ignored)', r.rows);
+  ok(call('5001', 'kbSearch', { q: 'leave balance' }).rows.length === 1, 'English words find it too');
+  ok(call('5001', 'kbSearch', { q: 'سيارة الشركة' }).rows.length === 0, 'an unrelated question finds nothing');
+  ok(call('5001', 'kbGet', { id: leave.id }).ok, 'the employee opens it');
+  ok(call('5001', 'kbFeedback', { id: leave.id, helpful: true, deflected: true }).counted, 'and says it answered the question');
+  ok(call('5001', 'kbFeedback', { id: leave.id, helpful: true, deflected: true }).counted === false, 'one vote per person per article a day');
+  call('5002', 'kbFeedback', { id: leave.id, helpful: false });
+  const s = call('3001', 'kbList', {}).rows.find(a => a.id === leave.id);
+  ok(s.views === 2 && s.helpful === 1 && s.notHelpful === 1 && s.deflected === 1, 'HR sees views, helpful votes and tickets avoided', s);
+  ok(!('views' in call('5001', 'kbList', {}).rows[0]), 'employees do not see the stats');
+}
+
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);
