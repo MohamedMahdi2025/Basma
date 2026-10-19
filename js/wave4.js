@@ -430,5 +430,37 @@ function mobilitySection(body){
 }
 window.Mobility = { section: mobilitySection };
 
+// =================================================================== COMPANY DATA EXPORT (2026-10-20)
+Object.assign(T.ar, {
+  dxTitle:'تصدير بيانات الشركة', dxLead:'ملف Excel واحد فيه كل جداول النظام، لنقل البيانات أو الاحتفاظ بنسخة (حق نقل البيانات في نظام حماية البيانات الشخصية). لا يتضمن أبدا أسرار الدخول (كلمات المرور والرموز السرية ومفاتيح الأجهزة). الرواتب والبيانات الخاصة تخرج فقط إن كان لديك دور الرواتب. كل تصدير يسجل في سجل التدقيق، وبحد 3 مرات يوميا.',
+  dxRun:'تصدير الآن', dxWorking:'جار تجهيز الملف…', dxDone:'تم تنزيل الملف', dxTabs:'الجداول', dxRows:'الصفوف', dxSkipped:'لم تصدر', dxNoPay:'بدون الرواتب (ليس لديك دور الرواتب)', dxWithPay:'مع الرواتب'
+});
+Object.assign(T.en, {
+  dxTitle:'Company data export', dxLead:'One Excel file with every table in the system, to move the data or keep a copy (data portability under the Personal Data Protection Law). It never includes sign-in secrets (passwords, PINs, device keys). Salaries and private data are included only if you also hold the payroll role. Every export is written to the audit trail, at most 3 a day.',
+  dxRun:'Export now', dxWorking:'Preparing the file…', dxDone:'File downloaded', dxTabs:'Tables', dxRows:'Rows', dxSkipped:'Not exported', dxNoPay:'Without pay data (you do not hold the payroll role)', dxWithPay:'With pay data'
+});
+var XLSX_SRC = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js', xlsxWait = null;
+function xlsxReady(){ if (window.XLSX) return Promise.resolve(); if (xlsxWait) return xlsxWait; xlsxWait = new Promise(function(res, rej){ var s = document.createElement('script'); s.src = XLSX_SRC; s.onload = res; s.onerror = function(){ xlsxWait = null; rej(); }; document.head.appendChild(s); }); return xlsxWait; }
+function exportSection(body){
+  var box = K.head(body, 'dxTitle', 'dxLead');
+  box.innerHTML = '<div class="toolbar"><button type="button" class="btn btn-dark" id="dxGo">' + ph('download-simple') + t('dxRun') + '</button></div><div id="dxOut"></div>';
+  var b = $('#dxGo', box), out = $('#dxOut', box);
+  K.confirmTap(b, function(){
+    out.innerHTML = '<p class="hr-hint">' + t('dxWorking') + '</p>';
+    Promise.all([api('dataExport', {}), xlsxReady()]).then(function(res){
+      var r = res[0]; b.disabled = false; delete b.dataset.armed; b.innerHTML = ph('download-simple') + t('dxRun');
+      if (!r.ok) return out.innerHTML = K.bad(r.error);
+      var wb = XLSX.utils.book_new(), names = Object.keys(r.tabs), total = 0;
+      var info = [['Company', (r.company || {}).nameEn || (r.company || {}).nameAr || ''], ['Exported at', r.at], ['Exported by', S.me.name + ' (' + S.me.empNo + ')'], ['Pay data', r.withPay ? 'included' : 'not included'], ['Not exported', r.skipped.join(', ')], [], ['Table', 'Rows']];
+      names.forEach(function(n){ var tb = r.tabs[n]; total += tb.rows.length; info.push([n, tb.rows.length]); });
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(info), 'Info');
+      names.forEach(function(n){ var tb = r.tabs[n]; XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([tb.headers].concat(tb.rows)), n.slice(0, 31)); });
+      XLSX.writeFile(wb, 'company-export-' + r.at.slice(0, 10) + '.xlsx');
+      out.innerHTML = K.tiles([[t('dxTabs'), K.n(names.length)], [t('dxRows'), K.n(total)], [t('dxSkipped'), K.n(r.skipped.length)]]) + '<p class="hr-hint">' + ph('check-circle') + ' ' + t('dxDone') + ' · ' + (r.withPay ? t('dxWithPay') : t('dxNoPay')) + '</p>';
+    }, function(){ b.disabled = false; out.innerHTML = K.bad('network'); });
+  });
+}
+window.DataExport = { section: exportSection };
+
 window.OpenShifts = { section: openShiftsSection };
 })();

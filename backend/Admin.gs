@@ -469,3 +469,28 @@ function api_rolesOverview(req, me) {
   });
   return { ok: true, active: active, managers: managers, holders: holders, changes: changes };
 }
+
+/**
+ * Full company data export (2026-10-20, PDPL data portability; Jisr offers one). Administrator only, 3 a day, audited.
+ * Every tab in HEADERS, as headers + rows, except sign-in secrets: the credentials tab, one-time challenges, and the
+ * employee columns holding password and PIN hashes, activation codes and session versions. Salaries, payslips, private
+ * data and adjustments go out only when the administrator also holds the payroll role (an administrator alone never sees
+ * pay). Anonymous survey answers keep no employee id, as stored.
+ */
+var EXPORT_SKIP_ = { credentials: 1, challenges: 1 };
+var EXPORT_PAY_ = { compensation: 1, payslips: 1, empPrivate: 1, adjustments: 1, payrollRuns: 1, salaryRecon: 1, wpsLog: 1, finalSettlements: 1, compProposals: 1, journalLog: 1, loans: 1 };
+var EXPORT_DROP_COLS_ = { pwHash: 1, pwSalt: 1, pwTries: 1, pwLockUntil: 1, actHash: 1, actExp: 1, actTries: 1, tokenVer: 1, pinHash: 1, pinSalt: 1, votersJson: 1 };
+function api_dataExport(req, me) {
+  if (me.role !== 'admin') fail_('forbidden');
+  if (!rateLimit_('export:' + me.id, 3, 86400)) fail_('too_many_attempts');
+  var pay = hasRole_(me, 'payroll'), out = {}, skipped = [];
+  Object.keys(HEADERS).forEach(function (tab) {
+    if (EXPORT_SKIP_[tab]) { skipped.push(tab); return; }
+    if (EXPORT_PAY_[tab] && !pay) { skipped.push(tab); return; }
+    var cols = HEADERS[tab].filter(function (h) { return !EXPORT_DROP_COLS_[h]; }), rows;
+    try { rows = readAll_(tab); } catch (e) { return; }
+    out[tab] = { headers: cols, rows: rows.map(function (r) { return cols.map(function (h) { var v = r[h]; return v instanceof Date ? v.toISOString() : v == null ? '' : v; }); }) };
+  });
+  audit_(me.id, 'data_export', '', { tabs: Object.keys(out).length, skipped: skipped, withPay: pay });
+  return { ok: true, at: new Date().toISOString(), company: companyOf_(settings_()), tabs: out, skipped: skipped, withPay: pay };
+}

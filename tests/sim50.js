@@ -1401,6 +1401,20 @@ cycle('Talent reports (2026-10-20)');
   r = run(1011, 'trn_hours', { from: '2026-01-01', to: '2026-12-31' });
   ok(r.ok && r.rows.length > 40 && r.columns.some(c => c.key === 'cost' && c.type === 'money'), 'HR sees the whole company with cost', r.error);
 }
+cycle('Company data export (2026-10-20)');
+{
+  ok(call(1011, 'dataExport', {}).error === 'forbidden' && call(1009, 'dataExport', {}).error === 'forbidden', 'only the administrator exports (not HR, not payroll)');
+  const x = call(1045, 'dataExport', {});
+  const emp = x.ok && x.tabs.employees;
+  ok(x.ok && emp && emp.rows.length >= 50 && Object.keys(x.tabs).length > 50, 'the administrator gets every table', x.ok ? Object.keys(x.tabs).length : x.error);
+  ok(!x.tabs.credentials && ['pwHash', 'pwSalt', 'actHash', 'tokenVer'].every(h => emp.headers.indexOf(h) < 0), 'never sign-in secrets: no credentials tab, no password hash, activation code or session version', emp.headers.filter(h => /pw|act|token/i.test(h)));
+  ok(!x.tabs.compensation && !x.tabs.payslips && !x.tabs.empPrivate && !x.withPay && x.skipped.indexOf('compensation') >= 0, 'an administrator alone gets no salaries, payslips or private data');
+  ok(!JSON.stringify(x.tabs.surveyAnswers || {}).match(/votersJson/) && (!x.tabs.surveys || x.tabs.surveys.headers.indexOf('votersJson') < 0), 'the survey voter hashes stay out');
+  const a = direct(() => B.ctx.readAll_('audit')).filter(r => r.action === 'data_export');
+  ok(a.length === 1 && /withPay/.test(a[0].detail), 'the export is written to the audit trail');
+  call(1045, 'dataExport', {}); call(1045, 'dataExport', {});
+  ok(call(1045, 'dataExport', {}).error === 'too_many_attempts', 'at most three exports a day');
+}
 cycle('Access matrix');
 const code = fs.readFileSync(path.join(__dirname, '..', 'backend', 'Code.gs'), 'utf8');
 const mapOf = n => (code.match(new RegExp('var ' + n + ' = \\{([^}]*)\\}'))[1].match(/[a-zA-Z]+(?=:)/g));
@@ -1429,7 +1443,7 @@ const EXPECT = {
   // annual pay review (Payroll.gs): cycles by hr role / payroll; managers list and propose for their people
   compCycleSave: 'pay', compCycleClose: 'pay', compCycleList: 'mgrPay', compPropose: 'mgrPay',
   // timesheets (Attendance.gs): HR (incl. admin) and managers
-  timesheetList: 'mgr', timesheetApprove: 'mgr', openShiftPost: 'mgr', shiftOfferDecide: 'mgr', workforcePlan: 'mgrAll', workforcePlanSave: 'hrA', oneOnOneSave: 'none', nineBox: 'mgrX', successionList: 'hrExecA', successionSave: 'hrA',
+  timesheetList: 'mgr', timesheetApprove: 'mgr', openShiftPost: 'mgr', shiftOfferDecide: 'mgr', workforcePlan: 'mgrAll', workforcePlanSave: 'hrA', oneOnOneSave: 'none', nineBox: 'mgrX', successionList: 'hrExecA', successionSave: 'hrA', dataExport: 'adm',
   // custom fields (Hr.gs): definitions and values written by HR (incl. admin); everyone may list and read what they may see
   customFieldSave: 'hrA', customValuesSave: 'hrA', customValuesAll: 'hrA'
 };
