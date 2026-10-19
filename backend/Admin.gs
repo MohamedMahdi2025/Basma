@@ -440,3 +440,32 @@ function api_auditList(req, me) {
   });
   return { ok: true, rows: rows };
 }
+
+/**
+ * Roles and permissions overview (2026-10-19, gap list item 10; Jisr 2026 redesigned this screen; rebuilt as our own).
+ * Read-only: who holds each role (hr, admin, payroll, executive) and how many people manage a team, plus the latest role
+ * changes from the audit trail. Roles are still changed where they always were (employee record, hrRolesSave by admin).
+ * HR and admin only. No salary, ID or contact data.
+ */
+function api_rolesOverview(req, me) {
+  if (!isHr_(me)) fail_('forbidden');
+  var ctx = orgCtx_(), holders = { hr: [], admin: [], payroll: [], executive: [] }, managers = 0, active = 0;
+  Object.keys(ctx.emps).forEach(function (k) {
+    var e = ctx.emps[k]; if (e.status !== 'active') return;
+    active++;
+    if (e.role === 'hr') holders.hr.push(empCard_(e));
+    if (e.role === 'admin') holders.admin.push(empCard_(e));
+    if (hasRole_(e, 'payroll')) holders.payroll.push(empCard_(e));
+    if (hasRole_(e, 'executive')) holders.executive.push(empCard_(e));
+    if (managesAnyone_(e, ctx)) managers++;
+  });
+  var changes = readAll_(SHEETS.AUDIT).filter(function (a) {
+    if (a.action === 'roles_update') return true;
+    if (a.action !== 'emp_update' && a.action !== 'emp_create') return false;
+    var d = parseJson_(a.detail, {}); return d.role && d.role !== 'employee';
+  }).slice(-30).reverse().map(function (a) {
+    var d = parseJson_(a.detail, {}), by = ctx.emps[a.actorId], who = ctx.emps[a.targetId];
+    return { at: String(a.ts).slice(0, 16).replace('T', ' '), by: by ? by.name : '', who: empCard_(who), action: a.action, role: d.role || '', extraRoles: d.extraRoles == null ? null : String(d.extraRoles) };
+  });
+  return { ok: true, active: active, managers: managers, holders: holders, changes: changes };
+}

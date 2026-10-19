@@ -330,5 +330,53 @@ function talentSection(body){
 }
 window.Talent = { section: talentSection };
 
+// =================================================================== ROLES AND PERMISSIONS (2026-10-19)
+Object.assign(T.ar, {
+  rlTitle:'الأدوار والصلاحيات', rlLead:'عرض للقراءة فقط: من يحمل كل دور، وما يفتحه كل دور من صفحات، وآخر تغييرات الأدوار. تعديل الأدوار يبقى في سجل الموظف (المدير العام يمنح الرواتب والإدارة التنفيذية). كل قاعدة هنا مطبقة على الخادم أيضا.',
+  rlHolders:'من يحمل الأدوار', rlMatrix:'الصفحات حسب الدور', rlRules:'قواعد مطبقة على الخادم', rlChanges:'آخر تغييرات الأدوار', rlPage:'الصفحة', rlManagers:'مديرون لديهم فريق', rlActive:'موظفون نشطون',
+  rlr_employee:'موظف', rlr_manager:'مدير فريق', rlr_hr:'موارد بشرية', rlr_payroll:'رواتب', rlr_executive:'إدارة تنفيذية', rlr_admin:'مدير النظام', rlr_adminpay:'مدير نظام + رواتب',
+  rlRule1:'لا أحد يعتمد طلبه أو يغير راتبه أو حسابه البنكي أو صلاحياته بنفسه.', rlRule2:'تغيير الراتب يحتاج شخصا ثانيا للاعتماد، واعتماد مسير الرواتب لا يكون ممن أعده.', rlRule3:'مدير النظام وحده لا يرى الرواتب إلا إذا منح دور الرواتب.',
+  rlRule4:'المدير يرى بيانات فريقه الوظيفية فقط، دون الرواتب والبيانات الخاصة والمستندات.', rlRule5:'الاستبيانات والتقييم 360 مجهولة: لا تظهر نتيجة لمجموعة أقل من 5 (360: أقل من 3).', rlRule6:'المواهب والتعاقب سرية ولا يراها الموظف المعني.',
+  rlBy:'بواسطة', rla_roles_update:'تغيير الأدوار الإضافية', rla_emp_update:'تغيير الدور', rla_emp_create:'إنشاء بدور'
+});
+Object.assign(T.en, {
+  rlTitle:'Roles and permissions', rlLead:'Read-only: who holds each role, which pages each role opens, and the latest role changes. Roles are still changed on the employee record (the administrator grants payroll and executive). Every rule here is also enforced on the server.',
+  rlHolders:'Who holds the roles', rlMatrix:'Pages by role', rlRules:'Rules enforced on the server', rlChanges:'Latest role changes', rlPage:'Page', rlManagers:'Managers with a team', rlActive:'Active employees',
+  rlr_employee:'Employee', rlr_manager:'Team manager', rlr_hr:'HR', rlr_payroll:'Payroll', rlr_executive:'Executive', rlr_admin:'Administrator', rlr_adminpay:'Admin + payroll',
+  rlRule1:'Nobody approves their own request or changes their own salary, bank account or rights.', rlRule2:'A salary change needs a second approver; a payroll run is approved by someone other than its preparer.', rlRule3:'An administrator alone sees no salaries unless also given the payroll role.',
+  rlRule4:'Managers see their team\'s job data only: no salaries, private data or documents.', rlRule5:'Surveys and 360 feedback are anonymous: no result for a group under 5 (360: under 3).', rlRule6:'Talent and succession are confidential and never shown to the person concerned.',
+  rlBy:'By', rla_roles_update:'Extra roles changed', rla_emp_update:'Role changed', rla_emp_create:'Created with role'
+});
+/** Which sub-pages a role profile opens: evaluates the menu's own rules with that profile, then restores the session. */
+function pagesFor(profile){
+  var me0 = S.me, fr0 = S.fileRoles, out = {};
+  try {
+    S.me = Object.assign({}, me0, { role: profile.role });
+    S.fileRoles = { hr: profile.role === 'hr' || profile.role === 'admin', payroll: !!profile.payroll, executive: !!profile.executive, manager: !!profile.manager };
+    AREAS.forEach(function(a){ a.subs.forEach(function(s){ if (s.page) return; try { out[a.id + ':' + s.id] = !!s.ok(); } catch (e) { out[a.id + ':' + s.id] = false; } }); });
+  } finally { S.me = me0; S.fileRoles = fr0; }
+  return out;
+}
+function rolesSection(body){
+  var box = K.head(body, 'rlTitle', 'rlLead'); K.busy(box);
+  api('rolesOverview', {}, true).then(function(r){
+    if (!box.isConnected) return;
+    if (!r.ok) return box.innerHTML = K.bad(r.error);
+    var P = [['employee', { role: 'employee' }], ['manager', { role: 'employee', manager: true }], ['hr', { role: 'hr' }], ['payroll', { role: 'employee', payroll: true }], ['executive', { role: 'employee', executive: true }], ['admin', { role: 'admin' }], ['adminpay', { role: 'admin', payroll: true }]];
+    var M = P.map(function(p){ return pagesFor(p[1]); });
+    var h = K.tiles([[t('rlActive'), K.n(r.active)], [t('rlr_hr'), K.n(r.holders.hr.length)], [t('rlr_payroll'), K.n(r.holders.payroll.length)], [t('rlr_executive'), K.n(r.holders.executive.length)], [t('rlr_admin'), K.n(r.holders.admin.length)], [t('rlManagers'), K.n(r.managers)]]);
+    h += '<h3 style="margin:16px 0 8px">' + t('rlHolders') + '</h3><div class="list">' + ['hr', 'payroll', 'executive', 'admin'].map(function(k){
+      return '<div class="row w2-row"><div class="main"><b>' + t('rlr_' + k) + ' · ' + r.holders[k].length + '</b><small>' + (r.holders[k].map(K.empLine).join('، ') || '-') + '</small></div></div>'; }).join('') + '</div>';
+    h += '<h3 style="margin:16px 0 8px">' + t('rlRules') + '</h3><ul style="margin:0;padding-inline-start:20px;line-height:1.9">' + [1, 2, 3, 4, 5, 6].map(function(i){ return '<li>' + t('rlRule' + i) + '</li>'; }).join('') + '</ul>';
+    h += '<h3 style="margin:16px 0 8px">' + t('rlMatrix') + '</h3><div class="w2-mx"><table><thead><tr><th>' + t('rlPage') + '</th>' + P.map(function(p){ return '<th style="text-align:center">' + t('rlr_' + p[0]) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+      AREAS.map(function(a){ return '<tr><th colspan="' + (P.length + 1) + '" style="background:var(--paper)">' + areaName(a) + '</th></tr>' + a.subs.filter(function(s){ return !s.page; }).map(function(s){
+        return '<tr><td>' + t(s.n) + '</td>' + M.map(function(m){ return '<td style="text-align:center">' + (m[a.id + ':' + s.id] ? '<span style="color:var(--brand)">' + ph('check-circle', 'fill') + '</span>' : '<span style="color:var(--ink-3)">–</span>') + '</td>'; }).join('') + '</tr>'; }).join(''); }).join('') + '</tbody></table></div>';
+    h += '<h3 style="margin:16px 0 8px">' + t('rlChanges') + '</h3>' + (r.changes.length ? '<div class="list">' + r.changes.map(function(c){
+      return '<div class="row w2-row"><div class="main"><b>' + K.empLine(c.who) + ' · ' + t('rla_' + c.action) + ': ' + esc(c.extraRoles != null ? (c.extraRoles ? c.extraRoles.split(',').map(function(x){ return t('rlr_' + x); }).join('، ') : '-') : t('rlr_' + c.role)) + '</b><small>' + esc(c.at) + K.sep() + t('rlBy') + ' ' + esc(c.by) + '</small></div></div>'; }).join('') + '</div>' : K.empty('shield-check', t('w2None')));
+    box.innerHTML = h; K.wire(box);
+  });
+}
+window.Roles = { section: rolesSection };
+
 window.OpenShifts = { section: openShiftsSection };
 })();

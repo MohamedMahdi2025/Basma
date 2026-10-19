@@ -1348,6 +1348,15 @@ cycle('Talent: 9-box and succession (2026-10-19)');
   call(1011, 'successionSave', { plan: { id: s.rows[0].id, positionId: PID.sup, incumbentEmpId: id(1016), flightRisk: 'high', successors: [{ empId: id(1019), readiness: 'now' }] } });
   ok(call(1011, 'successionList', {}).gaps === 0, 'once a successor is ready now, the gap closes');
 }
+cycle('Roles and permissions overview (2026-10-19)');
+{
+  const o = call(1011, 'rolesOverview', {});
+  ok(o.ok && o.holders.payroll.some(e => e.empNo === '1009') && o.holders.executive.some(e => e.empNo === '1002') && o.holders.hr.some(e => e.empNo === '1011'), 'HR sees who holds payroll, executive and HR', o.holders);
+  ok(o.managers >= 5 && o.active >= 40, 'and how many people manage a team', [o.managers, o.active]);
+  ok(o.changes.some(c => c.action === 'roles_update' && c.extraRoles === 'payroll'), 'the latest role changes come from the audit trail', o.changes.slice(0, 3));
+  ok(!JSON.stringify(o).match(/basic|iban|nationalId|phone/i), 'no salary, ID or contact data');
+  ok(call(1009, 'rolesOverview', {}).error === 'forbidden' && call(1016, 'rolesOverview', {}).error === 'forbidden', 'payroll and managers cannot open it');
+}
 cycle('Access matrix');
 const code = fs.readFileSync(path.join(__dirname, '..', 'backend', 'Code.gs'), 'utf8');
 const mapOf = n => (code.match(new RegExp('var ' + n + ' = \\{([^}]*)\\}'))[1].match(/[a-zA-Z]+(?=:)/g));
