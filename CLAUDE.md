@@ -312,3 +312,14 @@ Settings `companyNameAr/En`, `companyShortAr/En`, `companyCr` (10 digits), `comp
 - The logo file is cream on transparent (made for pine screens), so it was nearly invisible on white printed
   pages. `logoInk()` returns a copy inked #4D6D51 on a canvas at start-up; every printed document uses it.
 - The logo image itself still says Best Gas: per-company logo upload is a platform (Phase 2) item.
+
+## Phone app wrapper and iPhone location (2026-10-19)
+
+`../native/` is a Capacitor 8 wrapper that loads the live site. Plugins: native geolocation and `capacitor-native-settings`.
+`index.html` defines `BGNative.openSettings()` and swaps `navigator.geolocation` for the native plugin only inside the
+wrapper; `tests/native-bridge.js` covers it. The iPhone App Store build needs the owner's Apple Developer account, so read
+`../native/README.md` before touching it. A web page cannot open iPhone Settings (Apple blocks `App-Prefs:`), so on the web
+the check-in card shows a 3-step guide (`locIos*`) and re-checks on return. `locDiag()` prints a one-line diagnostic under the
+check-in title. iPhone `err:1` with `perm:prompt` means Location Services or Safari Websites is off at the iPhone level.
+Phone layout: `<style id="dsfb">` (≤900px), page picker sheet `openPagePicker`, REA evidence in
+docs/research/2026-10-19-mobile-design-rea.md.

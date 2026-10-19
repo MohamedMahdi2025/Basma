@@ -115,20 +115,40 @@ var PULSE_ITEMS = [
 ];
 
 function voterHash_(surveyId, empId) { return hmac_('survey|' + surveyId + '|' + empId).slice(0, 22); }
+/** Survey builder (2026-10-19): questionsJson is the pulse array, or { items, audience: [departmentIds] } for a built survey.
+ *  Kinds: nps (0-10), likert (1-5), choice (index into options, 2-8 options), yesno (1/0), text (free text, shown like comments). */
+var SURVEY_KINDS = { nps: 1, likert: 1, choice: 1, yesno: 1, text: 1 };
+function surveyItems_(s) { var q = parseJson_(s.questionsJson, PULSE_ITEMS); return Array.isArray(q) ? q : (q.items || PULSE_ITEMS); }
+function surveyAudience_(s) { var q = parseJson_(s.questionsJson, []); return Array.isArray(q) ? [] : (q.audience || []); }
+function cleanItems_(list) {
+  if (!Array.isArray(list) || !list.length || list.length > 20) fail_('bad_value');
+  return list.map(function (it, i) {
+    var kind = SURVEY_KINDS[it.kind] ? it.kind : 'likert', ar = str_(it.ar, 200), en = str_(it.en, 200);
+    if (!ar && !en) fail_('missing_fields');
+    var o = { key: 'q' + (i + 1), kind: kind, ar: ar || en, en: en || ar };
+    if (kind === 'choice') { o.options = (Array.isArray(it.options) ? it.options : []).map(function (x) { return { ar: str_(x.ar || x, 80), en: str_(x.en || x.ar || x, 80) }; }).filter(function (x) { return x.ar; }); if (o.options.length < 2 || o.options.length > 8) fail_('bad_value'); }
+    return o;
+  });
+}
 function publicSurvey_(s) {
-  return { id: s.id, ref: s.ref, titleAr: s.titleAr, titleEn: s.titleEn, items: parseJson_(s.questionsJson, PULSE_ITEMS), status: s.status,
+  return { id: s.id, ref: s.ref, titleAr: s.titleAr, titleEn: s.titleEn, items: surveyItems_(s), audience: surveyAudience_(s), status: s.status,
     opensAt: s.opensAt, closesAt: String(s.closesAt || '').slice(0, 10), eligible: Number(s.eligible) || 0, answered: parseJson_(s.votersJson, []).length };
 }
 
 function api_surveySave(req, me) {
   if (!isHr_(me)) fail_('forbidden');
   return withLock_(function () {
-    if (readAll_(SHEETS.SRV).some(function (s) { return s.status === 'open'; })) fail_('survey_open');
+    var built = Array.isArray(req.items) && req.items.length, items = built ? cleanItems_(req.items) : PULSE_ITEMS;
+    var aud = (Array.isArray(req.deptIds) ? req.deptIds : []).filter(String).slice(0, 50);
+    var open = readAll_(SHEETS.SRV).filter(function (s) { return s.status === 'open' && String(s.closesAt).slice(0, 10) >= today_(); });
+    if (!built && open.some(function (s) { return Array.isArray(parseJson_(s.questionsJson, [])); })) fail_('survey_open'); // one pulse at a time
+    if (open.length >= 5) fail_('survey_open');
     var close = isoDate_(req.closesAt) || addDays_(today_(), 14);
     if (close <= today_()) fail_('bad_date');
-    var active = readAll_(SHEETS.EMP).filter(function (e) { return e.status === 'active'; }).length, now = new Date().toISOString();
+    var active = readAll_(SHEETS.EMP).filter(function (e) { return e.status === 'active' && (!aud.length || aud.indexOf(e.departmentId) >= 0); }).length, now = new Date().toISOString();
+    if (active < MIN_GROUP) fail_('audience_too_small'); // fewer than 5 people could be told apart
     var s = { id: newId_('V'), ref: nextRef_('survey', refsOf_(SHEETS.SRV)), titleAr: str_(req.titleAr, 120) || 'استبيان النبض', titleEn: str_(req.titleEn, 120) || 'Pulse survey',
-      questionsJson: JSON.stringify(PULSE_ITEMS), status: 'open', opensAt: now, closesAt: close, eligible: active, votersJson: '[]', createdBy: me.id, createdAt: now };
+      questionsJson: built || aud.length ? JSON.stringify({ items: items, audience: aud }) : JSON.stringify(PULSE_ITEMS), status: 'open', opensAt: now, closesAt: close, eligible: active, votersJson: '[]', createdBy: me.id, createdAt: now };
     append_(SHEETS.SRV, s);
     audit_(me.id, 'survey_open', '', { ref: s.ref, eligible: active });
     return { ok: true, survey: publicSurvey_(s) };
@@ -147,7 +167,8 @@ function api_surveyClose(req, me) {
 /** Open surveys this person has not answered yet (closed on their date automatically). */
 function api_mySurveys(req, me) {
   var t = today_();
-  var rows = readAll_(SHEETS.SRV).filter(function (s) { return s.status === 'open' && String(s.closesAt).slice(0, 10) >= t && parseJson_(s.votersJson, []).indexOf(voterHash_(s.id, me.id)) < 0; });
+  var dept = (findBy_(SHEETS.EMP, 'id', me.id) || me).departmentId;
+  var rows = readAll_(SHEETS.SRV).filter(function (s) { var aud = surveyAudience_(s); return s.status === 'open' && String(s.closesAt).slice(0, 10) >= t && (!aud.length || aud.indexOf(dept) >= 0) && parseJson_(s.votersJson, []).indexOf(voterHash_(s.id, me.id)) < 0; });
   return { ok: true, rows: rows.map(publicSurvey_) };
 }
 function api_surveyAnswer(req, me) {
@@ -156,14 +177,17 @@ function api_surveyAnswer(req, me) {
     if (!s || s.status !== 'open' || String(s.closesAt).slice(0, 10) < today_()) fail_('survey_closed');
     var voters = parseJson_(s.votersJson, []), h = voterHash_(s.id, me.id);
     if (voters.indexOf(h) >= 0) fail_('already_submitted');
-    var items = parseJson_(s.questionsJson, PULSE_ITEMS), a = req.answers || {}, clean = {};
+    var items = surveyItems_(s), a = req.answers || {}, clean = {};
+    var emp = findBy_(SHEETS.EMP, 'id', me.id) || me, aud = surveyAudience_(s);
+    if (aud.length && aud.indexOf(emp.departmentId) < 0) fail_('forbidden');
     items.forEach(function (it) {
+      if (it.kind === 'text') { clean[it.key] = str_(a[it.key], 500); return; }
       var v = Number(a[it.key]);
-      var okv = it.kind === 'nps' ? v >= 0 && v <= 10 : v >= 1 && v <= 5;
+      var okv = it.kind === 'nps' ? v >= 0 && v <= 10 : it.kind === 'choice' ? v >= 0 && v < (it.options || []).length : it.kind === 'yesno' ? v === 0 || v === 1 : v >= 1 && v <= 5;
       if (!okv || v % 1) fail_('bad_value');
       clean[it.key] = v;
     });
-    var emp = findBy_(SHEETS.EMP, 'id', me.id) || me, hire = String(emp.hireDate || '').slice(0, 10), yrs = hire ? daysBetween_(hire, today_()) / 365.25 : null;
+    var hire0 = 0, hire = String(emp.hireDate || '').slice(0, 10), yrs = hire ? daysBetween_(hire, today_()) / 365.25 : null;
     append_(SHEETS.SANS, { id: newId_('A'), surveyId: s.id, departmentId: emp.departmentId || '', tenureBand: yrs == null ? '' : yrs < 1 ? '<1' : yrs < 3 ? '1-3' : yrs < 5 ? '3-5' : '5+',
       answersJson: JSON.stringify(clean), comment: str_(req.comment, 500), at: today_() });
     voters.push(h); voters.sort();
@@ -175,7 +199,10 @@ function scoreBlock_(list, items) {
   var o = { n: list.length };
   if (list.length < MIN_GROUP) { o.hidden = true; return o; }
   items.forEach(function (it) {
+    if (it.kind === 'text') return;
     var vals = list.map(function (x) { return Number(x.a[it.key]); }).filter(function (v) { return isFinite(v); });
+    if (it.kind === 'choice') { o[it.key] = { dist: (it.options || []).map(function (op, i) { return pct_(vals.filter(function (v) { return v === i; }).length, vals.length); }) }; return; }
+    if (it.kind === 'yesno') { o[it.key] = { yes: pct_(vals.filter(function (v) { return v === 1; }).length, vals.length) }; return; }
     if (it.kind === 'nps') {
       var pro = vals.filter(function (v) { return v >= 9; }).length, det = vals.filter(function (v) { return v <= 6; }).length;
       o.enps = Math.round((pro - det) / vals.length * 100); o.promoters = pct_(pro, vals.length); o.detractors = pct_(det, vals.length); o.passives = pct_(vals.length - pro - det, vals.length);
@@ -189,20 +216,22 @@ function api_surveyResults(req, me) {
   var all = readAll_(SHEETS.SRV).filter(function (s) { return s.status !== 'deleted'; }).sort(function (a, b) { return a.createdAt < b.createdAt ? 1 : -1; });
   var s = req.id ? all.filter(function (x) { return x.id === req.id; })[0] : all[0];
   if (!s) return { ok: true, survey: null, surveys: [] };
-  var items = parseJson_(s.questionsJson, PULSE_ITEMS), ctx = orgCtx_();
+  var items = surveyItems_(s), ctx = orgCtx_();
   var ans = readAll_(SHEETS.SANS).filter(function (x) { return x.surveyId === s.id; }).map(function (x) { return { a: parseJson_(x.answersJson, {}), d: x.departmentId, t: x.tenureBand, c: x.comment }; });
   var byDept = {}, byTen = {};
   ans.forEach(function (x) { (byDept[x.d || '-'] = byDept[x.d || '-'] || []).push(x); (byTen[x.t || '-'] = byTen[x.t || '-'] || []).push(x); });
   var overall = scoreBlock_(ans, items);
   var comments = overall.hidden ? [] : ans.map(function (x) { return x.c; }).filter(Boolean);
+  var texts = {}; // free-text answers: like comments, only from MIN_GROUP answers and in random order
+  if (!overall.hidden) items.forEach(function (it) { if (it.kind !== 'text') return; var l = ans.map(function (x) { return x.a[it.key]; }).filter(Boolean); for (var k = l.length - 1; k > 0; k--) { var m = Math.floor(Math.random() * (k + 1)), z = l[k]; l[k] = l[m]; l[m] = z; } texts[it.key] = l; });
   for (var i = comments.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), tmp = comments[i]; comments[i] = comments[j]; comments[j] = tmp; }
   var trend = all.slice(0, 6).reverse().map(function (x) {
-    var list = readAll_(SHEETS.SANS).filter(function (y) { return y.surveyId === x.id; }).map(function (y) { return { a: parseJson_(y.answersJson, {}) }; }), b = scoreBlock_(list, parseJson_(x.questionsJson, PULSE_ITEMS));
+    var list = readAll_(SHEETS.SANS).filter(function (y) { return y.surveyId === x.id; }).map(function (y) { return { a: parseJson_(y.answersJson, {}) }; }), b = scoreBlock_(list, surveyItems_(x));
     return { ref: x.ref, at: String(x.opensAt).slice(0, 10), n: list.length, enps: b.hidden ? null : b.enps };
   });
   return { ok: true, survey: publicSurvey_(s), surveys: all.map(publicSurvey_), responses: ans.length, rate: pct_(ans.length, Number(s.eligible) || 0), minGroup: MIN_GROUP,
     overall: overall, departments: Object.keys(byDept).map(function (k) { var b = scoreBlock_(byDept[k], items); b.department = ctx.depts[k] ? ctx.depts[k].nameAr : '-'; return b; }),
-    tenure: Object.keys(byTen).map(function (k) { var b = scoreBlock_(byTen[k], items); b.band = k; return b; }), comments: comments, trend: trend };
+    tenure: Object.keys(byTen).map(function (k) { var b = scoreBlock_(byTen[k], items); b.band = k; return b; }), comments: comments, texts: texts, trend: trend };
 }
 
 // ---------------- policies and acknowledgements ----------------

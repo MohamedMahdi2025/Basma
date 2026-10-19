@@ -12,6 +12,7 @@ Object.assign(T.ar, {
   onByPhase:'الإنجاز حسب المرحلة', onByOwner:'المتأخر حسب المسؤول', onStarted:'بدأت الخطة',
   svTake:'شارك في استبيان النبض', svLead:'دقيقتان. إجاباتك مجهولة: لا يحفظ اسمك مع الإجابة، ولا تظهر أي نتيجة لمجموعة أقل من 5 أشخاص.', svSend:'إرسال', svThanks:'شكرا، سجلت إجابتك.',
   svNps0:'لا أنصح إطلاقا', svNps10:'أنصح بشدة', svL1:'لا أوافق بشدة', svL5:'أوافق بشدة', svComment:'شيء واحد يحسن تجربتك هنا (اختياري)', svAnswerAll:'أجب عن كل الأسئلة.',
+  sbBuild:'استبيان مخصص', sbPulse:'استبيان النبض (جاهز)', sbTemplate:'ابدأ من', sbTplBlank:'فارغ', sbTplOnb:'تجربة الانضمام', sbTplMgr:'فعالية المدير', sbTplWell:'الرفاهية وضغط العمل', sbAudience:'الفئة المستهدفة', sbAll:'كل الموظفين', sbAllHint:'بدون اختيار = كل الموظفين. اضغط Ctrl أو ⌘ لاختيار أكثر من قسم.', sbQuestions:'الأسئلة', sbAddQ:'إضافة سؤال', sbKind:'نوع السؤال', sbQAr:'السؤال بالعربية', sbQEn:'السؤال بالإنجليزية', sbOptions:'الخيارات (سطر لكل خيار)', sbRemove:'حذف', sbAnon:'الإجابات مجهولة الهوية: لا يحفظ اسم أي موظف مع إجابته، ولا تظهر أي نتيجة لمجموعة أقل من 5. يرفض الاستبيان إن كانت الفئة أقل من 5 أشخاص.', sbk_likert:'موافقة من 1 إلى 5', sbk_nps:'احتمال التوصية 0-10', sbk_choice:'اختيار من متعدد', sbk_yesno:'نعم / لا', sbk_text:'نص حر', sbYes:'نعم', sbNo:'لا', sbYesPct:'نسبة نعم', sbTextAns:'إجابات نصية', e_audience_too_small:'الفئة المستهدفة أقل من 5 أشخاص؛ لا يمكن ضمان سرية الإجابات.',
   svDash:'النبض في لمحة', svNew:'فتح استبيان جديد', svClose:'إغلاق الاستبيان', svClosesAt:'يغلق في', svNone:'لا يوجد استبيان بعد.', svRate:'نسبة المشاركة', svResp:'إجابات',
   svEnps:'مؤشر صافي الترويج (eNPS)', svEnpsLead:'نسبة من يوصون (9-10) ناقص نسبة من لا يوصون (0-6).', svFav:'نسبة الموافقة (4-5) لكل عبارة', svDepts:'حسب الإدارة', svTenure:'حسب مدة الخدمة',
   svHidden:'أقل من 5 إجابات', svHiddenAll:'تظهر النتائج بعد 5 إجابات على الأقل حفاظا على سرية المشاركين.', svComments:'تعليقات الموظفين', svTrend:'eNPS عبر الاستبيانات', svOpenNow:'مفتوح',
@@ -40,6 +41,7 @@ Object.assign(T.en, {
   onByPhase:'Completion by phase', onByOwner:'Late tasks by owner', onStarted:'Plan started',
   svTake:'Take the pulse survey', svLead:'Two minutes. Anonymous: your name is not stored with your answers and no result shows for a group under 5 people.', svSend:'Send', svThanks:'Thank you, your answers are in.',
   svNps0:'Not at all likely', svNps10:'Extremely likely', svL1:'Strongly disagree', svL5:'Strongly agree', svComment:'One thing that would improve your experience here (optional)', svAnswerAll:'Answer every question.',
+  sbBuild:'Custom survey', sbPulse:'Pulse survey (ready-made)', sbTemplate:'Start from', sbTplBlank:'Blank', sbTplOnb:'Onboarding experience', sbTplMgr:'Manager effectiveness', sbTplWell:'Wellbeing and workload', sbAudience:'Audience', sbAll:'All employees', sbAllHint:'None selected = everyone. Hold Ctrl or ⌘ to pick several departments.', sbQuestions:'Questions', sbAddQ:'Add a question', sbKind:'Question type', sbQAr:'Question (Arabic)', sbQEn:'Question (English)', sbOptions:'Options (one per line)', sbRemove:'Remove', sbAnon:'Answers are anonymous: no employee name is stored with an answer, and no result shows for a group under 5. A survey whose audience is under 5 people is refused.', sbk_likert:'Agreement 1 to 5', sbk_nps:'Likelihood to recommend 0-10', sbk_choice:'Multiple choice', sbk_yesno:'Yes / no', sbk_text:'Free text', sbYes:'Yes', sbNo:'No', sbYesPct:'Yes', sbTextAns:'Text answers', e_audience_too_small:'The audience is under 5 people; answers could not stay anonymous.',
   svDash:'Pulse at a glance', svNew:'Open a new survey', svClose:'Close the survey', svClosesAt:'Closes', svNone:'No survey yet.', svRate:'Response rate', svResp:'Responses',
   svEnps:'Employee NPS (eNPS)', svEnpsLead:'% promoters (9-10) minus % detractors (0-6).', svFav:'% favourable (4-5) per statement', svDepts:'By department', svTenure:'By tenure',
   svHidden:'Fewer than 5', svHiddenAll:'Results show once at least 5 people answer, to protect anonymity.', svComments:'Comments', svTrend:'eNPS across surveys', svOpenNow:'Open',
@@ -142,13 +144,21 @@ function scale(key, from, to, lo, hi){
   return h + '</div><div class="en-ends"><span>' + lo + '</span><span>' + hi + '</span></div>';
 }
 function surveyForm(s, done){
+  var ctl = function(it){
+    if (it.kind === 'nps') return scale(it.key, 0, 10, t('svNps0'), t('svNps10'));
+    if (it.kind === 'choice') return '<div class="en-scale en-opts" role="radiogroup" data-q="' + it.key + '">' + it.options.map(function(o, i){ return '<button type="button" role="radio" aria-pressed="false" data-v="' + i + '">' + esc(lang(o.ar, o.en)) + '</button>'; }).join('') + '</div>';
+    if (it.kind === 'yesno') return '<div class="en-scale en-opts" role="radiogroup" data-q="' + it.key + '"><button type="button" role="radio" aria-pressed="false" data-v="1">' + t('sbYes') + '</button><button type="button" role="radio" aria-pressed="false" data-v="0">' + t('sbNo') + '</button></div>';
+    if (it.kind === 'text') return '<textarea data-t="' + it.key + '" maxlength="500" rows="3" style="width:100%"></textarea>';
+    return scale(it.key, 1, 5, t('svL1'), t('svL5'));
+  };
   var d = drawer('<h3>' + esc(lang(s.titleAr, s.titleEn)) + '</h3><p class="hr-hint">' + ph('lock-simple') + ' ' + t('svLead') + '</p><form class="form" id="svF">' +
-    s.items.map(function(it){ return '<div class="en-q"><p>' + esc(lang(it.ar, it.en)) + '</p>' + (it.kind === 'nps' ? scale(it.key, 0, 10, t('svNps0'), t('svNps10')) : scale(it.key, 1, 5, t('svL1'), t('svL5'))) + '</div>'; }).join('') +
+    s.items.map(function(it){ return '<div class="en-q"><p>' + esc(lang(it.ar, it.en)) + '</p>' + ctl(it) + '</div>'; }).join('') +
     '<div class="field"><label>' + t('svComment') + '</label><textarea name="comment" maxlength="500" rows="3"></textarea></div><p class="hr-bad" id="svE" role="alert"></p><div class="btnrow"><button class="btn btn-dark" type="submit">' + t('svSend') + '</button></div></form>');
   $$('[data-q]', d).forEach(function(g){ $$('button', g).forEach(function(b){ b.onclick = function(){ $$('button', g).forEach(function(x){ x.setAttribute('aria-pressed', x === b); }); g.dataset.val = b.dataset.v; }; }); });
   $('#svF', d).onsubmit = function(ev){
     ev.preventDefault(); var a = {}, miss = false;
     $$('[data-q]', d).forEach(function(g){ if (g.dataset.val == null) miss = true; else a[g.dataset.q] = Number(g.dataset.val); });
+    $$('[data-t]', d).forEach(function(x){ a[x.dataset.t] = x.value.trim(); });
     if (miss) return $('#svE', d).textContent = t('svAnswerAll');
     var btn = this.querySelector('[type=submit]'); btn.disabled = true;
     api('surveyAnswer', { id: s.id, answers: a, comment: this.elements.comment.value }).then(function(r){ btn.disabled = false; if (!r.ok) return $('#svE', d).textContent = errText(r.error); d.remove(); toast(t('svThanks')); done(); });
@@ -225,11 +235,11 @@ function engagement(body){
     var sel = $('#svSel', body); sel.classList.toggle('hidden', r.surveys.length < 2);
     sel.innerHTML = r.surveys.map(function(s){ return '<option value="' + s.id + '"' + (s.id === r.survey.id ? ' selected' : '') + '>' + esc(s.ref + ' · ' + String(s.opensAt).slice(0, 10)) + '</option>'; }).join('');
     sel.onchange = function(){ S.svId = sel.value; engagement(body); };
-    var V = window.Viz, s = r.survey, o = r.overall, items = s.items.filter(function(it){ return it.kind !== 'nps'; }), h = '';
+    var V = window.Viz, s = r.survey, o = r.overall, extra = s.items.filter(function(it){ return it.kind === 'choice' || it.kind === 'yesno' || it.kind === 'text'; }), hasNps = s.items.some(function(it){ return it.kind === 'nps'; }), items = s.items.filter(function(it){ return it.kind === 'likert'; }), h = '';
     h += '<p class="hr-hint" style="margin:-4px 0 12px"><span class="chip ' + (s.status === 'open' ? 'in' : '') + '">' + (s.status === 'open' ? t('svOpenNow') : t('svClosed')) + '</span> ' + esc(s.ref) + ' · ' + t('svClosesAt') + ' ' + fmt(s.closesAt) +
       (s.status === 'open' && roles().hr ? ' <button type="button" class="btn btn-line btn-sm" id="svCl" style="margin-inline-start:8px">' + t('svClose') + '</button>' : '') + '</p>';
-    var tiles = V.tile(t('svEnps'), o.hidden ? '-' : (o.enps > 0 ? '+' : '') + o.enps, t('svEnpsLead'), null, true, true) + V.tile(t('svRate'), V.n1(r.rate || 0, 0) + '%', r.responses + ' ' + t('svEligible') + ' ' + s.eligible) +
-      (o.hidden ? '' : V.tile(t('svPro'), V.n1(o.promoters, 0) + '%', '') + V.tile(t('svPas'), V.n1(o.passives, 0) + '%', '') + V.tile(t('svDet'), V.n1(o.detractors, 0) + '%', ''));
+    var tiles = (hasNps ? V.tile(t('svEnps'), o.hidden ? '-' : (o.enps > 0 ? '+' : '') + o.enps, t('svEnpsLead'), null, true, true) : '') + V.tile(t('svRate'), V.n1(r.rate || 0, 0) + '%', r.responses + ' ' + t('svEligible') + ' ' + s.eligible) +
+      (o.hidden || !hasNps ? '' : V.tile(t('svPro'), V.n1(o.promoters, 0) + '%', '') + V.tile(t('svPas'), V.n1(o.passives, 0) + '%', '') + V.tile(t('svDet'), V.n1(o.detractors, 0) + '%', ''));
     var body2 = '<div class="db-tiles">' + tiles + '</div>';
     if (o.hidden) body2 += '<p class="hr-hint">' + ph('lock-simple') + ' ' + t('svHiddenAll') + '</p>';
     else {
@@ -240,17 +250,72 @@ function engagement(body){
       body2 += '<div class="db-grid two">' + V.card('svf', t('svFav'), '', V.hbars(fav, { max: 100 }), '') + (tr.length > 1 ? V.card('svt', t('svTrend'), '', V.lineChart(tr, { max: 100, aria: t('svTrend') }), '') : V.card('svc0', t('svComments'), '', comments(r.comments), '')) + '</div>' +
         '<div class="db-grid">' + V.card('svd', t('svDepts'), '', grp(r.departments, 'department'), '') + '</div><div class="db-grid two">' + V.card('svte', t('svTenure'), '', grp(r.tenure, 'band'), '') + (tr.length > 1 ? V.card('svc', t('svComments'), '', comments(r.comments), '') : '') + '</div>';
     }
+    if (!o.hidden && extra.length) body2 += '<div class="db-grid two">' + extra.map(function(it){
+      var b = o[it.key] || {}, inner = it.kind === 'choice' ? V.hbars(it.options.map(function(op, i){ return { label: lang(op.ar, op.en), value: (b.dist || [])[i] || 0, text: V.n1((b.dist || [])[i] || 0, 0) + '%' }; }), { max: 100 })
+        : it.kind === 'yesno' ? V.hbars([{ label: t('sbYes'), value: b.yes || 0, text: V.n1(b.yes || 0, 0) + '%' }, { label: t('sbNo'), value: 100 - (b.yes || 0), text: V.n1(100 - (b.yes || 0), 0) + '%' }], { max: 100 })
+        : comments((r.texts || {})[it.key] || []);
+      return V.card('sx' + it.key, esc(lang(it.ar, it.en)), it.kind === 'text' ? t('sbTextAns') : '', inner, '');
+    }).join('') + '</div>';
     h += V.panel('survey', t('svDash'), body2);
     el.innerHTML = h; V.wire(el);
     var cl = $('#svCl', el); if (cl) cl.onclick = function(){ cl.disabled = true; api('surveyClose', { id: s.id }).then(function(x){ if (!x.ok) { cl.disabled = false; return toast(errText(x.error)); } engagement(body); }); };
   });
   function comments(list){ return list.length ? '<div style="display:grid;gap:8px;max-height:280px;overflow:auto">' + list.map(function(c){ return '<blockquote style="margin:0;padding:8px 12px;background:var(--paper);border-radius:8px;font-size:13.5px">' + esc(c) + '</blockquote>'; }).join('') + '</div>' : '<p class="hr-hint">-</p>'; }
 }
-function newSurvey(done){
+function newSurveyPulse(done){
   var close = new Date(Date.now() + 14 * 864e5).toISOString().slice(0, 10);
   var d = drawer('<h3>' + t('svNew') + '</h3><p class="hr-hint">' + t('svLead') + '</p><form class="form" id="nsF"><div class="field"><label>' + t('poTitle') + '</label><input name="titleAr" value="استبيان النبض"></div>' +
     '<div class="field"><label>' + t('svClosesAt') + '</label><input name="closesAt" type="date" value="' + close + '" required></div><p class="hr-bad" id="nsE"></p><div class="btnrow"><button class="btn btn-dark" type="submit">' + t('svNew') + '</button></div></form>');
   $('#nsF', d).onsubmit = function(ev){ ev.preventDefault(); var f = this; api('surveySave', { titleAr: f.elements.titleAr.value, closesAt: f.elements.closesAt.value }).then(function(r){ if (!r.ok) return $('#nsE', d).textContent = errText(r.error); d.remove(); done(); }); };
+}
+
+/** Survey builder (2026-10-19): the ready-made pulse, or a custom survey from a template, with an audience by department. */
+var SB_TPL = {
+  onb: [['likert', 'كانت تجربة انضمامي منظمة وواضحة', 'My onboarding was organised and clear'], ['likert', 'حصلت على الأدوات والصلاحيات في أول أسبوع', 'I had my tools and access in the first week'], ['yesno', 'هل قابلت مديرك في أول يوم؟', 'Did you meet your manager on day one?'], ['text', 'ما الذي كان سيجعل بدايتك أفضل؟', 'What would have made your start better?']],
+  mgr: [['likert', 'مديري يوضح ما هو متوقع مني', 'My manager makes clear what is expected of me'], ['likert', 'أحصل على ملاحظات مفيدة بانتظام', 'I get useful feedback regularly'], ['likert', 'مديري يدعم تطوري', 'My manager supports my growth'], ['nps', 'ما مدى احتمال أن تنصح زميلا بالعمل مع مديرك؟', 'How likely are you to recommend working for your manager?'], ['text', 'شيء واحد يفعله مديرك جيدا وشيء يمكن تحسينه', 'One thing your manager does well and one to improve']],
+  well: [['likert', 'حجم عملي معقول', 'My workload is reasonable'], ['choice', 'كم مرة تعمل بعد الدوام في الأسبوع؟', 'How often do you work after hours each week?', ['أبدا|Never', 'مرة أو مرتين|Once or twice', '3 مرات أو أكثر|3 times or more']], ['yesno', 'هل تعرف لمن تتحدث إن شعرت بالضغط؟', 'Do you know who to talk to if you feel under pressure?'], ['text', 'ما الذي يساعدك على التوازن؟', 'What helps your balance?']]
+};
+function newSurvey(done){
+  api('hrBootstrap', {}, true).then(function(r0){ var P = { depts: (r0 && r0.ok && r0.depts) || [] };
+    var close = new Date(Date.now() + 14 * 864e5).toISOString().slice(0, 10), qs = [];
+    var depts = (P.depts || []).map(function(x){ return '<option value="' + esc(x.id) + '">' + esc(lang(x.nameAr, x.nameEn)) + '</option>'; }).join('');
+    var d = drawer('<h3>' + t('svNew') + '</h3><p class="hr-hint">' + ph('lock-simple') + ' ' + t('sbAnon') + '</p><form class="form" id="nsF">' +
+      '<div class="field"><label>' + t('sbTemplate') + '</label><select name="tpl"><option value="pulse">' + t('sbPulse') + '</option><option value="blank">' + t('sbTplBlank') + '</option><option value="onb">' + t('sbTplOnb') + '</option><option value="mgr">' + t('sbTplMgr') + '</option><option value="well">' + t('sbTplWell') + '</option></select></div>' +
+      '<div class="field"><label>' + t('poTitle') + '</label><input name="titleAr" value="استبيان النبض" required maxlength="120"></div>' +
+      '<div class="field"><label>' + t('svClosesAt') + '</label><input name="closesAt" type="date" value="' + close + '" required></div>' +
+      (depts ? '<div class="field"><label>' + t('sbAudience') + '</label><select name="deptIds" multiple size="4">' + depts + '</select><small class="hr-hint">' + t('sbAllHint') + '</small></div>' : '') +
+      '<div id="sbQ"></div><p class="hr-bad" id="nsE"></p><div class="btnrow"><button class="btn btn-dark" type="submit">' + t('svNew') + '</button></div></form>');
+    var f = $('#nsF', d), box = $('#sbQ', d);
+    function paint(){
+      if (f.elements.tpl.value === 'pulse') { box.innerHTML = ''; return; }
+      box.innerHTML = '<h4 style="margin:12px 0 6px">' + t('sbQuestions') + '</h4>' + qs.map(function(q, i){
+        return '<div class="sb-q" data-i="' + i + '" style="border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:8px"><div class="two"><div class="field"><label>' + t('sbKind') + '</label><select data-k="kind">' +
+          ['likert', 'nps', 'choice', 'yesno', 'text'].map(function(k){ return '<option value="' + k + '"' + (q.kind === k ? ' selected' : '') + '>' + t('sbk_' + k) + '</option>'; }).join('') + '</select></div>' +
+          '<div class="field" style="align-self:end"><button type="button" class="btn btn-line btn-sm" data-rm="' + i + '">' + ph('trash') + t('sbRemove') + '</button></div></div>' +
+          '<div class="field"><label>' + t('sbQAr') + '</label><input data-k="ar" maxlength="200" value="' + esc(q.ar) + '"></div><div class="field"><label>' + t('sbQEn') + '</label><input data-k="en" maxlength="200" dir="ltr" value="' + esc(q.en) + '"></div>' +
+          (q.kind === 'choice' ? '<div class="field"><label>' + t('sbOptions') + '</label><textarea data-k="opts" rows="3">' + esc((q.opts || []).join('\n')) + '</textarea></div>' : '') + '</div>';
+      }).join('') + (qs.length < 20 ? '<button type="button" class="btn btn-line btn-sm" id="sbAdd">' + ph('plus') + t('sbAddQ') + '</button>' : '');
+      $$('.sb-q', box).forEach(function(row){ var q = qs[row.dataset.i];
+        $$('[data-k]', row).forEach(function(x){ x.oninput = x.onchange = function(){ if (x.dataset.k === 'opts') q.opts = x.value.split('\n').map(function(s){ return s.trim(); }).filter(String); else q[x.dataset.k] = x.value; if (x.dataset.k === 'kind') paint(); }; }); });
+      $$('[data-rm]', box).forEach(function(b){ b.onclick = function(){ qs.splice(Number(b.dataset.rm), 1); paint(); }; });
+      var add = $('#sbAdd', box); if (add) add.onclick = function(){ qs.push({ kind: 'likert', ar: '', en: '' }); paint(); };
+    }
+    f.elements.tpl.onchange = function(){
+      var v = this.value, tpl = SB_TPL[v] || [];
+      qs = tpl.map(function(x){ return { kind: x[0], ar: x[1], en: x[2], opts: (x[3] || []).map(function(o){ return o.split('|')[S.lang === 'en' ? 1 : 0]; }) }; });
+      if (v === 'blank') qs = [{ kind: 'likert', ar: '', en: '' }];
+      f.elements.titleAr.value = v === 'pulse' ? 'استبيان النبض' : v === 'blank' ? '' : this.options[this.selectedIndex].text;
+      paint();
+    };
+    f.onsubmit = function(ev){
+      ev.preventDefault();
+      var dep = f.elements.deptIds ? Array.prototype.filter.call(f.elements.deptIds.options, function(o){ return o.selected; }).map(function(o){ return o.value; }) : [];
+      var body = { titleAr: f.elements.titleAr.value, closesAt: f.elements.closesAt.value, deptIds: dep };
+      if (f.elements.tpl.value !== 'pulse') body.items = qs.map(function(q){ return { kind: q.kind, ar: q.ar, en: q.en, options: (q.opts || []).map(function(o){ return { ar: o, en: o }; }) }; });
+      var b = f.querySelector('[type=submit]'); b.disabled = true;
+      api('surveySave', body).then(function(r){ b.disabled = false; if (!r.ok) return $('#nsE', d).textContent = errText(r.error); d.remove(); done(); });
+    };
+  });
 }
 
 function policies(body){

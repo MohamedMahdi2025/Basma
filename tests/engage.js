@@ -204,5 +204,29 @@ console.log('Exit interview and recognition (Wave 3, 2026-10-18)');
   x = B.call({ action: 'kudosStats', token: tok('3001') });
   ok(x.ok && x.byValue.safety === 5, 'HR sees thanks by value', x.byValue);
 }
+console.log('Survey builder (2026-10-19)');
+{
+  const Q = [{ kind: 'likert', ar: 'أفهم أهداف قسمي' }, { kind: 'choice', ar: 'أفضل وقت للاجتماعات', options: [{ ar: 'صباحا' }, { ar: 'ظهرا' }, { ar: 'مساء' }] }, { kind: 'yesno', ar: 'هل تنصح بالتدريب الأخير؟' }, { kind: 'text', ar: 'اقتراح واحد' }];
+  ok(call('3001', 'surveySave', { titleAr: 'قسم المالية', items: Q, deptIds: [other] }).error === 'audience_too_small', 'a survey for fewer than 5 people is refused (answers could be told apart)');
+  ok(call('3001', 'surveySave', { titleAr: 'x', items: [{ kind: 'choice', ar: 'خيار واحد', options: [{ ar: 'أ' }] }] }).error === 'bad_value', 'a choice question needs 2 to 8 options');
+  ok(call('5002', 'surveySave', { titleAr: 'x', items: Q }).error === 'forbidden', 'only HR builds surveys');
+  let r = call('3001', 'surveySave', { titleAr: 'استبيان المبيعات', items: Q, deptIds: [dept] });
+  ok(r.ok && r.survey.items.length === 4 && r.survey.items[1].options.length === 3 && r.survey.eligible === 6, 'HR builds a custom survey for one department (6 people)', r.survey || r);
+  const bid = r.survey.id;
+  ok(!call('5007', 'mySurveys', {}).rows.some(x => x.id === bid), 'someone outside the audience does not see it');
+  ok(call('5007', 'surveyAnswer', { id: bid, answers: { q1: 4, q2: 0, q3: 1, q4: '' } }).error === 'forbidden', 'and cannot answer it');
+  ok(call('5002', 'surveyAnswer', { id: bid, answers: { q1: 4, q2: 5, q3: 1 } }).error === 'bad_value', 'an option that does not exist is refused');
+  const A = [['5001', 5, 0, 1, 'اجتماعات أقصر'], ['5002', 4, 0, 1, ''], ['5003', 3, 1, 0, 'وضوح الأولويات'], ['5004', 4, 2, 1, ''], ['5005', 2, 0, 0, 'تدريب أكثر']];
+  A.slice(0, 4).forEach(([no, a, b, c, d]) => call(no, 'surveyAnswer', { id: bid, answers: { q1: a, q2: b, q3: c, q4: d } }));
+  r = call('3001', 'surveyResults', { id: bid });
+  ok(r.ok && r.overall.hidden && !Object.keys(r.texts).length, 'with 4 answers nothing is shown, text answers included');
+  A.slice(4).forEach(([no, a, b, c, d]) => call(no, 'surveyAnswer', { id: bid, answers: { q1: a, q2: b, q3: c, q4: d } }));
+  r = call('3001', 'surveyResults', { id: bid });
+  ok(!r.overall.hidden && r.overall.q2.dist[0] === 60 && r.overall.q3.yes === 60 && r.overall.q1.avg === 3.6, 'at 5 answers: choice shares, yes share and the average', r.overall);
+  ok(r.texts.q4.length === 3 && r.texts.q4.indexOf('تدريب أكثر') >= 0 && !('enps' in r.overall), 'the text answers appear, in random order, with no names', r.texts);
+  const rows = direct(() => B.ctx.readAll_('surveyAnswers')).filter(x => x.surveyId === bid);
+  ok(rows.length === 5 && rows.every(x => !Object.values(x).some(v => Object.values(ids).indexOf(v) >= 0)), 'no stored answer carries an employee id');
+  ok(call('5003', 'surveyAnswer', { id: bid, answers: { q1: 4, q2: 0, q3: 1, q4: '' } }).error === 'already_submitted', 'one answer per person');
+}
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);
