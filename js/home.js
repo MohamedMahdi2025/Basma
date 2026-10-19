@@ -168,6 +168,7 @@ function render(main){
   }; });
   var body = $('#hmBody', main);
   if (scope === 'company') companyHome(body); else myHome(body);
+  if (window.welcomeCard) welcomeCard(main);
 }
 
 // ---------------- company ----------------

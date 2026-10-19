@@ -228,5 +228,15 @@ console.log('Survey builder (2026-10-19)');
   ok(rows.length === 5 && rows.every(x => !Object.values(x).some(v => Object.values(ids).indexOf(v) >= 0)), 'no stored answer carries an employee id');
   ok(call('5003', 'surveyAnswer', { id: bid, answers: { q1: 4, q2: 0, q3: 1, q4: '' } }).error === 'already_submitted', 'one answer per person');
 }
+console.log('Pre-boarding welcome (2026-10-20)');
+{
+  ok(call('5002', 'welcomeSave', { welcomeAr: 'x' }).error === 'forbidden', 'only HR writes the welcome message');
+  ok(call('3001', 'welcomeSave', { welcomeAr: 'الدوام يبدأ 8 صباحا في المقر الرئيسي، اسأل عن الاستقبال.', welcomeEn: 'Work starts at 8 am at head office; ask at reception.', preboardDocs: 'الهوية الوطنية\nشهادة الآيبان من البنك\n' }).ok, 'HR writes the first-day information and the documents to bring');
+  const w = call('5002', 'welcome', {});
+  ok(w.ok && w.show && w.hireDate === '2026-11-02' && w.daysToStart === -2 && w.manager && w.manager.empNo === '5001', 'a person in their first week sees the welcome, with their manager', w);
+  ok(w.docs.length === 2 && /8 صباحا/.test(w.welcomeAr), 'with the first-day information and two documents to bring', w.docs);
+  ok(call('5003', 'welcome', {}).show === false, 'someone hired years ago does not');
+  ok(call('3001', 'welcome', { preview: true }).ok && call('3001', 'welcome', { preview: true }).docs.length === 2, 'HR can preview it');
+}
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);

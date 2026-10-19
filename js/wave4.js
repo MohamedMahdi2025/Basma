@@ -462,5 +462,20 @@ function exportSection(body){
 }
 window.DataExport = { section: exportSection };
 
+// =================================================================== WELCOME MESSAGE (HR, 2026-10-20)
+function welcomeSection(body){
+  var box = K.head(body, 'wlEdit', 'wlEditLead'); K.busy(box);
+  api('welcome', { preview: true }, true).then(function(w){
+    if (!box.isConnected) return;
+    if (!w.ok) return box.innerHTML = K.bad(w.error);
+    box.innerHTML = '<form class="form" id="wlF">' + K.fld(t('wlTextAr'), '<textarea name="welcomeAr" rows="6" maxlength="3000">' + esc(w.welcomeAr) + '</textarea>') + K.fld(t('wlTextEn'), '<textarea name="welcomeEn" rows="6" maxlength="3000" dir="ltr">' + esc(w.welcomeEn) + '</textarea>') +
+      K.fld(t('wlDocsEdit'), '<textarea name="preboardDocs" rows="6">' + esc(w.docs.join('\n')) + '</textarea>') + '<div class="btnrow"><button class="btn btn-dark" type="submit">' + t('w2Save') + '</button></div></form><h3 style="margin:18px 0 8px">' + t('wlPreview') + '</h3><div id="wlP"></div>';
+    var f = $('#wlF', box), pv = $('#wlP', box);
+    var paint = function(){ var v = K.formVals(f); pv.innerHTML = welcomeHtml(Object.assign({}, w, { daysToStart: 3, hireDate: new Date(Date.now() + 3 * 864e5).toISOString().slice(0, 10), welcomeAr: v.welcomeAr, welcomeEn: v.welcomeEn, docs: v.preboardDocs.split('\n').map(function(x){ return x.trim(); }).filter(String) })); };
+    f.oninput = paint; paint();
+    f.onsubmit = function(ev){ ev.preventDefault(); var b = f.querySelector('[type=submit]'); b.disabled = true; api('welcomeSave', K.formVals(f)).then(function(r){ b.disabled = false; toast(r.ok ? t('w2Saved') : errText(r.error)); }); };
+  });
+}
+window.Welcome = { section: welcomeSection };
 window.OpenShifts = { section: openShiftsSection };
 })();

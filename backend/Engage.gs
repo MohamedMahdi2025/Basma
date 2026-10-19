@@ -491,3 +491,32 @@ function api_kudosStats(req, me) {
 hrisHook_('tasks', function (me, ctx, add) {
   add('exit_survey', readAll_(SHEETS.EXS).filter(function (x) { return x.empId === me.id && x.status === 'open'; }).length, { tab: 'file' });
 });
+
+/**
+ * Pre-boarding welcome (2026-10-20; Jisr and BambooHR pre-boarding, rebuilt as our own). A person whose hire date is
+ * still ahead, or within their first 7 days, sees a welcome: the countdown, their manager, department and position, the
+ * first-day information HR writes (settings welcomeAr / welcomeEn) and the documents to bring (preboardDocs, one per line;
+ * uploads wait for the Drive scope), with their open onboarding tasks and the policies they still need to acknowledge.
+ */
+function api_welcome(req, me) {
+  var ctx = orgCtx_(), e = ctx.emps[me.id] || findBy_(SHEETS.EMP, 'id', me.id), t = today_(), s = settings_();
+  var hire = e ? String(e.hireDate || '').slice(0, 10) : '';
+  var show = !!hire && daysBetween_(hire, t) <= 7;
+  if (!show && !req.preview) return { ok: true, show: false };
+  var pos = e && e.positionId ? findBy_(SHEETS.POS, 'id', e.positionId) : null, mgr = e ? ctx.emps[e.managerId] : null;
+  var tasks = readAll_(SHEETS.ONB).filter(function (x) { return x.empId === me.id && x.owner === 'employee' && x.status !== 'done' && x.status !== 'skipped'; }).length;
+  var acked = {}; readAll_(SHEETS.PACK).forEach(function (a) { if (a.empId === me.id) acked[a.policyId + '|' + a.version] = 1; });
+  var pending = readAll_(SHEETS.POL).filter(function (p) { return p.status === 'active' && !acked[p.id + '|' + (Number(p.version) || 1)]; }).length;
+  return { ok: true, show: show, hireDate: hire, daysToStart: hire ? daysBetween_(t, hire) : null, manager: empCard_(mgr), department: e && ctx.depts[e.departmentId] ? ctx.depts[e.departmentId].nameAr : '',
+    position: pos ? { titleAr: pos.titleAr || pos.title, titleEn: pos.titleEn } : null, welcomeAr: s.welcomeAr || '', welcomeEn: s.welcomeEn || '',
+    docs: String(s.preboardDocs || '').split('\n').map(function (x) { return x.trim(); }).filter(String), tasks: tasks, policies: pending };
+}
+function api_welcomeSave(req, me) {
+  if (!isHr_(me)) fail_('forbidden');
+  return withLock_(function () {
+    saveSettingKey_('welcomeAr', str_(req.welcomeAr, 3000)); saveSettingKey_('welcomeEn', str_(req.welcomeEn, 3000));
+    saveSettingKey_('preboardDocs', String(req.preboardDocs || '').split('\n').map(function (x) { return str_(x, 120); }).filter(String).slice(0, 20).join('\n'));
+    audit_(me.id, 'welcome_save', '', null);
+    return { ok: true };
+  });
+}
