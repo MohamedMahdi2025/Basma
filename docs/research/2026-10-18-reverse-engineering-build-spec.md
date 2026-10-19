@@ -131,3 +131,33 @@ Sources:
 - On the owner: e-mail and WhatsApp notifications, file attachments, payslip e-mail (each needs a scope and a re-authorise), and the speed fix (the platform server needs a cloud account).
 - On partners or hardware: Mudad, GOSI, Qiwa and Muqeem APIs; Tameeni; earned-wage access; LMS content; biometric devices.
 - On a provider key: AI agents.
+
+## 6. Update, 2026-10-20: the build list is done
+
+**Live, @61 to @82 (O, from the deploy log):**
+- phone design 2026 (REA before and after: docs/research/2026-10-19-mobile-design-rea.md);
+- open shifts and shift swaps;
+- public careers page with PDPL consent;
+- workforce plan;
+- 1:1s and continuous goals;
+- survey builder;
+- knowledge base in the help desk;
+- 9-box and succession;
+- Art. 77 compensation;
+- roles and permissions overview;
+- iPhone location guide and diagnostics, and PIN as the default sign-in.
+
+**Also built, from the module gap audit's remaining code-only rows:**
+- internal mobility and career paths;
+- hiring, training and insurance reports;
+- the administrator's company data export;
+- pre-boarding welcome;
+- perks and wellbeing.
+
+**Still blocked, unchanged:**
+- On the owner:
+  - e-mail and WhatsApp notifications, file attachments and payslip e-mail (each needs a Google scope and a re-authorise);
+  - the speed fix (the platform server needs a cloud account);
+  - the iPhone App Store build (`../native/` is ready; it needs the Apple Developer account).
+- On partners or hardware: Mudad, GOSI, Qiwa and Muqeem APIs; Tameeni; biometric devices; LMS content; salary benchmarking data; earned-wage access.
+- Larger platform items: multi-entity, SSO, public API and webhooks, scheduled reports (these need triggers and e-mail).

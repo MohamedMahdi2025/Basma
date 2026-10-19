@@ -323,3 +323,29 @@ the check-in card shows a 3-step guide (`locIos*`) and re-checks on return. `loc
 check-in title. iPhone `err:1` with `perm:prompt` means Location Services or Safari Websites is off at the iPhone level.
 Phone layout: `<style id="dsfb">` (≤900px), page picker sheet `openPagePicker`, REA evidence in
 docs/research/2026-10-19-mobile-design-rea.md.
+
+## Wave 4 modules (2026-10-19 / 20)
+
+Screens live in `js/wave4.js`, built on the Wave 2 kit (`window.W2K` from wave2.js; load list `W4_FILES`). The knowledge base
+is in wave2.js because the ticket form is there. Backends were added to the existing files, so the .gs file list is
+unchanged:
+- **Shifts.gs:** open shifts and swaps (`shiftOffers`, OSH).
+- **Recruitment.gs:**
+  - careers page (`careerPosts`); public actions `careersList` and `careersApply`;
+  - workforce plan (`workforcePlans`);
+  - internal mobility (`careerPaths`).
+- **Performance.gs:**
+  - 1:1s and goals (`oneOnOnes`, `goals`);
+  - 9-box and succession (`potentialRatings`, `successionPlans`).
+- **Engage.gs:**
+  - survey builder (questionsJson as `{ items, audience }`);
+  - pre-boarding `welcome`;
+  - `perks`.
+- **HelpDesk.gs:** knowledge base (`kbArticles`, KB).
+- **Payroll.gs:** Art. 77 in `api_eosQuote`.
+- **Admin.gs:** `rolesOverview` and `dataExport`.
+- **Reports.gs:** group `talent`.
+
+The public careers page is `#careers` (`js/careers.js`, loaded from `boot()` before sign-in). Scratch helper for
+registering a module: `reg.js` in the session scratchpad. It inserts tabs, refs, actions, `SEC_DEST`, `MINE_DEST`, icons and
+`SUB_ICON` right after each object's opening brace.
