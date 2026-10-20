@@ -775,3 +775,66 @@ hrisHook_('tasks', function (me, ctx, add) {
   if (!open.length || crSeesPay_(me)) return;
   add('comp_review', readAll_(SHEETS.CRP).filter(function (p) { var e = ctx.emps[p.empId]; return p.cycleId === open[0].id && p.pct === '' && e && manages_(me, e, ctx); }).length, { tab: 'hr', sec: 'payreview' });
 });
+
+// ---------------- daily e-mail digest (2026-10-20; switched on by the owner) ----------------
+/**
+ * Once a day after `notifyHour` (Riyadh), everyone with an e-mail and something waiting in their bell gets one short
+ * e-mail through Microsoft 365 (the same Graph sender as payslips): how many items wait and a link to the app. Nothing
+ * else (no names, amounts or details) leaves the system. Runs only when ALL of these hold:
+ *   setting notifyDigest = true; script properties M365_TENANT/CLIENT_ID/CLIENT_SECRET/SENDER; the
+ *   script.external_request scope in appsscript.json, authorised once by the owner in the editor.
+ * There is no trigger scope either, so it runs lazily: the first writing request after the hour sends up to 10 e-mails,
+ * the next requests continue, one row per person per day in tab notifyLog (never two e-mails a day).
+ */
+var NOTIFY_BATCH_ = 5;
+function notifySweep_() {
+  try {
+    var s = settings_();
+    if (!(s.notifyDigest === true || String(s.notifyDigest) === 'true')) return;
+    var now = localParts_(new Date()), hour = Number(String(now.time || '00:00').slice(0, 2));
+    if (hour < (Number(s.notifyHour) || 7)) return;
+    var c = CacheService.getScriptCache(), doneKey = 'notify:done:' + now.date;
+    if (c.get(doneKey)) return;
+    var cfg = mailConfig_(); if (!cfg) return;
+    if (!rateLimit_('notify:run', 1, 20)) return; // one sweep at a time
+    var sent = {}; readAll_(SHEETS.NLOG).forEach(function (x) { if (String(x.date).slice(0, 10) === now.date) sent[x.empId] = 1; });
+    var ctx = orgCtx_(), todo = Object.keys(ctx.emps).map(function (k) { return ctx.emps[k]; }).filter(function (e) { return e.status === 'active' && e.email && !sent[e.id]; });
+    if (!todo.length) { c.put(doneKey, '1', 21600); return; }
+    var token = null, rows = [], url = s.appUrl || 'https://besgasksa.github.io/BG-attendance/';
+    todo.slice(0, NOTIFY_BATCH_).forEach(function (e) {
+      var n = 0;
+      try { n = (api_myTasks({}, e).tasks || []).filter(function (x) { return x.kind !== 'delegated'; }).reduce(function (a, x) { return a + (x.count || 0); }, 0); } catch (err) { n = 0; }
+      var row = { id: newId_('N'), empId: e.id, date: now.date, count: n, status: 'none', at: new Date().toISOString() };
+      if (n) {
+        try { token = token || graphToken_(cfg); graphSend_(cfg, token, e.email, 'لديك ' + n + ' بانتظارك | ' + n + ' waiting for you', notifyHtml_(e, n, url)); row.status = 'sent'; }
+        catch (err) { row.status = 'failed'; }
+      }
+      rows.push(row);
+    });
+    appendMany_(SHEETS.NLOG, rows);
+  } catch (e) { console.error('notify: ' + (e && e.message)); }
+}
+function notifyHtml_(e, n, url) {
+  var esc = function (x) { return String(x || '').replace(/[&<>"]/g, function (m) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m]; }); };
+  return '<div dir="rtl" style="font-family:Tahoma,Arial,sans-serif;font-size:15px;color:#17221A">' +
+    '<p>مرحبا ' + esc(e.name) + '،</p><p>لديك <b>' + n + '</b> بانتظارك في نظام الحضور والموارد البشرية (طلبات أو موافقات أو مهام).</p>' +
+    '<p><a href="' + esc(url) + '" style="background:#4D6D51;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none">فتح التطبيق</a></p></div>' +
+    '<hr style="border:0;border-top:1px solid #ddd"><div dir="ltr" style="font-family:Arial,sans-serif;font-size:14px;color:#17221A"><p>Hello ' + esc(e.nameEn || e.name) + ',</p>' +
+    '<p>You have <b>' + n + '</b> item(s) waiting for you in the attendance and HR system.</p><p><a href="' + esc(url) + '">Open the app</a></p></div>';
+}
+/** Administrator: what is in place for e-mail, and a test message to their own address. */
+function api_notifyStatus(req, me) {
+  if (me.role !== 'admin') fail_('forbidden');
+  var s = settings_(), cfg = mailConfig_(), today = localParts_(new Date()).date, log = readAll_(SHEETS.NLOG).filter(function (x) { return String(x.date).slice(0, 10) === today; });
+  return { ok: true, enabled: s.notifyDigest === true || String(s.notifyDigest) === 'true', hour: Number(s.notifyHour) || 7, m365: !!cfg,
+    today: { sent: log.filter(function (x) { return x.status === 'sent'; }).length, failed: log.filter(function (x) { return x.status === 'failed'; }).length, nothing: log.filter(function (x) { return x.status === 'none'; }).length } };
+}
+function api_notifyTest(req, me) {
+  if (me.role !== 'admin') fail_('forbidden');
+  var cfg = mailConfig_(); if (!cfg) fail_('email_not_configured');
+  var emp = findBy_(SHEETS.EMP, 'id', me.id); if (!emp || !emp.email) fail_('no_email');
+  if (!rateLimit_('notifytest:' + me.id, 5, 3600)) fail_('too_many_attempts');
+  graphSend_(cfg, graphToken_(cfg), emp.email, 'رسالة تجربة | Test message', notifyHtml_(emp, 1, settings_().appUrl || 'https://besgasksa.github.io/BG-attendance/'));
+  audit_(me.id, 'notify_test', me.id, null);
+  return { ok: true, to: emp.email };
+}

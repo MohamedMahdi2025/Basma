@@ -239,5 +239,42 @@ console.log('Annual pay review (CR), 2026-10-18');
   c = call('3002', 'hrCompDecide', { ids: [p3.id], decision: 'approve' });
   ok(!c.ok && c.error === 'second_approver_required', 'the person who closed the review cannot also approve the new salary', c);
 }
+
+console.log('Daily e-mail digest (2026-10-20; off until the owner switches it on)');
+{
+  const mails = [];
+  B.ctx.UrlFetchApp = { fetch: (url, o) => {
+    if (/oauth2/.test(url)) return { getContentText: () => JSON.stringify({ access_token: 'tok' }), getResponseCode: () => 200 };
+    mails.push(JSON.parse(o.payload).message); return { getContentText: () => '{}', getResponseCode: () => 202 };
+  } };
+  const props = B.ctx.PropertiesService.getScriptProperties();
+  ['M365_TENANT', 'M365_CLIENT_ID', 'M365_CLIENT_SECRET', 'M365_SENDER'].forEach(k => props.setProperty(k, '')); // start from a system with no e-mail connected
+  const setS = (k, v) => direct(() => { const row = B.ctx.readAll_('settings').find(x => x.key === k); if (row) { row.value = v; B.ctx.update_('settings', row); } else B.ctx.append_('settings', { key: k, value: v }); });
+  const clearCache = () => { B.ctx.CacheService.getScriptCache().remove('settings:v1'); };
+  const day = Date.parse('2027-02-10T05:30:00Z'); // 08:30 Riyadh
+  B.setNow(day); Object.keys(toks).forEach(k => delete toks[k]); // new day: fresh sessions
+  // somebody needs to have something waiting: a leave request waiting for HR
+  call('5002', 'requestCreate', { request: { type: 'letter', subtype: 'salary_certificate', payload: { addressee: 'بنك' } } });
+  ok(mails.length === 0, 'switched off by default: no e-mail at all');
+  setS('notifyDigest', 'true'); clearCache();
+  call('5003', 'requestCreate', { request: { type: 'letter', subtype: 'salary_certificate', payload: { addressee: 'بنك' } } });
+  ok(mails.length === 0, 'switched on but Microsoft 365 is not connected: still nothing');
+  ok(call('1000', 'notifyTest', {}).error === 'email_not_configured', 'the test button says it is not connected');
+  ['M365_TENANT', 'M365_CLIENT_ID', 'M365_CLIENT_SECRET', 'M365_SENDER'].forEach(k => props.setProperty(k, 'x'));
+  B.setNow(day + 60000);
+  call('5004', 'requestCreate', { request: { type: 'letter', subtype: 'salary_certificate', payload: { addressee: 'بنك' } } });
+  const toHr = mails.filter(m => m.toRecipients[0].emailAddress.address === '3001@bestgas.sa');
+  ok(toHr.length === 1 && /بانتظارك/.test(toHr[0].subject) && !/5002|5003|5004/.test(toHr[0].body.content), 'connected: HR gets one short digest with a count and a link, no names', mails.map(m => m.toRecipients[0].emailAddress.address));
+  ok(!mails.some(m => m.toRecipients[0].emailAddress.address === '5005@bestgas.sa'), 'people with nothing waiting get no e-mail');
+  const n = mails.length;
+  B.setNow(day + 120000);
+  for (let i = 0; i < 4; i++) call('5005', 'requestCreate', { request: { type: 'letter', subtype: 'salary_certificate', payload: { addressee: 'x' + i } } });
+  ok(mails.filter(m => m.toRecipients[0].emailAddress.address === '3001@bestgas.sa').length === 1, 'never two digests to the same person in a day', mails.length - n);
+  const st = call('1000', 'notifyStatus', {});
+  ok(st.ok && st.enabled && st.m365 && st.today.sent >= 1, 'the administrator sees it is on, connected and what went out today', st);
+  ok(call('3001', 'notifyStatus', {}).error === 'forbidden', 'only the administrator sees the e-mail status');
+  setS('notifyDigest', 'false'); clearCache();
+  ['M365_TENANT', 'M365_CLIENT_ID', 'M365_CLIENT_SECRET', 'M365_SENDER'].forEach(k => props.setProperty(k, ''));
+}
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);
