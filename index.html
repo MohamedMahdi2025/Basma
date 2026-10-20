@@ -601,6 +601,7 @@ table.tbl{width:100%;border-collapse:collapse;background:var(--card);font-size:1
 .v2-ph{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:6px}.v2-ph .sp{flex:1}
 .v2-ph h1{margin:0;font-size:28px;line-height:1.25;font-weight:600;letter-spacing:-.01em;font-variation-settings:"HEXP" 35;text-wrap:balance}
 .v2-ph p{margin:4px 0 0;color:var(--ink-2);font-size:14.5px}
+.v2-grp{margin:14px 12px 4px;font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--ink-3);text-transform:none}
 .v2-views{display:flex;gap:2px;border-bottom:1px solid var(--line);margin:14px 0 20px;overflow-x:auto;scrollbar-width:none}
 .v2-views::-webkit-scrollbar{display:none}
 .v2-views button{flex:none;border:0;background:none;height:42px;padding:0 12px;font-size:14px;color:var(--ink-2);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
@@ -3103,16 +3104,16 @@ function enterApp(home){
 // Seven areas with the same names for every role; each role sees the areas and sub-pages it may use. The server still
 // enforces every permission: these lists only decide what is drawn. S.tab is the area, S.sub[area] its sub-page.
 Object.assign(T.ar, {
-  arHome:'الرئيسية', arTime:'الحضور والدوام', arRequests:'الطلبات والإجازات', arPay:'الرواتب', arGrowth:'الأداء والتطوير', arPeople:'الموظفون والمنشأة',
+  arHome:'الرئيسية', arTime:'الحضور والدوام', arRequests:'الطلبات والإجازات', arPay:'الرواتب', arGrowth:'الأداء والتطوير', arPeople:'الموظفون',
   arInsights:'التقارير والتحليلات', arSettings:'الإعدادات', arProfile:'ملفي', arAccount:'الحساب والأجهزة',
   alTime:'سجل حضورك، جداول دوام الفريق ومراجعة البصمات.', alRequests:'طلباتك والموافقات وتقويم الإجازات والعطل الرسمية.', alPay:'قسائمك ومسيرات الرواتب والامتثال لحماية الأجور.',
-  alGrowth:'أهدافك وتقييمك وخطط التطوير ونبض الموظفين.', alPeople:'الملفات والهيكل والوظائف، من التعيين حتى إخلاء الطرف.', alInsights:'لوحة الإدارة والتقارير الموثقة وسجل التدقيق.',
+  alGrowth:'أهدافك وتقييمك وخطط التطوير ونبض الموظفين.', alPeople:'سجل كل موظف: الدليل والهيكل المرئي والمستندات والخدمات الحكومية والتأمين والعهد والحقول المخصصة.', alInsights:'لوحة الإدارة والتقارير الموثقة وسجل التدقيق.',
   alSettings:'قواعد الحضور وإعدادات النظام.',
   vwPunch:'تسجيل الحضور', vwHistory:'سجلي', vwBoard:'لوحة اليوم', vwReview:'مراجعة البصمات', vwShifts:'الورديات', vwZones:'المواقع',
   vwMine:'طلباتي', vwInbox:'الموافقات', vwLeave:'تقويم الإجازات', vwHolidays:'العطل الرسمية',
   vwSlips:'قسائمي', vwRuns:'مسيرات الرواتب', vwApprovals:'اعتماد الرواتب', vwCompliance:'الامتثال',
   vwGrowth:'أدائي', vwCycle:'دورة التقييم', vwPlans:'خطط التطوير', vwPulse:'نبض الموظفين',
-  vwDirectory:'الدليل', vwTeam:'فريقي', vwOrg:'الهيكل', vwPositions:'الوظائف', vwOnboarding:'التهيئة', vwOffboarding:'إخلاء الطرف', vwCustody:'العهد', vwCentre:'مركز الموافقات', vwCycles:'دورة الإجازة', vwExpenses:'المصروفات', vwNewReq:'طلب جديد', vwReqView:'تفاصيل الطلب', vwNewClaim:'مطالبة مصروفات جديدة', vwClaimView:'مطالبة مصروفات', fpBack:'رجوع', fpCrumb:'مسار الصفحة', vwFlows:'مسارات الموافقة', vwGov:'الخدمات الحكومية', vwRecruit:'التوظيف', vwTraining:'التدريب والشهادات', vwInsurance:'التأمين الطبي', vwLoans:'القروض', vwHelpdesk:'مكتب الدعم', vwAnnounce:'الإعلانات', vwExits:'رأي المغادرين', vwKudos:'التقدير', vwSettle:'المخالصات', vwPayReview:'مراجعة الرواتب', vwTimesheets:'كشوف الدوام', swNotify:'ملخص يومي بالبريد الإلكتروني', swNotifyLead:'كل صباح بعد السابعة يصل لكل موظف لديه مهام بانتظاره بريد قصير بعددها ورابط التطبيق، دون أي تفاصيل. يعمل بعد ربط Microsoft 365 وموافقة مالك النظام على صلاحية الاتصال الخارجي مرة واحدة.', ntTest:'إرسال رسالة تجربة لبريدي', ntReady:'Microsoft 365 مربوط', ntNotReady:'Microsoft 365 غير مربوط بعد', ntSentTo:'أرسلت إلى', e_email_not_configured:'البريد غير مربوط بعد (Microsoft 365).', e_no_email:'لا يوجد بريد إلكتروني في سجلك.', vwPerks:'المزايا والرفاهية', wlTitle:'أهلا بك في فريقنا', wlStarts:'تبدأ معنا في {d}', wlToday:'اليوم أول أيامك معنا', wlDays:'بقي {n} يوما على بدايتك', wlManager:'مديرك', wlDept:'القسم', wlPos:'الوظيفة', wlFirstDay:'معلومات اليوم الأول', wlDocs:'أحضر معك', wlTasks:'مهام الانضمام', wlPolicies:'سياسات تحتاج إقرارك', wlOpen:'فتح', wlEdit:'رسالة الترحيب', wlEditLead:'تظهر للموظف الجديد قبل بدايته وخلال أسبوعه الأول: معلومات اليوم الأول والمستندات التي يحضرها.', wlTextAr:'معلومات اليوم الأول بالعربية', wlTextEn:'معلومات اليوم الأول بالإنجليزية', wlDocsEdit:'المستندات المطلوبة (سطر لكل مستند)', wlPreview:'معاينة', vwWelcome:'رسالة الترحيب', vwExport:'تصدير بيانات الشركة', vwMobility:'التنقل الداخلي', vwRoles:'الأدوار والصلاحيات', a77Label:'تعويض المادة 77', a77None:'لا يوجد', a77Employer:'الشركة أنهت العقد دون سبب مشروع (يضاف للموظف)', a77Employee:'الموظف ترك العمل دون سبب مشروع (مطالبة للشركة)', a77Claim:'مطالبة للشركة (لا تخصم تلقائيا)', a77Fixed:'أجر المدة الباقية من العقد', a77Open:'15 يوم أجر عن كل سنة خدمة', a77Min:'الحد الأدنى أجر شهرين', w_art77_claim_not_deducted:'مطالبة المادة 77 على الموظف لا تخصم من المستحقات تلقائيا؛ تتم باتفاق مكتوب أو حكم (المادتان 92 و93).', e_art77_reason:'تعويض المادة 77 لصالح الموظف لا يجتمع مع الاستقالة أو الفصل وفق المادة 80.', vwTalent:'المواهب والتعاقب', vwKb:'قاعدة المعرفة', locIosTitle:'الموقع مقفل من إعدادات iPhone', locIos1:'افتح الإعدادات ثم «الخصوصية والأمان» ثم «خدمات الموقع» وتأكد أنها مفعّلة.', locIos2:'في نفس الصفحة اختر «مواقع Safari» ثم «أثناء استخدام التطبيق»، وفعّل «الموقع الدقيق».', locIos3:'ارجع إلى التطبيق؛ سيتحقق تلقائياً، أو اضغط الزر.', locCheckAgain:'تحقق مرة أخرى', locOpenSettings:'فتح الإعدادات', locNativeLead:'الموقع غير مسموح لهذا التطبيق. افتح الإعدادات واختر «الموقع: أثناء الاستخدام» و«الموقع الدقيق»، ثم ارجع.', locCoarse:'جهازك يرسل موقعاً تقريبياً فقط', locCoarseIos:'في iPhone فعّل «الموقع الدقيق»: عند ظهور طلب الموقع اضغط «دقيق: تشغيل»، أو من الإعدادات ثم الخصوصية والأمان ثم خدمات الموقع ثم مواقع Safari (أو تطبيق المتصفح) ثم «الموقع الدقيق». ثم اضغط الزر.', locCoarseOther:'فعّل «الموقع الدقيق» لهذا المتصفح في إعدادات الموقع بالجهاز، ثم اضغط الزر.', mPages:'صفحات', w2Close:'إغلاق', vwOneOnOne:'لقاءات 1:1 والأهداف', tk_one_on_one:'لقاء 1:1 خلال يومين', vwWorkforce:'خطة القوى العاملة', vwCareers:'صفحة الوظائف', pinOfferTitle:'اجعل الرمز السري طريقة دخولك', pinOfferLead:'ادخل من هذا الجهاز برمز سري من 6 أرقام بدل كلمة المرور أو بصمة الوجه. لا يلزم رمز تفعيل من الموارد البشرية.', pinOfferBtn:'اعتماد الرمز السري', pinOfferLater:'لاحقا', pinOfferPw:'كلمة المرور الحالية', pinOfferDone:'تم. ستدخل من هذا الجهاز بالرمز السري.', vwOpenShifts:'الورديات المفتوحة', tk_swap_ask:'زميل يطلب تبديل وردية معك', tk_shift_offer:'ورديات وتبديلات بانتظار اعتمادك', vwOrgChart:'الهيكل المرئي', vwCustomFields:'الحقول المخصصة', vwBuilder:'منشئ التقارير', vwJournal:'قيد الرواتب',
+  vwDirectory:'الدليل', vwTeam:'فريقي', vwOrg:'الهيكل', vwPositions:'الوظائف', vwOnboarding:'التهيئة', vwOffboarding:'إخلاء الطرف', vwCustody:'العهد', vwCentre:'مركز الموافقات', vwCycles:'دورة الإجازة', vwExpenses:'المصروفات', vwNewReq:'طلب جديد', vwReqView:'تفاصيل الطلب', vwNewClaim:'مطالبة مصروفات جديدة', vwClaimView:'مطالبة مصروفات', fpBack:'رجوع', fpCrumb:'مسار الصفحة', vwFlows:'مسارات الموافقة', vwGov:'الخدمات الحكومية', vwRecruit:'التوظيف', vwTraining:'التدريب والشهادات', vwInsurance:'التأمين الطبي', vwLoans:'القروض', vwHelpdesk:'مكتب الدعم', vwAnnounce:'الإعلانات', vwExits:'رأي المغادرين', vwKudos:'التقدير', vwSettle:'المخالصات', vwPayReview:'مراجعة الرواتب', vwTimesheets:'كشوف الدوام', arHire:'التخطيط والتوظيف', arOnboard:'التعيين والتهيئة', arEngage:'التواصل وعلاقات العمل', arOffboard:'إنهاء الخدمة', arAdmin:'الإدارة والصلاحيات', alHire:'خطة القوى العاملة والهيكل والوظائف، ثم طلبات التوظيف وصفحة الوظائف والمرشحين والعروض.', alOnboard:'تفعيل حساب الموظف الجديد ورسالة الترحيب وخطة 30-60-90 حتى نهاية التجربة.', alEngage:'الإعلانات والاستبيانات والمخالفات والإصابات والسياسات.', alOffboard:'إخلاء الطرف والمخالصة النهائية ومكافأة نهاية الخدمة ورأي المغادرين.', alAdmin:'الإعدادات والأدوار ومسارات الموافقة وتصدير البيانات.', navLife:'دورة حياة الموظف', navMgmt:'التحليل والإدارة', swNotify:'ملخص يومي بالبريد الإلكتروني', swNotifyLead:'كل صباح بعد السابعة يصل لكل موظف لديه مهام بانتظاره بريد قصير بعددها ورابط التطبيق، دون أي تفاصيل. يعمل بعد ربط Microsoft 365 وموافقة مالك النظام على صلاحية الاتصال الخارجي مرة واحدة.', ntTest:'إرسال رسالة تجربة لبريدي', ntReady:'Microsoft 365 مربوط', ntNotReady:'Microsoft 365 غير مربوط بعد', ntSentTo:'أرسلت إلى', e_email_not_configured:'البريد غير مربوط بعد (Microsoft 365).', e_no_email:'لا يوجد بريد إلكتروني في سجلك.', vwPerks:'المزايا والرفاهية', wlTitle:'أهلا بك في فريقنا', wlStarts:'تبدأ معنا في {d}', wlToday:'اليوم أول أيامك معنا', wlDays:'بقي {n} يوما على بدايتك', wlManager:'مديرك', wlDept:'القسم', wlPos:'الوظيفة', wlFirstDay:'معلومات اليوم الأول', wlDocs:'أحضر معك', wlTasks:'مهام الانضمام', wlPolicies:'سياسات تحتاج إقرارك', wlOpen:'فتح', wlEdit:'رسالة الترحيب', wlEditLead:'تظهر للموظف الجديد قبل بدايته وخلال أسبوعه الأول: معلومات اليوم الأول والمستندات التي يحضرها.', wlTextAr:'معلومات اليوم الأول بالعربية', wlTextEn:'معلومات اليوم الأول بالإنجليزية', wlDocsEdit:'المستندات المطلوبة (سطر لكل مستند)', wlPreview:'معاينة', vwWelcome:'رسالة الترحيب', vwExport:'تصدير بيانات الشركة', vwMobility:'التنقل الداخلي', vwRoles:'الأدوار والصلاحيات', a77Label:'تعويض المادة 77', a77None:'لا يوجد', a77Employer:'الشركة أنهت العقد دون سبب مشروع (يضاف للموظف)', a77Employee:'الموظف ترك العمل دون سبب مشروع (مطالبة للشركة)', a77Claim:'مطالبة للشركة (لا تخصم تلقائيا)', a77Fixed:'أجر المدة الباقية من العقد', a77Open:'15 يوم أجر عن كل سنة خدمة', a77Min:'الحد الأدنى أجر شهرين', w_art77_claim_not_deducted:'مطالبة المادة 77 على الموظف لا تخصم من المستحقات تلقائيا؛ تتم باتفاق مكتوب أو حكم (المادتان 92 و93).', e_art77_reason:'تعويض المادة 77 لصالح الموظف لا يجتمع مع الاستقالة أو الفصل وفق المادة 80.', vwTalent:'المواهب والتعاقب', vwKb:'قاعدة المعرفة', locIosTitle:'الموقع مقفل من إعدادات iPhone', locIos1:'افتح الإعدادات ثم «الخصوصية والأمان» ثم «خدمات الموقع» وتأكد أنها مفعّلة.', locIos2:'في نفس الصفحة اختر «مواقع Safari» ثم «أثناء استخدام التطبيق»، وفعّل «الموقع الدقيق».', locIos3:'ارجع إلى التطبيق؛ سيتحقق تلقائياً، أو اضغط الزر.', locCheckAgain:'تحقق مرة أخرى', locOpenSettings:'فتح الإعدادات', locNativeLead:'الموقع غير مسموح لهذا التطبيق. افتح الإعدادات واختر «الموقع: أثناء الاستخدام» و«الموقع الدقيق»، ثم ارجع.', locCoarse:'جهازك يرسل موقعاً تقريبياً فقط', locCoarseIos:'في iPhone فعّل «الموقع الدقيق»: عند ظهور طلب الموقع اضغط «دقيق: تشغيل»، أو من الإعدادات ثم الخصوصية والأمان ثم خدمات الموقع ثم مواقع Safari (أو تطبيق المتصفح) ثم «الموقع الدقيق». ثم اضغط الزر.', locCoarseOther:'فعّل «الموقع الدقيق» لهذا المتصفح في إعدادات الموقع بالجهاز، ثم اضغط الزر.', mPages:'صفحات', w2Close:'إغلاق', vwOneOnOne:'لقاءات 1:1 والأهداف', tk_one_on_one:'لقاء 1:1 خلال يومين', vwWorkforce:'خطة القوى العاملة', vwCareers:'صفحة الوظائف', pinOfferTitle:'اجعل الرمز السري طريقة دخولك', pinOfferLead:'ادخل من هذا الجهاز برمز سري من 6 أرقام بدل كلمة المرور أو بصمة الوجه. لا يلزم رمز تفعيل من الموارد البشرية.', pinOfferBtn:'اعتماد الرمز السري', pinOfferLater:'لاحقا', pinOfferPw:'كلمة المرور الحالية', pinOfferDone:'تم. ستدخل من هذا الجهاز بالرمز السري.', vwOpenShifts:'الورديات المفتوحة', tk_swap_ask:'زميل يطلب تبديل وردية معك', tk_shift_offer:'ورديات وتبديلات بانتظار اعتمادك', vwOrgChart:'الهيكل المرئي', vwCustomFields:'الحقول المخصصة', vwBuilder:'منشئ التقارير', vwJournal:'قيد الرواتب',
   vwRelations:'علاقات العمل', vwPolicies:'السياسات', vwExpiring:'وثائق تنتهي', vwImport:'استيراد', vwAccounts:'الدخول والأجهزة',
   vwDashboard:'لوحة الإدارة', vwReports:'التقارير', vwAttendance:'تقرير الحضور', vwAudit:'سجل التدقيق', vwMain:'',
   v2System:'نظام الموارد البشرية', v2Search:'ابحث عن موظف أو صفحة', v2Menu:'القائمة', v2More:'المزيد', v2Punch:'بصمة', v2MyPay:'راتبي', v2Req:'الطلبات', v2PeopleS:'الموظفون',
@@ -3149,16 +3150,16 @@ Object.assign(T.ar, {
   e_range_too_long:'الفترة أطول من المسموح. اختر فترة أقصر.'
 });
 Object.assign(T.en, {
-  arHome:'Home', arTime:'Time & attendance', arRequests:'Requests & leave', arPay:'Pay', arGrowth:'Performance & growth', arPeople:'People & organisation',
+  arHome:'Home', arTime:'Time & attendance', arRequests:'Requests & leave', arPay:'Pay', arGrowth:'Performance & growth', arPeople:'Employees',
   arInsights:'Reports & insights', arSettings:'Settings', arProfile:'My file', arAccount:'Account & devices',
   alTime:'Your attendance, team shifts and punch review.', alRequests:'Your requests, approvals, the leave calendar and public holidays.', alPay:'Your payslips, payroll runs and wage protection.',
-  alGrowth:'Your goals and review, development plans and the pulse survey.', alPeople:'Files, structure and positions, from hire to clearance.', alInsights:'The management dashboard, verified reports and the audit log.',
+  alGrowth:'Your goals and review, development plans and the pulse survey.', alPeople:'The employee record: directory, org chart, documents, government services, insurance, assets and custom fields.', alInsights:'The management dashboard, verified reports and the audit log.',
   alSettings:'Attendance rules and system settings.',
   vwPunch:'Check in', vwHistory:'My attendance', vwBoard:'Today', vwReview:'Punch review', vwShifts:'Shifts', vwZones:'Locations',
   vwMine:'My requests', vwInbox:'Approvals', vwLeave:'Leave calendar', vwHolidays:'Public holidays',
   vwSlips:'My payslips', vwRuns:'Payroll runs', vwApprovals:'Salary approvals', vwCompliance:'Compliance',
   vwGrowth:'My growth', vwCycle:'Review cycle', vwPlans:'Development plans', vwPulse:'Pulse survey',
-  vwDirectory:'Directory', vwTeam:'My team', vwOrg:'Organisation', vwPositions:'Positions', vwOnboarding:'Onboarding', vwOffboarding:'Offboarding', vwCustody:'Assets', vwCentre:'Approvals centre', vwCycles:'Leave cycle', vwExpenses:'Expenses', vwNewReq:'New request', vwReqView:'Request details', vwNewClaim:'New expense claim', vwClaimView:'Expense claim', fpBack:'Back', fpCrumb:'Breadcrumb', vwFlows:'Approval flows', vwGov:'Government services', vwRecruit:'Recruitment', vwTraining:'Training and certificates', vwInsurance:'Medical insurance', vwLoans:'Loans', vwHelpdesk:'Help desk', vwAnnounce:'Announcements', vwExits:'Exit insights', vwKudos:'Recognition', vwSettle:'Settlements', vwPayReview:'Pay review', vwTimesheets:'Timesheets', swNotify:'Daily e-mail digest', swNotifyLead:'Each morning after 7, everyone with items waiting gets a short e-mail with the count and a link to the app, no details. Works once Microsoft 365 is connected and the owner approves the external-connection permission once.', ntTest:'Send a test to my e-mail', ntReady:'Microsoft 365 connected', ntNotReady:'Microsoft 365 not connected yet', ntSentTo:'Sent to', e_email_not_configured:'E-mail is not connected yet (Microsoft 365).', e_no_email:'There is no e-mail on your record.', vwPerks:'Perks and wellbeing', wlTitle:'Welcome to the team', wlStarts:'You start with us on {d}', wlToday:'Today is your first day with us', wlDays:'{n} days until you start', wlManager:'Your manager', wlDept:'Department', wlPos:'Position', wlFirstDay:'Your first day', wlDocs:'Bring with you', wlTasks:'Onboarding tasks', wlPolicies:'Policies to acknowledge', wlOpen:'Open', wlEdit:'Welcome message', wlEditLead:'Shown to a new hire before they start and during their first week: first-day information and the documents to bring.', wlTextAr:'First-day information (Arabic)', wlTextEn:'First-day information (English)', wlDocsEdit:'Documents to bring (one per line)', wlPreview:'Preview', vwWelcome:'Welcome message', vwExport:'Company data export', vwMobility:'Internal mobility', vwRoles:'Roles and permissions', a77Label:'Art. 77 compensation', a77None:'None', a77Employer:'The company ended the contract without a valid reason (paid to the employee)', a77Employee:'The employee left without a valid reason (company claim)', a77Claim:'Company claim (not deducted automatically)', a77Fixed:'Wage for the remaining contract period', a77Open:'15 days\' wage per year of service', a77Min:'Minimum two months\' wage', w_art77_claim_not_deducted:'An Art. 77 claim against the employee is not deducted from the settlement automatically; it needs a written agreement or a court ruling (Art. 92 and 93).', e_art77_reason:'Art. 77 compensation for the employee does not go with a resignation or an Art. 80 dismissal.', vwTalent:'Talent and succession', vwKb:'Knowledge base', locIosTitle:'Location is blocked in the iPhone settings', locIos1:'Open Settings > Privacy & Security > Location Services and make sure it is on.', locIos2:'On the same page choose Safari Websites > While Using the App, and turn on Precise Location.', locIos3:'Come back to the app; it checks by itself, or press the button.', locCheckAgain:'Check again', locOpenSettings:'Open Settings', locNativeLead:'Location is not allowed for this app. Open Settings, choose Location: While Using and Precise Location, then come back.', locCoarse:'Your device is sending only an approximate location', locCoarseIos:'On iPhone, turn on Precise Location: when the location prompt shows, tap "Precise: On", or go to Settings > Privacy & Security > Location Services > Safari Websites (or your browser app) > Precise Location. Then press the button.', locCoarseOther:'Turn on precise location for this browser in the device location settings, then press the button.', mPages:'pages', w2Close:'Close', vwOneOnOne:'1:1s and goals', tk_one_on_one:'A 1:1 within two days', vwWorkforce:'Workforce plan', vwCareers:'Careers page', pinOfferTitle:'Make the PIN your sign-in', pinOfferLead:'Sign in on this device with a 6-digit PIN instead of the password or Face ID. No activation code from HR is needed.', pinOfferBtn:'Use the PIN', pinOfferLater:'Later', pinOfferPw:'Current password', pinOfferDone:'Done. This device now signs in with your PIN.', vwOpenShifts:'Open shifts', tk_swap_ask:'A colleague asks to swap a shift with you', tk_shift_offer:'Shifts and swaps waiting for your approval', vwOrgChart:'Org chart', vwCustomFields:'Custom fields', vwBuilder:'Report builder', vwJournal:'Payroll journal',
+  vwDirectory:'Directory', vwTeam:'My team', vwOrg:'Organisation', vwPositions:'Positions', vwOnboarding:'Onboarding', vwOffboarding:'Offboarding', vwCustody:'Assets', vwCentre:'Approvals centre', vwCycles:'Leave cycle', vwExpenses:'Expenses', vwNewReq:'New request', vwReqView:'Request details', vwNewClaim:'New expense claim', vwClaimView:'Expense claim', fpBack:'Back', fpCrumb:'Breadcrumb', vwFlows:'Approval flows', vwGov:'Government services', vwRecruit:'Recruitment', vwTraining:'Training and certificates', vwInsurance:'Medical insurance', vwLoans:'Loans', vwHelpdesk:'Help desk', vwAnnounce:'Announcements', vwExits:'Exit insights', vwKudos:'Recognition', vwSettle:'Settlements', vwPayReview:'Pay review', vwTimesheets:'Timesheets', arHire:'Plan and hire', arOnboard:'Onboard', arEngage:'Engagement and relations', arOffboard:'Offboard', arAdmin:'Administration', alHire:'Workforce plan, structure and positions, then requisitions, the careers page, candidates and offers.', alOnboard:'Activate the new hire, the welcome message and the 30-60-90 plan through probation.', alEngage:'Announcements, surveys, violations and injuries, and policies.', alOffboard:'Clearance, the final settlement with end-of-service pay, and exit interviews.', alAdmin:'Settings, roles, approval flows and data export.', navLife:'Employee lifecycle', navMgmt:'Analysis and administration', swNotify:'Daily e-mail digest', swNotifyLead:'Each morning after 7, everyone with items waiting gets a short e-mail with the count and a link to the app, no details. Works once Microsoft 365 is connected and the owner approves the external-connection permission once.', ntTest:'Send a test to my e-mail', ntReady:'Microsoft 365 connected', ntNotReady:'Microsoft 365 not connected yet', ntSentTo:'Sent to', e_email_not_configured:'E-mail is not connected yet (Microsoft 365).', e_no_email:'There is no e-mail on your record.', vwPerks:'Perks and wellbeing', wlTitle:'Welcome to the team', wlStarts:'You start with us on {d}', wlToday:'Today is your first day with us', wlDays:'{n} days until you start', wlManager:'Your manager', wlDept:'Department', wlPos:'Position', wlFirstDay:'Your first day', wlDocs:'Bring with you', wlTasks:'Onboarding tasks', wlPolicies:'Policies to acknowledge', wlOpen:'Open', wlEdit:'Welcome message', wlEditLead:'Shown to a new hire before they start and during their first week: first-day information and the documents to bring.', wlTextAr:'First-day information (Arabic)', wlTextEn:'First-day information (English)', wlDocsEdit:'Documents to bring (one per line)', wlPreview:'Preview', vwWelcome:'Welcome message', vwExport:'Company data export', vwMobility:'Internal mobility', vwRoles:'Roles and permissions', a77Label:'Art. 77 compensation', a77None:'None', a77Employer:'The company ended the contract without a valid reason (paid to the employee)', a77Employee:'The employee left without a valid reason (company claim)', a77Claim:'Company claim (not deducted automatically)', a77Fixed:'Wage for the remaining contract period', a77Open:'15 days\' wage per year of service', a77Min:'Minimum two months\' wage', w_art77_claim_not_deducted:'An Art. 77 claim against the employee is not deducted from the settlement automatically; it needs a written agreement or a court ruling (Art. 92 and 93).', e_art77_reason:'Art. 77 compensation for the employee does not go with a resignation or an Art. 80 dismissal.', vwTalent:'Talent and succession', vwKb:'Knowledge base', locIosTitle:'Location is blocked in the iPhone settings', locIos1:'Open Settings > Privacy & Security > Location Services and make sure it is on.', locIos2:'On the same page choose Safari Websites > While Using the App, and turn on Precise Location.', locIos3:'Come back to the app; it checks by itself, or press the button.', locCheckAgain:'Check again', locOpenSettings:'Open Settings', locNativeLead:'Location is not allowed for this app. Open Settings, choose Location: While Using and Precise Location, then come back.', locCoarse:'Your device is sending only an approximate location', locCoarseIos:'On iPhone, turn on Precise Location: when the location prompt shows, tap "Precise: On", or go to Settings > Privacy & Security > Location Services > Safari Websites (or your browser app) > Precise Location. Then press the button.', locCoarseOther:'Turn on precise location for this browser in the device location settings, then press the button.', mPages:'pages', w2Close:'Close', vwOneOnOne:'1:1s and goals', tk_one_on_one:'A 1:1 within two days', vwWorkforce:'Workforce plan', vwCareers:'Careers page', pinOfferTitle:'Make the PIN your sign-in', pinOfferLead:'Sign in on this device with a 6-digit PIN instead of the password or Face ID. No activation code from HR is needed.', pinOfferBtn:'Use the PIN', pinOfferLater:'Later', pinOfferPw:'Current password', pinOfferDone:'Done. This device now signs in with your PIN.', vwOpenShifts:'Open shifts', tk_swap_ask:'A colleague asks to swap a shift with you', tk_shift_offer:'Shifts and swaps waiting for your approval', vwOrgChart:'Org chart', vwCustomFields:'Custom fields', vwBuilder:'Report builder', vwJournal:'Payroll journal',
   vwRelations:'Employee relations', vwPolicies:'Policies', vwExpiring:'Expiring documents', vwImport:'Import', vwAccounts:'Logins & devices',
   vwDashboard:'Dashboard', vwReports:'Reports', vwAttendance:'Attendance report', vwAudit:'Audit log', vwMain:'',
   v2System:'HR system', v2Search:'Search people or pages', v2Menu:'Menu', v2More:'More', v2Punch:'Punch', v2MyPay:'My pay', v2Req:'Requests', v2PeopleS:'People',
@@ -3208,87 +3209,93 @@ var OPS_FILES = HR_FILES.concat(['js/ops.js']);
 /** Wave 2 (2026-10-18): recruitment, loans, training, insurance, announcements, help desk in one module. */
 var W2_FILES = ['js/dashboard.js', 'js/doc.js', 'js/wave2.js'];
 var W4_FILES = W2_FILES.concat(['js/wave4.js']);
+/** Old area:sub addresses moved by the lifecycle menu (2026-10-20); goArea follows them, so links, bookmarks and the bell keep working. */
+var MOVED = {'insights:workforce':'hire:workforce', 'people:org':'hire:org', 'people:positions':'hire:positions', 'people:recruitment':'hire:recruitment', 'people:careers':'hire:careers', 'people:accounts':'onboard:accounts', 'people:welcome':'onboard:welcome', 'people:onboarding':'onboard:onboarding', 'growth:payreview':'pay:payreview', 'growth:perks':'pay:perks', 'people:announce':'engage:announce', 'growth:pulse':'engage:pulse', 'people:relations':'engage:relations', 'people:policies':'engage:policies', 'people:offboarding':'offboard:offboarding', 'pay:settlements':'offboard:settlements', 'people:exits':'offboard:exits', 'settings:main':'admin:settings', 'people:roles':'admin:roles', 'requests:flows':'admin:flows', 'insights:export':'admin:export', 'settings:':'admin:settings'};
 var AREAS = [
-  { id: 'home', i: 'house', bare: true, subs: [{ id: 'main', n: 'vwMain', ok: ALL, files: ['js/dashboard.js', 'js/compliance.js', 'js/home.js'], run: function(b){ Home.render(b); } }] },
-  { id: 'time', i: 'clock', subs: [
+    { id: 'home', i: 'house', bare: true, subs: [{ id: 'main', n: 'vwMain', ok: ALL, files: ['js/dashboard.js', 'js/compliance.js', 'js/home.js'], run: function(b){ Home.render(b); } }] },
+  { id: 'hire', i: 'target', grp: 'life', subs: [
+    { id: 'workforce', n: 'vwWorkforce', ok: function(){ return isHr() || any('hr', 'payroll', 'executive', 'manager')(); }, files: W4_FILES, run: function(b){ Workforce.section(b); } },
+    { id: 'org', n: 'vwOrg', ok: any('hr'), sec: 'org' },
+    { id: 'positions', n: 'vwPositions', ok: any('hr'), sec: 'positions' },
+    { id: 'recruitment', n: 'vwRecruit', ok: function(){ return isHr() || any('hr', 'manager', 'executive', 'payroll')(); }, files: W2_FILES, run: function(b){ Hire.section(b); } },
+    { id: 'careers', n: 'vwCareers', ok: isHr, files: W4_FILES, run: function(b){ CareersAdmin.section(b); } }] },
+  { id: 'onboard', i: 'user-plus', grp: 'life', subs: [
+    { id: 'accounts', n: 'vwAccounts', ok: isHr, adm: 'emp' },
+    { id: 'welcome', n: 'vwWelcome', ok: isHr, files: W4_FILES, run: function(b){ Welcome.section(b); } },
+    { id: 'onboarding', n: 'vwOnboarding', ok: any('hr', 'manager'), sec: 'onboarding' }] },
+  { id: 'people', i: 'users-three', grp: 'life', subs: [
+    { id: 'directory', n: 'vwDirectory', ok: any('hr'), sec: 'people' },
+    { id: 'team', n: 'vwTeam', ok: any('manager'), sec: 'team' },
+    { id: 'orgchart', n: 'vwOrgChart', ok: any('hr'), files: W2_FILES, run: function(b){ OrgChart.section(b); } },
+    { id: 'expiring', n: 'vwExpiring', ok: any('hr'), sec: 'expiring' },
+    { id: 'gov', n: 'vwGov', ok: function(){ return isHr() || any('hr', 'payroll')(); }, files: ['js/dashboard.js', 'js/doc.js', 'js/requests.js', 'js/gov.js'], run: function(b){ Gov.section(b); } },
+    { id: 'insurance', n: 'vwInsurance', ok: function(){ return isHr() || any('hr', 'payroll')(); }, files: W2_FILES, run: function(b){ Ins.section(b); } },
+    { id: 'custody', n: 'vwCustody', ok: any('hr', 'payroll'), sec: 'custody', ops: 1 },
+    { id: 'customfields', n: 'vwCustomFields', ok: isHr, files: W2_FILES, run: function(b){ CustomFields.section(b); } },
+    { id: 'import', n: 'vwImport', ok: any('hr'), sec: 'import' }] },
+  { id: 'time', i: 'clock', grp: 'life', subs: [
     { id: 'punch', n: 'vwPunch', ok: ALL, run: function(){ renderHome(); } },
     { id: 'history', n: 'vwHistory', ok: ALL, run: function(){ renderHistory(); } },
     { id: 'board', n: 'vwBoard', ok: isHr, adm: 'board' },
     { id: 'review', n: 'vwReview', ok: isHr, adm: 'review', badge: 'revBadge' },
     { id: 'shifts', n: 'vwShifts', ok: any('hr', 'manager'), sec: 'shifts', ops: 1 },
-    { id: 'timesheets', n: 'vwTimesheets', ok: function(){ return isHr() || any('hr', 'manager')(); }, files: W2_FILES, run: function(b){ Timesheets.section(b); } },
     { id: 'openshifts', n: 'vwOpenShifts', ok: ALL, files: W4_FILES, run: function(b){ OpenShifts.section(b); } },
+    { id: 'timesheets', n: 'vwTimesheets', ok: function(){ return isHr() || any('hr', 'manager')(); }, files: W2_FILES, run: function(b){ Timesheets.section(b); } },
     { id: 'zones', n: 'vwZones', ok: isAdmin, adm: 'zones' }] },
-  { id: 'requests', i: 'tray', subs: [
+  { id: 'requests', i: 'tray', grp: 'life', subs: [
     { id: 'mine', n: 'vwMine', ok: ALL, files: MY_FILES, run: myRequestsView },
     { id: 'inbox', n: 'vwInbox', ok: any('hr', 'payroll', 'manager'), sec: 'inbox' },
     { id: 'centre', n: 'vwCentre', ok: approverOk, files: FLOW_FILES, run: function(b){ Flows.centre(b); } },
+    { id: 'leave', n: 'vwLeave', ok: any('hr', 'manager'), sec: 'leave' },
+    { id: 'holidays', n: 'vwHolidays', ok: any('hr'), sec: 'holidays' },
     { id: 'cycles', n: 'vwCycles', ok: function(){ return isHr() || any('hr', 'payroll', 'manager')(); }, files: FLOW_FILES, run: function(b){ Flows.cycles(b); } },
     { id: 'expenses', n: 'vwExpenses', ok: ALL, files: ['js/doc.js', 'js/expenses.js'], run: function(b){ Expense.page(b); } },
     { id: 'helpdesk', n: 'vwHelpdesk', ok: function(){ return isHr() || any('hr', 'payroll')(); }, files: W2_FILES, run: function(b){ Desk.section(b); } },
     { id: 'kb', n: 'vwKb', ok: ALL, files: W2_FILES, run: function(b){ KBase.section(b); } },
-    { id: 'leave', n: 'vwLeave', ok: any('hr', 'manager'), sec: 'leave' },
-    { id: 'holidays', n: 'vwHolidays', ok: any('hr'), sec: 'holidays' },
-    { id: 'flows', n: 'vwFlows', ok: isHr, files: FLOW_FILES, run: function(b){ Flows.config(b); } },
-    // full pages (2026-10-14): a new request, a request's own page, a new expense claim; routed as #requests/new/leave, #requests/view/<id>
     { id: 'new', n: 'vwNewReq', ok: ALL, page: 1, files: MY_FILES, run: function(b, arg){ Req.newPage(b, arg); } },
     { id: 'view', n: 'vwReqView', ok: ALL, page: 1, files: MY_FILES, run: function(b, arg){ Req.viewPage(b, arg); } },
     { id: 'claim', n: 'vwNewClaim', ok: ALL, page: 1, files: ['js/dashboard.js', 'js/doc.js', 'js/expenses.js'], run: function(b){ Expense.newPage(b); } },
     { id: 'claimview', n: 'vwClaimView', ok: ALL, page: 1, files: ['js/dashboard.js', 'js/doc.js', 'js/expenses.js'], run: function(b, arg){ Expense.viewPage(b, arg); } }] },
-  { id: 'pay', i: 'wallet', subs: [
+  { id: 'pay', i: 'wallet', grp: 'life', subs: [
     { id: 'slips', n: 'vwSlips', ok: ALL, files: MY_FILES, run: mySlipsView },
     { id: 'runs', n: 'vwRuns', ok: salaryOk, sec: 'payroll' },
     { id: 'approvals', n: 'vwApprovals', ok: salaryOk, sec: 'approvals' },
     { id: 'compliance', n: 'vwCompliance', ok: salaryOk, sec: 'compliance' },
     { id: 'journal', n: 'vwJournal', ok: salaryOk, files: ['js/doc.js', 'js/journal.js'], run: function(b){ Journal.section(b); } },
-    { id: 'settlements', n: 'vwSettle', ok: salaryOk, files: W2_FILES, run: function(b){ Settle.section(b); } },
-    { id: 'loans', n: 'vwLoans', ok: function(){ return isHr() || any('hr', 'payroll')(); }, files: W2_FILES, run: function(b){ Loans.section(b); } }] },
-  { id: 'growth', i: 'trend-up', subs: [
+    { id: 'loans', n: 'vwLoans', ok: function(){ return isHr() || any('hr', 'payroll')(); }, files: W2_FILES, run: function(b){ Loans.section(b); } },
+    { id: 'payreview', n: 'vwPayReview', ok: function(){ return isHr() || any('hr', 'payroll', 'manager')(); }, files: W2_FILES, run: function(b){ PayReview.section(b); } },
+    { id: 'perks', n: 'vwPerks', ok: ALL, files: W4_FILES, run: function(b){ Perks.section(b); } }] },
+  { id: 'growth', i: 'trend-up', grp: 'life', subs: [
     { id: 'me', n: 'vwGrowth', ok: ALL, files: MY_FILES, run: myGrowthView },
+    { id: 'oneonone', n: 'vwOneOnOne', ok: ALL, files: W4_FILES, run: function(b){ OneOnOne.section(b); } },
     { id: 'cycle', n: 'vwCycle', ok: any('hr', 'manager'), sec: 'performance' },
     { id: 'plans', n: 'vwPlans', ok: any('hr', 'manager'), sec: 'plans' },
-    { id: 'pulse', n: 'vwPulse', ok: any('hr', 'executive', 'payroll'), sec: 'engagement' },
-    { id: 'payreview', n: 'vwPayReview', ok: function(){ return isHr() || any('hr', 'payroll', 'manager')(); }, files: W2_FILES, run: function(b){ PayReview.section(b); } },
-    { id: 'oneonone', n: 'vwOneOnOne', ok: ALL, files: W4_FILES, run: function(b){ OneOnOne.section(b); } },
+    { id: 'training', n: 'vwTraining', ok: function(){ return isHr() || any('hr', 'manager', 'executive')(); }, files: W2_FILES, run: function(b){ Training.section(b); } },
     { id: 'talent', n: 'vwTalent', ok: function(){ return isHr() || any('hr', 'executive', 'manager')(); }, files: W4_FILES, run: function(b){ Talent.section(b); } },
     { id: 'mobility', n: 'vwMobility', ok: ALL, files: W4_FILES, run: function(b){ Mobility.section(b); } },
-    { id: 'perks', n: 'vwPerks', ok: ALL, files: W4_FILES, run: function(b){ Perks.section(b); } },
-    { id: 'kudos', n: 'vwKudos', ok: ALL, files: W2_FILES, run: function(b){ Kudos.section(b); } },
-    { id: 'training', n: 'vwTraining', ok: function(){ return isHr() || any('hr', 'manager', 'executive')(); }, files: W2_FILES, run: function(b){ Training.section(b); } }] },
-  { id: 'people', i: 'users-three', subs: [
-    { id: 'directory', n: 'vwDirectory', ok: any('hr'), sec: 'people' },
-    { id: 'team', n: 'vwTeam', ok: any('manager'), sec: 'team' },
-    { id: 'org', n: 'vwOrg', ok: any('hr'), sec: 'org' },
-    { id: 'orgchart', n: 'vwOrgChart', ok: any('hr'), files: W2_FILES, run: function(b){ OrgChart.section(b); } },
-    { id: 'positions', n: 'vwPositions', ok: any('hr'), sec: 'positions' },
-    { id: 'careers', n: 'vwCareers', ok: isHr, files: W4_FILES, run: function(b){ CareersAdmin.section(b); } },
-    { id: 'recruitment', n: 'vwRecruit', ok: function(){ return isHr() || any('hr', 'manager', 'executive', 'payroll')(); }, files: W2_FILES, run: function(b){ Hire.section(b); } },
-    { id: 'welcome', n: 'vwWelcome', ok: isHr, files: W4_FILES, run: function(b){ Welcome.section(b); } },
-    { id: 'onboarding', n: 'vwOnboarding', ok: any('hr', 'manager'), sec: 'onboarding' },
-    { id: 'offboarding', n: 'vwOffboarding', ok: any('hr', 'payroll', 'manager'), sec: 'offboarding', ops: 1 },
-    { id: 'custody', n: 'vwCustody', ok: any('hr', 'payroll'), sec: 'custody', ops: 1 },
-    { id: 'relations', n: 'vwRelations', ok: any('hr', 'manager'), sec: 'relations', ops: 1 },
-    { id: 'gov', n: 'vwGov', ok: function(){ return isHr() || any('hr', 'payroll')(); }, files: ['js/dashboard.js', 'js/doc.js', 'js/requests.js', 'js/gov.js'], run: function(b){ Gov.section(b); } },
-    { id: 'insurance', n: 'vwInsurance', ok: function(){ return isHr() || any('hr', 'payroll')(); }, files: W2_FILES, run: function(b){ Ins.section(b); } },
+    { id: 'kudos', n: 'vwKudos', ok: ALL, files: W2_FILES, run: function(b){ Kudos.section(b); } }] },
+  { id: 'engage', i: 'megaphone', grp: 'life', subs: [
     { id: 'announce', n: 'vwAnnounce', ok: isHr, files: W2_FILES, run: function(b){ Ann.section(b); } },
-    { id: 'exits', n: 'vwExits', ok: function(){ return any('hr', 'executive')(); }, files: W2_FILES, run: function(b){ Exits.section(b); } },
-    { id: 'customfields', n: 'vwCustomFields', ok: isHr, files: W2_FILES, run: function(b){ CustomFields.section(b); } },
-    { id: 'policies', n: 'vwPolicies', ok: any('hr'), sec: 'policies' },
-    { id: 'expiring', n: 'vwExpiring', ok: any('hr'), sec: 'expiring' },
-    { id: 'import', n: 'vwImport', ok: any('hr'), sec: 'import' },
-    { id: 'accounts', n: 'vwAccounts', ok: isHr, adm: 'emp' },
-    { id: 'roles', n: 'vwRoles', ok: isHr, files: W4_FILES, run: function(b){ Roles.section(b); } }] },
-  { id: 'insights', i: 'chart-line-up', subs: [
+    { id: 'pulse', n: 'vwPulse', ok: any('hr', 'executive', 'payroll'), sec: 'engagement' },
+    { id: 'relations', n: 'vwRelations', ok: any('hr', 'manager'), sec: 'relations', ops: 1 },
+    { id: 'policies', n: 'vwPolicies', ok: any('hr'), sec: 'policies' }] },
+  { id: 'offboard', i: 'sign-out', grp: 'life', subs: [
+    { id: 'offboarding', n: 'vwOffboarding', ok: any('hr', 'payroll', 'manager'), sec: 'offboarding', ops: 1 },
+    { id: 'settlements', n: 'vwSettle', ok: salaryOk, files: W2_FILES, run: function(b){ Settle.section(b); } },
+    { id: 'exits', n: 'vwExits', ok: function(){ return any('hr', 'executive')(); }, files: W2_FILES, run: function(b){ Exits.section(b); } }] },
+  { id: 'insights', i: 'chart-line-up', grp: 'mgmt', subs: [
     { id: 'dashboard', n: 'vwDashboard', ok: any('hr', 'payroll', 'executive'), sec: 'dashboard' },
     { id: 'reports', n: 'vwReports', ok: any('hr', 'payroll', 'executive', 'manager'), sec: 'reports' },
-    { id: 'workforce', n: 'vwWorkforce', ok: function(){ return isHr() || any('hr', 'payroll', 'executive', 'manager')(); }, files: W4_FILES, run: function(b){ Workforce.section(b); } },
     { id: 'builder', n: 'vwBuilder', ok: isHr, files: W2_FILES, run: function(b){ ReportBuilder.section(b); } },
     { id: 'attendance', n: 'vwAttendance', ok: isHr, adm: 'reports' },
-    { id: 'audit', n: 'vwAudit', ok: isHr, adm: 'audit' },
+    { id: 'audit', n: 'vwAudit', ok: isHr, adm: 'audit' }] },
+  { id: 'admin', i: 'sliders-horizontal', grp: 'mgmt', subs: [
+    { id: 'settings', n: 'arSettings', ok: isAdmin, adm: 'settings' },
+    { id: 'roles', n: 'vwRoles', ok: isHr, files: W4_FILES, run: function(b){ Roles.section(b); } },
+    { id: 'flows', n: 'vwFlows', ok: isHr, files: FLOW_FILES, run: function(b){ Flows.config(b); } },
     { id: 'export', n: 'vwExport', ok: isAdmin, files: W4_FILES, run: function(b){ DataExport.section(b); } }] },
-  { id: 'profile', i: 'identification-card', foot: true, bare: true, subs: [{ id: 'main', n: 'vwMain', ok: ALL, files: MY_FILES, run: function(b){ MyFile.render(b); } }] },
-  { id: 'account', i: 'user-circle', foot: true, bare: true, subs: [{ id: 'main', n: 'vwMain', ok: ALL, run: function(){ renderMe(); } }] },
-  { id: 'settings', i: 'gear-six', foot: true, subs: [{ id: 'main', n: 'vwMain', ok: isAdmin, adm: 'settings' }] }
+    { id: 'profile', i: 'identification-card', foot: true, bare: true, subs: [{ id: 'main', n: 'vwMain', ok: ALL, files: MY_FILES, run: function(b){ MyFile.render(b); } }] },
+    { id: 'account', i: 'user-circle', foot: true, bare: true, subs: [{ id: 'main', n: 'vwMain', ok: ALL, run: function(){ renderMe(); } }] }
 ];
 /** One icon per sub-page tab (2026-10-18 redesign): the same Phosphor set as the side menu and the bell. */
 var SUB_ICON = { perks: 'gift', welcome: 'hand-waving', export: 'download-simple', mobility: 'path', roles: 'shield-check', talent: 'squares-four', kb: 'books', oneonone: 'chats-circle', workforce: 'users-four', careers: 'globe', openshifts: 'calendar-plus', punch: 'fingerprint', history: 'calendar-dots', board: 'users-four', review: 'shield-warning', timesheets: 'calendar-check', shifts: 'clock-clockwise', zones: 'map-pin-area',
@@ -3312,10 +3319,10 @@ function loadAll(files){ return files.reduce(function(p, f){ return p.then(funct
 
 /** Where a task from the bell opens. HR sections map to their area; personal items to growth or the profile. */
 var SEC_DEST = { openshifts: 'time:openshifts', inbox: 'requests:inbox', leave: 'requests:leave', approvals: 'pay:approvals', payroll: 'pay:runs', compliance: 'pay:compliance', reports: 'insights:reports', dashboard: 'insights:dashboard',
-  onboarding: 'people:onboarding', offboarding: 'people:offboarding', custody: 'people:custody', relations: 'people:relations', team: 'people:team', people: 'people:directory', shifts: 'time:shifts',
-  performance: 'growth:cycle', plans: 'growth:plans', engagement: 'growth:pulse',
-  approvalcentre: 'requests:centre', leavecycle: 'requests:cycles', expenses: 'requests:expenses', flows: 'requests:flows', gov: 'people:gov', journal: 'pay:journal',
-  recruitment: 'people:recruitment', loans: 'pay:loans', training: 'growth:training', insurance: 'people:insurance', helpdesk: 'requests:helpdesk', announce: 'people:announce', settlements: 'pay:settlements', payreview: 'growth:payreview', timesheets: 'time:timesheets' };
+  onboarding: 'onboard:onboarding', offboarding: 'offboard:offboarding', custody: 'people:custody', relations: 'engage:relations', team: 'people:team', people: 'people:directory', shifts: 'time:shifts',
+  performance: 'growth:cycle', plans: 'growth:plans', engagement: 'engage:pulse',
+  approvalcentre: 'requests:centre', leavecycle: 'requests:cycles', expenses: 'requests:expenses', flows: 'admin:flows', gov: 'people:gov', journal: 'pay:journal',
+  recruitment: 'hire:recruitment', loans: 'pay:loans', training: 'growth:training', insurance: 'people:insurance', helpdesk: 'requests:helpdesk', announce: 'engage:announce', settlements: 'offboard:settlements', payreview: 'pay:payreview', timesheets: 'time:timesheets' };
 var MINE_DEST = { one_on_one: 'growth:oneonone', swap_ask: 'time:openshifts', survey: 'growth:me', policies: 'growth:me', onboarding: 'growth:me', plans: 'growth:me' };
 function taskDest(x){ var g = x.target || {}; return g.tab === 'hr' ? SEC_DEST[g.sec] || 'home' : MINE_DEST[x.kind] || 'profile'; }
 function areaCounts(){
@@ -3387,7 +3394,9 @@ function paintNav(){
   var item = function(a){ var c = cnt[a.id];
     return '<a href="#' + a.id + '" data-area="' + a.id + '"' + (S.tab === a.id ? ' aria-current="page"' : '') + '><span class="v3-ic">' + ph(a.i, 'duotone') + '</span><span>' + areaName(a) + '</span>' + (c ? '<span class="cnt num">' + (c > 99 ? '99+' : c) + '</span>' : '') + '</a>'; };
   var nav = $('#v2Nav'), foot = $('#v2Foot'), bot = $('#v2Bottom'); if (!nav) return;
-  nav.innerHTML = vis.filter(function(a){ return !a.foot; }).map(item).join('');
+  // lifecycle menu (2026-10-20): the employee journey in order, then analysis and administration, each under a small heading
+  var grp = '', main = vis.filter(function(a){ return !a.foot; });
+  nav.innerHTML = main.map(function(a){ var h = a.grp && a.grp !== grp && main.filter(function(x){ return x.grp; }).length > 3 ? '<p class="v2-grp">' + t(a.grp === 'life' ? 'navLife' : 'navMgmt') + '</p>' : ''; if (a.grp) grp = a.grp; return h + item(a); }).join('');
   foot.innerHTML = vis.filter(function(a){ return a.foot; }).map(item).join('') + '<button type="button" id="v2Lock" data-area="account"><span class="v3-ic">' + ph('lock-simple', 'duotone') + '</span><span>' + t('signOut') + '</span></button>';
   var r = R(), fourth = r.hr || r.manager ? ['people', 'users-three', r.hr ? 'v2PeopleS' : 'vwTeam'] : ['pay', 'wallet', 'v2MyPay'];
   var bn = [['home', 'house', 'arHome'], ['requests', 'tray', 'v2Req'], ['time:punch', 'fingerprint', 'v2Punch', 1], fourth, ['more', 'dots-three-outline', 'v2More']];
@@ -3491,6 +3500,7 @@ applyTheme();
  */
 function goArea(area, sub, arg, o){
   o = o || {};
+  var mv = MOVED[area + ':' + (sub || '')] || (sub ? null : MOVED[area + ':']); if (mv) { var mp = mv.split(':'); area = mp[0]; sub = mp[1]; } // lifecycle menu (2026-10-20): old links still land
   typedOnPage = false; // pushState fires no hashchange: a new screen starts with nothing typed
   dpReset(); // record pages opened on top of the old screen go with it (their history entries stay behind as plain back steps)
   var a = areaOf(area); if (!a || !areaOk(a)) a = AREAS[0];
