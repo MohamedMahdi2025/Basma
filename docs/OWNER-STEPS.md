@@ -1,0 +1,73 @@
+# What only the owner can do (2026-10-20)
+
+Everything that can be built in code is built and live (@83). Each item below is waiting for an account, a permission or
+a contract that only the company can provide. Each item says who does it, how long it takes and what Claude does next.
+
+## 1. E-mail: daily digest and payslips (code ready, switched off)
+
+**Who:** your Microsoft 365 administrator, then you, about 30 minutes in all.
+
+1. **Your Microsoft 365 administrator** creates the app in Entra ID (portal.azure.com, then App registrations, then New):
+   - Under API permissions, add Microsoft Graph, then Application, then **Mail.Send**, and press **Grant admin consent**.
+   - Under Certificates & secrets, add a **client secret** and copy its value.
+   - Pick the sending mailbox, for example `hr-noreply@bestgas.sa`.
+2. **You** open the Apps Script project, then Project Settings, then Script properties, and add four properties:
+   - `M365_TENANT`: the tenant ID.
+   - `M365_CLIENT_ID`: the app (client) ID.
+   - `M365_CLIENT_SECRET`: the secret value.
+   - `M365_SENDER`: the sending mailbox.
+3. **Tell Claude a time you can click.** Claude adds the permission `script.external_request` and deploys. From that moment
+   **every request fails until you authorise it**, so do step 4 right away.
+4. **You** open the Apps Script editor, run the function **`authorize`** once and press **Allow**. This takes about 1 minute.
+5. **The administrator** opens Settings, then Pay rules, then **Daily e-mail digest**, and turns it on. They press **Send a
+   test to my e-mail** to check that it works. Payslip e-mail (Pay, then Runs, then E-mail payslips) works from the same
+   moment.
+
+## 2. File attachments (scans of IDs, contracts, certificates)
+
+**Needs:** a Google Drive permission. It fits the same authorise click as item 1.
+
+Claude builds the upload screens when you choose the time for step 3. One click then authorises both items 1 and 2.
+
+## 3. WhatsApp notifications
+
+**Needs:** a Meta WhatsApp Business account, with a verified business, a phone number for sending and approved message
+templates.
+
+The WhatsApp Cloud API is free to start; Meta charges per conversation. When it is ready, give Claude the phone number ID.
+Put the token itself in Script properties, never in chat.
+
+## 4. Speed (the 2 to 3 second wait on every action)
+
+**Needs:** a Google Cloud project in **me-central2 (Dammam)** with billing on.
+
+The new server (`platform/`) answers in milliseconds and keeps the data in Saudi Arabia (PDPL). For the steps, see
+`platform/docs/DEPLOYMENT-KSA.md`. Estimated cost is a small Cloud Run and Cloud SQL setup, typically tens of dollars a
+month for this company size.
+
+## 5. iPhone app (one-tap Open Settings, native location)
+
+**Needs:**
+- An **Apple Developer Program** membership for the company: 99 USD a year, and Apple asks for the **D-U-N-S number**.
+- The bundle id `sa.bestgas.attendance` created in App Store Connect.
+
+The project is ready in `native/`. To build it from Windows with no Mac, connect the Apple account to **Codemagic** and
+run `ios-testflight`. See `native/README.md`.
+
+## 6. Android app
+
+**Two options:**
+- **Install the developer tools on this PC:** Android Studio and a JDK, about 5 GB. Claude then builds an installable APK
+  for staff phones.
+- **Use Codemagic** (cloud, no install).
+
+A Google Play account is a one-time 25 USD and is only needed for the Play Store. Staff can also install the APK directly.
+
+## 7. Government and partner integrations
+
+These are contracts, not code. Claude builds each connector once its access exists:
+- **Mudad (WPS), GOSI, Qiwa, Muqeem:** apply through each platform's business or integrator programme. The WPS file is
+  already produced and checked in Compliance.
+- **Tameeni (medical insurance):** through your insurer or broker.
+- **Fingerprint and face devices:** choose a vendor whose devices can push punches (for example ZKTeco with a cloud API).
+- **Salary benchmarking data:** a market data provider.
