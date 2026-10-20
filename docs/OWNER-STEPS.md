@@ -23,11 +23,14 @@ a contract that only the company can provide. Each item says who does it, how lo
    test to my e-mail** to check that it works. Payslip e-mail (Pay, then Runs, then E-mail payslips) works from the same
    moment.
 
-## 2. File attachments (scans of IDs, contracts, certificates)
+## 2. File attachments (code ready, switched off)
 
-**Needs:** a Google Drive permission. It fits the same authorise click as item 1.
+**Who:** you, at the same click as item 1.
 
-Claude builds the upload screens when you choose the time for step 3. One click then authorises both items 1 and 2.
+Scans of IDs, contracts and certificates go into a Drive folder that the app creates.
+- **Access:** the app gets the narrowest Google permission (`drive.file`): it can see only files it created itself.
+- **Who opens them:** files are never shared by link; they open only inside the app. The employee opens their own; HR opens any. Every view is audited.
+- **Switching on:** at the time you choose for step 3 of item 1, Claude also adds the `drive.file` permission, so the one Allow covers both. The administrator then turns on Settings, then **Document attachments**.
 
 ## 3. WhatsApp notifications
 

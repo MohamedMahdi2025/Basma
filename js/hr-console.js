@@ -680,7 +680,7 @@ function docsTab(el, f, reload, ro){
     var box = $('#docForm', el);
     box.innerHTML = '<form class="form" id="df"><div class="two">' + fieldSel('type', t('docType'), DOC_TYPES.map(function(x){ return [x, t('doc_' + x)]; }), d ? d.type : '', false) + inp('number', t('docNo'), d ? d.number : '', ' dir="ltr" maxlength="40"') + '</div>' +
       '<div class="two">' + dateInp('issueDate', t('docIssue'), d ? d.issueDate : '') + dateInp('expiryDate', t('docExp'), d ? d.expiryDate : '') + '</div>' + inp('note', t('docNote'), d ? d.note : '', ' maxlength="300"') +
-      '<div class="err" id="derr" style="color:var(--red)"></div><div class="btnrow"><button class="btn btn-dark">' + t('save') + '</button>' + (d ? '<button type="button" class="btn btn-danger" id="ddel">' + t('docDelete') + '</button>' : '') + '</div></form>';
+      '<div class="err" id="derr" style="color:var(--red)"></div><div class="btnrow"><button class="btn btn-dark">' + t('save') + '</button>' + (d ? '<button type="button" class="btn btn-line" id="datt">' + ph('paperclip') + t(d.hasFile ? 'atReplace' : 'atAttach') + '</button>' + (d.hasFile ? '<button type="button" class="btn btn-line" id="dview">' + ph('eye') + t('atView') + '</button>' : '') + '<button type="button" class="btn btn-danger" id="ddel">' + t('docDelete') + '</button>' : '') + '</div></form>';
     var fm = $('#df', box);
     function send(extra){
       var v = Object.assign(formData(fm), extra || {});
@@ -689,6 +689,8 @@ function docsTab(el, f, reload, ro){
     }
     fm.onsubmit = function(ev){ ev.preventDefault(); send(); };
     var del = $('#ddel', box); if (del) del.onclick = function(){ send({ status: 'deleted' }); };
+    var att = $('#datt', box); if (att) att.onclick = function(){ docFileAttach(d.id, reload); };
+    var vw = $('#dview', box); if (vw) vw.onclick = function(){ docFileOpen(d.id); };
   }
   $$('[data-doc]', el).forEach(function(r){ r.onclick = function(){ form(docs.filter(function(x){ return x.id === r.dataset.doc; })[0]); $('#docForm', el).scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }; });
   form(null);

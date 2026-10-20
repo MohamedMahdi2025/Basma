@@ -362,5 +362,41 @@ console.log('Custom fields (2026-10-18)');
   x = c('3001', 'customValuesAll');
   ok(x.ok && x.values[ids['5002']] && Object.keys(x.values[ids['5002']]).length === 3 && x.fields.length === 3, 'HR reads every value for the report builder', x.fields && x.fields.length);
 }
+
+console.log('Document attachments (2026-10-20; off until the owner approves Google Drive)');
+{
+  const call = (no, action, extra) => B.call(Object.assign({ action, token: tok(no, true) }, extra || {}));
+  const files = {}; let n = 0, deleted = [];
+  B.ctx.ScriptApp = { getOAuthToken: () => 'tok' };
+  B.ctx.Utilities.base64Encode = b => Buffer.from(Uint8Array.from(b, x => x & 255)).toString('base64');
+  B.ctx.UrlFetchApp = { fetch: (url, o) => {
+    const ok = (body, code) => ({ getResponseCode: () => code || 200, getContentText: () => JSON.stringify(body), getBlob: () => ({ getBytes: () => body.bytes }) });
+    if (/uploadType=multipart/.test(url)) { const id = 'D' + (++n); const raw = Buffer.from(Uint8Array.from(o.payload, x => x & 255)); files[id] = raw; return ok({ id }); }
+    if (/\/drive\/v3\/files\?fields=id/.test(url)) return ok({ id: 'FOLDER' });
+    const m = url.match(/files\/([^?]+)(\?alt=media)?/);
+    if (m && o.method === 'delete') { deleted.push(m[1]); return ok({}, 204); }
+    if (m && m[2]) return ok({ bytes: Array.from(Buffer.from('%PDF-1.4 scan of the iqama')) });
+    return ok({}, 404);
+  } };
+  const setS = (k, v) => direct(() => { const row = B.ctx.readAll_('settings').find(x => x.key === k); if (row) { row.value = v; B.ctx.update_('settings', row); } else B.ctx.append_('settings', { key: k, value: v }); });
+  const doc = call('3001', 'hrDocSave', { doc: { empId: ids['5002'], type: 'iqama', number: '2123456789', expiryDate: '2028-01-01' } }).doc;
+  const pdf = Buffer.from('%PDF-1.4 scan of the iqama').toString('base64');
+  ok(call('3001', 'docUpload', { docId: doc.id, mime: 'application/pdf', data: pdf }).error === 'attachments_off', 'off by default: nothing is uploaded');
+  setS('attachmentsEnabled', 'true'); B.ctx.CacheService.getScriptCache().remove('settings:v1');
+  ok(call('5002', 'docUpload', { docId: doc.id, mime: 'application/pdf', data: pdf }).error === 'forbidden', 'only HR attaches scans');
+  ok(call('3001', 'docUpload', { docId: doc.id, mime: 'text/html', data: pdf }).error === 'bad_file_type', 'only PDF and images');
+  ok(call('3001', 'docUpload', { docId: doc.id, mime: 'image/png', data: Buffer.alloc(5 * 1024 * 1024 + 1).toString('base64') }).error === 'file_too_big', 'at most 5 MB');
+  let r = call('3001', 'docUpload', { docId: doc.id, mime: 'application/pdf', data: pdf });
+  ok(r.ok && r.doc.hasFile && /iqama/.test(r.doc.fileName) && files.D1 && files.D1.includes('%PDF-1.4'), 'HR attaches the iqama scan; it lands in the app folder in Drive', r.doc || r);
+  ok(call('5002', 'docFile', { docId: doc.id }).ok, 'the employee opens their own scan');
+  ok(call('5003', 'docFile', { docId: doc.id }).error === 'not_found', 'a colleague cannot');
+  r = call('3001', 'docFile', { docId: doc.id });
+  ok(r.ok && Buffer.from(r.data, 'base64').toString().startsWith('%PDF') && r.mime === 'application/pdf', 'HR gets the file content back');
+  const views = direct(() => B.ctx.readAll_('audit')).filter(a => a.action === 'doc_view').length;
+  ok(views === 2, 'every view is in the audit trail', views);
+  r = call('3001', 'docUpload', { docId: doc.id, mime: 'image/jpeg', data: Buffer.from('jpeg').toString('base64') });
+  ok(r.ok && deleted.indexOf('D1') >= 0, 'replacing a scan removes the old file from Drive', deleted);
+  setS('attachmentsEnabled', 'false'); B.ctx.CacheService.getScriptCache().remove('settings:v1');
+}
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);

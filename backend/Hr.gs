@@ -562,7 +562,7 @@ var DOC_TYPES = ['iqama', 'passport', 'work_permit', 'medical_insurance', 'contr
 
 function publicDoc_(x) {
   return { id: x.id, ref: x.ref || '', empId: x.empId, type: x.type, number: String(x.number || ''), issueDate: x.issueDate, expiryDate: x.expiryDate,
-    note: x.note, status: x.status };
+    note: x.note, status: x.status, hasFile: !!x.fileId, fileName: x.fileName || '', fileSize: Number(x.fileSize) || 0 };
 }
 function docRows_(empId) {
   return readAll_(SHEETS.DOCS).filter(function (x) { return x.empId === empId && x.status !== 'deleted'; })
@@ -965,4 +965,67 @@ function api_searchAll(req, me) {
     add('candidates', readAll_(SHEETS.CAND).filter(function (c) { return c.stage !== 'erased'; }).map(function (c) { var s = hit([c.name, c.nameEn, c.ref, c.currentTitle, c.currentEmployer]); return s ? { ref: c.ref, title: c.name, status: c.stage, snippet: s, dest: { area: 'people', sub: 'recruitment' } } : null; }).filter(Boolean));
   }
   return { ok: true, q: q, groups: groups };
+}
+
+// ---------------- document attachments (2026-10-20; switched on by the owner) ----------------
+/**
+ * A scan (PDF, JPG, PNG, WebP up to 5 MB) attached to a document record, stored in Google Drive in a folder the app
+ * creates. Least access: the drive.file scope only lets the app see files it created itself. Files are never shared by
+ * link; they reach people only through docFile, with the same rules as the record (the person themself, HR). Every view
+ * is audited. Off until: setting attachmentsEnabled = true, and the drive.file + script.external_request scopes are in
+ * appsscript.json and authorised once by the owner. Until then both actions answer attachments_off.
+ */
+var ATTACH_TYPES_ = { 'application/pdf': 'pdf', 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
+var ATTACH_MAX_ = 5 * 1024 * 1024;
+function attachOn_() { var s = settings_(); return s.attachmentsEnabled === true || String(s.attachmentsEnabled) === 'true'; }
+function driveCall_(method, url, opts) {
+  var r;
+  try {
+    r = UrlFetchApp.fetch(url, Object.assign({ method: method, muteHttpExceptions: true, headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken() } }, opts || {}));
+  } catch (e) { fail_('attachments_off'); } // no external-request scope yet
+  var code = r.getResponseCode();
+  if (code === 401 || code === 403) fail_('attachments_off'); // no drive.file scope yet
+  if (code >= 300) fail_('attachment_failed');
+  return r;
+}
+function driveFolder_() {
+  var p = PropertiesService.getScriptProperties(), id = p.getProperty('DRIVE_FOLDER_ID');
+  if (id) return id;
+  var r = driveCall_('post', 'https://www.googleapis.com/drive/v3/files?fields=id', { contentType: 'application/json', payload: JSON.stringify({ name: 'HR documents (attendance system)', mimeType: 'application/vnd.google-apps.folder' }) });
+  id = JSON.parse(r.getContentText()).id; p.setProperty('DRIVE_FOLDER_ID', id);
+  return id;
+}
+function canSeeDoc_(me, row) { return !!row && (row.empId === me.id || isHr_(me)); }
+function api_docUpload(req, me) {
+  if (!isHr_(me)) fail_('forbidden');
+  if (!attachOn_()) fail_('attachments_off');
+  var mime = String(req.mime || ''), ext = ATTACH_TYPES_[mime];
+  if (!ext) fail_('bad_file_type');
+  var bytes;
+  try { bytes = Utilities.base64Decode(String(req.data || '')); } catch (e) { fail_('bad_value'); }
+  if (!bytes.length || bytes.length > ATTACH_MAX_) fail_('file_too_big');
+  return withLock_(function () {
+    var row = findBy_(SHEETS.DOCS, 'id', req.docId);
+    if (!row || row.status === 'deleted') fail_('not_found');
+    var emp = findBy_(SHEETS.EMP, 'id', row.empId) || {}, name = String(emp.empNo || 'x') + '-' + row.type + '-' + (row.ref || row.id) + '.' + ext;
+    var boundary = 'bgatt' + newId_(''), meta = JSON.stringify({ name: name, parents: [driveFolder_()] });
+    var head = '--' + boundary + '\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n' + meta + '\r\n--' + boundary + '\r\nContent-Type: ' + mime + '\r\n\r\n';
+    var payload = Utilities.newBlob(head).getBytes().concat(bytes).concat(Utilities.newBlob('\r\n--' + boundary + '--').getBytes());
+    var r = driveCall_('post', 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', { contentType: 'multipart/related; boundary=' + boundary, payload: payload });
+    var newId = JSON.parse(r.getContentText()).id, old = row.fileId;
+    row.fileId = newId; row.fileName = name; row.fileMime = mime; row.fileSize = bytes.length; row.fileAt = new Date().toISOString(); row.fileBy = me.id; row.updatedAt = row.fileAt;
+    update_(SHEETS.DOCS, row);
+    if (old) { try { driveCall_('delete', 'https://www.googleapis.com/drive/v3/files/' + encodeURIComponent(old)); } catch (e) {} }
+    audit_(me.id, 'doc_attach', row.empId, { ref: row.ref, size: bytes.length, replaced: !!old });
+    return { ok: true, doc: publicDoc_(row) };
+  });
+}
+function api_docFile(req, me) {
+  var row = findBy_(SHEETS.DOCS, 'id', req.docId);
+  if (!canSeeDoc_(me, row) || row.status === 'deleted') fail_('not_found');
+  if (!row.fileId) fail_('no_attachment');
+  if (!attachOn_()) fail_('attachments_off');
+  var r = driveCall_('get', 'https://www.googleapis.com/drive/v3/files/' + encodeURIComponent(row.fileId) + '?alt=media');
+  audit_(me.id, 'doc_view', row.empId, { ref: row.ref });
+  return { ok: true, name: row.fileName, mime: row.fileMime, data: Utilities.base64Encode(r.getBlob().getBytes()) };
 }

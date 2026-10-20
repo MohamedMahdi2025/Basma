@@ -280,7 +280,7 @@ function draw(main, f){
       ]) || '<p>' + t('mfNone') + '</p>') + '<p class="mf-note">' + ph('info') + t('mfFixHint') + '</p>');
     }
     if (f.documents) personal += card('', head('folder-simple', t('mfDocs')) + (f.documents.length ? f.documents.map(function(d){
-      return '<div class="mf-doc"><div class="av">' + ph('file') + '</div><div class="main"><b>' + t('doc_' + d.type) + '</b>' + (d.number ? '<small><bdi>' + esc(d.number) + '</bdi></small>' : '') + '</div>' + expiryChip(d.expiryDate) + '</div>';
+      return '<div class="mf-doc"><div class="av">' + ph('file') + '</div><div class="main"><b>' + t('doc_' + d.type) + '</b>' + (d.number ? '<small><bdi>' + esc(d.number) + '</bdi></small>' : '') + '</div>' + expiryChip(d.expiryDate) + (d.hasFile ? '<button type="button" class="btn btn-line btn-sm" data-dfile="' + esc(d.id) + '" aria-label="' + t('atView') + '" title="' + t('atView') + '">' + ph('paperclip') + '</button>' : '') + '</div>';
     }).join('') : '<p>' + t('mfNoDocs') + '</p>'));
     personal += '</div>';
   }
