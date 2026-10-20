@@ -1058,7 +1058,8 @@ function kudosSection(body){
   var box = head(body, 'kdTitle', 'kdLead');
   function load(){
     busy(box);
-    Promise.all([api('kudosFeed', {}, true), api('kudosStats', {}, true)]).then(function(rs){
+    // company statistics only for those the server allows (HR, administrator, executive): no refused call for everyone else
+    Promise.all([api('kudosFeed', {}, true), isHr() || R().executive ? api('kudosStats', {}, true) : Promise.resolve({ ok: false })]).then(function(rs){
       if (!box.isConnected) return;
       var f = rs[0], s = rs[1];
       if (!f.ok) return box.innerHTML = bad(f.error);

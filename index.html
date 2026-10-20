@@ -3200,6 +3200,8 @@ function R(){ var r = S.fileRoles; return r ? { hr: !!r.hr, payroll: !!r.payroll
 function any(){ var ks = Array.prototype.slice.call(arguments); return function(){ var r = R(); return ks.some(function(k){ return r[k]; }); }; }
 function ALL(){ return true; }
 /** Pay amounts: the hr role or a payroll holder. An admin alone gets forbidden on the server, so the pages stay hidden. */
+/** The hr role itself or an executive (not an administrator alone): matches the server for exit-interview results. */
+function hrRoleOrExec(){ return !!(S.me && S.me.role === 'hr') || !!R().executive; }
 function salaryOk(){ var r = R(); return r.payroll || (r.hr && !isAdmin()); }
 var MY_FILES = ['js/dashboard.js', 'js/doc.js', 'js/my-file.js', 'js/requests.js', 'js/payroll.js', 'js/performance.js', 'js/engage.js', 'js/ops.js', 'js/flows.js', 'js/gov.js', 'js/wave2.js'];
 var FLOW_FILES = ['js/dashboard.js', 'js/doc.js', 'js/requests.js', 'js/flows.js'];
@@ -3282,7 +3284,7 @@ var AREAS = [
   { id: 'offboard', i: 'sign-out', grp: 'life', subs: [
     { id: 'offboarding', n: 'vwOffboarding', ok: any('hr', 'payroll', 'manager'), sec: 'offboarding', ops: 1 },
     { id: 'settlements', n: 'vwSettle', ok: salaryOk, files: W2_FILES, run: function(b){ Settle.section(b); } },
-    { id: 'exits', n: 'vwExits', ok: function(){ return any('hr', 'executive')(); }, files: W2_FILES, run: function(b){ Exits.section(b); } }] },
+    { id: 'exits', n: 'vwExits', ok: hrRoleOrExec, files: W2_FILES, run: function(b){ Exits.section(b); } }] },
   { id: 'insights', i: 'chart-line-up', grp: 'mgmt', subs: [
     { id: 'dashboard', n: 'vwDashboard', ok: any('hr', 'payroll', 'executive'), sec: 'dashboard' },
     { id: 'reports', n: 'vwReports', ok: any('hr', 'payroll', 'executive', 'manager'), sec: 'reports' },
