@@ -2269,3 +2269,190 @@ function reportSubsSweep_() {
     c.remove('rsub:next');
   } catch (e) { console.error('report subs: ' + (e && e.message)); }
 }
+
+
+// ======================================================================= history snapshots (2026-10-21)
+// docs/research/2026-10-21-history-snapshots-design.md. At each month end the workforce is frozen: one compact record
+// per person employed on the last day (department, position, manager, Saudi, gender, tenure, contract, package, and
+// that month's attendance) plus month totals (headcount, Saudization, joiners and leavers, attendance, payroll cost).
+// Later edits (a transfer, a renamed department, a pay rise) never change a past month, so trends and drill-downs show
+// what was true then. Stored in tab `snapshots` in 40 KB parts with a SHA-256 of the whole record (tamper check).
+// Taken lazily: the first writing request after a month ends takes it (no trigger scope). HR can take the current
+// month now ('provisional', replaced at month end) or rebuild a missed past month ('rebuilt': departments and pay
+// as recorded today, attendance and movement from the real history).
+var SNAP_PART_ = 40000, SNAP_MIN_GROUP_ = 5;
+var SNAP_DIMS_ = { dept: 'd', position: 'p', nationality: 's', gender: 'g', tenure: 'tb', contract: 'c', grade: 'gr' };
+
+function snapBuild_(month, kind) {
+  var t = today_(), asOf = minDate_(monthLast_(month), t), from = month + '-01', ctx = orgCtx_(), s = settings_();
+  var reqs = readAll_(SHEETS.REQ), people = waPeople_(ctx, reqs, readAll_(SHEETS.CLR));
+  var on = people.filter(function (p) { return waOn_(p, asOf); }), startOn = people.filter(function (p) { return waOn_(p, addDays_(from, -1)); }).length;
+  var comps = currentCompMap_(asOf), emps = on.map(function (p) { return ctx.emps[p.id]; });
+  var days = daysFor_(emps, from, asOf, s), pos = {};
+  readAll_(SHEETS.POS).forEach(function (x) { pos[x.id] = { title: x.titleAr || x.titleEn || x.code || x.id, grade: String(x.grade || '') }; });
+  var dims = { d: {}, p: {} }, rec = [], sum = { headcount: on.length, startHeadcount: startOn, saudis: 0, saudiWeighted: 0, female: 0, tenureSum: 0, tenureN: 0,
+    present: 0, absent: 0, leave: 0, lateDays: 0, lateMin: 0, packageTotal: 0, withPackage: 0 };
+  on.forEach(function (p) {
+    var e = ctx.emps[p.id], c = comps[e.id], dl = (days[e.id] || []).filter(function (x) { return x; });
+    var a = { pr: 0, ab: 0, lv: 0, lt: 0, lm: 0 };
+    dl.forEach(function (x) { if (x.firstIn) a.pr++; if (x.status === 'absent') a.ab++; if (x.status === 'leave') a.lv++; if (x.lateMin) { a.lt++; a.lm += x.lateMin; } });
+    var ten = p.hire ? Math.round(daysBetween_(p.hire, asOf) / 365.25 * 10) / 10 : null, saudi = bool_(e.isSaudi);
+    if (e.departmentId) dims.d[e.departmentId] = ctx.depts[e.departmentId] ? ctx.depts[e.departmentId].nameAr : (e.department || '-');
+    if (e.positionId) dims.p[e.positionId] = pos[e.positionId] ? pos[e.positionId].title : (e.title || e.positionId);
+    rec.push({ i: e.id, n: String(e.empNo), nm: e.name, d: e.departmentId || '', p: e.positionId || '', m: String(e.managerId || ''), s: saudi ? 1 : 0, nat: String(e.nationality || '').toUpperCase(),
+      g: e.gender === 'male' || e.gender === 'female' ? e.gender : '', h: p.hire || '', t: ten, tb: ten == null ? '' : waBand_(ten), c: String(e.contractType || ''), gr: pos[e.positionId] ? pos[e.positionId].grade : '',
+      pk: c ? c.total : null, pr: a.pr, ab: a.ab, lv: a.lv, lt: a.lt, lm: a.lm, x: p.leaving ? 1 : 0 });
+    if (saudi) { sum.saudis++; sum.saudiWeighted += nitaqatWeight_(c); }
+    if (e.gender === 'female') sum.female++;
+    if (ten != null) { sum.tenureSum += ten; sum.tenureN++; }
+    sum.present += a.pr; sum.absent += a.ab; sum.leave += a.lv; sum.lateDays += a.lt; sum.lateMin += a.lm;
+    if (c) { sum.packageTotal += c.total; sum.withPackage++; }
+  });
+  var hires = people.filter(function (p) { return waCounts_(p) && p.start >= from && p.start <= asOf; });
+  var leavers = people.filter(function (p) { return waCounts_(p) && p.end && p.end >= from && p.end <= asOf; });
+  sum.hires = hires.length; sum.leavers = leavers.length; sum.voluntary = leavers.filter(function (p) { return p.voluntary; }).length;
+  sum.leaverIds = leavers.map(function (p) { return p.id; }); sum.hireIds = hires.map(function (p) { return p.id; });
+  var avg = (sum.startHeadcount + sum.headcount) / 2;
+  sum.turnoverPct = avg ? Math.round(sum.leavers / avg * 1000) / 10 : null;
+  sum.saudiPct = pct_(sum.saudiWeighted, sum.headcount); sum.femalePct = pct_(sum.female, sum.headcount);
+  sum.avgTenure = sum.tenureN ? Math.round(sum.tenureSum / sum.tenureN * 10) / 10 : null;
+  sum.attendancePct = pct_(sum.present, sum.present + sum.absent); sum.absencePct = pct_(sum.absent, sum.present + sum.absent);
+  sum.packageTotal = r2_(sum.packageTotal);
+  var run = runsRealFirst_(readAll_(SHEETS.RUN)).filter(function (r) { return r.status === 'locked' && r.month === month; })[0];
+  if (run) {
+    var tt = totals_(readAll_(SHEETS.SLIP).filter(function (sl) { return sl.runId === run.id && sl.status === 'locked'; }));
+    sum.payroll = { source: 'run', ref: run.ref, gross: tt.gross, net: tt.net, gosiEmployer: tt.gosiEmployer, cost: r2_(tt.gross + tt.gosiEmployer) };
+  } else sum.payroll = { source: 'packages', cost: sum.packageTotal };
+  delete sum.saudiWeighted; delete sum.tenureSum; delete sum.tenureN;
+  return { month: month, asOf: asOf, kind: kind, summary: sum, dims: dims, rec: rec };
+}
+function snapSave_(snap, by) {
+  var body = JSON.stringify({ summary: snap.summary, dims: snap.dims, rec: snap.rec }), hash = sha256Hex_(body), parts = [];
+  for (var i = 0; i < body.length; i += SNAP_PART_) parts.push(body.slice(i, i + SNAP_PART_));
+  var now = new Date().toISOString(), id = newId_('H');
+  readAll_(SHEETS.SNAP).forEach(function (x) { if (x.month === snap.month && x.status === 'current') { x.status = 'replaced'; update_(SHEETS.SNAP, x); } });
+  appendMany_(SHEETS.SNAP, parts.map(function (p, n) {
+    return { id: id + '-' + n, snapId: id, month: snap.month, part: n, parts: parts.length, kind: snap.kind, asOf: snap.asOf, takenAt: now, takenBy: by, status: 'current', hash: n ? '' : hash, data: p };
+  }));
+  return { id: id, hash: hash };
+}
+/** The current snapshot of a month, re-assembled and checked against its fingerprint; null if none. */
+function snapRead_(month, rows) {
+  var mine = (rows || readAll_(SHEETS.SNAP)).filter(function (x) { return x.month === month && x.status === 'current'; }).sort(function (a, b) { return Number(a.part) - Number(b.part); });
+  if (!mine.length) return null;
+  var head = mine[0], body = mine.map(function (x) { return String(x.data); }).join(''), o = parseJson_(body, null);
+  if (!o) return { month: month, kind: head.kind, takenAt: head.takenAt, intact: false };
+  o.month = month; o.kind = head.kind; o.asOf = head.asOf; o.takenAt = head.takenAt; o.takenBy = head.takenBy;
+  o.intact = mine.length === Number(head.parts) && sha256Hex_(body) === head.hash;
+  return o;
+}
+function snapMonths_(rows) {
+  var m = {}; rows.forEach(function (x) { if (x.status === 'current' && Number(x.part) === 0) m[x.month] = { month: x.month, kind: x.kind, takenAt: x.takenAt }; });
+  return Object.keys(m).sort().map(function (k) { return m[k]; });
+}
+/** Lazy month-end capture: last month, once, after any writing request in the new month. */
+function snapSweep_() {
+  try {
+    var c = CacheService.getScriptCache(), t = today_(), prev = addDays_(t.slice(0, 8) + '01', -1).slice(0, 7), key = 'snap:done:' + prev;
+    if (c.get(key)) return;
+    if (!rateLimit_('snap:run', 1, 60)) return;
+    var rows = readAll_(SHEETS.SNAP), have = rows.some(function (x) { return x.month === prev && x.status === 'current' && x.kind !== 'provisional'; });
+    var started = readAll_(SHEETS.EMP).some(function (e) { return e.createdAt && String(e.createdAt).slice(0, 7) <= prev; });
+    if (!have && started) withLock_(function () { snapSave_(snapBuild_(prev, daysBetween_(monthLast_(prev), t) > 3 ? 'rebuilt' : 'final'), 'auto'); });
+    c.put(key, '1', 21600);
+  } catch (e) { console.error('snapshot: ' + (e && e.message)); }
+}
+
+// ---------------- reading ----------------
+
+function snapCanMoney_(me) { return canDashMoney_(me); }
+function snapNames_(me) { return waNames_(me); }
+function snapPublicSummary_(sum, me) {
+  var o = JSON.parse(JSON.stringify(sum || {}));
+  delete o.leaverIds; delete o.hireIds;
+  if (!snapCanMoney_(me)) { delete o.packageTotal; delete o.withPackage; delete o.payroll; }
+  return o;
+}
+function api_snapshotList(req, me) {
+  if (!canDash_(me)) fail_('forbidden');
+  var rows = readAll_(SHEETS.SNAP), months = snapMonths_(rows).slice(-36);
+  return { ok: true, months: months.map(function (m) { var s = snapRead_(m.month, rows) || {}; return { month: m.month, kind: m.kind, takenAt: m.takenAt, intact: s.intact !== false, summary: snapPublicSummary_(s.summary, me) }; }),
+    canTake: isHr_(me), money: snapCanMoney_(me), names: snapNames_(me), minGroup: SNAP_MIN_GROUP_ };
+}
+function snapGroupKey_(r, dim) { var f = SNAP_DIMS_[dim]; return f === 's' ? (r.s ? 'saudi' : 'non_saudi') : String(r[f] == null || r[f] === '' ? '-' : r[f]); }
+function snapLabel_(snap, dim, k) { return dim === 'dept' ? (snap.dims.d[k] || k) : dim === 'position' ? (snap.dims.p[k] || k) : k; }
+function snapGroups_(snap, dim, me) {
+  var g = {}, money = snapCanMoney_(me), hr = snapNames_(me);
+  snap.rec.forEach(function (r) {
+    var k = snapGroupKey_(r, dim), x = g[k] = g[k] || { key: k, label: snapLabel_(snap, dim, k), headcount: 0, saudi: 0, female: 0, ten: 0, tenN: 0, pr: 0, ab: 0, lt: 0, pk: 0, pkN: 0, leaving: 0 };
+    x.headcount++; if (r.s) x.saudi++; if (r.g === 'female') x.female++; if (r.t != null) { x.ten += r.t; x.tenN++; }
+    x.pr += r.pr; x.ab += r.ab; x.lt += r.lt; if (r.pk != null) { x.pk += r.pk; x.pkN++; }
+  });
+  return Object.keys(g).map(function (k) {
+    var x = g[k], small = x.headcount < SNAP_MIN_GROUP_ && !hr;
+    var o = { key: x.key, label: x.label, headcount: x.headcount, small: small };
+    if (!small) {
+      o.saudiPct = pct_(x.saudi, x.headcount); o.femalePct = pct_(x.female, x.headcount); o.avgTenure = x.tenN ? Math.round(x.ten / x.tenN * 10) / 10 : null;
+      o.attendancePct = pct_(x.pr, x.pr + x.ab); o.lateDays = x.lt;
+      if (money) { o.packageAvg = x.pkN ? r2_(x.pk / x.pkN) : null; o.packageTotal = r2_(x.pk); }
+    }
+    return o;
+  }).sort(function (a, b) { return b.headcount - a.headcount; });
+}
+/** One month by a dimension, optionally against another month: groups, and who joined, left or moved between them. */
+function api_snapshotView(req, me) {
+  if (!canDash_(me)) fail_('forbidden');
+  var dim = SNAP_DIMS_[req.dim] ? req.dim : 'dept', rows = readAll_(SHEETS.SNAP), a = snapRead_(String(req.month || ''), rows);
+  if (!a) fail_('not_found');
+  if (a.intact === false || !a.rec) fail_('snapshot_damaged');
+  var out = { ok: true, month: a.month, kind: a.kind, asOf: a.asOf, takenAt: a.takenAt, dim: dim, summary: snapPublicSummary_(a.summary, me), groups: snapGroups_(a, dim, me) };
+  if (req.compare) {
+    var b = snapRead_(String(req.compare), rows);
+    if (!b) fail_('not_found');
+    if (b.intact === false || !b.rec) fail_('snapshot_damaged');
+    var ia = {}, ib = {}; a.rec.forEach(function (r) { ia[r.i] = r; }); b.rec.forEach(function (r) { ib[r.i] = r; });
+    var moved = 0, paid = 0;
+    Object.keys(ia).forEach(function (k) { if (ib[k]) { if (ib[k].d !== ia[k].d) moved++; if (ib[k].pk != null && ia[k].pk != null && ib[k].pk !== ia[k].pk) paid++; } });
+    out.compare = { month: b.month, kind: b.kind, summary: snapPublicSummary_(b.summary, me), groups: snapGroups_(b, dim, me),
+      movement: { stayed: Object.keys(ia).filter(function (k) { return ib[k]; }).length, joined: Object.keys(ia).filter(function (k) { return !ib[k]; }).length,
+        left: Object.keys(ib).filter(function (k) { return !ia[k]; }).length, transferred: moved, payChanged: snapCanMoney_(me) ? paid : null } };
+  }
+  return out;
+}
+/** The people behind a number, as they were that month. Names only for the hr role (and admin with payroll). */
+function api_snapshotPeople(req, me) {
+  if (!snapNames_(me)) fail_('forbidden');
+  var dim = SNAP_DIMS_[req.dim] ? req.dim : 'dept', rows = readAll_(SHEETS.SNAP), a = snapRead_(String(req.month || ''), rows);
+  if (!a || !a.rec) fail_('not_found');
+  var list = a.rec, b = req.compare ? snapRead_(String(req.compare), rows) : null, ib = {};
+  if (b && b.rec) b.rec.forEach(function (r) { ib[r.i] = r; });
+  if (req.key != null && req.key !== '') list = list.filter(function (r) { return snapGroupKey_(r, dim) === String(req.key); });
+  if (req.change && b && b.rec) {
+    var ia = {}; a.rec.forEach(function (r) { ia[r.i] = r; });
+    if (req.change === 'joined') list = list.filter(function (r) { return !ib[r.i]; });
+    else if (req.change === 'transferred') list = list.filter(function (r) { return ib[r.i] && ib[r.i].d !== r.d; });
+    else if (req.change === 'left') list = b.rec.filter(function (r) { return !ia[r.i]; }).map(function (r) { r.dd = b.dims.d[r.d] || r.d; return r; });
+  }
+  var money = canPayroll_(me);
+  audit_(me.id, 'snapshot_people', '', { month: a.month, dim: dim, key: req.key || '', change: req.change || '', rows: list.length, pay: money });
+  return { ok: true, month: a.month, rows: list.slice(0, 500).map(function (r) {
+    return { empNo: r.n, name: r.nm, department: r.dd || a.dims.d[r.d] || r.d || '-', position: a.dims.p[r.p] || '', saudi: !!r.s, gender: r.g, tenure: r.t, contract: r.c,
+      present: r.pr, absent: r.ab, lateDays: r.lt, leave: r.lv, from: ib[r.i] ? (b.dims.d[ib[r.i].d] || ib[r.i].d || '') : '',
+      package: money ? r.pk : undefined };
+  }) };
+}
+/** HR: take the current month now (provisional) or rebuild a past month that has no snapshot. */
+function api_snapshotTake(req, me) {
+  if (!isHr_(me)) fail_('forbidden');
+  var t = today_(), month = /^\d{4}-\d{2}$/.test(req.month || '') ? req.month : t.slice(0, 7);
+  if (month > t.slice(0, 7)) fail_('bad_range');
+  if (month < addDays_(t.slice(0, 8) + '01', -730).slice(0, 7)) fail_('range_too_long');
+  if (!rateLimit_('snaptake:' + me.id, 10, 3600)) fail_('too_many_attempts');
+  return withLock_(function () {
+    var cur = month === t.slice(0, 7), exists = readAll_(SHEETS.SNAP).some(function (x) { return x.month === month && x.status === 'current' && x.kind !== 'provisional'; });
+    if (exists && !cur) fail_('already_submitted');
+    var snap = snapBuild_(month, cur ? 'provisional' : 'rebuilt'), saved = snapSave_(snap, me.id);
+    audit_(me.id, 'snapshot_take', '', { month: month, kind: snap.kind, people: snap.rec.length });
+    return { ok: true, month: month, kind: snap.kind, people: snap.rec.length, hash: saved.hash };
+  });
+}

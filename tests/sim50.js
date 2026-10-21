@@ -1421,7 +1421,7 @@ const mapOf = n => (code.match(new RegExp('var ' + n + ' = \\{([^}]*)\\}'))[1].m
 const MAPS = { EMP: mapOf('EMP_ACTIONS'), HR: mapOf('HR_ACTIONS'), ADMIN: mapOf('ADMIN_ACTIONS') };
 const COLS = ['employee', 'manager', 'hr', 'payroll', 'executive', 'admin'];
 // Expected with an empty request. Actions that pick their target first are probed with a real target (PROBE).
-const ALLW = { all: COLS, hrA: ['hr', 'admin'], adm: ['admin'], pay: ['hr', 'payroll'], payOnly: ['payroll'], dash: ['hr', 'payroll', 'executive', 'admin'], hrPay: ['hr', 'payroll', 'admin'],
+const ALLW = { all: COLS, hrOnly: ['hr'], hrA: ['hr', 'admin'], adm: ['admin'], pay: ['hr', 'payroll'], payOnly: ['payroll'], dash: ['hr', 'payroll', 'executive', 'admin'], hrPay: ['hr', 'payroll', 'admin'],
   mgr: ['manager', 'hr', 'admin'], none: [], fileView: ['manager', 'hr', 'payroll', 'admin'],
   mgrX: ['manager', 'hr', 'executive', 'admin'], money: ['hr', 'payroll', 'executive'], hrExec: ['hr', 'executive'], hrExecA: ['hr', 'executive', 'admin'], mgrPay: ['manager', 'hr', 'payroll', 'admin'], mgrAll: ['manager', 'hr', 'payroll', 'executive', 'admin'] };
 const EXPECT = {
@@ -1443,7 +1443,7 @@ const EXPECT = {
   // annual pay review (Payroll.gs): cycles by hr role / payroll; managers list and propose for their people
   compCycleSave: 'pay', compCycleClose: 'pay', compCycleList: 'mgrPay', compPropose: 'mgrPay',
   // timesheets (Attendance.gs): HR (incl. admin) and managers
-  timesheetList: 'mgr', timesheetApprove: 'mgr', openShiftPost: 'mgr', shiftOfferDecide: 'mgr', workforcePlan: 'mgrAll', workforcePlanSave: 'hrA', oneOnOneSave: 'none', nineBox: 'mgrX', successionList: 'hrExecA', successionSave: 'hrA', dataExport: 'adm', notifyStatus: 'adm', notifyTest: 'adm', docUpload: 'hrA', kioskSave: 'adm', kioskList: 'hrA',
+  timesheetList: 'mgr', timesheetApprove: 'mgr', openShiftPost: 'mgr', shiftOfferDecide: 'mgr', workforcePlan: 'mgrAll', workforcePlanSave: 'hrA', oneOnOneSave: 'none', nineBox: 'mgrX', successionList: 'hrExecA', successionSave: 'hrA', dataExport: 'adm', notifyStatus: 'adm', notifyTest: 'adm', docUpload: 'hrA', kioskSave: 'adm', kioskList: 'hrA', snapshotList: 'dash', snapshotView: 'dash', snapshotPeople: 'hrOnly', snapshotTake: 'hrA',
   // custom fields (Hr.gs): definitions and values written by HR (incl. admin); everyone may list and read what they may see
   customFieldSave: 'hrA', customValuesSave: 'hrA', customValuesAll: 'hrA'
 };

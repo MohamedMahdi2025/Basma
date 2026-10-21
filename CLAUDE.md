@@ -362,3 +362,10 @@ registering a module: `reg.js` in the session scratchpad. It inserts tabs, refs,
   - sending is lazy, after write requests, like the digest, through `graphSend_` (which now takes attachments).
 
   Design: docs/research/2026-10-21-scheduled-reports-design.md.
+- **Monthly history** (Reports.gs `snapshots`, screen in wave4.js `SnapHistory`, page `insights:history`):
+  - a frozen month-end record per person plus month totals;
+  - stored in 40 KB parts with a SHA-256 check;
+  - kinds final / rebuilt / provisional, taken lazily after write requests.
+
+  It lives in Reports.gs on purpose: the end of Dashboard.gs is scanned by a test that forbids gender and nationality
+  in the retention-score code. Design: docs/research/2026-10-21-history-snapshots-design.md.

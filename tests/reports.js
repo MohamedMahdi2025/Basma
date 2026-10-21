@@ -582,5 +582,61 @@ console.log('Scheduled reports by e-mail (2026-10-21)');
   direct(() => team.forEach(id => { const e = B.ctx.findBy_('employees', 'id', id); e.managerId = ids['5001']; B.ctx.update_('employees', e); }));
   M365.forEach(k => props.setProperty(k, ''));
 }
+console.log('History snapshots (2026-10-21)');
+{
+  direct(() => B.ctx.readAll_('snapshots').forEach(x => { x.status = 'replaced'; B.ctx.update_('snapshots', x); }));
+  Object.keys(B.cache).filter(k => /snap/.test(k)).forEach(k => delete B.cache[k]);
+  const cache = B.ctx.CacheService.getScriptCache(); ['snap:done:2026-10', 'rl:snap:run'].forEach(k => cache.remove(k));
+  B.setNow(Date.parse('2026-11-01T06:00:00Z')); Object.keys(toks).forEach(k => delete toks[k]);
+  call('5002', 'requestCreate', { request: { type: 'letter', subtype: 'salary_certificate', payload: { addressee: 'snap' } } });
+  let l = call('3005', 'snapshotList', {});
+  const oct = l.months.find(m => m.month === '2026-10');
+  ok(l.ok && oct && oct.kind === 'final' && oct.intact, 'the first writing request in November freezes October (final, fingerprint intact)', l.months);
+  const v = call('3001', 'snapshotView', { month: '2026-10', dim: 'dept' });
+  const att = run('3001', 'att_summary', { from: '2026-10-01', to: '2026-10-31' });
+  const people = direct(() => B.ctx.readAll_('snapshots').filter(x => x.month === '2026-10' && x.status === 'current'));
+  const recs = JSON.parse(people.sort((a, b) => a.part - b.part).map(x => x.data).join('')).rec;
+  const presentRep = att.rows.filter(r => recs.some(x => x.n === r.empNo)).reduce((a, r) => a + (r.present || 0), 0);
+  ok(v.ok && v.summary.headcount === recs.length && v.summary.present === presentRep, 'October present days match the attendance report for the same people', { snap: v.summary.present, report: presentRep, head: v.summary.headcount });
+  const sales = v.groups.find(g => g.label === 'المبيعات');
+  ok(sales && sales.headcount >= 1, 'the breakdown by department names October\'s departments', v.groups.map(g => g.label + ':' + g.headcount));
+  // later edits never change October
+  call('3001', 'hrEmpSave', { emp: { id: ids['5002'], departmentId: other } });
+  call('3001', 'hrDeptSave', { dept: { id: dept, nameAr: 'المبيعات والتسويق' } });
+  const v2 = call('3001', 'snapshotView', { month: '2026-10', dim: 'dept' });
+  ok(v2.groups.some(g => g.label === 'المبيعات' && g.headcount === sales.headcount) && !v2.groups.some(g => g.label === 'المبيعات والتسويق'), 'a transfer and a renamed department today leave October exactly as it was', v2.groups.map(g => g.label + ':' + g.headcount));
+  ok(call('3005', 'snapshotTake', {}).error === 'forbidden', 'only HR takes or rebuilds a snapshot');
+  let tk = call('3001', 'snapshotTake', {});
+  ok(tk.ok && tk.month === '2026-11' && tk.kind === 'provisional', 'HR takes this month now: provisional', tk);
+  const cmp = call('3001', 'snapshotView', { month: '2026-11', compare: '2026-10', dim: 'dept' });
+  ok(cmp.ok && cmp.compare.movement.transferred >= 1, 'November against October: the move between departments is counted', cmp.compare && cmp.compare.movement);
+  const mv = call('3001', 'snapshotPeople', { month: '2026-11', compare: '2026-10', change: 'transferred' });
+  ok(mv.ok && mv.rows.some(r => r.empNo === '5002' && r.from === 'المبيعات'), 'HR opens the names behind it, with the department they came from', mv.rows);
+  ok(call('3005', 'snapshotPeople', { month: '2026-11' }).error === 'forbidden', 'the executive sees numbers, never the names');
+  const ex = call('3005', 'snapshotView', { month: '2026-10', dim: 'dept' });
+  ok(ex.groups.filter(g => g.headcount < 5).every(g => g.small && g.attendancePct === undefined), 'groups under 5 show a count only to anyone but HR', ex.groups);
+  ok(ex.summary.payroll && !('payroll' in call('1000', 'snapshotView', { month: '2026-10' }).summary), 'cost is shown to the executive, never to the administrator alone');
+  ok(call('5001', 'snapshotList', {}).error === 'forbidden', 'a line manager has no access to the company history');
+  tk = call('3001', 'snapshotTake', { month: '2026-09' });
+  ok(tk.ok && tk.kind === 'rebuilt' && call('3001', 'snapshotTake', { month: '2026-09' }).error === 'already_submitted', 'a missed past month can be rebuilt once, marked rebuilt', tk);
+  ok(call('3001', 'snapshotTake', { month: '2027-01' }).error === 'bad_range', 'a future month cannot be taken');
+  // big companies: the record is split in parts and re-assembled
+  B.ctx.SNAP_PART_ = 300;
+  B.setNow(Date.parse('2026-11-02T06:00:00Z')); Object.keys(toks).forEach(k => delete toks[k]);
+  tk = call('3001', 'snapshotTake', {});
+  const parts = direct(() => B.ctx.readAll_('snapshots').filter(x => x.month === '2026-11' && x.status === 'current'));
+  ok(parts.length > 3 && call('3001', 'snapshotView', { month: '2026-11' }).ok, 'a large snapshot is stored in parts and reads back whole', parts.length);
+  B.ctx.SNAP_PART_ = 40000;
+  // tampering in the sheet is detected
+  direct(() => { const x = B.ctx.readAll_('snapshots').find(y => y.month === '2026-09' && y.status === 'current'); x.data = String(x.data).replace(/"pr":\d+/, '"pr":99'); B.ctx.update_('snapshots', x); });
+  ok(call('3001', 'snapshotView', { month: '2026-09' }).error === 'snapshot_damaged' && call('3001', 'snapshotList', {}).months.find(m => m.month === '2026-09').intact === false, 'a hand edit in the sheet is caught by the fingerprint');
+  // month end: November becomes final, replacing the provisional one
+  B.setNow(Date.parse('2026-12-01T07:00:00Z')); Object.keys(toks).forEach(k => delete toks[k]);
+  call('5003', 'requestCreate', { request: { type: 'letter', subtype: 'salary_certificate', payload: { addressee: 'dec' } } });
+  l = call('3001', 'snapshotList', {});
+  ok(l.months.filter(m => m.month === '2026-11').length === 1 && l.months.find(m => m.month === '2026-11').kind === 'final', 'at month end the provisional November is replaced by the final one', l.months);
+  call('3001', 'hrDeptSave', { dept: { id: dept, nameAr: 'المبيعات' } });
+  call('3001', 'hrEmpSave', { emp: { id: ids['5002'], departmentId: dept } });
+}
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);

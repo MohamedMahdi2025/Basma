@@ -562,5 +562,126 @@ function kioskAdmin(body){
 }
 window.KioskAdmin = { section: kioskAdmin };
 
+// =================================================================== HISTORY SNAPSHOTS (insights, 2026-10-21)
+Object.assign(T.ar, {
+  hsTitle:'السجل التاريخي الشهري', hsLead:'صورة مجمدة للقوى العاملة في آخر يوم من كل شهر: الأقسام والوظائف والسعودة والحضور والتكلفة كما كانت حينها، فلا يغير تعديل اليوم أرقام الماضي.',
+  hsMonth:'الشهر', hsCompare:'مقارنة مع', hsNone2:'بدون مقارنة', hsBy:'التوزيع حسب', hsDim_dept:'القسم', hsDim_position:'الوظيفة', hsDim_nationality:'سعودي / غير سعودي', hsDim_gender:'الجنس', hsDim_tenure:'مدة الخدمة', hsDim_contract:'نوع العقد', hsDim_grade:'الدرجة',
+  hsTake:'التقاط الشهر الحالي الآن', hsRebuild:'إعادة بناء شهر فائت', hsRebuildLead:'للشهور التي لم تلتقط: الحضور والتعيين وترك العمل من السجل الفعلي، أما القسم والراتب فكما هي مسجلة اليوم، ويوسم الشهر بأنه «أعيد بناؤه».', hsTaken:'تم التقاط السجل',
+  hsNone:'لا توجد سجلات بعد. يلتقط النظام كل شهر تلقائيا بعد انتهائه، ويمكنك التقاط الشهر الحالي الآن أو إعادة بناء الشهور السابقة.',
+  hsk_final:'نهائي', hsk_provisional:'مؤقت (يستبدل بنهاية الشهر)', hsk_rebuilt:'أعيد بناؤه', hsDamaged:'هذا السجل لا يطابق بصمته؛ عدل في الجدول يدويا.',
+  hsHead:'عدد الموظفين', hsSaudi:'السعودة', hsTenure:'متوسط الخدمة (سنة)', hsAtt:'نسبة الحضور', hsTurn:'دوران العمل', hsCost:'تكلفة الرواتب', hsFemale:'نسبة الإناث', hsPkgAvg:'متوسط الراتب الشامل', hsLate:'أيام التأخير',
+  hsJoined:'انضموا', hsLeft:'غادروا', hsMoved:'انتقلوا بين الأقسام', hsPaid:'تغير راتبهم', hsTrend:'الاتجاه عبر الأشهر', hsGroups:'التفاصيل', hsSmall:'مجموعة صغيرة: العدد فقط', hsPeople:'الموظفون في', hsFrom:'من قسم', hsVs:'مقابل',
+  hsCostRun:'من مسير الرواتب المعتمد', hsMale:'ذكور', hsFem:'إناث', hsEmpNo:'الرقم', hsName:'الاسم', hsSaudiY:'سعودي', hsSaudiN:'غير سعودي', hsCostPkg:'تقدير من الرواتب الشاملة', e_snapshot_damaged:'السجل لا يطابق بصمته الرقمية.'
+});
+Object.assign(T.en, {
+  hsTitle:'Monthly history', hsLead:'A frozen picture of the workforce on the last day of every month: departments, positions, Saudization, attendance and cost as they were then, so today\'s edits never change past numbers.',
+  hsMonth:'Month', hsCompare:'Compare with', hsNone2:'No comparison', hsBy:'Break down by', hsDim_dept:'Department', hsDim_position:'Position', hsDim_nationality:'Saudi / non-Saudi', hsDim_gender:'Gender', hsDim_tenure:'Length of service', hsDim_contract:'Contract type', hsDim_grade:'Grade',
+  hsTake:'Take this month now', hsRebuild:'Rebuild a past month', hsRebuildLead:'For months that were never taken: attendance, hires and leavers come from the real history; department and pay are as recorded today, and the month is marked "rebuilt".', hsTaken:'Snapshot taken',
+  hsNone:'No snapshots yet. The system takes each month automatically once it ends; you can take this month now or rebuild past months.',
+  hsk_final:'Final', hsk_provisional:'Provisional (replaced at month end)', hsk_rebuilt:'Rebuilt', hsDamaged:'This snapshot does not match its fingerprint; it was edited by hand in the sheet.',
+  hsHead:'Headcount', hsSaudi:'Saudization', hsTenure:'Average service (years)', hsAtt:'Attendance', hsTurn:'Turnover', hsCost:'Payroll cost', hsFemale:'Women', hsPkgAvg:'Average package', hsLate:'Late days',
+  hsJoined:'Joined', hsLeft:'Left', hsMoved:'Moved department', hsPaid:'Pay changed', hsTrend:'Trend over the months', hsGroups:'Breakdown', hsSmall:'Small group: count only', hsPeople:'People in', hsFrom:'From', hsVs:'vs',
+  hsCostRun:'from the approved payroll run', hsMale:'Men', hsFem:'Women', hsEmpNo:'No.', hsName:'Name', hsSaudiY:'Saudi', hsSaudiN:'Non-Saudi', hsCostPkg:'estimate from packages', e_snapshot_damaged:'The snapshot does not match its fingerprint.'
+});
+function historySection(body){
+  var box = K.head(body, 'hsTitle', 'hsLead'), V = window.Viz, st = { month: '', compare: '', dim: 'dept' }, LIST = null;
+  var pct = function(v){ return v == null ? '-' : V.n1(v) + '%'; };
+  function load(){
+    K.busy(box);
+    api('snapshotList', {}, true).then(function(r){
+      if (!box.isConnected) return;
+      if (!r.ok) return box.innerHTML = K.bad(r.error);
+      LIST = r;
+      var ms = r.months;
+      if (!st.month || !ms.some(function(m){ return m.month === st.month; })) { st.month = ms.length ? ms[ms.length - 1].month : ''; st.compare = ms.length > 1 ? ms[ms.length - 2].month : ''; }
+      draw();
+    });
+  }
+  function tools(){
+    var r = LIST;
+    return (r.canTake ? '<div class="toolbar"><span class="sp"></span><button type="button" class="btn btn-line btn-sm" id="hsRb">' + ph('clock-counter-clockwise') + t('hsRebuild') + '</button><button type="button" class="btn btn-dark btn-sm" id="hsTk">' + ph('camera') + t('hsTake') + '</button></div>' : '');
+  }
+  function draw(){
+    var r = LIST;
+    if (!r.months.length) { box.innerHTML = tools() + K.empty('clock-counter-clockwise', t('hsNone')); wireTools(); return; }
+    var mo = function(sel, none){ return (none ? '<option value="">' + t('hsNone2') + '</option>' : '') + r.months.slice().reverse().map(function(m){ return '<option value="' + m.month + '"' + (m.month === sel ? ' selected' : '') + '>' + V.monthShort(m.month) + ' · ' + t('hsk_' + m.kind) + '</option>'; }).join(''); };
+    var dims = ['dept', 'position', 'grade', 'nationality', 'gender', 'tenure', 'contract'];
+    box.innerHTML = tools() + '<div class="toolbar" style="flex-wrap:wrap;gap:8px">' +
+      '<label>' + t('hsMonth') + ' <select id="hsM">' + mo(st.month) + '</select></label>' +
+      '<label>' + t('hsCompare') + ' <select id="hsC">' + mo(st.compare, true) + '</select></label>' +
+      '<label>' + t('hsBy') + ' <select id="hsD">' + dims.map(function(d){ return '<option value="' + d + '"' + (d === st.dim ? ' selected' : '') + '>' + t('hsDim_' + d) + '</option>'; }).join('') + '</select></label></div>' +
+      trendHtml() + '<div id="hsV"></div>';
+    $('#hsM', box).onchange = function(){ st.month = this.value; view(); };
+    $('#hsC', box).onchange = function(){ st.compare = this.value; view(); };
+    $('#hsD', box).onchange = function(){ st.dim = this.value; view(); };
+    wireTools(); V.wireLines(box); V.wireTips(box);
+    view();
+  }
+  function trendHtml(){
+    var ms = LIST.months.filter(function(m){ return m.summary && m.summary.headcount != null; });
+    if (ms.length < 2) return '';
+    var line = function(id, title, key, o){ return V.card(id, title, '', V.lineChart(ms.map(function(m){ var v = typeof key === 'function' ? key(m.summary) : m.summary[key]; return { label: V.monthShort(m.month), y: v == null ? 0 : v }; }), o || {})); };
+    return '<h3 style="margin:14px 0 6px">' + t('hsTrend') + '</h3><div class="db-grid">' + line('hsT1', t('hsHead'), 'headcount') + line('hsT2', t('hsSaudi'), 'saudiPct', { suffix: '%', max: 100 }) +
+      line('hsT3', t('hsAtt'), 'attendancePct', { suffix: '%', max: 100 }) + line('hsT4', t('hsTurn'), 'turnoverPct', { suffix: '%' }) +
+      (LIST.money ? line('hsT5', t('hsCost'), function(s){ return s.payroll ? s.payroll.cost : null; }, { fmt: 'sar' }) : '') + '</div>';
+  }
+  function wireTools(){
+    var tk = $('#hsTk', box), rb = $('#hsRb', box);
+    if (tk) K.confirmTap(tk, function(){ api('snapshotTake', {}).then(function(x){ if (!x.ok) return toast(errText(x.error)); toast(t('hsTaken')); st.month = x.month; load(); }); });
+    if (rb) rb.onclick = function(){
+      K.formDrawer(t('hsRebuild'), t('hsRebuildLead'), K.fld(t('hsMonth'), '<input type="month" name="month" required dir="ltr">'), function(v){ return api('snapshotTake', { month: v.month }); }, function(x){ st.month = x.month; load(); });
+    };
+  }
+  function view(){
+    var el = $('#hsV', box); K.busy(el);
+    api('snapshotView', { month: st.month, compare: st.compare || undefined, dim: st.dim }, true).then(function(r){
+      if (!el.isConnected) return;
+      if (!r.ok) return el.innerHTML = K.bad(r.error);
+      var s = r.summary, c = r.compare ? r.compare.summary : null, dlt = function(k, f){ if (!c) return null; var a = f ? f(s) : s[k], b = f ? f(c) : c[k]; return a == null || b == null ? null : a - b; };
+      var cost = function(x){ return x.payroll ? x.payroll.cost : null; };
+      var words = c ? t('hsVs') + ' ' + V.monthShort(r.compare.month) : '';
+      var h = '<p class="hr-hint">' + K.chip(t('hsk_' + r.kind), r.kind === 'final' ? 'in' : '') + ' ' + K.fmt(r.asOf) + '</p>' +
+        '<div class="db-tiles">' + V.tile(t('hsHead'), V.n1(s.headcount, 0), '', dlt('headcount'), null, true, '', { words: words }) +
+        V.tile(t('hsSaudi'), pct(s.saudiPct), '', dlt('saudiPct'), true, false, 'pt', { words: words }) +
+        V.tile(t('hsAtt'), pct(s.attendancePct), '', dlt('attendancePct'), true, false, 'pt', { words: words }) +
+        V.tile(t('hsTurn'), pct(s.turnoverPct), s.hires + ' ' + t('hsJoined') + ' · ' + s.leavers + ' ' + t('hsLeft'), dlt('turnoverPct'), false, false, 'pt', { words: words }) +
+        V.tile(t('hsTenure'), V.n1(s.avgTenure), '', dlt('avgTenure'), true, false, '', { words: words }) +
+        (s.payroll ? V.tile(t('hsCost'), V.sar(s.payroll.cost), t(s.payroll.source === 'run' ? 'hsCostRun' : 'hsCostPkg'), dlt(null, cost), null, false, '', { words: words }) : '') + '</div>';
+      if (r.compare) {
+        var mv = r.compare.movement, chip = function(k, n, key){ return '<button type="button" class="btn btn-line btn-sm" data-ch="' + key + '"' + (LIST.names && n ? '' : ' disabled') + '>' + t(k) + ': <b>' + n + '</b></button>'; };
+        h += '<div class="toolbar" style="flex-wrap:wrap;gap:6px">' + chip('hsJoined', mv.joined, 'joined') + chip('hsLeft', mv.left, 'left') + chip('hsMoved', mv.transferred, 'transferred') +
+          (mv.payChanged != null ? '<span class="chip">' + t('hsPaid') + ': ' + mv.payChanged + '</span>' : '') + '</div>';
+      }
+      var cg = {}; if (r.compare) r.compare.groups.forEach(function(g){ cg[g.key] = g; });
+      var money = LIST.money, head = [t('hsDim_' + st.dim), t('hsHead'), t('hsSaudi'), t('hsFemale'), t('hsTenure'), t('hsAtt'), t('hsLate')].concat(money ? [t('hsPkgAvg')] : []);
+      var dif = function(a, b, unit){ return b == null || a == null ? '' : ' <small class="muted">(' + (a - b >= 0 ? '+' : '') + V.n1(a - b) + (unit || '') + ')</small>'; };
+      var rows = r.groups.map(function(g, i){
+        var o = cg[g.key] || {}, lbl = st.dim === 'nationality' ? t(g.key === 'saudi' ? 'hsSaudiY' : 'hsSaudiN') : st.dim === 'gender' ? (g.key === 'male' ? t('hsMale') : g.key === 'female' ? t('hsFem') : '-') : esc(g.label);
+        var name = LIST.names ? '<a href="#" data-g="' + i + '">' + lbl + '</a>' : lbl;
+        if (g.small) return [name, g.headcount + dif(g.headcount, o.headcount), '<small class="muted">' + t('hsSmall') + '</small>', '', '', '', ''].concat(money ? [''] : []);
+        return [name, g.headcount + dif(g.headcount, o.headcount), pct(g.saudiPct) + dif(g.saudiPct, o.saudiPct, '%'), pct(g.femalePct), V.n1(g.avgTenure), pct(g.attendancePct) + dif(g.attendancePct, o.attendancePct, '%'), V.n1(g.lateDays, 0)]
+          .concat(money ? [g.packageAvg == null ? '-' : V.sar(g.packageAvg)] : []);
+      });
+      h += '<h3 style="margin:14px 0 6px">' + t('hsGroups') + '</h3>' + V.tbl(head, rows);
+      el.innerHTML = h; V.wireTips(el);
+      $$('[data-g]', el).forEach(function(a){ a.onclick = function(ev){ ev.preventDefault(); var g = r.groups[a.dataset.g]; people({ key: g.key }, g.label); }; });
+      $$('[data-ch]', el).forEach(function(b){ b.onclick = function(){ people({ change: b.dataset.ch }, b.textContent); }; });
+    });
+  }
+  function people(q, title){
+    var d = drawer('<h3>' + t('hsPeople') + ' ' + esc(title) + ' · ' + V.monthShort(st.month) + '</h3><div id="hsP"></div>', { wide: true }), el = $('#hsP', d);
+    K.busy(el);
+    api('snapshotPeople', Object.assign({ month: st.month, compare: st.compare || undefined, dim: st.dim }, q), true).then(function(r){
+      if (!r.ok) return el.innerHTML = K.bad(r.error);
+      var pay = r.rows.some(function(x){ return x.package != null; });
+      el.innerHTML = V.tbl([t('hsEmpNo'), t('hsName'), t('hsDim_dept')].concat(q.change === 'transferred' ? [t('hsFrom')] : []).concat([t('hsDim_position'), t('hsTenure'), t('hsAtt')]).concat(pay ? [t('hsPkgAvg')] : []),
+        r.rows.map(function(x){ return ['<bdi>' + esc(x.empNo) + '</bdi>', esc(x.name), esc(x.department)].concat(q.change === 'transferred' ? [esc(x.from)] : [])
+          .concat([esc(x.position), V.n1(x.tenure), x.present + ' / ' + (x.present + x.absent)]).concat(pay ? [x.package == null ? '-' : V.sar(x.package)] : []); }));
+    });
+  }
+  load();
+}
+window.SnapHistory = { section: historySection };
+
 window.OpenShifts = { section: openShiftsSection };
 })();

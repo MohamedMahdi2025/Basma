@@ -21,7 +21,7 @@ var CONFIG = {
   ACTIVATION_MAX_TRIES: 5
 };
 
-var SHEETS = { RSUB: 'reportSubs', KIOSK: 'kiosks', NLOG: 'notifyLog', PERK: 'perks', CPATH: 'careerPaths', SUCC: 'successionPlans', POT: 'potentialRatings', KB: 'kbArticles', GOAL: 'goals', OOO: 'oneOnOnes', WFP: 'workforcePlans', CPOST: 'careerPosts', OSH: 'shiftOffers', EMP: 'employees', CRED: 'credentials', ZONES: 'zones', PUNCH: 'punches', AUDIT: 'audit', SET: 'settings',
+var SHEETS = { SNAP: 'snapshots', RSUB: 'reportSubs', KIOSK: 'kiosks', NLOG: 'notifyLog', PERK: 'perks', CPATH: 'careerPaths', SUCC: 'successionPlans', POT: 'potentialRatings', KB: 'kbArticles', GOAL: 'goals', OOO: 'oneOnOnes', WFP: 'workforcePlans', CPOST: 'careerPosts', OSH: 'shiftOffers', EMP: 'employees', CRED: 'credentials', ZONES: 'zones', PUNCH: 'punches', AUDIT: 'audit', SET: 'settings',
   DEPT: 'departments', POS: 'positions', PRIV: 'empPrivate', COMP: 'compensation', JOBH: 'jobHistory', DOCS: 'documents',
   REQ: 'requests', HOL: 'holidays', RUN: 'payrollRuns', SLIP: 'payslips', ADJ: 'adjustments',
   CYC: 'perfCycles', KPI: 'kpis', REV: 'reviews', FB: 'feedback360', RLOG: 'reportLog',
@@ -39,6 +39,7 @@ var SHEETS = { RSUB: 'reportSubs', KIOSK: 'kiosks', NLOG: 'notifyLog', PERK: 'pe
   EXS: 'exitSurveys', KUD: 'kudos', FSET: 'finalSettlements', CRC: 'compCycles', CRP: 'compProposals', TSH: 'timesheets', CFD: 'customFields', CFV: 'empCustom' }; // Wave 3 (Engage.gs): exit interview, recognition
 
 var HEADERS = {
+  snapshots: ['id', 'snapId', 'month', 'part', 'parts', 'kind', 'asOf', 'takenAt', 'takenBy', 'status', 'hash', 'data'],
   reportSubs: ['id', 'code', 'ownerId', 'reportId', 'label', 'lang', 'paramsJson', 'columnsJson', 'labelsJson', 'period', 'cadence', 'weekday', 'monthDay', 'hour', 'recipientsJson', 'status', 'nextRunAt', 'lastRunAt', 'lastStatus', 'lastRef', 'fails', 'createdAt', 'updatedAt'],
   kiosks: ['id', 'code', 'label', 'zoneId', 'ver', 'status', 'createdBy', 'createdAt', 'lastSeenAt'],
   notifyLog: ['id', 'empId', 'date', 'count', 'status', 'at'],
@@ -240,7 +241,7 @@ function forget_(name) { delete READ_MEMO_[name]; }
  * be written back (update_ refuses), so the copy cannot overwrite the Sheet.
  */
 // Every small tab can be served from the copy; punches and audit grow without end and are always read.
-var CACHED_TABS_ = { reportSubs: 1, kiosks: 1, notifyLog: 1, perks: 1, careerPaths: 1, successionPlans: 1, potentialRatings: 1, kbArticles: 1, goals: 1, oneOnOnes: 1, workforcePlans: 1, careerPosts: 1, shiftOffers: 1, employees: 1, zones: 1, credentials: 1, departments: 1, positions: 1, empPrivate: 1, compensation: 1,
+var CACHED_TABS_ = { snapshots: 1, reportSubs: 1, kiosks: 1, notifyLog: 1, perks: 1, careerPaths: 1, successionPlans: 1, potentialRatings: 1, kbArticles: 1, goals: 1, oneOnOnes: 1, workforcePlans: 1, careerPosts: 1, shiftOffers: 1, employees: 1, zones: 1, credentials: 1, departments: 1, positions: 1, empPrivate: 1, compensation: 1,
   jobHistory: 1, documents: 1, requests: 1, holidays: 1, payrollRuns: 1, adjustments: 1, perfCycles: 1, kpis: 1, reviews: 1, feedback360: 1,
   onboarding: 1, surveys: 1, policies: 1, policyAcks: 1, devPlans: 1, delegations: 1, wpsLog: 1, salaryRecon: 1, shifts: 1, roster: 1, discCodes: 1, discCases: 1, injuries: 1, assets: 1, custody: 1, clearance: 1,
   govVisas: 1, iqamaRenewals: 1, govFees: 1, ticketRights: 1, ticketUses: 1, expenseClaims: 1, journalLog: 1,
@@ -675,7 +676,7 @@ var PUBLIC_ACTIONS = { kioskPing: 1, careersList: 1, careersApply: 1,
   ping: 1, bootstrapStatus: 1, bootstrap: 1, enrollBegin: 1, enrollFinish: 1,
   authBegin: 1, authFinish: 1, punchBegin: 1, punchFinish: 1, adminRecover: 1, pwLogin: 1, pinChange: 1, diag: 1, demoData: 1
 };
-var EMP_ACTIONS = { reportSubList: 1, reportSubSave: 1, reportSubSend: 1, kioskList: 1, kioskSave: 1, docUpload: 1, docFile: 1, notifyStatus: 1, notifyTest: 1, perkList: 1, perkView: 1, welcome: 1, dataExport: 1, internalJobs: 1, internalApply: 1, careerPathList: 1, nineBox: 1, potentialSave: 1, successionList: 1, successionSave: 1, kbSearch: 1, kbList: 1, kbGet: 1, kbFeedback: 1, oneOnOneList: 1, oneOnOneSave: 1, oneOnOneUpdate: 1, goalList: 1, goalSave: 1, goalCheckIn: 1, workforcePlan: 1, workforcePlanSave: 1, pinEnrollBegin: 1, pinEnrollFinish: 1, shiftOfferList: 1, openShiftPost: 1, openShiftClaim: 1, shiftSwapAsk: 1, shiftSwapAnswer: 1, shiftOfferDecide: 1, shiftOfferCancel: 1, me: 1, myHistory: 1, passwordSet: 1, punchPw: 1, searchAll: 1, customFieldList: 1, customFieldSave: 1, customValuesGet: 1, customValuesSave: 1, customValuesAll: 1, timesheetList: 1, timesheetApprove: 1, compCycleSave: 1, compCycleList: 1, compPropose: 1, compCycleClose: 1, finalSettlementCreate: 1, finalSettlementDecide: 1, finalSettlementPaid: 1, finalSettlementList: 1, myFinalSettlement: 1, myExitSurvey: 1, exitSurveySubmit: 1, kudosSend: 1, kudosFeed: 1, exitSurveyResults: 1, kudosStats: 1,
+var EMP_ACTIONS = { snapshotList: 1, snapshotView: 1, snapshotPeople: 1, snapshotTake: 1, reportSubList: 1, reportSubSave: 1, reportSubSend: 1, kioskList: 1, kioskSave: 1, docUpload: 1, docFile: 1, notifyStatus: 1, notifyTest: 1, perkList: 1, perkView: 1, welcome: 1, dataExport: 1, internalJobs: 1, internalApply: 1, careerPathList: 1, nineBox: 1, potentialSave: 1, successionList: 1, successionSave: 1, kbSearch: 1, kbList: 1, kbGet: 1, kbFeedback: 1, oneOnOneList: 1, oneOnOneSave: 1, oneOnOneUpdate: 1, goalList: 1, goalSave: 1, goalCheckIn: 1, workforcePlan: 1, workforcePlanSave: 1, pinEnrollBegin: 1, pinEnrollFinish: 1, shiftOfferList: 1, openShiftPost: 1, openShiftClaim: 1, shiftSwapAsk: 1, shiftSwapAnswer: 1, shiftOfferDecide: 1, shiftOfferCancel: 1, me: 1, myHistory: 1, passwordSet: 1, punchPw: 1, searchAll: 1, customFieldList: 1, customFieldSave: 1, customValuesGet: 1, customValuesSave: 1, customValuesAll: 1, timesheetList: 1, timesheetApprove: 1, compCycleSave: 1, compCycleList: 1, compPropose: 1, compCycleClose: 1, finalSettlementCreate: 1, finalSettlementDecide: 1, finalSettlementPaid: 1, finalSettlementList: 1, myFinalSettlement: 1, myExitSurvey: 1, exitSurveySubmit: 1, kudosSend: 1, kudosFeed: 1, exitSurveyResults: 1, kudosStats: 1,
   myFile: 1, hrEmpFile: 1, hrTeam: 1, hrCompList: 1, hrCompPropose: 1, hrCompDecide: 1,
   myRequests: 1, requestQuote: 1, requestCreate: 1, requestCancel: 1, reqInbox: 1, reqDecide: 1, holidayList: 1, leaveTeam: 1,
   mySlips: 1, payrollList: 1, payrollGet: 1, payrollCreate: 1, payrollRecalc: 1, payrollApprove: 1, payrollDelete: 1, payrollAdjSave: 1,
@@ -707,7 +708,7 @@ var HR_ACTIONS = { perkSave: 1, welcomeSave: 1, careerPathSave: 1, rolesOverview
  * Actions that only read (plus the audit line of a salary view). They may use the cached tab copies;
  * update_ refuses a cached row, so a mistake here fails loudly instead of overwriting the Sheet.
  */
-var READ_ONLY_ACTIONS = { reportSubList: 1, kioskList: 1, notifyStatus: 1, perkList: 1, welcome: 1, internalJobs: 1, careerPathList: 1, rolesOverview: 1, nineBox: 1, successionList: 1, kbSearch: 1, kbList: 1, oneOnOneList: 1, goalList: 1, workforcePlan: 1, careersList: 1, careerPostList: 1, shiftOfferList: 1, searchAll: 1, customFieldList: 1, customValuesGet: 1, customValuesAll: 1, myFinalSettlement: 1, myExitSurvey: 1, kudosFeed: 1, exitSurveyResults: 1, kudosStats: 1, me: 1, myHistory: 1, myFile: 1, hrEmpFile: 1, hrTeam: 1, hrCompList: 1, hrDirectory: 1, hrDeptList: 1,
+var READ_ONLY_ACTIONS = { snapshotList: 1, snapshotView: 1, reportSubList: 1, kioskList: 1, notifyStatus: 1, perkList: 1, welcome: 1, internalJobs: 1, careerPathList: 1, rolesOverview: 1, nineBox: 1, successionList: 1, kbSearch: 1, kbList: 1, oneOnOneList: 1, goalList: 1, workforcePlan: 1, careersList: 1, careerPostList: 1, shiftOfferList: 1, searchAll: 1, customFieldList: 1, customValuesGet: 1, customValuesAll: 1, myFinalSettlement: 1, myExitSurvey: 1, kudosFeed: 1, exitSurveyResults: 1, kudosStats: 1, me: 1, myHistory: 1, myFile: 1, hrEmpFile: 1, hrTeam: 1, hrCompList: 1, hrDirectory: 1, hrDeptList: 1,
   hrPositionList: 1, hrDocList: 1, hrExpiring: 1, hrBootstrap: 1, hrImportValidate: 1, board: 1, empList: 1, zoneList: 1, report: 1,
   reviewList: 1, auditList: 1, settingsGet: 1, myRequests: 1, requestQuote: 1, reqInbox: 1, holidayList: 1, leaveTeam: 1, leaveBalances: 1,
   dashboard: 1, mySlips: 1, payrollList: 1, payrollGet: 1, eosQuote: 1, myPerformance: 1, perfTeam: 1, perfEmp: 1, feedbackResults: 1, perfCycleList: 1, perfOverview: 1,
@@ -738,7 +739,7 @@ function handle_(req) {
     var level = ROLES[me.role] || 0;
     if (!READ_ONLY_ACTIONS[action] && typeof resignationDeemedSweep_ === 'function') resignationDeemedSweep_(); // Leave.gs, at most hourly
     var allowed = (EMP_ACTIONS[action] && level >= 1) || (HR_ACTIONS[action] && level >= ROLES.hr) || (ADMIN_ACTIONS[action] && level >= ROLES.admin);
-    if (allowed) { var res = fn(req, me); if (!READ_ONLY_ACTIONS[action]) { if (typeof notifySweep_ === 'function') notifySweep_(); if (typeof reportSubsSweep_ === 'function') reportSubsSweep_(); } return res; } // the daily digest, lazily (off by default)
+    if (allowed) { var res = fn(req, me); if (!READ_ONLY_ACTIONS[action]) { if (typeof notifySweep_ === 'function') notifySweep_(); if (typeof reportSubsSweep_ === 'function') reportSubsSweep_(); if (typeof snapSweep_ === 'function') snapSweep_(); } return res; } // the daily digest, lazily (off by default)
     return { ok: false, error: 'forbidden' };
   } catch (err) {
     var msg = String(err && err.message || err);
