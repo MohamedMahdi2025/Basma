@@ -508,5 +508,79 @@ B.ctx.DEFAULT_SETTINGS.saudizationTarget = ''; delete B.cache[B.ctx.SETTINGS_CAC
 r = call('3001', 'reportExport', { reportId: 'pay_company_cost', format: 'xlsx', params: {} });
 ok(r.ok && /^RPT-/.test(r.export.ref) && call('3005', 'reportVerify', { ref: r.export.ref, hash: r.export.hash }).ok, 'a new report exports numbered and fingerprinted like the others');
 
+console.log('Scheduled reports by e-mail (2026-10-21)');
+{
+  B.setNow(Date.parse('2026-11-04T06:00:00Z')); // Wednesday 09:00 Riyadh
+  Object.keys(toks).forEach(k => delete toks[k]);
+  direct(() => ['1000', '3001', '5001', '5002'].forEach(no => { const e = B.ctx.findBy_('employees', 'empNo', no); e.email = no + '@co.sa'; B.ctx.update_('employees', e); }));
+  const props = B.ctx.PropertiesService.getScriptProperties(), M365 = ['M365_TENANT', 'M365_CLIENT_ID', 'M365_CLIENT_SECRET', 'M365_SENDER'];
+  M365.forEach(k => props.setProperty(k, ''));
+  const mails = [];
+  B.ctx.UrlFetchApp = { fetch: (url, o) => {
+    if (/oauth2/.test(url)) return { getContentText: () => JSON.stringify({ access_token: 'tok' }), getResponseCode: () => 200 };
+    mails.push(JSON.parse(o.payload).message); return { getContentText: () => '{}', getResponseCode: () => 202 };
+  } };
+  const csvOf = m => Buffer.from(m.attachments[0].contentBytes, 'base64').toString('utf8').replace(/^\uFEFF/, '');
+  const to = m => m.toRecipients[0].emailAddress.address;
+  const base = { period: 'last7', cadence: 'weekly', weekday: 0, monthDay: 1, hour: 7 };
+  let s = call('3001', 'reportSubSave', Object.assign({ reportId: 'att_summary', params: {}, labels: { name: 'ملخص الحضور', cols: { name: 'الاسم' } } }, base));
+  ok(s.ok && /^RSB-/.test(s.sub.code) && s.sub.nextRunAt === '2026-11-08T04:00:00.000Z', 'HR schedules a weekly report: next Sunday 07:00 Riyadh', s.sub || s);
+  const hrSub = s.sub.id;
+  ok(call('3001', 'reportSubSave', Object.assign({ reportId: 'pay_register', params: {} }, base)).error === 'not_emailable', 'a pay report cannot be scheduled by e-mail');
+  ok(call('5002', 'reportSubSave', Object.assign({ reportId: 'att_summary', params: {} }, base)).error === 'forbidden', 'someone without access to the report cannot schedule it');
+  ok(call('5001', 'reportSubSave', Object.assign({ reportId: 'att_summary', params: {}, recipients: [ids['5001'], ids['1000']] }, base)).error === 'forbidden', 'a manager cannot send to other people');
+  s = call('5001', 'reportSubSave', Object.assign({ reportId: 'att_summary', params: {} }, base, { cadence: 'daily', period: 'yesterday', hour: 8 }));
+  ok(s.ok && s.sub.recipients.length === 1 && s.sub.recipients[0].id === ids['5001'], 'a manager schedules it for themselves', s.sub || s);
+  const mgrSub = s.sub.id;
+  ok(call('3001', 'reportSubSave', Object.assign({ reportId: 'att_summary', params: {}, recipients: [ids['3001'], ids['5002']] }, base)).error === 'recipient_no_access', 'HR cannot add a recipient who has no access to the report');
+  ok(call('3001', 'reportSubSave', Object.assign({ reportId: 'att_summary', params: {}, recipients: [ids['3001'], ids['3005']] }, base)).error === 'no_email', 'nor one with no e-mail address on file');
+  ok(call('5001', 'reportSubSend', { id: mgrSub }).error === 'email_not_configured', 'with Microsoft 365 not connected, "send now" says so');
+  let l = call('5001', 'reportSubList', {});
+  ok(l.ok && !l.mailReady && l.myEmail && l.rows.length === 1, 'the list shows e-mail is not connected yet; a manager sees only their own', l);
+  M365.forEach(k => props.setProperty(k, 'x'));
+  let r = call('5001', 'reportSubSend', { id: mgrSub });
+  const m1 = mails[mails.length - 1], csv1 = m1 && csvOf(m1);
+  ok(r.ok && to(m1) === '5001@co.sa' && /^RPT-/.test(r.ref) && /2026-11-03/.test(m1.subject), 'send now: the manager gets yesterday\'s report with an export number', { r, subject: m1 && m1.subject });
+  ok(/موظف 5002/.test(csv1) && /موظف 5003/.test(csv1) && !/موظف 5004/.test(csv1), 'the attached CSV holds the manager\'s team only (run with their own access)', csv1);
+  const lg = call('3001', 'reportLog', {}).rows.find(x => x.ref === r.ref);
+  ok(lg && lg.format === 'email' && call('3001', 'reportVerify', { ref: r.ref, hash: lg.hash }).ok, 'every e-mailed report is in the export log and verifies like a printed one', lg);
+  s = call('3001', 'reportSubSave', Object.assign({ reportId: 'att_overtime', params: {} }, base, { weekday: 3, hour: 10 }));
+  const otMoney = run('3001', 'att_overtime', {}).columns.filter(c => c.type === 'money').map(c => c.key);
+  r = call('3001', 'reportSubSend', { id: s.sub.id });
+  const head = csvOf(mails[mails.length - 1]).split('\r\n')[0].split(',');
+  ok(r.ok && otMoney.length && !otMoney.some(k => head.includes(k)) && head.includes('empNo'), 'amount columns are dropped from the e-mailed copy', { otMoney, head });
+  call('3001', 'reportSubSave', { id: s.sub.id, remove: true });
+  // the schedule itself: Sunday 07:01 Riyadh, the first writing request sends what is due
+  const before = mails.length;
+  B.setNow(Date.parse('2026-11-08T04:01:00Z')); Object.keys(toks).forEach(k => delete toks[k]);
+  call('5002', 'requestCreate', { request: { type: 'letter', subtype: 'salary_certificate', payload: { addressee: 'x' } } });
+  B.setNow(Date.parse('2026-11-08T04:02:00Z'));
+  call('5003', 'requestCreate', { request: { type: 'letter', subtype: 'salary_certificate', payload: { addressee: 'y' } } });
+  const sentNow = mails.slice(before);
+  ok(sentNow.some(m => to(m) === '3001@co.sa' && /ملخص الحضور/.test(m.subject) && /2026-11-01/.test(m.subject) && /2026-11-07/.test(m.subject)), 'on Sunday HR gets last week\'s report (1 to 7 November)', sentNow.map(m => to(m) + ' ' + m.subject));
+  ok(sentNow.some(m => to(m) === '5001@co.sa'), 'and the manager\'s daily one went too', sentNow.map(to));
+  l = call('3001', 'reportSubList', { all: 1 });
+  let h = l.rows.find(x => x.id === hrSub);
+  ok(h.lastStatus === 'sent' && h.nextRunAt === '2026-11-15T04:00:00.000Z' && l.rows.length === 2, 'it moves to the next Sunday; HR sees every company schedule', h);
+  ok(sentNow.every(m => /الاسم/.test(csvOf(m)) || to(m) !== '3001@co.sa') && !/9000|2250/.test(sentNow.map(m => m.body.content).join('')), 'column names come from the screen; no pay figure in any e-mail');
+  const n2 = mails.length;
+  B.setNow(Date.parse('2026-11-08T04:50:00Z'));
+  call('5002', 'requestCreate', { request: { type: 'letter', subtype: 'salary_certificate', payload: { addressee: 'z' } } });
+  ok(mails.length === n2, 'nothing is sent twice');
+  // the manager loses their team: the next send is refused for them and recorded
+  const team = direct(() => B.ctx.readAll_('employees').filter(e => e.managerId === ids['5001']).map(e => e.id));
+  direct(() => team.forEach(id => { const e = B.ctx.findBy_('employees', 'id', id); e.managerId = ''; B.ctx.update_('employees', e); }));
+  B.setNow(Date.parse('2026-11-09T05:01:00Z')); Object.keys(toks).forEach(k => delete toks[k]);
+  call('5002', 'requestCreate', { request: { type: 'letter', subtype: 'salary_certificate', payload: { addressee: 'w' } } });
+  h = call('3001', 'reportSubList', { all: 1 }).rows.find(x => x.id === mgrSub);
+  ok(mails.length === n2 && /^failed:recipient_no_access/.test(h.lastStatus), 'someone who lost access stops receiving at once, and the reason is shown', h);
+  ok(call('5002', 'reportSubSave', { id: hrSub, pause: true }).error === 'forbidden', 'only the owner or HR changes a schedule');
+  ok(call('3001', 'reportSubSave', { id: hrSub, pause: true }).ok, 'the owner pauses it');
+  B.setNow(Date.parse('2026-11-15T04:05:00Z')); Object.keys(toks).forEach(k => delete toks[k]);
+  call('5002', 'requestCreate', { request: { type: 'letter', subtype: 'salary_certificate', payload: { addressee: 'v' } } });
+  ok(!mails.slice(n2).some(m => to(m) === '3001@co.sa'), 'a paused schedule sends nothing');
+  direct(() => team.forEach(id => { const e = B.ctx.findBy_('employees', 'id', id); e.managerId = ids['5001']; B.ctx.update_('employees', e); }));
+  M365.forEach(k => props.setProperty(k, ''));
+}
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);

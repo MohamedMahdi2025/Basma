@@ -3,7 +3,7 @@
 Everything that can be built in code is built and live (@83). Each item below is waiting for an account, a permission or
 a contract that only the company can provide. Each item says who does it, how long it takes and what Claude does next.
 
-## 1. E-mail: daily digest and payslips (code ready, switched off)
+## 1. E-mail: daily digest, payslips and scheduled reports (code ready, switched off)
 
 **Who:** your Microsoft 365 administrator, then you, about 30 minutes in all.
 

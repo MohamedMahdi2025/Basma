@@ -571,10 +571,12 @@ function graphToken_(c) {
   if (!j.access_token) fail_('email_auth_failed');
   return j.access_token;
 }
-function graphSend_(c, token, to, subject, html) {
+/** files: optional [{ name, type, bytes }] sent as attachments (scheduled reports send a CSV). */
+function graphSend_(c, token, to, subject, html, files) {
   var r = UrlFetchApp.fetch('https://graph.microsoft.com/v1.0/users/' + encodeURIComponent(c.sender) + '/sendMail', { method: 'post', contentType: 'application/json',
     headers: { Authorization: 'Bearer ' + token }, muteHttpExceptions: true,
-    payload: JSON.stringify({ message: { subject: subject, body: { contentType: 'HTML', content: html }, toRecipients: [{ emailAddress: { address: to } }] }, saveToSentItems: true }) });
+    payload: JSON.stringify({ message: { subject: subject, body: { contentType: 'HTML', content: html }, toRecipients: [{ emailAddress: { address: to } }],
+      attachments: (files || []).map(function (f) { return { '@odata.type': '#microsoft.graph.fileAttachment', name: f.name, contentType: f.type, contentBytes: Utilities.base64Encode(f.bytes) }; }) }, saveToSentItems: true }) });
   if (r.getResponseCode() >= 300) fail_('email_send_failed');
 }
 var PAY_LABELS_AR = { basic: 'الراتب الأساسي', housing: 'بدل السكن', transport: 'بدل النقل', allowance: 'بدل', overtime: 'عمل إضافي', bonus: 'مكافأة', commission: 'عمولة',

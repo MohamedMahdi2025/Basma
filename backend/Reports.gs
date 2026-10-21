@@ -2075,3 +2075,197 @@ Object.assign(REPORT_FNS, {
         notLocked ? { level: 'info', code: 'run_not_locked', count: notLocked } : null].filter(Boolean), chart: { type: 'bars', by: 'wpsStatus', value: 'count' } };
   }
 });
+
+
+// ======================================================================= scheduled reports by e-mail (2026-10-21)
+// docs/research/2026-10-21-scheduled-reports-design.md. A subscription re-runs a saved report on a schedule and e-mails it
+// through the Microsoft 365 sender (the same as payslips and the digest). It runs on the server AS EACH RECIPIENT at send
+// time: their access and row-level scope decide what they get, so a person who lost access stops receiving at once.
+// Money columns never leave by e-mail and pay reports ('money' access) cannot be scheduled. Every send is numbered in the
+// export log (format 'email') with the same SHA-256 fingerprint, so an e-mailed report can be verified like a printed one.
+// No time trigger (no scope for it): like the digest, the first writing request after a run is due sends it.
+var RSUB_PERIODS_ = { yesterday: 1, last7: 1, last30: 1, thisMonth: 1, lastMonth: 1 };
+var RSUB_CADENCE_ = { daily: 1, weekly: 1, monthly: 1 };
+var RSUB_MAX_PER_OWNER_ = 20, RSUB_MAX_RECIPIENTS_ = 10, RSUB_PREVIEW_ROWS_ = 25;
+
+/** The report's parameters for this send: the saved filters with the dates moved to the chosen period. */
+function rsubParams_(def, saved, period, today) {
+  var p = JSON.parse(JSON.stringify(saved || {})), m0 = today.slice(0, 8) + '01', lm = addDays_(m0, -1);
+  var range = { yesterday: [addDays_(today, -1), addDays_(today, -1)], last7: [addDays_(today, -7), addDays_(today, -1)], last30: [addDays_(today, -30), addDays_(today, -1)],
+    thisMonth: [m0, today], lastMonth: [lm.slice(0, 8) + '01', lm] }[period] || [m0, today];
+  if (def.params.indexOf('range31') >= 0 && daysBetween_(range[0], range[1]) >= 31) range[0] = addDays_(range[1], -30);
+  p.from = range[0]; p.to = range[1];
+  if (def.params.indexOf('month') >= 0) p.month = period === 'lastMonth' ? lm.slice(0, 7) : today.slice(0, 7);
+  if (def.params.indexOf('asOf') >= 0) p.asOf = period === 'lastMonth' ? lm : today;
+  return p;
+}
+/** The next send after `from`, at the chosen hour in Riyadh time. */
+function rsubNext_(sub, from) {
+  var day = localParts_(from).date, hour = Number(sub.hour) || 7;
+  for (var i = 0; i < 70; i++, day = addDays_(day, 1)) {
+    var at = new Date(Date.parse(day + 'T' + (hour < 10 ? '0' : '') + hour + ':00:00Z') - CONFIG.TZ_OFFSET_MIN * 60000);
+    if (at <= from) continue;
+    var dow = new Date(day + 'T12:00:00Z').getUTCDay(), dom = Number(day.slice(8, 10));
+    if (sub.cadence === 'weekly' && dow !== Number(sub.weekday)) continue;
+    if (sub.cadence === 'monthly' && dom !== Number(sub.monthDay)) continue;
+    return at.toISOString();
+  }
+  return '';
+}
+function rsubRecipients_(sub) { return parseJson_(sub.recipientsJson, []); }
+function publicRsub_(x, names) {
+  return { id: x.id, code: x.code, owner: names[x.ownerId] || '', ownerId: x.ownerId, reportId: x.reportId, label: x.label, period: x.period, cadence: x.cadence,
+    weekday: Number(x.weekday), monthDay: Number(x.monthDay), hour: Number(x.hour), recipients: rsubRecipients_(x).map(function (id) { return { id: id, name: names[id] || '' }; }),
+    params: parseJson_(x.paramsJson, {}), columns: parseJson_(x.columnsJson, []), status: x.status, nextRunAt: x.nextRunAt, lastRunAt: x.lastRunAt, lastStatus: x.lastStatus, lastRef: x.lastRef };
+}
+function api_reportSubList(req, me) {
+  var names = {}, emp = null; readAll_(SHEETS.EMP).forEach(function (e) { names[e.id] = e.name; if (e.id === me.id) emp = e; });
+  var all = isHr_(me) && req.all;
+  var rows = readAll_(SHEETS.RSUB).filter(function (x) { return x.status !== 'deleted' && (all || x.ownerId === me.id || rsubRecipients_(x).indexOf(me.id) >= 0); });
+  return { ok: true, rows: rows.map(function (x) { return publicRsub_(x, names); }), mailReady: !!mailConfig_(), myEmail: !!(emp && emp.email), canOthers: isHr_(me) };
+}
+/** Create or change a subscription; { id, pause | resume | remove } for the owner (or HR). */
+function api_reportSubSave(req, me) {
+  return withLock_(function () {
+    var now = new Date(), x = req.id ? findBy_(SHEETS.RSUB, 'id', String(req.id)) : null;
+    if (req.id && (!x || x.status === 'deleted')) fail_('not_found');
+    if (x && x.ownerId !== me.id && !isHr_(me)) fail_('forbidden');
+    if (x && (req.pause || req.resume || req.remove)) {
+      x.status = req.remove ? 'deleted' : req.pause ? 'paused' : 'active';
+      if (req.resume) { x.nextRunAt = rsubNext_(x, now); x.fails = 0; }
+      x.updatedAt = now.toISOString(); update_(SHEETS.RSUB, x);
+      CacheService.getScriptCache().remove('rsub:next');
+      audit_(me.id, 'report_sub_' + x.status, '', { code: x.code });
+      return { ok: true };
+    }
+    var reportId = x ? x.reportId : String(req.reportId || ''), def = REPORTS[reportId], ctx = orgCtx_();
+    if (!def) fail_('not_found');
+    if (def.access === 'money') fail_('not_emailable');
+    if (!reportAllowed_(def, me, ctx)) fail_('forbidden');
+    if (!RSUB_PERIODS_[req.period] || !RSUB_CADENCE_[req.cadence]) fail_('missing_fields');
+    var hour = Math.round(Number(req.hour)), wd = Math.round(Number(req.weekday) || 0), md = Math.round(Number(req.monthDay) || 1);
+    if (!(hour >= 5 && hour <= 22) || wd < 0 || wd > 6 || md < 1 || md > 28) fail_('missing_fields');
+    var rec = (Array.isArray(req.recipients) && req.recipients.length ? req.recipients : [me.id]).map(String).filter(function (v, i, a) { return a.indexOf(v) === i; });
+    if (rec.length > RSUB_MAX_RECIPIENTS_) fail_('too_many');
+    if (!isHr_(me) && (rec.length !== 1 || rec[0] !== me.id)) fail_('forbidden'); // only HR sends to other people
+    rec.forEach(function (id) {
+      var e = ctx.emps[id];
+      if (!e || e.status !== 'active') fail_('not_found');
+      if (!e.email) fail_('no_email');
+      if (!reportAllowed_(def, e, ctx)) fail_('recipient_no_access');
+    });
+    if (!x && readAll_(SHEETS.RSUB).filter(function (s) { return s.ownerId === me.id && s.status !== 'deleted'; }).length >= RSUB_MAX_PER_OWNER_) fail_('too_many');
+    var lbl = req.labels || {}, cols = {};
+    Object.keys(lbl.cols || {}).slice(0, 120).forEach(function (k) { cols[str_(k, 40)] = str_(lbl.cols[k], 80); });
+    var p = reportParams_(def, req.params); delete p.from; delete p.to; delete p.month; delete p.asOf;
+    var row = x || { id: newId_('S'), code: nextRef_('reportSub', refsOf_(SHEETS.RSUB)), ownerId: me.id, reportId: reportId, createdAt: now.toISOString(), lastRunAt: '', lastStatus: '', lastRef: '', fails: 0 };
+    row.label = str_(lbl.name || req.label, 120) || reportId; row.lang = req.lang === 'en' ? 'en' : 'ar';
+    row.paramsJson = JSON.stringify(p); row.columnsJson = JSON.stringify((req.columns || []).map(String).slice(0, 120)); row.labelsJson = JSON.stringify(cols);
+    row.period = req.period; row.cadence = req.cadence; row.weekday = wd; row.monthDay = md; row.hour = hour; row.recipientsJson = JSON.stringify(rec);
+    row.status = 'active'; row.updatedAt = now.toISOString(); row.nextRunAt = rsubNext_(row, now);
+    if (x) update_(SHEETS.RSUB, row); else append_(SHEETS.RSUB, row);
+    CacheService.getScriptCache().remove('rsub:next');
+    audit_(me.id, x ? 'report_sub_change' : 'report_sub_create', '', { code: row.code, report: reportId, recipients: rec.length });
+    return { ok: true, sub: publicRsub_(row, (function () { var n = {}; Object.keys(ctx.emps).forEach(function (k) { n[k] = ctx.emps[k].name; }); return n; })()) };
+  });
+}
+/** "Send me one now": runs it as the caller and e-mails only the caller (a test of what the others will get). */
+function api_reportSubSend(req, me) {
+  var x = findBy_(SHEETS.RSUB, 'id', String(req.id || ''));
+  if (!x || x.status === 'deleted') fail_('not_found');
+  if (x.ownerId !== me.id && !isHr_(me) && rsubRecipients_(x).indexOf(me.id) < 0) fail_('forbidden');
+  var cfg = mailConfig_(); if (!cfg) fail_('email_not_configured');
+  if (!rateLimit_('rsubsend:' + me.id, 5, 3600)) fail_('too_many_attempts');
+  var emp = findBy_(SHEETS.EMP, 'id', me.id);
+  var out = rsubDeliver_(x, emp, cfg, null, orgCtx_());
+  if (!out.ok) fail_(out.error);
+  return { ok: true, to: emp.email, ref: out.ref, rows: out.rows };
+}
+/** Run the report as `emp` and e-mail it to them. Never throws: returns { ok, ref } or { ok:false, error }. */
+function rsubDeliver_(x, emp, cfg, token, ctx) {
+  try {
+    var def = REPORTS[x.reportId];
+    if (!def || def.access === 'money') return { ok: false, error: 'not_emailable' };
+    if (!emp || emp.status !== 'active') return { ok: false, error: 'not_found' };
+    if (!emp.email) return { ok: false, error: 'no_email' };
+    if (!reportAllowed_(def, emp, ctx)) return { ok: false, error: 'recipient_no_access' };
+    var today = localParts_(new Date()).date;
+    var p = reportParams_(def, rsubParams_(def, parseJson_(x.paramsJson, {}), x.period, today));
+    var res = runReport_(x.reportId, p, emp, ctx);
+    keepColumns_(res, parseJson_(x.columnsJson, []));
+    res.columns = res.columns.filter(function (c) { return c.type !== 'money'; }); // no pay figure leaves by e-mail
+    if (!res.columns.length) return { ok: false, error: 'not_emailable' };
+    p.columns = res.columns.map(function (c) { return c.key; });
+    var hash = reportHash_(x.reportId, p, res), at = new Date().toISOString(), ref;
+    withLock_(function () {
+      ref = nextRef_('report', refsOf_(SHEETS.RLOG));
+      append_(SHEETS.RLOG, { id: newId_('X'), ref: ref, reportId: x.reportId, paramsJson: JSON.stringify(p), rows: res.rows.length, format: 'email', hash: hash, by: emp.id, at: at, reviewedBy: '', reviewedAt: '', reviewNote: '' });
+    });
+    var labels = parseJson_(x.labelsJson, {}), html = rsubHtml_(x, emp, res, p, labels, ref, hash);
+    var csv = rsubCsv_(res, labels), file = x.code + '_' + ref + '.csv';
+    graphSend_(cfg, token || graphToken_(cfg), emp.email, (x.lang === 'en' ? 'Report: ' : 'تقرير: ') + x.label + ' (' + (p.from || p.month || p.asOf) + (p.to && p.to !== p.from ? ' → ' + p.to : '') + ')', html,
+      [{ name: file, type: 'text/csv', bytes: Utilities.newBlob('﻿' + csv).getBytes() }]);
+    audit_(emp.id, 'report_emailed', '', { code: x.code, ref: ref, rows: res.rows.length });
+    return { ok: true, ref: ref, rows: res.rows.length };
+  } catch (e) { var m = /^E:(w+)/.exec(e && e.message || ''); return { ok: false, error: m ? m[1] : 'email_send_failed' }; }
+}
+function rsubCell_(c, v) {
+  if (v == null) return '';
+  if (typeof v === 'object') return Array.isArray(v) ? v.join(' ') : JSON.stringify(v);
+  if (c.type === 'pct' && typeof v === 'number') return (Math.round(v * 10) / 10) + '%';
+  return String(v);
+}
+function rsubCsv_(res, labels) {
+  var q = function (s) { s = String(s); if (/^[=+@]/.test(s) || /^-(?![0-9.])/.test(s)) s = "'" + s; /* formula guard; negative numbers stay numbers */ return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+  return [res.columns.map(function (c) { return q(labels[c.key] || c.key); }).join(',')].concat(res.rows.map(function (r) {
+    return res.columns.map(function (c) { return q(rsubCell_(c, r[c.key])); }).join(',');
+  })).join('\r\n');
+}
+function rsubHtml_(x, emp, res, p, labels, ref, hash) {
+  var en = x.lang === 'en', esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (m) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m]; }); };
+  var s = settings_(), url = s.appUrl || 'https://besgasksa.github.io/BG-attendance/', cols = res.columns.slice(0, 8), td = 'padding:6px 8px;border-bottom:1px solid #eee;text-align:' + (en ? 'left' : 'right');
+  var warn = (res.checks || []).filter(function (c) { return c.level === 'error' || c.level === 'warn'; }).length;
+  var period = p.from ? p.from + (p.to !== p.from ? ' → ' + p.to : '') : (p.month || p.asOf || '');
+  return '<div dir="' + (en ? 'ltr' : 'rtl') + '" style="font-family:Tahoma,Arial,sans-serif;color:#17221A;max-width:760px">' +
+    '<p style="margin:0;color:#4D6D51;font-weight:bold">' + esc(en ? s.companyNameEn || s.companyNameAr : s.companyNameAr) + '</p>' +
+    '<h2 style="margin:4px 0">' + esc(x.label) + '</h2>' +
+    '<p style="margin:0 0 12px;color:#4A5A4D">' + esc(period) + ' · ' + res.rows.length + (en ? ' rows' : ' صف') + ' · ' + (en ? 'No. ' : 'الرقم ') + esc(ref) + (res.teamOnly ? (en ? ' · your team only' : ' · فريقك فقط') : '') + '</p>' +
+    (warn ? '<p style="background:#FFF4DC;padding:8px 10px;border-radius:8px">' + (en ? warn + ' data check(s) need attention; open the report in the app for details.' : 'يوجد ' + warn + ' من فحوص البيانات تحتاج انتباها؛ افتح التقرير في التطبيق للتفاصيل.') + '</p>' : '') +
+    '<table style="border-collapse:collapse;font-size:13px;width:100%"><tr>' + cols.map(function (c) { return '<th style="' + td + ';background:#F2EEE4">' + esc(labels[c.key] || c.key) + '</th>'; }).join('') + '</tr>' +
+    res.rows.slice(0, RSUB_PREVIEW_ROWS_).map(function (r) { return '<tr>' + cols.map(function (c) { return '<td style="' + td + '">' + esc(rsubCell_(c, r[c.key])) + '</td>'; }).join('') + '</tr>'; }).join('') + '</table>' +
+    '<p style="color:#4A5A4D;font-size:13px">' + (en ? (res.rows.length > RSUB_PREVIEW_ROWS_ || res.columns.length > cols.length ? 'The first rows and columns are shown; the full report is attached (CSV). ' : 'The report is also attached (CSV). ') + 'Pay figures are never sent by e-mail.'
+      : (res.rows.length > RSUB_PREVIEW_ROWS_ || res.columns.length > cols.length ? 'تظهر الصفوف والأعمدة الأولى؛ التقرير كاملا في الملف المرفق (CSV). ' : 'التقرير مرفق أيضا (CSV). ') + 'لا ترسل أرقام الرواتب بالبريد أبدا.') + '</p>' +
+    '<p style="color:#4A5A4D;font-size:12px">' + (en ? 'Fingerprint: ' : 'البصمة: ') + '<span dir="ltr" style="font-family:monospace">' + esc(hash.slice(0, 16)) + '</span> · ' +
+    (en ? 'You get this because of subscription ' : 'تصلك هذه الرسالة بسبب الاشتراك ') + esc(x.code) + '. <a href="' + esc(url) + '#insights/schedules">' + (en ? 'Manage or stop it' : 'إدارته أو إيقافه') + '</a></p></div>';
+}
+/**
+ * Lazy sweep, after a writing request (like the digest). A cache key holds the earliest due time, so most requests cost one
+ * cache read. One subscription per request; five failures in a row pause it. A recipient who lost access is skipped and logged.
+ */
+function reportSubsSweep_() {
+  try {
+    var c = CacheService.getScriptCache(), next = c.get('rsub:next'), now = new Date();
+    if (next && next > now.toISOString()) return;
+    var cfg = mailConfig_(); if (!cfg) { c.put('rsub:next', new Date(now.getTime() + 3600000).toISOString(), 3600); return; }
+    if (!rateLimit_('rsub:run', 1, 20)) return;
+    var subs = readAll_(SHEETS.RSUB).filter(function (x) { return x.status === 'active' && x.nextRunAt; }).sort(function (a, b) { return a.nextRunAt < b.nextRunAt ? -1 : 1; });
+    var due = subs.filter(function (x) { return x.nextRunAt <= now.toISOString(); })[0];
+    if (!due) { c.put('rsub:next', subs.length ? subs[0].nextRunAt : new Date(now.getTime() + 21600000).toISOString(), 21600); return; }
+    var ctx = orgCtx_(), owner = ctx.emps[due.ownerId], token = null, sent = 0, errs = [], refs = [];
+    if (!owner || owner.status !== 'active') { due.status = 'paused'; due.lastStatus = 'owner_inactive'; }
+    else { try { token = graphToken_(cfg); } catch (e) { errs.push('email_auth_failed'); } }
+    if (token) rsubRecipients_(due).forEach(function (id) {
+      var out = rsubDeliver_(due, ctx.emps[id], cfg, token, ctx);
+      if (out.ok) { sent++; refs.push(out.ref); } else errs.push(out.error);
+    });
+    due.lastRunAt = now.toISOString(); due.lastRef = refs.join(' ');
+    if (due.status === 'active') {
+      due.lastStatus = errs.length ? (sent ? 'partial:' : 'failed:') + errs.filter(function (v, i, a) { return a.indexOf(v) === i; }).join(',') : 'sent';
+      due.fails = sent ? 0 : (Number(due.fails) || 0) + 1;
+      if (due.fails >= 5) due.status = 'paused';
+      due.nextRunAt = rsubNext_(due, now);
+    }
+    withLock_(function () { update_(SHEETS.RSUB, due); });
+    c.remove('rsub:next');
+  } catch (e) { console.error('report subs: ' + (e && e.message)); }
+}

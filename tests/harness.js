@@ -77,6 +77,7 @@ function load(opts = {}) {
       },
       getUuid: () => crypto.randomUUID(),
       base64Decode: s => signed(Buffer.from(s, 'base64')),
+      base64Encode: b => Buffer.from(Uint8Array.from(b, x => x & 255)).toString('base64'),
       base64EncodeWebSafe: b => Buffer.from(Uint8Array.from(b, x => x & 255)).toString('base64').replace(/\+/g, '-').replace(/\//g, '_'),
       computeDigest: (alg, b) => signed(crypto.createHash('sha256').update(Buffer.from(Uint8Array.from(b, x => x & 255))).digest()),
       computeHmacSha256Signature: (m, k) => signed(crypto.createHmac('sha256', k).update(m).digest()),

@@ -349,3 +349,16 @@ unchanged:
 The public careers page is `#careers` (`js/careers.js`, loaded from `boot()` before sign-in). Scratch helper for
 registering a module: `reg.js` in the session scratchpad. It inserts tabs, refs, actions, `SEC_DEST`, `MINE_DEST`, icons and
 `SUB_ICON` right after each object's opening brace.
+
+## Kiosk QR and scheduled reports (2026-10-20 / 21)
+
+- **Kiosk QR** (Attendance.gs, `js/kiosk.js`, admin screen in wave4.js): a tablet at `#kiosk/<setup>` shows an HMAC code
+  that rotates every 20 s. The phone scans it and the code goes with the normal Face ID / PIN punch, standing in for the
+  GPS fix. A usable fix far from the zone gives `qr_far`. Design: docs/research/2026-10-20-kiosk-qr-design.md.
+- **Scheduled reports** (Reports.gs `reportSubs`, screens in reports.js, page `insights:schedules`):
+  - the report runs as each recipient at send time;
+  - pay reports cannot be scheduled and money columns are dropped from every send;
+  - each send is logged in the export log with format `email`;
+  - sending is lazy, after write requests, like the digest, through `graphSend_` (which now takes attachments).
+
+  Design: docs/research/2026-10-21-scheduled-reports-design.md.

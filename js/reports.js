@@ -273,6 +273,7 @@ var DAYCODE = { P: ['حاضر', 'Present'], L: ['متأخر', 'Late'], A: ['غا
 var LEAVE_KEYS = ['annual', 'sick', 'marriage', 'paternity', 'bereavement', 'bereavement_sibling', 'maternity', 'hajj', 'exam', 'iddah', 'unpaid'];
 
 Object.assign(T.ar, {
+  rpSubs:'الجدولة بالبريد', rpSubsLead:'تصلك التقارير بالبريد في الموعد الذي تختاره. يحسب كل تقرير وقت الإرسال بصلاحيات المستلم نفسه، ويأخذ رقما وبصمة في سجل التصدير. أعمدة الرواتب لا ترسل بالبريد أبدا.', rpSchedule:'جدولة بالبريد', rpSchTitle:'إرسال التقرير بالبريد بشكل دوري', rpSchLead:'يعاد حساب التقرير بنفس الفلاتر والأعمدة في كل موعد، للفترة التي تختارها.', rpSchMoney:'أعمدة المبالغ تحذف من النسخة المرسلة بالبريد.', rpPeriod:'الفترة', per_yesterday:'أمس', per_last7:'آخر 7 أيام', per_last30:'آخر 30 يوما', per_thisMonth:'الشهر الحالي حتى اليوم', per_lastMonth:'الشهر الماضي', rpCadence:'التكرار', cad_daily:'يوميا', cad_weekly:'أسبوعيا', cad_monthly:'شهريا', rpWeekday:'يوم الأسبوع', rpMonthDay:'يوم الشهر', rpDayN:'يوم {n}', rpHour:'الساعة (بتوقيت الرياض)', rpRecipients:'المستلمون', rpMe:'أنا', rpRecHint:'كل مستلم يرى ما تسمح به صلاحياته فقط. يجب أن يكون لديه بريد مسجل.', rpSchSave:'حفظ الجدولة', rpSchSaved:'تم حفظ الجدولة', rpSchNone:'لا توجد تقارير مجدولة. افتح أي تقرير واضغط «جدولة بالبريد».', rpSchOn:'تعمل', rpSchOff:'موقوفة', rpSchNext:'الإرسال القادم', rpSchLast:'آخر إرسال', rpSendNow:'أرسل لي الآن', rpSentTo:'أرسل إلى', rpEdit:'تعديل', rpPause:'إيقاف مؤقت', rpResume:'استئناف', rpRemove:'حذف', rpRemoveQ:'حذف هذه الجدولة؟', rpOwner:'أنشأها', rpSubsAll:'كل جداول الشركة', rpMailOff:'البريد غير مربوط بعد (Microsoft 365). تحفظ الجداول الآن وتبدأ بالإرسال حين يربطه مدير النظام.', rpNoMyEmail:'لا يوجد بريد مسجل في ملفك؛ اطلب من الموارد البشرية إضافته.', rpLastSent:'أرسل', rpLastPartial:'أرسل جزئيا', rpLastFailed:'لم يرسل',
   rpTitle:'التقارير', rpCatalog:'مكتبة التقارير', rpLog:'سجل التصدير', rpVerify:'التحقق من تقرير', rpLead:'كل تقرير يحسب على الخادم بصلاحياتك. كل ملف يصدر يأخذ رقما وبصمة رقمية يمكن التحقق منهما لاحقا.',
   rpFrom:'من', rpTo:'إلى', rpMonth:'الشهر', rpAsOf:'في تاريخ', rpDepts:'الإدارات', rpAllDepts:'كل الإدارات', rpSub:'مع الإدارات الفرعية', rpEmps:'الموظفون', rpAllEmps:'كل الموظفين',
   rpNat:'الجنسية', rpStatus:'حالة الموظف', rpActive:'النشطون', rpDisabledOnly:'الموقوفون', rpAll:'الكل', rpDays:'خلال (يوما)', rpRun:'المسير', rpCycle:'الدورة', rpThreshold:'حد الفرق %',
@@ -293,6 +294,7 @@ Object.assign(T.ar, {
   rpCleared:'مسح', rpSaved:'حفظ العرض.', rpDelView:'حذف', rpDetails:'التفاصيل', rpChart:'الصورة العامة'
 });
 Object.assign(T.en, {
+  rpSubs:'E-mail schedules', rpSubsLead:'Reports arrive by e-mail when you choose. Each one is computed at send time with the recipient\'s own access, and gets a number and fingerprint in the export log. Pay columns are never e-mailed.', rpSchedule:'Schedule by e-mail', rpSchTitle:'E-mail this report on a schedule', rpSchLead:'The report is computed again each time with the same filters and columns, for the period you choose.', rpSchMoney:'Amount columns are removed from the e-mailed copy.', rpPeriod:'Period', per_yesterday:'Yesterday', per_last7:'Last 7 days', per_last30:'Last 30 days', per_thisMonth:'This month to date', per_lastMonth:'Last month', rpCadence:'Repeat', cad_daily:'Daily', cad_weekly:'Weekly', cad_monthly:'Monthly', rpWeekday:'Day of the week', rpMonthDay:'Day of the month', rpDayN:'day {n}', rpHour:'Time (Riyadh)', rpRecipients:'Recipients', rpMe:'Me', rpRecHint:'Each recipient sees only what their own access allows. They need an e-mail address on file.', rpSchSave:'Save schedule', rpSchSaved:'Schedule saved', rpSchNone:'No scheduled reports yet. Open any report and choose "Schedule by e-mail".', rpSchOn:'Running', rpSchOff:'Paused', rpSchNext:'Next', rpSchLast:'Last', rpSendNow:'Send me one now', rpSentTo:'Sent to', rpEdit:'Edit', rpPause:'Pause', rpResume:'Resume', rpRemove:'Delete', rpRemoveQ:'Delete this schedule?', rpOwner:'Created by', rpSubsAll:'All company schedules', rpMailOff:'E-mail is not connected yet (Microsoft 365). Schedules are saved now and start sending once the administrator connects it.', rpNoMyEmail:'There is no e-mail address in your file; ask HR to add one.', rpLastSent:'sent', rpLastPartial:'partly sent', rpLastFailed:'not sent',
   rpTitle:'Reports', rpCatalog:'Report library', rpLog:'Export log', rpVerify:'Verify a report', rpLead:'Every report is computed on the server with your access. Every export gets a number and a fingerprint that can be checked later.',
   rpFrom:'From', rpTo:'To', rpMonth:'Month', rpAsOf:'As of', rpDepts:'Departments', rpAllDepts:'All departments', rpSub:'Include sub-departments', rpEmps:'People', rpAllEmps:'Everyone',
   rpNat:'Nationality', rpStatus:'Employee status', rpActive:'Active', rpDisabledOnly:'Disabled', rpAll:'All', rpDays:'Within (days)', rpRun:'Payroll run', rpCycle:'Cycle', rpThreshold:'Change threshold %',
@@ -417,6 +419,7 @@ function saveViews(v){ try { localStorage.setItem('bgatt.rpViews', JSON.stringif
 function section(body){
   var can = roles();
   var tabs = [['catalog', 'squares-four', t('rpCatalog')]];
+  tabs.push(['subs', 'envelope-simple', t('rpSubs')]);
   if (can.hr || can.payroll) tabs.push(['log', 'list-checks', t('rpLog')]);
   if (can.hr || can.payroll || can.executive) tabs.push(['verify', 'seal-check', t('rpVerify')]);
   if (S.rpJump) { R.view = S.rpJump; S.rpJump = null; }
@@ -428,6 +431,7 @@ function section(body){
   $$('.rp-tabs [data-v]', body).forEach(function(b){ b.onclick = function(){ R.view = b.dataset.v; section(body); }; });
   var el = $('#rpBody', body);
   if (R.view === 'log') return logView(el);
+  if (R.view === 'subs') return catalogThen(el, function(){ subsView(el); });
   if (R.view === 'verify') return verifyView(el);
   catalogThen(el, function(){ if (R.view === 'run') runView(el); else catalogView(el); });
 }
@@ -632,7 +636,7 @@ function drawResult(box){
     (groupable.length ? '<select id="rpG" aria-label="' + t('rpGroup') + '"><option value="">' + t('rpNoGroup') + '</option>' + groupable.map(function(c){ return '<option value="' + c.key + '"' + (R.group === c.key ? ' selected' : '') + '>' + t('rpGroup') + ': ' + esc(colLabel(c)) + '</option>'; }).join('') + '</select>' : '') +
     '<details class="rp-multi rp-colpop"><summary style="height:38px">' + ph('columns') + '<span>' + t('rpColumns') + ' (' + cols.length + '/' + res.columns.length + ')</span></summary><div class="pop"><p class="hr-hint" style="margin:2px 6px 6px">' + t('rpColsHint') + '</p>' +
     res.columns.filter(function(c){ return !/^d\d+$/.test(c.key); }).map(function(c){ return '<label><input type="checkbox" data-col="' + c.key + '"' + (R.hidden[c.key] ? '' : ' checked') + '>' + esc(colLabel(c)) + '</label>'; }).join('') + '</div></details>' +
-    '<span class="sp"></span><button type="button" class="btn btn-line btn-sm" data-ex="xlsx">' + ph('microsoft-excel-logo') + t('rpExcel') + '</button><button type="button" class="btn btn-line btn-sm" data-ex="csv">' + ph('file-csv') + t('rpCsv') + '</button><button type="button" class="btn btn-dark btn-sm" data-ex="pdf">' + ph('file-pdf') + t('rpPdf') + '</button></div>';
+    '<span class="sp"></span>' + (def(R.id).access !== 'money' ? '<button type="button" class="btn btn-line btn-sm" id="rpSch">' + ph('envelope-simple') + t('rpSchedule') + '</button>' : '') + '<button type="button" class="btn btn-line btn-sm" data-ex="xlsx">' + ph('microsoft-excel-logo') + t('rpExcel') + '</button><button type="button" class="btn btn-line btn-sm" data-ex="csv">' + ph('file-csv') + t('rpCsv') + '</button><button type="button" class="btn btn-dark btn-sm" data-ex="pdf">' + ph('file-pdf') + t('rpPdf') + '</button></div>';
   h += '<div id="rpTbl"></div>';
   box.innerHTML = h;
   V.wireTips(box);
@@ -640,6 +644,7 @@ function drawResult(box){
   var g = $('#rpG', box); if (g) g.onchange = function(){ R.group = g.value; R.page = 0; R.open = {}; drawTable($('#rpTbl', box)); };
   $$('[data-col]', box).forEach(function(i){ i.onchange = function(){ if (i.checked) delete R.hidden[i.dataset.col]; else R.hidden[i.dataset.col] = 1; if (visibleCols(res).length === 0) { delete R.hidden[i.dataset.col]; i.checked = true; } drawResult(box); $('.rp-colpop', box).open = true; }; });
   $$('[data-ex]', box).forEach(function(b){ b.onclick = function(){ doExport(b.dataset.ex, b); }; });
+  var sch = $('#rpSch', box); if (sch) sch.onclick = function(){ scheduleDrawer(null); };
   drawTable($('#rpTbl', box));
 }
 
@@ -705,6 +710,97 @@ function drawTable(el){
   $$('[data-sort]', el).forEach(function(b){ b.onclick = function(){ var k = b.dataset.sort; if (R.sort === k) R.dir = -R.dir; else { R.sort = k; R.dir = isNum(res.columns.filter(function(c){ return c.key === k; })[0]) ? -1 : 1; } R.page = 0; drawTable(el); }; });
   $$('[data-pg]', el).forEach(function(b){ b.onclick = function(){ R.page += Number(b.dataset.pg); drawTable(el); el.querySelector('.rp-tw').scrollTop = 0; }; });
   $$('tr.gh', el).forEach(function(tr){ var tg = function(){ var k = tr.dataset.g; R.open[k] = !R.open[k]; drawTable(el); }; tr.onclick = tg; tr.onkeydown = function(e){ if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tg(); } }; });
+}
+
+// ---------------- scheduled e-mail (2026-10-21) ----------------
+// The report re-runs on the server for each recipient at send time with their own access; pay columns are dropped.
+var PERIODS = ['yesterday', 'last7', 'last30', 'thisMonth', 'lastMonth'], CADS = ['daily', 'weekly', 'monthly'];
+function wdName(i){ return new Date(Date.UTC(2026, 0, 4 + i)).toLocaleDateString(S.lang === 'en' ? 'en-GB' : 'ar-SA', { weekday: 'long', timeZone: 'UTC' }); }
+function cadText(x){
+  var h = (x.hour < 10 ? '0' : '') + x.hour + ':00';
+  return t('cad_' + x.cadence) + (x.cadence === 'weekly' ? ' · ' + wdName(x.weekday) : x.cadence === 'monthly' ? ' · ' + t('rpDayN').replace('{n}', x.monthDay) : '') + ' · ' + h + ' · ' + t('per_' + x.period);
+}
+function scheduleDrawer(old){
+  var id = old ? old.reportId : R.id, d0 = def(id);
+  if (!d0) return;
+  var money = (R.res && R.id === id ? R.res.columns : []).some(function(c){ return c.type === 'money'; });
+  var hrOk = roles().hr;
+  var opt = function(v, txt, cur){ return '<option value="' + v + '"' + (String(v) === String(cur) ? ' selected' : '') + '>' + esc(txt) + '</option>'; };
+  var cur = old || { period: d0.params.indexOf('month') >= 0 ? 'lastMonth' : 'last7', cadence: 'weekly', weekday: 0, monthDay: 1, hour: 7, recipients: [] };
+  var fld = function(l, h){ return '<label class="fld"><span>' + l + '</span>' + h + '</label>'; };
+  var html = '<h3>' + t('rpSchTitle') + '</h3><p class="hr-hint">' + t('rpSchLead') + (money ? ' ' + t('rpSchMoney') : '') + '</p>' +
+    '<form class="form" id="rsF"><p><b>' + esc(old ? old.label : rpName(id)) + '</b></p>' +
+    fld(t('rpPeriod'), '<select name="period">' + PERIODS.map(function(p){ return opt(p, t('per_' + p), cur.period); }).join('') + '</select>') +
+    fld(t('rpCadence'), '<select name="cadence">' + CADS.map(function(c){ return opt(c, t('cad_' + c), cur.cadence); }).join('') + '</select>') +
+    '<div data-w="weekly">' + fld(t('rpWeekday'), '<select name="weekday">' + [0, 1, 2, 3, 4, 5, 6].map(function(i){ return opt(i, wdName(i), cur.weekday); }).join('') + '</select>') + '</div>' +
+    '<div data-w="monthly">' + fld(t('rpMonthDay'), '<select name="monthDay">' + Array.apply(null, Array(28)).map(function(_, i){ return opt(i + 1, String(i + 1), cur.monthDay); }).join('') + '</select>') + '</div>' +
+    fld(t('rpHour'), '<select name="hour">' + Array.apply(null, Array(18)).map(function(_, i){ var h = i + 5; return opt(h, (h < 10 ? '0' : '') + h + ':00', cur.hour); }).join('') + '</select>') +
+    (hrOk ? fld(t('rpRecipients'), '<select name="recipients" multiple size="6">' + opt(S.me.id, t('rpMe') + ' (' + S.me.name + ')', '') +
+      (CAT ? CAT.emps : []).filter(function(e){ return e.id !== S.me.id && e.status === 'active'; }).map(function(e){ return opt(e.id, e.empNo + ' · ' + e.name, ''); }).join('') + '</select><small>' + t('rpRecHint') + '</small>') : '') +
+    '<p class="hr-bad" id="rsE" role="alert"></p><div class="btnrow"><button class="btn btn-dark" type="submit">' + ph('envelope-simple') + t('rpSchSave') + '</button></div></form>';
+  var d = drawer(html), f = $('#rsF', d);
+  if (hrOk) { var sel = f.recipients, want = old ? old.recipients.map(function(r){ return r.id; }) : [S.me.id]; [].forEach.call(sel.options, function(o){ o.selected = want.indexOf(o.value) >= 0; }); }
+  var sync = function(){ $$('[data-w]', f).forEach(function(w){ w.hidden = w.dataset.w !== f.cadence.value; }); };
+  f.cadence.onchange = sync; sync();
+  f.onsubmit = function(ev){
+    ev.preventDefault(); var b = f.querySelector('[type=submit]'); b.disabled = true;
+    var cols = {}, src = R.res && R.id === id ? R.res.columns : [];
+    src.forEach(function(c){ cols[c.key] = colLabel(c); });
+    var payload = { period: f.period.value, cadence: f.cadence.value, weekday: f.weekday.value, monthDay: f.monthDay.value, hour: f.hour.value, lang: S.lang };
+    if (old) { payload.id = old.id; payload.params = old.params; payload.columns = old.columns; payload.labels = { name: old.label, cols: cols }; if (!src.length) delete payload.labels.cols; }
+    else { payload.reportId = id; payload.params = R.params; payload.columns = visibleCols(R.res).map(function(c){ return c.key; }); payload.labels = { name: rpName(id), cols: cols }; }
+    if (hrOk) payload.recipients = [].filter.call(f.recipients.options, function(o){ return o.selected; }).map(function(o){ return o.value; });
+    api('reportSubSave', payload).then(function(r){
+      b.disabled = false;
+      if (!r.ok) return $('#rsE', d).textContent = errText(r.error);
+      d.remove(); toast(t('rpSchSaved'));
+      if (R.view === 'subs') { var el = $('#rpBody'); if (el) subsView(el); }
+    });
+  };
+}
+function subsView(el){
+  var stop = progressCard(el, t('rpSubs'));
+  var all = roles().hr && R.subsAll;
+  api('reportSubList', { all: all ? 1 : 0 }, true).then(function(r){
+    stop();
+    if (!r.ok) { el.innerHTML = '<p class="hr-bad">' + errText(r.error) + '</p>'; return; }
+    var h = '<p class="hr-hint">' + t('rpSubsLead') + '</p>' +
+      (!r.mailReady ? '<p class="rp-note" style="background:#FFF4DC;padding:10px 12px;border-radius:10px">' + ph('warning') + ' ' + t('rpMailOff') + '</p>' : '') +
+      (!r.myEmail ? '<p class="rp-note" style="background:#FFF4DC;padding:10px 12px;border-radius:10px">' + ph('warning') + ' ' + t('rpNoMyEmail') + '</p>' : '') +
+      (r.canOthers ? '<div class="toolbar"><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="rsAll"' + (all ? ' checked' : '') + '>' + t('rpSubsAll') + '</label></div>' : '');
+    h += r.rows.length ? '<div class="list">' + r.rows.map(function(x, i){
+      var mine = x.ownerId === S.me.id || roles().hr;
+      var st = x.status === 'active' ? '<span class="chip in">' + t('rpSchOn') + '</span>' : '<span class="chip">' + t('rpSchOff') + '</span>';
+      return '<div class="row"><div class="main"><b><bdi>' + esc(x.code) + '</bdi> · ' + esc(x.label) + '</b><small>' + esc(cadText(x)) + '</small>' +
+        '<small>' + t('rpRecipients') + ': ' + x.recipients.map(function(p){ return esc(p.name); }).join('، ') + (all ? ' · ' + t('rpOwner') + ': ' + esc(x.owner) : '') + '</small>' +
+        '<small>' + (x.status === 'active' && x.nextRunAt ? t('rpSchNext') + ': ' + esc(fmtWhen(x.nextRunAt)) : '') + (x.lastRunAt ? ' · ' + t('rpSchLast') + ': ' + esc(fmtWhen(x.lastRunAt)) + ' (' + esc(lastText(x.lastStatus)) + ')' : '') + '</small></div>' +
+        '<div class="act" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">' + st +
+        '<button type="button" class="btn btn-line btn-sm" data-rs="send" data-i="' + i + '">' + ph('paper-plane-tilt') + t('rpSendNow') + '</button>' +
+        (mine ? '<button type="button" class="btn btn-line btn-sm" data-rs="edit" data-i="' + i + '">' + t('rpEdit') + '</button>' +
+          '<button type="button" class="btn btn-line btn-sm" data-rs="' + (x.status === 'active' ? 'pause' : 'resume') + '" data-i="' + i + '">' + t(x.status === 'active' ? 'rpPause' : 'rpResume') + '</button>' +
+          '<button type="button" class="btn btn-line btn-sm" data-rs="remove" data-i="' + i + '">' + t('rpRemove') + '</button>' : '') + '</div></div>';
+    }).join('') + '</div>' : '<div class="empty">' + ph('envelope-simple') + '<p>' + t('rpSchNone') + '</p></div>';
+    el.innerHTML = h;
+    var a = $('#rsAll', el); if (a) a.onchange = function(){ R.subsAll = a.checked; subsView(el); };
+    $$('[data-rs]', el).forEach(function(b){
+      b.onclick = function(){
+        var x = r.rows[b.dataset.i], k = b.dataset.rs;
+        if (k === 'edit') return scheduleDrawer(x);
+        if (k === 'remove' && !confirm(t('rpRemoveQ'))) return;
+        b.disabled = true;
+        var p = k === 'send' ? api('reportSubSend', { id: x.id }) : api('reportSubSave', { id: x.id, pause: k === 'pause', resume: k === 'resume', remove: k === 'remove' });
+        p.then(function(res){ b.disabled = false; if (!res.ok) return toast(errText(res.error)); toast(k === 'send' ? t('rpSentTo') + ' ' + res.to + ' (' + res.ref + ')' : t('rpSchSaved')); if (k !== 'send') subsView(el); });
+      };
+    });
+  });
+}
+function fmtWhen(iso){ return new Date(iso).toLocaleString(S.lang === 'en' ? 'en-GB' : 'ar-SA', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Riyadh' }); }
+function lastText(s){
+  if (!s) return '';
+  if (s === 'sent') return t('rpLastSent');
+  var m = /^(partial|failed):(.*)$/.exec(s);
+  if (m) return t(m[1] === 'partial' ? 'rpLastPartial' : 'rpLastFailed') + ': ' + m[2].split(',').map(function(c){ return errText(c); }).join('، ');
+  return errText(s);
 }
 
 // ---------------- exports ----------------
