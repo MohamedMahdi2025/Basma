@@ -527,5 +527,40 @@ function perkForm(p, cats, again){
 }
 window.Perks = { section: perksSection };
 
+// =================================================================== ATTENDANCE SCREENS / KIOSKS (admin, 2026-10-20)
+Object.assign(T.ar, {
+  ksTitle:'شاشات الحضور (رمز المكتب)', ksLead:'جهاز لوحي عند مدخل المكتب يعرض رمزا يتغير كل 20 ثانية. يمسحه الموظف من التطبيق فيثبت وجوده في المكتب حتى لو كان موقع الهاتف ضعيفا داخل المبنى. يبقى التحقق ببصمة الهاتف أو الرمز السري، ويرفض الرمز المرسل من خارج المكتب.',
+  ksNew:'شاشة جديدة', ksLabel:'اسم الشاشة (مثلا: المدخل الرئيسي)', ksZone:'الموقع', ksSetup:'رمز إعداد جديد', ksDisable:'إيقاف', ksSeen:'آخر اتصال', ksNever:'لم تتصل بعد', ksLinkLead:'افتح هذا الرابط مرة واحدة على الجهاز اللوحي (يظهر مرة واحدة فقط؛ إصدار رمز جديد يوقف الجهاز القديم):', ksCopy:'نسخ الرابط', ksCopied:'تم النسخ', kss_active:'تعمل', kss_disabled:'موقوفة'
+});
+Object.assign(T.en, {
+  ksTitle:'Attendance screens (office QR)', ksLead:'A tablet at the office entrance shows a code that changes every 20 seconds. Scanning it in the app proves the person is at the office even when phone location is weak indoors. The phone\'s fingerprint or PIN is still required, and a code sent from outside the office is refused.',
+  ksNew:'New screen', ksLabel:'Screen name (for example: main entrance)', ksZone:'Location', ksSetup:'New setup code', ksDisable:'Stop', ksSeen:'Last seen', ksNever:'Not connected yet', ksLinkLead:'Open this link once on the tablet (it is shown only now; a new code stops the old tablet):', ksCopy:'Copy link', ksCopied:'Copied', kss_active:'Running', kss_disabled:'Stopped'
+});
+function kioskAdmin(body){
+  var box = K.head(body, 'ksTitle', 'ksLead');
+  function showLink(r){
+    var url = location.origin + location.pathname + '#kiosk/' + encodeURIComponent(r.setup);
+    var d = drawer('<h3>' + esc(r.kiosk.label) + '</h3><p class="hr-hint">' + t('ksLinkLead') + '</p><input readonly dir="ltr" value="' + esc(url) + '" style="width:100%;font-size:13px;padding:10px;border:1px solid var(--line);border-radius:10px"><div class="btnrow"><button type="button" class="btn btn-dark btn-sm" id="ksC">' + ph('copy') + t('ksCopy') + '</button></div>');
+    $('#ksC', d).onclick = function(){ try { navigator.clipboard.writeText(url).then(function(){ toast(t('ksCopied')); }); } catch (e) {} };
+  }
+  function load(){
+    K.busy(box);
+    api('kioskList', {}, true).then(function(r){
+      if (!box.isConnected) return;
+      if (!r.ok) return box.innerHTML = K.bad(r.error);
+      var admin = isAdmin();
+      box.innerHTML = (admin ? '<div class="toolbar"><span class="sp"></span><button type="button" class="btn btn-dark btn-sm" id="ksN">' + ph('plus') + t('ksNew') + '</button></div>' : '') +
+        (r.rows.length ? '<div class="list">' + r.rows.map(function(k, i){ return '<div class="row w2-row"><div class="main"><b><bdi>' + esc(k.code) + '</bdi> · ' + esc(k.label) + '</b><small>' + esc(k.zone) + ' · ' + t('ksSeen') + ': ' + (k.lastSeenAt ? K.fmtT(k.lastSeenAt) : t('ksNever')) + '</small></div>' +
+          '<div class="act" style="display:flex;gap:6px;align-items:center">' + K.chip(t('kss_' + k.status), k.status === 'active' ? 'in' : '') + (admin ? '<button type="button" class="btn btn-line btn-sm" data-ks="' + i + '">' + t('ksSetup') + '</button>' + (k.status === 'active' ? '<button type="button" class="btn btn-line btn-sm" data-kx="' + i + '">' + t('ksDisable') + '</button>' : '') : '') + '</div></div>'; }).join('') + '</div>' : K.empty('qr-code', t('w2None')));
+      var nb = $('#ksN', box); if (nb) nb.onclick = function(){ K.formDrawer(t('ksNew'), '', K.fld(t('ksLabel'), '<input name="label" maxlength="60" required>') + K.fld(t('ksZone'), '<select name="zoneId" required>' + K.opts(r.zones.map(function(z){ return [z.id, z.name]; }), '', t('w2Pick')) + '</select>'),
+        function(v){ return api('kioskSave', v); }, function(x){ load(); showLink(x); }); };
+      $$('[data-ks]', box).forEach(function(b){ K.confirmTap(b, function(){ api('kioskSave', { id: r.rows[b.dataset.ks].id }).then(function(x){ if (!x.ok) return toast(errText(x.error)); load(); showLink(x); }); }); });
+      $$('[data-kx]', box).forEach(function(b){ K.confirmTap(b, function(){ api('kioskSave', { id: r.rows[b.dataset.kx].id, disable: true }).then(function(x){ if (!x.ok) return toast(errText(x.error)); load(); }); }); });
+    });
+  }
+  load();
+}
+window.KioskAdmin = { section: kioskAdmin };
+
 window.OpenShifts = { section: openShiftsSection };
 })();

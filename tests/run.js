@@ -548,6 +548,41 @@ console.log('PIN as the default sign-in (2026-10-19)');
   r = (() => { const b = B.call({ action: 'authBegin', empNo: '3001' }); return B.call({ action: 'authFinish', credential: hrDev.get(b.options) }); })();
   ok(!r.ok, 'the old Face ID credential on that phone is retired', r);
 }
+console.log('Office kiosk QR check-in (2026-10-20)');
+{
+  const crypto2 = require('crypto');
+  B.setNow(T0 + 20 * 24 * 3600000 + 4 * 3600000); // a later morning, 07:55 Riyadh
+  const adm = login(adminDev, '1000');
+  let e = B.call({ action: 'empSave', token: adm, emp: { empNo: '2101', name: 'موظف المكتب' } });
+  const kDev = new Authenticator(); let eb = B.call({ action: 'enrollBegin', empNo: '2101', code: e.activationCode });
+  const hr = B.call({ action: 'enrollFinish', credential: kDev.create(eb.options), label: 'iPhone' }).token;
+  const zone = B.call({ action: 'zoneList', token: adm }).rows[0];
+  ok(B.call({ action: 'kioskSave', token: hr, label: 'x', zoneId: zone.id }).error === 'forbidden', 'only the administrator sets up a kiosk', hr);
+  let k = B.call({ action: 'kioskSave', token: adm, label: 'المدخل الرئيسي', zoneId: zone.id });
+  ok(k.ok && k.kiosk.code === 'KSK-001' && k.setup.split('.').length >= 3, 'the administrator sets up a kiosk and gets a one-time setup code', k.kiosk || k);
+  ok(B.call({ action: 'kioskPing', setup: k.setup }).ok && B.call({ action: 'kioskPing', setup: k.kiosk.id + '.1.wrong' }).error === 'kiosk_revoked', 'the tablet checks in with its code; a wrong code is refused');
+  const secretOf = s => s.split('.').slice(2).join('.');
+  const code = (s, id, w) => crypto2.createHmac('sha256', secretOf(s)).update(id + '|' + w).digest('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '').slice(0, 10);
+  const win = () => Math.floor(B.ctx.Date.now() / 20000);
+  const qrPunch = (qr, geo) => { const b = B.call({ action: 'punchBegin', empNo: '2101' }); if (!b.ok) return b; const out = B.call({ action: 'punchFinish', credential: kDev.get(b.options), geo, qr, deviceTime: B.ctx.Date.now(), ua: 'test' }); B.setNow(B.ctx.Date.now() + 20 * 60000); return out; };
+  const id = k.kiosk.id;
+  r = qrPunch({ k: id, w: win(), c: 'AAAAAAAAAA' }, { samples: [] });
+  ok(!r.ok && r.error === 'qr_invalid', 'a made-up code is refused', r);
+  r = qrPunch({ k: id, w: win() - 3, c: code(k.setup, id, win() - 3) }, { samples: [] });
+  ok(!r.ok && r.error === 'qr_expired', 'a code older than 40 seconds is refused (a photo kept for later)', r);
+  r = qrPunch({ k: id, w: win(), c: code(k.setup, id, win()) }, { samples: samples(5000, 20) });
+  ok(!r.ok && r.error === 'qr_far', 'a fresh code scanned 5 km away is refused (a forwarded screenshot)', r);
+  r = qrPunch({ k: id, w: win(), c: code(k.setup, id, win()) }, { samples: [] });
+  ok(r.ok && /qr_kiosk/.test(r.punch.flags) && /qr_no_gps/.test(r.punch.flags), 'a fresh code at the office counts even with no phone location; flagged', r.punch || r);
+  const k2 = B.call({ action: 'kioskSave', token: adm, id });
+  ok(k2.ok && B.call({ action: 'kioskPing', setup: k.setup }).error === 'kiosk_revoked', 'a new setup code stops the old tablet at once');
+  B.setNow(B.ctx.Date.now() + 3600000);
+  r = qrPunch({ k: id, w: win(), c: code(k.setup, id, win()) }, { samples: [] });
+  ok(!r.ok && r.error === 'qr_invalid', 'and codes from the old tablet no longer count', r);
+  r = qrPunch({ k: id, w: win(), c: code(k2.setup, id, win()) }, { samples: samples(30) });
+  ok(r.ok && /qr_kiosk/.test(r.punch.flags), 'the new tablet works, with GPS at the office too', r.punch || r);
+  ok(B.call({ action: 'kioskSave', token: adm, id, disable: true }).ok && B.call({ action: 'kioskPing', setup: k2.setup }).error === 'kiosk_revoked', 'a stopped kiosk is refused');
+}
 B.setNow(T0 + 30 * 24 * 3600000);
 r = B.call({ action: 'me', token: hrToken });
 ok(!r.ok && r.error === 'session_expired', 'tokens expire', r);

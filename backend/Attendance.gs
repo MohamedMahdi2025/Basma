@@ -439,7 +439,8 @@ function recordPunch_(emp, cred, req, type, method) {
     var now = new Date();
     if (last && now.getTime() - new Date(last.ts).getTime() < s.minPunchGapMin * 60000) fail_('too_soon');
 
-    var geo = evaluateGeo_(emp, req.geo, s, type, r.cred.platform === 'desktop');
+    // office kiosk QR (2026-10-20): a fresh, valid code from a kiosk in the employee's zone stands in for the GPS fix
+    var geo = req.qr ? qrGeo_(emp, req.geo, verifyKioskQr_(emp, req.qr)) : evaluateGeo_(emp, req.geo, s, type, r.cred.platform === 'desktop');
     var risk = riskScore_(emp, r.cred, req, geo, last, now);
     var lp = localParts_(now);
     var punch = {
@@ -525,10 +526,22 @@ function evaluateGeo_(emp, geo, s, type, desktop) {
   return res;
 }
 
+/** Location for a kiosk-QR punch: the kiosk's zone; a usable phone fix clearly away from it refuses (a forwarded code). */
+function qrGeo_(emp, geo, q) {
+  var samples = cleanSamples_(geo), flags = ['qr_kiosk'], z = q.zone;
+  var fix = samples.length ? samples.reduce(function (b, x) { return x.acc < b.acc ? x : b; }, samples[0]) : null;
+  var res = { fix: fix, zone: z, distance: 0, radius: Number(z.radius), flags: flags, samples: samples };
+  if (!fix) { flags.push('qr_no_gps'); return res; }
+  res.distance = haversine_(fix.lat, fix.lng, Number(z.lat), Number(z.lng));
+  if (fix.acc <= 200 && res.distance > Number(z.radius) + Math.max(500, fix.acc * 2)) res.reject = 'qr_far';
+  return res;
+}
+
 // ---------------- risk ----------------
 
 var RISK_WEIGHTS = {
   static_samples: 35, zero_accuracy: 30, stale_fix: 20, clock_drift: 25, impossible_travel: 40,
+  qr_kiosk: 0, qr_no_gps: 25,
   new_device: 10, few_samples: 10, off_hours: 10, edge: 10, weak_fix: 30, outside_checkout: 30, no_biometric: 10, laptop: 5, password_login: 20
 };
 
@@ -827,4 +840,69 @@ function api_pinEnrollFinish(req, me) {
     audit_(emp.id, 'pin_device_set', emp.id, { credId: reg.credId.slice(0, 12), platform: platform, replaced: retired, from: me._auth || 'dev' });
     return { ok: true, token: issueToken_(emp), credId: reg.credId, platform: platform };
   });
+}
+
+// ---------------- office kiosk QR check-in (2026-10-20) ----------------
+/**
+ * A tablet at the office entrance shows a QR that changes every 20 seconds (docs/research/2026-10-20-kiosk-qr-design.md).
+ * Scanning it in the app proves the phone is at that office even when indoor GPS is weak. Layered, as the research
+ * recommends (a rotating code alone can be photographed and forwarded):
+ *  1. identity: the punch still needs the employee's own bound device and its PIN / Face ID (punchFinish as always);
+ *  2. freshness: the code is valid for its 20-second window and the one before it (up to 40 s);
+ *  3. place: the kiosk belongs to a zone the employee is assigned to;
+ *  4. sanity: when the phone does report a usable location (accuracy <= 200 m) clearly away from that zone, the punch is
+ *     refused (qr_far): a forwarded screenshot scanned from home fails. No location at all counts, flagged for review.
+ * Each kiosk's secret is derived from the server's signing secret (kioskSecret_), so the sheet never holds it; a new setup
+ * code (version + 1) retires the old tablet at once.
+ */
+var QR_WINDOW_MS_ = 20000;
+function kioskSecret_(k) { return hmac_('kiosk|' + k.id + '|' + (Number(k.ver) || 1)); }
+function kioskCode_(secret, kid, w) {
+  var sig = Utilities.computeHmacSha256Signature(kid + '|' + w, secret);
+  return bytesToB64u_(sig.map(function (b) { return b & 255; })).slice(0, 10);
+}
+function publicKiosk_(k, zones) { return { id: k.id, code: k.code, label: k.label, zoneId: k.zoneId, zone: zones[k.zoneId] ? zones[k.zoneId].name : '', status: k.status, ver: Number(k.ver) || 1, lastSeenAt: k.lastSeenAt || '' }; }
+function api_kioskList(req, me) {
+  if (!isHr_(me)) fail_('forbidden');
+  var zones = {}; readAll_(SHEETS.ZONES).forEach(function (z) { zones[z.id] = z; });
+  return { ok: true, rows: readAll_(SHEETS.KIOSK).filter(function (k) { return k.status !== 'deleted'; }).map(function (k) { return publicKiosk_(k, zones); }),
+    zones: Object.keys(zones).filter(function (k) { return zones[k].status === 'active'; }).map(function (k) { return { id: k, name: zones[k].name }; }) };
+}
+/** Administrator: create a kiosk or issue a new setup code (the old tablet stops at once); disable. */
+function api_kioskSave(req, me) {
+  if (me.role !== 'admin') fail_('forbidden');
+  return withLock_(function () {
+    var now = new Date().toISOString(), k = req.id ? findBy_(SHEETS.KIOSK, 'id', req.id) : null;
+    if (req.id && !k) fail_('not_found');
+    if (!k) {
+      var z = findBy_(SHEETS.ZONES, 'id', req.zoneId);
+      if (!z || z.status !== 'active') fail_('no_zone');
+      if (!str_(req.label, 60)) fail_('missing_fields');
+      k = { id: newId_('Q'), code: nextRef_('kiosk', refsOf_(SHEETS.KIOSK)), label: str_(req.label, 60), zoneId: z.id, ver: 1, status: 'active', createdBy: me.id, createdAt: now, lastSeenAt: '' };
+      append_(SHEETS.KIOSK, k);
+    } else if (req.disable) { k.status = 'disabled'; update_(SHEETS.KIOSK, k); audit_(me.id, 'kiosk_disable', '', { code: k.code }); return { ok: true }; }
+    else { k.ver = (Number(k.ver) || 1) + 1; k.status = 'active'; update_(SHEETS.KIOSK, k); }
+    audit_(me.id, 'kiosk_setup', '', { code: k.code, ver: k.ver });
+    var z2 = findBy_(SHEETS.ZONES, 'id', k.zoneId) || {};
+    return { ok: true, kiosk: publicKiosk_(k, { [k.zoneId]: z2 }), setup: k.id + '.' + k.ver + '.' + kioskSecret_(k) };
+  });
+}
+/** The tablet checks in once a minute (public): says whether its setup is still valid, for its label and zone name. */
+function api_kioskPing(req) {
+  var p = String(req.setup || '').split('.'), k = findBy_(SHEETS.KIOSK, 'id', p[0]);
+  if (!k || k.status !== 'active' || String(k.ver) !== String(p[1]) || p.slice(2).join('.') !== kioskSecret_(k)) return { ok: false, error: 'kiosk_revoked' };
+  var c = CacheService.getScriptCache(); if (!c.get('kioskseen:' + k.id)) { c.put('kioskseen:' + k.id, '1', 600); try { withLock_(function () { var r = findBy_(SHEETS.KIOSK, 'id', k.id); r.lastSeenAt = new Date().toISOString(); update_(SHEETS.KIOSK, r); }); } catch (e) {} }
+  var z = findBy_(SHEETS.ZONES, 'id', k.zoneId) || {};
+  return { ok: true, label: k.label, zone: z.name || '', company: companyOf_(settings_()), serverTime: Date.now(), windowMs: QR_WINDOW_MS_ };
+}
+/** Checks a scanned kiosk QR ({k, w, c}) for this employee; returns the kiosk's zone or fails. */
+function verifyKioskQr_(emp, qr) {
+  var k = findBy_(SHEETS.KIOSK, 'id', qr && qr.k);
+  if (!k || k.status !== 'active') fail_('qr_invalid');
+  var now = Math.floor(Date.now() / QR_WINDOW_MS_), w = Math.floor(Number(qr.w));
+  if (!(w === now || w === now - 1)) fail_('qr_expired');
+  if (String(qr.c || '') !== kioskCode_(kioskSecret_(k), k.id, w)) fail_('qr_invalid');
+  var zone = zonesFor_(emp).filter(function (z) { return z.id === k.zoneId; })[0];
+  if (!zone) fail_('qr_wrong_zone');
+  return { kiosk: k, zone: zone };
 }
