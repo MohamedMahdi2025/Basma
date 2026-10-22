@@ -17,7 +17,7 @@ function start(setup){
   var p = setup.split('.'); if (p.length < 3) return setupScreen();
   api('kioskPing', { setup: setup }, true).then(function(r){
     if (!r.ok) { store(null); return setupScreen(r.error === 'kiosk_revoked' ? t('kRevoked') : errText(r.error)); }
-    store(setup); history.replaceState(null, '', location.pathname + '#kiosk');
+    store(setup); history.replaceState(null, '', location.pathname + '#kiosk' + (S.orgId ? '/' + S.orgId : ''));
     cfg = { id: p[0], secret: p.slice(2).join('.'), label: r.label, zone: r.zone, company: r.company || {} }; skew = r.serverTime - Date.now(); WIN = r.windowMs || WIN;
     crypto.subtle.importKey('raw', new TextEncoder().encode(cfg.secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']).then(function(k){ key = k; return lib(); }).then(paint);
     setInterval(function(){ api('kioskPing', { setup: setup }, true).then(function(x){ if (x.ok) { skew = x.serverTime - Date.now(); $('#kNet') && ($('#kNet').textContent = ''); } else if (x.error === 'kiosk_revoked') { store(null); location.reload(); } else if ($('#kNet')) $('#kNet').textContent = t('kOffline'); }); }, 60000);
@@ -45,10 +45,17 @@ function tick(){
   setTimeout(tick, 250);
 }
 var css = document.createElement('style');
-css.textContent = '.k-page{min-height:100dvh;display:grid;place-items:center;background:#1C2A1F;padding:24px}.k-card{background:#F7F5EF;color:#17221A;border-radius:28px;padding:32px;max-width:560px;width:100%;text-align:center}' +
-  '.k-card h1{font-size:34px;margin:4px 0}.k-co{margin:0;color:#4D6D51;font-weight:700}.k-place{margin:0 0 18px;color:#4A5A4D}.k-qr{display:grid;place-items:center;padding:18px;background:#fff;border-radius:20px;margin:0 auto;width:max-content}' +
-  '.k-qr img,.k-qr canvas{width:min(70vw,360px)!important;height:auto!important}.k-bar{height:6px;border-radius:3px;background:#E3E8E3;margin:16px auto 0;max-width:396px;overflow:hidden}.k-bar i{display:block;height:100%;background:#4D6D51;transition:width .25s linear}' +
-  '.k-lead{font-size:17px;margin:16px 0 4px}.k-clock{font-size:28px;font-weight:700;margin:6px 0}.k-net{color:#A15C00;min-height:1em}';
+css.textContent = '.k-page{min-height:100dvh;display:grid;place-items:center;background:var(--pine);padding:24px}.k-card{background:#F7F5EF;color:var(--g-17221A,#17221A);border-radius:24px;padding:32px;max-width:560px;width:100%;text-align:center}' +
+  '.k-card h1{font-size:32px;margin:4px 0}.k-co{margin:0;color:var(--brand);font-weight:700}.k-place{margin:0 0 18px;color:var(--g-4A5A4D,#4A5A4D)}.k-qr{display:grid;place-items:center;padding:18px;background:#fff;border-radius:24px;margin:0 auto;width:max-content}' +
+  '.k-qr img,.k-qr canvas{width:min(70vw,360px)!important;height:auto!important}.k-bar{height:6px;border-radius:4px;background:var(--g-E3E8E3,#E3E8E3);margin:16px auto 0;max-width:396px;overflow:hidden}.k-bar i{display:block;height:100%;background:var(--brand);transition:width .25s linear}' +
+  '.k-lead{font-size:18px;margin:16px 0 4px}.k-clock{font-size:28px;font-weight:700;margin:6px 0}.k-net{color:#A15C00;min-height:1em}';
 document.head.appendChild(css);
-window.Kiosk = { render: function(){ var m = location.hash.match(/^#kiosk\/(.+)$/); var s = m ? decodeURIComponent(m[1]) : load(); if (s) start(s); else setupScreen(); } };
+// #kiosk/<Org ID>/<setup>: the tablet remembers its organisation with its setup code (older links without the Org ID: the home one)
+window.Kiosk = { render: function(){
+  var m = location.hash.match(/^#kiosk\/(\d{4,8})(?:\/(.+))?$/) || location.hash.match(/^#kiosk\/()(.+)$/);
+  var s = m && m[2] ? decodeURIComponent(m[2]) : load(), org = m && m[1];
+  try { if (org) localStorage.setItem('bgKioskOrg', org); else org = localStorage.getItem('bgKioskOrg'); } catch (e) {}
+  if (org) S.orgId = org;
+  if (s) start(s); else setupScreen();
+} };
 })();

@@ -35,11 +35,12 @@ function compOn_(empId, date, compRows) {
 }
 
 /** Everything a run needs, read once. */
-function payrollCtx_(month) {
+function payrollCtx_(month, gid) {
   var first = month + '-01', last = monthLast_(month), s = settings_();
+  var grp = gid ? payGroups_()[gid] || null : null, win = pgWindow_(month, grp), from0 = minDate_(win.from, first);
   var byEmpDay = {};
   readAll_(SHEETS.PUNCH).forEach(function (p) {
-    if (!isCounted_(p) || String(p.date) < first || String(p.date) > last) return;
+    if (!isCounted_(p) || String(p.date) < from0 || String(p.date) > last) return;
     var k = p.empId + '|' + p.date; (byEmpDay[k] = byEmpDay[k] || []).push(p);
   });
   var priv = {}; readAll_(SHEETS.PRIV).forEach(function (p) { priv[p.empId] = p; });
@@ -49,7 +50,7 @@ function payrollCtx_(month) {
     lines_(sl).forEach(function (l) { if (l.code === 'advance' && l.ref) advDone[l.ref] = (advDone[l.ref] || 0) + l.amount; });
   });
   return { month: month, first: first, last: last, s: s, now: new Date(), today: today_(), comps: readAll_(SHEETS.COMP), reqs: readAll_(SHEETS.REQ),
-    adjs: readAll_(SHEETS.ADJ).filter(function (a) { return a.month === month && a.status !== 'deleted'; }), off: offIndex_(first, last),
+    adjs: readAll_(SHEETS.ADJ).filter(function (a) { return a.month === month && a.status !== 'deleted'; }), off: offIndex_(from0, last), win: win, group: grp, lastAtt: lastAttTo_(),
     byEmpDay: byEmpDay, priv: priv, advDone: advDone };
 }
 function lines_(sl) { try { return JSON.parse(sl.linesJson || '[]') || []; } catch (e) { return []; } }
@@ -95,8 +96,13 @@ function calcSlip_(emp, x) {
   if (sickNone) add({ kind: 'deduction', code: 'sick_unpaid', days: sickNone, amount: sickNone * daily, cap: false });
 
   // attendance: absence, minutes late, overtime (only days this system has seen)
-  var absent = 0, lateMin = 0, otMin = 0, seenFrom = maxDate_(from, joinedDate_(emp));
-  for (var day = seenFrom, j = 0; day <= to && j < 40; day = addDays_(day, 1), j++) {
+  // the attendance window: the calendar month, or (pay group with a cut-off) the day after last month's cut-off to this month's;
+  // a leaver up to the last day; never a day already counted on an earlier locked payslip (a new cut-off, or a move between groups)
+  var aw = x.win || { from: x.first, to: x.last }, attFrom = maxDate_(maxDate_(aw.from, hire), joinedDate_(emp)), attTo = lwd && lwd <= x.last ? lwd : minDate_(aw.to, to);
+  if (x.lastAtt && x.lastAtt[emp.id] && x.lastAtt[emp.id] >= attFrom) attFrom = addDays_(x.lastAtt[emp.id], 1);
+  out.info.attFrom = attFrom; out.info.attTo = attTo;
+  var absent = 0, lateMin = 0, otMin = 0;
+  for (var day = attFrom, j = 0; day <= attTo && j < 40; day = addDays_(day, 1), j++) {
     if (day >= x.today) break;
     var ps = (x.byEmpDay[emp.id + '|' + day] || []).sort(function (m, n) { return m.ts < n.ts ? -1 : 1; });
     var sum = summarizeDay_(emp, day, ps, x.s, x.now, x.off(emp.id, day));
@@ -196,12 +202,15 @@ function finish_(out) {
 }
 
 /** Employees paid in a month: active, or leaving during it. scope 'demo': the demo people only; else never them (Demo.gs). */
-function payrollEmps_(month, scope) {
+function payrollEmps_(month, scope, gid, runId) {
   var first = month + '-01', demo = demoEmpIds_(), wantDemo = scope === 'demo';
+  var groups = gid === undefined ? null : payGroups_(), other = gid === undefined ? {} : paidElsewhere_(month, scope || '', runId);
   return readAll_(SHEETS.EMP).filter(function (e) {
     if (!!demo[e.id] !== wantDemo) return false;
     var lwd = String(e.lastWorkingDay || '').slice(0, 10);
     if (fsPaidMonth_(e.id, month)) return false; // the month's days are paid in the final settlement (its own last day)
+    if (groups && groupOf_(e, groups) !== gid) return false; // pay groups: this run's group only
+    if (other[e.id]) return false; // one payslip per person per month
     return e.status === 'active' || (lwd && lwd >= first);
   });
 }
@@ -235,19 +244,22 @@ function api_payrollCreate(req, me) {
   var month = String(req.month || '');
   if (!/^\d{4}-\d{2}$/.test(month)) fail_('bad_date');
   if (month > today_().slice(0, 7)) fail_('future_month');
+  var gid = String(req.payGroupId || ''), groups = payGroups_();
+  if (gid && !groups[gid]) fail_('not_found');
+  if (!payGroupAccess_(me, gid, groups)) fail_('forbidden');
   return withLock_(function () {
-    if (readAll_(SHEETS.RUN).some(function (r) { return r.month === month && r.status !== 'cancelled' && !isDemoRun_(r); })) fail_('run_exists'); // a demo run never blocks
-    var now = new Date().toISOString(), x = payrollCtx_(month);
+    if (readAll_(SHEETS.RUN).some(function (r) { return r.month === month && r.status !== 'cancelled' && !isDemoRun_(r) && String(r.payGroupId || '') === gid; })) fail_('run_exists'); // a demo run never blocks
+    var now = new Date().toISOString(), x = payrollCtx_(month, gid);
     var run = { id: newId_('P'), ref: nextRef_('payroll', refsOf_(SHEETS.RUN)), month: month, status: 'draft', preparedBy: me.id, preparedAt: now,
-      approvedBy: '', approvedAt: '', totalsJson: '', note: str_(req.note, 300), emailedAt: '', createdAt: now, updatedAt: now, scope: '' };
+      approvedBy: '', approvedAt: '', totalsJson: '', note: str_(req.note, 300), emailedAt: '', createdAt: now, updatedAt: now, scope: '', payGroupId: gid };
     var rows = [];
-    payrollEmps_(month, '').forEach(function (e) { var c = calcSlip_(e, x); if (c) rows.push(slipRow_(e, run, c, null)); });
+    payrollEmps_(month, '', gid, run.id).forEach(function (e) { var c = calcSlip_(e, x); if (c) rows.push(slipRow_(e, run, c, null)); });
     var refs = nextRefs_('payslip', rows.length, refsOf_(SHEETS.SLIP));
     rows.forEach(function (r, i) { r.ref = refs[i]; });
     run.totalsJson = JSON.stringify(totals_(rows));
     append_(SHEETS.RUN, run);
     appendMany_(SHEETS.SLIP, rows);
-    audit_(me.id, 'payroll_create', run.id, { ref: run.ref, month: month, headcount: rows.length });
+    audit_(me.id, 'payroll_create', run.id, { ref: run.ref, month: month, headcount: rows.length, payGroup: gid });
     return { ok: true, run: publicRun_(run) };
   });
 }
@@ -256,12 +268,12 @@ function api_payrollCreate(req, me) {
 function api_payrollRecalc(req, me) {
   if (!canPayroll_(me)) fail_('forbidden');
   return withLock_(function () {
-    var run = findBy_(SHEETS.RUN, 'id', req.id);
+    var run = findBy_(SHEETS.RUN, 'id', req.id); if (run && !runAccess_(me, run)) fail_('forbidden'); // a closed pay group: its own payroll staff only
     if (!run || run.status !== 'draft') fail_('not_found');
-    var x = payrollCtx_(run.month), existing = {}, now = new Date().toISOString();
+    var x = payrollCtx_(run.month, String(run.payGroupId || '')), existing = {}, now = new Date().toISOString();
     readAll_(SHEETS.SLIP).forEach(function (s) { if (s.runId === run.id) existing[s.empId] = s; });
     var upd = [], add = [], seen = {};
-    payrollEmps_(run.month, runScope_(run)).forEach(function (e) {
+    payrollEmps_(run.month, runScope_(run), isDemoRun_(run) ? undefined : String(run.payGroupId || ''), run.id).forEach(function (e) {
       var c = calcSlip_(e, x); if (!c) return;
       seen[e.id] = 1;
       if (existing[e.id]) upd.push(slipRow_(e, run, c, existing[e.id])); else add.push(slipRow_(e, run, c, null));
@@ -283,7 +295,7 @@ function api_payrollRecalc(req, me) {
 function api_payrollApprove(req, me) {
   if (!canApprovePayroll_(me)) fail_('forbidden');
   return withLock_(function () {
-    var run = findBy_(SHEETS.RUN, 'id', req.id);
+    var run = findBy_(SHEETS.RUN, 'id', req.id); if (run && !runAccess_(me, run)) fail_('forbidden'); // a closed pay group: its own payroll staff only
     if (!run || run.status !== 'draft') fail_('not_found');
     if (run.preparedBy === me.id) fail_('second_approver_required');
     if (reconBlocks_(run.month)) fail_('recon_open'); // an open GOSI / Qiwa wage mismatch for this month
@@ -302,7 +314,7 @@ function api_payrollApprove(req, me) {
 function api_payrollDelete(req, me) {
   if (!canPayroll_(me)) fail_('forbidden');
   return withLock_(function () {
-    var run = findBy_(SHEETS.RUN, 'id', req.id);
+    var run = findBy_(SHEETS.RUN, 'id', req.id); if (run && !runAccess_(me, run)) fail_('forbidden'); // a closed pay group: its own payroll staff only
     if (!run || run.status !== 'draft') fail_('not_found');
     var slips = readAll_(SHEETS.SLIP).filter(function (s) { return s.runId === run.id && s.status !== 'void'; });
     slips.forEach(function (s) { s.status = 'void'; });
@@ -317,7 +329,7 @@ function api_payrollDelete(req, me) {
 function publicRun_(r) {
   var t = {}; try { t = JSON.parse(r.totalsJson || '{}'); } catch (e) {}
   return { id: r.id, ref: r.ref, month: r.month, status: r.status, preparedBy: r.preparedBy, preparedAt: r.preparedAt, approvedBy: r.approvedBy,
-    approvedAt: r.approvedAt, totals: t, note: r.note, emailedAt: r.emailedAt, scope: runScope_(r) };
+    approvedAt: r.approvedAt, totals: t, note: r.note, emailedAt: r.emailedAt, scope: runScope_(r), payGroupId: String(r.payGroupId || '') };
 }
 function publicSlip_(s, emps) {
   var info = {}; try { info = JSON.parse(s.infoJson || '{}'); } catch (e) {}
@@ -332,15 +344,16 @@ function publicSlip_(s, emps) {
 function api_payrollList(req, me) {
   if (!canPayroll_(me)) fail_('forbidden');
   var emps = {}; readAll_(SHEETS.EMP).forEach(function (e) { emps[e.id] = e.name; });
-  var rows = readAll_(SHEETS.RUN).filter(function (r) { return r.status !== 'cancelled'; })
+  var groups = payGroups_(), gname = {}; readAll_(SHEETS.PGRP).forEach(function (g) { gname[g.id] = g; });
+  var rows = readAll_(SHEETS.RUN).filter(function (r) { return r.status !== 'cancelled' && runAccess_(me, r, groups); })
     .sort(function (a, b) { return a.month < b.month ? 1 : -1; })
-    .map(function (r) { var o = publicRun_(r); o.preparedByName = emps[r.preparedBy] || ''; o.approvedByName = emps[r.approvedBy] || ''; return o; });
-  return { ok: true, rows: rows, canApprove: canApprovePayroll_(me), me: me.id };
+    .map(function (r) { var o = publicRun_(r), g = gname[o.payGroupId]; o.payGroupName = g ? g.nameAr : ''; o.payGroupNameEn = g ? g.nameEn : ''; o.preparedByName = emps[r.preparedBy] || ''; o.approvedByName = emps[r.approvedBy] || ''; return o; });
+  return { ok: true, rows: rows, canApprove: canApprovePayroll_(me), me: me.id, groups: [{ id: '', nameAr: 'المجموعة العامة', nameEn: 'General group' }].concat(Object.keys(groups).filter(function (k) { return payGroupAccess_(me, k, groups); }).map(function (k) { return { id: k, nameAr: groups[k].nameAr, nameEn: groups[k].nameEn, cutoffDay: Number(groups[k].cutoffDay) || 0, payDay: Number(groups[k].payDay) || 0 }; })) };
 }
 
 function api_payrollGet(req, me) {
   if (!canPayroll_(me)) fail_('forbidden');
-  var run = findBy_(SHEETS.RUN, 'id', req.id);
+  var run = findBy_(SHEETS.RUN, 'id', req.id); if (run && !runAccess_(me, run)) fail_('forbidden'); // a closed pay group: its own payroll staff only
   if (!run) fail_('not_found');
   var emps = {}; readAll_(SHEETS.EMP).forEach(function (e) { emps[e.id] = e; });
   var slips = readAll_(SHEETS.SLIP).filter(function (s) { return s.runId === run.id && s.status !== 'void'; }).map(function (s) { return publicSlip_(s, emps); })
@@ -360,8 +373,10 @@ function api_payrollGet(req, me) {
 function monthLocked_(empId, month) {
   var runs = readAll_(SHEETS.RUN).filter(function (r) { return r.month === month && r.status === 'locked'; });
   if (!runs.length) return false;
-  var sc = demoEmpIds_()[empId] ? 'demo' : '';
-  return runs.some(function (r) { return runScope_(r) === sc; });
+  var sc = demoEmpIds_()[empId] ? 'demo' : '', gid = groupOf_(findBy_(SHEETS.EMP, 'id', empId)), mine = {};
+  runs.forEach(function (r) { if (runScope_(r) === sc) mine[r.id] = String(r.payGroupId || ''); });
+  if (Object.keys(mine).some(function (k) { return mine[k] === gid; })) return true;
+  return readAll_(SHEETS.SLIP).some(function (sl) { return sl.empId === empId && sl.status === 'locked' && mine[sl.runId] !== undefined; });
 }
 function api_payrollAdjSave(req, me) {
   if (!canPayroll_(me)) fail_('forbidden');
@@ -374,6 +389,7 @@ function api_payrollAdjSave(req, me) {
   return withLock_(function () {
     var emp = findBy_(SHEETS.EMP, 'id', d.empId);
     if (!emp) fail_('not_found');
+    if (!payGroupAccess_(me, groupOf_(emp))) fail_('forbidden');
     if (monthLocked_(emp.id, month)) fail_('month_locked');
     var row = { id: newId_('A'), ref: nextRef_('adjustment', refsOf_(SHEETS.ADJ)), empId: emp.id, month: month, kind: ADJ_CODES[code], code: code,
       amount: amount, reason: str_(d.reason, 200), enteredBy: me.id, status: 'active', createdAt: new Date().toISOString() };
@@ -389,6 +405,7 @@ function api_payrollAdjDelete(req, me) {
     if (!a || a.status === 'deleted') fail_('not_found');
     if (ADJ_SYSTEM_ONLY[a.code]) fail_('forbidden'); // withdrawn by cancelling its expense claim
     if (a.empId === me.id) fail_('cannot_change_own_salary');
+    if (!payGroupAccess_(me, groupOf_(findBy_(SHEETS.EMP, 'id', a.empId)))) fail_('forbidden');
     if (monthLocked_(a.empId, a.month)) fail_('month_locked');
     a.status = 'deleted';
     update_(SHEETS.ADJ, a);
@@ -410,7 +427,7 @@ function api_mySlips(req, me) {
 
 function api_payrollExport(req, me) {
   if (!canPayroll_(me)) fail_('forbidden');
-  var run = findBy_(SHEETS.RUN, 'id', req.id);
+  var run = findBy_(SHEETS.RUN, 'id', req.id); if (run && !runAccess_(me, run)) fail_('forbidden'); // a closed pay group: its own payroll staff only
   if (!run || run.status === 'cancelled') fail_('not_found');
   var emps = {}, depts = {}, priv = {};
   readAll_(SHEETS.EMP).forEach(function (e) { emps[e.id] = e; });
@@ -541,7 +558,7 @@ function api_payrollEmail(req, me) {
   var cfg = mailConfig_();
   if (!cfg) fail_('email_not_configured');
   return withLock_(function () {
-    var run = findBy_(SHEETS.RUN, 'id', req.id);
+    var run = findBy_(SHEETS.RUN, 'id', req.id); if (run && !runAccess_(me, run)) fail_('forbidden'); // a closed pay group: its own payroll staff only
     if (!run || run.status !== 'locked') fail_('not_found');
     var emps = {}; readAll_(SHEETS.EMP).forEach(function (e) { emps[e.id] = e; });
     var token = graphToken_(cfg), sent = 0, skipped = [], now = new Date().toISOString(), upd = [];
@@ -795,7 +812,7 @@ function notifySweep_() {
     if (!(s.notifyDigest === true || String(s.notifyDigest) === 'true')) return;
     var now = localParts_(new Date()), hour = Number(String(now.time || '00:00').slice(0, 2));
     if (hour < (Number(s.notifyHour) || 7)) return;
-    var c = CacheService.getScriptCache(), doneKey = 'notify:done:' + now.date;
+    var c = cache_(), doneKey = 'notify:done:' + now.date;
     if (c.get(doneKey)) return;
     var cfg = mailConfig_(); if (!cfg) return;
     if (!rateLimit_('notify:run', 1, 20)) return; // one sweep at a time
@@ -839,4 +856,113 @@ function api_notifyTest(req, me) {
   graphSend_(cfg, graphToken_(cfg), emp.email, 'رسالة تجربة | Test message', notifyHtml_(emp, 1, settings_().appUrl || 'https://besgasksa.github.io/BG-attendance/'));
   audit_(me.id, 'notify_test', me.id, null);
   return { ok: true, to: emp.email };
+}
+
+
+// ======================================================================= pay groups (2026-10-21)
+// docs/research/2026-10-21-pay-groups-design.md. A pay group is a set of people paid together: its own monthly run,
+// pay day, attendance cut-off, cost centre and WPS establishment, and optionally a closed list of the payroll staff who
+// may see and run it (for example executive pay). People with no group (or in a stopped group) are in the general
+// group (id ''). One run per group per month; a person is never on two payslips of the same month.
+function payGroups_() { var o = {}; readAll_(SHEETS.PGRP).forEach(function (g) { if (g.status === 'active') o[g.id] = g; }); return o; }
+function groupOf_(emp, groups) { var g = String(emp && emp.payGroupId || ''); return g && (groups || payGroups_())[g] ? g : ''; }
+function pgManagers_(g) { return g ? parseJson_(g.managersJson, []) : []; }
+/** May me see and run this group's payroll? The general group and open groups: every payroll holder (and the hr role). */
+function payGroupAccess_(me, gid, groups) {
+  if (!canPayroll_(me)) return false;
+  var g = gid ? (groups || payGroups_())[gid] : null, m = pgManagers_(g);
+  return !m.length || m.indexOf(me.id) >= 0;
+}
+function runAccess_(me, run, groups) { return !!run && payGroupAccess_(me, String(run.payGroupId || ''), groups); }
+/** The attendance window of a month for a group: the calendar month, or (cut-off day c) the day after c last month to c. */
+function pgWindow_(month, g) {
+  var c = g ? Number(g.cutoffDay) || 0 : 0, first = month + '-01', last = monthLast_(month);
+  if (!c) return { from: first, to: last, cutoff: 0 };
+  var prev = addDays_(first, -1).slice(0, 7);
+  return { from: addDays_(prev + '-' + String(c).padStart(2, '0'), 1), to: month + '-' + String(c).padStart(2, '0'), cutoff: c };
+}
+function publicGroup_(g, n) {
+  return { id: g.id, code: g.code, nameAr: g.nameAr, nameEn: g.nameEn, payDay: Number(g.payDay) || 0, cutoffDay: Number(g.cutoffDay) || 0, costCenter: g.costCenter || '',
+    wpsEstablishment: g.wpsEstablishment || '', managers: pgManagers_(g), status: g.status, members: n || 0 };
+}
+function api_payGroupList(req, me) {
+  if (!canPayroll_(me)) fail_('forbidden');
+  var all = readAll_(SHEETS.PGRP).filter(function (g) { return g.status !== 'deleted'; }), act = payGroups_(), count = { '': 0 }, emps = [];
+  var names = {};
+  readAll_(SHEETS.EMP).forEach(function (e) {
+    names[e.id] = e.name;
+    if (e.status !== 'active') return;
+    var gid = groupOf_(e, act); count[gid] = (count[gid] || 0) + 1;
+    var open = payGroupAccess_(me, gid, act);
+    emps.push({ id: e.id, empNo: String(e.empNo), name: open ? e.name : '', groupId: gid, locked: !open });
+  });
+  var s = settings_();
+  var general = { id: '', code: '', nameAr: 'المجموعة العامة', nameEn: 'General group', payDay: Number(s.payDay) || 0, cutoffDay: 0, costCenter: '', wpsEstablishment: '', managers: [], status: 'active', members: count[''] || 0, access: true };
+  return { ok: true, groups: [general].concat(all.map(function (g) {
+    var o = publicGroup_(g, count[g.id]); o.access = payGroupAccess_(me, g.id, act); o.managerNames = o.managers.map(function (id) { return names[id] || ''; }); return o;
+  })), emps: emps, canEdit: true,
+    staff: readAll_(SHEETS.EMP).filter(function (e) { return e.status === 'active' && canPayroll_(e); }).map(function (e) { return { id: e.id, name: e.name, payroll: hasRole_(e, 'payroll') }; }) };
+}
+/** Create or change a group (any payroll holder or the hr role; a closed group only by its own managers). */
+function api_payGroupSave(req, me) {
+  if (!canPayroll_(me)) fail_('forbidden');
+  return withLock_(function () {
+    var now = new Date().toISOString(), g = req.id ? findBy_(SHEETS.PGRP, 'id', String(req.id)) : null, act = payGroups_();
+    if (req.id && (!g || g.status === 'deleted')) fail_('not_found');
+    if (g && pgManagers_(g).length && pgManagers_(g).indexOf(me.id) < 0) fail_('forbidden');
+    if (g && req.stop) {
+      if (readAll_(SHEETS.EMP).some(function (e) { return e.status === 'active' && String(e.payGroupId || '') === g.id; })) fail_('group_not_empty');
+      if (readAll_(SHEETS.RUN).some(function (r) { return r.payGroupId === g.id && r.status === 'draft'; })) fail_('run_open');
+      g.status = 'stopped'; g.updatedAt = now; update_(SHEETS.PGRP, g); audit_(me.id, 'pay_group_stop', '', { code: g.code }); return { ok: true };
+    }
+    var d = req.group || {};
+    if (!str_(d.nameAr, 80)) fail_('missing_fields');
+    var payDay = Math.round(Number(d.payDay) || 0), cut = Math.round(Number(d.cutoffDay) || 0);
+    if (payDay < 0 || payDay > 28 || cut < 0 || cut > 27) fail_('bad_value');
+    var ctx = orgCtx_(), mg = (Array.isArray(d.managers) ? d.managers : []).map(String).filter(function (v, i, a) { return a.indexOf(v) === i; });
+    mg.forEach(function (id) { var e = ctx.emps[id]; if (!e || e.status !== 'active' || !canPayroll_(e)) fail_('manager_not_payroll'); });
+    // a closed group still needs four eyes: two people at least, one able to approve (payroll role), and the editor stays in
+    if (mg.length && (mg.length < 2 || !mg.some(function (id) { return hasRole_(ctx.emps[id], 'payroll'); }) || mg.indexOf(me.id) < 0)) fail_('needs_two_managers');
+    if (g && Number(g.cutoffDay || 0) !== cut && readAll_(SHEETS.RUN).some(function (r) { return r.payGroupId === g.id && r.status === 'draft'; })) fail_('run_open');
+    var row = g || { id: newId_('G'), code: nextRef_('payGroup', refsOf_(SHEETS.PGRP)), status: 'active', createdAt: now, createdBy: me.id };
+    row.nameAr = str_(d.nameAr, 80); row.nameEn = str_(d.nameEn, 80); row.payDay = payDay; row.cutoffDay = cut; row.costCenter = str_(d.costCenter, 40);
+    row.wpsEstablishment = str_(d.wpsEstablishment, 40); row.managersJson = JSON.stringify(mg); row.updatedAt = now;
+    if (g) update_(SHEETS.PGRP, row); else append_(SHEETS.PGRP, row);
+    audit_(me.id, g ? 'pay_group_change' : 'pay_group_create', '', { code: row.code, closed: mg.length > 0, cutoff: cut });
+    return { ok: true, group: publicGroup_(row, 0) };
+  });
+}
+/** Move people into a group ('' = the general group). Needs access to both the old and the new group of each person. */
+function api_payGroupAssign(req, me) {
+  if (!canPayroll_(me)) fail_('forbidden');
+  return withLock_(function () {
+    var act = payGroups_(), to = String(req.groupId || '');
+    if (to && !act[to]) fail_('not_found');
+    if (!payGroupAccess_(me, to, act)) fail_('forbidden');
+    var ids = (req.empIds || []).map(String).slice(0, 500), rows = [];
+    ids.forEach(function (id) {
+      var e = findBy_(SHEETS.EMP, 'id', id); if (!e) fail_('not_found');
+      if (!payGroupAccess_(me, groupOf_(e, act), act)) fail_('forbidden');
+      if (String(e.payGroupId || '') !== to) { e.payGroupId = to; e.updatedAt = new Date().toISOString(); rows.push(e); }
+    });
+    if (rows.length) updateMany_(SHEETS.EMP, rows);
+    audit_(me.id, 'pay_group_assign', '', { group: to, people: rows.length });
+    return { ok: true, moved: rows.length };
+  });
+}
+/** People already on a (non-cancelled) payslip of this month in another run of the same scope: never paid twice. */
+function paidElsewhere_(month, scope, runId) {
+  var runs = {}; readAll_(SHEETS.RUN).forEach(function (r) { if (r.month === month && r.status !== 'cancelled' && r.id !== runId && runScope_(r) === scope) runs[r.id] = 1; });
+  var o = {}; readAll_(SHEETS.SLIP).forEach(function (sl) { if (runs[sl.runId] && sl.status !== 'void') o[sl.empId] = 1; });
+  return o;
+}
+/** Where each person's attendance was last counted: the attTo of their latest locked payslip (calendar month end before cut-offs). */
+function lastAttTo_() {
+  var o = {};
+  readAll_(SHEETS.SLIP).forEach(function (sl) {
+    if (sl.status !== 'locked') return;
+    var inf = parseJson_(sl.infoJson, {}).info || {}, to = inf.attTo || monthLast_(String(sl.month));
+    if (!o[sl.empId] || to > o[sl.empId]) o[sl.empId] = to;
+  });
+  return o;
 }

@@ -1,0 +1,83 @@
+// SaaS tenancy: every organisation (Org ID) has its own spreadsheet, cache keys, numbers and sessions. node tests/tenancy.js
+const crypto = require('crypto');
+const { load, Authenticator } = require('./harness');
+let passed = 0, failed = 0;
+function ok(c, name, extra) { if (c) { passed++; console.log('  ok  ' + name); } else { failed++; console.log('  FAIL ' + name + (extra !== undefined ? '  -> ' + JSON.stringify(extra) : '')); } }
+const sha = s => crypto.createHash('sha256').update(s).digest('hex');
+const B = load({ setupKeyHash: sha('k'), now: Date.parse('2026-10-22T06:00:00Z') });
+const enroll = (org, no, code) => { const d = new Authenticator(); const b = B.raw({ action: 'enrollBegin', orgId: org, empNo: no, code }); const f = B.raw({ action: 'enrollFinish', orgId: org, credential: d.create(b.options) }); return { dev: d, token: f.token, me: f.me, f }; };
+const login = (org, no, dev) => { const b = B.raw({ action: 'authBegin', orgId: org, empNo: no }); if (!b.ok) return b; return B.raw({ action: 'authFinish', orgId: org, credential: dev.get(b.options) }); };
+
+console.log('Org ID on sign-in');
+let r = B.raw({ action: 'authBegin', empNo: '1000' });
+ok(r.error === 'org_required', 'signing in without an Org ID is refused', r);
+ok(B.raw({ action: 'authBegin', orgId: 'abc', empNo: '1000' }).error === 'bad_org', 'an Org ID is digits only');
+ok(B.raw({ action: 'authBegin', orgId: '9999', empNo: '1000' }).error === 'org_not_found', 'an unknown Org ID is refused');
+const home = B.raw({ action: 'bootstrap', orgId: '1001', setupKey: 'k', name: 'مدير المنزل', empNo: '1000' });
+const H = enroll('1001', '1000', home.activationCode);
+ok(H.token && H.me.role === 'admin', 'the home organisation (1001) works as before', H.f);
+B.raw({ action: 'settingsSave', token: H.token, settings: { companyNameAr: 'شركة المنزل' } });
+
+console.log('A new organisation gets its own spreadsheet');
+ok(B.raw({ action: 'orgCreate', setupKey: 'bad', nameAr: 'x', adminName: 'y', adminEmpNo: '1' }).error === 'bad_setup_key', 'only the platform owner (setup key) creates an organisation');
+const c = B.raw({ action: 'orgCreate', setupKey: 'k', nameAr: 'شركة النخبة', nameEn: 'Elite Co', cr: '1010123456', adminName: 'مدير النخبة', adminEmpNo: '1000' });
+ok(c.ok && c.orgId === '1002' && c.activationCode, 'the platform creates organisation 1002 with a code for its first administrator', c);
+ok(Object.keys(B.books).length === 1 && B.books.book1.tabs.employees && B.books.book1.tabs.employees._rows.length === 2, 'its data lives in a new spreadsheet of its own (header + its administrator)', Object.keys(B.books.book1.tabs).length);
+ok(B.raw({ action: 'orgCreate', setupKey: 'k', nameAr: 'نسخة', cr: '1010123456', adminName: 'a', adminEmpNo: '1' }).error === 'cr_exists', 'one organisation per CR');
+const E = enroll('1002', '1000', c.activationCode);
+ok(E.token && E.me.role === 'admin', 'its administrator enrols with Org ID 1002 and the same employee number as the other company', E.f);
+
+console.log('Separate books');
+const added = B.raw({ action: 'empSave', token: E.token, emp: { empNo: '2001', name: 'موظف النخبة' } });
+ok(added.ok, 'organisation 1002 adds an employee', added);
+const homeList = B.raw({ action: 'empList', token: H.token }).rows || [];
+ok(!homeList.some(e => e.name === 'موظف النخبة') && B.sheets.employees._rows.length === 2, 'the home organisation never sees it, and nothing was written to the home spreadsheet');
+ok(B.books.book1.tabs.employees._rows.some(rw => rw.includes('موظف النخبة')), 'it is in organisation 1002\'s own spreadsheet');
+ok(B.raw({ action: 'empList', token: E.token }).rows.some(e => e.name === 'موظف النخبة'), 'and organisation 1002 sees it');
+ok(B.raw({ action: 'empList', token: E.token, orgId: '1001' }).error === 'session_expired', 'a session of 1002 is refused when presented to 1001');
+ok(B.raw({ action: 'empList', token: H.token, orgId: '1002' }).error === 'session_expired', 'and a session of 1001 is refused by 1002');
+const crossDev = login('1001', '1000', E.dev);
+ok(!crossDev.ok, 'the 1002 administrator\'s phone cannot sign in to 1001 with the same employee number', crossDev);
+ok(login('1002', '1000', E.dev).ok && login('1001', '1000', H.dev).ok, 'each signs in to their own organisation');
+B.raw({ action: 'settingsSave', token: E.token, settings: { companyNameAr: 'شركة النخبة' } });
+ok(B.raw({ action: 'orgCheck', orgId: '1001' }).nameAr === 'شركة المنزل' && B.raw({ action: 'orgCheck', orgId: '1002' }).nameAr === 'شركة النخبة', 'each has its own settings (the cache never mixes them)');
+const z1 = B.raw({ action: 'zoneSave', token: H.token, zone: { name: 'HQ', lat: 24.7, lng: 46.6, radius: 150 } });
+const z2 = B.raw({ action: 'zoneSave', token: E.token, zone: { name: 'Elite HQ', lat: 21.5, lng: 39.2, radius: 150 } });
+ok(B.raw({ action: 'zoneList', token: H.token }).rows.length === 1 && B.raw({ action: 'zoneList', token: E.token }).rows[0].name === 'Elite HQ', 'locations are per organisation', { z1, z2 });
+const k1 = B.raw({ action: 'kioskSave', token: H.token, label: 'a', zoneId: z1.zone.id }), k2 = B.raw({ action: 'kioskSave', token: E.token, label: 'b', zoneId: z2.zone.id });
+ok(k1.kiosk.code === 'KSK-001' && k2.kiosk.code === 'KSK-001', 'each organisation numbers its own documents from 1', [k1.kiosk.code, k2.kiosk.code]);
+ok(B.raw({ action: 'kioskPing', orgId: '1001', setup: k2.setup }).error === 'kiosk_revoked', 'a kiosk of one organisation means nothing to another');
+
+console.log('The separate spreadsheet grows and gains new tabs');
+B.books.book1.props.employees.gridProperties.rowCount = 4;
+const g1 = B.raw({ action: 'empSave', token: E.token, emp: { empNo: '2002', name: 'ثان' } }), g2 = B.raw({ action: 'empSave', token: E.token, emp: { empNo: '2003', name: 'ثالث' } });
+ok(g1.ok && g2.ok && B.books.book1.props.employees.gridProperties.rowCount > 4 && B.raw({ action: 'empList', token: E.token }).rows.length === 4, 'rows are added to the grid when a tab fills up', B.books.book1.props.employees.gridProperties);
+delete B.books.book1.tabs.perks; delete B.books.book1.props.perks;
+const pk = B.raw({ action: 'perkList', token: E.token });
+ok(pk.ok && B.books.book1.tabs.perks && B.books.book1.tabs.perks._rows.length === 1, 'a tab added in a later release is created in the organisation book on first use', pk);
+console.log('Each company its own logo and names');
+const png = 'data:image/png;base64,' + Buffer.from('fake-png-bytes-for-org-1002').toString('base64');
+ok(B.raw({ action: 'logoSave', token: E.token, logo: 'data:image/svg+xml;base64,PHN2Zz4=' }).error === 'bad_logo', 'SVG is refused (nothing executable rides in a logo)');
+ok(B.raw({ action: 'logoSave', token: E.token, logo: 'data:image/png;base64,' + 'A'.repeat(50000) }).error === 'bad_logo', 'and so is a logo too big for one cell');
+const ls = B.raw({ action: 'logoSave', token: E.token, logo: png });
+ok(ls.ok && ls.ver, 'organisation 1002 sets its own logo', ls);
+const l2 = B.raw({ action: 'orgLogo', orgId: '1002' }), l1 = B.raw({ action: 'orgLogo', orgId: '1001' });
+ok(l2.logo === png && l2.ver === ls.ver && !l2.home && l1.logo === '' && l1.home === true, 'its logo is its own: the home company still has none set and keeps its artwork', { l1v: l1.ver, l2v: l2.ver });
+const me2 = B.raw({ action: 'me', token: E.token }).company;
+ok(me2.logoVer === ls.ver && me2.home === false && me2.shortAr === 'شركة النخبة' && me2.shortEn === 'Elite Co', 'the app is told the logo version, and the short names are its own, never the home company names', me2);
+ok(B.raw({ action: 'brandSave', token: E.token, color: 'purple' }).error === 'bad_value', 'a brand colour is a #RRGGBB value');
+ok(B.raw({ action: 'brandSave', token: E.token, color: '#7b2d8e' }).color === '#7B2D8E' && B.raw({ action: 'me', token: E.token }).company.brandColor === '#7B2D8E', 'organisation 1002 picks its own colour; the app is told with every sign-in');
+ok(B.raw({ action: 'me', token: H.token }).company.brandColor === '' && B.raw({ action: 'orgCheck', orgId: '1002' }).brandColor === '#7B2D8E', 'the home company keeps its own palette; the sign-in screen knows each company colour before anyone signs in');
+console.log('Old sessions and the platform');
+const legacyBody = Buffer.from(JSON.stringify({ e: H.me.id, v: 0, x: B.now() + 3600000, m: 'dev' })).toString('base64url');
+const legacy = legacyBody + '.' + B.ctx.hmac_(legacyBody);
+ok(B.raw({ action: 'me', token: legacy }).ok, 'a session from before Org IDs still works in the home organisation');
+ok(B.raw({ action: 'me', token: legacy, orgId: '1002' }).error === 'session_expired', 'but never in another organisation');
+ok(B.raw({ action: 'orgSetStatus', setupKey: 'k', id: '1002', status: 'suspended' }).ok && B.raw({ action: 'me', token: E.token }).error === 'org_suspended', 'a suspended organisation is closed to every request');
+B.raw({ action: 'orgSetStatus', setupKey: 'k', id: '1002', status: 'active' });
+const l = B.raw({ action: 'orgList', setupKey: 'k' });
+ok(l.ok && l.home === '1001' && l.orgs.length === 1 && l.orgs[0].cr === '1010123456', 'the platform lists its organisations', l);
+ok(B.raw({ action: 'me', token: E.token }).ok && B.raw({ action: 'me', token: E.token }).company.orgId === '1002', 'the app is told its Org ID');
+
+console.log('\n' + passed + ' passed, ' + failed + ' failed');
+process.exit(failed ? 1 : 0);

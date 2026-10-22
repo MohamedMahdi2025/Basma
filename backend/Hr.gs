@@ -75,6 +75,7 @@ function updateMany_(name, objs) {
   objs.forEach(function (o) { lo = Math.min(lo, o._row); hi = Math.max(hi, o._row); });
   var width = HEADERS[name].length, block = [];
   for (var r = lo; r <= hi; r++) block.push(byRow[r] ? toRow_(name, byRow[r]) : HEADERS[name].map(function () { return ''; }));
+  if (typeof whTap_ === 'function') objs.forEach(function (o) { whTap_(name, o, false); });
   bumpTab_(name);
   var sh = sheet_(name);
   ensureHeader_(name, sh);
@@ -989,10 +990,10 @@ function driveCall_(method, url, opts) {
   return r;
 }
 function driveFolder_() {
-  var p = PropertiesService.getScriptProperties(), id = p.getProperty('DRIVE_FOLDER_ID');
+  var p = PropertiesService.getScriptProperties(), id = p.getProperty(orgKey_('DRIVE_FOLDER_ID')); // one folder per organisation
   if (id) return id;
   var r = driveCall_('post', 'https://www.googleapis.com/drive/v3/files?fields=id', { contentType: 'application/json', payload: JSON.stringify({ name: 'HR documents (attendance system)', mimeType: 'application/vnd.google-apps.folder' }) });
-  id = JSON.parse(r.getContentText()).id; p.setProperty('DRIVE_FOLDER_ID', id);
+  id = JSON.parse(r.getContentText()).id; p.setProperty(orgKey_('DRIVE_FOLDER_ID'), id);
   return id;
 }
 function canSeeDoc_(me, row) { return !!row && (row.empId === me.id || isHr_(me)); }

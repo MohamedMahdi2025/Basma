@@ -82,6 +82,13 @@ const B = load({ props: { RP_ID: 'localhost', ORIGINS: ORIGIN }, setupKeyHash: c
 const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.png': 'image/png', '.webmanifest': 'application/manifest+json', '.json': 'application/json' };
 
 http.createServer((req, res) => {
+  // GET /api?org=&key=&resource=… is the public read API (doGet), as Power BI and Excel call it
+  if (req.method === 'GET' && /^\/api\?/.test(req.url)) {
+    const q = Object.fromEntries(new URL(req.url, 'http://x').searchParams), out = B.ctx.doGet({ parameter: q });
+    res.writeHead(200, { 'Content-Type': q.format === 'csv' ? 'text/csv; charset=utf-8' : 'application/json' });
+    res.end(typeof out === 'string' ? out : JSON.stringify(out));
+    return;
+  }
   if (req.method === 'POST' && req.url === '/api') {
     let body = '';
     req.on('data', c => (body += c));

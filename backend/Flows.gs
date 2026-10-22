@@ -565,7 +565,7 @@ function lcMyTasks_(me, ctx, out, add) {
 /** Escalated-to-me count for the bell. The full approvals scan reads every module, so home keeps it for 60 s per person. */
 function lcEscalatedCount_(me, ctx) {
   var cache = null, key = 'apEsc:' + me.id, hit = null;
-  try { cache = CacheService.getScriptCache(); hit = cache.get(key); } catch (e) {}
+  try { cache = cache_(); hit = cache.get(key); } catch (e) {}
   if (hit != null && hit !== '') return Number(hit) || 0;
   var n = apItems_(me, ctx).filter(function (x) { return x.escalated && !x.canAct; }).length;
   try { if (cache) cache.put(key, String(n), 60); } catch (e) {}
@@ -727,7 +727,7 @@ function api_flowSettingsSave(req, me) {
       var r = rows.filter(function (x) { return x.key === k; })[0];
       if (r) { r.value = val[k]; update_(SHEETS.SET, r); } else append_(SHEETS.SET, { key: k, value: val[k] });
     });
-    try { CacheService.getScriptCache().remove(SETTINGS_CACHE_KEY); } catch (e) {}
+    try { cache_().remove(SETTINGS_CACHE_KEY); } catch (e) {}
     audit_(me.id, 'settings_save', '', val);
     return { ok: true, settings: val };
   });

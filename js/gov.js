@@ -53,7 +53,7 @@ Object.assign(T.en, {
 });
 
 var css = '' +
-'.gv-row .main small{display:block}.gv-flag{color:var(--bad);font-size:12.5px;display:flex;gap:4px;align-items:center;margin-top:2px}';
+'.gv-row .main small{display:block}.gv-flag{color:var(--bad);font-size:13px;display:flex;gap:4px;align-items:center;margin-top:2px}';
 var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 
 var uid = 0;

@@ -310,7 +310,7 @@ function resignationDeemed_(r) { return r.type === 'resignation' && r.status ===
  */
 function resignationDeemedSweep_(force) {
   if (!force) {
-    try { var c = CacheService.getScriptCache(); if (c.get('deemedSweep')) return []; c.put('deemedSweep', '1', 3600); } catch (e) {}
+    try { var c = cache_(); if (c.get('deemedSweep')) return []; c.put('deemedSweep', '1', 3600); } catch (e) {}
   }
   var done = [];
   try {

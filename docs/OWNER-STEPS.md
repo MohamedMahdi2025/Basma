@@ -3,6 +3,14 @@
 Everything that can be built in code is built and live (@83). Each item below is waiting for an account, a permission or
 a contract that only the company can provide. Each item says who does it, how long it takes and what Claude does next.
 
+## 0. Tell every employee their Org ID (before the next sign-in)
+
+Since 2026-10-22 every sign-in asks for the **Organisation ID (Org ID)**: one company, one number, separate books.
+- **Best Gas = 1001.** Each phone asks for it once at the next unlock, then remembers it.
+- The activation message HR sends (copy or WhatsApp) now starts with the Org ID.
+- New companies are created in Administration → Organisations (platform) with the setup key; each gets the next
+  number (1002, 1003 …) and its own spreadsheet.
+
 ## 1. E-mail: daily digest, payslips and scheduled reports (code ready, switched off)
 
 **Who:** your Microsoft 365 administrator, then you, about 30 minutes in all.

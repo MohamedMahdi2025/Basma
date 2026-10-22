@@ -55,16 +55,16 @@ Object.assign(T.en, {
 });
 
 var css = '' +
-'.cp-seg{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px}.cp-seg button{height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-size:13.5px;color:var(--ink-2);display:inline-flex;align-items:center;gap:6px}' +
+'.cp-seg{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}.cp-seg button{height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-size:14px;color:var(--ink-2);display:inline-flex;align-items:center;gap:8px}' +
 '.cp-seg button[aria-pressed="true"]{background:var(--pine);color:var(--cream);border-color:var(--pine)}' +
-'.cp-item{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-radius:14px;background:var(--card);box-shadow:0 1px 2px rgba(28,42,31,.05),0 8px 20px -16px rgba(28,42,31,.3);margin-bottom:8px;border-inline-start:4px solid #2a78d6}' +
-'.cp-item.error{border-color:#B3261E}.cp-item.warn{border-color:#C98500}.cp-item .main{flex:1;min-width:0}.cp-item b{font-weight:500}.cp-item small{display:block;color:var(--ink-2);font-size:12.5px;margin-top:2px}' +
+'.cp-item{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-radius:16px;background:var(--card);box-shadow:var(--e3);margin-bottom:8px;border-inline-start:4px solid #2a78d6}' +
+'.cp-item.error{border-color:#B3261E}.cp-item.warn{border-color:#C98500}.cp-item .main{flex:1;min-width:0}.cp-item b{font-weight:500}.cp-item small{display:block;color:var(--ink-2);font-size:13px;margin-top:2px}' +
 '.cp-item .ic{font-size:20px;margin-top:1px}.cp-item.error .ic{color:#B3261E}.cp-item.warn .ic{color:#8A5A00}.cp-item.info .ic{color:#2a78d6}' +
-'.cp-when{text-align:end;white-space:nowrap;font-size:12.5px;color:var(--ink-2)}.cp-when b{display:block;font-size:14px;color:var(--ink)}' +
-'.cp-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 14px}.cp-step{padding:12px;border-radius:14px;background:var(--card);border:1px solid var(--line);font-size:13px}' +
-'.cp-step b{display:flex;align-items:center;gap:6px;font-size:14px;margin-bottom:4px}.cp-step.done{border-color:#9CC7A6;background:#F1F8F2}.cp-step.done b i{color:#2E7D4F}.cp-step small{color:var(--ink-2)}' +
-'.cp-box{background:var(--card);border-radius:18px;padding:16px;box-shadow:0 1px 2px rgba(28,42,31,.05),0 10px 26px -18px rgba(28,42,31,.28);margin-bottom:14px}' +
-'.cp-note{font-size:12.5px;color:var(--ink-2);display:flex;gap:6px;align-items:flex-start;margin:6px 0 12px}' +
+'.cp-when{text-align:end;white-space:nowrap;font-size:13px;color:var(--ink-2)}.cp-when b{display:block;font-size:14px;color:var(--ink)}' +
+'.cp-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 14px}.cp-step{padding:12px;border-radius:16px;background:var(--card);border:1px solid var(--line);font-size:13px}' +
+'.cp-step b{display:flex;align-items:center;gap:8px;font-size:14px;margin-bottom:4px}.cp-step.done{border-color:var(--g-9CC7A6,#9CC7A6);background:var(--g-F1F8F2,#F1F8F2)}.cp-step.done b i{color:#2E7D4F}.cp-step small{color:var(--ink-2)}' +
+'.cp-box{background:var(--card);border-radius:16px;padding:16px;box-shadow:var(--e3);margin-bottom:14px}' +
+'.cp-note{font-size:13px;color:var(--ink-2);display:flex;gap:8px;align-items:flex-start;margin:6px 0 12px}' +
 '@media (max-width:640px){.cp-steps{grid-template-columns:1fr}}';
 var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 
@@ -131,7 +131,7 @@ function wpsView(el){
       h += '<h3 class="hr-sub">' + t('wpSteps') + '</h3><div class="cp-steps">' +
         step('g', 'file-arrow-down', t('wpGen'), !!g, g ? esc(g.generatedBy) + ' · ' + fmt(g.generatedAt) + ' · <bdi>' + esc(g.ref) + '</bdi>' : '', !g ? '<div class="btnrow" style="margin-top:8px"><button type="button" class="btn btn-dark btn-sm" data-step="generated"' + (r.errors ? ' disabled' : '') + '>' + t('wpGen') + '</button></div>' : '') +
         step('u', 'upload-simple', t('wpUp'), st === 'uploaded' || st === 'confirmed', g && g.uploadedAt ? esc(g.uploadedBy) + ' · ' + fmt(g.uploadedAt) + ' · <bdi>' + esc(g.bankRef) + '</bdi>' : '',
-          st === 'generated' ? '<form class="form" id="wpUpF" style="gap:6px;margin-top:8px"><input name="ref" required placeholder="' + t('wpBankRef') + '" maxlength="60" dir="ltr"><button type="submit" class="btn btn-dark btn-sm">' + t('wpUp') + '</button></form>' : '') +
+          st === 'generated' ? '<form class="form" id="wpUpF" style="gap:8px;margin-top:8px"><input name="ref" required placeholder="' + t('wpBankRef') + '" maxlength="60" dir="ltr"><button type="submit" class="btn btn-dark btn-sm">' + t('wpUp') + '</button></form>' : '') +
         step('c', 'seal-check', t('wpConf'), st === 'confirmed', g && g.confirmedAt ? esc(g.confirmedBy) + ' · ' + fmt(g.confirmedAt) : '', st === 'uploaded' ? '<div class="btnrow" style="margin-top:8px"><button type="button" class="btn btn-dark btn-sm" data-step="confirmed">' + t('wpConf') + '</button></div>' : '') + '</div>';
       h += '<div class="btnrow" style="margin:0 0 6px"><button type="button" class="btn btn-line btn-sm" id="wpX"' + (r.errors ? ' disabled' : '') + '>' + ph('microsoft-excel-logo') + t('wpDownload') + '</button></div><p class="cp-note">' + ph('info') + t('wpTemplate') + '</p>';
       if (r.formats && r.formats.length > 1) h += '<div class="toolbar"><label class="hr-hint" for="wpFmt" style="margin:0">' + t('wpFormat') + '</label><select id="wpFmt">' + r.formats.filter(function(f){ return f.id !== 'generic'; }).map(function(f){ return '<option value="' + esc(f.id) + '">' + esc(S.lang === 'en' ? f.en : f.ar) + '</option>'; }).join('') + '</select>' +

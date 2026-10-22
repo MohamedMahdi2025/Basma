@@ -198,12 +198,12 @@ function parseDerSig_(d) {
 function newChallenge_(data) {
   var ch = bytesToB64u_(randomBytes_(32));
   data.exp = Date.now() + CONFIG.CHALLENGE_SECONDS * 1000;
-  CacheService.getScriptCache().put('ch:' + ch, JSON.stringify(data), CONFIG.CHALLENGE_SECONDS);
+  cache_().put('ch:' + ch, JSON.stringify(data), CONFIG.CHALLENGE_SECONDS);
   return ch;
 }
 
 function takeChallenge_(ch) {
-  var c = CacheService.getScriptCache();
+  var c = cache_();
   var raw = c.get('ch:' + ch);
   if (!raw) return null;
   c.remove('ch:' + ch);

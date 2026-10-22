@@ -1443,7 +1443,7 @@ const EXPECT = {
   // annual pay review (Payroll.gs): cycles by hr role / payroll; managers list and propose for their people
   compCycleSave: 'pay', compCycleClose: 'pay', compCycleList: 'mgrPay', compPropose: 'mgrPay',
   // timesheets (Attendance.gs): HR (incl. admin) and managers
-  timesheetList: 'mgr', timesheetApprove: 'mgr', openShiftPost: 'mgr', shiftOfferDecide: 'mgr', workforcePlan: 'mgrAll', workforcePlanSave: 'hrA', oneOnOneSave: 'none', nineBox: 'mgrX', successionList: 'hrExecA', successionSave: 'hrA', dataExport: 'adm', notifyStatus: 'adm', notifyTest: 'adm', docUpload: 'hrA', kioskSave: 'adm', kioskList: 'hrA', snapshotList: 'dash', snapshotView: 'dash', snapshotPeople: 'hrOnly', snapshotTake: 'hrA',
+  timesheetList: 'mgr', timesheetApprove: 'mgr', openShiftPost: 'mgr', shiftOfferDecide: 'mgr', workforcePlan: 'mgrAll', workforcePlanSave: 'hrA', oneOnOneSave: 'none', nineBox: 'mgrX', successionList: 'hrExecA', successionSave: 'hrA', dataExport: 'adm', notifyStatus: 'adm', notifyTest: 'adm', docUpload: 'hrA', kioskSave: 'adm', kioskList: 'hrA', logoSave: 'adm', brandSave: 'adm', apiKeyList: 'adm', apiKeySave: 'adm', webhookSave: 'adm', webhookDeliveries: 'adm', payGroupList: 'pay', payGroupSave: 'pay', payGroupAssign: 'pay', snapshotList: 'dash', snapshotView: 'dash', snapshotPeople: 'hrOnly', snapshotTake: 'hrA',
   // custom fields (Hr.gs): definitions and values written by HR (incl. admin); everyone may list and read what they may see
   customFieldSave: 'hrA', customValuesSave: 'hrA', customValuesAll: 'hrA'
 };

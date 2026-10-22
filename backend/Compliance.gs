@@ -95,7 +95,7 @@ function wpsDue_(month, s) {
 /** The file rows for a locked run, each with its problems; the file is blocked while any row has an error. */
 function api_wpsFile(req, me) {
   if (!canPayroll_(me)) fail_('forbidden');
-  var run = findBy_(SHEETS.RUN, 'id', req.id);
+  var run = findBy_(SHEETS.RUN, 'id', req.id); if (run && !runAccess_(me, run)) fail_('forbidden'); // a closed pay group: its own payroll staff only
   if (!run || run.status !== 'locked') fail_('run_not_locked');
   if (isDemoRun_(run)) fail_('demo_run'); // demo payroll never goes to the bank or the ledger
   var emps = {}, priv = {}, rows = [], skipped = [], errors = 0, total = 0;
@@ -135,7 +135,7 @@ function publicWps_(w) {
 function api_wpsStep(req, me) {
   if (!canPayroll_(me)) fail_('forbidden');
   return withLock_(function () {
-    var run = findBy_(SHEETS.RUN, 'id', req.id);
+    var run = findBy_(SHEETS.RUN, 'id', req.id); if (run && !runAccess_(me, run)) fail_('forbidden'); // a closed pay group: its own payroll staff only
     if (!run || run.status !== 'locked') fail_('run_not_locked');
     if (isDemoRun_(run)) fail_('demo_run'); // demo payroll never goes to the bank or the ledger
     var w = wpsLogOf_(run.id), now = new Date().toISOString(), step = req.step;
@@ -244,11 +244,15 @@ function api_complianceCalendar(req, me) {
   api_hrExpiring({ days: 90 }, me).rows.forEach(function (x) { add(x.kind, x.date, ctx.emps[x.empId], { number: x.number }); });
   var runs = readAll_(SHEETS.RUN).filter(function (r) { return r.status !== 'cancelled' && !isDemoRun_(r); }), wps = readAll_(SHEETS.WPS); // obligations: the company's runs only
   for (var i = 1; i <= 3; i++) {
-    var d = new Date(Date.UTC(+t.slice(0, 4), +t.slice(5, 7) - 1 - i, 1)), m = d.toISOString().slice(0, 7), run = runs.filter(function (r) { return r.month === m; })[0], due = wpsDue_(m, s);
-    var w = run && wps.filter(function (x) { return x.runId === run.id; })[0];
-    if (!run || run.status !== 'locked') add('payroll_not_locked', due, null, { month: m });
-    else if (!w || w.status === 'generated') add('wps_upload', due, null, { month: m, run: run.ref });
-    else if (w.status === 'uploaded') add('wps_confirm', due, null, { month: m, run: run.ref });
+    var d = new Date(Date.UTC(+t.slice(0, 4), +t.slice(5, 7) - 1 - i, 1)), m = d.toISOString().slice(0, 7), due = wpsDue_(m, s);
+    var mr = runs.filter(function (r) { return r.month === m; }); // pay groups: each group's run has its own WPS duty
+    if (!mr.length) add('payroll_not_locked', due, null, { month: m });
+    mr.forEach(function (run) {
+      var w = wps.filter(function (x) { return x.runId === run.id; })[0];
+      if (run.status !== 'locked') add('payroll_not_locked', due, null, { month: m, run: run.ref });
+      else if (!w || w.status === 'generated') add('wps_upload', due, null, { month: m, run: run.ref });
+      else if (w.status === 'uploaded') add('wps_confirm', due, null, { month: m, run: run.ref });
+    });
   }
   readAll_(SHEETS.INJ).filter(function (x) { return x.status === 'reported'; }).forEach(function (x) { add('injury_gosi', String(x.gosiDue).slice(0, 10), ctx.emps[x.empId], { ref: x.ref }); });
   readAll_(SHEETS.RECON).filter(function (x) { return x.status === 'open'; }).forEach(function (x) { add('recon_open', '', null, { month: x.month, ref: x.ref, count: parseJson_(x.mismatchesJson, []).length, level: 'error' }); });

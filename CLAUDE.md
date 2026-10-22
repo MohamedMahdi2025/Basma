@@ -369,3 +369,46 @@ registering a module: `reg.js` in the session scratchpad. It inserts tabs, refs,
 
   It lives in Reports.gs on purpose: the end of Dashboard.gs is scanned by a test that forbids gender and nationality
   in the retention-score code. Design: docs/research/2026-10-21-history-snapshots-design.md.
+
+## SaaS tenancy: Org ID and separate books (2026-10-22, owner's top priority)
+
+Every company is an organisation with a numeric Org ID, and each has **its own spreadsheet**.
+- Home org **1001** = this bound sheet. Its keys are unprefixed and nothing moved.
+- Other orgs are reached through the Sheets REST API (`restBook_` in Code.gs) under the existing drive.file scope, so no
+  re-authorisation was needed.
+- `handle_` calls `setOrg_(resolveOrg_())` first.
+- Use `cache_()` instead of `CacheService.getScriptCache()`, and `orgKey_()` for any per-org script property.
+- Tokens carry `o`.
+- Sign-in actions need `orgId` (`ORG_REQUIRED_`).
+- Platform actions: `orgCreate`, `orgList`, `orgSetStatus` (setup key); screen admin:platform.
+- Tests use `B.raw()` for requests without an Org ID. `B.call()` adds 1001 like the app. Design:
+  docs/research/2026-10-22-saas-tenancy-design.md.
+- **Pay groups** (Payroll.gs end, `payGroups` tab, employee column `payGroupId`, run column `payGroupId`; page
+  pay:paygroups):
+  - one run per group per month;
+  - closed groups by managers list, guarded by `runAccess_` on every run action;
+  - attendance cut-off via `pgWindow_`, with `attFrom`/`attTo` on each slip;
+  - month views add up all runs of the month.
+
+  Design: docs/research/2026-10-21-pay-groups-design.md.
+- **Public API and webhooks** (Admin.gs end; tabs `apiKeys`, `webhooks`, `webhookOutbox`; page admin:integrations):
+  - read-only scoped keys stored as SHA-256;
+  - `apiQuery` by POST, or GET through `doGet` for Power BI and CSV;
+  - events from `whTap_` in `append_`/`update_`/`updateMany_`, delivered by `whSweep_` with HMAC signatures and
+    backoff.
+
+  Design: docs/research/2026-10-22-api-webhooks-design.md. `tests/syntax.js` parses every client script, because a
+  lost backslash once blanked the app in the preview.
+- **Design tokens** (REA study docs/research/2026-10-22-design-system-rea.md):
+  - type scale 11 12 13 14 16 18 20 24 28 32 40 48 56;
+  - radii 2 4 6 8 12 16 24 and pill;
+  - gaps on a 4 px grid;
+  - drop shadows only through `var(--e1…--e4)`, defined in the first `:root`.
+
+  Never add new literal sizes; the codemod and measure scripts are in the session scratchpad `tokens/`.
+- **Company logo and colours** (docs/research/2026-10-22-company-branding.md):
+  - each organisation has its own logo (tab `branding`, `logoSave`/`orgLogo`) and brand colour (`brandSave`);
+  - the client builds the whole palette in `brandPalette`/`applyBrand` as one `#brandTheme` sheet covering the base,
+    v2 and dark scopes;
+  - every green shade is `var(--g-RRGGBB,#RRGGBB)` (`GREEN_LITERALS`); status greens stay green;
+  - never add a raw brand green; `tests/brand.js` fails on one.

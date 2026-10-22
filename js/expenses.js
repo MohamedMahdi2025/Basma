@@ -133,8 +133,8 @@ Object.assign(T.en, { xpWho:'Claimant', xpSum:'Summary', xpByCat:'By category', 
   xpG1:'Put each expense on its own line with its date and the amount including VAT.', xpG2:'Only expenses from the last 90 days are accepted.', xpRecent:'Your recent claims', xpStepMgr:'Line manager', xpStepPay:'Payroll', xpStepPaid:'Payment',
   xpSendIt:'You send it', xpLinesN:'Lines', xpSentT:'Your claim is sent', xpSentL:'Follow its steps here.', xpNotFound:'This claim was not found, or you cannot see it.', xpDecide:'Your decision', xpView:'Claim', xpEmpNo:'Employee no.', xpTimeline:'Progress', xpFillFirst:'Enter the amount and description of each line to see the check.', xpAttach:'Receipt photos cannot be attached yet. Type each receipt number on its line and keep the original.' });
 var css2 = '.xp-page .xp-line{grid-template-columns:repeat(4,minmax(0,1fr));padding:14px 0}.xp-page .xp-line + .xp-line{border-top:1px dashed var(--line)}' +
-  '.xp-ln{grid-column:1 / -1;display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;color:var(--ink-3)}.xp-ln .sp{flex:1}' +
-  '.xp-ln b{width:22px;height:22px;border-radius:7px;display:grid;place-items:center;background:var(--well);color:var(--ink-2);font-size:12px}' +
+  '.xp-ln{grid-column:1 / -1;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--ink-3)}.xp-ln .sp{flex:1}' +
+  '.xp-ln b{width:22px;height:22px;border-radius:8px;display:grid;place-items:center;background:var(--well);color:var(--ink-2);font-size:12px}' +
   '@media (max-width:640px){.xp-page .xp-line{grid-template-columns:repeat(2,minmax(0,1fr))}}';
 var st2 = document.createElement('style'); st2.textContent = css2; document.head.appendChild(st2);
 function seen(rows){ S.xpSeen = S.xpSeen || {}; (rows || []).forEach(function(x){ S.xpSeen[x.id] = x; }); }
@@ -162,7 +162,7 @@ function catBars(lines){
   lines.forEach(function(l){ var a = Number(l.amount) || 0; if (a > 0) { by[l.category] = (by[l.category] || 0) + a; tot += a; } });
   var ks = Object.keys(by).sort(function(a, b){ return by[b] - by[a]; });
   if (!ks.length || !window.Viz) return '';
-  return '<h3 class="hr-sub" style="font-size:13.5px;margin:4px 0 8px">' + t('xpByCat') + '</h3>' + Viz.hbars(ks.map(function(k){ return { label: t('xc_' + k), value: by[k], text: Number(by[k]).toLocaleString(LOCALE(), { maximumFractionDigits: 2 }), tip: t('xc_' + k) + ': ' + by[k].toFixed(2) }; }), { max: tot });
+  return '<h3 class="hr-sub" style="font-size:14px;margin:4px 0 8px">' + t('xpByCat') + '</h3>' + Viz.hbars(ks.map(function(k){ return { label: t('xc_' + k), value: by[k], text: Number(by[k]).toLocaleString(LOCALE(), { maximumFractionDigits: 2 }), tip: t('xc_' + k) + ': ' + by[k].toFixed(2) }; }), { max: tot });
 }
 function newPage(body){
   var top = fpTop({ icon: 'receipt', title: t('xpNew'), lead: t('xpLead'), crumb: [t('arRequests'), t('xpTitle'), t('xpNew')] });

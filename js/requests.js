@@ -71,13 +71,13 @@ Object.assign(T.en, {
 });
 
 var css = '' +
-'.rq-types{display:grid;grid-template-columns:1fr 1fr;gap:10px}' +
+'.rq-types{display:grid;grid-template-columns:1fr 1fr;gap:12px}' +
 '.rq-types button{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:start;background:var(--card);border:1px solid var(--line);border-radius:var(--r-m);padding:14px;min-height:92px}' +
 '.rq-types button i{font-size:24px;color:var(--brand)}' +
-'.rq-types button b{font-weight:600;font-size:15px}' +
+'.rq-types button b{font-weight:600;font-size:16px}' +
 '.rq-types button small{color:var(--ink-2);font-size:12px;line-height:1.4}' +
 '.rq-types button:hover{border-color:var(--brand)}' +
-'.rq-quote{border-radius:var(--r-s);padding:12px 14px;background:#EEF3EC;color:#23452B;font-size:14px;line-height:1.6}' +
+'.rq-quote{border-radius:var(--r-s);padding:12px 14px;background:var(--g-EEF3EC,#EEF3EC);color:var(--g-23452B,#23452B);font-size:14px;line-height:1.6}' +
 '.rq-quote.bad{background:#FBE9E4;color:#8E2F1C}' +
 '.rq-quote.wait{background:#F1EFE8;color:var(--ink-2)}' +
 '.rq-quote b{font-size:18px;font-weight:600}' +
@@ -85,20 +85,20 @@ var css = '' +
 '.rq-row{display:flex;gap:12px;align-items:flex-start;padding:12px 0;cursor:pointer}' +
 '.rq-row + .rq-row{border-top:1px solid var(--line)}' +
 '.rq-row .main{flex:1;min-width:0}' +
-'.rq-row .main small{display:block;color:var(--ink-2);font-size:12.5px}' +
-'.rq-row .ref{font-size:11.5px;color:var(--ink-2);direction:ltr;unicode-bidi:isolate}' +
-'.rq-detail{margin:0 0 6px;padding:10px 12px;background:var(--paper);border-radius:var(--r-s);font-size:13.5px}' +
+'.rq-row .main small{display:block;color:var(--ink-2);font-size:13px}' +
+'.rq-row .ref{font-size:12px;color:var(--ink-2);direction:ltr;unicode-bidi:isolate}' +
+'.rq-detail{margin:0 0 6px;padding:10px 12px;background:var(--paper);border-radius:var(--r-s);font-size:14px}' +
 '.rq-tl{list-style:none;margin:8px 0 0;padding:0}' +
 '.rq-tl li{position:relative;padding-inline-start:18px;margin:4px 0;color:var(--ink-2)}' +
 '.rq-tl li::before{content:"";position:absolute;inset-inline-start:2px;top:8px;width:8px;height:8px;border-radius:50%;background:var(--brand)}' +
 '.rq-tl li.no::before{background:var(--red)}' +
 '.lv-big{display:flex;align-items:baseline;gap:8px;margin:2px 0 8px}' +
-'.lv-big b{font-size:44px;font-weight:600;line-height:1;color:var(--pine)}' +
+'.lv-big b{font-size:48px;font-weight:600;line-height:1;color:var(--pine)}' +
 '.lv-big span{color:var(--ink-2)}' +
 '.lv-bar{height:8px;border-radius:4px;background:#E7E3D8;overflow:hidden;display:flex;margin:6px 0 10px}' +
 '.lv-bar i{display:block;height:100%}' +
 '.lv-bar .u{background:var(--brand)}.lv-bar .p{background:var(--amber)}' +
-'.lv-legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;color:var(--ink-2)}' +
+'.lv-legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--ink-2)}' +
 '.lv-legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-inline-end:5px;vertical-align:middle}' +
 '.lv-hol{margin-top:10px;font-size:13px;color:var(--ink-2)}';
 var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
@@ -231,10 +231,10 @@ function printLetter(o, file, win){
     : { salary_certificate: 'شهادة تعريف بالراتب', employment_certificate: 'شهادة تعريف', experience: 'شهادة خبرة' }[o.subtype];
   var html = '<!doctype html><html lang="' + (en ? 'en' : 'ar') + '" dir="' + (en ? 'ltr' : 'rtl') + '"><head><meta charset="utf-8"><title>' + esc(o.ref) + '</title>' +
     '<link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;600&display=swap" rel="stylesheet">' +
-    '<style>@page{size:A4;margin:22mm 20mm}body{font-family:"Readex Pro",Tahoma,sans-serif;color:#17221A;font-size:15px;line-height:2}' +
-    'header{display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #4D6D51;padding-bottom:12px;margin-bottom:26px}header img{height:64px}' +
-    'header div{text-align:end;font-size:12px;color:#4A5A4D;line-height:1.6}h1{text-align:center;font-size:21px;margin:10px 0 26px;color:#1C2A1F}' +
-    '.meta{display:flex;justify-content:space-between;font-size:13px;color:#4A5A4D;margin-bottom:18px}.sign{margin-top:60px}.sign b{display:block}' +
+    '<style>@page{size:A4;margin:22mm 20mm}body{font-family:"Readex Pro",Tahoma,sans-serif;color:var(--g-17221A,#17221A);font-size:16px;line-height:2}' +
+    'header{display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--brand);padding-bottom:12px;margin-bottom:26px}header img{height:64px}' +
+    'header div{text-align:end;font-size:12px;color:var(--g-4A5A4D,#4A5A4D);line-height:1.6}h1{text-align:center;font-size:20px;margin:10px 0 26px;color:var(--pine)}' +
+    '.meta{display:flex;justify-content:space-between;font-size:13px;color:var(--g-4A5A4D,#4A5A4D);margin-bottom:18px}.sign{margin-top:60px}.sign b{display:block}' +
     'footer{position:fixed;bottom:0;inset-inline:0;font-size:11px;color:#8A948B;text-align:center;border-top:1px solid #DAD5C8;padding-top:6px}</style></head><body>' +
     '<header><img src="' + logoInk() + '" alt=""><div>' + esc(coName(en ? 'en' : 'ar')) + '<br>' + (en ? 'Human Resources' : 'إدارة الموارد البشرية') + (coMeta(en ? 'en' : 'ar') ? '<br>' + coMeta(en ? 'en' : 'ar') : '') + '</div></header>' +
     '<div class="meta"><span>' + (en ? 'Ref: ' : 'الرقم: ') + '<bdi>' + esc(o.ref) + '</bdi></span><span>' + (en ? 'Date: ' : 'التاريخ: ') + d(o.decidedAt || o.createdAt) + '</span></div>' +
@@ -244,7 +244,7 @@ function printLetter(o, file, win){
     '<script>window.onload=function(){setTimeout(function(){window.print()},400)}<\/script></body></html>';
   var w = win || window.open('', '_blank');
   if (!w) return toast(t('e_generic'));
-  w.document.open(); w.document.write(html); w.document.close(); if (window.docBar) docBar(w);
+  w.document.open(); w.document.write(window.brandVarsCss ? String(html).replace(/<head>/i, '<head><style>' + brandVarsCss() + '</style>') : html); w.document.close(); if (window.docBar) docBar(w);
 }
 
 /** Print a letter whose file must still be fetched: the window opens now, inside the tap, and is filled when the file arrives. */
@@ -322,9 +322,9 @@ Object.assign(T.en, { fPEmail:'Personal email', fNatAddr:'National address', fAd
 // .rq-page and .rq-mini-av moved to index.html <style id="dsfp"> (the expense pages use them too)
 var css2 = '' +
 '.rq-sched{display:flex;align-items:flex-end;gap:4px;height:56px;direction:ltr}.rq-sched i{flex:1;background:var(--s1);border-radius:4px 4px 0 0;min-width:6px}' +
-'.rq-sched-l{display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink-3);direction:ltr}' +
+'.rq-sched-l{display:flex;justify-content:space-between;font-size:12px;color:var(--ink-3);direction:ltr}' +
 '.rq-fields .two{gap:12px}' +
-'.rq-hol{display:flex;flex-wrap:wrap;gap:6px}.rq-hol span{font-size:12px;padding:3px 9px;border-radius:999px;background:var(--info-bg);color:var(--info)}';
+'.rq-hol{display:flex;flex-wrap:wrap;gap:8px}.rq-hol span{font-size:12px;padding:3px 9px;border-radius:999px;background:var(--info-bg);color:var(--info)}';
 var st2 = document.createElement('style'); st2.textContent = css2; document.head.appendChild(st2);
 
 var STEPS = { leave: ['manager', 'hr'], correction: ['manager', 'hr'], resignation: ['manager', 'hr'], letter: ['hr'], data_change: ['hr'], advance: ['hr', 'payroll'], exit_reentry: ['manager', 'hr'], permission: ['manager', 'hr'], overtime: ['manager', 'hr'], travel: ['manager', 'hr'] };
@@ -448,7 +448,7 @@ function sumHtml(type, q, rq, file){
     h += '<div class="fp-big"><b><bdi dir="ltr">' + esc(c.time || '') + '</bdi></b><span>' + (c.punchType === 'out' ? t('rqOut') : t('rqIn')) + ' · ' + fmtDate(c.date) + '</span></div>';
   } else if (type === 'letter') {
     var l = q.payload || {};
-    h += '<div class="fp-big"><b style="font-size:22px">' + t('ls_' + q.subtype) + '</b></div>';
+    h += '<div class="fp-big"><b style="font-size:24px">' + t('ls_' + q.subtype) + '</b></div>';
     row(t('rqAddressee'), esc(l.addressee || '')); row(t('rqLang'), l.lang === 'en' ? t('rqLangEn') : t('rqLangAr'));
   } else if (type === 'data_change') {
     var fl = (q.payload && q.payload.fields) || {}, pv = (file && file.priv) || {}, em = (file && file.emp) || {};
@@ -480,7 +480,7 @@ function newPage(body, type){
   }
   function picker(pg, top){
     var saudi = !!(F.job && F.job.isSaudi), a = M.leave && M.leave.annual;
-    var bal = a ? '<section class="fp-card" style="margin-bottom:18px"><div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap">' + (window.Viz ? Viz.ring(Math.min(100, (a.available || 0) / Math.max(1, a.perYear || 21) * 100), num1(a.available), t('lvBalance'), { size: 64 }) : '') +
+    var bal = a ? '<section class="fp-card" style="margin-bottom:18px"><div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">' + (window.Viz ? Viz.ring(Math.min(100, (a.available || 0) / Math.max(1, a.perYear || 21) * 100), num1(a.available), t('lvBalance'), { size: 64 }) : '') +
       '<div style="flex:1;min-width:180px"><b style="font-size:16px">' + t('lvBalance') + '</b><div class="hr-hint">' + plural(Math.round((a.available || 0) * 10) / 10, 'days') + ' ' + t('lvAvailable') + ' · ' + t('lvPending') + ' ' + num1(a.pending) + ' · ' + t('lvSick') + ' ' + num1(M.leave.sick.used) + '</div></div>' +
       '<button type="button" class="btn btn-line btn-sm" data-go="requests:mine">' + ph('tray') + t('rqAllMine') + '</button></div></section>' : '';
     pg.innerHTML = top + bal + '<div class="fp-types">' + TYPES.filter(function(x){ return x[0] !== 'exit_reentry' || !saudi; }).map(function(x){

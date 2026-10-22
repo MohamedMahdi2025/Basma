@@ -43,7 +43,43 @@ function makeSheet(name) {
 }
 
 function load(opts = {}) {
-  const sheets = {};
+  const sheets = {}, books = {};
+  /** A minimal Google Sheets REST API v4 over the in-memory books (only what Code.gs restBook_ calls). */
+  const A1 = s => { const m = /^'((?:[^']|'')*)'(?:!([A-Z]+)(\d+):([A-Z]+)(\d+))?$/.exec(s); const col = c => c.split('').reduce((n, ch) => n * 26 + ch.charCodeAt(0) - 64, 0);
+    return { tab: m[1].replace(/''/g, "'"), r: m[2] ? +m[3] : 1, c: m[2] ? col(m[2]) : 1, r2: m[2] ? +m[5] : null, c2: m[2] ? col(m[4]) : null }; };
+  const res = (code, obj) => ({ getResponseCode: () => code, getContentText: () => JSON.stringify(obj || {}) });
+  const sheetsApi = (url, o) => {
+    const u = new URL(url); if (u.host !== 'sheets.googleapis.com') return res(404, { error: 'no network in tests: ' + u.host });
+    const p = u.pathname.replace('/v4/spreadsheets', ''), method = String(o.method || 'get').toLowerCase(), body = o.payload ? JSON.parse(o.payload) : {};
+    if (p === '' && method === 'post') { // create with tabs
+      const id = 'book' + (Object.keys(books).length + 1); books[id] = { name: body.properties.title, tabs: {}, props: {} };
+      (body.sheets || []).forEach((s, i) => { const n = s.properties.title, sh = makeSheet(n); books[id].tabs[n] = sh; books[id].props[n] = { sheetId: i + 1, title: n, gridProperties: s.properties.gridProperties };
+        ((s.data || [])[0] || { rowData: [] }).rowData.forEach(rd => sh.appendRow(rd.values.map(v => v.userEnteredValue.stringValue))); });
+      return res(200, { spreadsheetId: id });
+    }
+    const m = /^\/([^/:]+)(.*)$/.exec(p), id = m && m[1], rest = m ? decodeURIComponent(m[2]) : '', b = books[id];
+    if (!b) return res(404, { error: 'not found' });
+    if (rest === '' && method === 'get') return res(200, { sheets: Object.values(b.props).map(x => ({ properties: x })) });
+    if (rest === ':batchUpdate') {
+      return res(200, { replies: body.requests.map(q => {
+        if (q.addSheet) { const n = q.addSheet.properties.title; b.tabs[n] = makeSheet(n); b.props[n] = Object.assign({ sheetId: Object.keys(b.props).length + 1 }, q.addSheet.properties); return { addSheet: { properties: b.props[n] } }; }
+        if (q.appendDimension) { const pr = Object.values(b.props).find(x => x.sheetId === q.appendDimension.sheetId); pr.gridProperties[q.appendDimension.dimension === 'ROWS' ? 'rowCount' : 'columnCount'] += q.appendDimension.length; return {}; }
+        return {};
+      }) });
+    }
+    const vm2 = /^\/values\/(.+?)(:clear)?$/.exec(rest); if (!vm2) return res(400, { error: 'unsupported ' + rest });
+    const a = A1(vm2[1]), sh = b.tabs[a.tab], grid = b.props[a.tab] && b.props[a.tab].gridProperties; if (!sh) return res(400, { error: 'no tab ' + a.tab });
+    if (vm2[2]) { sh.getRange(a.r, a.c, a.r2 - a.r + 1, a.c2 - a.c + 1).clearContent(); return res(200, {}); }
+    if (method === 'put') {
+      if (a.r2 > grid.rowCount || a.c2 > grid.columnCount) return res(400, { error: 'Range exceeds grid limits' });
+      sh.getRange(a.r, a.c, body.values.length, body.values[0].length).setValues(body.values); return res(200, {});
+    }
+    // get: the API leaves out trailing empty cells and rows
+    const rows = sh._rows.map(r => { const x = (r || []).map(v => v instanceof Date ? v.toISOString() : v); while (x.length && (x[x.length - 1] === '' || x[x.length - 1] == null)) x.pop(); return x; });
+    while (rows.length && !rows[rows.length - 1].length) rows.pop();
+    return res(200, rows.length ? { values: rows } : {});
+  };
+  const book = id => ({ getId: () => id, getSheets: () => Object.values(books[id].tabs), getSheetByName: n => books[id].tabs[n] || null, insertSheet: n => (books[id].tabs[n] = makeSheet(n)), getSpreadsheetTimeZone: () => 'Asia/Riyadh' });
   const props = Object.assign({}, opts.props || {});
   const cache = {};
   let clock = opts.now || null;
@@ -56,8 +92,15 @@ function load(opts = {}) {
   const ctx = {
     console, Math, JSON, BigInt, Array, Object, String, Number, isFinite, parseInt, Error,
     Date: FakeDate,
-    SpreadsheetApp: { getActiveSpreadsheet: () => ({ getSpreadsheetTimeZone: () => 'America/Los_Angeles', getSheetByName: n => sheets[n] || null, insertSheet: n => (sheets[n] = makeSheet(n)) }) },
-    PropertiesService: { getScriptProperties: () => ({ getProperty: k => (k in props ? props[k] : null), setProperty: (k, v) => { props[k] = v; } }) },
+    ScriptApp: { getOAuthToken: () => 'test-token' },
+    UrlFetchApp: { fetch: (url, o) => sheetsApi(url, o || {}) },
+    SpreadsheetApp: {
+      getActiveSpreadsheet: () => ({ getSpreadsheetTimeZone: () => 'America/Los_Angeles', getSheetByName: n => sheets[n] || null, insertSheet: n => (sheets[n] = makeSheet(n)) }),
+      // other organisations' own spreadsheets (SaaS tenancy): each book its own tabs, opened by id
+      create: name => { const id = 'book' + (Object.keys(books).length + 1); books[id] = { name, tabs: {} }; return book(id); },
+      openById: id => { if (!books[id]) throw new Error('no spreadsheet ' + id); return book(id); }
+    },
+    PropertiesService: { getScriptProperties: () => ({ getProperty: k => (k in props ? props[k] : null), setProperty: (k, v) => { props[k] = v; }, getProperties: () => Object.assign({}, props) }) },
     CacheService: { getScriptCache: () => ({
       get: k => (cache[k] && cache[k].exp > FakeDate.now() ? cache[k].v : null),
       put: (k, v, s) => { cache[k] = { v, exp: FakeDate.now() + s * 1000 }; },
@@ -66,7 +109,7 @@ function load(opts = {}) {
       getAll: ks => { const o = {}; ks.forEach(k => { if (cache[k] && cache[k].exp > FakeDate.now()) o[k] = cache[k].v; }); return o; }
     }) },
     LockService: { getScriptLock: () => ({ waitLock() {}, releaseLock() {} }) },
-    ContentService: { createTextOutput: t => ({ setMimeType() { return t; } }), MimeType: { JSON: 'json' } },
+    ContentService: { createTextOutput: t => ({ setMimeType() { return t; } }), MimeType: { JSON: 'json', CSV: 'csv' } },
     Session: { getScriptTimeZone: () => 'Asia/Riyadh' },
     Utilities: {
       formatDate: (d, tz, fmt) => {
@@ -94,8 +137,10 @@ function load(opts = {}) {
   for (const f of ['Code.gs', 'WebAuthn.gs', 'Attendance.gs', 'Admin.gs', 'Hr.gs', 'Leave.gs', 'Payroll.gs', 'Performance.gs', 'Dashboard.gs', 'Reports.gs', 'Engage.gs', 'Compliance.gs', 'Shifts.gs', 'Relations.gs', 'Custody.gs', 'Demo.gs', 'GovServices.gs', 'Expenses.gs', 'Journal.gs', 'Flows.gs', 'Recruitment.gs', 'Loans.gs', 'Training.gs', 'Insurance.gs', 'Announce.gs', 'HelpDesk.gs']) vm.runInContext(fs.readFileSync(path.join(dir, f), 'utf8'), ctx, { filename: f });
   if (opts.setupKeyHash) vm.runInContext(`var SETUP_KEY_HASH = ${JSON.stringify(opts.setupKeyHash)};`, ctx);
   const self = {
-    ctx, sheets, props, cache,
-    call: req => JSON.parse(JSON.stringify(ctx.handle_(req))),
+    ctx, sheets, books, props, cache,
+    // like the app: every request names its organisation (the home one unless the test says otherwise); raw() sends it as is
+    call: req => JSON.parse(JSON.stringify(ctx.handle_(req && req.orgId === undefined && !req.token ? Object.assign({ orgId: '1001' }, req) : req))),
+    raw: req => JSON.parse(JSON.stringify(ctx.handle_(req))),
     setNow: ms => { clock = ms; },
     now: () => FakeDate.now(),
     /** A second, independent backend with a copy of this one's sheets, properties, cache and clock (tokens stay valid). */

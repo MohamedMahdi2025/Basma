@@ -175,9 +175,11 @@ function dashPerformance_(ctx) {
 // ---------------- cost and liabilities (money roles only) ----------------
 
 function dashCost_(emps, ctx, reqs, t, s) {
-  var runs = runsRealFirst_(readAll_(SHEETS.RUN)).filter(function (r) { return r.status === 'locked'; }).sort(function (a, b) { return a.month < b.month ? -1 : 1; }).slice(-12); // one run a month: the real one when it exists
+  var byMonth = {}; runsRealFirst_(readAll_(SHEETS.RUN)).filter(function (r) { return r.status === 'locked'; }).forEach(function (r) { (byMonth[r.month] = byMonth[r.month] || []).push(r); }); // pay groups: every run of a month
+  var runs = Object.keys(byMonth).sort().slice(-12).map(function (m) { return { id: 'M:' + m, month: m, ids: byMonth[m].map(function (r) { return r.id; }) }; }); // one run a month: the real one when it exists
   var slips = readAll_(SHEETS.SLIP), byRun = {};
-  slips.forEach(function (sl) { if (sl.status === 'locked') (byRun[sl.runId] = byRun[sl.runId] || []).push(sl); });
+  var monthOf = {}; runs.forEach(function (r) { r.ids.forEach(function (id) { monthOf[id] = r.id; }); });
+  slips.forEach(function (sl) { if (sl.status === 'locked' && monthOf[sl.runId]) (byRun[monthOf[sl.runId]] = byRun[monthOf[sl.runId]] || []).push(sl); });
   var trend = runs.map(function (r) {
     var ls = byRun[r.id] || [], ot = 0;
     ls.forEach(function (sl) { lines_(sl).forEach(function (l) { if (l.code === 'overtime') ot += l.amount; }); });

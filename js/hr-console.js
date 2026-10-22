@@ -194,21 +194,21 @@ var COLS = [
 var XLSX_URL = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
 
 var css = '' +
-'.hr-rail{display:flex;gap:6px;overflow-x:auto;padding:14px 14px 6px;scrollbar-width:none}' +
+'.hr-rail{display:flex;gap:8px;overflow-x:auto;padding:14px 14px 6px;scrollbar-width:none}' +
 '.hr-rail::-webkit-scrollbar{display:none}' +
-'.hr-rail button{flex:none;height:38px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-size:13.5px;color:var(--ink-2);display:inline-flex;align-items:center;gap:7px}' +
-'.hr-rail button i{font-size:17px}' +
+'.hr-rail button{flex:none;height:38px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-size:14px;color:var(--ink-2);display:inline-flex;align-items:center;gap:8px}' +
+'.hr-rail button i{font-size:18px}' +
 '.hr-rail button[aria-current="page"]{background:var(--pine);color:var(--cream);border-color:var(--pine)}' +
 '.hr-rail-g{display:none}' +
-'.hr-rail .badge{display:inline-grid;place-items:center;min-width:18px;height:18px;border-radius:9px;background:var(--amber);color:#fff;font-size:11px;padding:0 5px}' +
+'.hr-rail .badge{display:inline-grid;place-items:center;min-width:18px;height:18px;border-radius:8px;background:var(--amber);color:#fff;font-size:11px;padding:0 5px}' +
 '.hr-body{padding:8px 14px 28px;min-width:0}' +
-'.hr-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:6px 0 14px}' +
+'.hr-h{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:6px 0 14px}' +
 '.hr-h h2{margin:0;font-size:20px;font-weight:600;flex:1}' +
-'.hr-sat{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:14px}' +
+'.hr-sat{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:14px}' +
 '.hr-sat .meter{grid-column:1 / -1;background:var(--pine);color:var(--cream);border-radius:var(--r-m);padding:14px 16px}' +
-'.hr-sat .meter span{font-size:12.5px;color:#AFC0AD}' +
-'.hr-sat .meter b{display:block;font-size:34px;font-weight:600;line-height:1.15}' +
-'.hr-sat .meter small{display:block;color:#AFC0AD;font-size:12px;margin-top:6px}' +
+'.hr-sat .meter span{font-size:13px;color:var(--g-AFC0AD,#AFC0AD)}' +
+'.hr-sat .meter b{display:block;font-size:32px;font-weight:600;line-height:1.15}' +
+'.hr-sat .meter small{display:block;color:var(--g-AFC0AD,#AFC0AD);font-size:12px;margin-top:6px}' +
 '.hr-sat .track{height:8px;border-radius:4px;background:rgba(255,255,255,.12);margin-top:10px;overflow:hidden}' +
 '.hr-sat .track i{display:block;height:100%;background:var(--signal);border-radius:4px;transition:width .9s var(--ease)}' +
 '.hr-cards{display:grid;gap:0}' +
@@ -218,21 +218,21 @@ var css = '' +
 '.hr-tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:0 -18px 16px;padding:0 18px;overflow-x:auto;scrollbar-width:none}' +
 '.hr-tabs button{flex:none;background:none;border:0;border-bottom:2px solid transparent;padding:10px 10px;color:var(--ink-2);font-size:14px}' +
 '.hr-tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--brand);font-weight:500}' +
-'.hr-sub{margin:18px 0 8px;font-size:15px;font-weight:600}' +
+'.hr-sub{margin:18px 0 8px;font-size:16px;font-weight:600}' +
 '.hr-who{display:flex;align-items:center;gap:12px;margin-bottom:14px}' +
-'.hr-who .av{width:46px;height:46px;font-size:17px}' +
+'.hr-who .av{width:46px;height:46px;font-size:18px}' +
 '.hr-who b{display:block;font-size:18px;font-weight:600}' +
 '.hr-who small{color:var(--ink-2)}' +
 '.hr-tree .row{padding-top:10px;padding-bottom:10px}' +
-'.hr-tree .lvl{display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--brand);flex:none}' +
-'.hr-chart .kids{margin-inline-start:15px;border-inline-start:2px solid #E4E9E1;padding-inline-start:14px}' +
+'.hr-tree .lvl{display:inline-block;width:10px;height:10px;border-radius:4px;background:var(--brand);flex:none}' +
+'.hr-chart .kids{margin-inline-start:15px;border-inline-start:2px solid var(--g-E4E9E1,#E4E9E1);padding-inline-start:14px}' +
 '.hr-chart summary .car{margin-inline-start:auto;color:var(--ink-2);transition:transform .2s var(--ease)}' +
 '.hr-chart details:not([open]) > summary .car{transform:rotate(90deg)}' +
-'.hr-chart summary{list-style:none;display:flex;align-items:center;gap:10px;padding:7px 0;cursor:pointer}' +
+'.hr-chart summary{list-style:none;display:flex;align-items:center;gap:12px;padding:7px 0;cursor:pointer}' +
 '.hr-chart summary::-webkit-details-marker{display:none}' +
 '.hr-chart summary .av{width:32px;height:32px;font-size:13px}' +
-'.hr-chart summary small{color:var(--ink-2);font-size:12.5px}' +
-'.hr-chart .leaf{display:flex;align-items:center;gap:10px;padding:7px 0}' +
+'.hr-chart summary small{color:var(--ink-2);font-size:13px}' +
+'.hr-chart .leaf{display:flex;align-items:center;gap:12px;padding:7px 0}' +
 '.hr-chart .leaf .av{width:32px;height:32px;font-size:13px}' +
 '.hr-seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;background:var(--card)}' +
 '.hr-seg button{border:0;background:none;height:32px;padding:0 12px;border-radius:999px;font-size:13px;color:var(--ink-2)}' +
@@ -241,16 +241,16 @@ var css = '' +
 '.hr-steps > li{counter-increment:st;background:var(--card);border:1px solid var(--line);border-radius:var(--r-m);padding:16px 16px 16px 16px;position:relative;padding-inline-start:58px}' +
 '.hr-steps > li::before{content:counter(st);position:absolute;inset-inline-start:16px;top:14px;width:28px;height:28px;border-radius:50%;background:var(--pine);color:var(--cream);display:grid;place-items:center;font-weight:600;font-size:14px}' +
 '.hr-steps h3{margin:0 0 2px;font-size:16px;font-weight:600}' +
-'.hr-steps p{margin:0 0 10px;color:var(--ink-2);font-size:13.5px}' +
+'.hr-steps p{margin:0 0 10px;color:var(--ink-2);font-size:14px}' +
 '.hr-sum{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 12px}' +
 '.hr-sum .chip{font-size:13px;padding:5px 11px}' +
 '.hr-err td:first-child{font-variant-numeric:tabular-nums}' +
 '.hr-amt{font-variant-numeric:tabular-nums;text-align:end}' +
 '.hr-other{display:grid;grid-template-columns:1fr 120px 38px;gap:8px;align-items:center}' +
-'.hr-hint{color:var(--ink-2);font-size:12.5px;margin-top:4px}' +
-'.hr-bad{color:var(--red);font-size:12.5px;margin-top:4px}' +
-'.hr-jdtabs{display:flex;gap:6px;margin-bottom:8px}' +
-'.hr-check{display:flex;gap:10px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:var(--r-s);padding:12px}' +
+'.hr-hint{color:var(--ink-2);font-size:13px;margin-top:4px}' +
+'.hr-bad{color:var(--red);font-size:13px;margin-top:4px}' +
+'.hr-jdtabs{display:flex;gap:8px;margin-bottom:8px}' +
+'.hr-check{display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:var(--r-s);padding:12px}' +
 '.hr-check input{width:20px!important;height:20px!important;margin-top:2px}' +
 '.hr-check small{display:block;color:var(--ink-2)}' +
 '.tbl input[type=checkbox]{width:18px;height:18px}' +
@@ -259,19 +259,19 @@ var css = '' +
 '.lvg > div{border-bottom:1px solid #EFECE3;min-height:30px}' +
 '.lvg-name{position:sticky;inset-inline-start:0;background:var(--card);z-index:1;padding:6px 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-inline-end:1px solid var(--line)}' +
 '.lvg-day{display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--ink-2);line-height:1.2;padding:4px 0}' +
-'.lvg-day span{font-size:10px}.lvg-day.we,.lvg-cell.we{background:#FAF9F5}' +
+'.lvg-day span{font-size:11px}.lvg-day.we,.lvg-cell.we{background:#FAF9F5}' +
 '.lvg-day.ho,.lvg-cell.ho{background:repeating-linear-gradient(45deg,#ECE8DD 0 4px,#F6F4EE 4px 8px)}' +
 '.lvg-cell{position:relative}.lvg-cell.on::after{content:"";position:absolute;inset:6px 1px;border-radius:4px;background:var(--brand)}' +
 '.lvg-cell.on.pending::after{background:var(--amber)}' +
-'.lv-legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;color:var(--ink-2)}.lv-legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-inline-end:5px;vertical-align:middle}' +
+'.lv-legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--ink-2)}.lv-legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-inline-end:5px;vertical-align:middle}' +
 '@media (min-width:1024px){' +
-  '.hr-shell{display:grid;grid-template-columns:230px minmax(0,1fr);max-width:1440px;width:calc(100% - 56px);margin:0 auto 28px;background:var(--paper);border-radius:32px;min-height:calc(100dvh - 120px)}' +
+  '.hr-shell{display:grid;grid-template-columns:230px minmax(0,1fr);max-width:1440px;width:calc(100% - 56px);margin:0 auto 28px;background:var(--paper);border-radius:24px;min-height:calc(100dvh - 120px)}' +
   '.hr-rail{flex-direction:column;padding:26px 14px;border-inline-end:1px solid var(--line);overflow:visible}' +
   '.hr-rail button{height:42px;border:0;background:none;justify-content:flex-start;border-radius:12px;font-size:14px}' +
   '.hr-rail button:hover{background:#EFECE3}' +
   '.hr-rail .badge{margin-inline-start:auto}' +
-  '.hr-rail .hr-rail-g{display:block;margin:14px 12px 4px;font-size:11.5px;font-weight:600;letter-spacing:.02em;color:#8A948B}.hr-rail .hr-rail-g:first-child{margin-top:0}' +
-  '.hr-rail button[aria-current="page"]{box-shadow:0 8px 18px -10px rgba(28,42,31,.6)}' +
+  '.hr-rail .hr-rail-g{display:block;margin:14px 12px 4px;font-size:12px;font-weight:600;letter-spacing:.02em;color:#8A948B}.hr-rail .hr-rail-g:first-child{margin-top:0}' +
+  '.hr-rail button[aria-current="page"]{box-shadow:var(--e3)}' +
   '.hr-body{padding:26px 30px 36px}' +
   '.hr-sat{grid-template-columns:2fr 1fr 1fr 1fr}' +
   '.hr-sat .meter{grid-column:auto}' +
@@ -850,7 +850,7 @@ function approvals(body){
 // ---------------- documents and expiries ----------------
 function expiring(body){
   var days = S.exDays || 60;
-  body.innerHTML = '<div class="hr-h"><h2>' + t('hrExpiring') + '</h2><label style="display:flex;align-items:center;gap:8px;color:var(--ink-2);font-size:13.5px">' + t('exDays') +
+  body.innerHTML = '<div class="hr-h"><h2>' + t('hrExpiring') + '</h2><label style="display:flex;align-items:center;gap:8px;color:var(--ink-2);font-size:14px">' + t('exDays') +
     '<select id="exd" style="height:38px;border:1px solid var(--line);border-radius:var(--r-s);background:var(--card);padding:0 10px">' + [30, 60, 90, 180].map(function(n){ return opt(n, plural(n, 'days'), days); }).join('') + '</select></label></div><div id="exBody"></div>';
   $('#exd').onchange = function(){ S.exDays = Number(this.value); expiring(body); };
   var el = $('#exBody');
@@ -939,7 +939,7 @@ function importer(body){
     if (errs.length) {
       html += '<div class="tblwrap hr-err" style="max-height:420px"><table class="tbl"><thead><tr><th>' + t('imRow') + '</th><th>' + t('imCol') + '</th><th>' + t('imProblem') + '</th></tr></thead><tbody>' +
         errs.map(function(e){ return '<tr><td>' + (st.lines[e.row - 2] || e.row) + '</td><td>' + esc(colLabel(e.field)) + '</td><td>' + esc(errText(e.code)) + '</td></tr>'; }).join('') + '</tbody></table></div>';
-    } else html += '<p style="color:#255B31;margin:0 0 10px">' + t('imNoErrors') + '</p><button type="button" class="btn btn-dark" id="imGo">' + ph('check') + t('imGo') + '</button>';
+    } else html += '<p style="color:var(--g-255B31,#255B31);margin:0 0 10px">' + t('imNoErrors') + '</p><button type="button" class="btn btn-dark" id="imGo">' + ph('check') + t('imGo') + '</button>';
     res.innerHTML = html;
     var go = $('#imGo');
     if (go) go.onclick = function(){
@@ -947,7 +947,7 @@ function importer(body){
       api('hrImportCommit', { rows: st.rows }).then(function(x){
         if (!x.ok) { go.disabled = false; if (x.errors) return show({ ok: true, summary: s, errors: x.errors }, []); res.insertAdjacentHTML('beforeend', '<p class="hr-bad">' + errText(x.error) + '</p>'); return; }
         H.dir = null;
-        res.innerHTML = '<p style="color:#255B31;font-weight:500;margin:0 0 8px">' + t('imDone') + '</p><div class="hr-sum"><span class="chip in num">' + t('imCreate') + ': ' + x.created + '</span><span class="chip num">' + t('imUpdate') + ': ' + x.updated + '</span>' +
+        res.innerHTML = '<p style="color:var(--g-255B31,#255B31);font-weight:500;margin:0 0 8px">' + t('imDone') + '</p><div class="hr-sum"><span class="chip in num">' + t('imCreate') + ': ' + x.created + '</span><span class="chip num">' + t('imUpdate') + ': ' + x.updated + '</span>' +
           (x.pendingSalaries ? '<span class="chip late num">' + t('imSalaries') + ': ' + x.pendingSalaries + '</span>' : '') + '</div>' +
           (x.pendingSalaries ? '<button type="button" class="btn btn-dark btn-sm" id="imAp">' + t('imGoApprovals') + '</button>' : '');
         var ap = $('#imAp'); if (ap) ap.onclick = function(){ goArea('pay', 'approvals'); };

@@ -29,7 +29,7 @@ function saveSettingKey_(key, value) {
   var row = readAll_(SHEETS.SET).filter(function (r) { return r.key === key; })[0];
   if (row) { row.value = value; update_(SHEETS.SET, row); } else append_(SHEETS.SET, { key: key, value: value });
   forget_(SHEETS.SET);
-  try { CacheService.getScriptCache().remove(SETTINGS_CACHE_KEY); } catch (e) {}
+  try { cache_().remove(SETTINGS_CACHE_KEY); } catch (e) {}
 }
 function glMap_() {
   var m = parseJson_(settings_().glMap, {});
@@ -101,7 +101,7 @@ function publicJournal_(j, me) {
 function api_journalList(req, me) {
   if (!canPayroll_(me)) fail_('forbidden');
   var logs = readAll_(SHEETS.JOURNAL), map = glMap_();
-  var runs = readAll_(SHEETS.RUN).filter(function (r) { return r.status === 'locked' && !isDemoRun_(r); }).sort(function (a, b) { return a.month < b.month ? 1 : -1; }).slice(0, 24).map(function (r) {
+  var pgs = payGroups_(), runs = readAll_(SHEETS.RUN).filter(function (r) { return r.status === 'locked' && !isDemoRun_(r) && runAccess_(me, r, pgs); }).sort(function (a, b) { return a.month < b.month ? 1 : -1; }).slice(0, 24).map(function (r) {
     var o = publicRun_(r), j = logs.filter(function (x) { return x.runId === r.id && x.status !== 'cancelled'; })[0];
     o.journal = publicJournal_(j, me);
     return o;
@@ -114,7 +114,7 @@ function api_journalList(req, me) {
 }
 function api_journalBuild(req, me) {
   if (!canPayroll_(me)) fail_('forbidden');
-  var run = findBy_(SHEETS.RUN, 'id', req.id);
+  var run = findBy_(SHEETS.RUN, 'id', req.id); if (run && !runAccess_(me, run)) fail_('forbidden'); // a closed pay group: its own payroll staff only
   if (!run || run.status !== 'locked') fail_('run_not_locked');
   if (isDemoRun_(run)) fail_('demo_run'); // demo payroll never goes to the bank or the ledger
   var j = journalOf_(run), log = journalLogOf_(run.id);
@@ -125,7 +125,7 @@ function api_journalBuild(req, me) {
 function api_journalStep(req, me) {
   if (!canPayroll_(me)) fail_('forbidden');
   return withLock_(function () {
-    var run = findBy_(SHEETS.RUN, 'id', req.id);
+    var run = findBy_(SHEETS.RUN, 'id', req.id); if (run && !runAccess_(me, run)) fail_('forbidden'); // a closed pay group: its own payroll staff only
     if (!run || run.status !== 'locked') fail_('run_not_locked');
     if (isDemoRun_(run)) fail_('demo_run'); // demo payroll never goes to the bank or the ledger
     var log = journalLogOf_(run.id), now = new Date().toISOString(), step = req.step;

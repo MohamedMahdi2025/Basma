@@ -313,7 +313,7 @@ function api_settingsSave(req, me) {
     var rows = Object.keys(next).map(function (k) { return toRow_(SHEETS.SET, { key: k, value: next[k] }); });
     sh.getRange(2, 1, rows.length, 2).setValues(rows);
     forget_(SHEETS.SET);
-    try { CacheService.getScriptCache().remove(SETTINGS_CACHE_KEY); } catch (e) {}
+    try { cache_().remove(SETTINGS_CACHE_KEY); } catch (e) {}
     audit_(me.id, 'settings_save', '', next);
     return { ok: true, settings: next };
   });
@@ -337,7 +337,7 @@ function companySettings_(d, next) {
 }
 /** What the app shows as the employer on every screen and document. */
 function companyOf_(s) {
-  return { nameAr: s.companyNameAr, nameEn: s.companyNameEn, shortAr: s.companyShortAr, shortEn: s.companyShortEn, cr: s.companyCr, vat: s.companyVat,
+  return { orgId: orgId_(), home: !!(!ORG_ || ORG_.home), logoVer: logoVer_(), brandColor: brandColor_(), nameAr: s.companyNameAr, nameEn: s.companyNameEn, shortAr: s.companyShortAr, shortEn: s.companyShortEn, cr: s.companyCr, vat: s.companyVat,
     addressAr: s.companyAddressAr, addressEn: s.companyAddressEn };
 }
 
@@ -493,4 +493,271 @@ function api_dataExport(req, me) {
   });
   audit_(me.id, 'data_export', '', { tabs: Object.keys(out).length, skipped: skipped, withPay: pay });
   return { ok: true, at: new Date().toISOString(), company: companyOf_(settings_()), tabs: out, skipped: skipped, withPay: pay };
+}
+
+
+// ======================================================================= public API and webhooks (2026-10-22)
+// docs/research/2026-10-22-api-webhooks-design.md. Per organisation (its own tabs in its own book):
+// - API keys: read-only, scoped, shown once, stored as SHA-256. POST {action:'apiQuery', orgId, apiKey, resource, ...}
+//   or GET ?org=&key=&resource=&format=json|csv (Power BI / Excel, which cannot send headers). Every call is audited.
+// - Webhooks: HTTPS endpoints (no private addresses) subscribed to events; each delivery is signed
+//   X-HRIS-Signature: sha256=HMAC(secret, timestamp + '.' + body). The secret is derived, never stored; shown once.
+//   Events are captured at the data layer (append_/update_) into tab webhookOutbox and delivered lazily after write
+//   requests, with retries (1, 2, 4 … minutes, 8 attempts). Salaries and private data are never in an API answer or event.
+var API_SCOPES_ = { employees: 1, org: 1, attendance: 1, leave: 1, payroll: 1 };
+var API_RESOURCES_ = { employees: 'employees', departments: 'org', positions: 'org', attendance: 'attendance', leave: 'leave', payrollRuns: 'payroll', journal: 'payroll' };
+var WH_EVENTS_ = { 'employee.created': 1, 'employee.updated': 1, 'employee.left': 1, 'leave.approved': 1, 'attendance.punch': 1, 'payroll.locked': 1, 'ping': 1 };
+var API_PAGE_ = 500;
+
+function apiKeyParse_(k) { var m = /^hrk_([A-Za-z0-9_-]{6,20})_([A-Za-z0-9_-]{20,64})$/.exec(String(k || '')); return m ? { id: m[1], secret: m[2] } : null; }
+function api_apiKeyList(req, me) {
+  if (me.role !== 'admin') fail_('forbidden');
+  return { ok: true, rows: readAll_(SHEETS.APIKEY).filter(function (x) { return x.status !== 'deleted'; }).map(function (x) {
+    return { id: x.id, keyId: x.keyId, label: x.label, scopes: parseJson_(x.scopesJson, []), status: x.status, createdAt: x.createdAt, lastUsedAt: x.lastUsedAt, uses: Number(x.uses) || 0 }; }),
+    hooks: readAll_(SHEETS.HOOK).filter(function (x) { return x.status !== 'deleted'; }).map(publicHook_), events: Object.keys(WH_EVENTS_).filter(function (e) { return e !== 'ping'; }),
+    scopes: Object.keys(API_SCOPES_), orgId: orgId_() };
+}
+/** Administrator: a new key (shown once) or { id, revoke }. */
+function api_apiKeySave(req, me) {
+  if (me.role !== 'admin') fail_('forbidden');
+  return withLock_(function () {
+    if (req.id) {
+      var x = findBy_(SHEETS.APIKEY, 'id', String(req.id)); if (!x) fail_('not_found');
+      x.status = 'revoked'; update_(SHEETS.APIKEY, x); audit_(me.id, 'api_key_revoke', '', { keyId: x.keyId }); return { ok: true };
+    }
+    var scopes = (req.scopes || []).filter(function (s) { return API_SCOPES_[s]; });
+    if (!scopes.length || !str_(req.label, 80)) fail_('missing_fields');
+    if (readAll_(SHEETS.APIKEY).filter(function (k) { return k.status === 'active'; }).length >= 20) fail_('too_many');
+    var keyId = bytesToB64u_(randomBytes_(6)).replace(/[^A-Za-z0-9]/g, 'x'), secret = bytesToB64u_(randomBytes_(24)).replace(/[^A-Za-z0-9]/g, 'x');
+    append_(SHEETS.APIKEY, { id: newId_('K'), keyId: keyId, label: str_(req.label, 80), scopesJson: JSON.stringify(scopes), hash: sha256Hex_(secret), status: 'active', createdBy: me.id, createdAt: new Date().toISOString(), lastUsedAt: '', uses: 0 });
+    audit_(me.id, 'api_key_create', '', { keyId: keyId, scopes: scopes.join(',') });
+    return { ok: true, key: 'hrk_' + keyId + '_' + secret, orgId: orgId_() };
+  });
+}
+/** The integration's request: one resource, one page; read-only. */
+function api_apiQuery(req) {
+  var p = apiKeyParse_(req.apiKey);
+  if (!p) fail_('bad_api_key');
+  if (!rateLimit_('apikey:' + p.id, 120, 60)) fail_('too_many_attempts');
+  var k = findBy_(SHEETS.APIKEY, 'keyId', p.id);
+  if (!k || k.status !== 'active' || !safeEqual_(sha256Hex_(p.secret), k.hash)) { rateLimit_('apibad', 1000, 600); fail_('bad_api_key'); }
+  var res = String(req.resource || ''), need = API_RESOURCES_[res];
+  if (!need) fail_('unknown_resource');
+  if (parseJson_(k.scopesJson, []).indexOf(need) < 0) fail_('scope_missing');
+  var rows = API_FNS_[res](req), page = Math.max(1, Math.floor(Number(req.page) || 1)), total = rows.length;
+  rows = rows.slice((page - 1) * API_PAGE_, page * API_PAGE_);
+  try { withLock_(function () { var x = findBy_(SHEETS.APIKEY, 'id', k.id); x.lastUsedAt = new Date().toISOString(); x.uses = (Number(x.uses) || 0) + 1; update_(SHEETS.APIKEY, x); audit_('api:' + k.keyId, 'api_query', '', { resource: res, rows: rows.length, page: page }); }); } catch (e) {}
+  return { ok: true, orgId: orgId_(), resource: res, page: page, pageSize: API_PAGE_, total: total, hasMore: page * API_PAGE_ < total, rows: rows };
+}
+function apiRange_(req, max) {
+  var t = today_(), to = isoDate_(req.to) || addDays_(t, -1), from = isoDate_(req.from) || to.slice(0, 8) + '01';
+  if (from > to || daysBetween_(from, to) >= max) fail_('range_too_long');
+  return { from: from, to: to };
+}
+var API_FNS_ = {
+  employees: function (req) {
+    var ctx = orgCtx_(), since = String(req.updatedSince || '');
+    return Object.keys(ctx.emps).map(function (k) { return ctx.emps[k]; }).filter(function (e) { return !since || String(e.updatedAt || e.createdAt) >= since; }).map(function (e) {
+      var d = ctx.depts[e.departmentId], m = ctx.emps[e.managerId];
+      return { id: e.id, empNo: String(e.empNo), name: e.name, nameEn: e.nameEn || '', email: e.email || '', status: e.status, departmentId: e.departmentId || '', department: d ? d.nameAr : (e.department || ''),
+        positionId: e.positionId || '', title: e.title || '', managerEmpNo: m ? String(m.empNo) : '', hireDate: isoDate_(e.hireDate) || '', lastWorkingDay: isoDate_(e.lastWorkingDay) || '',
+        contractType: e.contractType || '', payGroupId: String(e.payGroupId || ''), updatedAt: e.updatedAt || e.createdAt || '' };
+    });
+  },
+  departments: function () { return readAll_(SHEETS.DEPT).map(function (d) { return { id: d.id, nameAr: d.nameAr, nameEn: d.nameEn || '', parentId: d.parentId || '', status: d.status || 'active' }; }); },
+  positions: function () { return readAll_(SHEETS.POS).map(function (x) { return { id: x.id, code: x.code || '', titleAr: x.titleAr || '', titleEn: x.titleEn || '', departmentId: x.departmentId || '', grade: String(x.grade || '') }; }); },
+  attendance: function (req) {
+    var r = apiRange_(req, 31), ctx = orgCtx_(), emps = Object.keys(ctx.emps).map(function (k) { return ctx.emps[k]; }).filter(function (e) { return e.status === 'active'; });
+    var days = daysFor_(emps, r.from, r.to, settings_()), out = [];
+    emps.forEach(function (e) { (days[e.id] || []).forEach(function (x) { if (!x) return;
+      out.push({ empNo: String(e.empNo), date: x.date, status: x.status, firstIn: x.firstIn || '', lastOut: x.lastOut || '', workedMin: x.workedMin || 0, lateMin: x.lateMin || 0, overtimeMin: x.overtimeMin || 0 }); }); });
+    return out;
+  },
+  leave: function (req) {
+    var r = apiRange_(req, 366), ctx = orgCtx_();
+    return readAll_(SHEETS.REQ).filter(function (x) { return x.type === 'leave' && x.status === 'approved' && String(x.toDate).slice(0, 10) >= r.from && String(x.fromDate).slice(0, 10) <= r.to; }).map(function (x) {
+      var e = ctx.emps[x.empId] || {}; return { ref: x.ref, empNo: String(e.empNo || ''), subtype: x.subtype, fromDate: String(x.fromDate).slice(0, 10), toDate: String(x.toDate).slice(0, 10), days: Number(x.days) || 0 };
+    });
+  },
+  payrollRuns: function () {
+    return readAll_(SHEETS.RUN).filter(function (r) { return r.status === 'locked' && !isDemoRun_(r) && !pgManagers_(payGroups_()[String(r.payGroupId || '')]).length; }).map(function (r) {
+      var t = parseJson_(r.totalsJson, {}); return { id: r.id, ref: r.ref, month: r.month, payGroupId: String(r.payGroupId || ''), approvedAt: r.approvedAt, headcount: t.headcount, gross: t.gross, deductions: t.deductions, net: t.net, gosiEmployer: t.gosiEmployer };
+    });
+  },
+  journal: function (req) { // the accounting entry of a locked run, as built for Odoo (Journal.gs); totals by account, no person's pay
+    var run = findBy_(SHEETS.RUN, 'id', String(req.runId || ''));
+    if (!run || run.status !== 'locked' || isDemoRun_(run) || pgManagers_(payGroups_()[String(run.payGroupId || '')]).length) fail_('not_found');
+    var j = journalOf_(run);
+    var g = {}; // lines per employee (net per person, advances) are added up per account: no person's pay leaves through the API
+    (j.lines || []).forEach(function (l) { var k = [l.account, l.analytic, l.labelKey].join('|'), x = g[k] = g[k] || { runRef: run.ref, month: run.month, date: j.date, account: l.account || '', analytic: l.analytic || '', label: l.labelKey || l.key || '', debit: 0, credit: 0 }; x.debit = r2_(x.debit + (l.debit || 0)); x.credit = r2_(x.credit + (l.credit || 0)); });
+    return Object.keys(g).map(function (k) { return g[k]; });
+  }
+};
+
+// ---------------- webhooks ----------------
+
+function whSecret_(h) { return 'whsec_' + hmac_('webhook|' + orgId_() + '|' + h.id + '|' + (Number(h.ver) || 1)); }
+function publicHook_(h) { return { id: h.id, url: h.url, events: parseJson_(h.eventsJson, []), status: h.status, createdAt: h.createdAt, lastStatus: h.lastStatus || '', lastAt: h.lastAt || '', fails: Number(h.fails) || 0 }; }
+/** https only, and never an address inside a network (SSRF). */
+function whUrlOk_(u) {
+  var m = /^https:\/\/([^\/:?#]+)(:\d+)?(\/[^\s]*)?$/i.exec(String(u || ''));
+  if (!m) return false;
+  var host = m[1].toLowerCase();
+  if (/^(localhost|.*\.local|.*\.internal|metadata\.google\.internal)$/.test(host)) return false;
+  if (/^\d+\.\d+\.\d+\.\d+$/.test(host) && /^(10\.|127\.|0\.|169\.254\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\.)/.test(host)) return false;
+  if (/^\[/.test(host) || /:/.test(host)) return false;
+  return true;
+}
+/** Administrator: add a webhook (its secret shown once), change its events, rotate its secret, pause, delete, or send a test. */
+function api_webhookSave(req, me) {
+  if (me.role !== 'admin') fail_('forbidden');
+  return withLock_(function () {
+    var now = new Date().toISOString(), h = req.id ? findBy_(SHEETS.HOOK, 'id', String(req.id)) : null;
+    if (req.id && (!h || h.status === 'deleted')) fail_('not_found');
+    if (h && req.test) { whQueue_(h, 'ping', { message: 'test', at: now }, 'ping:' + now); cache_().remove('wh:next'); return { ok: true }; }
+    if (h && (req.pause || req.resume || req.remove)) { h.status = req.remove ? 'deleted' : req.pause ? 'paused' : 'active'; if (req.resume) h.fails = 0; update_(SHEETS.HOOK, h); cache_().remove('wh:subs'); return { ok: true }; }
+    var events = (req.events || []).filter(function (e) { return WH_EVENTS_[e] && e !== 'ping'; });
+    if (!events.length) fail_('missing_fields');
+    var row = h || { id: newId_('W'), ver: 0, status: 'active', createdBy: me.id, createdAt: now, lastStatus: '', lastAt: '', fails: 0 };
+    if (!h || req.url) { if (!whUrlOk_(req.url)) fail_('bad_url'); row.url = String(req.url).trim(); }
+    row.eventsJson = JSON.stringify(events);
+    var showSecret = !h || req.rotate;
+    if (showSecret) row.ver = (Number(row.ver) || 0) + 1;
+    if (h) update_(SHEETS.HOOK, row); else append_(SHEETS.HOOK, row);
+    cache_().remove('wh:subs');
+    audit_(me.id, h ? 'webhook_change' : 'webhook_create', '', { url: row.url, events: events.join(',') });
+    var out = { ok: true, hook: publicHook_(row) };
+    if (showSecret) out.secret = whSecret_(row);
+    return out;
+  });
+}
+function api_webhookDeliveries(req, me) {
+  if (me.role !== 'admin') fail_('forbidden');
+  return { ok: true, rows: readAll_(SHEETS.WHOUT).filter(function (x) { return !req.hookId || x.hookId === req.hookId; }).slice(-100).reverse().map(function (x) {
+    return { id: x.id, hookId: x.hookId, event: x.event, status: x.status, attempts: Number(x.attempts) || 0, lastCode: x.lastCode, lastError: x.lastError, createdAt: x.createdAt, sentAt: x.sentAt };
+  }) };
+}
+/** Which events have an active subscriber (cached; most requests stop here). */
+function whSubs_() {
+  var c = cache_(), hit = c.get('wh:subs'); if (hit) return JSON.parse(hit);
+  var o = {}; readAll_(SHEETS.HOOK).forEach(function (h) { if (h.status === 'active') parseJson_(h.eventsJson, []).forEach(function (e) { (o[e] = o[e] || []).push(h.id); }); });
+  c.put('wh:subs', JSON.stringify(o), 600);
+  return o;
+}
+function whQueue_(h, event, data, dedupe) {
+  append_(SHEETS.WHOUT, { id: newId_('D'), hookId: h.id, event: event, dedupe: dedupe || '', payloadJson: JSON.stringify({ id: '', event: event, orgId: orgId_(), createdAt: new Date().toISOString(), data: data }),
+    status: 'pending', attempts: 0, nextAt: new Date().toISOString(), lastCode: '', lastError: '', createdAt: new Date().toISOString(), sentAt: '' });
+}
+var WH_TAPPING_ = false;
+/** The data layer tells us what was written; a few writes become events. Never throws into the caller. */
+function whTap_(tab, o, isNew) {
+  if (WH_TAPPING_ || !o) return;
+  if (tab !== SHEETS.EMP && tab !== SHEETS.REQ && tab !== SHEETS.PUNCH && tab !== SHEETS.RUN) return;
+  try {
+    WH_TAPPING_ = true;
+    var subs = whSubs_(), ev = [], c = cache_();
+    if (!Object.keys(subs).length) return; // no webhook: nothing to do (most organisations, most requests)
+    if (tab === SHEETS.EMP) {
+      var pub = { id: o.id, empNo: String(o.empNo), name: o.name, nameEn: o.nameEn || '', email: o.email || '', status: o.status, departmentId: o.departmentId || '', positionId: o.positionId || '', title: o.title || '',
+        managerId: String(o.managerId || ''), hireDate: isoDate_(o.hireDate) || '', lastWorkingDay: isoDate_(o.lastWorkingDay) || '' };
+      var sig = sha256Hex_(JSON.stringify(pub)), key = 'wh:emp:' + o.id;
+      if (isNew) ev.push(['employee.created', pub, 'emp:' + o.id + ':new']);
+      else if (c.get(key) !== sig) { ev.push([o.status === 'active' ? 'employee.updated' : 'employee.left', pub, 'emp:' + o.id + ':' + sig]); }
+      c.put(key, sig, 21600);
+    } else if (tab === SHEETS.REQ && o.type === 'leave' && o.status === 'approved') {
+      ev.push(['leave.approved', { ref: o.ref, empId: o.empId, subtype: o.subtype, fromDate: String(o.fromDate).slice(0, 10), toDate: String(o.toDate).slice(0, 10), days: Number(o.days) || 0 }, 'req:' + o.id + ':approved']);
+    } else if (tab === SHEETS.PUNCH && isNew) {
+      ev.push(['attendance.punch', { id: o.id, empId: o.empId, type: o.type, ts: o.ts, date: String(o.date).slice(0, 10), status: o.status, zoneId: o.zoneId || '' }, 'punch:' + o.id]);
+    } else if (tab === SHEETS.RUN && o.status === 'locked' && !isDemoRun_(o) && !pgManagers_(payGroups_()[String(o.payGroupId || '')]).length) {
+      var t = parseJson_(o.totalsJson, {});
+      ev.push(['payroll.locked', { id: o.id, ref: o.ref, month: o.month, payGroupId: String(o.payGroupId || ''), headcount: t.headcount, net: t.net, gross: t.gross }, 'run:' + o.id + ':locked']);
+    }
+    ev.forEach(function (x) {
+      var hs = subs[x[0]] || []; if (!hs.length) return;
+      var seen = {}; if (/^(req|run|emp):/.test(x[2])) readAll_(SHEETS.WHOUT).forEach(function (d) { if (d.dedupe) seen[d.hookId + '|' + d.dedupe] = 1; });
+      hs.forEach(function (hid) { if (!seen[hid + '|' + x[2]]) whQueue_({ id: hid }, x[0], x[1], x[2]); });
+      c.remove('wh:next');
+    });
+  } catch (e) { console.error('webhook tap: ' + (e && e.message)); } finally { WH_TAPPING_ = false; }
+}
+/** Lazy delivery after write requests: up to 5 due deliveries, signed, with backoff; 8 failures make it dead. */
+function whSweep_() {
+  try {
+    var c = cache_(), next = c.get('wh:next'), now = new Date();
+    if (next && next > now.toISOString()) return;
+    if (!rateLimit_('wh:run', 1, 10)) return;
+    var hooks = {}; readAll_(SHEETS.HOOK).forEach(function (h) { hooks[h.id] = h; });
+    var all = readAll_(SHEETS.WHOUT).filter(function (d) { return d.status === 'pending'; });
+    var due = all.filter(function (d) { return String(d.nextAt) <= now.toISOString(); }).slice(0, 5), done = [], hookUpd = {};
+    due.forEach(function (d) {
+      var h = hooks[d.hookId];
+      if (!h || h.status !== 'active') { d.status = 'skipped'; done.push(d); return; }
+      var pl = parseJson_(d.payloadJson, {}); pl.id = d.id; var body = JSON.stringify(pl), ts = String(Math.floor(now.getTime() / 1000));
+      var sig = Utilities.computeHmacSha256Signature(ts + '.' + body, whSecret_(h)).map(function (b) { return ('0' + (b & 255).toString(16)).slice(-2); }).join('');
+      var code = 0, err = '';
+      try {
+        var r = UrlFetchApp.fetch(h.url, { method: 'post', contentType: 'application/json', payload: body, muteHttpExceptions: true, followRedirects: false,
+          headers: { 'X-HRIS-Event': d.event, 'X-HRIS-Delivery': d.id, 'X-HRIS-Timestamp': ts, 'X-HRIS-Signature': 'sha256=' + sig, 'X-HRIS-Org': orgId_() } });
+        code = r.getResponseCode();
+      } catch (e) { err = String(e && e.message || e).slice(0, 200); }
+      d.attempts = (Number(d.attempts) || 0) + 1; d.lastCode = code; d.lastError = err;
+      if (code >= 200 && code < 300) { d.status = 'sent'; d.sentAt = now.toISOString(); hookUpd[h.id] = 'ok'; }
+      else { d.status = d.attempts >= 8 ? 'dead' : 'pending'; d.nextAt = new Date(now.getTime() + Math.pow(2, d.attempts - 1) * 60000).toISOString(); hookUpd[h.id] = hookUpd[h.id] === 'ok' ? 'ok' : 'fail:' + (code || 'network'); }
+      done.push(d);
+    });
+    withLock_(function () {
+      done.forEach(function (d) { update_(SHEETS.WHOUT, d); });
+      Object.keys(hookUpd).forEach(function (id) { var h = findBy_(SHEETS.HOOK, 'id', id); if (!h) return; h.lastStatus = hookUpd[id]; h.lastAt = now.toISOString(); h.fails = hookUpd[id] === 'ok' ? 0 : (Number(h.fails) || 0) + 1; update_(SHEETS.HOOK, h); });
+    });
+    var rest = all.filter(function (d) { return done.indexOf(d) < 0 || d.status === 'pending'; }).map(function (d) { return String(d.nextAt); }).sort()[0];
+    if (rest) c.put('wh:next', rest, 3600); else c.put('wh:next', new Date(now.getTime() + 3600000).toISOString(), 3600);
+  } catch (e) { console.error('webhooks: ' + (e && e.message)); }
+}
+
+
+// ======================================================================= company logo (SaaS branding, 2026-10-22)
+// Every organisation shows its OWN logo in the same unified design: the 3D medallion, the splash, the gate, the sidebar and
+// every printed document. Stored in the organisation's own tab `branding` (never in settings: a settings save rewrites
+// that tab). The app gets only a short version string with every payload and fetches the image once per version.
+// PNG, JPEG or WebP only (no SVG: no script can ride in), at most 48,000 characters as a data URL (a Sheets cell holds 50,000);
+// the app resizes the upload to 512 px before sending.
+var LOGO_MAX_ = 48000;
+function brandRow_(key) { return readAll_(SHEETS.BRAND).filter(function (x) { return x.key === key; })[0] || null; }
+function logoVer_() { var c = cache_(), v = c.get('logo:ver'); if (v !== null && v !== undefined) return v; var r = brandRow_('logoVer'); v = r ? String(r.value) : ''; c.put('logo:ver', v, 21600); return v; }
+/** Public: the organisation's logo (the sign-in screen needs it before anyone signs in). */
+function api_orgLogo() {
+  var r = brandRow_('logo');
+  return { ok: true, orgId: orgId_(), ver: logoVer_(), logo: r ? String(r.value) : '', home: !!(ORG_ && ORG_.home) };
+}
+/** Administrator: set or remove the logo. */
+function api_logoSave(req, me) {
+  if (me.role !== 'admin') fail_('forbidden');
+  var logo = String(req.logo || '');
+  if (logo && (!/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+\/=]+$/.test(logo) || logo.length > LOGO_MAX_)) fail_('bad_logo');
+  return withLock_(function () {
+    var now = new Date().toISOString(), ver = logo ? sha256Hex_(logo).slice(0, 12) : '';
+    [['logo', logo], ['logoVer', ver]].forEach(function (kv) {
+      var r = brandRow_(kv[0]);
+      if (r) { r.value = kv[1]; r.updatedAt = now; r.updatedBy = me.id; update_(SHEETS.BRAND, r); }
+      else append_(SHEETS.BRAND, { key: kv[0], value: kv[1], updatedAt: now, updatedBy: me.id });
+    });
+    cache_().put('logo:ver', ver, 21600);
+    audit_(me.id, logo ? 'logo_set' : 'logo_remove', '', { ver: ver, size: logo.length });
+    return { ok: true, ver: ver };
+  });
+}
+/** The organisation's brand colour ('' = the default palette). Cached like the logo version. */
+function brandColor_() { var c = cache_(), v = c.get('brand:color'); if (v !== null && v !== undefined) return v; var r = brandRow_('color'); v = r ? String(r.value) : ''; c.put('brand:color', v, 21600); return v; }
+/** Administrator: the brand colour the whole palette is drawn from (#RRGGBB, or '' for the default). */
+function api_brandSave(req, me) {
+  if (me.role !== 'admin') fail_('forbidden');
+  var color = String(req.color || '').toUpperCase();
+  if (color && !/^#[0-9A-F]{6}$/.test(color)) fail_('bad_value');
+  return withLock_(function () {
+    var r = brandRow_('color'), now = new Date().toISOString();
+    if (r) { r.value = color; r.updatedAt = now; r.updatedBy = me.id; update_(SHEETS.BRAND, r); } else append_(SHEETS.BRAND, { key: 'color', value: color, updatedAt: now, updatedBy: me.id });
+    cache_().put('brand:color', color, 21600);
+    audit_(me.id, 'brand_color', '', { color: color });
+    return { ok: true, color: color };
+  });
 }

@@ -43,7 +43,7 @@ Object.assign(T.en, {
 });
 
 var css = '.yc-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 12px}.yc-step{padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card);font-size:13px}' +
-  '.yc-step b{display:flex;gap:6px;align-items:center;font-weight:500}.yc-step.done{border-color:var(--ok);background:var(--ok-bg)}.yc-step small{display:block;color:var(--ink-2);margin-top:3px}@media (max-width:720px){.yc-steps{grid-template-columns:1fr}}';
+  '.yc-step b{display:flex;gap:8px;align-items:center;font-weight:500}.yc-step.done{border-color:var(--ok);background:var(--ok-bg)}.yc-step small{display:block;color:var(--ink-2);margin-top:3px}@media (max-width:720px){.yc-steps{grid-template-columns:1fr}}';
 var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 
 var uid = 0;
@@ -101,7 +101,7 @@ function entry(box, runId, again){
     h += '<div class="yc-steps">' +
       step('file-plus', t('jvGen'), !!g, g ? esc(g.generatedBy) + sep() + fmt(g.generatedAt) + sep() + '<bdi>' + esc(g.ref) + '</bdi>' : '', !g ? '<div class="btnrow" style="margin-top:6px"><button type="button" class="btn btn-dark btn-sm" data-st="generated"' + (e.balanced && !e.problems.length ? '' : ' disabled') + '>' + t('jvGen') + '</button></div>' : '') +
       step('upload-simple', t('jvImp'), st === 'imported' || st === 'confirmed', g && g.importedAt ? esc(g.importedBy) + sep() + fmt(g.importedAt) + sep() + '<bdi>' + esc(g.odooRef) + '</bdi>' : '',
-        st === 'generated' ? '<form class="form" id="jvImpF" style="gap:6px;margin-top:6px"><input name="ref" required maxlength="60" dir="ltr" aria-label="' + t('jvOdooRef') + '" placeholder="MISC/..."><button class="btn btn-dark btn-sm" type="submit">' + t('jvImp') + '</button></form>' : '') +
+        st === 'generated' ? '<form class="form" id="jvImpF" style="gap:8px;margin-top:6px"><input name="ref" required maxlength="60" dir="ltr" aria-label="' + t('jvOdooRef') + '" placeholder="MISC/..."><button class="btn btn-dark btn-sm" type="submit">' + t('jvImp') + '</button></form>' : '') +
       step('seal-check', t('jvConf'), st === 'confirmed', g && g.confirmedAt ? esc(g.confirmedBy) + sep() + fmt(g.confirmedAt) : '', st === 'imported' && g.canConfirm ? '<div class="btnrow" style="margin-top:6px"><button type="button" class="btn btn-dark btn-sm" data-st="confirmed">' + t('jvConf') + '</button></div>' : '') + '</div>';
     h += '<div class="btnrow" style="margin:0 0 8px"><button type="button" class="btn btn-line btn-sm" id="jvCsv"' + (e.problems.length ? ' disabled' : '') + '>' + ph('file-csv') + t('jvCsv') + '</button><button type="button" class="btn btn-line btn-sm" id="jvXl">' + ph('microsoft-excel-logo') + t('jvXlsx') + '</button>' +
       '<button type="button" class="btn btn-line btn-sm" id="jvPr">' + ph('printer') + t('jvPrint') + '</button>' + (g && st !== 'confirmed' ? '<button type="button" class="btn btn-line btn-sm" id="jvCx">' + t('jvCancel') + '</button>' : '') + '</div><p class="hr-hint">' + ph('info') + ' ' + t('jvVerify') + '</p><p class="hr-bad" id="jvE" role="alert"></p>';

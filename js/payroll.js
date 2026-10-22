@@ -71,31 +71,31 @@ Object.assign(T.en, {
 });
 
 var css = '' +
-'.pr-kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:14px}' +
+'.pr-kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:14px}' +
 '.pr-kpis .net{grid-column:1 / -1;background:var(--pine);color:var(--cream);border-radius:var(--r-m);padding:14px 16px}' +
-'.pr-kpis .net span{color:#AFC0AD;font-size:12.5px}.pr-kpis .net b{display:block;font-size:30px;font-weight:600}' +
+'.pr-kpis .net span{color:var(--g-AFC0AD,#AFC0AD);font-size:13px}.pr-kpis .net b{display:block;font-size:32px;font-weight:600}' +
 '.pr-slip h4{margin:14px 0 6px;font-size:14px;color:var(--ink-2);font-weight:500}' +
 '.pr-slip dl{display:grid;grid-template-columns:1fr auto;margin:0}' +
 '.pr-slip dt,.pr-slip dd{padding:7px 0;border-bottom:1px solid var(--line);margin:0}.pr-slip dd{text-align:end;font-variant-numeric:tabular-nums;padding-inline-start:14px}' +
 '.pr-slip dt small{display:block;color:var(--ink-2);font-size:12px}' +
 '.pr-slip .tot dt,.pr-slip .tot dd{font-weight:600;font-size:16px;border-bottom:0}' +
 '.pr-month{display:flex;align-items:center;gap:12px;padding:12px 0;cursor:pointer}.pr-month + .pr-month{border-top:1px solid var(--line)}' +
-'.pr-month .main{flex:1}.pr-month .main small{display:block;color:var(--ink-2);font-size:12.5px}' +
+'.pr-month .main{flex:1}.pr-month .main small{display:block;color:var(--ink-2);font-size:13px}' +
 '@media (min-width:1024px){.pr-kpis{grid-template-columns:2fr 1fr 1fr 1fr 1fr}.pr-kpis .net{grid-column:auto}}' +
-'.ps{display:grid;gap:14px}.ps-net{display:grid;grid-template-columns:1.3fr 1fr;border-radius:16px;overflow:hidden;box-shadow:0 10px 26px -16px rgba(23,63,42,.6)}' +
-'.ps-net-main{background:linear-gradient(135deg,#173F2A,#2F6B48 60%,#3D8559);color:#fff;padding:16px 18px;position:relative}.ps-net-main span{display:flex;align-items:center;gap:8px;color:#D2E8DA;font-size:13px;font-weight:600}.ps-net-main span i{font-size:20px}' +
-'.ps-net-main b{display:inline-block;font-family:var(--f-num,Manrope,sans-serif);font-size:32px;font-weight:800;letter-spacing:-.02em;margin:6px 0 0;direction:ltr;unicode-bidi:isolate}.ps-net-main em{font-style:normal;margin-inline-start:6px;color:#D2E8DA;font-weight:600}' +
-'.ps-net-main p{margin:6px 0 0;font-size:12px;color:#CFE5D7;line-height:1.5}.ps-net-side{margin:0;background:#F7FAF8;display:grid;align-content:center}.ps-net-side div{padding:9px 14px;border-top:1px solid var(--line-2)}.ps-net-side div:first-child{border-top:0}' +
-'.ps-net-side dt{font-size:12px;color:var(--ink-3)}.ps-net-side dd{margin:0;font-weight:700;font-size:15px}' +
-'.ps-cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}.ps-box{background:#fff;border-radius:14px;padding:12px 14px;box-shadow:0 1px 2px rgba(15,28,20,.05),0 8px 20px -14px rgba(15,28,20,.2)}' +
+'.ps{display:grid;gap:16px}.ps-net{display:grid;grid-template-columns:1.3fr 1fr;border-radius:16px;overflow:hidden;box-shadow:0 10px 26px -16px rgba(var(--gr-23-63-42,23,63,42),.6)}' +
+'.ps-net-main{background:linear-gradient(135deg,var(--brand-deep),var(--brand) 60%,var(--brand-lite));color:#fff;padding:16px 18px;position:relative}.ps-net-main span{display:flex;align-items:center;gap:8px;color:var(--g-D2E8DA,#D2E8DA);font-size:13px;font-weight:600}.ps-net-main span i{font-size:20px}' +
+'.ps-net-main b{display:inline-block;font-family:var(--f-num,Manrope,sans-serif);font-size:32px;font-weight:800;letter-spacing:-.02em;margin:6px 0 0;direction:ltr;unicode-bidi:isolate}.ps-net-main em{font-style:normal;margin-inline-start:6px;color:var(--g-D2E8DA,#D2E8DA);font-weight:600}' +
+'.ps-net-main p{margin:6px 0 0;font-size:12px;color:var(--g-CFE5D7,#CFE5D7);line-height:1.5}.ps-net-side{margin:0;background:var(--g-F7FAF8,#F7FAF8);display:grid;align-content:center}.ps-net-side div{padding:9px 14px;border-top:1px solid var(--line-2)}.ps-net-side div:first-child{border-top:0}' +
+'.ps-net-side dt{font-size:12px;color:var(--ink-3)}.ps-net-side dd{margin:0;font-weight:700;font-size:16px}' +
+'.ps-cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}.ps-box{background:#fff;border-radius:16px;padding:12px 14px;box-shadow:var(--e3)}' +
 '.ps-box h4{margin:0 0 6px;font-size:14px;display:flex;align-items:center;gap:8px;font-family:var(--f-head)}.ps-box h4 i{font-size:20px}.ps-box.earn h4 i{color:#067647}.ps-box.ded h4 i{color:#B42318}.ps-box.cost h4 i{color:#3538CD}' +
-'.ps-r{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid var(--line-2);font-size:13.5px}.ps-r:first-of-type{border-top:0}.ps-r small{display:block;color:var(--ink-3);font-size:11.5px}.ps-r b{font-weight:600;white-space:nowrap}' +
+'.ps-r{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-top:1px solid var(--line-2);font-size:14px}.ps-r:first-of-type{border-top:0}.ps-r small{display:block;color:var(--ink-3);font-size:12px}.ps-r b{font-weight:600;white-space:nowrap}' +
 '.ps-r.tot{border-top:1.5px solid var(--line);font-weight:800}.ps-r.tot b{font-weight:800}.ps-box.cost .ps-r.tot{color:#3538CD}' +
-'.ps-note{display:flex;gap:8px;align-items:flex-start;margin:8px 0 0;padding:8px 10px;border-radius:10px;background:#FEF0C7;color:#7A3E00;font-size:12.5px}.ps-note i{font-size:17px}' +
-'.ps-facts{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}.ps-facts div{background:#fff;border-radius:12px;padding:10px;text-align:center;box-shadow:0 1px 2px rgba(15,28,20,.05)}' +
-'.ps-facts i{font-size:20px;color:var(--brand)}.ps-facts span{display:block;font-size:11.5px;color:var(--ink-3)}.ps-facts b{font-size:17px;font-weight:800}.ps-warn{display:flex;gap:6px;flex-wrap:wrap}' +
+'.ps-note{display:flex;gap:8px;align-items:flex-start;margin:8px 0 0;padding:8px 10px;border-radius:12px;background:#FEF0C7;color:#7A3E00;font-size:13px}.ps-note i{font-size:18px}' +
+'.ps-facts{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}.ps-facts div{background:#fff;border-radius:12px;padding:10px;text-align:center;box-shadow:var(--e1)}' +
+'.ps-facts i{font-size:20px;color:var(--brand)}.ps-facts span{display:block;font-size:12px;color:var(--ink-3)}.ps-facts b{font-size:18px;font-weight:800}.ps-warn{display:flex;gap:8px;flex-wrap:wrap}' +
 '@media (max-width:700px){.ps-net,.ps-cols{grid-template-columns:1fr}.ps-facts{grid-template-columns:repeat(3,minmax(0,1fr))}}' +
-'.ps-nav{display:inline-flex;gap:6px}.ps-nav .btn{width:38px;padding:0;justify-content:center}.fp-rows b.neg{color:var(--bad)}';
+'.ps-nav{display:inline-flex;gap:8px}.ps-nav .btn{width:38px;padding:0;justify-content:center}.fp-rows b.neg{color:var(--bad)}';
 var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 
 function lab(l){ var m = L[S.lang] || L.ar; if (l.code !== 'allowance') return m[l.code] || l.code; var n = String(l.label || ''); return /^(بدل|allowance)/i.test(n) ? n : m.allowance + ' ' + n; }
@@ -175,13 +175,13 @@ function printSlip(s, who){
     '<section><h2 class="sh">' + bi('psAttendance') + '</h2><dl class="grid c4">' +
       [['prDays', s.paidDays || 0], ['prAbsent', s.absentDays || 0], ['psLate', info.lateMin || 0], ['psOt', info.overtimeHours || 0]].map(function(x){ return '<div><dt>' + bi(x[0]) + '</dt><dd class="num">' + x[1] + '</dd></div>'; }).join('') + '</dl></section>';
   var css = '.pnet{display:grid;grid-template-columns:1.25fr 1fr;border-radius:12px;overflow:hidden;border:1px solid #DCD6C9;margin-top:4px}' +
-    '.pn-main{background:linear-gradient(135deg,#1F4A33,#2F6B48);color:#fff;padding:14px 18px}.pn-main span .bi b{color:#fff}.pn-main span .bi i{color:#CFE5D7}' +
+    '.pn-main{background:linear-gradient(135deg,var(--g-1F4A33,#1F4A33),var(--brand));color:#fff;padding:14px 18px}.pn-main span .bi b{color:#fff}.pn-main span .bi i{color:var(--g-CFE5D7,#CFE5D7)}' +
     '.pn-main b{display:block;font-size:27pt;font-weight:700;line-height:1.15;margin:4px 0 4px;font-family:"IBM Plex Sans",sans-serif}.pn-main b em{font-style:normal;font-size:12pt;font-weight:600;opacity:.85}' +
-    '.pn-main p{margin:0;font-size:8.5pt;color:#E3F1E8}.pn-main p.o{font-size:7.5pt;color:#BCD8C6;margin-top:2px}' +
+    '.pn-main p{margin:0;font-size:8.5pt;color:var(--g-E3F1E8,#E3F1E8)}.pn-main p.o{font-size:7.5pt;color:var(--g-BCD8C6,#BCD8C6);margin-top:2px}' +
     '.pn-side{margin:0;display:grid;align-content:center;gap:0;background:#FAF8F3}.pn-side div{padding:8px 14px;border-top:1px solid #EEEAE0}.pn-side div:first-child{border-top:0}.pn-side dt{font-size:7.5pt;color:#6B786D;margin:0}.pn-side dd{margin:1px 0 0;font-weight:600}' +
     'section.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}' +
-    '.eq{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:center;gap:8px;background:#F4F7F5;border-radius:10px;padding:10px 14px}.eq i{font-style:normal;font-size:16pt;color:#8F8878}' +
-    '.eq > div > span{display:block;font-size:8pt;color:#6B786D}.eq b{font-size:13pt}.eq .net b{color:#2F5134;font-size:15pt}';
+    '.eq{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:center;gap:8px;background:var(--g-F4F7F5,#F4F7F5);border-radius:12px;padding:10px 14px}.eq i{font-style:normal;font-size:16pt;color:#8F8878}' +
+    '.eq > div > span{display:block;font-size:8pt;color:#6B786D}.eq b{font-size:13pt}.eq .net b{color:var(--g-2F5134,#2F5134);font-size:15pt}';
   Doc.open({ lang: lang, kind: T[lang].psKind, title: T[lang].psTitle.replace('{m}', monthName(s.month)), ref: s.ref, body: body, extraCss: css,
     qr: 'PS|' + s.ref + '|' + (e.empNo || '') + '|' + s.month + '|' + Number(s.net).toFixed(2), by: S.me ? S.me.name : '',
     footnote: T[lang].psFoot, signatures: [bi('psSignHr'), bi('psSignPay'), bi('psSignEmp')] });
@@ -256,18 +256,20 @@ function section(body){
   if (S.prRun) return runView(body, S.prRun);
   var last = (function(){ var d = new Date(riyadhToday() + 'T00:00:00Z'); d.setUTCDate(1); d.setUTCMonth(d.getUTCMonth() - 1); return d.toISOString().slice(0, 7); })();
   body.innerHTML = '<div class="hr-h"><h2>' + t('prTitle') + '</h2></div>' +
-    '<form class="toolbar" id="prNewF"><label class="hr-hint" style="margin:0">' + t('prMonth') + '</label><input type="month" name="month" value="' + last + '" max="' + riyadhToday().slice(0, 7) + '" required>' +
+    '<form class="toolbar" id="prNewF"><label class="hr-hint" style="margin:0">' + t('prMonth') + '</label><input type="month" name="month" value="' + last + '" max="' + riyadhToday().slice(0, 7) + '" required><select name="group" id="prGrp" hidden aria-label="' + t('pgGroup') + '"></select>' +
     '<button class="btn btn-dark btn-sm">' + ph('calculator') + t('prCreate') + '</button><span class="err" id="prErr" style="color:var(--red)"></span></form><div id="prList"></div>' +
     '<section class="v2-card"><h3 class="hr-sub">' + ph('calculator') + t('prEos') + '</h3><div id="prEos"></div></section>';
   $('#prNewF', body).onsubmit = function(ev){
     ev.preventDefault(); var b = this.querySelector('button'); b.disabled = true;
-    api('payrollCreate', { month: this.elements.month.value }).then(function(r){ b.disabled = false; if (!r.ok) { $('#prErr', body).textContent = errText(r.error); return; } S.prRun = r.run.id; section(body); });
+    api('payrollCreate', { month: this.elements.month.value, payGroupId: this.elements.group.value || '' }).then(function(r){ b.disabled = false; if (!r.ok) { $('#prErr', body).textContent = errText(r.error); return; } S.prRun = r.run.id; section(body); });
   };
   var el = $('#prList', body);
   apiFresh('payrollList', {}, function(r){
     if (!r.ok) return el.innerHTML = '<p class="hr-bad">' + errText(r.error) + '</p>';
+    var gs = $('#prGrp', body); // pay groups (2026-10-21): pick which group's run to prepare
+    if (gs && r.groups && r.groups.length > 1) { var keep = gs.value; gs.innerHTML = r.groups.map(function(g){ return '<option value="' + esc(g.id) + '">' + esc((S.lang === 'en' ? g.nameEn : g.nameAr) || g.nameAr) + '</option>'; }).join(''); gs.value = keep || ''; gs.hidden = false; }
     el.innerHTML = (window.Viz && r.rows.length ? listDash(r.rows) : '') + (r.rows.length ? '<div class="list">' + r.rows.map(function(x){
-      return '<div class="row click" data-run="' + x.id + '" tabindex="0"><div class="av">' + ph('money') + '</div><div class="main"><b>' + esc(monthName(x.month)) + '</b><small><bdi>' + esc(x.ref) + '</bdi>، ' + plural(x.totals.headcount || 0, 'people') + '</small></div>' +
+      return '<div class="row click" data-run="' + x.id + '" tabindex="0"><div class="av">' + ph('money') + '</div><div class="main"><b>' + esc(monthName(x.month)) + (x.payGroupName ? ' · ' + esc((S.lang === 'en' ? x.payGroupNameEn : x.payGroupName) || x.payGroupName) : '') + '</b><small><bdi>' + esc(x.ref) + '</bdi>، ' + plural(x.totals.headcount || 0, 'people') + '</small></div>' +
         '<div class="end"><b class="num">' + money(x.totals.net) + '</b><small><span class="chip ' + (x.status === 'locked' ? 'in' : 'late') + '">' + t('pr_' + x.status) + '</span></small></div></div>';
     }).join('') + '</div>' : '<div class="empty">' + ph('money') + '<b>' + t('prEmpty') + '</b></div>');
     if (window.Viz) Viz.wire(el);
@@ -278,8 +280,11 @@ function section(body){
 
 /** The payroll over time: net and headcount per run, and what changed since the previous one. */
 function listDash(rows){
+  var drafts0 = rows.filter(function(x){ return x.status === 'draft'; }).length, mm = {};
+  rows.forEach(function(x){ var m = mm[x.month] = mm[x.month] || { month: x.month, status: 'locked', totals: { net: 0, gross: 0, gosiEmployer: 0, headcount: 0 } }; ['net', 'gross', 'gosiEmployer', 'headcount'].forEach(function(k){ m.totals[k] += Number(x.totals[k]) || 0; }); if (x.status === 'draft') m.status = 'draft'; });
+  rows = Object.keys(mm).map(function(k){ return mm[k]; }); // pay groups: one point per month, all groups added up
   var V = Viz, asc = rows.slice().sort(function(a, b){ return a.month < b.month ? -1 : 1; }), last = asc[asc.length - 1], prev = asc[asc.length - 2];
-  var ch = prev && prev.totals.net ? (last.totals.net - prev.totals.net) / prev.totals.net * 100 : null, drafts = rows.filter(function(x){ return x.status === 'draft'; }).length;
+  var ch = prev && prev.totals.net ? (last.totals.net - prev.totals.net) / prev.totals.net * 100 : null, drafts = drafts0;
   var pts = asc.slice(-12).map(function(x){ return { label: V.monthShort(x.month), y: x.totals.net, note: plural(x.totals.headcount || 0, 'people') }; });
   return V.panel('payroll', t('pdTitle'), '<div class="db-tiles">' + V.tile(t('pdLastNet'), V.sar(last.totals.net), monthName(last.month), ch, true, true, '%') +
     V.tile(t('prGross'), V.sar(last.totals.gross), '') + V.tile(t('prGosiEr'), V.sar(last.totals.gosiEmployer), '') + V.tile(t('prHead'), V.n1(last.totals.headcount || 0, 0), '') +
@@ -412,17 +417,17 @@ function eosHtml(q){
 function printEos(q, name){
   var en = S.lang === 'en';
   var html = '<!doctype html><html lang="' + (en ? 'en' : 'ar') + '" dir="' + (en ? 'ltr' : 'rtl') + '"><head><meta charset="utf-8"><title>EOS</title>' +
-    '<link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;600&display=swap" rel="stylesheet"><style>@page{size:A4;margin:16mm}body{font-family:"Readex Pro",Tahoma,sans-serif;color:#17221A;font-size:13px}' +
-    'header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #4D6D51;padding-bottom:10px}header img{height:54px}h1{font-size:19px;margin:14px 0 4px}' +
-    '.pr-slip h4{margin:14px 0 4px;font-size:13px;color:#4A5A4D}.pr-slip dl{display:grid;grid-template-columns:1fr auto;margin:0}.pr-slip dt,.pr-slip dd{padding:5px 0;border-bottom:1px solid #E5E1D6;margin:0}' +
-    '.pr-slip dd{text-align:end;font-variant-numeric:tabular-nums}.pr-slip dt small{color:#6B786D;margin-inline-start:8px}.tot dt,.tot dd{font-weight:600;font-size:15px;border:0}.hr-hint{color:#4A5A4D}' +
-    '.sign{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-top:40px}.sign div{border-top:1px solid #999;padding-top:6px;font-size:12px;color:#4A5A4D}</style></head><body>' +
-    '<header><img src="' + logoInk() + '" alt=""><div style="text-align:end;font-size:12px;color:#4A5A4D">' + esc(coName(en ? 'en' : 'ar')) + (en ? '<br>Final settlement' : '<br>مخالصة نهائية') + '</div></header>' +
+    '<link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;600&display=swap" rel="stylesheet"><style>@page{size:A4;margin:16mm}body{font-family:"Readex Pro",Tahoma,sans-serif;color:var(--g-17221A,#17221A);font-size:13px}' +
+    'header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid var(--brand);padding-bottom:10px}header img{height:54px}h1{font-size:20px;margin:14px 0 4px}' +
+    '.pr-slip h4{margin:14px 0 4px;font-size:13px;color:var(--g-4A5A4D,#4A5A4D)}.pr-slip dl{display:grid;grid-template-columns:1fr auto;margin:0}.pr-slip dt,.pr-slip dd{padding:5px 0;border-bottom:1px solid #E5E1D6;margin:0}' +
+    '.pr-slip dd{text-align:end;font-variant-numeric:tabular-nums}.pr-slip dt small{color:#6B786D;margin-inline-start:8px}.tot dt,.tot dd{font-weight:600;font-size:16px;border:0}.hr-hint{color:var(--g-4A5A4D,#4A5A4D)}' +
+    '.sign{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:40px}.sign div{border-top:1px solid #999;padding-top:6px;font-size:12px;color:var(--g-4A5A4D,#4A5A4D)}</style></head><body>' +
+    '<header><img src="' + logoInk() + '" alt=""><div style="text-align:end;font-size:12px;color:var(--g-4A5A4D,#4A5A4D)">' + esc(coName(en ? 'en' : 'ar')) + (en ? '<br>Final settlement' : '<br>مخالصة نهائية') + '</div></header>' +
     '<h1>' + (en ? 'End-of-service and final settlement' : 'مكافأة نهاية الخدمة والمخالصة النهائية') + '</h1><p>' + esc(name || '') + '</p>' + eosHtml(q) +
     '<div class="sign"><div>' + (en ? 'Prepared by (HR)' : 'أعده (الموارد البشرية)') + '</div><div>' + (en ? 'Approved by (Finance)' : 'اعتمده (المالية)') + '</div><div>' + (en ? 'Received by the employee' : 'استلمه الموظف') + '</div></div>' +
     '<script>window.onload=function(){setTimeout(function(){window.print()},400)}<\/script></body></html>';
   var w = window.open('', '_blank'); if (!w) return toast(t('e_generic'));
-  w.document.open(); w.document.write(html); w.document.close(); if (window.docBar) docBar(w);
+  w.document.open(); w.document.write(window.brandVarsCss ? String(html).replace(/<head>/i, '<head><style>' + brandVarsCss() + '</style>') : html); w.document.close(); if (window.docBar) docBar(w);
 }
 
 window.Payroll = { section: section, myCard: myCard, openSlip: openSlip, openSlipRef: openSlipRef, printSlip: printSlip };

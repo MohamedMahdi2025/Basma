@@ -102,7 +102,7 @@ function api_reportCatalog(req, me) {
   var scope = reportScope_(me, ctx);
   var emps = Object.keys(ctx.emps).map(function (k) { return ctx.emps[k]; }).filter(function (e) { return !scope || scope[e.id]; })
     .map(function (e) { return { id: e.id, empNo: String(e.empNo), name: e.name, departmentId: e.departmentId, status: e.status }; });
-  var runs = canPayroll_(me) || hasRole_(me, 'executive') ? readAll_(SHEETS.RUN).filter(function (r) { return r.status !== 'cancelled'; }).map(function (r) { return { id: r.id, ref: r.ref, month: r.month, status: r.status, scope: runScope_(r) }; }).sort(function (a, b) { return a.month < b.month ? 1 : -1; }) : [];
+  var pgs = payGroups_(), runs = canPayroll_(me) || hasRole_(me, 'executive') ? readAll_(SHEETS.RUN).filter(function (r) { return r.status !== 'cancelled' && (!canPayroll_(me) || runAccess_(me, r, pgs)); }).map(function (r) { return { id: r.id, ref: r.ref, month: r.month, status: r.status, scope: runScope_(r) }; }).sort(function (a, b) { return a.month < b.month ? 1 : -1; }) : [];
   var cycles = readAll_(SHEETS.CYC).filter(function (c) { return c.status !== 'deleted'; }).map(publicCycle_);
   return { ok: true, reports: out, depts: depts, emps: emps, runs: runs, cycles: cycles, teamOnly: !!scope };
 }
@@ -179,6 +179,13 @@ function api_reportRun(req, me) {
 
 function runReport_(id, p, me, ctx) {
   var scope = reportScope_(me, ctx), s = settings_();
+  if (REPORTS[id] && REPORTS[id].params.indexOf('run') >= 0 && typeof runAccess_ === 'function') {
+    var groups = payGroups_(), rr = p.run ? findBy_(SHEETS.RUN, 'id', p.run) : null;
+    // payroll staff: their groups; an executive (cost totals): every group except a closed one
+    var see = function (x) { return canPayroll_(me) ? runAccess_(me, x, groups) : !pgManagers_(groups[String(x.payGroupId || '')]).length; };
+    if (rr && !see(rr)) fail_('forbidden');
+    if (!p.run) { var last = runsRealFirst_(readAll_(SHEETS.RUN)).filter(function (r) { return r.status !== 'cancelled' && see(r); }).sort(function (a, b) { return a.month < b.month ? 1 : -1; })[0]; if (last) p.run = last.id; }
+  }
   var fn = REPORT_FNS[id];
   if (!fn) fail_('not_found');
   var r = fn(p, me, ctx, scope, s);
@@ -440,7 +447,7 @@ var REPORT_FNS = {
     var run = findBy_(SHEETS.RUN, 'id', p.run) || currentRun_();
     if (!run) return { columns: [], rows: [], checks: [{ level: 'info', code: 'no_run', count: 0 }] };
     p.run = run.id;
-    var prev = readAll_(SHEETS.RUN).filter(function (r) { return r.status === 'locked' && r.month < run.month && runScope_(r) === runScope_(run); }).sort(function (a, b) { return a.month < b.month ? 1 : -1; })[0];
+    var prev = readAll_(SHEETS.RUN).filter(function (r) { return r.status === 'locked' && r.month < run.month && runScope_(r) === runScope_(run) && String(r.payGroupId || '') === String(run.payGroupId || ''); }).sort(function (a, b) { return a.month < b.month ? 1 : -1; })[0];
     var slipsOf = function (r) { var o = {}; if (!r) return o; readAll_(SHEETS.SLIP).forEach(function (sl) { if (sl.runId === r.id && sl.status !== 'void') o[sl.empId] = sl; }); return o; };
     var cur = slipsOf(run), old = slipsOf(prev), ds = deptSet_(p, ctx), rows = [], flagged = 0;
     Object.keys(cur).concat(Object.keys(old).filter(function (k) { return !cur[k]; })).forEach(function (k) {
@@ -1162,7 +1169,7 @@ function rxRunPair_(p) {
   var runs = readAll_(SHEETS.RUN).filter(function (r) { return r.status !== 'cancelled'; }), run = runs.filter(function (r) { return r.id === p.run; })[0] || currentRun_();
   if (!run) return null;
   p.run = run.id;
-  var prev = runs.filter(function (r) { return r.status === 'locked' && r.month < run.month && runScope_(r) === runScope_(run); }).sort(function (a, b) { return a.month < b.month ? 1 : -1; })[0] || null;
+  var prev = runs.filter(function (r) { return r.status === 'locked' && r.month < run.month && runScope_(r) === runScope_(run) && String(r.payGroupId || '') === String(run.payGroupId || ''); }).sort(function (a, b) { return a.month < b.month ? 1 : -1; })[0] || null;
   return { run: run, prev: prev, runs: runs };
 }
 /** Payslips of the given runs, { runId: { empId: slip } }, after the department filter: one read of the tab. */
@@ -1208,8 +1215,12 @@ function rxHide_(me, row, n, keys) {
 function rxRunsByMonth_(p, ctx) {
   var months = rxMonths_(p.from, p.to); if (!months.length) return null;
   var first = rxAddMonth_(months[0], -1), runs = {}, ids = {};
-  runsRealFirst_(readAll_(SHEETS.RUN)).forEach(function (r) { if (r.status !== 'cancelled' && r.month >= first && r.month <= months[months.length - 1]) { runs[r.month] = r; ids[r.id] = 1; } });
-  return { months: months, runs: runs, slips: rxSlipsBy_(ids, deptSet_(p, ctx), ctx) };
+  var of = {}; // pay groups: a month is every run of that month, added up under one key
+  runsRealFirst_(readAll_(SHEETS.RUN)).forEach(function (r) { if (r.status !== 'cancelled' && r.month >= first && r.month <= months[months.length - 1]) {
+    var m = runs[r.month] = runs[r.month] || { id: 'M:' + r.month, month: r.month, status: 'locked' }; if (r.status !== 'locked') m.status = r.status; ids[r.id] = 1; of[r.id] = m.id; } });
+  var by = rxSlipsBy_(ids, deptSet_(p, ctx), ctx), slips = {};
+  Object.keys(by).forEach(function (rid) { var k = of[rid], o = slips[k] = slips[k] || {}; Object.keys(by[rid]).forEach(function (e) { o[e] = by[rid][e]; }); });
+  return { months: months, runs: runs, slips: slips };
 }
 
 Object.assign(REPORT_FNS, {
@@ -2054,11 +2065,11 @@ Object.assign(REPORT_FNS, {
   cmp_wps: function (p, me, ctx, scope, s) {
     var months = rxMonths_(p.from, p.to); if (!months.length) return rxEmpty_();
     var t = today_(), runs = {}, wps = {}, rec = {}, rows = [], overdue = 0, open = 0, notLocked = 0;
-    readAll_(SHEETS.RUN).forEach(function (r) { if (r.status !== 'cancelled' && !isDemoRun_(r) && months.indexOf(r.month) >= 0) runs[r.month] = r; }); // WPS duty: the company's runs
+    readAll_(SHEETS.RUN).forEach(function (r) { if (r.status !== 'cancelled' && !isDemoRun_(r) && months.indexOf(r.month) >= 0) (runs[r.month] = runs[r.month] || []).push(r); }); // WPS duty: the company's runs, one row per pay group's run
     readAll_(SHEETS.WPS).forEach(function (w) { wps[w.runId] = w; });
     readAll_(SHEETS.RECON).forEach(function (x) { var k = x.month + '|' + x.source; if (!rec[k] || String(x.at) > String(rec[k].at)) rec[k] = x; });
-    months.forEach(function (m) {
-      var r = runs[m], g = rec[m + '|gosi'], q = rec[m + '|qiwa']; if (!r && !g && !q) return;
+    months.forEach(function (m) { (runs[m] || [null]).forEach(function (r) {
+      var g = rec[m + '|gosi'], q = rec[m + '|qiwa']; if (!r && !g && !q) return;
       var w = r ? wps[r.id] : null, due = wpsDue_(m, s), up = w && w.uploadedAt ? localParts_(new Date(w.uploadedAt)).date : '', tt = r ? publicRun_(r).totals || {} : {};
       var late = up ? Math.max(0, daysBetween_(due, up)) : t > due ? daysBetween_(due, t) : 0;
       if (r && r.status === 'locked' && !up && t > due) overdue++;
@@ -2067,7 +2078,7 @@ Object.assign(REPORT_FNS, {
       rows.push({ month: m, payrollRef: r ? r.ref : '', runStatus: r ? r.status : 'none', payslips: tt.headcount == null ? null : Number(tt.headcount), net: tt.net == null ? null : Number(tt.net),
         wpsStatus: w ? w.status : 'none', due: due, uploaded: up, daysLate: late, bankRef: w ? String(w.bankRef || '') : '',
         gosiRecon: g ? g.status : 'none', gosiMismatches: g ? parseJson_(g.mismatchesJson, []).length : null, qiwaRecon: q ? q.status : 'none', qiwaMismatches: q ? parseJson_(q.mismatchesJson, []).length : null });
-    });
+    }); });
     return { columns: [col_('month', 'text'), col_('payrollRef', 'id'), col_('runStatus', 'code'), col_('payslips', 'int'), col_('net', 'money', { sum: true }), col_('wpsStatus', 'code', { group: true }),
       col_('due', 'date'), col_('uploaded', 'date'), col_('daysLate', 'int'), col_('bankRef', 'id'), col_('gosiRecon', 'code'), col_('gosiMismatches', 'int', { sum: true }), col_('qiwaRecon', 'code'),
       col_('qiwaMismatches', 'int', { sum: true })], rows: rows,
@@ -2134,7 +2145,7 @@ function api_reportSubSave(req, me) {
       x.status = req.remove ? 'deleted' : req.pause ? 'paused' : 'active';
       if (req.resume) { x.nextRunAt = rsubNext_(x, now); x.fails = 0; }
       x.updatedAt = now.toISOString(); update_(SHEETS.RSUB, x);
-      CacheService.getScriptCache().remove('rsub:next');
+      cache_().remove('rsub:next');
       audit_(me.id, 'report_sub_' + x.status, '', { code: x.code });
       return { ok: true };
     }
@@ -2164,7 +2175,7 @@ function api_reportSubSave(req, me) {
     row.period = req.period; row.cadence = req.cadence; row.weekday = wd; row.monthDay = md; row.hour = hour; row.recipientsJson = JSON.stringify(rec);
     row.status = 'active'; row.updatedAt = now.toISOString(); row.nextRunAt = rsubNext_(row, now);
     if (x) update_(SHEETS.RSUB, row); else append_(SHEETS.RSUB, row);
-    CacheService.getScriptCache().remove('rsub:next');
+    cache_().remove('rsub:next');
     audit_(me.id, x ? 'report_sub_change' : 'report_sub_create', '', { code: row.code, report: reportId, recipients: rec.length });
     return { ok: true, sub: publicRsub_(row, (function () { var n = {}; Object.keys(ctx.emps).forEach(function (k) { n[k] = ctx.emps[k].name; }); return n; })()) };
   });
@@ -2244,7 +2255,7 @@ function rsubHtml_(x, emp, res, p, labels, ref, hash) {
  */
 function reportSubsSweep_() {
   try {
-    var c = CacheService.getScriptCache(), next = c.get('rsub:next'), now = new Date();
+    var c = cache_(), next = c.get('rsub:next'), now = new Date();
     if (next && next > now.toISOString()) return;
     var cfg = mailConfig_(); if (!cfg) { c.put('rsub:next', new Date(now.getTime() + 3600000).toISOString(), 3600); return; }
     if (!rateLimit_('rsub:run', 1, 20)) return;
@@ -2318,10 +2329,10 @@ function snapBuild_(month, kind) {
   sum.avgTenure = sum.tenureN ? Math.round(sum.tenureSum / sum.tenureN * 10) / 10 : null;
   sum.attendancePct = pct_(sum.present, sum.present + sum.absent); sum.absencePct = pct_(sum.absent, sum.present + sum.absent);
   sum.packageTotal = r2_(sum.packageTotal);
-  var run = runsRealFirst_(readAll_(SHEETS.RUN)).filter(function (r) { return r.status === 'locked' && r.month === month; })[0];
-  if (run) {
-    var tt = totals_(readAll_(SHEETS.SLIP).filter(function (sl) { return sl.runId === run.id && sl.status === 'locked'; }));
-    sum.payroll = { source: 'run', ref: run.ref, gross: tt.gross, net: tt.net, gosiEmployer: tt.gosiEmployer, cost: r2_(tt.gross + tt.gosiEmployer) };
+  var mruns = runsRealFirst_(readAll_(SHEETS.RUN)).filter(function (r) { return r.status === 'locked' && r.month === month; }), rid = {}; mruns.forEach(function (r) { rid[r.id] = 1; });
+  if (mruns.length) { // every pay group's run of the month
+    var tt = totals_(readAll_(SHEETS.SLIP).filter(function (sl) { return rid[sl.runId] && sl.status === 'locked'; }));
+    sum.payroll = { source: 'run', ref: mruns.map(function (r) { return r.ref; }).join(' '), gross: tt.gross, net: tt.net, gosiEmployer: tt.gosiEmployer, cost: r2_(tt.gross + tt.gosiEmployer) };
   } else sum.payroll = { source: 'packages', cost: sum.packageTotal };
   delete sum.saudiWeighted; delete sum.tenureSum; delete sum.tenureN;
   return { month: month, asOf: asOf, kind: kind, summary: sum, dims: dims, rec: rec };
@@ -2353,7 +2364,7 @@ function snapMonths_(rows) {
 /** Lazy month-end capture: last month, once, after any writing request in the new month. */
 function snapSweep_() {
   try {
-    var c = CacheService.getScriptCache(), t = today_(), prev = addDays_(t.slice(0, 8) + '01', -1).slice(0, 7), key = 'snap:done:' + prev;
+    var c = cache_(), t = today_(), prev = addDays_(t.slice(0, 8) + '01', -1).slice(0, 7), key = 'snap:done:' + prev;
     if (c.get(key)) return;
     if (!rateLimit_('snap:run', 1, 60)) return;
     var rows = readAll_(SHEETS.SNAP), have = rows.some(function (x) { return x.month === prev && x.status === 'current' && x.kind !== 'provisional'; });

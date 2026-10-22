@@ -207,7 +207,7 @@ function api_pwLogin(req) {
     // One message for unknown employee, no password yet, and wrong password: nothing to learn from the reply.
     if (!emp || emp.status !== 'active' || !emp.pwHash) {
       // Unknown numbers lock too, so password_locked does not reveal which accounts exist.
-      var c = CacheService.getScriptCache(), k = 'pwghost:' + empNo, n = Number(c.get(k) || 0) + 1;
+      var c = cache_(), k = 'pwghost:' + empNo, n = Number(c.get(k) || 0) + 1;
       c.put(k, String(n), PW_LOCK_MINUTES * 60);
       fail_(n >= PW_MAX_TRIES ? 'password_locked' : 'bad_login');
     }
@@ -891,7 +891,7 @@ function api_kioskSave(req, me) {
 function api_kioskPing(req) {
   var p = String(req.setup || '').split('.'), k = findBy_(SHEETS.KIOSK, 'id', p[0]);
   if (!k || k.status !== 'active' || String(k.ver) !== String(p[1]) || p.slice(2).join('.') !== kioskSecret_(k)) return { ok: false, error: 'kiosk_revoked' };
-  var c = CacheService.getScriptCache(); if (!c.get('kioskseen:' + k.id)) { c.put('kioskseen:' + k.id, '1', 600); try { withLock_(function () { var r = findBy_(SHEETS.KIOSK, 'id', k.id); r.lastSeenAt = new Date().toISOString(); update_(SHEETS.KIOSK, r); }); } catch (e) {} }
+  var c = cache_(); if (!c.get('kioskseen:' + k.id)) { c.put('kioskseen:' + k.id, '1', 600); try { withLock_(function () { var r = findBy_(SHEETS.KIOSK, 'id', k.id); r.lastSeenAt = new Date().toISOString(); update_(SHEETS.KIOSK, r); }); } catch (e) {} }
   var z = findBy_(SHEETS.ZONES, 'id', k.zoneId) || {};
   return { ok: true, label: k.label, zone: z.name || '', company: companyOf_(settings_()), serverTime: Date.now(), windowMs: QR_WINDOW_MS_ };
 }

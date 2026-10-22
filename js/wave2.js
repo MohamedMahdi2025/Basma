@@ -201,20 +201,20 @@ rbTitle:'Report builder', rbLead:'Pick columns, filters and grouping from employ
 });
 
 var css = '' +
-'.w2-row .main small{display:block}.w2-flag{color:var(--bad);font-size:12.5px;display:flex;gap:4px;align-items:center;margin-top:2px}.w2-warn{color:var(--warn,var(--bad));font-size:12.5px;display:flex;gap:4px;align-items:flex-start;margin:4px 0}' +
+'.w2-row .main small{display:block}.w2-flag{color:var(--bad);font-size:13px;display:flex;gap:4px;align-items:center;margin-top:2px}.w2-warn{color:var(--warn,var(--bad));font-size:13px;display:flex;gap:4px;align-items:flex-start;margin:4px 0}' +
 '.w2-thread{display:grid;gap:8px;margin:10px 0}.w2-msg{border:1px solid var(--line);border-radius:12px;padding:8px 12px;background:var(--surface,transparent)}.w2-msg.me{border-color:var(--brand)}.w2-msg.int{border-style:dashed;opacity:.85}' +
-'.w2-msg small{display:block;color:var(--muted);font-size:12px;margin-bottom:2px}.w2-msg p{margin:0;white-space:pre-wrap}.w2-sched{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px;margin:8px 0}' +
-'.w2-sched div{border:1px solid var(--line);border-radius:10px;padding:6px 8px;font-size:12.5px}.w2-sched div.paid{border-color:var(--brand)}.w2-sched b{display:block}.w2-body{white-space:pre-wrap;margin:6px 0 0}' +
-'.w2-mx{overflow:auto}.w2-mx table{border-collapse:collapse;font-size:12.5px;min-width:100%}.w2-mx th,.w2-mx td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:start;white-space:nowrap}' +
+'.w2-msg small{display:block;color:var(--muted);font-size:12px;margin-bottom:2px}.w2-msg p{margin:0;white-space:pre-wrap}.w2-sched{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin:8px 0}' +
+'.w2-sched div{border:1px solid var(--line);border-radius:12px;padding:6px 8px;font-size:13px}.w2-sched div.paid{border-color:var(--brand)}.w2-sched b{display:block}.w2-body{white-space:pre-wrap;margin:6px 0 0}' +
+'.w2-mx{overflow:auto}.w2-mx table{border-collapse:collapse;font-size:13px;min-width:100%}.w2-mx th,.w2-mx td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:start;white-space:nowrap}' +
 '.w2-dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--line);vertical-align:middle}.w2-dot.valid{background:var(--brand)}.w2-dot.expiring{background:var(--warn,var(--bad));opacity:.7}.w2-dot.expired,.w2-dot.missing{background:var(--bad)}' +
 '.oc-tree,.oc-tree ul{list-style:none;margin:0;padding:0}.oc-tree ul{padding-inline-start:28px;border-inline-start:1px dashed var(--line);margin-inline-start:18px}' +
 '.oc-tree li{margin:8px 0;position:relative}.oc-tree ul > li::before{content:"";position:absolute;inset-inline-start:-28px;top:26px;width:24px;border-top:1px dashed var(--line)}' +
-'.oc-card{display:inline-flex;gap:10px;align-items:center;border:1px solid var(--line);background:var(--card,#fff);border-radius:14px;padding:8px 12px;cursor:pointer;min-width:240px;transition:border-color .2s,box-shadow .2s}' +
-'.oc-card:hover{border-color:var(--brand);box-shadow:0 8px 18px -12px rgba(0,0,0,.35)}.oc-card .av{width:36px;height:36px}.oc-card b{display:block}.oc-card small{display:block;color:var(--ink-3,var(--muted));font-size:12px}' +
-'.oc-card .oc-n{margin-inline-start:auto;font-size:12px;background:var(--brand-tint,#E7EFE6);color:var(--brand);border-radius:999px;padding:2px 8px}.oc-tree li.fold > ul{display:none}.oc-tree li.hit > .oc-card{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-tint,#E7EFE6)}' +
-'.rb-grid{display:grid;grid-template-columns:260px minmax(0,1fr);gap:18px;align-items:start}.rb-side{border:1px solid var(--line);border-radius:14px;padding:12px 14px;position:sticky;top:12px}.rb-side h4{margin:6px 0 8px}.rb-cols{display:grid;gap:4px;max-height:280px;overflow:auto;margin-bottom:8px}' +
+'.oc-card{display:inline-flex;gap:12px;align-items:center;border:1px solid var(--line);background:var(--card,#fff);border-radius:16px;padding:8px 12px;cursor:pointer;min-width:240px;transition:border-color .2s,box-shadow .2s}' +
+'.oc-card:hover{border-color:var(--brand);box-shadow:var(--e3)}.oc-card .av{width:36px;height:36px}.oc-card b{display:block}.oc-card small{display:block;color:var(--ink-3,var(--muted));font-size:12px}' +
+'.oc-card .oc-n{margin-inline-start:auto;font-size:12px;background:var(--brand-tint,var(--g-E7EFE6,#E7EFE6));color:var(--brand);border-radius:999px;padding:2px 8px}.oc-tree li.fold > ul{display:none}.oc-tree li.hit > .oc-card{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-tint,var(--g-E7EFE6,#E7EFE6))}' +
+'.rb-grid{display:grid;grid-template-columns:260px minmax(0,1fr);gap:16px;align-items:start}.rb-side{border:1px solid var(--line);border-radius:16px;padding:12px 14px;position:sticky;top:12px}.rb-side h4{margin:6px 0 8px}.rb-cols{display:grid;gap:4px;max-height:280px;overflow:auto;margin-bottom:8px}' +
 '.rb-tbl,.rb-sum{border-collapse:collapse;font-size:13px;min-width:100%}.rb-tbl th,.rb-tbl td,.rb-sum th,.rb-sum td{border-bottom:1px solid var(--line);padding:6px 9px;text-align:start;white-space:nowrap}.rb-tbl thead th{position:sticky;top:0;background:var(--card,#fff)}@media (max-width:900px){.rb-grid{grid-template-columns:1fr}.rb-side{position:static}}' +
-'.w2-stars{display:flex;gap:4px}.w2-stars button{font-size:20px}.w2-q{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}.w2-ann{border-inline-start:3px solid var(--brand);padding-inline-start:10px}';
+'.w2-stars{display:flex;gap:4px}.w2-stars button{font-size:20px}.w2-q{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}.w2-ann{border-inline-start:3px solid var(--brand);padding-inline-start:10px}';
 var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 
 // ================= shared kit (same shape as gov.js) =================
@@ -1426,7 +1426,7 @@ function kbSection(body){
       h += '<div class="toolbar"><input type="search" id="kbQ" value="' + esc(q) + '" placeholder="' + t('kbSearch') + '" style="flex:1;min-width:0">' + (r.canEdit ? ' <button type="button" class="btn btn-dark btn-sm" id="kbN">' + ph('plus') + t('kbNew') + '</button>' + (r.rows.length ? '' : ' <button type="button" class="btn btn-line btn-sm" id="kbS">' + ph('books') + t('kbSeed') + '</button>') : '') + '</div>';
       h += rows.length ? '<div class="list">' + rows.map(function(a){
         return '<div class="row w2-row" data-a="' + esc(a.id) + '" style="cursor:pointer"><div class="main"><b>' + esc(lang(a.titleAr, a.titleEn)) + '</b><small>' + t('hdc_' + a.category) + (r.canEdit ? sep() + t('kbViews') + ' ' + a.views + sep() + t('kbHelpful') + ' ' + a.helpful + '/' + (a.helpful + a.notHelpful) + sep() + t('kbDeflected') + ' ' + a.deflected : '') + '</small></div>' +
-          '<div class="act" style="display:flex;gap:6px;align-items:center">' + (a.status !== 'published' ? chip(t('kbs_' + a.status), 'late') : '') + (r.canEdit ? '<button type="button" class="btn btn-line btn-sm" data-e="' + esc(a.id) + '">' + t('w2Edit') + '</button>' : '') + '</div></div>';
+          '<div class="act" style="display:flex;gap:8px;align-items:center">' + (a.status !== 'published' ? chip(t('kbs_' + a.status), 'late') : '') + (r.canEdit ? '<button type="button" class="btn btn-line btn-sm" data-e="' + esc(a.id) + '">' + t('w2Edit') + '</button>' : '') + '</div></div>';
       }).join('') + '</div>' : empty('books', t('w2None'));
       box.innerHTML = h; wire(box);
       var qi = $('#kbQ', box); qi.oninput = function(){ q = qi.value; var p = qi.selectionStart; load(); setTimeout(function(){ var x = $('#kbQ', box); if (x) { x.focus(); x.setSelectionRange(p, p); } }, 60); };
