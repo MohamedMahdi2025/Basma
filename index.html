@@ -3591,7 +3591,8 @@ var AREAS = [
     { id: 'flows', n: 'vwFlows', ok: isHr, files: FLOW_FILES, run: function(b){ Flows.config(b); } },
     { id: 'export', n: 'vwExport', ok: isAdmin, files: W4_FILES, run: function(b){ DataExport.section(b); } },
     { id: 'integrations', n: 'vwIntegrations', ok: isAdmin, files: W4_FILES, run: function(b){ Integrations.section(b); } },
-    { id: 'platform', n: 'vwPlatform', ok: isAdmin, files: W4_FILES, run: function(b){ Platform.section(b); } }] },
+    { id: 'platform', n: 'vwPlatform', ok: function(){ return isAdmin() && !!(S.company && S.company.home); }, // the platform owner's company only, never inside a customer's admin area
+      files: W4_FILES, run: function(b){ Platform.section(b); } }] },
     { id: 'profile', i: 'identification-card', foot: true, bare: true, subs: [{ id: 'main', n: 'vwMain', ok: ALL, files: MY_FILES, run: function(b){ MyFile.render(b); } }] },
     { id: 'account', i: 'user-circle', foot: true, bare: true, subs: [{ id: 'main', n: 'vwMain', ok: ALL, run: function(){ renderMe(); } }] }
 ];
