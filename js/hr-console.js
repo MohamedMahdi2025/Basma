@@ -194,18 +194,18 @@ var COLS = [
 var XLSX_URL = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
 
 var css = '' +
-'.hr-rail{display:flex;gap:8px;overflow-x:auto;padding:14px 14px 6px;scrollbar-width:none}' +
+'.hr-rail{display:flex;gap:8px;overflow-x:auto;padding:16px 16px 6px;scrollbar-width:none}' +
 '.hr-rail::-webkit-scrollbar{display:none}' +
-'.hr-rail button{flex:none;height:38px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-size:14px;color:var(--ink-2);display:inline-flex;align-items:center;gap:8px}' +
+'.hr-rail button{flex:none;height:38px;padding:0 16px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-size:14px;color:var(--ink-2);display:inline-flex;align-items:center;gap:8px}' +
 '.hr-rail button i{font-size:18px}' +
 '.hr-rail button[aria-current="page"]{background:var(--pine);color:var(--cream);border-color:var(--pine)}' +
 '.hr-rail-g{display:none}' +
-'.hr-rail .badge{display:inline-grid;place-items:center;min-width:18px;height:18px;border-radius:8px;background:var(--amber);color:#fff;font-size:11px;padding:0 5px}' +
-'.hr-body{padding:8px 14px 28px;min-width:0}' +
+'.hr-rail .badge{display:inline-grid;place-items:center;min-width:18px;height:18px;border-radius:8px;background:var(--amber);color:#fff;font-size:11px;padding:0 4px}' +
+'.hr-body{padding:8px 16px 28px;min-width:0}' +
 '.hr-h{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:6px 0 14px}' +
 '.hr-h h2{margin:0;font-size:20px;font-weight:600;flex:1}' +
 '.hr-sat{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:14px}' +
-'.hr-sat .meter{grid-column:1 / -1;background:var(--pine);color:var(--cream);border-radius:var(--r-m);padding:14px 16px}' +
+'.hr-sat .meter{grid-column:1 / -1;background:var(--pine);color:var(--cream);border-radius:var(--r-m);padding:16px 16px}' +
 '.hr-sat .meter span{font-size:13px;color:var(--g-AFC0AD,#AFC0AD)}' +
 '.hr-sat .meter b{display:block;font-size:32px;font-weight:600;line-height:1.15}' +
 '.hr-sat .meter small{display:block;color:var(--g-AFC0AD,#AFC0AD);font-size:12px;margin-top:6px}' +
@@ -215,35 +215,35 @@ var css = '' +
 '.hr-desk{display:none}' +
 '.tbl tr.click{cursor:pointer}' +
 '.tbl tr.click:hover td{background:#FAF9F5}' +
-'.hr-tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:0 -18px 16px;padding:0 18px;overflow-x:auto;scrollbar-width:none}' +
-'.hr-tabs button{flex:none;background:none;border:0;border-bottom:2px solid transparent;padding:10px 10px;color:var(--ink-2);font-size:14px}' +
+'.hr-tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:0 -18px 16px;padding:0 20px;overflow-x:auto;scrollbar-width:none}' +
+'.hr-tabs button{flex:none;background:none;border:0;border-bottom:2px solid transparent;padding:12px 12px;color:var(--ink-2);font-size:14px}' +
 '.hr-tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--brand);font-weight:500}' +
 '.hr-sub{margin:18px 0 8px;font-size:16px;font-weight:600}' +
 '.hr-who{display:flex;align-items:center;gap:12px;margin-bottom:14px}' +
 '.hr-who .av{width:46px;height:46px;font-size:18px}' +
 '.hr-who b{display:block;font-size:18px;font-weight:600}' +
 '.hr-who small{color:var(--ink-2)}' +
-'.hr-tree .row{padding-top:10px;padding-bottom:10px}' +
+'.hr-tree .row{padding-top:12px;padding-bottom:12px}' +
 '.hr-tree .lvl{display:inline-block;width:10px;height:10px;border-radius:4px;background:var(--brand);flex:none}' +
-'.hr-chart .kids{margin-inline-start:15px;border-inline-start:2px solid var(--g-E4E9E1,#E4E9E1);padding-inline-start:14px}' +
+'.hr-chart .kids{margin-inline-start:15px;border-inline-start:2px solid var(--g-E4E9E1,#E4E9E1);padding-inline-start:16px}' +
 '.hr-chart summary .car{margin-inline-start:auto;color:var(--ink-2);transition:transform .2s var(--ease)}' +
 '.hr-chart details:not([open]) > summary .car{transform:rotate(90deg)}' +
-'.hr-chart summary{list-style:none;display:flex;align-items:center;gap:12px;padding:7px 0;cursor:pointer}' +
+'.hr-chart summary{list-style:none;display:flex;align-items:center;gap:12px;padding:8px 0;cursor:pointer}' +
 '.hr-chart summary::-webkit-details-marker{display:none}' +
 '.hr-chart summary .av{width:32px;height:32px;font-size:13px}' +
 '.hr-chart summary small{color:var(--ink-2);font-size:13px}' +
-'.hr-chart .leaf{display:flex;align-items:center;gap:12px;padding:7px 0}' +
+'.hr-chart .leaf{display:flex;align-items:center;gap:12px;padding:8px 0}' +
 '.hr-chart .leaf .av{width:32px;height:32px;font-size:13px}' +
-'.hr-seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;background:var(--card)}' +
+'.hr-seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:4px;background:var(--card)}' +
 '.hr-seg button{border:0;background:none;height:32px;padding:0 12px;border-radius:999px;font-size:13px;color:var(--ink-2)}' +
 '.hr-seg button[aria-pressed="true"]{background:var(--pine);color:var(--cream)}' +
 '.hr-steps{list-style:none;margin:0;padding:0;display:grid;gap:12px;counter-reset:st}' +
-'.hr-steps > li{counter-increment:st;background:var(--card);border:1px solid var(--line);border-radius:var(--r-m);padding:16px 16px 16px 16px;position:relative;padding-inline-start:58px}' +
+'.hr-steps > li{counter-increment:st;background:var(--card);border:1px solid var(--line);border-radius:var(--r-m);padding:16px 16px 16px 16px;position:relative;padding-inline-start:60px}' +
 '.hr-steps > li::before{content:counter(st);position:absolute;inset-inline-start:16px;top:14px;width:28px;height:28px;border-radius:50%;background:var(--pine);color:var(--cream);display:grid;place-items:center;font-weight:600;font-size:14px}' +
 '.hr-steps h3{margin:0 0 2px;font-size:16px;font-weight:600}' +
 '.hr-steps p{margin:0 0 10px;color:var(--ink-2);font-size:14px}' +
 '.hr-sum{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 12px}' +
-'.hr-sum .chip{font-size:13px;padding:5px 11px}' +
+'.hr-sum .chip{font-size:13px;padding:4px 12px}' +
 '.hr-err td:first-child{font-variant-numeric:tabular-nums}' +
 '.hr-amt{font-variant-numeric:tabular-nums;text-align:end}' +
 '.hr-other{display:grid;grid-template-columns:1fr 120px 38px;gap:8px;align-items:center}' +
@@ -257,7 +257,7 @@ var css = '' +
 '.lvg-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r-m);background:var(--card)}' +
 '.lvg{display:grid;min-width:max-content;font-size:12px}' +
 '.lvg > div{border-bottom:1px solid #EFECE3;min-height:30px}' +
-'.lvg-name{position:sticky;inset-inline-start:0;background:var(--card);z-index:1;padding:6px 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-inline-end:1px solid var(--line)}' +
+'.lvg-name{position:sticky;inset-inline-start:0;background:var(--card);z-index:1;padding:6px 12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-inline-end:1px solid var(--line)}' +
 '.lvg-day{display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--ink-2);line-height:1.2;padding:4px 0}' +
 '.lvg-day span{font-size:11px}.lvg-day.we,.lvg-cell.we{background:#FAF9F5}' +
 '.lvg-day.ho,.lvg-cell.ho{background:repeating-linear-gradient(45deg,#ECE8DD 0 4px,#F6F4EE 4px 8px)}' +
@@ -266,13 +266,13 @@ var css = '' +
 '.lv-legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--ink-2)}.lv-legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-inline-end:5px;vertical-align:middle}' +
 '@media (min-width:1024px){' +
   '.hr-shell{display:grid;grid-template-columns:230px minmax(0,1fr);max-width:1440px;width:calc(100% - 56px);margin:0 auto 28px;background:var(--paper);border-radius:24px;min-height:calc(100dvh - 120px)}' +
-  '.hr-rail{flex-direction:column;padding:26px 14px;border-inline-end:1px solid var(--line);overflow:visible}' +
+  '.hr-rail{flex-direction:column;padding:28px 16px;border-inline-end:1px solid var(--line);overflow:visible}' +
   '.hr-rail button{height:42px;border:0;background:none;justify-content:flex-start;border-radius:12px;font-size:14px}' +
   '.hr-rail button:hover{background:#EFECE3}' +
   '.hr-rail .badge{margin-inline-start:auto}' +
   '.hr-rail .hr-rail-g{display:block;margin:14px 12px 4px;font-size:12px;font-weight:600;letter-spacing:.02em;color:#8A948B}.hr-rail .hr-rail-g:first-child{margin-top:0}' +
   '.hr-rail button[aria-current="page"]{box-shadow:var(--e3)}' +
-  '.hr-body{padding:26px 30px 36px}' +
+  '.hr-body{padding:28px 32px 36px}' +
   '.hr-sat{grid-template-columns:2fr 1fr 1fr 1fr}' +
   '.hr-sat .meter{grid-column:auto}' +
   '.hr-desk{display:block}' +
@@ -748,7 +748,7 @@ function org(body){
       if (!ks.length || depth > 14) return '<div class="leaf">' + face + '</div>';
       return '<details' + (depth < 2 ? ' open' : '') + '><summary>' + face + '<i class="ph ph-caret-down car" aria-hidden="true"></i></summary><div class="kids">' + ks.map(function(k){ return node(k, depth + 1); }).join('') + '</div></details>';
     }
-    el.innerHTML = '<div class="hr-chart list" style="padding:10px 14px">' + (kids[''] || []).map(function(e){ return node(e, 0); }).join('') + '</div>';
+    el.innerHTML = '<div class="hr-chart list" style="padding:12px 16px">' + (kids[''] || []).map(function(e){ return node(e, 0); }).join('') + '</div>';
   }
 }
 
@@ -851,7 +851,7 @@ function approvals(body){
 function expiring(body){
   var days = S.exDays || 60;
   body.innerHTML = '<div class="hr-h"><h2>' + t('hrExpiring') + '</h2><label style="display:flex;align-items:center;gap:8px;color:var(--ink-2);font-size:14px">' + t('exDays') +
-    '<select id="exd" style="height:38px;border:1px solid var(--line);border-radius:var(--r-s);background:var(--card);padding:0 10px">' + [30, 60, 90, 180].map(function(n){ return opt(n, plural(n, 'days'), days); }).join('') + '</select></label></div><div id="exBody"></div>';
+    '<select id="exd" style="height:38px;border:1px solid var(--line);border-radius:var(--r-s);background:var(--card);padding:0 12px">' + [30, 60, 90, 180].map(function(n){ return opt(n, plural(n, 'days'), days); }).join('') + '</select></label></div><div id="exBody"></div>';
   $('#exd').onchange = function(){ S.exDays = Number(this.value); expiring(body); };
   var el = $('#exBody');
   loading(el);
@@ -960,7 +960,7 @@ function importer(body){
 function inbox(body){
   var scope = roles().hr ? (S.inScope || 'mine') : 'mine', status = S.inStatus != null ? S.inStatus : 'pending';
   body.innerHTML = '<div class="hr-h"><h2>' + t('hrInbox') + '</h2>' + (roles().hr ? '<div class="hr-seg" role="group"><button type="button" data-sc="mine" aria-pressed="' + (scope === 'mine') + '">' + t('inMine') + '</button><button type="button" data-sc="all" aria-pressed="' + (scope === 'all') + '">' + t('inAll') + '</button></div>' +
-    (scope === 'all' ? '<select id="inSt" style="height:38px;border:1px solid var(--line);border-radius:var(--r-s);background:var(--card);padding:0 10px">' + opt('', t('inAllStatus'), status) + ['pending', 'approved', 'rejected', 'cancelled'].map(function(x){ return opt(x, t('rs_' + x), status); }).join('') + '</select>' : '') : '') + '</div><div id="inBody"></div>';
+    (scope === 'all' ? '<select id="inSt" style="height:38px;border:1px solid var(--line);border-radius:var(--r-s);background:var(--card);padding:0 12px">' + opt('', t('inAllStatus'), status) + ['pending', 'approved', 'rejected', 'cancelled'].map(function(x){ return opt(x, t('rs_' + x), status); }).join('') + '</select>' : '') : '') + '</div><div id="inBody"></div>';
   $$('[data-sc]', body).forEach(function(b){ b.onclick = function(){ S.inScope = b.dataset.sc; inbox(body); }; });
   var ss = $('#inSt', body); if (ss) ss.onchange = function(){ S.inStatus = this.value; inbox(body); };
   if (window.Compliance && (roles().manager || roles().hr)) { var hh = $('.hr-h', body), db = document.createElement('button'); db.type = 'button'; db.className = 'btn btn-line btn-sm'; db.innerHTML = ph('handshake') + t('dgTitle'); db.onclick = Compliance.delegations; hh.appendChild(db); }
@@ -970,7 +970,7 @@ function inbox(body){
     if (!r.ok) return failed(el, function(){ inbox(body); });
     if (scope === 'mine') setBadge('inBadge', r.rows.length);
     if (!r.rows.length) { el.innerHTML = '<div class="empty">' + ph('tray') + '<b>' + (scope === 'mine' ? t('inEmpty') : t('inEmptyAll')) + '</b></div>'; return; }
-    el.innerHTML = (window.Viz ? inboxDash(r.rows, scope) : '') + '<div class="list" style="padding:0 14px">' + r.rows.map(function(o){ return Req.rowHtml(o, { who: true, actions: actions }); }).join('') + '</div>';
+    el.innerHTML = (window.Viz ? inboxDash(r.rows, scope) : '') + '<div class="list" style="padding:0 16px">' + r.rows.map(function(o){ return Req.rowHtml(o, { who: true, actions: actions }); }).join('') + '</div>';
     $$('[data-more]', el).forEach(function(m){ if (scope === 'mine') m.classList.remove('hidden'); });
     Req.wireList(el, r.rows, null, function(){ inbox(body); });
     if (window.Viz) Viz.wire(el);
@@ -1012,7 +1012,7 @@ function inboxDash(rows, scope){
   var types = Object.keys(byType).sort(function(a, b){ return byType[b] - byType[a]; }).map(function(k){ return { label: t('rt_' + k), value: byType[k], text: String(byType[k]), tip: t('rt_' + k) + ': ' + byType[k] }; });
   var bk = [['ibAge0', 0, 0], ['ibAge1', 1, 3], ['ibAge3', 4, 7], ['ibAge7', 8, 9999]].map(function(b){ var n = open.filter(function(o){ var a = age(o); return a >= b[1] && a <= b[2]; }).length; return { label: t(b[0]), value: n, alt: b[1] > 3, tip: t(b[0]) + ': ' + n }; });
   var tb = function(items){ return V.tbl(['', t('rpCount')], items.map(function(i){ return [esc(i.label), i.value]; })); };
-  return '<div style="padding:0 14px">' + V.panel('inbox', t('ibTitle'), '<div class="db-tiles">' + V.tile(scope === 'mine' ? t('ibOpen') : t('rs_pending'), V.n1(open.length, 0), plural(rows.length, 'rows'), null, true, true) +
+  return '<div style="padding:0 16px">' + V.panel('inbox', t('ibTitle'), '<div class="db-tiles">' + V.tile(scope === 'mine' ? t('ibOpen') : t('rs_pending'), V.n1(open.length, 0), plural(rows.length, 'rows'), null, true, true) +
     V.tile(t('ibOld'), plural(oldest, 'days'), '') + V.tile(t('ibOver3'), '<span class="db-status">' + (over3 ? ph('warning') + ' ' : '') + over3 + '</span>', '') + '</div>' +
     (open.length ? '<div class="db-grid two">' + V.card('it', t('ibByType'), '', V.hbars(types), tb(types)) + V.card('ia', t('ibByAge'), '', V.cols(bk, { labels: true }), tb(bk)) + '</div>' : '')) + '</div>';
 }

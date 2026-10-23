@@ -22,7 +22,7 @@ var CONFIG = {
   ACTIVATION_MAX_TRIES: 5
 };
 
-var SHEETS = { BRAND: 'branding', WHOUT: 'webhookOutbox', HOOK: 'webhooks', APIKEY: 'apiKeys', PGRP: 'payGroups', SNAP: 'snapshots', RSUB: 'reportSubs', KIOSK: 'kiosks', NLOG: 'notifyLog', PERK: 'perks', CPATH: 'careerPaths', SUCC: 'successionPlans', POT: 'potentialRatings', KB: 'kbArticles', GOAL: 'goals', OOO: 'oneOnOnes', WFP: 'workforcePlans', CPOST: 'careerPosts', OSH: 'shiftOffers', EMP: 'employees', CRED: 'credentials', ZONES: 'zones', PUNCH: 'punches', AUDIT: 'audit', SET: 'settings',
+var SHEETS = { PNOTE: 'presenceNotes', BRAND: 'branding', WHOUT: 'webhookOutbox', HOOK: 'webhooks', APIKEY: 'apiKeys', PGRP: 'payGroups', SNAP: 'snapshots', RSUB: 'reportSubs', KIOSK: 'kiosks', NLOG: 'notifyLog', PERK: 'perks', CPATH: 'careerPaths', SUCC: 'successionPlans', POT: 'potentialRatings', KB: 'kbArticles', GOAL: 'goals', OOO: 'oneOnOnes', WFP: 'workforcePlans', CPOST: 'careerPosts', OSH: 'shiftOffers', EMP: 'employees', CRED: 'credentials', ZONES: 'zones', PUNCH: 'punches', AUDIT: 'audit', SET: 'settings',
   DEPT: 'departments', POS: 'positions', PRIV: 'empPrivate', COMP: 'compensation', JOBH: 'jobHistory', DOCS: 'documents',
   REQ: 'requests', HOL: 'holidays', RUN: 'payrollRuns', SLIP: 'payslips', ADJ: 'adjustments',
   CYC: 'perfCycles', KPI: 'kpis', REV: 'reviews', FB: 'feedback360', RLOG: 'reportLog',
@@ -40,6 +40,7 @@ var SHEETS = { BRAND: 'branding', WHOUT: 'webhookOutbox', HOOK: 'webhooks', APIK
   EXS: 'exitSurveys', KUD: 'kudos', FSET: 'finalSettlements', CRC: 'compCycles', CRP: 'compProposals', TSH: 'timesheets', CFD: 'customFields', CFV: 'empCustom' }; // Wave 3 (Engage.gs): exit interview, recognition
 
 var HEADERS = {
+  presenceNotes: ['id', 'empId', 'text', 'until', 'updatedAt'],
   branding: ['key', 'value', 'updatedAt', 'updatedBy'],
   webhookOutbox: ['id', 'hookId', 'event', 'dedupe', 'payloadJson', 'status', 'attempts', 'nextAt', 'lastCode', 'lastError', 'createdAt', 'sentAt'],
   webhooks: ['id', 'url', 'eventsJson', 'ver', 'status', 'createdBy', 'createdAt', 'lastStatus', 'lastAt', 'fails'],
@@ -253,7 +254,7 @@ function forget_(name) { delete READ_MEMO_[name]; }
  * be written back (update_ refuses), so the copy cannot overwrite the Sheet.
  */
 // Every small tab can be served from the copy; punches and audit grow without end and are always read.
-var CACHED_TABS_ = { branding: 1, webhookOutbox: 1, webhooks: 1, apiKeys: 1, payGroups: 1, snapshots: 1, reportSubs: 1, kiosks: 1, notifyLog: 1, perks: 1, careerPaths: 1, successionPlans: 1, potentialRatings: 1, kbArticles: 1, goals: 1, oneOnOnes: 1, workforcePlans: 1, careerPosts: 1, shiftOffers: 1, employees: 1, zones: 1, credentials: 1, departments: 1, positions: 1, empPrivate: 1, compensation: 1,
+var CACHED_TABS_ = { presenceNotes: 1, branding: 1, webhookOutbox: 1, webhooks: 1, apiKeys: 1, payGroups: 1, snapshots: 1, reportSubs: 1, kiosks: 1, notifyLog: 1, perks: 1, careerPaths: 1, successionPlans: 1, potentialRatings: 1, kbArticles: 1, goals: 1, oneOnOnes: 1, workforcePlans: 1, careerPosts: 1, shiftOffers: 1, employees: 1, zones: 1, credentials: 1, departments: 1, positions: 1, empPrivate: 1, compensation: 1,
   jobHistory: 1, documents: 1, requests: 1, holidays: 1, payrollRuns: 1, adjustments: 1, perfCycles: 1, kpis: 1, reviews: 1, feedback360: 1,
   onboarding: 1, surveys: 1, policies: 1, policyAcks: 1, devPlans: 1, delegations: 1, wpsLog: 1, salaryRecon: 1, shifts: 1, roster: 1, discCodes: 1, discCases: 1, injuries: 1, assets: 1, custody: 1, clearance: 1,
   govVisas: 1, iqamaRenewals: 1, govFees: 1, ticketRights: 1, ticketUses: 1, expenseClaims: 1, journalLog: 1,
@@ -561,7 +562,7 @@ var REF_DEFAULTS = {
   kiosk: 'KSK',
   kb: 'KB',
   open_shift: 'OSH',
-  leave: 'LV', letter: 'LT', advance: 'AD', correction: 'AC', data_change: 'DC', resignation: 'RS', permission: 'PM', overtime: 'OT', travel: 'TR',
+  leave: 'LV', letter: 'LT', advance: 'AD', correction: 'AC', data_change: 'DC', resignation: 'RS', permission: 'PM', overtime: 'OT', travel: 'TR', remote: 'RW',
   salary: 'SAL', document: 'DOC', import: 'IMP', department: 'DEP', position: 'POS',
   payroll: 'PR', payslip: 'PS', adjustment: 'ADJ', perf_cycle: 'PC', kpi: 'KPI', review: 'PE', feedback: 'FB', report: 'RPT',
   onboarding: 'ONB', survey: 'SRV', policy: 'POL', idp: 'IDP', pip: 'PIP', delegation: 'DLG', wps: 'WPS', recon: 'REC', shift: 'SH', disciplinary: 'DSC', injury: 'INJ', asset: 'AST', clearance: 'CLR',
@@ -683,7 +684,7 @@ function rateLimit_(key, max, seconds) {
 // Best Gas): its keys are unprefixed, so nothing of the live system moved.
 var ORG_ = null, ORG_SS_ = null;
 var ORG_REQUIRED_ = { authBegin: 1, enrollBegin: 1, pwLogin: 1, adminRecover: 1, bootstrap: 1, orgCheck: 1 };
-var PLATFORM_ACTIONS_ = { orgCreate: 1, orgList: 1, orgSetStatus: 1 };
+var PLATFORM_ACTIONS_ = { orgCreate: 1, orgList: 1, orgSetStatus: 1, orgSetGroup: 1, orgOverview: 1 };
 function homeOrgId_() { return PropertiesService.getScriptProperties().getProperty('HOME_ORG_ID') || CONFIG.HOME_ORG_ID; }
 function orgRec_(id) {
   id = String(id || '');
@@ -849,7 +850,7 @@ function api_orgCreate(req) {
     if (cr && all.some(function (o) { return o.cr === cr && o.status !== 'deleted'; })) fail_('cr_exists');
     var next = Math.max(Number(p.getProperty('ORG_SEQ')) || Number(homeOrgId_()), Number(homeOrgId_())) + 1;
     var id = String(next), bookId = restCreateBook_((nameEn || nameAr) + ' · HRIS · ' + id);
-    var rec = { sheetId: bookId, nameAr: nameAr, nameEn: nameEn, cr: cr, status: 'active', createdAt: new Date().toISOString() };
+    var rec = { sheetId: bookId, nameAr: nameAr, nameEn: nameEn, cr: cr, group: str_(req.group, 60), status: 'active', createdAt: new Date().toISOString() };
     p.setProperty('ORG:' + id, JSON.stringify(rec)); p.setProperty('ORG_SEQ', String(next));
   } finally { lock.releaseLock(); }
   // the new organisation's own first steps run inside it
@@ -869,7 +870,7 @@ function orgAll_() {
 function api_orgList(req) {
   platformKeyOk_(req);
   var hs = settings_(); // the first company (this script's own spreadsheet) is listed by its name, like every other customer
-  return { ok: true, home: homeOrgId_(), homeNameAr: hs.companyNameAr || '', homeNameEn: hs.companyNameEn || '', orgs: orgAll_().map(function (o) { return { id: o.id, nameAr: o.nameAr, nameEn: o.nameEn, cr: o.cr, status: o.status, createdAt: o.createdAt }; }) };
+  return { ok: true, home: homeOrgId_(), homeGroup: PropertiesService.getScriptProperties().getProperty('HOME_GROUP') || '', homeNameAr: hs.companyNameAr || '', homeNameEn: hs.companyNameEn || '', orgs: orgAll_().map(function (o) { return { id: o.id, nameAr: o.nameAr, nameEn: o.nameEn, cr: o.cr, group: o.group || '', status: o.status, createdAt: o.createdAt }; }) };
 }
 /** Suspend or re-open an organisation (its data stays; every request is refused while suspended). */
 function api_orgSetStatus(req) {
@@ -880,6 +881,40 @@ function api_orgSetStatus(req) {
   var o = parseJson_(raw, {}); o.status = req.status; o.updatedAt = new Date().toISOString();
   p.setProperty('ORG:' + id, JSON.stringify(o));
   return { ok: true };
+}
+/** Platform: put a company in a group (several CRs of one owner are listed together); '' takes it out. */
+function api_orgSetGroup(req) {
+  platformKeyOk_(req);
+  var id = String(req.id || ''), p = PropertiesService.getScriptProperties(), g = str_(req.group, 60);
+  if (id === homeOrgId_()) { p.setProperty('HOME_GROUP', g); return { ok: true }; }
+  var raw = p.getProperty('ORG:' + id); if (!raw) fail_('org_not_found');
+  var o = parseJson_(raw, {}); o.group = g; o.updatedAt = new Date().toISOString(); p.setProperty('ORG:' + id, JSON.stringify(o));
+  return { ok: true };
+}
+/** One organisation's usage, read inside it: counts only. */
+function orgUsage_() {
+  var t = today_(), emps = readAll_(SHEETS.EMP), act = emps.filter(function (e) { return e.status === 'active'; }), seen = {}, last = '';
+  readAll_(SHEETS.PUNCH).forEach(function (p) { var d = String(p.date).slice(0, 10); if (d > last) last = d; if (d === t && isCounted_(p)) seen[p.empId] = 1; });
+  var creds = readAll_(SHEETS.CRED).filter(function (c) { return c.status === 'active'; }), withDevice = {};
+  creds.forEach(function (c) { withDevice[c.empId] = 1; });
+  return { employees: act.length, enrolled: act.filter(function (e) { return withDevice[e.id]; }).length, activeToday: Object.keys(seen).length,
+    pendingRequests: readAll_(SHEETS.REQ).filter(function (r) { return r.status === 'pending'; }).length, lastActivity: last };
+}
+/** Platform: every organisation's usage, by group. Each is read in its own book; one failing never hides the others. */
+function api_orgOverview(req) {
+  platformKeyOk_(req);
+  var p = PropertiesService.getScriptProperties(), list = [{ id: homeOrgId_(), group: p.getProperty('HOME_GROUP') || '', status: 'active' }].concat(orgAll_());
+  var rows = list.map(function (o) {
+    var row = { id: o.id, group: o.group || '', status: o.status, cr: o.cr || '' };
+    try {
+      setOrg_(orgRec_(o.id)); var s = settings_();
+      row.nameAr = s.companyNameAr || o.nameAr || ''; row.nameEn = s.companyNameEn || o.nameEn || '';
+      var u = orgUsage_(); for (var k in u) row[k] = u[k];
+    } catch (e) { row.error = String(e && e.message || e).replace(/^E:/, '').slice(0, 60); }
+    return row;
+  });
+  setOrg_(orgRec_(homeOrgId_()));
+  return { ok: true, rows: rows, at: new Date().toISOString() };
 }
 /** The sign-in screen: is this Org ID real, and whose is it? (name only; rate-limited against guessing) */
 function api_orgCheck(req) {
@@ -919,11 +954,11 @@ function doPost(e) {
   return json_(handle_(req));
 }
 
-var PUBLIC_ACTIONS = { orgLogo: 1, apiQuery: 1, orgCreate: 1, orgList: 1, orgSetStatus: 1, orgCheck: 1, kioskPing: 1, careersList: 1, careersApply: 1,
+var PUBLIC_ACTIONS = { orgLogo: 1, apiQuery: 1, orgCreate: 1, orgList: 1, orgSetStatus: 1, orgSetGroup: 1, orgOverview: 1, orgCheck: 1, kioskPing: 1, careersList: 1, careersApply: 1,
   ping: 1, bootstrapStatus: 1, bootstrap: 1, enrollBegin: 1, enrollFinish: 1,
   authBegin: 1, authFinish: 1, punchBegin: 1, punchFinish: 1, adminRecover: 1, pwLogin: 1, pinChange: 1, diag: 1, demoData: 1
 };
-var EMP_ACTIONS = { brandSave: 1, logoSave: 1, apiKeyList: 1, apiKeySave: 1, webhookSave: 1, webhookDeliveries: 1, payGroupList: 1, payGroupSave: 1, payGroupAssign: 1, snapshotList: 1, snapshotView: 1, snapshotPeople: 1, snapshotTake: 1, reportSubList: 1, reportSubSave: 1, reportSubSend: 1, kioskList: 1, kioskSave: 1, docUpload: 1, docFile: 1, notifyStatus: 1, notifyTest: 1, perkList: 1, perkView: 1, welcome: 1, dataExport: 1, internalJobs: 1, internalApply: 1, careerPathList: 1, nineBox: 1, potentialSave: 1, successionList: 1, successionSave: 1, kbSearch: 1, kbList: 1, kbGet: 1, kbFeedback: 1, oneOnOneList: 1, oneOnOneSave: 1, oneOnOneUpdate: 1, goalList: 1, goalSave: 1, goalCheckIn: 1, workforcePlan: 1, workforcePlanSave: 1, pinEnrollBegin: 1, pinEnrollFinish: 1, shiftOfferList: 1, openShiftPost: 1, openShiftClaim: 1, shiftSwapAsk: 1, shiftSwapAnswer: 1, shiftOfferDecide: 1, shiftOfferCancel: 1, me: 1, myHistory: 1, passwordSet: 1, punchPw: 1, searchAll: 1, customFieldList: 1, customFieldSave: 1, customValuesGet: 1, customValuesSave: 1, customValuesAll: 1, timesheetList: 1, timesheetApprove: 1, compCycleSave: 1, compCycleList: 1, compPropose: 1, compCycleClose: 1, finalSettlementCreate: 1, finalSettlementDecide: 1, finalSettlementPaid: 1, finalSettlementList: 1, myFinalSettlement: 1, myExitSurvey: 1, exitSurveySubmit: 1, kudosSend: 1, kudosFeed: 1, exitSurveyResults: 1, kudosStats: 1,
+var EMP_ACTIONS = { officeMap: 1, presenceSet: 1, myTotalRewards: 1, brandSave: 1, logoSave: 1, apiKeyList: 1, apiKeySave: 1, webhookSave: 1, webhookDeliveries: 1, payGroupList: 1, payGroupSave: 1, payGroupAssign: 1, snapshotList: 1, snapshotView: 1, snapshotPeople: 1, snapshotTake: 1, reportSubList: 1, reportSubSave: 1, reportSubSend: 1, kioskList: 1, kioskSave: 1, docUpload: 1, docFile: 1, notifyStatus: 1, notifyTest: 1, perkList: 1, perkView: 1, welcome: 1, dataExport: 1, internalJobs: 1, internalApply: 1, careerPathList: 1, nineBox: 1, potentialSave: 1, successionList: 1, successionSave: 1, kbSearch: 1, kbList: 1, kbGet: 1, kbFeedback: 1, oneOnOneList: 1, oneOnOneSave: 1, oneOnOneUpdate: 1, goalList: 1, goalSave: 1, goalCheckIn: 1, workforcePlan: 1, workforcePlanSave: 1, pinEnrollBegin: 1, pinEnrollFinish: 1, shiftOfferList: 1, openShiftPost: 1, openShiftClaim: 1, shiftSwapAsk: 1, shiftSwapAnswer: 1, shiftOfferDecide: 1, shiftOfferCancel: 1, me: 1, myHistory: 1, passwordSet: 1, punchPw: 1, searchAll: 1, customFieldList: 1, customFieldSave: 1, customValuesGet: 1, customValuesSave: 1, customValuesAll: 1, timesheetList: 1, timesheetApprove: 1, compCycleSave: 1, compCycleList: 1, compPropose: 1, compCycleClose: 1, finalSettlementCreate: 1, finalSettlementDecide: 1, finalSettlementPaid: 1, finalSettlementList: 1, myFinalSettlement: 1, myExitSurvey: 1, exitSurveySubmit: 1, kudosSend: 1, kudosFeed: 1, exitSurveyResults: 1, kudosStats: 1,
   myFile: 1, hrEmpFile: 1, hrTeam: 1, hrCompList: 1, hrCompPropose: 1, hrCompDecide: 1,
   myRequests: 1, requestQuote: 1, requestCreate: 1, requestCancel: 1, reqInbox: 1, reqDecide: 1, holidayList: 1, leaveTeam: 1,
   mySlips: 1, payrollList: 1, payrollGet: 1, payrollCreate: 1, payrollRecalc: 1, payrollApprove: 1, payrollDelete: 1, payrollAdjSave: 1,
@@ -947,7 +982,7 @@ var EMP_ACTIONS = { brandSave: 1, logoSave: 1, apiKeyList: 1, apiKeySave: 1, web
   myInsurance: 1, insDependantRequest: 1, insList: 1, insCost: 1,
   myAnnouncements: 1, annRead: 1,
   hdCreate: 1, hdMine: 1, hdList: 1, hdGet: 1, hdReply: 1, hdAssign: 1, hdStatus: 1, hdRate: 1 };
-var HR_ACTIONS = { perkSave: 1, welcomeSave: 1, careerPathSave: 1, rolesOverview: 1, kbSave: 1, kbSeed: 1, careerPostList: 1, careerPostSave: 1, resignationDefer: 1, recruitReqClose: 1, recruitCandSave: 1, recruitCandStage: 1, recruitInterviewSave: 1, recruitOfferSave: 1, recruitOfferSend: 1, recruitOfferRespond: 1,
+var HR_ACTIONS = { flowPreview: 1, perkSave: 1, welcomeSave: 1, careerPathSave: 1, rolesOverview: 1, kbSave: 1, kbSeed: 1, careerPostList: 1, careerPostSave: 1, resignationDefer: 1, recruitReqClose: 1, recruitCandSave: 1, recruitCandStage: 1, recruitInterviewSave: 1, recruitOfferSave: 1, recruitOfferSend: 1, recruitOfferRespond: 1,
   recruitOfferLetter: 1, recruitHire: 1, courseSave: 1, trainSessionSave: 1, trainMark: 1, certRecord: 1, insPolicySave: 1, insPolicyList: 1, insMemberAdd: 1,
   insMemberDelete: 1, insMoveStep: 1, annSave: 1, annPublish: 1, annArchive: 1, annList: 1, flowList: 1, flowSave: 1, flowSettingsSave: 1, leaveCycleOpen: 1, discNotice: 1, govVisaIssue: 1, govVisaCancel: 1, govFinalExit: 1, ticketSave: 1, ticketUse: 1, assetSave: 1, assetAssign: 1, assetReturn: 1, clearanceStart: 1, discCodesSave: 1, discHearing: 1, discDecide: 1, discObjectionDecide: 1, injuryUpdate: 1, shiftSave: 1, rosterSave: 1, rosterDelete: 1, onboardStart: 1, surveySave: 1, surveyClose: 1, policySave: 1, planClose: 1, perfCycleSave: 1, perfCycleList: 1, perfCycleStage: 1, perfOverview: 1, perfCalibrate: 1, feedbackLaunch: 1, hrBootstrap: 1, holidaySave: 1, holidayDelete: 1, leaveBalances: 1, leaveOpeningSave: 1, hrDirectory: 1, hrDeptList: 1, hrDeptSave: 1, hrPositionList: 1, hrPositionSave: 1, hrEmpSave: 1,
   hrPrivateSave: 1, hrImportValidate: 1, hrImportCommit: 1, hrDocList: 1, hrDocSave: 1, hrExpiring: 1, empPasswordReset: 1, board: 1, empList: 1, zoneList: 1, report: 1, reviewList: 1, reviewDecide: 1, manualPunch: 1, auditList: 1, settingsGet: 1, empSave: 1, empActivation: 1 };
@@ -955,7 +990,7 @@ var HR_ACTIONS = { perkSave: 1, welcomeSave: 1, careerPathSave: 1, rolesOverview
  * Actions that only read (plus the audit line of a salary view). They may use the cached tab copies;
  * update_ refuses a cached row, so a mistake here fails loudly instead of overwriting the Sheet.
  */
-var READ_ONLY_ACTIONS = { apiKeyList: 1, webhookDeliveries: 1, payGroupList: 1, snapshotList: 1, snapshotView: 1, reportSubList: 1, kioskList: 1, notifyStatus: 1, perkList: 1, welcome: 1, internalJobs: 1, careerPathList: 1, rolesOverview: 1, nineBox: 1, successionList: 1, kbSearch: 1, kbList: 1, oneOnOneList: 1, goalList: 1, workforcePlan: 1, careersList: 1, careerPostList: 1, shiftOfferList: 1, searchAll: 1, customFieldList: 1, customValuesGet: 1, customValuesAll: 1, myFinalSettlement: 1, myExitSurvey: 1, kudosFeed: 1, exitSurveyResults: 1, kudosStats: 1, me: 1, myHistory: 1, myFile: 1, hrEmpFile: 1, hrTeam: 1, hrCompList: 1, hrDirectory: 1, hrDeptList: 1,
+var READ_ONLY_ACTIONS = { flowPreview: 1, officeMap: 1, myTotalRewards: 1, apiKeyList: 1, webhookDeliveries: 1, payGroupList: 1, snapshotList: 1, snapshotView: 1, reportSubList: 1, kioskList: 1, notifyStatus: 1, perkList: 1, welcome: 1, internalJobs: 1, careerPathList: 1, rolesOverview: 1, nineBox: 1, successionList: 1, kbSearch: 1, kbList: 1, oneOnOneList: 1, goalList: 1, workforcePlan: 1, careersList: 1, careerPostList: 1, shiftOfferList: 1, searchAll: 1, customFieldList: 1, customValuesGet: 1, customValuesAll: 1, myFinalSettlement: 1, myExitSurvey: 1, kudosFeed: 1, exitSurveyResults: 1, kudosStats: 1, me: 1, myHistory: 1, myFile: 1, hrEmpFile: 1, hrTeam: 1, hrCompList: 1, hrDirectory: 1, hrDeptList: 1,
   hrPositionList: 1, hrDocList: 1, hrExpiring: 1, hrBootstrap: 1, hrImportValidate: 1, board: 1, empList: 1, zoneList: 1, report: 1,
   reviewList: 1, auditList: 1, settingsGet: 1, myRequests: 1, requestQuote: 1, reqInbox: 1, holidayList: 1, leaveTeam: 1, leaveBalances: 1,
   dashboard: 1, mySlips: 1, payrollList: 1, payrollGet: 1, eosQuote: 1, myPerformance: 1, perfTeam: 1, perfEmp: 1, feedbackResults: 1, perfCycleList: 1, perfOverview: 1,

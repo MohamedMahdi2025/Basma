@@ -592,6 +592,36 @@ function flowWhen_(w, emp, q, ctx) {
   if (w.saudi === 'non_saudi' && bool_(emp.isSaudi)) return false;
   return true;
 }
+/** Checks a list of steps for a request type and returns it normalised (flowSave and flowPreview share it). */
+function flowClean_(type, input, ctx) {
+  var steps = [], raw = Array.isArray(input) ? input : [];
+  if (!raw.length || raw.length > 6) fail_('flow_steps_count');
+  raw.forEach(function (s) {
+    var kind = String(s && s.kind || '');
+    if (!FLOW_KINDS[kind]) fail_('bad_value');
+    var st = { kind: kind };
+    if (kind === 'person') { var p = ctx.emps[s.personId]; if (!p || p.status !== 'active') fail_('not_found'); st.personId = p.id; }
+    if ((kind === 'payroll' || kind === 'executive') && !holdersOf_(kind, ctx)) fail_('flow_no_holder');
+    if (type === 'advance' && (kind === 'manager' || kind === 'dept_head')) fail_('flow_step_not_allowed'); // pay: the line never sees the amount
+    var sla = Number(s.slaHours);
+    if (s.slaHours != null && s.slaHours !== '') { if (!(sla >= 1 && sla <= 720)) fail_('bad_value'); st.slaHours = Math.round(sla); }
+    var w = s.when || null, ww = {};
+    if (w) {
+      if (w.amountOver != null && w.amountOver !== '') { if (type !== 'advance' || !(Number(w.amountOver) >= 0)) fail_('flow_bad_condition'); ww.amountOver = Number(w.amountOver); }
+      if (w.daysOver != null && w.daysOver !== '') { if (type !== 'leave' || !(Number(w.daysOver) >= 0)) fail_('flow_bad_condition'); ww.daysOver = Math.round(Number(w.daysOver)); }
+      if (w.departmentId) { if (!ctx.depts[w.departmentId]) fail_('flow_bad_condition'); ww.departmentId = w.departmentId; }
+      if (w.saudi) { if (w.saudi !== 'saudi' && w.saudi !== 'non_saudi') fail_('flow_bad_condition'); ww.saudi = w.saudi; }
+      if (Object.keys(ww).length) st.when = ww;
+    }
+    steps.push(st);
+  });
+  if (!steps.some(function (s) { return !s.when; })) fail_('flow_needs_unconditional'); // every request must reach someone
+  var keys = {};
+  steps.forEach(function (s) { if (s.when) return; var k = s.kind + (s.personId ? ':' + s.personId : ''); if (keys[k]) fail_('flow_duplicate_step'); keys[k] = 1; });
+  if (type === 'advance' && !steps.some(function (s) { return s.kind === 'payroll' && !s.when; })) fail_('flow_needs_payroll');
+  return steps;
+}
+
 /**
  * The steps a new request takes under the configured flow, or null for the built-in chain. A step whose approver is missing,
  * inactive or the requester is skipped; one person never holds two steps (they could act on only one); none left = HR.
@@ -599,19 +629,25 @@ function flowWhen_(w, emp, q, ctx) {
 function flowPlan_(type, emp, q, ctx) {
   var f = flowActive_(type);
   if (!f) return null;
-  var out = [], seen = {}, people = {};
-  parseJson_(f.stepsJson, []).forEach(function (st) {
-    if (!flowWhen_(st.when, emp, q, ctx)) return;
+  var r = flowResolve_(parseJson_(f.stepsJson, []), emp, q, ctx);
+  return { flowId: f.id, ref: f.ref, version: Number(f.version), steps: r.steps.map(function (x) { return { key: x.key, sla: x.sla }; }) };
+}
+/** Resolves steps for one request. steps: [{ key, sla, who, at (index in the list) }]; skipped: [{ at, reason }]; fallback when none is left (HR). */
+function flowResolve_(list, emp, q, ctx) {
+  var out = [], skipped = [], seen = {}, people = {};
+  list.forEach(function (st, at) {
+    if (!flowWhen_(st.when, emp, q, ctx)) return skipped.push({ at: at, reason: 'condition' });
     var key = st.kind, who = '';
-    if (st.kind === 'manager') { var m = ctx.emps[emp.managerId]; if (!m || m.status !== 'active' || m.id === emp.id) return; who = m.id; }
-    else if (st.kind === 'dept_head') { var h = headFor_(emp, ctx); if (!h || h.status !== 'active' || h.id === emp.id) return; who = h.id; }
-    else if (st.kind === 'person') { var p = ctx.emps[st.personId]; if (!p || p.status !== 'active' || p.id === emp.id) return; who = p.id; key = 'person:' + p.id; }
-    if (seen[key] || (who && people[who])) return;
+    if (st.kind === 'manager') { var m = ctx.emps[emp.managerId]; if (!m || m.status !== 'active' || m.id === emp.id) return skipped.push({ at: at, reason: 'no_manager' }); who = m.id; }
+    else if (st.kind === 'dept_head') { var h = headFor_(emp, ctx); if (!h || h.status !== 'active' || h.id === emp.id) return skipped.push({ at: at, reason: 'no_head' }); who = h.id; }
+    else if (st.kind === 'person') { var pp = ctx.emps[st.personId]; if (!pp || pp.status !== 'active') return skipped.push({ at: at, reason: 'person_inactive' }); if (pp.id === emp.id) return skipped.push({ at: at, reason: 'is_requester' }); who = pp.id; key = 'person:' + pp.id; }
+    if (seen[key] || (who && people[who])) return skipped.push({ at: at, reason: 'duplicate' });
     seen[key] = 1; if (who) people[who] = 1;
-    out.push({ key: key, sla: Number(st.slaHours) > 0 ? Number(st.slaHours) : null });
+    out.push({ key: key, sla: Number(st.slaHours) > 0 ? Number(st.slaHours) : null, who: who, at: at });
   });
-  if (!out.length) out.push({ key: 'hr', sla: null });
-  return { flowId: f.id, ref: f.ref, version: Number(f.version), steps: out };
+  var fallback = !out.length;
+  if (fallback) out.push({ key: 'hr', sla: null, who: '', at: -1 });
+  return { steps: out, skipped: skipped, fallback: fallback };
 }
 /** Leave.gs stepsFor_: the steps fixed on a request made under a configured flow, or null. */
 function flowSteps_(r) {
@@ -676,31 +712,7 @@ function api_flowSave(req, me) {
   if (!REQUEST_STEPS[type]) fail_('bad_value');
   var ctx = orgCtx_(), steps = [];
   if (!req.reset) {
-    var raw = Array.isArray(req.steps) ? req.steps : [];
-    if (!raw.length || raw.length > 6) fail_('flow_steps_count');
-    raw.forEach(function (s) {
-      var kind = String(s && s.kind || '');
-      if (!FLOW_KINDS[kind]) fail_('bad_value');
-      var st = { kind: kind };
-      if (kind === 'person') { var p = ctx.emps[s.personId]; if (!p || p.status !== 'active') fail_('not_found'); st.personId = p.id; }
-      if ((kind === 'payroll' || kind === 'executive') && !holdersOf_(kind, ctx)) fail_('flow_no_holder');
-      if (type === 'advance' && (kind === 'manager' || kind === 'dept_head')) fail_('flow_step_not_allowed'); // pay: the line never sees the amount
-      var sla = Number(s.slaHours);
-      if (s.slaHours != null && s.slaHours !== '') { if (!(sla >= 1 && sla <= 720)) fail_('bad_value'); st.slaHours = Math.round(sla); }
-      var w = s.when || null, ww = {};
-      if (w) {
-        if (w.amountOver != null && w.amountOver !== '') { if (type !== 'advance' || !(Number(w.amountOver) >= 0)) fail_('flow_bad_condition'); ww.amountOver = Number(w.amountOver); }
-        if (w.daysOver != null && w.daysOver !== '') { if (type !== 'leave' || !(Number(w.daysOver) >= 0)) fail_('flow_bad_condition'); ww.daysOver = Math.round(Number(w.daysOver)); }
-        if (w.departmentId) { if (!ctx.depts[w.departmentId]) fail_('flow_bad_condition'); ww.departmentId = w.departmentId; }
-        if (w.saudi) { if (w.saudi !== 'saudi' && w.saudi !== 'non_saudi') fail_('flow_bad_condition'); ww.saudi = w.saudi; }
-        if (Object.keys(ww).length) st.when = ww;
-      }
-      steps.push(st);
-    });
-    if (!steps.some(function (s) { return !s.when; })) fail_('flow_needs_unconditional'); // every request must reach someone
-    var keys = {};
-    steps.forEach(function (s) { if (s.when) return; var k = s.kind + (s.personId ? ':' + s.personId : ''); if (keys[k]) fail_('flow_duplicate_step'); keys[k] = 1; });
-    if (type === 'advance' && !steps.some(function (s) { return s.kind === 'payroll' && !s.when; })) fail_('flow_needs_payroll');
+    steps = flowClean_(type, req.steps, ctx);
   } else steps = REQUEST_STEPS[type].map(function (k) { return { kind: k }; });
   return withLock_(function () {
     var rows = flowRows_(type), now = new Date().toISOString(), version = rows.length ? Number(rows[0].version) + 1 : 1;
@@ -1140,4 +1152,22 @@ function api_approvalHistory(req, me) {
   } else fail_('bad_value');
   out.sort(function (a, b) { return String(a.at) < String(b.at) ? -1 : 1; });
   return { ok: true, type: type, item: head, entries: out };
+}
+
+/**
+ * "Try it" for the designer (HR, admin): runs a draft (or the built-in chain with reset) for one employee and an amount or
+ * days, through the same validation and resolution as a real request. Saves nothing.
+ */
+function api_flowPreview(req, me) {
+  if (!isHr_(me)) fail_('forbidden');
+  var type = String(req.type || '');
+  if (!REQUEST_STEPS[type]) fail_('bad_value');
+  var ctx = orgCtx_(), emp = ctx.emps[String(req.empId || '')];
+  if (!emp) fail_('not_found');
+  var list = req.builtin ? REQUEST_STEPS[type].map(function (k) { return { kind: k }; }) : flowClean_(type, req.steps, ctx);
+  var q = { amount: Number(req.amount) || 0, days: Number(req.days) || 0 }, r = flowResolve_(list, emp, q, ctx);
+  var name = function (id) { var e = ctx.emps[id]; return e ? { id: e.id, name: e.name, nameEn: e.nameEn || '', empNo: String(e.empNo) } : null; };
+  return { ok: true, emp: name(emp.id), fallback: r.fallback, skipped: r.skipped,
+    steps: r.steps.map(function (x) { var kind = x.key.indexOf('person:') === 0 ? 'person' : x.key;
+      return { at: x.at, kind: kind, sla: x.sla, who: x.who ? name(x.who) : null, holders: kind === 'payroll' || kind === 'executive' ? holdersOf_(kind, ctx) : null }; }) };
 }

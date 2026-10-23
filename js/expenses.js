@@ -38,8 +38,8 @@ Object.assign(T.en, {
   e_too_many_lines:'At most 40 lines in a claim.', e_bad_amount:'Invalid amount.'
 });
 
-var css = '.xp-line{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:10px 0;border-top:1px solid var(--line)}.xp-line:first-child{border-top:0}' +
-  '.xp-line .field{margin:0}.xp-line .wide{grid-column:span 2}.xp-line .rm{align-self:end}.xp-chk{padding:10px 12px;border-radius:12px;background:var(--well);font-size:13px;margin:8px 0}.xp-chk.bad{background:var(--bad-bg);color:var(--bad)}' +
+var css = '.xp-line{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:12px 0;border-top:1px solid var(--line)}.xp-line:first-child{border-top:0}' +
+  '.xp-line .field{margin:0}.xp-line .wide{grid-column:span 2}.xp-line .rm{align-self:end}.xp-chk{padding:12px 12px;border-radius:12px;background:var(--well);font-size:13px;margin:8px 0}.xp-chk.bad{background:var(--bad-bg);color:var(--bad)}' +
   '.xp-chk.warn{background:var(--warn-bg);color:var(--warn)}@media (max-width:640px){.xp-line{grid-template-columns:repeat(2,minmax(0,1fr))}}';
 var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 
@@ -132,7 +132,7 @@ Object.assign(T.ar, { xpWho:'مقدم المطالبة', xpSum:'الملخص', x
 Object.assign(T.en, { xpWho:'Claimant', xpSum:'Summary', xpByCat:'By category', xpPath:'Approval path', xpPathLead:'Your manager approves, then payroll, then it is paid.', xpGuide:'Before you send',
   xpG1:'Put each expense on its own line with its date and the amount including VAT.', xpG2:'Only expenses from the last 90 days are accepted.', xpRecent:'Your recent claims', xpStepMgr:'Line manager', xpStepPay:'Payroll', xpStepPaid:'Payment',
   xpSendIt:'You send it', xpLinesN:'Lines', xpSentT:'Your claim is sent', xpSentL:'Follow its steps here.', xpNotFound:'This claim was not found, or you cannot see it.', xpDecide:'Your decision', xpView:'Claim', xpEmpNo:'Employee no.', xpTimeline:'Progress', xpFillFirst:'Enter the amount and description of each line to see the check.', xpAttach:'Receipt photos cannot be attached yet. Type each receipt number on its line and keep the original.' });
-var css2 = '.xp-page .xp-line{grid-template-columns:repeat(4,minmax(0,1fr));padding:14px 0}.xp-page .xp-line + .xp-line{border-top:1px dashed var(--line)}' +
+var css2 = '.xp-page .xp-line{grid-template-columns:repeat(4,minmax(0,1fr));padding:16px 0}.xp-page .xp-line + .xp-line{border-top:1px dashed var(--line)}' +
   '.xp-ln{grid-column:1 / -1;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--ink-3)}.xp-ln .sp{flex:1}' +
   '.xp-ln b{width:22px;height:22px;border-radius:8px;display:grid;place-items:center;background:var(--well);color:var(--ink-2);font-size:12px}' +
   '@media (max-width:640px){.xp-page .xp-line{grid-template-columns:repeat(2,minmax(0,1fr))}}';

@@ -6,7 +6,7 @@
 Object.assign(T.ar, {
   rqTitle:'طلباتي', rqNew:'طلب جديد', rqEmpty:'لا توجد طلبات بعد. ابدأ بطلب جديد.', rqChoose:'ما نوع الطلب؟',
   rt_leave:'إجازة', rt_letter:'خطاب', rt_advance:'سلفة على الراتب', rt_correction:'تصحيح حضور', rt_data_change:'تحديث بياناتي', rt_resignation:'استقالة',
-  rt_exit_reentry:'تأشيرة خروج وعودة', rt_permission:'استئذان', rtd_permission:'ساعات من الدوام بإذن مديرك', rt_overtime:'عمل إضافي', rt_travel:'انتداب (رحلة عمل)', rtd_travel:'رحلة عمل ببدل انتداب يومي يصرف مع الراتب', rqDest:'الوجهة', rqScope:'النطاق', rqInside:'داخل المملكة', rqAbroad:'خارج المملكة', rqTransport:'وسيلة السفر', rqtr_air:'طيران', rqtr_company_car:'سيارة الشركة', rqtr_own_car:'سيارة خاصة', rqtr_other:'أخرى', rqPerDiem:'بدل الانتداب', rqTripDays:'مدة الرحلة', rqRate:'البدل اليومي', rqDay:'يوم', rqPayPerDiem:'يضاف إلى مسير شهر الرحلة بعد الاعتماد (خارج الأجر)', rtd_overtime:'موافقة مسبقة على ساعات إضافية تصرف في راتبك', rqHours:'ساعات', rqDate:'التاريخ', rqFromTime:'من الساعة', rqToTime:'إلى الساعة', rqTimes:'الوقت', rqMonthUsed:'استئذان هذا الشهر', rqYearHours:'العمل الإضافي هذا العام', rqPayOvertime:'تضاف إلى مسير الشهر بعد الاعتماد', e_too_many_hours:'المدة أطول من الحد المسموح للاستئذان الواحد.', e_permission_month_cap:'تجاوزت ساعات الاستئذان المسموحة هذا الشهر.', rw_overtime_year_cap:'يتجاوز السقف السنوي للعمل الإضافي (720 ساعة)؛ تأكد من موافقة الجهات المختصة.', rqVisaSingle:'مفردة', rqVisaMultiple:'متعددة', rqVisaDays:'مدة التأشيرة',
+  rt_remote:'العمل عن بعد', rtd_remote:'أيام عمل من خارج المكتب بموافقة مديرك', rh_remote:'لا تحسب غيابا. يقبل تسجيل الحضور في هذه الأيام من أي مكان مع البصمة أو الرمز السري.', rqReason:'السبب', rqWorkDays:'أيام العمل', rt_exit_reentry:'تأشيرة خروج وعودة', rt_permission:'استئذان', rtd_permission:'ساعات من الدوام بإذن مديرك', rt_overtime:'عمل إضافي', rt_travel:'انتداب (رحلة عمل)', rtd_travel:'رحلة عمل ببدل انتداب يومي يصرف مع الراتب', rqDest:'الوجهة', rqScope:'النطاق', rqInside:'داخل المملكة', rqAbroad:'خارج المملكة', rqTransport:'وسيلة السفر', rqtr_air:'طيران', rqtr_company_car:'سيارة الشركة', rqtr_own_car:'سيارة خاصة', rqtr_other:'أخرى', rqPerDiem:'بدل الانتداب', rqTripDays:'مدة الرحلة', rqRate:'البدل اليومي', rqDay:'يوم', rqPayPerDiem:'يضاف إلى مسير شهر الرحلة بعد الاعتماد (خارج الأجر)', rtd_overtime:'موافقة مسبقة على ساعات إضافية تصرف في راتبك', rqHours:'ساعات', rqDate:'التاريخ', rqFromTime:'من الساعة', rqToTime:'إلى الساعة', rqTimes:'الوقت', rqMonthUsed:'استئذان هذا الشهر', rqYearHours:'العمل الإضافي هذا العام', rqPayOvertime:'تضاف إلى مسير الشهر بعد الاعتماد', e_too_many_hours:'المدة أطول من الحد المسموح للاستئذان الواحد.', e_permission_month_cap:'تجاوزت ساعات الاستئذان المسموحة هذا الشهر.', rw_overtime_year_cap:'يتجاوز السقف السنوي للعمل الإضافي (720 ساعة)؛ تأكد من موافقة الجهات المختصة.', rqVisaSingle:'مفردة', rqVisaMultiple:'متعددة', rqVisaDays:'مدة التأشيرة',
   rtd_exit_reentry:'لغير السعوديين: للسفر والعودة', rqVisaType:'نوع التأشيرة', rqTravelFrom:'تاريخ السفر', rqTravelTo:'تاريخ العودة', rqDeps:'المرافقون', rqLeaveRef:'رقم طلب الإجازة المرتبط (اختياري)', rqPurpose:'الغرض', rqTrip:'مدة الرحلة',
   rstep_executive:'بانتظار الرئيس التنفيذي', rstep_dept_head:'بانتظار رئيس الإدارة', rstep_person:'بانتظار',
   rw_iqama_expires_before_return:'تنتهي الإقامة قبل تاريخ العودة؛ جدّدها قبل إصدار التأشيرة.', rw_visa_shorter_than_trip:'مدة التأشيرة أقصر من مدة السفر.',
@@ -39,7 +39,7 @@ Object.assign(T.ar, {
 Object.assign(T.en, {
   rqTitle:'My requests', rqNew:'New request', rqEmpty:'No requests yet. Start a new one.', rqChoose:'What would you like to request?',
   rt_leave:'Leave', rt_letter:'Letter', rt_advance:'Salary advance', rt_correction:'Attendance correction', rt_data_change:'Update my details', rt_resignation:'Resignation',
-  rt_exit_reentry:'Exit/re-entry visa', rt_permission:'Permission (hours)', rtd_permission:'Hours out of your working day, with your manager\'s approval', rt_overtime:'Overtime', rt_travel:'Business trip', rtd_travel:'A work trip with a daily per diem paid with your salary', rqDest:'Destination', rqScope:'Where', rqInside:'Inside the Kingdom', rqAbroad:'Outside the Kingdom', rqTransport:'Travel by', rqtr_air:'Air', rqtr_company_car:'Company car', rqtr_own_car:'Own car', rqtr_other:'Other', rqPerDiem:'Per diem', rqTripDays:'Trip length', rqRate:'Daily rate', rqDay:'day', rqPayPerDiem:'Added to the trip month\'s payroll once approved (not part of the wage)', rtd_overtime:'Pre-approval for extra hours paid in your salary', rqHours:'hours', rqDate:'Date', rqFromTime:'From', rqToTime:'To', rqTimes:'Time', rqMonthUsed:'Permission this month', rqYearHours:'Overtime this year', rqPayOvertime:'Added to the month\'s payroll once approved', e_too_many_hours:'That is longer than one permission allows.', e_permission_month_cap:'You have used this month\'s permission hours.', rw_overtime_year_cap:'This passes the yearly overtime ceiling (720 hours); check it is authorised.', rqVisaSingle:'single', rqVisaMultiple:'multiple', rqVisaDays:'Visa length',
+  rt_remote:'Remote work', rtd_remote:'Working days away from the office, with your manager\'s approval', rh_remote:'Never counted as absent. On these days check-in is accepted from anywhere, still with your fingerprint or PIN.', rqReason:'Reason', rqWorkDays:'Working days', rt_exit_reentry:'Exit/re-entry visa', rt_permission:'Permission (hours)', rtd_permission:'Hours out of your working day, with your manager\'s approval', rt_overtime:'Overtime', rt_travel:'Business trip', rtd_travel:'A work trip with a daily per diem paid with your salary', rqDest:'Destination', rqScope:'Where', rqInside:'Inside the Kingdom', rqAbroad:'Outside the Kingdom', rqTransport:'Travel by', rqtr_air:'Air', rqtr_company_car:'Company car', rqtr_own_car:'Own car', rqtr_other:'Other', rqPerDiem:'Per diem', rqTripDays:'Trip length', rqRate:'Daily rate', rqDay:'day', rqPayPerDiem:'Added to the trip month\'s payroll once approved (not part of the wage)', rtd_overtime:'Pre-approval for extra hours paid in your salary', rqHours:'hours', rqDate:'Date', rqFromTime:'From', rqToTime:'To', rqTimes:'Time', rqMonthUsed:'Permission this month', rqYearHours:'Overtime this year', rqPayOvertime:'Added to the month\'s payroll once approved', e_too_many_hours:'That is longer than one permission allows.', e_permission_month_cap:'You have used this month\'s permission hours.', rw_overtime_year_cap:'This passes the yearly overtime ceiling (720 hours); check it is authorised.', rqVisaSingle:'single', rqVisaMultiple:'multiple', rqVisaDays:'Visa length',
   rtd_exit_reentry:'For non-Saudis: to travel and come back', rqVisaType:'Visa type', rqTravelFrom:'Travel date', rqTravelTo:'Return date', rqDeps:'Dependants', rqLeaveRef:'Linked leave request number (optional)', rqPurpose:'Purpose', rqTrip:'Trip length',
   rstep_executive:'With the CEO', rstep_dept_head:'With the department head', rstep_person:'With',
   rw_iqama_expires_before_return:'The iqama expires before the return date; renew it before the visa is issued.', rw_visa_shorter_than_trip:'The visa is shorter than the trip.',
@@ -72,12 +72,12 @@ Object.assign(T.en, {
 
 var css = '' +
 '.rq-types{display:grid;grid-template-columns:1fr 1fr;gap:12px}' +
-'.rq-types button{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:start;background:var(--card);border:1px solid var(--line);border-radius:var(--r-m);padding:14px;min-height:92px}' +
+'.rq-types button{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:start;background:var(--card);border:1px solid var(--line);border-radius:var(--r-m);padding:16px;min-height:92px}' +
 '.rq-types button i{font-size:24px;color:var(--brand)}' +
 '.rq-types button b{font-weight:600;font-size:16px}' +
 '.rq-types button small{color:var(--ink-2);font-size:12px;line-height:1.4}' +
 '.rq-types button:hover{border-color:var(--brand)}' +
-'.rq-quote{border-radius:var(--r-s);padding:12px 14px;background:var(--g-EEF3EC,#EEF3EC);color:var(--g-23452B,#23452B);font-size:14px;line-height:1.6}' +
+'.rq-quote{border-radius:var(--r-s);padding:12px 16px;background:var(--g-EEF3EC,#EEF3EC);color:var(--g-23452B,#23452B);font-size:14px;line-height:1.6}' +
 '.rq-quote.bad{background:#FBE9E4;color:#8E2F1C}' +
 '.rq-quote.wait{background:#F1EFE8;color:var(--ink-2)}' +
 '.rq-quote b{font-size:18px;font-weight:600}' +
@@ -87,9 +87,9 @@ var css = '' +
 '.rq-row .main{flex:1;min-width:0}' +
 '.rq-row .main small{display:block;color:var(--ink-2);font-size:13px}' +
 '.rq-row .ref{font-size:12px;color:var(--ink-2);direction:ltr;unicode-bidi:isolate}' +
-'.rq-detail{margin:0 0 6px;padding:10px 12px;background:var(--paper);border-radius:var(--r-s);font-size:14px}' +
+'.rq-detail{margin:0 0 6px;padding:12px 12px;background:var(--paper);border-radius:var(--r-s);font-size:14px}' +
 '.rq-tl{list-style:none;margin:8px 0 0;padding:0}' +
-'.rq-tl li{position:relative;padding-inline-start:18px;margin:4px 0;color:var(--ink-2)}' +
+'.rq-tl li{position:relative;padding-inline-start:20px;margin:4px 0;color:var(--ink-2)}' +
 '.rq-tl li::before{content:"";position:absolute;inset-inline-start:2px;top:8px;width:8px;height:8px;border-radius:50%;background:var(--brand)}' +
 '.rq-tl li.no::before{background:var(--red)}' +
 '.lv-big{display:flex;align-items:baseline;gap:8px;margin:2px 0 8px}' +
@@ -103,7 +103,7 @@ var css = '' +
 '.lv-hol{margin-top:10px;font-size:13px;color:var(--ink-2)}';
 var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 
-var TYPES = [['leave', 'calendar-plus'], ['letter', 'envelope-simple'], ['advance', 'hand-coins'], ['correction', 'clock-counter-clockwise'], ['data_change', 'user-gear'], ['resignation', 'door-open'], ['exit_reentry', 'airplane-takeoff'], ['permission', 'clock-user'], ['overtime', 'timer'], ['travel', 'suitcase-rolling']];
+var TYPES = [['leave', 'calendar-plus'], ['letter', 'envelope-simple'], ['advance', 'hand-coins'], ['correction', 'clock-counter-clockwise'], ['data_change', 'user-gear'], ['resignation', 'door-open'], ['exit_reentry', 'airplane-takeoff'], ['permission', 'clock-user'], ['overtime', 'timer'], ['travel', 'suitcase-rolling'], ['remote', 'house-line']];
 var DATA_KEYS = [['phone', 'phone', 'tel'], ['personalEmail', 'fPEmail', 'email'], ['nationalAddress', 'fNatAddr'], ['address', 'fAddr'], ['maritalStatus', 'fMarital', 'marital'],
   ['emergencyName', 'fEmName'], ['emergencyPhone', 'fEmPhone', 'tel'], ['iban', 'fIban', 'iban'], ['bankName', 'fBank'], ['passportNo', 'fPassport'], ['passportExpiry', 'fPassExp', 'date'], ['idExpiry', 'fIdExp', 'date']];
 var DOC_LEAVES = { sick: 1, maternity: 1, exam: 1, iddah: 1 };
@@ -125,6 +125,7 @@ function summary(o){
   if (o.type === 'exit_reentry' && o.visa) return fmtDate(o.fromDate) + ' - ' + fmtDate(o.toDate) + '، ' + t(o.visa.visaType === 'multiple' ? 'rqVisaMultiple' : 'rqVisaSingle') + '، ' + t('rqVisaDays') + ' ' + plural(o.visa.durationDays, 'days');
   if (o.type === 'permission' && o.permission) return fmtDate(o.permission.date) + '، ' + o.permission.fromTime + ' - ' + o.permission.toTime;
   if (o.type === 'travel' && o.travel) return o.travel.destination + '، ' + fmtDate(o.fromDate) + ' - ' + fmtDate(o.toDate) + (o.travel.perDiem != null ? '، ' + money(o.travel.perDiem) : '');
+  if (o.type === 'remote') return fmtDate(o.fromDate) + (o.toDate && o.toDate !== o.fromDate ? ' - ' + fmtDate(o.toDate) : '') + (o.days != null ? '، ' + plural(o.days, 'days') : '');
   if (o.type === 'overtime' && o.overtime) return fmtDate(o.overtime.date) + '، ' + o.overtime.hours + ' ' + t('rqHours');
   if (o.type === 'data_change') return Object.keys(o.fields || {}).concat(o.fieldNames || []).map(function(k){ var d = DATA_KEYS.filter(function(x){ return x[0] === k; })[0]; return d ? t(d[1]) : k; }).join('، ');
   return '';
@@ -324,12 +325,12 @@ var css2 = '' +
 '.rq-sched{display:flex;align-items:flex-end;gap:4px;height:56px;direction:ltr}.rq-sched i{flex:1;background:var(--s1);border-radius:4px 4px 0 0;min-width:6px}' +
 '.rq-sched-l{display:flex;justify-content:space-between;font-size:12px;color:var(--ink-3);direction:ltr}' +
 '.rq-fields .two{gap:12px}' +
-'.rq-hol{display:flex;flex-wrap:wrap;gap:8px}.rq-hol span{font-size:12px;padding:3px 9px;border-radius:999px;background:var(--info-bg);color:var(--info)}';
+'.rq-hol{display:flex;flex-wrap:wrap;gap:8px}.rq-hol span{font-size:12px;padding:4px 8px;border-radius:999px;background:var(--info-bg);color:var(--info)}';
 var st2 = document.createElement('style'); st2.textContent = css2; document.head.appendChild(st2);
 
-var STEPS = { leave: ['manager', 'hr'], correction: ['manager', 'hr'], resignation: ['manager', 'hr'], letter: ['hr'], data_change: ['hr'], advance: ['hr', 'payroll'], exit_reentry: ['manager', 'hr'], permission: ['manager', 'hr'], overtime: ['manager', 'hr'], travel: ['manager', 'hr'] };
+var STEPS = { leave: ['manager', 'hr'], correction: ['manager', 'hr'], resignation: ['manager', 'hr'], letter: ['hr'], data_change: ['hr'], advance: ['hr', 'payroll'], exit_reentry: ['manager', 'hr'], permission: ['manager', 'hr'], overtime: ['manager', 'hr'], travel: ['manager', 'hr'], remote: ['manager', 'hr'] };
 var ICON = {}; TYPES.forEach(function(x){ ICON[x[0]] = x[1]; });
-var TYPE_TINT = { leave: 'requests', letter: 'growth', advance: 'pay', correction: 'time', data_change: 'profile', resignation: 'people', exit_reentry: 'insights', permission: 'time', overtime: 'pay', travel: 'growth' };
+var TYPE_TINT = { leave: 'requests', letter: 'growth', advance: 'pay', correction: 'time', data_change: 'profile', resignation: 'people', exit_reentry: 'insights', permission: 'time', overtime: 'pay', travel: 'growth', remote: 'time' };
 function lng(ar, en){ return S.lang === 'en' && en ? en : ar; }
 function initials2(n){ return typeof initials === 'function' ? initials(n || '') : String(n || '').slice(0, 2); }
 function stepName(st, o){
@@ -435,6 +436,9 @@ function sumHtml(type, q, rq, file){
     var pm = q.payload || {};
     h += '<div class="fp-big"><b class="num">' + num1(q.hours) + '</b><span>' + t('rqHours') + ' · ' + fmtDate(pm.date) + '</span></div>';
     row(t('rqTimes'), '<bdi dir="ltr">' + esc(pm.fromTime || '') + ' - ' + esc(pm.toTime || '') + '</bdi>'); row(t('rqMonthUsed'), '<span class="num">' + num1(((pm.monthUsed || 0) + (pm.minutes || 0)) / 60) + ' / ' + num1((pm.monthCap || 0) / 60) + '</span> ' + t('rqHours'));
+  } else if (type === 'remote') {
+    h += '<div class="fp-big"><b class="num">' + (q.days || 0) + '</b><span>' + t('rqWorkDays') + '</span></div>';
+    row(t('rqDates'), '<bdi>' + fmtDate(q.fromDate) + ' - ' + fmtDate(q.toDate) + '</bdi>');
   } else if (type === 'travel') {
     var tv = q.payload || {};
     h += '<div class="fp-big"><b class="num">' + num1(q.amount) + '</b><span>' + t('mfSar') + ' · ' + t('rqPerDiem') + '</span></div>';
@@ -527,6 +531,9 @@ function newPage(body, type){
     } else if (type === 'permission') {
       fields = '<div class="field"><label>' + t('rqDate') + '</label><input type="date" name="date" value="' + today + '" required></div>' +
         '<div class="two"><div class="field"><label>' + t('rqFromTime') + '</label><input type="time" name="fromTime" value="10:00" required></div><div class="field"><label>' + t('rqToTime') + '</label><input type="time" name="toTime" value="12:00" required></div></div>';
+    } else if (type === 'remote') {
+      fields = '<div class="two"><div class="field"><label>' + t('rqFrom') + '</label><input type="date" name="fromDate" value="' + today + '" required></div><div class="field"><label>' + t('rqTo') + '</label><input type="date" name="toDate" value="' + today + '" required></div></div>' +
+        '<div class="field"><label>' + t('rqReason') + '</label><input name="reason" maxlength="300" required></div>';
     } else if (type === 'travel') {
       fields = '<div class="field"><label>' + t('rqDest') + '</label><input name="destination" maxlength="120" required></div>' +
         '<div class="two"><div class="field"><label>' + t('rqTravelFrom') + '</label><input type="date" name="fromDate" value="' + today + '" required></div><div class="field"><label>' + t('rqTravelTo') + '</label><input type="date" name="toDate" value="' + today + '" required></div></div>' +
@@ -563,6 +570,7 @@ function newPage(body, type){
       if (type === 'resignation') rq.payload = { lastDay: v.lastDay };
       if (type === 'permission') rq.payload = { date: v.date, fromTime: v.fromTime, toTime: v.toTime };
       if (type === 'overtime') rq.payload = { date: v.date, hours: v.hours };
+      if (type === 'remote') { rq.fromDate = v.fromDate; rq.toDate = v.toDate; rq.payload = { reason: v.reason }; }
       if (type === 'travel') { rq.fromDate = v.fromDate; rq.toDate = v.toDate; rq.payload = { destination: v.destination, scope: v.scope, transport: v.transport, purpose: v.purpose }; }
       if (type === 'exit_reentry') { rq.fromDate = v.fromDate; rq.toDate = v.toDate; rq.payload = { visaType: v.visaType, durationDays: v.durationDays, dependants: v.dependants, leaveRef: v.leaveRef, purpose: v.purpose }; }
       return rq;

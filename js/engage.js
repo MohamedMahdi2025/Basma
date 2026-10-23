@@ -77,7 +77,7 @@ var STARTERS = [
 ];
 
 var css = '' +
-'.en-card h3 .sp{flex:1}.en-row{display:flex;gap:12px;align-items:center;padding:9px 0;border-top:1px solid var(--line)}.en-row:first-of-type{border-top:0}.en-row .main{flex:1;min-width:0}.en-row small{display:block;color:var(--ink-2);font-size:13px}' +
+'.en-card h3 .sp{flex:1}.en-row{display:flex;gap:12px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}.en-row:first-of-type{border-top:0}.en-row .main{flex:1;min-width:0}.en-row small{display:block;color:var(--ink-2);font-size:13px}' +
 '.en-bar{height:8px;background:#EEEBE3;border-radius:999px;overflow:hidden;margin-top:6px}.en-bar i{display:block;height:100%;background:#2E7D4F;border-radius:999px}' +
 '.en-ph{margin:14px 0 6px;font-size:13px;font-weight:600;color:var(--ink-2)}' +
 '.en-task{display:flex;gap:12px;align-items:flex-start;padding:8px 0;border-top:1px solid #EEEBE3}.en-task input{width:20px;height:20px;margin-top:2px;flex:none;accent-color:#2E7D4F}.en-task .main{flex:1}.en-task b{font-weight:500;font-size:14px}' +
@@ -85,9 +85,9 @@ var css = '' +
 '.en-scale{display:flex;flex-wrap:wrap;gap:4px;direction:ltr;justify-content:flex-start}.en-scale button{min-width:36px;height:38px;border-radius:12px;border:1px solid var(--line);background:var(--card);font-weight:600;font-variant-numeric:tabular-nums}' +
 '.en-scale button[aria-pressed="true"]{background:var(--pine);color:var(--cream);border-color:var(--pine)}.en-ends{display:flex;justify-content:space-between;font-size:12px;color:var(--ink-2);margin-top:3px}' +
 '.en-q{margin:0 0 16px}.en-q p{margin:0 0 6px;font-weight:500}' +
-'.en-pol{white-space:pre-wrap;line-height:1.9;background:var(--card);border:1px solid var(--line);border-radius:var(--r-s);padding:14px;max-height:52vh;overflow:auto;font-size:14px}' +
-'.en-goal{border:1px solid var(--line);border-radius:var(--r-s);padding:10px;margin-bottom:8px;display:grid;gap:8px;background:var(--card)}' +
-'.en-ci{border-inline-start:3px solid var(--line);padding:2px 10px;margin:6px 0;font-size:13px}.en-ci small{color:var(--ink-2)}' +
+'.en-pol{white-space:pre-wrap;line-height:1.9;background:var(--card);border:1px solid var(--line);border-radius:var(--r-s);padding:16px;max-height:52vh;overflow:auto;font-size:14px}' +
+'.en-goal{border:1px solid var(--line);border-radius:var(--r-s);padding:12px;margin-bottom:8px;display:grid;gap:8px;background:var(--card)}' +
+'.en-ci{border-inline-start:3px solid var(--line);padding:2px 12px;margin:6px 0;font-size:13px}.en-ci small{color:var(--ink-2)}' +
 '.en-hid{color:var(--ink-2);font-style:italic}';
 var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 
@@ -225,7 +225,7 @@ function onboarding(body){
 }
 
 function engagement(body){
-  body.innerHTML = '<div class="hr-h"><h2>' + t('enSurvey') + '</h2><select id="svSel" style="height:38px;border:1px solid var(--line);border-radius:var(--r-s);background:var(--card);padding:0 10px" class="hidden"></select>' +
+  body.innerHTML = '<div class="hr-h"><h2>' + t('enSurvey') + '</h2><select id="svSel" style="height:38px;border:1px solid var(--line);border-radius:var(--r-s);background:var(--card);padding:0 12px" class="hidden"></select>' +
     (roles().hr ? '<button type="button" class="btn btn-dark btn-sm" id="svNew">' + ph('plus') + t('svNew') + '</button>' : '') + '</div><div id="svB"></div>';
   var el = $('#svB', body); busy(el);
   var nb = $('#svNew', body); if (nb) nb.onclick = function(){ newSurvey(function(){ S.svId = null; engagement(body); }); };
@@ -289,7 +289,7 @@ function newSurvey(done){
     function paint(){
       if (f.elements.tpl.value === 'pulse') { box.innerHTML = ''; return; }
       box.innerHTML = '<h4 style="margin:12px 0 6px">' + t('sbQuestions') + '</h4>' + qs.map(function(q, i){
-        return '<div class="sb-q" data-i="' + i + '" style="border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:8px"><div class="two"><div class="field"><label>' + t('sbKind') + '</label><select data-k="kind">' +
+        return '<div class="sb-q" data-i="' + i + '" style="border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:8px"><div class="two"><div class="field"><label>' + t('sbKind') + '</label><select data-k="kind">' +
           ['likert', 'nps', 'choice', 'yesno', 'text'].map(function(k){ return '<option value="' + k + '"' + (q.kind === k ? ' selected' : '') + '>' + t('sbk_' + k) + '</option>'; }).join('') + '</select></div>' +
           '<div class="field" style="align-self:end"><button type="button" class="btn btn-line btn-sm" data-rm="' + i + '">' + ph('trash') + t('sbRemove') + '</button></div></div>' +
           '<div class="field"><label>' + t('sbQAr') + '</label><input data-k="ar" maxlength="200" value="' + esc(q.ar) + '"></div><div class="field"><label>' + t('sbQEn') + '</label><input data-k="en" maxlength="200" dir="ltr" value="' + esc(q.en) + '"></div>' +

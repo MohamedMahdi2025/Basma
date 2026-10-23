@@ -276,5 +276,18 @@ console.log('Daily e-mail digest (2026-10-20; off until the owner switches it on
   setS('notifyDigest', 'false'); clearCache();
   ['M365_TENANT', 'M365_CLIENT_ID', 'M365_CLIENT_SECRET', 'M365_SENDER'].forEach(k => props.setProperty(k, ''));
 }
+console.log('Total rewards statement (2026-10-23)');
+{
+  Object.keys(toks).forEach(k => delete toks[k]);
+  const tr = call('5002', 'myTotalRewards', {});
+  ok(tr.ok && tr.cashTotal === 148200, 'yearly cash pay: (9,000 + 2,250 + 900 + 200) x 12 = 148,200', tr.cashTotal);
+  const gosi = (tr.company || []).find(l => l.code === 'gosi_employer'), eos = (tr.company || []).find(l => l.code === 'eos');
+  ok(gosi && gosi.annual === 15862.5 && gosi.rate === 11.75, 'GOSI company share: 11.75% of 11,250 x 12 = 15,862.50', gosi);
+  ok(eos && eos.annual === 12350 && eos.perYear === 1, 'end-of-service provision after 5 years: one month a year (12,350)', eos);
+  ok(tr.total === 176412.5 && tr.leave.days === 30, 'total yearly value 176,412.50; 30 days of paid leave shown as part of pay', { total: tr.total, leave: tr.leave });
+  ok(call('5003', 'myTotalRewards', { empId: ids['5002'] }).error === 'forbidden', 'a colleague cannot see someone else\'s statement');
+  ok(call('3002', 'myTotalRewards', { empId: ids['5002'] }).total === 176412.5, 'payroll can, and it is logged as a salary view');
+}
+
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);

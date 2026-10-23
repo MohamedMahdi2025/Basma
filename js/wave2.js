@@ -212,9 +212,9 @@ var css = '' +
 '.oc-card{display:inline-flex;gap:12px;align-items:center;border:1px solid var(--line);background:var(--card,#fff);border-radius:16px;padding:8px 12px;cursor:pointer;min-width:240px;transition:border-color .2s,box-shadow .2s}' +
 '.oc-card:hover{border-color:var(--brand);box-shadow:var(--e3)}.oc-card .av{width:36px;height:36px}.oc-card b{display:block}.oc-card small{display:block;color:var(--ink-3,var(--muted));font-size:12px}' +
 '.oc-card .oc-n{margin-inline-start:auto;font-size:12px;background:var(--brand-tint,var(--g-E7EFE6,#E7EFE6));color:var(--brand);border-radius:999px;padding:2px 8px}.oc-tree li.fold > ul{display:none}.oc-tree li.hit > .oc-card{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-tint,var(--g-E7EFE6,#E7EFE6))}' +
-'.rb-grid{display:grid;grid-template-columns:260px minmax(0,1fr);gap:16px;align-items:start}.rb-side{border:1px solid var(--line);border-radius:16px;padding:12px 14px;position:sticky;top:12px}.rb-side h4{margin:6px 0 8px}.rb-cols{display:grid;gap:4px;max-height:280px;overflow:auto;margin-bottom:8px}' +
-'.rb-tbl,.rb-sum{border-collapse:collapse;font-size:13px;min-width:100%}.rb-tbl th,.rb-tbl td,.rb-sum th,.rb-sum td{border-bottom:1px solid var(--line);padding:6px 9px;text-align:start;white-space:nowrap}.rb-tbl thead th{position:sticky;top:0;background:var(--card,#fff)}@media (max-width:900px){.rb-grid{grid-template-columns:1fr}.rb-side{position:static}}' +
-'.w2-stars{display:flex;gap:4px}.w2-stars button{font-size:20px}.w2-q{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}.w2-ann{border-inline-start:3px solid var(--brand);padding-inline-start:10px}';
+'.rb-grid{display:grid;grid-template-columns:260px minmax(0,1fr);gap:16px;align-items:start}.rb-side{border:1px solid var(--line);border-radius:16px;padding:12px 16px;position:sticky;top:12px}.rb-side h4{margin:6px 0 8px}.rb-cols{display:grid;gap:4px;max-height:280px;overflow:auto;margin-bottom:8px}' +
+'.rb-tbl,.rb-sum{border-collapse:collapse;font-size:13px;min-width:100%}.rb-tbl th,.rb-tbl td,.rb-sum th,.rb-sum td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:start;white-space:nowrap}.rb-tbl thead th{position:sticky;top:0;background:var(--card,#fff)}@media (max-width:900px){.rb-grid{grid-template-columns:1fr}.rb-side{position:static}}' +
+'.w2-stars{display:flex;gap:4px}.w2-stars button{font-size:20px}.w2-q{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}.w2-ann{border-inline-start:3px solid var(--brand);padding-inline-start:12px}';
 var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 
 // ================= shared kit (same shape as gov.js) =================
@@ -1405,7 +1405,7 @@ function kbSuggest(d, closeForm){
       if (!r.ok || !r.rows.length || !d.isConnected) { box.hidden = true; return; }
       box.hidden = false;
       box.innerHTML = '<p class="hr-hint" style="margin:0 0 6px">' + ph('lightbulb') + ' ' + t('kbSuggest') + '</p>' + r.rows.map(function(a){
-        return '<button type="button" class="kb-row" data-id="' + esc(a.id) + '" style="display:block;width:100%;text-align:start;padding:10px 12px;margin:0 0 6px;border-radius:12px;border:1px solid var(--line);background:var(--card);font:inherit;cursor:pointer"><b>' + esc(lang(a.titleAr, a.titleEn)) + '</b><small style="display:block;color:var(--ink-3)">' + esc(lang(a.snippetAr, a.snippetEn)) + '…</small></button>';
+        return '<button type="button" class="kb-row" data-id="' + esc(a.id) + '" style="display:block;width:100%;text-align:start;padding:12px 12px;margin:0 0 6px;border-radius:12px;border:1px solid var(--line);background:var(--card);font:inherit;cursor:pointer"><b>' + esc(lang(a.titleAr, a.titleEn)) + '</b><small style="display:block;color:var(--ink-3)">' + esc(lang(a.snippetAr, a.snippetEn)) + '…</small></button>';
       }).join('');
       $$('.kb-row', box).forEach(function(b){ b.onclick = function(){ kbArticle(b.dataset.id, true, closeForm); }; });
     });

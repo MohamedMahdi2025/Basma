@@ -271,5 +271,25 @@ ok(r.ok && r.request.status === 'approved' && pd.length === 1 && Number(pd[0].am
   'on approval 900 per diem goes to the November payroll, referenced to the trip', pd);
 r = call('3002', 'payrollAdjSave', { adj: { empId: ids['5002'], month: '2026-11', code: 'per_diem', amount: 100, reason: 'x' } });
 ok(!r.ok && r.error === 'bad_value', 'payroll cannot type a per diem by hand (only an approved trip writes one)', r);
+
+console.log('Remote work (2026-10-23)');
+{
+  B.setNow(Date.parse('2026-11-15T05:00:00Z')); Object.keys(toks).forEach(k => delete toks[k]); // Sunday 08:00 Riyadh
+  const z = call('1000', 'zoneSave', { zone: { name: 'HQ', lat: 24.7136, lng: 46.6753, radius: 150 } });
+  const far = () => { const t = B.now(), lat = 24.7136 + 5000 / 111320; return { samples: [{ lat, lng: 46.6753, acc: 12, t: t - 2000 }, { lat: lat + 0.00001, lng: 46.6753, acc: 14, t: t - 1000 }, { lat, lng: 46.6753, acc: 12, t }] }; };
+  const punchAt = (no, geo) => { const b = B.call({ action: 'punchBegin', empNo: no }); if (!b.ok) return b; return B.call({ action: 'punchFinish', credential: devs[no].get(b.options), geo, deviceTime: B.now(), ua: 'test' }); };
+  ok(ask('5004', { type: 'remote', fromDate: '2026-11-12', toDate: '2026-11-15', payload: {} }).error === 'note_required', 'a remote-work request needs a reason');
+  r = ask('5004', { type: 'remote', fromDate: '2026-11-12', toDate: '2026-11-15', payload: { reason: 'تجهيز موقع العميل' } });
+  ok(r.ok && /^RW-2026-/.test(r.request.ref) && r.request.days === 2, 'Thursday to Sunday asks for 2 working days, numbered RW-', r.request || r);
+  ok(ask('5004', { type: 'remote', fromDate: '2026-11-15', toDate: '2026-11-15', payload: { reason: 'x' } }).error === 'overlaps', 'and cannot overlap another remote request');
+  ok(decide('3001', r.request.id, 'approve').ok, 'HR approves it (no line manager)');
+  const h = call('5004', 'myHistory', { month: '2026-11' }), day = d => h.days.find(x => x.date === d);
+  ok(day('2026-11-12').status === 'remote' && day('2026-11-11').status === 'absent', 'an approved remote day with no check-in is "remote", the day before is still absent', [day('2026-11-11').status, day('2026-11-12').status]);
+  ok(call('5004', 'me', {}).today.remoteDay === true, 'the check-in screen knows today is a remote day');
+  r = punchAt('5004', far());
+  ok(r.ok && /remote/.test(r.punch.flags), 'a check-in 5 km from the office is accepted on the remote day, flagged remote', r.punch || r);
+  r = punchAt('5003', far());
+  ok(!r.ok, 'someone without an approved remote day is still held to the office location', r.error);
+}
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);

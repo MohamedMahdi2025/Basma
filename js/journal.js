@@ -42,7 +42,7 @@ Object.assign(T.en, {
   e_journal_unmapped:'Lines without an account: complete the mapping first.', e_journal_unbalanced:'The entry is not balanced or has problems.', e_journal_changed:'The entry changed since it was generated. Cancel it and generate again.', e_bad_iban:'Invalid IBAN.'
 });
 
-var css = '.yc-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 12px}.yc-step{padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card);font-size:13px}' +
+var css = '.yc-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 12px}.yc-step{padding:12px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card);font-size:13px}' +
   '.yc-step b{display:flex;gap:8px;align-items:center;font-weight:500}.yc-step.done{border-color:var(--ok);background:var(--ok-bg)}.yc-step small{display:block;color:var(--ink-2);margin-top:3px}@media (max-width:720px){.yc-steps{grid-template-columns:1fr}}';
 var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 

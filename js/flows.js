@@ -121,22 +121,22 @@ var css = '' +
 '.cn-types button[aria-pressed="true"]{background:var(--brand);color:#fff;border-color:var(--brand)}.cn-types .n{font-variant-numeric:tabular-nums;opacity:.8}' +
 '.cn-row{display:flex;gap:12px;align-items:flex-start}.cn-row .main{flex:1;min-width:0}.cn-row .main b{display:block;font-weight:500}.cn-row .main small{display:block;color:var(--ink-2);font-size:13px;margin-top:2px}' +
 '.cn-row input[type=checkbox]{width:18px;height:18px;margin-top:10px;flex:none}.cn-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px}' +
-'@media (max-width:640px){#cnB .row{flex-wrap:wrap}#cnB .cn-acts{flex:1 1 100%;justify-content:flex-start;padding-inline-start:46px;margin-top:8px}}' +
+'@media (max-width:640px){#cnB .row{flex-wrap:wrap}#cnB .cn-acts{flex:1 1 100%;justify-content:flex-start;padding-inline-start:48px;margin-top:8px}}' +
 '.cn-acts{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;flex:none;align-items:center}.row.cn-esc{background:var(--info-bg);border-inline-start:3px solid var(--info)}' +
-'.cn-bulk{position:sticky;bottom:10px;z-index:3;display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:16px;padding:10px 14px;margin-top:12px;box-shadow:var(--e3)}' +
+'.cn-bulk{position:sticky;bottom:10px;z-index:3;display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:16px;padding:12px 16px;margin-top:12px;box-shadow:var(--e3)}' +
 '.cn-bulk .sp{flex:1}.cn-bulk small{opacity:.8;font-size:12px;flex-basis:100%}' +
-'.cn-tl{list-style:none;margin:0;padding:0}.cn-tl li{position:relative;padding:0 0 12px;padding-inline-start:22px;border-inline-start:2px solid var(--line);margin-inline-start:6px}' +
+'.cn-tl{list-style:none;margin:0;padding:0}.cn-tl li{position:relative;padding:0 0 12px;padding-inline-start:24px;border-inline-start:2px solid var(--line);margin-inline-start:6px}' +
 '.cn-tl li::before{content:"";position:absolute;inset-inline-start:-7px;top:3px;width:12px;height:12px;border-radius:50%;background:var(--card);border:2px solid var(--ok)}.cn-tl li.no::before{border-color:var(--bad)}' +
 '.cn-tl b{font-weight:500}.cn-tl small{display:block;color:var(--ink-2);font-size:13px}' +
-'.yc-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 12px}.yc-step{padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card);font-size:13px}' +
+'.yc-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 12px}.yc-step{padding:12px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card);font-size:13px}' +
 '.yc-step b{display:flex;gap:8px;align-items:center;font-weight:500}.yc-step.done{border-color:var(--ok);background:var(--ok-bg)}.yc-step.done b i{color:var(--ok)}.yc-step small{display:block;color:var(--ink-2);margin-top:3px}' +
-'.yc-task{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line)}.yc-task:first-child{border-top:0}.yc-task > i{font-size:20px;color:var(--ink-2);margin-top:1px}' +
+'.yc-task{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-top:1px solid var(--line)}.yc-task:first-child{border-top:0}.yc-task > i{font-size:20px;color:var(--ink-2);margin-top:1px}' +
 '.yc-task.done > i{color:var(--ok)}.yc-task.na > i{color:var(--ink-3)}.yc-task .main{flex:1;min-width:0}.yc-task b{display:block;font-weight:500;font-size:14px}.yc-task small{display:block;color:var(--ink-2);font-size:13px;margin-top:2px}' +
-'.yc-form{margin-top:8px;padding:10px 12px;border-radius:12px;background:var(--well);border:1px solid var(--line)}.yc-form .btnrow{margin-top:6px}' +
-'.yc-warn{display:flex;gap:8px;align-items:flex-start;background:var(--bad-bg);border-inline-start:3px solid var(--bad);padding:10px 12px;border-radius:8px;font-size:13px;margin:0 0 12px}' +
-'.fw-card{background:var(--card);border-radius:16px;padding:14px 16px;margin:0 0 12px;box-shadow:var(--e3)}' +
+'.yc-form{margin-top:8px;padding:12px 12px;border-radius:12px;background:var(--well);border:1px solid var(--line)}.yc-form .btnrow{margin-top:6px}' +
+'.yc-warn{display:flex;gap:8px;align-items:flex-start;background:var(--bad-bg);border-inline-start:3px solid var(--bad);padding:12px 12px;border-radius:8px;font-size:13px;margin:0 0 12px}' +
+'.fw-card{background:var(--card);border-radius:16px;padding:16px 16px;margin:0 0 12px;box-shadow:var(--e3)}' +
 '.fw-card h4{margin:0 0 8px;display:flex;align-items:center;gap:8px;font-size:16px}.fw-card h4 .sp{flex:1}.fw-chain{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:4px 0}' +
-'.fw-chain .chip i{font-size:14px}.fw-step{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1.6fr) 90px auto;gap:8px;align-items:end;padding:10px 0;border-top:1px solid var(--line)}.fw-step:first-child{border-top:0}' +
+'.fw-chain .chip i{font-size:14px}.fw-step{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1.6fr) 90px auto;gap:8px;align-items:end;padding:12px 0;border-top:1px solid var(--line)}.fw-step:first-child{border-top:0}' +
 '.fw-step .field{margin:0}.fw-step .ctl{display:flex;gap:4px}.fw-when{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}' +
 '@media (max-width:720px){.yc-steps{grid-template-columns:1fr}.fw-step{grid-template-columns:1fr}.fw-when{grid-template-columns:1fr}}';
 var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
@@ -617,42 +617,152 @@ function config(body){
   load();
 }
 function deptName(depts, id){ var d = (depts || []).filter(function(x){ return x.id === id; })[0]; return d ? lang(d.nameAr, d.nameEn) : id; }
+// ---- visual flow designer (2026-10-23): palette, canvas with drag and drop, inspector, and "try it" on a real employee ----
+Object.assign(T.ar, { fdPalette:'أنواع المعتمدين', fdPaletteLead:'اسحب نوعا إلى المسار، أو اضغطه لإضافته في آخره.', fdStart:'تقديم الطلب', fdEnd:'معتمد', fdPick:'اختر خطوة من المسار لتعديلها.', fdTry:'جرّب المسار', fdTryLead:'اختر موظفا لترى من سيعتمد طلبه بهذا المسار قبل حفظه.', fdRun:'تشغيل', fdEmp:'الموظف', fdDays:'عدد الأيام', fdAmount:'المبلغ', fdGoes:'يمر الطلب على', fdSkip:'تُتخطى', fds_condition:'الشرط لا ينطبق', fds_no_manager:'لا يوجد مدير مباشر نشط', fds_no_head:'لا يوجد رئيس إدارة', fds_person_inactive:'الشخص غير نشط', fds_is_requester:'هو مقدم الطلب', fds_duplicate:'الشخص نفسه في خطوة سابقة', fdFallback:'لم تنطبق أي خطوة، فيذهب الطلب إلى الموارد البشرية.', fdDrop:'أفلت هنا', fdNotAllowed:'غير مسموح في طلبات السلف: المدير لا يرى المبالغ', fdOnlyIf:'فقط إذا', fdKeys:'Alt مع الأسهم للنقل، Delete للحذف', fdStepN:'الخطوة {n}', fdHolders:'{n} من حاملي الدور', fdChanged:'عدّلت المسار؛ شغّل التجربة مرة أخرى.', fdMax:'ست خطوات كحد أقصى.', fdDesc_manager:'مدير مقدم الطلب', fdDesc_dept_head:'رئيس إدارته أو إدارة أعلى', fdDesc_hr:'أي موظف موارد بشرية', fdDesc_payroll:'من يحمل دور الرواتب', fdDesc_executive:'من يحمل دور الرئيس التنفيذي', fdDesc_person:'شخص تسميه بالاسم' });
+Object.assign(T.en, { fdPalette:'Approver types', fdPaletteLead:'Drag a type into the flow, or tap it to add it at the end.', fdStart:'Request submitted', fdEnd:'Approved', fdPick:'Pick a step in the flow to edit it.', fdTry:'Try the flow', fdTryLead:'Pick an employee to see who would approve their request under this flow, before you save it.', fdRun:'Run', fdEmp:'Employee', fdDays:'Days', fdAmount:'Amount', fdGoes:'The request goes to', fdSkip:'Skipped', fds_condition:'condition not met', fds_no_manager:'no active line manager', fds_no_head:'no department head', fds_person_inactive:'person is inactive', fds_is_requester:'is the requester', fds_duplicate:'same person as an earlier step', fdFallback:'No step applied, so the request goes to HR.', fdDrop:'Drop here', fdNotAllowed:'Not allowed for advances: line managers never see amounts', fdOnlyIf:'Only if', fdKeys:'Alt + arrows to move, Delete to remove', fdStepN:'Step {n}', fdHolders:'{n} role holders', fdChanged:'You changed the flow; run the test again.', fdMax:'Six steps at most.', fdDesc_manager:'The requester\'s manager', fdDesc_dept_head:'Head of their department or one above', fdDesc_hr:'Anyone in HR', fdDesc_payroll:'Holders of the payroll role', fdDesc_executive:'Holders of the CEO role', fdDesc_person:'Someone you name' });
+var KICON = { manager: 'user-circle', dept_head: 'buildings', hr: 'identification-card', payroll: 'money', executive: 'crown-simple', person: 'user-focus' };
 function editFlow(r, ty, done){
   var steps = JSON.parse(JSON.stringify(ty.active ? ty.active.steps : ty.builtin)).map(function(s){ return { kind: s.kind, personId: s.personId || '', when: s.when || {}, slaHours: s.slaHours || '' }; });
-  var d = drawer('<h3>' + t('fwEdit') + sep() + esc(tl('rt_' + ty.type, ty.type)) + '</h3><p class="hr-hint">' + t('fwRules') + '</p><div id="feB"></div>');
-  var el = $('#feB', d);
+  var sel = -1, trial = null, tryNote = '', tryP = { empId: '', days: '', amount: '' };
+  var banned = function(k){ return ty.type === 'advance' && (k === 'manager' || k === 'dept_head'); };
+  var d = drawer('<h3>' + t('fwEdit') + sep() + esc(tl('rt_' + ty.type, ty.type)) + '</h3><p class="hr-hint">' + t('fwRules') + '</p><div id="fdB" class="fd"></div>', { wide: true });
+  var el = $('#fdB', d);
+  function personName(id){ var p = r.people.filter(function(x){ return x.id === id; })[0]; return p ? p.name : ''; }
+  function conds(s){ var w = s.when || {}; return [w.amountOver != null && w.amountOver !== '' ? '> ' + num(w.amountOver) + ' ' + sar() : '', w.daysOver != null && w.daysOver !== '' ? '> ' + plural(Number(w.daysOver), 'days') : '', w.departmentId ? deptName(r.depts, w.departmentId) : '', w.saudi ? t(w.saudi === 'saudi' ? 'fwSaudiOnly' : 'fwNonSaudi') : ''].filter(Boolean); }
+  function changed(){ if (trial) { trial = null; tryNote = t('fdChanged'); } paint(); }
+  function node(s, i){
+    var c = conds(s), tr = trial && trial.steps.filter(function(x){ return x.at === i; })[0], sk = trial && trial.skipped.filter(function(x){ return x.at === i; })[0];
+    var who = tr ? (tr.who ? esc(lang(tr.who.name, tr.who.nameEn)) : tr.holders != null ? t('fdHolders').replace('{n}', tr.holders) : t('fwk_' + s.kind)) : '';
+    return '<div class="fd-slot" data-slot="' + i + '"><span>' + t('fdDrop') + '</span></div><div class="fd-link" aria-hidden="true"></div>' +
+      '<button type="button" class="fd-node' + (sel === i ? ' sel' : '') + (tr ? ' hit' : '') + (sk ? ' skip' : '') + (banned(s.kind) ? ' bad' : '') + '" draggable="true" data-n="' + i + '" aria-pressed="' + (sel === i) + '" aria-label="' + esc(t('fdStepN').replace('{n}', i + 1) + ': ' + t('fwk_' + s.kind)) + '">' +
+      '<span class="fd-i num">' + (i + 1) + '</span><span class="fd-ic">' + ph(KICON[s.kind]) + '</span><span class="fd-t"><b>' + t('fwk_' + s.kind) + (s.kind === 'person' && s.personId ? ': ' + esc(personName(s.personId)) : '') + '</b>' +
+      (c.length ? '<small class="fd-cond">' + ph('git-branch') + t('fdOnlyIf') + ' ' + esc(c.join(sep())) + '</small>' : '') +
+      (s.slaHours ? '<small>' + ph('timer') + '<bdi class="num">' + esc(s.slaHours) + '</bdi> ' + t('cnHours') + '</small>' : '') +
+      (tr ? '<small class="fd-who">' + ph('check-circle') + who + '</small>' : '') + (sk ? '<small class="fd-why">' + ph('skip-forward') + t('fdSkip') + ': ' + t('fds_' + sk.reason) + '</small>' : '') +
+      (banned(s.kind) ? '<small class="fd-why">' + t('fdNotAllowed') + '</small>' : '') + '</span></button>';
+  }
+  function inspector(){
+    if (sel < 0 || !steps[sel]) return '<div class="fd-empty">' + ph('cursor-click') + '<p>' + t('fdPick') + '</p><small class="hr-hint">' + t('fdKeys') + '</small></div>';
+    var s = steps[sel], w = s.when || {};
+    var kinds = KINDS.filter(function(k){ return !banned(k) || k === s.kind; }).map(function(k){ return [k, t('fwk_' + k) + (k === 'payroll' || k === 'executive' ? ' (' + t('fwHolders') + ': ' + (r.holders[k] || 0) + ')' : '')]; });
+    return '<h4>' + t('fdStepN').replace('{n}', sel + 1) + '</h4>' + fld(t('fwKind'), '<select data-f="kind">' + opts(kinds, s.kind) + '</select>') +
+      (s.kind === 'person' ? fld(t('fwPerson'), '<select data-f="personId">' + opts(r.people.map(function(p){ return [p.id, p.name + ' (' + p.empNo + ')']; }), s.personId, '-') + '</select>') : '') +
+      '<p class="hr-hint" style="margin:8px 0 4px">' + t('fwWhen') + '</p>' +
+      (ty.type === 'advance' ? fld(t('fwAmountOver'), '<input data-k="amountOver" type="number" min="0" step="1" value="' + esc(w.amountOver == null ? '' : w.amountOver) + '">') : '') +
+      (ty.type === 'leave' ? fld(t('fwDaysOver'), '<input data-k="daysOver" type="number" min="0" step="1" value="' + esc(w.daysOver == null ? '' : w.daysOver) + '">') : '') +
+      fld(t('fwDept'), '<select data-k="departmentId">' + opts(r.depts.map(function(x){ return [x.id, lang(x.nameAr, x.nameEn)]; }), w.departmentId || '', t('fwAnyDept')) + '</select>') +
+      fld(t('fwSaudi'), '<select data-k="saudi">' + opts([['saudi', t('fwSaudiOnly')], ['non_saudi', t('fwNonSaudi')]], w.saudi || '', t('fwAnyone')) + '</select>') +
+      fld(t('fwSla'), '<input data-f="slaHours" type="number" min="1" max="720" step="1" value="' + esc(s.slaHours) + '">') +
+      '<div class="btnrow"><button type="button" class="btn btn-line btn-sm" data-mv="-1"' + (sel ? '' : ' disabled') + ' aria-label="' + t('fwUp') + '">' + ph('arrow-up') + '</button><button type="button" class="btn btn-line btn-sm" data-mv="1"' + (sel < steps.length - 1 ? '' : ' disabled') + ' aria-label="' + t('fwDown') + '">' + ph('arrow-down') + '</button><button type="button" class="btn btn-line btn-sm" data-rm>' + ph('trash') + t('fwRemove') + '</button></div>';
+  }
+  function palette(){
+    var full = steps.length >= 6;
+    return '<aside class="fd-pal"><h4>' + t('fdPalette') + '</h4><p class="hr-hint">' + t('fdPaletteLead') + '</p>' + KINDS.map(function(k){
+      var off = banned(k) || full;
+      return '<button type="button" class="fd-kind" draggable="' + !off + '" data-kind="' + k + '"' + (off ? ' disabled title="' + esc(banned(k) ? t('fdNotAllowed') : t('fdMax')) + '"' : '') + '><span class="fd-ic">' + ph(KICON[k]) + '</span><span><b>' + t('fwk_' + k) + '</b><small>' + t('fdDesc_' + k) + '</small></span>' + ph('plus') + '</button>';
+    }).join('') + '</aside>';
+  }
+  function canvas(){
+    return '<section class="fd-canvas" aria-label="' + esc(t('fwEdit')) + '"><div class="fd-cap start">' + ph('paper-plane-tilt') + t('fdStart') + '</div>' + steps.map(node).join('') +
+      '<div class="fd-slot" data-slot="' + steps.length + '"><span>' + t('fdDrop') + '</span></div><div class="fd-link" aria-hidden="true"></div>' +
+      (trial && trial.fallback ? '<div class="fd-node hit fd-fb"><span class="fd-ic">' + ph('identification-card') + '</span><span class="fd-t"><b>' + t('fwk_hr') + '</b><small>' + t('fdFallback') + '</small></span></div><div class="fd-link" aria-hidden="true"></div>' : '') +
+      '<div class="fd-cap end">' + ph('seal-check') + t('fdEnd') + '</div></section>';
+  }
+  function tryBox(){
+    return '<div class="fd-try"><h4>' + ph('play-circle') + t('fdTry') + '</h4><p class="hr-hint">' + t('fdTryLead') + '</p>' +
+      fld(t('fdEmp'), '<select data-try="emp">' + opts(r.people.map(function(p){ return [p.id, p.name + ' (' + p.empNo + ')']; }), tryP.empId, '-') + '</select>') +
+      (ty.type === 'leave' ? fld(t('fdDays'), '<input data-try="days" type="number" min="1" step="1" value="' + esc(tryP.days) + '">') : '') +
+      (ty.type === 'advance' ? fld(t('fdAmount'), '<input data-try="amount" type="number" min="1" step="1" value="' + esc(tryP.amount) + '">') : '') +
+      '<button type="button" class="btn btn-dark btn-sm" id="fdRun">' + ph('play') + t('fdRun') + '</button><p class="hr-bad" id="fdTE" role="alert"></p><div id="fdTR" aria-live="polite">' + tryResult() + '</div></div>';
+  }
+  function tryResult(){
+    if (!trial) return tryNote ? '<p class="hr-hint">' + tryNote + '</p>' : '';
+    return '<p class="fd-path"><b>' + t('fdGoes') + ':</b> ' + trial.steps.map(function(x){ return esc(x.who ? lang(x.who.name, x.who.nameEn) : t('fwk_' + x.kind)); }).join(' ' + ph(S.lang === 'ar' ? 'arrow-left' : 'arrow-right') + ' ') + '</p>';
+  }
   function paint(){
-    el.innerHTML = '<div>' + steps.map(function(s, i){
-      var w = s.when || {};
-      var cond = '<div class="fw-when">' + (ty.type === 'advance' ? fld(t('fwAmountOver'), '<input data-k="amountOver" type="number" min="0" step="1" value="' + esc(w.amountOver == null ? '' : w.amountOver) + '">') : '') +
-        (ty.type === 'leave' ? fld(t('fwDaysOver'), '<input data-k="daysOver" type="number" min="0" step="1" value="' + esc(w.daysOver == null ? '' : w.daysOver) + '">') : '') +
-        fld(t('fwDept'), '<select data-k="departmentId">' + opts(r.depts.map(function(x){ return [x.id, lang(x.nameAr, x.nameEn)]; }), w.departmentId || '', t('fwAnyDept')) + '</select>') +
-        fld(t('fwSaudi'), '<select data-k="saudi">' + opts([['saudi', t('fwSaudiOnly')], ['non_saudi', t('fwNonSaudi')]], w.saudi || '', t('fwAnyone')) + '</select>') + '</div>';
-      return '<div class="fw-step" data-i="' + i + '"><div>' + fld(t('fwKind'), '<select data-f="kind">' + opts(KINDS.map(function(k){ return [k, t('fwk_' + k) + (k === 'payroll' || k === 'executive' ? ' (' + t('fwHolders') + ': ' + (r.holders[k] || 0) + ')' : '')]; }), s.kind) + '</select>') +
-        (s.kind === 'person' ? fld(t('fwPerson'), '<select data-f="personId">' + opts(r.people.map(function(p){ return [p.id, p.name + ' (' + p.empNo + ')']; }), s.personId, '-') + '</select>') : '') + '</div>' +
-        '<div><small class="hr-hint">' + t('fwWhen') + '</small>' + cond + '</div>' + fld(t('fwSla'), '<input data-f="slaHours" type="number" min="1" max="720" step="1" value="' + esc(s.slaHours) + '">') +
-        '<div class="ctl"><button type="button" class="btn btn-line btn-sm" data-up aria-label="' + t('fwUp') + '"' + (i ? '' : ' disabled') + '>' + ph('arrow-up') + '</button><button type="button" class="btn btn-line btn-sm" data-dn aria-label="' + t('fwDown') + '"' + (i < steps.length - 1 ? '' : ' disabled') + '>' + ph('arrow-down') + '</button>' +
-        '<button type="button" class="btn btn-line btn-sm" data-rm aria-label="' + t('fwRemove') + '">' + ph('trash') + '</button></div></div>';
-    }).join('') + '</div><div class="btnrow" style="margin:8px 0"><button type="button" class="btn btn-line btn-sm" id="feAdd"' + (steps.length >= 6 ? ' disabled' : '') + '>' + ph('plus') + t('fwAdd') + '</button></div>' +
-      '<form class="form" id="feF">' + fld(t('fwNote'), '<input name="note" maxlength="300">') + '<p class="hr-bad" id="feE" role="alert"></p><div class="btnrow"><button class="btn btn-dark" type="submit">' + t('fwSave') + '</button></div></form>';
-    $$('.fw-step', el).forEach(function(row){
-      var i = +row.dataset.i, s = steps[i];
-      $$('[data-f]', row).forEach(function(x){ x.onchange = function(){ s[x.dataset.f] = x.value; if (x.dataset.f === 'kind') paint(); }; });
-      $$('[data-k]', row).forEach(function(x){ x.onchange = function(){ if (x.value === '') delete s.when[x.dataset.k]; else s.when[x.dataset.k] = x.value; }; });
-      $('[data-up]', row).onclick = function(){ steps.splice(i - 1, 0, steps.splice(i, 1)[0]); paint(); };
-      $('[data-dn]', row).onclick = function(){ steps.splice(i + 1, 0, steps.splice(i, 1)[0]); paint(); };
-      $('[data-rm]', row).onclick = function(){ steps.splice(i, 1); paint(); };
+    el.innerHTML = palette() + canvas() + '<aside class="fd-side"><div class="fd-ins">' + inspector() + '</div>' + tryBox() + '</aside>' +
+      '<form class="form fd-save" id="feF">' + fld(t('fwNote'), '<input name="note" maxlength="300">') + '<p class="hr-bad" id="feE" role="alert"></p><div class="btnrow"><button class="btn btn-dark" type="submit">' + ph('floppy-disk') + t('fwSave') + '</button></div></form>';
+    wire();
+  }
+  function insert(at, s){ if (steps.length >= 6) return toast(t('fdMax')); steps.splice(at, 0, s); sel = at; changed(); }
+  function move(from, to){ if (to < 0 || to >= steps.length || from === to) return; steps.splice(to, 0, steps.splice(from, 1)[0]); sel = to; changed(); }
+  function blank(kind){ return { kind: kind, personId: '', when: {}, slaHours: '' }; }
+  function payload(){
+    return steps.map(function(s){ var o = { kind: s.kind }; if (s.kind === 'person') o.personId = s.personId; if (s.slaHours !== '' && s.slaHours != null) o.slaHours = Number(s.slaHours);
+      var w = {}; Object.keys(s.when || {}).forEach(function(k){ var v = s.when[k]; if (v === '' || v == null) return; w[k] = k === 'amountOver' || k === 'daysOver' ? Number(v) : v; }); if (Object.keys(w).length) o.when = w; return o; });
+  }
+  function wire(){
+    var drag = null;
+    $$('.fd-kind', el).forEach(function(b){
+      b.onclick = function(){ insert(steps.length, blank(b.dataset.kind)); };
+      b.ondragstart = function(ev){ drag = { add: b.dataset.kind }; ev.dataTransfer.effectAllowed = 'copy'; try { ev.dataTransfer.setData('text/plain', b.dataset.kind); } catch (e) {} el.classList.add('dragging'); };
+      b.ondragend = function(){ el.classList.remove('dragging'); };
     });
-    $('#feAdd', el).onclick = function(){ steps.push({ kind: 'hr', personId: '', when: {}, slaHours: '' }); paint(); };
+    $$('.fd-node[data-n]', el).forEach(function(b){
+      var i = +b.dataset.n;
+      b.onclick = function(){ sel = sel === i ? -1 : i; paint(); var n = $('.fd-node[data-n="' + i + '"]', el); if (n) n.focus(); };
+      b.onkeydown = function(ev){
+        if (ev.altKey && (ev.key === 'ArrowUp' || ev.key === 'ArrowDown')) { ev.preventDefault(); move(i, i + (ev.key === 'ArrowUp' ? -1 : 1)); var n = $('.fd-node[data-n="' + sel + '"]', el); if (n) n.focus(); }
+        else if (ev.key === 'Delete') { ev.preventDefault(); steps.splice(i, 1); sel = -1; changed(); }
+      };
+      b.ondragstart = function(ev){ drag = { from: i }; ev.dataTransfer.effectAllowed = 'move'; try { ev.dataTransfer.setData('text/plain', String(i)); } catch (e) {} el.classList.add('dragging'); b.classList.add('lift'); };
+      b.ondragend = function(){ el.classList.remove('dragging'); b.classList.remove('lift'); };
+    });
+    $$('.fd-slot', el).forEach(function(z){
+      var at = +z.dataset.slot;
+      z.ondragover = function(ev){ if (!drag) return; ev.preventDefault(); z.classList.add('over'); };
+      z.ondragleave = function(){ z.classList.remove('over'); };
+      z.ondrop = function(ev){
+        ev.preventDefault(); z.classList.remove('over'); el.classList.remove('dragging'); if (!drag) return; var g = drag; drag = null;
+        if (g.add) insert(at, blank(g.add)); else move(g.from, at > g.from ? at - 1 : at);
+      };
+    });
+    var ins = $('.fd-ins', el);
+    if (sel >= 0 && steps[sel]) {
+      var s = steps[sel];
+      $$('[data-f]', ins).forEach(function(x){ x.onchange = function(){ s[x.dataset.f] = x.value; changed(); }; });
+      $$('[data-k]', ins).forEach(function(x){ x.onchange = function(){ if (x.value === '') delete s.when[x.dataset.k]; else s.when[x.dataset.k] = x.value; changed(); }; });
+      $$('[data-mv]', ins).forEach(function(x){ x.onclick = function(){ move(sel, sel + Number(x.dataset.mv)); }; });
+      $('[data-rm]', ins).onclick = function(){ steps.splice(sel, 1); sel = -1; changed(); };
+    }
+    $('#fdRun', el).onclick = function(){
+      var b = this; tryP.empId = $('[data-try=emp]', el).value; if ($('[data-try=days]', el)) tryP.days = $('[data-try=days]', el).value; if ($('[data-try=amount]', el)) tryP.amount = $('[data-try=amount]', el).value;
+      $('#fdTE', el).textContent = ''; if (!tryP.empId) return $('#fdTE', el).textContent = t('fdEmp');
+      b.disabled = true;
+      api('flowPreview', { type: ty.type, steps: payload(), empId: tryP.empId, days: Number(tryP.days) || 0, amount: Number(tryP.amount) || 0 }, true).then(function(x){
+        b.disabled = false; if (!x.ok) return $('#fdTE', el).textContent = errText(x.error); trial = x; tryNote = ''; paint();
+      });
+    };
     $('#feF', el).onsubmit = function(ev){
       ev.preventDefault(); var b = this.querySelector('[type=submit]'); b.disabled = true;
-      var out = steps.map(function(s){ var o = { kind: s.kind }; if (s.kind === 'person') o.personId = s.personId; if (s.slaHours !== '' && s.slaHours != null) o.slaHours = Number(s.slaHours);
-        var w = {}; Object.keys(s.when || {}).forEach(function(k){ var v = s.when[k]; if (v === '' || v == null) return; w[k] = k === 'amountOver' || k === 'daysOver' ? Number(v) : v; }); if (Object.keys(w).length) o.when = w; return o; });
-      api('flowSave', { type: ty.type, steps: out, note: this.elements.note.value.trim() }).then(function(x){ b.disabled = false; if (!x.ok) return $('#feE', el).textContent = errText(x.error); toast(t('fwSaved') + ' · ' + x.flow.ref); d.remove(); done(); });
+      api('flowSave', { type: ty.type, steps: payload(), note: this.elements.note.value.trim() }).then(function(x){ b.disabled = false; if (!x.ok) return $('#feE', el).textContent = errText(x.error); toast(t('fwSaved') + ' · ' + x.flow.ref); d.remove(); done(); });
     };
   }
   paint();
 }
+(function(){
+  var c = document.createElement('style');
+  c.textContent = '.fd{display:grid;grid-template-columns:240px minmax(0,1fr) 280px;gap:16px;align-items:start}.fd h4{display:flex;align-items:center;gap:8px;margin:0 0 4px;font-size:14px}' +
+    '.fd-pal,.fd-side>div{background:var(--card,#fff);border:1px solid var(--line);border-radius:16px;padding:12px}.fd-side{display:grid;gap:12px}.fd-pal .hr-hint{font-size:12px;margin:0 0 8px}' +
+    '.fd-kind{display:flex;align-items:center;gap:8px;width:100%;text-align:start;background:none;border:1px solid var(--line);border-radius:12px;padding:8px;margin-top:8px;cursor:grab;color:inherit;font:inherit}' +
+    '.fd-kind:hover:not([disabled]){border-color:var(--brand);box-shadow:var(--e1)}.fd-kind[disabled]{opacity:.45;cursor:not-allowed}.fd-kind span:nth-child(2){flex:1;min-width:0}.fd-kind b{display:block;font-size:13px}.fd-kind small{display:block;font-size:11px;color:var(--ink-3)}' +
+    '.fd-ic{display:grid;place-items:center;width:32px;height:32px;border-radius:8px;background:color-mix(in srgb,var(--brand) 12%,transparent);color:var(--brand);flex:none;font-size:16px}' +
+    '.fd-canvas{display:flex;flex-direction:column;align-items:center;padding:16px;border:1px dashed var(--line);border-radius:16px;min-height:320px;background-image:radial-gradient(color-mix(in srgb,var(--brand) 14%,transparent) 1px,transparent 1px);background-size:16px 16px}' +
+    '.fd-cap{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:999px;font-size:13px;font-weight:700;background:var(--card,#fff);border:1px solid var(--line);box-shadow:var(--e1)}.fd-cap.end{background:var(--brand);color:#fff;border-color:transparent}' +
+    '.fd-link{width:2px;height:16px;background:var(--line)}' +
+    '.fd-slot{width:min(360px,100%);height:4px;border-radius:4px;transition:height .15s,background .15s;display:grid;place-items:center;overflow:hidden}.fd-slot span{font-size:12px;opacity:0}' +
+    '.dragging .fd-slot{height:28px;border:1px dashed var(--brand);background:color-mix(in srgb,var(--brand) 6%,transparent)}.dragging .fd-slot span{opacity:.8}.fd-slot.over{background:color-mix(in srgb,var(--brand) 20%,transparent)}' +
+    '.fd-node{position:relative;display:flex;gap:12px;align-items:flex-start;width:min(360px,100%);text-align:start;background:var(--card,#fff);border:1px solid var(--line);border-radius:12px;padding:12px;box-shadow:var(--e1);cursor:grab;color:inherit;font:inherit}' +
+    '.fd-node:hover{box-shadow:var(--e2)}.fd-node.sel{border-color:var(--brand);box-shadow:0 0 0 2px var(--brand)}.fd-node.lift{opacity:.4}.fd-node:focus-visible{outline:3px solid var(--brand);outline-offset:2px}' +
+    '.fd-node.hit{border-inline-start:4px solid var(--brand)}.fd-node.skip{opacity:.55;border-style:dashed}.fd-node.bad{border-color:var(--bad)}.fd-fb{cursor:default}' +
+    '.fd-i{position:absolute;top:-8px;inset-inline-start:-8px;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:11px;background:var(--brand);color:#fff}' +
+    '.fd-t{display:flex;flex-direction:column;gap:2px;min-width:0}.fd-t b{font-size:14px}.fd-t small{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--ink-3)}.fd-cond{color:var(--amber)!important}.fd-who{color:var(--brand)!important;font-weight:600}.fd-why{color:var(--bad)!important}' +
+    '.fd-empty{text-align:center;color:var(--ink-3);padding:16px 8px}.fd-path{font-size:13px;line-height:1.8;margin:8px 0 0}.fd-save{grid-column:1/-1}' +
+    '@media (prefers-reduced-motion:no-preference){.fd-node{transition:box-shadow .15s,transform .15s}.fd-node:active{transform:scale(.99)}.fd-node.hit{animation:fdHit .4s ease both}}@keyframes fdHit{from{transform:translateY(4px);opacity:.6}to{transform:none;opacity:1}}' +
+    '@media (max-width:1100px){.fd{grid-template-columns:minmax(0,1fr) 280px}.fd-pal{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px}.fd-pal h4,.fd-pal p{flex-basis:100%}.fd-kind{width:auto;margin:0}.fd-kind small{display:none}}' +
+    '@media (max-width:700px){.fd{grid-template-columns:1fr}}';
+  document.head.appendChild(c);
+})();
 
 window.Flows = { centre: centre, cycles: cycles, cycleDrawer: cycleDrawer, myCards: myCards, config: config, history: history, printCycle: printCycle, itemPage: itemPage, openItem: openItem };
 })();

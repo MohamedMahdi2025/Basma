@@ -440,7 +440,7 @@ function recordPunch_(emp, cred, req, type, method) {
     if (last && now.getTime() - new Date(last.ts).getTime() < s.minPunchGapMin * 60000) fail_('too_soon');
 
     // office kiosk QR (2026-10-20): a fresh, valid code from a kiosk in the employee's zone stands in for the GPS fix
-    var geo = req.qr ? qrGeo_(emp, req.geo, verifyKioskQr_(emp, req.qr)) : evaluateGeo_(emp, req.geo, s, type, r.cred.platform === 'desktop');
+    var geo = req.qr ? qrGeo_(emp, req.geo, verifyKioskQr_(emp, req.qr)) : remoteDay_(emp, workDate_(emp, now, s)) ? remoteGeo_(req.geo) : evaluateGeo_(emp, req.geo, s, type, r.cred.platform === 'desktop');
     var risk = riskScore_(emp, r.cred, req, geo, last, now);
     var lp = localParts_(now);
     var punch = {
@@ -541,7 +541,7 @@ function qrGeo_(emp, geo, q) {
 
 var RISK_WEIGHTS = {
   static_samples: 35, zero_accuracy: 30, stale_fix: 20, clock_drift: 25, impossible_travel: 40,
-  qr_kiosk: 0, qr_no_gps: 25,
+  qr_kiosk: 0, qr_no_gps: 25, remote: 0,
   new_device: 10, few_samples: 10, off_hours: 10, edge: 10, weak_fix: 30, outside_checkout: 30, no_biometric: 10, laptop: 5, password_login: 20
 };
 
@@ -658,6 +658,7 @@ function summarizeDay_(emp, date, punches, s, now, off) {
   } else if (!workday) out.status = 'off';
   else if (date > lpNow.date || (isToday && rel(now) <= startM + sh.grace)) out.status = 'upcoming';
   else out.status = 'absent';
+  if (off && off.remote && !off.leave && !off.holiday) { out.remote = true; if (!out.firstIn && workday && out.status === 'absent') out.status = 'remote'; return out; } // an approved remote day is never absent
   if (off) {
     if (off.holiday) out.holiday = off.holiday;
     if (off.leave) out.leaveType = off.leave;
@@ -666,12 +667,22 @@ function summarizeDay_(emp, date, punches, s, now, off) {
   return out;
 }
 
+/** Is this an approved remote-work day for the person? (one read of their requests) */
+function remoteDay_(emp, date) {
+  return requestsOf_(emp.id).some(function (r) { return r.type === 'remote' && r.status === 'approved' && String(r.fromDate).slice(0, 10) <= date && String(r.toDate).slice(0, 10) >= date; });
+}
+/** Location for a punch on an approved remote day: recorded as given, never a zone check, flagged. */
+function remoteGeo_(geo) {
+  var samples = cleanSamples_(geo), fix = samples.length ? samples.reduce(function (b, x) { return x.acc < b.acc ? x : b; }, samples[0]) : null;
+  return { fix: fix, zone: null, distance: null, radius: null, flags: ['remote'], samples: samples };
+}
 function todayFor_(emp, s) {
   var now = new Date(), date = workDate_(emp, now, s);
   var ps = punchesOf_(emp.id).filter(function (p) { return p.date === date; });
   var sum = summarizeDay_(emp, date, ps, s, now);
   sum.list = ps.map(publicPunch_);
   sum.next = nextPunchType_(emp.id);
+  sum.remoteDay = remoteDay_(emp, date);
   return sum;
 }
 
@@ -905,4 +916,53 @@ function verifyKioskQr_(emp, qr) {
   var zone = zonesFor_(emp).filter(function (z) { return z.id === k.zoneId; })[0];
   if (!zone) fail_('qr_wrong_zone');
   return { kiosk: k, zone: zone };
+}
+
+
+// ======================================================================= live office map (2026-10-23)
+// Everyone sees where colleagues are today: in an office (by the zone of the open check-in), remote, on a work trip, gone for
+// the day or away. "Away" deliberately covers leave, absence, days off and not-yet-in, so colleagues never learn why.
+// Full day status (late minutes, absent, leave type) only for HR, admin and executive, and for a manager about their own people.
+var PRESENCE_NOTE_MAX_ = 60;
+function api_officeMap(req, me) {
+  var s = settings_(), now = new Date(), date = localParts_(now).date, nowIso = now.toISOString();
+  var emps = readAll_(SHEETS.EMP).filter(function (e) { return e.status === 'active' && joinedDate_(e) <= date; });
+  var zones = {}, zoneList = [];
+  readAll_(SHEETS.ZONES).forEach(function (z) { zones[z.id] = z.name; zoneList.push({ id: z.id, name: z.name }); });
+  var today = {};
+  readAll_(SHEETS.PUNCH).forEach(function (p) { if (p.date === date && isCounted_(p)) (today[p.empId] = today[p.empId] || []).push(p); });
+  var trips = {};
+  readAll_(SHEETS.REQ).forEach(function (r) { if (r.type === 'travel' && r.status === 'approved' && String(r.fromDate).slice(0, 10) <= date && String(r.toDate).slice(0, 10) >= date) trips[r.empId] = 1; });
+  var notes = {};
+  readAll_(SHEETS.PNOTE).forEach(function (n) { if (n.text && (!n.until || String(n.until) > nowIso)) notes[n.empId] = { text: n.text, until: n.until || '' }; });
+  var off = offIndex_(date, date), all = isHr_(me) || hasRole_(me, 'executive'), ctx = all ? null : orgCtx_();
+  var counts = { office: 0, remote: 0, trip: 0, done: 0, away: 0 }, perZone = {};
+  var people = emps.map(function (e) {
+    var ps = (today[e.id] || []).sort(function (a, b) { return a.ts < b.ts ? -1 : 1; });
+    var day = summarizeDay_(e, date, ps, s, now, off(e.id, date)), last = ps[ps.length - 1], pr, zone = '';
+    if (day.status === 'in') { zone = last && last.zoneId ? last.zoneId : ''; pr = zone ? 'office' : 'remote'; }
+    else if (trips[e.id]) pr = 'trip';
+    else if (day.remote && (day.status === 'remote' || day.status === 'upcoming')) pr = 'remote';
+    else if (day.status === 'present') pr = 'done';
+    else pr = 'away';
+    counts[pr]++; if (zone) perZone[zone] = (perZone[zone] || 0) + 1;
+    var o = { id: e.id, name: e.name, nameEn: e.nameEn || '', department: e.department || '', title: e.title || '', presence: pr, zone: zone,
+      since: pr === 'office' || pr === 'remote' ? day.firstIn : null, me: e.id === me.id };
+    if (notes[e.id]) o.note = notes[e.id];
+    if (all || e.id === me.id || manages_(me, e, ctx)) o.day = { status: day.status, lateMin: day.lateMin || 0, leaveType: day.leaveType || '', workedMin: day.workedMin || 0 };
+    return o;
+  });
+  zoneList.forEach(function (z) { z.count = perZone[z.id] || 0; });
+  return { ok: true, date: date, serverTime: nowIso, zones: zoneList, counts: counts, people: people, full: all };
+}
+/** Your own short status for the map ("in a meeting until 2"), like Roam's "will return". Empty text clears it. */
+function api_presenceSet(req, me) {
+  var text = str_(req.text, PRESENCE_NOTE_MAX_), until = '';
+  if (req.until) { var u = new Date(req.until); if (isNaN(u.getTime())) fail_('bad_date'); if (u.getTime() < Date.now() || u.getTime() > Date.now() + 7 * 864e5) fail_('bad_date'); until = u.toISOString(); }
+  return withLock_(function () {
+    var cur = findBy_(SHEETS.PNOTE, 'empId', me.id);
+    if (cur) { cur.text = text; cur.until = text ? until : ''; cur.updatedAt = new Date().toISOString(); update_(SHEETS.PNOTE, cur); }
+    else if (text) append_(SHEETS.PNOTE, { id: newId_('PN'), empId: me.id, text: text, until: until, updatedAt: new Date().toISOString() });
+    return { ok: true, note: text ? { text: text, until: until } : null };
+  });
 }

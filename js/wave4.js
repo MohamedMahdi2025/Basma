@@ -240,8 +240,8 @@ function oneOnOneSection(body){
   function meetingCard(x){
     var mgr = x.canEdit, ag = x.agenda.map(function(a){ return '<li>' + esc(a.text) + ' <small>(' + (a.by === 'emp' ? t('ooOwnerEmp').replace(/^.*? /, '') : t('ooOwnerMgr').replace(/^.*? /, '')) + ')</small></li>'; }).join('');
     var ac = x.actions.map(function(a, i){ return '<li><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" data-tick="' + x.id + ':' + i + '"' + (a.done ? ' checked' : '') + '> <span' + (a.done ? ' style="text-decoration:line-through"' : '') + '>' + esc(a.text) + '</span> <small>' + t(a.owner === 'mgr' ? 'ooOwnerMgr' : 'ooOwnerEmp') + '</small></label></li>'; }).join('');
-    return '<div class="db-card oo-card" style="padding:14px;margin-bottom:10px"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>' + K.fmt(x.date) + '</b>' + K.sep() + K.empLine(x.manager) + '<span class="sp" style="flex:1"></span>' + K.chip(t('oos_' + x.status), x.status === 'done' ? 'in' : '') + '</div>' +
-      '<h4 style="margin:10px 0 4px">' + t('ooAgenda') + '</h4><ul style="margin:0;padding-inline-start:18px">' + ag + '</ul>' +
+    return '<div class="db-card oo-card" style="padding:16px;margin-bottom:10px"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>' + K.fmt(x.date) + '</b>' + K.sep() + K.empLine(x.manager) + '<span class="sp" style="flex:1"></span>' + K.chip(t('oos_' + x.status), x.status === 'done' ? 'in' : '') + '</div>' +
+      '<h4 style="margin:10px 0 4px">' + t('ooAgenda') + '</h4><ul style="margin:0;padding-inline-start:20px">' + ag + '</ul>' +
       (x.status === 'planned' ? '<form class="toolbar" data-ag="' + x.id + '"><input name="item" maxlength="300" placeholder="' + t('ooAddItem') + '" style="flex:1;min-width:0"><button class="btn btn-line btn-sm" type="submit">' + ph('plus') + '</button></form>' : '') +
       '<h4 style="margin:10px 0 4px">' + t('ooActions') + '</h4><ul style="margin:0;padding:0;list-style:none">' + ac + '</ul>' +
       (mgr && x.status === 'planned' ? '<form class="toolbar" data-ac="' + x.id + '"><input name="item" maxlength="300" placeholder="' + t('ooAddAction') + '" style="flex:1;min-width:0"><select name="owner"><option value="emp">' + t('ooOwnerEmp') + '</option><option value="mgr">' + t('ooOwnerMgr') + '</option></select><button class="btn btn-line btn-sm" type="submit">' + ph('plus') + '</button></form>' : '') +
@@ -297,14 +297,14 @@ function talentSection(body){
         var cell = function(p, q){ var k = p + '|' + q, ppl = g.rows.filter(function(x){ return x.performance === p && x.potential === q; });
           var tone = n3[p] + n3[q] >= 5 ? 'background:var(--g-E3F1E7,#E3F1E7)' : n3[p] + n3[q] <= 3 ? 'background:#FBE9E7' : 'background:var(--paper)';
           return '<div style="' + tone + ';border-radius:12px;padding:8px;min-height:86px"><b style="font-size:12px">' + t('tb_' + n3[p] + n3[q]) + '</b><div class="num" style="font-size:24px;font-weight:800">' + (g.grid[k] || 0) + '</div><small style="display:block;color:var(--ink-3)">' + ppl.slice(0, 4).map(function(x){ return esc(K.lang(x.emp.name, x.emp.nameEn)); }).join('، ') + (ppl.length > 4 ? ' +' + (ppl.length - 4) : '') + '</small></div>'; };
-        h += '<div class="db-card" style="padding:14px;margin-bottom:12px"><div style="display:grid;grid-template-columns:28px repeat(3,1fr);gap:8px;align-items:stretch">' +
+        h += '<div class="db-card" style="padding:16px;margin-bottom:12px"><div style="display:grid;grid-template-columns:28px repeat(3,1fr);gap:8px;align-items:stretch">' +
           ['high', 'medium', 'low'].map(function(q){ return '<div style="writing-mode:vertical-rl;transform:rotate(180deg);font-size:11px;text-align:center;color:var(--ink-3)">' + t('tlPot') + ' ' + t(lv[q]) + '</div>' + ['low', 'medium', 'high'].map(function(p){ return cell(p, q); }).join(''); }).join('') +
           '<div></div>' + ['low', 'medium', 'high'].map(function(p){ return '<div style="text-align:center;font-size:11px;color:var(--ink-3)">' + t('tlPerf') + ' ' + t(lv[p]) + '</div>'; }).join('') + '</div></div>';
         h += g.rows.length ? '<div class="list">' + g.rows.map(function(x, i){ return '<div class="row w2-row"><div class="main"><b>' + K.empLine(x.emp) + '</b><small>' + t('tlPerf') + ': ' + (x.performance ? t(lv[x.performance]) + ' (' + x.rating + ')' : t('tlNoReview')) + K.sep() + t('tlPot') + ': ' + (x.potential ? t(lv[x.potential]) : '-') + (x.note ? K.sep() + esc(x.note) : '') + '</small></div><div class="act"><button type="button" class="btn btn-line btn-sm" data-pt="' + i + '">' + t('tlRate') + '</button></div></div>'; }).join('') + '</div>' : K.empty('users', t('w2None'));
       } else {
         h += K.tiles([[t('tlKey'), K.n(sc.rows.length)], [t('tlGaps'), K.n(sc.gaps), '', sc.gaps > 0], [t('tlHighRisk'), K.n(sc.highRisk), '', sc.highRisk > 0]]) +
           (sc.canEdit ? '<div class="toolbar"><span class="sp"></span><button type="button" class="btn btn-dark btn-sm" id="tlAdd">' + ph('plus') + t('tlAddPlan') + '</button></div>' : '');
-        h += sc.rows.length ? sc.rows.map(function(p, i){ return '<div class="db-card" style="padding:14px;margin-bottom:10px"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>' + esc(K.lang(p.position.titleAr, p.position.titleEn)) + '</b>' + (p.readyNow ? K.chip(t('tlr_now') + ' ' + p.readyNow, 'in') : K.chip(t('tlGaps'), 'out')) + (p.flightRisk ? K.chip(t('tlFlight') + ': ' + t(lv[p.flightRisk]), p.flightRisk === 'high' ? 'late' : '') : '') + '<span style="flex:1"></span>' + (sc.canEdit ? '<button type="button" class="btn btn-line btn-sm" data-sp="' + i + '">' + t('w2Edit') + '</button>' : '') + '</div>' +
+        h += sc.rows.length ? sc.rows.map(function(p, i){ return '<div class="db-card" style="padding:16px;margin-bottom:10px"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>' + esc(K.lang(p.position.titleAr, p.position.titleEn)) + '</b>' + (p.readyNow ? K.chip(t('tlr_now') + ' ' + p.readyNow, 'in') : K.chip(t('tlGaps'), 'out')) + (p.flightRisk ? K.chip(t('tlFlight') + ': ' + t(lv[p.flightRisk]), p.flightRisk === 'high' ? 'late' : '') : '') + '<span style="flex:1"></span>' + (sc.canEdit ? '<button type="button" class="btn btn-line btn-sm" data-sp="' + i + '">' + t('w2Edit') + '</button>' : '') + '</div>' +
           '<small>' + t('tlIncumbent') + ': ' + (p.incumbent ? K.empLine(p.incumbent) : '-') + '</small><ol style="margin:8px 0 0;padding-inline-start:20px">' + p.successors.map(function(s){ return '<li>' + K.empLine(s.emp) + ' · ' + t('tlr_' + s.readiness) + (s.rating ? ' · ' + t('tlPerf') + ' ' + s.rating : '') + (s.note ? ' · ' + esc(s.note) : '') + '</li>'; }).join('') + '</ol></div>'; }).join('') : K.empty('tree-structure', t('w2None'));
       }
       box.innerHTML = h; K.wire(box);
@@ -500,7 +500,7 @@ function perksSection(body){
       var h = '<div class="toolbar"><div class="op-tabs" role="tablist"><button type="button" role="tab" data-pc="" aria-selected="' + !cat + '">' + t('pkAll') + '</button>' + r.categories.filter(function(c){ return r.rows.some(function(p){ return p.category === c; }); }).map(function(c){ return '<button type="button" role="tab" data-pc="' + c + '" aria-selected="' + (cat === c) + '">' + ph(PK_IC[c]) + t('pkc_' + c) + '</button>'; }).join('') + '</div><span class="sp"></span>' +
         (r.canEdit ? '<button type="button" class="btn btn-dark btn-sm" id="pkN">' + ph('plus') + t('pkNew') + '</button>' : '') + '</div>';
       h += rows.length ? '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px">' + rows.map(function(p, i){
-        return '<button type="button" class="db-card" data-pk="' + i + '" style="text-align:start;padding:14px;font:inherit;color:inherit;cursor:pointer;display:grid;gap:8px;border:1px solid var(--line);border-radius:16px;background:var(--card)">' +
+        return '<button type="button" class="db-card" data-pk="' + i + '" style="text-align:start;padding:16px;font:inherit;color:inherit;cursor:pointer;display:grid;gap:8px;border:1px solid var(--line);border-radius:16px;background:var(--card)">' +
           '<span style="width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--g-E6F0E8,#E6F0E8);color:var(--brand);font-size:24px">' + ph(PK_IC[p.category] || 'gift', 'duotone') + '</span><b>' + esc(K.lang(p.titleAr, p.titleEn)) + '</b><small style="color:var(--ink-3)">' + esc(p.provider) + (p.validTo ? ' · ' + t('pkUntil') + ' ' + K.fmt(p.validTo) : '') + '</small>' +
           (r.canEdit ? '<small>' + (p.status !== 'active' ? K.chip(t('pks_' + p.status), 'late') + ' ' : '') + t('pkViews') + ' ' + p.views + '</small>' : '') + '</button>';
       }).join('') + '</div>' : K.empty('gift', t('w2None'));
@@ -540,7 +540,7 @@ function kioskAdmin(body){
   var box = K.head(body, 'ksTitle', 'ksLead');
   function showLink(r){
     var url = location.origin + location.pathname + '#kiosk/' + S.orgId + '/' + encodeURIComponent(r.setup); // the tablet joins this organisation only
-    var d = drawer('<h3>' + esc(r.kiosk.label) + '</h3><p class="hr-hint">' + t('ksLinkLead') + '</p><input readonly dir="ltr" value="' + esc(url) + '" style="width:100%;font-size:13px;padding:10px;border:1px solid var(--line);border-radius:12px"><div class="btnrow"><button type="button" class="btn btn-dark btn-sm" id="ksC">' + ph('copy') + t('ksCopy') + '</button></div>');
+    var d = drawer('<h3>' + esc(r.kiosk.label) + '</h3><p class="hr-hint">' + t('ksLinkLead') + '</p><input readonly dir="ltr" value="' + esc(url) + '" style="width:100%;font-size:13px;padding:12px;border:1px solid var(--line);border-radius:12px"><div class="btnrow"><button type="button" class="btn btn-dark btn-sm" id="ksC">' + ph('copy') + t('ksCopy') + '</button></div>');
     $('#ksC', d).onclick = function(){ try { navigator.clipboard.writeText(url).then(function(){ toast(t('ksCopied')); }); } catch (e) {} };
   }
   function load(){
@@ -688,32 +688,52 @@ Object.assign(T.ar, {
   plTitle:'المنشآت على المنصة', plLead:'كل منشأة (سجل تجاري) لها رقم منشأة (Org ID) وجدول بيانات خاص بها: دفاتر منفصلة تماما، ولا تظهر بيانات منشأة لأخرى. هذه الشاشة لمالك المنصة ومفتاح الإعداد مطلوب لكل عملية ولا يحفظ.',
   plKey:'مفتاح إعداد المنصة', plOpen:'عرض المنشآت', plNew:'منشأة جديدة', plNameAr:'اسم المنشأة (عربي)', plNameEn:'اسم المنشأة (إنجليزي)', plCr:'السجل التجاري (10 أرقام)', plAdmin:'اسم أول مدير للنظام', plAdminNo:'رقمه الوظيفي', plAdminEmail:'بريده (اختياري)',
   plCreated:'أنشئت المنشأة', plSend:'أرسل هذه البيانات لمدير المنشأة الجديدة:', plMsg:'نظام الموارد البشرية\nرقم المنشأة: {org}\nالرقم الوظيفي: {no}\nرمز التفعيل: {code}\nالرابط: {url}',
-  plHome:'المنشأة الأم', plSuspend:'إيقاف', plResume:'تفعيل', pls_active:'تعمل', pls_suspended:'موقوفة', plCount:'عدد المنشآت', plThis:'منشأتك الحالية'
+  plHome:'المنشأة الأم', plOverview:'نظرة عامة على الاستخدام', plOvLead:'حجم كل شركة ونشاطها فقط، بلا رواتب ولا أسماء ولا بيانات شخصية.', plGroup:'المجموعة', plNoGroup:'بدون مجموعة', plSetGroup:'المجموعة', plEmps:'الموظفون', plEnrolled:'أجهزة مفعلة', plToday:'نشطون اليوم', plPending:'طلبات معلقة', plLast:'آخر نشاط', plTotal:'الإجمالي', plGroupName:'اسم المجموعة (مثلا: مجموعة الناقل)', plSuspend:'إيقاف', plResume:'تفعيل', pls_active:'تعمل', pls_suspended:'موقوفة', plCount:'عدد المنشآت', plThis:'منشأتك الحالية'
 });
 Object.assign(T.en, {
   plTitle:'Organisations on the platform', plLead:'Each organisation (each CR) has an Org ID and a spreadsheet of its own: completely separate books, and no organisation ever sees another\'s data. This screen is for the platform owner; the setup key is needed for every action and is never stored.',
   plKey:'Platform setup key', plOpen:'Show organisations', plNew:'New organisation', plNameAr:'Name (Arabic)', plNameEn:'Name (English)', plCr:'CR number (10 digits)', plAdmin:'First administrator\'s name', plAdminNo:'Their employee number', plAdminEmail:'Their e-mail (optional)',
   plCreated:'Organisation created', plSend:'Send these details to the new organisation\'s administrator:', plMsg:'HR system\nOrg ID: {org}\nEmployee number: {no}\nActivation code: {code}\nLink: {url}',
-  plHome:'Home organisation', plSuspend:'Suspend', plResume:'Re-open', pls_active:'Active', pls_suspended:'Suspended', plCount:'Organisations', plThis:'Your current organisation'
+  plHome:'Home organisation', plOverview:'Usage overview', plOvLead:'Each company\'s size and activity only: no salaries, names or personal data.', plGroup:'Group', plNoGroup:'No group', plSetGroup:'Group', plEmps:'Employees', plEnrolled:'Devices enrolled', plToday:'Active today', plPending:'Pending requests', plLast:'Last activity', plTotal:'Total', plGroupName:'Group name (for example: Holding group)', plSuspend:'Suspend', plResume:'Re-open', pls_active:'Active', pls_suspended:'Suspended', plCount:'Organisations', plThis:'Your current organisation'
 });
 function platformSection(body){
   var box = K.head(body, 'plTitle', 'plLead'), key = '';
   box.innerHTML = '<form class="form" id="plK" autocomplete="off" style="max-width:420px">' + K.fld(t('plKey'), '<input type="password" name="k" required autocomplete="off" dir="ltr">') +
     '<div class="btnrow"><button class="btn btn-dark" type="submit">' + ph('buildings') + t('plOpen') + '</button></div><p class="hr-bad" id="plE"></p></form><div id="plL"></div>';
   $('#plK', box).onsubmit = function(ev){ ev.preventDefault(); key = this.k.value; this.k.value = ''; load(); };
+  /** Usage by group, with subtotals: counts only. */
+  function overview(host){
+    var box2 = document.createElement('section'); box2.className = 'v2-card'; box2.style.cssText = 'padding:16px;margin:14px 0'; host.appendChild(box2);
+    box2.innerHTML = '<h3 style="margin:0 0 4px">' + ph('chart-bar') + ' ' + t('plOverview') + '</h3><p class="hr-hint" style="margin:0 0 10px">' + t('plOvLead') + '</p><div id="plOv"></div>';
+    var el = $('#plOv', box2); K.busy(el);
+    api('orgOverview', { setupKey: key }, true).then(function(r){
+      if (!r.ok) return el.innerHTML = K.bad(r.error);
+      var by = {}; r.rows.forEach(function(x){ (by[x.group || ''] = by[x.group || ''] || []).push(x); });
+      var nm = function(x){ return (S.lang === 'en' ? x.nameEn : x.nameAr) || x.nameAr || x.id; }, sum = function(list, k){ return list.reduce(function(a, x){ return a + (Number(x[k]) || 0); }, 0); };
+      var head = [t('plGroup') + ' / Org', t('plEmps'), t('plEnrolled'), t('plToday'), t('plPending'), t('plLast')], rows = [];
+      Object.keys(by).sort().forEach(function(g){
+        by[g].forEach(function(x){ rows.push(['<bdi dir="ltr">' + esc(x.id) + '</bdi> · ' + esc(nm(x)) + (x.error ? ' <small class="hr-bad">' + esc(errText(x.error)) + '</small>' : ''), K.n(x.employees), K.n(x.enrolled), K.n(x.activeToday), K.n(x.pendingRequests), x.lastActivity ? K.fmt(x.lastActivity) : '-']); });
+        rows.push(['<b>' + esc(g || t('plNoGroup')) + ' · ' + t('plTotal') + '</b>', '<b>' + K.n(sum(by[g], 'employees')) + '</b>', '<b>' + K.n(sum(by[g], 'enrolled')) + '</b>', '<b>' + K.n(sum(by[g], 'activeToday')) + '</b>', '<b>' + K.n(sum(by[g], 'pendingRequests')) + '</b>', '']);
+      });
+      el.innerHTML = window.Viz ? Viz.tbl(head, rows) : '';
+    });
+  }
   function load(){
     var el = $('#plL', box); K.busy(el);
     api('orgList', { setupKey: key }, true).then(function(r){
       if (!r.ok) { el.innerHTML = ''; $('#plE', box).textContent = errText(r.error); key = ''; return; }
       $('#plE', box).textContent = '';
-      var rows = [{ id: r.home, nameAr: r.homeNameAr || t('plHome'), nameEn: r.homeNameEn || '', status: 'active', home: true }].concat(r.orgs);
+      var rows = [{ id: r.home, nameAr: r.homeNameAr || t('plHome'), nameEn: r.homeNameEn || '', group: r.homeGroup || '', status: 'active', home: true }].concat(r.orgs);
       el.innerHTML = K.tiles([[t('plCount'), K.n(rows.length), '', true]]) +
         '<div class="toolbar"><span class="sp"></span><button type="button" class="btn btn-dark btn-sm" id="plN">' + ph('plus') + t('plNew') + '</button></div>' +
         '<div class="list">' + rows.map(function(o, i){
           return '<div class="row w2-row"><div class="main"><b><bdi dir="ltr">' + esc(o.id) + '</bdi> · ' + esc(o.nameAr || '') + (o.nameEn ? ' · ' + esc(o.nameEn) : '') + '</b><small>' + (o.cr ? 'CR ' + esc(o.cr) + ' · ' : '') + (o.createdAt ? K.fmt(o.createdAt.slice(0, 10)) : '') + '</small></div>' +
             '<div class="act" style="display:flex;gap:8px;align-items:center">' + K.chip(t('pls_' + o.status), o.status === 'active' ? 'in' : 'absent') +
-            (o.home ? '' : '<button type="button" class="btn btn-line btn-sm" data-st="' + i + '">' + t(o.status === 'active' ? 'plSuspend' : 'plResume') + '</button>') + '</div></div>';
+            '<button type="button" class="btn btn-line btn-sm" data-gr="' + i + '">' + ph('stack') + (o.group ? esc(o.group) : t('plSetGroup')) + '</button>' + (o.home ? '' : '<button type="button" class="btn btn-line btn-sm" data-st="' + i + '">' + t(o.status === 'active' ? 'plSuspend' : 'plResume') + '</button>') + '</div></div>';
         }).join('') + '</div>';
+      $$('[data-gr]', el).forEach(function(b){ b.onclick = function(){ var o = rows[b.dataset.gr];
+        K.formDrawer(t('plSetGroup') + ' · ' + esc(o.nameAr || o.id), '', K.fld(t('plGroupName'), '<input name="group" maxlength="60" value="' + esc(o.group || '') + '">'), function(v){ return api('orgSetGroup', { setupKey: key, id: o.id, group: v.group }); }, function(){ load(); }); }; });
+      overview(el);
       $$('[data-st]', el).forEach(function(b){ K.confirmTap(b, function(){ var o = rows[b.dataset.st]; api('orgSetStatus', { setupKey: key, id: o.id, status: o.status === 'active' ? 'suspended' : 'active' }).then(function(x){ if (!x.ok) return toast(errText(x.error)); load(); }); }); });
       $('#plN', el).onclick = function(){
         K.formDrawer(t('plNew'), '', K.fld(t('plNameAr'), '<input name="nameAr" required maxlength="120">') + K.fld(t('plNameEn'), '<input name="nameEn" maxlength="120" dir="ltr">') +
@@ -723,7 +743,7 @@ function platformSection(body){
           function(x){
             load();
             var msg = t('plMsg').replace('{org}', x.orgId).replace('{no}', x.adminEmpNo).replace('{code}', x.activationCode).replace('{url}', location.origin + location.pathname);
-            var d = drawer('<h3>' + t('plCreated') + ' · ' + esc(x.nameAr) + '</h3><p class="hr-hint">' + t('plSend') + '</p><pre dir="auto" style="white-space:pre-wrap;background:var(--bg-2,#F2EEE4);padding:14px;border-radius:12px;font-size:16px">' + esc(msg) + '</pre>' +
+            var d = drawer('<h3>' + t('plCreated') + ' · ' + esc(x.nameAr) + '</h3><p class="hr-hint">' + t('plSend') + '</p><pre dir="auto" style="white-space:pre-wrap;background:var(--bg-2,#F2EEE4);padding:16px;border-radius:12px;font-size:16px">' + esc(msg) + '</pre>' +
               '<div class="btnrow"><button class="btn btn-dark" id="plC">' + ph('copy') + t('copy') + '</button></div>');
             $('#plC', d).onclick = function(){ (navigator.clipboard ? navigator.clipboard.writeText(msg) : Promise.reject()).then(function(){ toast(t('copied')); }, function(){ toast(msg); }); };
           });
@@ -818,7 +838,7 @@ function integrationsSection(body){
       if (!box.isConnected) return;
       if (!r.ok) return box.innerHTML = K.bad(r.error);
       var base = API_URL;
-      var h = '<div class="v2-card" style="padding:14px;margin-bottom:12px"><div class="fp-rows"><div><span>' + t('inOrg') + '</span><b dir="ltr">' + esc(r.orgId) + '</b></div><div><span>' + t('inBase') + '</span><b dir="ltr" style="word-break:break-all;font-size:12px">' + esc(base) + '</b></div></div></div>';
+      var h = '<div class="v2-card" style="padding:16px;margin-bottom:12px"><div class="fp-rows"><div><span>' + t('inOrg') + '</span><b dir="ltr">' + esc(r.orgId) + '</b></div><div><span>' + t('inBase') + '</span><b dir="ltr" style="word-break:break-all;font-size:12px">' + esc(base) + '</b></div></div></div>';
       h += '<h3 style="margin:10px 0 6px">' + ph('key') + ' ' + t('inKeys') + '</h3><div class="toolbar"><span class="sp"></span><button type="button" class="btn btn-dark btn-sm" id="inNK">' + ph('plus') + t('inNewKey') + '</button></div>' +
         (r.rows.length ? '<div class="list">' + r.rows.map(function(k, i){
           return '<div class="row w2-row"><div class="main"><b>' + esc(k.label) + ' · <bdi dir="ltr">hrk_' + esc(k.keyId) + '_…</bdi></b><small>' + k.scopes.map(function(s){ return t('sc_' + s); }).join('، ') + '</small><small>' + (k.lastUsedAt ? t('inLast') + ': ' + K.fmtT(k.lastUsedAt) + ' · ' + k.uses + ' ' + t('inUses') : t('inNever')) + '</small></div>' +

@@ -62,13 +62,13 @@ button{cursor:pointer}
 .gate input{width:100%;height:52px;border-radius:var(--r-m);border:1px solid var(--g-3C5541,#3C5541);background:rgba(255,255,255,.06);padding:0 16px;color:var(--cream);font-size:18px}
 .gate input::placeholder{color:var(--g-7F9480,#7F9480)}
 .gate input:focus{border-color:var(--signal);outline:none;background:rgba(255,255,255,.09)}
-.btn{height:52px;border:0;border-radius:var(--r-m);padding:0 22px;font-weight:600;font-size:16px;display:inline-flex;align-items:center;justify-content:center;gap:12px;transition:transform .12s var(--ease),background-color .2s,opacity .2s}
+.btn{height:52px;border:0;border-radius:var(--r-m);padding:0 24px;font-weight:600;font-size:16px;display:inline-flex;align-items:center;justify-content:center;gap:12px;transition:transform .12s var(--ease),background-color .2s,opacity .2s}
 .btn:active{transform:scale(.97)}
 .btn[disabled]{opacity:.5;pointer-events:none}
 .btn-primary{background:var(--cream);color:var(--pine)}
 .btn-ghost{background:transparent;color:var(--cream);border:1px solid var(--g-3C5541,#3C5541)}
 .btn-brand{background:var(--brand);color:var(--cream)}
-.btn-sm{height:38px;font-size:14px;padding:0 14px;border-radius:var(--r-s)}
+.btn-sm{height:38px;font-size:14px;padding:0 16px;border-radius:var(--r-s)}
 .linkish{background:none;border:0;color:var(--g-B9C6B6,#B9C6B6);text-decoration:underline;text-underline-offset:3px;font-size:14px;padding:6px}
 .err{color:#FFB4A3;font-size:14px;min-height:20px}
 .pinpad{display:flex;flex-direction:column;align-items:center;gap:16px;width:100%;max-width:320px;margin:0 auto}
@@ -99,7 +99,7 @@ button{cursor:pointer}
 .gate input.pinin{font-size:28px;letter-spacing:12px;text-align:center;padding:0 12px}
 .bio-icon{font-size:32px;width:64px;height:64px;border-radius:50%;display:grid;place-items:center;background:rgba(var(--signal-rgb),.12);color:var(--signal);animation:bioPulse 2.4s ease-in-out infinite}
 @keyframes bioPulse{0%,100%{box-shadow:0 0 0 0 rgba(var(--signal-rgb),.35)}50%{box-shadow:0 0 0 16px rgba(var(--signal-rgb),0)}}
-.langsw{position:fixed;top:calc(12px + env(safe-area-inset-top));inset-inline-end:14px;z-index:30;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:var(--cream);border-radius:999px;height:34px;padding:0 14px;font-size:13px}
+.langsw{position:fixed;top:calc(12px + env(safe-area-inset-top));inset-inline-end:14px;z-index:30;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:var(--cream);border-radius:999px;height:34px;padding:0 16px;font-size:13px}
 
 /* ---------- 3D medallion + animated company name ---------- */
 .brand3d{position:relative;display:flex;flex-direction:column;align-items:center;gap:16px}
@@ -144,8 +144,8 @@ button{cursor:pointer}
 .topbar .who{flex:1;min-width:0;line-height:1.25}
 .topbar .who b{display:block;font-weight:600;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .topbar .who span{font-size:12px;color:var(--g-AFC0AD,#AFC0AD)}
-.tk-bell{position:relative}.tk-bell i{font-size:20px}.tk-n{position:absolute;top:-4px;inset-inline-end:-4px;min-width:19px;height:19px;padding:0 5px;border-radius:12px;background:var(--amber);color:var(--pine);font-size:11px;font-weight:700;display:grid;place-items:center;box-shadow:0 0 0 2px var(--pine)}
-.tk-list{display:grid;gap:8px}.tk-row{display:flex;align-items:center;gap:12px;width:100%;text-align:start;padding:12px 14px;border-radius:16px;border:1px solid var(--line);background:var(--card);cursor:pointer;color:var(--ink);font-size:14px;transition:background-color .2s,transform .12s}
+.tk-bell{position:relative}.tk-bell i{font-size:20px}.tk-n{position:absolute;top:-4px;inset-inline-end:-4px;min-width:19px;height:19px;padding:0 4px;border-radius:12px;background:var(--amber);color:var(--pine);font-size:11px;font-weight:700;display:grid;place-items:center;box-shadow:0 0 0 2px var(--pine)}
+.tk-list{display:grid;gap:8px}.tk-row{display:flex;align-items:center;gap:12px;width:100%;text-align:start;padding:12px 16px;border-radius:16px;border:1px solid var(--line);background:var(--card);cursor:pointer;color:var(--ink);font-size:14px;transition:background-color .2s,transform .12s}
 .tk-row:hover{background:var(--well)}.tk-row:active{transform:translateY(1px)}.tk-row:focus-visible{outline:2px solid var(--brand);outline-offset:2px}.tk-ic{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:var(--brand-tint);color:var(--brand);font-size:20px;flex:none}
 .tk-row.info .tk-ic{background:var(--info-bg);color:var(--info)}.tk-t{flex:1;min-width:0}.tk-c{min-width:30px;height:28px;border-radius:8px;background:var(--pine);color:var(--cream);display:grid;place-items:center;font-size:14px;padding:0 8px}.tk-go{color:var(--ink-2)}
 .iconbtn{width:40px;height:40px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:var(--cream);display:grid;place-items:center;transition:transform .12s var(--ease)}
@@ -168,7 +168,7 @@ main{flex:1;display:flex;flex-direction:column}
   .app.on-home .sheet .today{margin-top:14px}
   .app.on-home .sheet .notice{margin-top:10px;padding:8px 12px}
   .app.on-home .sheet .timeline{margin-top:10px}
-  .app.on-home .sheet .timeline li{padding:7px 0}
+  .app.on-home .sheet .timeline li{padding:8px 0}
   .app.on-home .punch{width:118px;height:118px}
   .app.on-home .punch svg.ring{inset:-6px;width:130px;height:130px}
   .app.on-home .punchinfo .clock{font-size:32px}
@@ -242,7 +242,7 @@ main{flex:1;display:flex;flex-direction:column}
 .readout .sub{font-size:13px;color:var(--g-AFC0AD,#AFC0AD)}
 
 /* ---------- punch sheet ---------- */
-.sheet{position:relative;z-index:3;background:var(--paper);border-radius:var(--r-l) var(--r-l) 0 0;margin-top:-10px;padding:22px 18px 28px;flex:1;box-shadow:var(--e4)}
+.sheet{position:relative;z-index:3;background:var(--paper);border-radius:var(--r-l) var(--r-l) 0 0;margin-top:-10px;padding:24px 20px 28px;flex:1;box-shadow:var(--e4)}
 .punchrow{display:flex;align-items:center;gap:16px}
 .punch{position:relative;flex:none;width:132px;height:132px;border-radius:50%;border:0;background:var(--brand);color:var(--cream);display:grid;place-items:center;touch-action:none;user-select:none;-webkit-user-select:none;
   box-shadow:0 14px 28px rgba(var(--brand-rgb),.45), inset 0 -6px 14px rgba(0,0,0,.18), inset 0 6px 12px rgba(255,255,255,.12);transition:transform .15s var(--ease),background-color .3s,box-shadow .3s}
@@ -265,7 +265,7 @@ main{flex:1;display:flex;flex-direction:column}
 .punchinfo h2{margin:0;font-size:16px;font-weight:600;line-height:1.35;text-wrap:balance}
 .punchinfo p{margin:3px 0 0;color:var(--ink-2);font-size:13px;text-wrap:pretty}
 .stamp{position:fixed;inset:0;z-index:60;display:grid;place-items:center;background:rgba(var(--gr-18-28-21,18,28,21),.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);animation:fadeIn .2s ease both}
-.stamp .card{background:var(--paper);border-radius:var(--r-l);padding:28px 26px;width:min(88vw,340px);text-align:center;animation:stampIn .55s var(--ease) both}
+.stamp .card{background:var(--paper);border-radius:var(--r-l);padding:28px 28px;width:min(88vw,340px);text-align:center;animation:stampIn .55s var(--ease) both}
 @keyframes stampIn{from{transform:scale(.6) rotateX(40deg);opacity:0}to{transform:none;opacity:1}}
 @keyframes fadeIn{from{opacity:0}}
 .stamp .tick{width:84px;height:84px;margin:0 auto 12px;border-radius:50%;background:var(--brand);display:grid;place-items:center;color:var(--cream)}
@@ -277,19 +277,19 @@ main{flex:1;display:flex;flex-direction:column}
 .stamp p{margin:0 0 16px;color:var(--ink-2);font-size:14px}
 
 .today{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;background:var(--line);border-radius:var(--r-m);overflow:hidden;margin-top:22px;border:1px solid var(--line)}
-.today div{background:var(--card);padding:12px 10px}
+.today div{background:var(--card);padding:12px 12px}
 .today span{display:block;font-size:12px;color:var(--ink-2)}
 .today b{font-size:18px;font-weight:600;white-space:nowrap}
-.notice{margin-top:14px;font-size:14px;padding:10px 12px;border-radius:var(--r-s);background:#FBF3E4;color:#7A5418;border:1px solid #F0DDB6}
+.notice{margin-top:14px;font-size:14px;padding:12px 12px;border-radius:var(--r-s);background:#FBF3E4;color:#7A5418;border:1px solid #F0DDB6}
 .notice.ok{background:var(--g-EAF4EC,#EAF4EC);color:var(--g-2D5A36,#2D5A36);border-color:var(--g-CFE6D4,#CFE6D4)}
 .timeline{margin:18px 0 0;padding:0;list-style:none}
-.timeline li{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}
+.timeline li{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);font-size:14px}
 .timeline li:last-child{border-bottom:0}
 .tl-dot{width:10px;height:10px;border-radius:50%;background:var(--brand);flex:none}
 .tl-dot.out{background:var(--pine-3)}
 .tl-dot.review{background:var(--amber)}
 .timeline .t{margin-inline-start:auto;font-weight:600}
-.chip{display:inline-flex;align-items:center;gap:8px;font-size:12px;padding:3px 9px;border-radius:999px;background:#EDEAE0;color:var(--ink-2);white-space:nowrap}
+.chip{display:inline-flex;align-items:center;gap:8px;font-size:12px;padding:4px 8px;border-radius:999px;background:#EDEAE0;color:var(--ink-2);white-space:nowrap}
 .chip.in{background:var(--g-DDEFE0,#DDEFE0);color:var(--g-255B31,#255B31)}
 .chip.late{background:#FBEBD2;color:#8A5A12}
 .chip.absent{background:#F8DED7;color:#8E2F1C}
@@ -305,11 +305,11 @@ main{flex:1;display:flex;flex-direction:column}
 .monthbar b{flex:1;text-align:center;font-size:16px}
 .monthbar .iconbtn{color:var(--ink);border-color:var(--line);background:var(--card)}
 .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:16px}
-.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r-m);padding:12px 14px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r-m);padding:12px 16px}
 .stat span{font-size:13px;color:var(--ink-2)}
 .stat b{display:block;font-size:24px;font-weight:600}
 .daylist{background:var(--card);border:1px solid var(--line);border-radius:var(--r-m);overflow:hidden}
-.day{display:grid;grid-template-columns:56px 1fr auto;gap:12px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
+.day{display:grid;grid-template-columns:56px 1fr auto;gap:12px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line)}
 .day:last-child{border-bottom:0}
 .day .d{text-align:center;line-height:1.1}
 .day .d b{display:block;font-size:20px}
@@ -323,7 +323,7 @@ main{flex:1;display:flex;flex-direction:column}
 .stat.lead span,.stat.lead b small{color:var(--g-AFC0AD,#AFC0AD)}.stat.lead b{font-size:32px}
 .stat .hbar{height:6px;border-radius:999px;background:rgba(242,238,228,.14);margin-top:10px;overflow:hidden}.stat .hbar i{display:block;height:100%;background:var(--signal);border-radius:999px}
 .stat.warn b{color:#8A5A00}.stat.bad b{color:#B3261E}
-.mcal{background:var(--card);border-radius:16px;padding:14px;margin-bottom:16px;box-shadow:var(--e3)}
+.mcal{background:var(--card);border-radius:16px;padding:16px;margin-bottom:16px;box-shadow:var(--e3)}
 .mcal .dow,.mcal .grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
 .mcal .dow span{text-align:center;font-size:12px;color:var(--ink-2);padding-bottom:4px}
 .mcal .c{aspect-ratio:1/1;border-radius:12px;border:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-family:inherit;color:var(--ink);background:#F1EFE9;cursor:pointer;transition:transform .12s}
@@ -336,7 +336,7 @@ main{flex:1;display:flex;flex-direction:column}
 .day.flash{animation:dayFlash 1.2s ease}@keyframes dayFlash{0%,60%{background:#FFF6DC}100%{background:transparent}}
 @media (min-width:900px){.stats{grid-template-columns:2fr repeat(3,1fr)}.stat.lead{grid-column:auto}}
 @media (min-width:600px){.mcal .c{aspect-ratio:auto;height:56px}}
-@media (max-width:899px){.stats{grid-template-columns:repeat(3,minmax(0,1fr))}.stats .stat:not(.lead) b{font-size:20px}.stats .stat:not(.lead){padding:10px 11px}}
+@media (max-width:899px){.stats{grid-template-columns:repeat(3,minmax(0,1fr))}.stats .stat:not(.lead) b{font-size:20px}.stats .stat:not(.lead){padding:12px 12px}}
 .mcal .dow span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media (prefers-reduced-motion:reduce){.day.flash{animation:none}.mcal .c{transition:none}}
 .empty{padding:28px 16px;text-align:center;color:var(--ink-2)}
@@ -348,15 +348,15 @@ main{flex:1;display:flex;flex-direction:column}
 
 /* ---------- admin ---------- */
 .adm{display:flex;flex-direction:column;flex:1;background:var(--paper);border-radius:var(--r-l) var(--r-l) 0 0}
-.adm-nav{display:flex;gap:8px;overflow-x:auto;padding:14px 14px 6px;scrollbar-width:none}
+.adm-nav{display:flex;gap:8px;overflow-x:auto;padding:16px 16px 6px;scrollbar-width:none}
 .adm-nav::-webkit-scrollbar{display:none}
-.adm-nav button{flex:none;height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-size:14px;color:var(--ink-2);transition:transform .12s var(--ease)}
+.adm-nav button{flex:none;height:36px;padding:0 16px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-size:14px;color:var(--ink-2);transition:transform .12s var(--ease)}
 .adm-nav button:active{transform:scale(.95)}
 .adm-nav button[aria-current="page"]{background:var(--pine);color:var(--cream);border-color:var(--pine)}
-.adm-nav .badge{display:inline-grid;place-items:center;min-width:18px;height:18px;border-radius:8px;background:var(--amber);color:#fff;font-size:11px;margin-inline-start:6px;padding:0 5px}
-.adm-body{padding:8px 14px 28px;flex:1}
+.adm-nav .badge{display:inline-grid;place-items:center;min-width:18px;height:18px;border-radius:8px;background:var(--amber);color:#fff;font-size:11px;margin-inline-start:6px;padding:0 4px}
+.adm-body{padding:8px 16px 28px;flex:1}
 .kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:8px 0 16px}
-.kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--r-m);padding:12px 14px;position:relative;overflow:hidden}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--r-m);padding:12px 16px;position:relative;overflow:hidden}
 .kpi span{font-size:13px;color:var(--ink-2)}
 .kpi b{display:block;font-size:32px;font-weight:600;line-height:1.15}
 .kpi.lead-k{grid-column:1/-1;background:var(--pine);color:var(--cream);border-color:var(--pine)}
@@ -372,7 +372,7 @@ main{flex:1;display:flex;flex-direction:column}
 .toolbar input,.toolbar select{height:40px;border:1px solid var(--line);border-radius:var(--r-s);background:var(--card);padding:0 12px;min-width:0}
 .toolbar .grow{flex:1;min-width:150px}
 .list{background:var(--card);border:1px solid var(--line);border-radius:var(--r-m);overflow:hidden}
-.row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--line)}
+.row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line)}
 .row:last-child{border-bottom:0}
 .row.click{cursor:pointer;transition:background-color .15s}
 .row.click:hover{background:#FAF9F5}
@@ -384,7 +384,7 @@ main{flex:1;display:flex;flex-direction:column}
 .row .end small{display:block;color:var(--ink-2)}
 table.tbl{width:100%;border-collapse:collapse;background:var(--card);font-size:14px}
 .tblwrap{border:1px solid var(--line);border-radius:var(--r-m);overflow:auto}
-.tbl th,.tbl td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:start;white-space:nowrap}
+.tbl th,.tbl td{padding:12px 12px;border-bottom:1px solid var(--line);text-align:start;white-space:nowrap}
 .tbl th{font-weight:500;color:var(--ink-2);background:#FAF9F5;position:sticky;top:0}
 .tbl td.n{text-align:end}
 /* shared surfaces, 2026-09-30 redesign: soft tinted elevation instead of hard borders; squircle avatars; clear focus */
@@ -401,7 +401,7 @@ table.tbl{width:100%;border-collapse:collapse;background:var(--card);font-size:1
 .form .field label{color:var(--ink-2)}
 .form input,.form select,.form textarea{width:100%;height:46px;border:1px solid var(--line);border-radius:var(--r-s);background:var(--card);padding:0 12px}
 .form input[type=checkbox],.form input[type=radio],.checks input{width:auto;height:auto;padding:0;border:0;background:none;flex:none}
-.form textarea{height:80px;padding:10px 12px}
+.form textarea{height:80px;padding:12px 12px}
 .form .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .checks{display:flex;flex-wrap:wrap;gap:8px}
 .checks label{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 12px;border:1px solid var(--line);border-radius:999px;background:var(--card);font-size:14px;color:var(--ink);cursor:pointer;transition:background-color .15s,border-color .15s,color .15s}
@@ -411,7 +411,7 @@ table.tbl{width:100%;border-collapse:collapse;background:var(--card);font-size:1
 .chips label{min-width:74px;justify-content:center;position:relative}
 .chips label:has(input:focus-visible){outline:2px solid var(--brand);outline-offset:2px}
 .set-grid{display:grid;gap:16px;max-width:980px}
-.set-card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-m);padding:18px 18px 8px}
+.set-card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-m);padding:20px 20px 8px}
 .set-card h3{margin:0 0 2px;font-size:16px;font-weight:600;display:flex;align-items:center;gap:8px}
 .set-card h3 i{color:var(--brand);font-size:20px}
 .set-card > p{margin:0 0 14px;color:var(--ink-2);font-size:13px}
@@ -445,8 +445,8 @@ table.tbl{width:100%;border-collapse:collapse;background:var(--card);font-size:1
 .btn-danger{background:#FBE9E4;color:#8E2F1C}
 .code{font-size:32px;font-weight:600;letter-spacing:3px;text-align:center;padding:16px;border-radius:var(--r-m);background:var(--pine);color:var(--cream);direction:ltr;margin:6px 0 10px}
 #map{height:320px;border-radius:var(--r-m);border:1px solid var(--line);overflow:hidden;z-index:0}
-.update-bar{position:fixed;top:calc(10px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:90;background:var(--brand);color:#fff;border:0;border-radius:999px;padding:10px 18px;font:inherit;font-size:14px;box-shadow:var(--e3);cursor:pointer;max-width:92vw}
-.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:80;background:var(--ink);color:var(--cream);padding:10px 16px;border-radius:12px;font-size:14px;max-width:90vw;animation:up .25s var(--ease) both}
+.update-bar{position:fixed;top:calc(10px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:90;background:var(--brand);color:#fff;border:0;border-radius:999px;padding:12px 20px;font:inherit;font-size:14px;box-shadow:var(--e3);cursor:pointer;max-width:92vw}
+.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:80;background:var(--ink);color:var(--cream);padding:12px 16px;border-radius:12px;font-size:14px;max-width:90vw;animation:up .25s var(--ease) both}
 /* progress: a bar that knows how far along it is (Progress in the script) */
 /* 6px on a visible track, dark green that reads on both the pine sign-in and the cream app, and a large % badge riding the head */
 .loader{position:fixed;top:0;inset-inline:0;height:6px;z-index:95;pointer-events:none;opacity:1;transition:opacity .35s ease .15s;background:rgba(var(--pine-rgb),.14)}
@@ -456,7 +456,7 @@ table.tbl{width:100%;border-collapse:collapse;background:var(--card);font-size:1
 [dir="rtl"] .loader .fill{background:linear-gradient(270deg,#14532D,#1E6B3F 55%,#2E9E5B);border-radius:6px 0 0 6px}
 .loader .fill::after{content:"";position:absolute;inset-inline-end:-3px;top:-3px;width:12px;height:12px;border-radius:50%;background:#2E9E5B;box-shadow:0 0 0 3px rgba(46,158,91,.28),0 0 10px rgba(46,158,91,.8)}
 .loader .pct{position:absolute;top:12px;inset-inline-start:0;transform:translateX(-50%);font:700 14px/1 var(--font);color:#fff;background:#14532D;
-  border:2px solid #fff;padding:6px 11px;border-radius:999px;font-variant-numeric:tabular-nums;box-shadow:var(--e3);transition:inset-inline-start .25s cubic-bezier(.2,.8,.2,1)}
+  border:2px solid #fff;padding:6px 12px;border-radius:999px;font-variant-numeric:tabular-nums;box-shadow:var(--e3);transition:inset-inline-start .25s cubic-bezier(.2,.8,.2,1)}
 [dir="rtl"] .loader .pct{transform:translateX(50%)}
 .pg-wrap{display:flex;align-items:center;justify-content:center;min-height:46vh;padding:24px}
 .pg-card{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
@@ -486,7 +486,7 @@ table.tbl{width:100%;border-collapse:collapse;background:var(--card);font-size:1
 .splash .bar i{display:block;height:100%;width:40%;background:var(--signal);border-radius:2px;animation:load 1.1s ease-in-out infinite}
 .splash.leave{animation:splashOut .55s var(--ease) forwards}
 @keyframes splashOut{to{opacity:0;transform:scale(1.04);filter:blur(6px)}}
-.splash-skip{position:absolute;bottom:calc(20px + env(safe-area-inset-bottom));inset-inline:0;margin:auto;width:max-content;z-index:2;background:none;border:0;color:var(--g-8FA38D,#8FA38D);font-size:13px;padding:8px 14px}
+.splash-skip{position:absolute;bottom:calc(20px + env(safe-area-inset-bottom));inset-inline:0;margin:auto;width:max-content;z-index:2;background:none;border:0;color:var(--g-8FA38D,#8FA38D);font-size:13px;padding:8px 16px}
 .gb-scene,.gate-tag{display:none}
 @media (min-width:1024px){
   /* sign-in: brand scene beside the form */
@@ -519,10 +519,10 @@ table.tbl{width:100%;border-collapse:collapse;background:var(--card);font-size:1
   .app{padding-inline-start:112px}
   .app > .tabs{position:fixed}
   .tabs{position:fixed;top:0;bottom:0;inset-inline-start:0;width:112px;flex-direction:column;justify-content:flex-start;gap:8px;
-    padding:92px 10px 20px;border-top:0;border-inline-end:1px solid rgba(255,255,255,.06);background:rgba(var(--gr-18-28-21,18,28,21),.96)}
-  .tabs button{flex:none;padding:10px 0;font-size:13px}
+    padding:92px 12px 20px;border-top:0;border-inline-end:1px solid rgba(255,255,255,.06);background:rgba(var(--gr-18-28-21,18,28,21),.96)}
+  .tabs button{flex:none;padding:12px 0;font-size:13px}
   .tabs button:hover{color:var(--cream)}
-  .topbar{max-width:1440px;width:100%;margin:0 auto;padding:18px 28px}
+  .topbar{max-width:1440px;width:100%;margin:0 auto;padding:20px 28px}
   .topbar img{position:static;height:42px;visibility:visible!important}
   .topbar .who b{font-size:18px}
 
@@ -547,7 +547,7 @@ table.tbl{width:100%;border-collapse:collapse;background:var(--card);font-size:1
   .page{max-width:960px;width:calc(100% - 56px);margin:0 auto 28px;border-radius:24px;padding:32px}
   .stats{grid-template-columns:repeat(4,1fr)}
   .adm{max-width:1440px;width:calc(100% - 56px);margin:0 auto 28px;border-radius:24px}
-  .adm-nav{padding:22px 28px 10px}
+  .adm-nav{padding:24px 28px 12px}
   .adm-body{padding:8px 28px 32px}
   .kpis{grid-template-columns:repeat(7,1fr)}
   .kpi.lead-k{grid-column:span 2}
@@ -579,7 +579,7 @@ table.tbl{width:100%;border-collapse:collapse;background:var(--card);font-size:1
 .num,td.num,.v2 .kpi b{font-variant-numeric:tabular-nums}
 /* ---- shell ---- */
 .app.v2{display:grid;grid-template-columns:256px minmax(0,1fr);grid-template-rows:minmax(0,1fr);height:100vh;height:100dvh;background:var(--paper);color:var(--ink);overflow:hidden}
-.v2-side{background:var(--frame);border-inline-end:1px solid var(--line);display:flex;flex-direction:column;gap:16px;padding:18px 14px 14px;overflow-y:auto;min-height:0}
+.v2-side{background:var(--frame);border-inline-end:1px solid var(--line);display:flex;flex-direction:column;gap:16px;padding:20px 16px 16px;overflow-y:auto;min-height:0}
 .v2-brand{display:flex;align-items:center;gap:12px;padding:2px 6px}.v2-brand img{width:40px;height:auto}
 /* the mark file is white-on-transparent (made for pine); on cream it is drawn in brand green through a mask */
 .co-logo{display:flex;gap:16px;align-items:center;margin-top:12px;padding:12px;border:1px dashed var(--line);border-radius:12px;max-width:820px}.co-logo input[type=color]{width:72px;height:72px;border:0;padding:0;background:none;border-radius:12px;cursor:pointer;flex:none}.co-logo img{width:72px;height:72px;object-fit:contain;border-radius:12px;background:#F7F5EF;flex:none}
@@ -587,13 +587,13 @@ table.tbl{width:100%;border-collapse:collapse;background:var(--card);font-size:1
 .v2-mark{display:block;flex:none;width:36px;height:41px;background:var(--brand);-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center}
 .v2-brand b{display:block;font-size:16px;font-weight:600;line-height:1.25}.v2-brand small{display:block;font-size:12px;color:var(--ink-3);line-height:1.3}
 .v2-nav{display:grid;gap:2px}
-.v2-nav a,.v2-nav button{display:flex;align-items:center;gap:12px;height:38px;padding:0 10px;border-radius:var(--r-s);color:var(--ink-2);text-decoration:none;font-size:14px;border:0;background:none;width:100%;text-align:start;cursor:pointer;transition:background-color .12s,color .12s}
+.v2-nav a,.v2-nav button{display:flex;align-items:center;gap:12px;height:38px;padding:0 12px;border-radius:var(--r-s);color:var(--ink-2);text-decoration:none;font-size:14px;border:0;background:none;width:100%;text-align:start;cursor:pointer;transition:background-color .12s,color .12s}
 .v2-nav a i,.v2-nav button i{font-size:20px}
 .v2-nav a:hover,.v2-nav button:hover{background:rgba(var(--brand-rgb),.08);color:var(--ink)}
 .v2-nav a[aria-current="page"]{background:var(--card);color:var(--ink);font-weight:600;box-shadow:var(--sh-1)}
 .v2-nav a[aria-current="page"] i{color:var(--brand)}
 .v2-nav .cnt{margin-inline-start:auto;font-size:12px;font-weight:600;min-width:22px;height:20px;padding:0 6px;border-radius:12px;display:grid;place-items:center;background:var(--warn-bg);color:var(--warn)}
-.v2-foot{margin-top:auto;border-top:1px solid var(--line);padding-top:10px}
+.v2-foot{margin-top:auto;border-top:1px solid var(--line);padding-top:12px}
 .v2-main{min-width:0;min-height:0;display:flex;flex-direction:column}
 .v2-top{flex:none;height:60px;display:flex;align-items:center;gap:12px;padding:0 28px;background:var(--paper);border-bottom:1px solid var(--line-2);position:relative;z-index:20}
 .v2-top .sp{flex:1}
@@ -605,7 +605,7 @@ table.tbl{width:100%;border-collapse:collapse;background:var(--card);font-size:1
 .v2-ib:hover{background:var(--well);border-color:var(--line)}
 .v2-ib .tk-n{box-shadow:0 0 0 2px var(--paper);background:var(--bad);color:#fff}
 .v2-av{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;font-weight:600;font-size:13px;background:var(--brand-tint);color:var(--brand);border:0;cursor:pointer}
-.v2-lang{font-size:12px;width:auto;padding:0 10px}
+.v2-lang{font-size:12px;width:auto;padding:0 12px}
 .app.v2 > .v2-main > main{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 .v2-hamb{display:none}
 .v2 .page,.page.v2{background:transparent;border-radius:0;width:100%;max-width:1280px;margin:0 auto;padding:28px 28px 64px;flex:none}
@@ -620,9 +620,9 @@ table.tbl{width:100%;border-collapse:collapse;background:var(--card);font-size:1
 .v2-views button[aria-selected="true"]{color:var(--ink);font-weight:600;border-color:var(--brand)}
 .v2-views button i{font-size:18px;opacity:.6;transition:opacity .2s,transform .25s var(--ease)}.v2-views button:hover i{opacity:.9}.v2-views button[aria-selected="true"] i{opacity:1;color:inherit}
 @media (prefers-reduced-motion:no-preference){.v2-views button[aria-selected="true"] i{animation:subIco .45s var(--ease)}}@keyframes subIco{0%{transform:scale(.6) rotate(-12deg)}60%{transform:scale(1.15)}100%{transform:none}}
-.v2-views .badge{min-width:18px;height:18px;border-radius:8px;background:var(--warn-bg);color:var(--warn);font-size:11px;display:inline-grid;place-items:center;padding:0 5px}
-.v2-seg{display:inline-flex;gap:2px;padding:3px;background:var(--well);border:1px solid var(--line);border-radius:var(--r-s)}
-.v2-seg button{border:0;background:none;border-radius:6px;padding:5px 12px;font-size:13px;color:var(--ink-2);cursor:pointer}
+.v2-views .badge{min-width:18px;height:18px;border-radius:8px;background:var(--warn-bg);color:var(--warn);font-size:11px;display:inline-grid;place-items:center;padding:0 4px}
+.v2-seg{display:inline-flex;gap:2px;padding:4px;background:var(--well);border:1px solid var(--line);border-radius:var(--r-s)}
+.v2-seg button{border:0;background:none;border-radius:6px;padding:4px 12px;font-size:13px;color:var(--ink-2);cursor:pointer}
 .v2-seg button[aria-pressed="true"]{background:var(--card);color:var(--ink);box-shadow:var(--sh-1);font-weight:600}
 /* section headers inside an area page: the tab already names the page, keep only the actions */
 .v2-area .hr-h > h2,.v2-area .adm-nav,.v2-area .hr-rail{display:none!important}
@@ -634,7 +634,7 @@ table.tbl{width:100%;border-collapse:collapse;background:var(--card);font-size:1
 .v2-area .page > h2:first-child{display:none}
 /* ---- components: one hairline border, no floating shadows ---- */
 .v2 .list,.v2 .tblwrap,.v2 .db-card,.v2 .db-tile,.v2 .mf-card,.v2 .stat,.v2 .kpi,.v2 .mcal,.v2 .rp-grp,.v2 .rp-filt,.v2 .rp-tw,.v2 .cp-box,.v2 .cp-item,.v2 .tk-row,.v2 .hm-card,.v2 .db-panel,.v2 .mf #mfDash .db-panel{border:1px solid var(--line)!important;box-shadow:none!important;border-radius:var(--r-m)}
-.v2 .db-panel{background:var(--card);padding:16px 18px 4px}
+.v2 .db-panel{background:var(--card);padding:16px 20px 4px}
 .v2 .db-tile.lead,.v2 .stat.lead,.v2 .kpi.lead-k{background:var(--card)!important;color:var(--ink)!important}
 .v2 .db-tile.lead span,.v2 .db-tile.lead small,.v2 .stat.lead span,.v2 .stat.lead b small,.v2 .kpi.lead-k span{color:var(--ink-3)!important}
 .v2 .db-tile.lead b,.v2 .stat.lead b,.v2 .kpi.lead-k b{font-variation-settings:"HEXP" 60}
@@ -648,7 +648,7 @@ table.tbl{width:100%;border-collapse:collapse;background:var(--card);font-size:1
 .v2 .btn-sm{height:36px;font-size:14px}
 .v2 .btn-dark{background:var(--brand);color:#fff}.v2 .btn-dark:hover{background:var(--brand-h)}
 .v2 .btn-line{background:var(--card);border:1px solid var(--line);color:var(--ink)}.v2 .btn-line:hover{border-color:var(--input)}
-.v2 .chip{border-radius:6px;font-size:12px;padding:3px 8px}
+.v2 .chip{border-radius:6px;font-size:12px;padding:4px 8px}
 .v2 .field input,.v2 .field select,.v2 .field textarea,.v2 .toolbar input,.v2 .toolbar select,.v2 .form input,.v2 .form select,.v2 .form textarea{border-color:var(--input);border-radius:var(--r-s)}
 .v2 .empty i{background:var(--brand-tint);border-radius:24px}
 /* profile header: white, with a facts strip (no gradient) */
@@ -670,7 +670,7 @@ table.tbl{width:100%;border-collapse:collapse;background:var(--card);font-size:1
   .app.v2{padding:0}
   .v2-area .home-wide{padding:0;gap:16px;background:none;overflow:visible;border-radius:0;max-width:none}
   .v2-area .home-wide .hero{min-height:max(460px,calc(100dvh - 250px));border-radius:var(--r-l)}
-  .v2-area .home-wide .sheet{border:1px solid var(--line);border-radius:var(--r-l);padding:26px 24px}
+  .v2-area .home-wide .sheet{border:1px solid var(--line);border-radius:var(--r-l);padding:28px 24px}
 }
 body.v2-on{background:var(--paper)}
 .v2-bare{min-height:100%}
@@ -704,7 +704,7 @@ body.v2-on .chip.off{background:var(--well);color:var(--ink-3)}
 body.v2-on .chip.leave{background:var(--info-bg);color:var(--info)}
 /* fields: label above, 40px, one edge colour, green focus, red error */
 body.v2-on :is(.form,.toolbar,.drawer,.v2-area) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=file]),select){min-height:40px;padding-inline:12px;border:1px solid var(--input);border-radius:var(--r-s);background:var(--card);color:var(--ink);font:inherit;font-size:14px}
-body.v2-on :is(.form,.toolbar,.drawer,.v2-area) textarea{padding:10px 12px;border:1px solid var(--input);border-radius:var(--r-s);background:var(--card);color:var(--ink);font:inherit;font-size:14px}
+body.v2-on :is(.form,.toolbar,.drawer,.v2-area) textarea{padding:12px 12px;border:1px solid var(--input);border-radius:var(--r-s);background:var(--card);color:var(--ink);font:inherit;font-size:14px}
 body.v2-on :is(.form,.toolbar,.drawer,.v2-area) :is(input,select,textarea):hover{border-color:var(--ink-3)}
 body.v2-on :is(.form,.toolbar,.drawer,.v2-area) :is(input,select,textarea):focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(var(--brand-rgb),.18)}
 body.v2-on :is(input,select,textarea)[aria-invalid="true"]{border-color:var(--bad)!important;box-shadow:0 0 0 3px var(--bad-bg)!important}
@@ -719,7 +719,7 @@ body.v2-on .drawer h3{font-size:20px;font-weight:600;line-height:1.35;margin:0 0
 body.v2-on .dr-x{border-color:var(--line);background:var(--card)}body.v2-on .dr-x:hover{background:var(--well)}
 @media (min-width:1024px){body.v2-on .drawer .panel{border-inline-start:1px solid var(--line)}}
 /* segmented controls and tabs inside modules match the shell */
-body.v2-on :is(.hr-seg,.cp-seg){border-radius:var(--r-s);background:var(--well);border:1px solid var(--line);padding:3px;gap:2px}
+body.v2-on :is(.hr-seg,.cp-seg){border-radius:var(--r-s);background:var(--well);border:1px solid var(--line);padding:4px;gap:2px}
 body.v2-on :is(.hr-seg,.cp-seg) button{height:30px;border-radius:6px;padding:0 12px;font-size:13px;color:var(--ink-2)}
 body.v2-on :is(.hr-seg,.cp-seg) button:hover{color:var(--ink)}
 body.v2-on :is(.hr-seg,.cp-seg) button[aria-pressed="true"]{background:var(--card);color:var(--ink);font-weight:600;box-shadow:var(--sh-1)}
@@ -729,7 +729,7 @@ body.v2-on .hr-sub{font-size:16px;font-weight:600;display:flex;align-items:cente
 body.v2-on .hr-sub i{color:var(--brand);font-size:20px}
 body.v2-on .hr-hint{color:var(--ink-3)}
 /* a titled block that groups one task (e.g. the end-of-service calculator) */
-.v2-card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-m);padding:18px 20px;margin-top:24px}
+.v2-card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-m);padding:20px 20px;margin-top:24px}
 .v2-card > .hr-sub{margin-top:0}
 /* rows and tables: dividers, not boxes; a hover tint on anything clickable */
 body.v2-on .row.click:hover,body.v2-on .tbl tbody tr:hover td{background:#FBFAF6}
@@ -745,10 +745,10 @@ body.v2-on .tblwrap{overflow-x:auto}
 /* employee lifecycle strip (HR employee panel): done / now / later, each stage opens its screen */
 .lc{margin:4px 0 14px}.lc-t{margin:0 0 6px;font-size:12px;font-weight:600;color:var(--ink-3)}
 .lc ol{list-style:none;margin:0;padding:0 0 4px;display:flex;gap:0;overflow-x:auto;scrollbar-width:thin}
-.lc li{flex:0 0 auto;position:relative;padding-inline-end:14px}
+.lc li{flex:0 0 auto;position:relative;padding-inline-end:16px}
 .lc li:not(:last-child)::after{content:"";position:absolute;top:18px;inset-inline-end:2px;width:10px;height:2px;background:var(--line)}
 .lc li.lc-done:not(:last-child)::after{background:#2E7D4F}
-.lc button,.lc .lc-x{display:flex;align-items:center;gap:8px;min-height:38px;padding:4px 10px 4px 8px;border:1px solid var(--line);border-radius:12px;background:var(--card);font:inherit;color:var(--ink);text-align:start}
+.lc button,.lc .lc-x{display:flex;align-items:center;gap:8px;min-height:38px;padding:4px 12px 4px 8px;border:1px solid var(--line);border-radius:12px;background:var(--card);font:inherit;color:var(--ink);text-align:start}
 .lc button{cursor:pointer}.lc button:hover{border-color:var(--input)}
 .lc-ic{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;flex:none;background:var(--well);color:var(--ink-3);font-size:16px}
 .lc-m b{display:block;font-size:13px;font-weight:600;line-height:1.3;white-space:nowrap}.lc-m small{display:block;font-size:11px;color:var(--ink-3);white-space:nowrap}
@@ -778,26 +778,26 @@ body.v2-on .tblwrap{overflow-x:auto}
 }
 @media (max-width:900px){.v2-desk{display:none!important}}
 .v2-menu{position:absolute;top:54px;inset-inline-end:20px;width:250px;background:var(--card);border:1px solid var(--line);border-radius:var(--r-m);box-shadow:var(--sh-3);padding:6px;z-index:60}
-.v2-menu-h{padding:10px 10px 8px}.v2-menu-h b{display:block;font-size:14px;font-weight:600}.v2-menu-h small{color:var(--ink-3);font-size:13px}
-.v2-menu button{display:flex;align-items:center;gap:12px;width:100%;height:38px;padding:0 10px;border:0;background:none;border-radius:var(--r-s);font:inherit;font-size:14px;color:var(--ink);cursor:pointer;text-align:start}
+.v2-menu-h{padding:12px 12px 8px}.v2-menu-h b{display:block;font-size:14px;font-weight:600}.v2-menu-h small{color:var(--ink-3);font-size:13px}
+.v2-menu button{display:flex;align-items:center;gap:12px;width:100%;height:38px;padding:0 12px;border:0;background:none;border-radius:var(--r-s);font:inherit;font-size:14px;color:var(--ink);cursor:pointer;text-align:start}
 .v2-menu button i{font-size:18px;color:var(--ink-2)}.v2-menu button:hover,.v2-menu button:focus-visible{background:var(--well);outline:0}
 .v2-menu hr{border:0;border-top:1px solid var(--line-2);margin:4px 6px}
 /* search palette */
 .v2-pal-back{position:fixed;inset:0;background:rgba(var(--gr-20-28-22,20,28,22),.36);z-index:70;display:flex;justify-content:center;align-items:flex-start;padding:12vh 16px 16px}
 .v2-pal{width:min(640px,100%);max-height:70vh;display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);border-radius:var(--r-l);box-shadow:var(--sh-3);overflow:hidden}
-.v2-pal-in{display:flex;align-items:center;gap:12px;padding:0 10px 0 16px;border-bottom:1px solid var(--line-2);color:var(--ink-3)}
+.v2-pal-in{display:flex;align-items:center;gap:12px;padding:0 12px 0 16px;border-bottom:1px solid var(--line-2);color:var(--ink-3)}
 .v2-pal-in i{font-size:20px}
 .v2-pal-in input{flex:1;min-width:0;height:56px;border:0;outline:0;background:none;font:inherit;font-size:16px;color:var(--ink)}
 .v2-pal-in .dr-x{position:static;flex:none}
 .v2-pal-res{overflow-y:auto;padding:6px 8px 8px}
 .v2-pal-res p{margin:10px 8px 4px;font-size:12px;font-weight:600;color:var(--ink-3)}
-.v2-pal-res button{display:flex;align-items:center;gap:12px;width:100%;min-height:46px;padding:6px 10px;border:0;background:none;border-radius:var(--r-s);font:inherit;color:var(--ink);text-align:start;cursor:pointer}
+.v2-pal-res button{display:flex;align-items:center;gap:12px;width:100%;min-height:46px;padding:6px 12px;border:0;background:none;border-radius:var(--r-s);font:inherit;color:var(--ink);text-align:start;cursor:pointer}
 .v2-pal-res button[aria-selected="true"]{background:var(--brand-tint)}
 .v2-pal-res .ic,.v2-pal-res .av{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;flex:none;background:var(--well);color:var(--brand);font-size:18px;font-weight:600;font-size:13px}
 .v2-pal-res .ic i{font-size:18px}
 .v2-pal-res mark.sx-mark{background:var(--brand-tint);color:inherit;border-radius:4px;padding:0 1px;font-weight:600}.v2-pal-res .sx-snip{display:block;color:var(--ink-3);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.v2-pal-res .sx-wait{margin:6px 10px;font-size:13px;color:var(--ink-3)}
 .v2-pal-res .m{min-width:0}.v2-pal-res .m b{display:block;font-weight:500;font-size:14px}.v2-pal-res .m small{display:block;color:var(--ink-3);font-size:13px}
-.v2-pal-none{padding:26px 12px;text-align:center;color:var(--ink-3)}
+.v2-pal-none{padding:28px 12px;text-align:center;color:var(--ink-3)}
 .v2-pal-keys{margin:0;padding:8px 16px;border-top:1px solid var(--line-2);font-size:12px;color:var(--ink-3)}
 /* ---- mobile ---- */
 .v2-bottom{display:none}
@@ -809,9 +809,9 @@ body.v2-on .tblwrap{overflow-x:auto}
   .v2-scrim{position:fixed;inset:0;background:rgba(var(--gr-20-28-22,20,28,22),.36);z-index:44}
   .v2-hamb{display:grid}
   .v2-top{padding:calc(6px + env(safe-area-inset-top)) 12px 6px;height:auto;min-height:56px}
-  .v2-search{flex:1;min-width:0}.v2-search kbd,.v2-chip span{display:none}.v2-chip{padding:0 10px}
+  .v2-search{flex:1;min-width:0}.v2-search kbd,.v2-chip span{display:none}.v2-chip{padding:0 12px}
   .v2-search span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .v2 .page,.page.v2{padding:18px 16px 28px}
+  .v2 .page,.page.v2{padding:20px 16px 28px}
   .v2-ph h1{font-size:24px}
   .v2-ph p{font-size:14px}
   .v2-lang{display:none}
@@ -856,7 +856,7 @@ body.v2-on :is(.num,.db-tile b,.kpi b,.stat b,.hm-facts dd,.hm-big b,.kpi .v){fo
 .app.v2{background:var(--paper)}
 /* ---- sidebar: white, a colour tile per area ---- */
 .v2-side{background:#fff;border-inline-end:1px solid var(--line);box-shadow:none}
-.v2-brand{padding:4px 6px 10px;border-bottom:1px solid var(--line-2)}
+.v2-brand{padding:4px 6px 12px;border-bottom:1px solid var(--line-2)}
 .v2-mark{background:var(--brand)}
 .v2-brand b{font-family:var(--f-head);font-size:14px}
 .v2-nav{gap:2px}
@@ -880,7 +880,7 @@ body.v2-on :is(.num,.db-tile b,.kpi b,.stat b,.hm-facts dd,.hm-big b,.kpi .v){fo
 .v2-av{border-radius:12px;background:linear-gradient(135deg,var(--brand),var(--g-4D8F6A,#4D8F6A));color:#fff}
 .v2-chip{font-weight:600}
 /* ---- area banner (Najdi star pattern, the area icon in a glass tile) ---- */
-.v3-hero{position:relative;overflow:hidden;border-radius:var(--r-l);padding:22px 26px;margin-bottom:16px;color:#fff;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:16px;align-items:center;
+.v3-hero{position:relative;overflow:hidden;border-radius:var(--r-l);padding:24px 28px;margin-bottom:16px;color:#fff;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:16px;align-items:center;
   background:radial-gradient(120% 160% at 100% 0%,rgba(var(--glow-rgb),.45) 0%,transparent 55%),linear-gradient(135deg,var(--brand-deep) 0%,var(--brand) 58%,var(--brand-lite) 100%);box-shadow:0 18px 40px -24px rgba(var(--gr-23-63-42,23,63,42),.8)}
 [dir="ltr"] .v3-hero{background:radial-gradient(120% 160% at 0% 0%,rgba(var(--glow-rgb),.45) 0%,transparent 55%),linear-gradient(225deg,var(--brand-deep) 0%,var(--brand) 58%,var(--brand-lite) 100%)}
 .v3-hero::before{content:"";position:absolute;inset:0;opacity:.13;pointer-events:none;background-size:58px 58px;
@@ -892,16 +892,16 @@ body.v2-on :is(.num,.db-tile b,.kpi b,.stat b,.hm-facts dd,.hm-big b,.kpi .v){fo
 .v3-hero h1{margin:0;font-size:28px;line-height:1.3;font-weight:700;color:#fff;text-wrap:balance}
 .v3-hero p{margin:3px 0 0;color:var(--g-D2E8DA,#D2E8DA);font-size:14px;max-width:62ch}
 .v3-hero-stats{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-.v3-pill{display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 13px;border-radius:999px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);color:#fff;font-size:13px;font-weight:600;white-space:nowrap}
+.v3-pill{display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 12px;border-radius:999px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);color:#fff;font-size:13px;font-weight:600;white-space:nowrap}
 .v3-pill b{font-family:var(--f-num);font-size:16px}.v3-pill i{font-size:16px}
 .v3-pill.hot{background:#FDE7C8;color:#7A3E00;border-color:transparent}
 /* sub-pages as pills under the banner */
 .v2-views{border:0;gap:8px;margin:0 0 18px;padding:2px}
-.v2-views button{height:38px;padding:0 15px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--ink-2);font-weight:600;font-size:14px;margin:0;box-shadow:var(--e1);transition:all .18s var(--ease)}
+.v2-views button{height:38px;padding:0 16px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--ink-2);font-weight:600;font-size:14px;margin:0;box-shadow:var(--e1);transition:all .18s var(--ease)}
 .v2-views button:hover{border-color:var(--input);color:var(--ink);transform:translateY(-1px)}
 .v2-views button[aria-selected="true"]{background:var(--brand);border-color:var(--brand);color:#fff;box-shadow:0 8px 18px -10px rgba(var(--gr-47-107-72,47,107,72),.9)}
 .v2-views .badge{background:#FDE7C8;color:#7A3E00}
-.v2 .page,.page.v2{max-width:1320px;padding:22px 26px 64px}
+.v2 .page,.page.v2{max-width:1320px;padding:24px 28px 64px}
 /* ---- surfaces: soft cards that lift ---- */
 body.v2-on :is(.db-card,.mf-card,.hm-card,.v2-card,.set-card,.list,.tblwrap,.db-panel,.rp-grp,.rp-filt,.rp-tw,.cp-box,.cp-item,.mcal,.lc button,.lc .lc-x){border:1px solid transparent!important;box-shadow:var(--sh-card)!important;border-radius:var(--r-m)!important;background:#fff}
 body.v2-on .db-panel{background:transparent;box-shadow:none!important;padding:0}
@@ -909,7 +909,7 @@ body.v2-on :is(.db-card,.mf-card,.hm-card,.set-card,.v2-card){transition:transfo
 body.v2-on :is(.db-card,.mf-card,.hm-card,.set-card,.v2-card):hover{transform:translateY(-2px);box-shadow:var(--sh-lift)!important}
 body.v2-on :is(.db-card,.mf-card,.hm-card) :is(h2,h3){font-family:var(--f-head);font-weight:700}
 /* KPI tiles: a colour bubble per tile, big counted numbers */
-body.v2-on :is(.db-tile,.kpi,.stat){position:relative;overflow:hidden;border:0!important;box-shadow:var(--sh-card)!important;border-radius:var(--r-m)!important;background:#fff!important;color:var(--ink)!important;padding:16px 18px!important}
+body.v2-on :is(.db-tile,.kpi,.stat){position:relative;overflow:hidden;border:0!important;box-shadow:var(--sh-card)!important;border-radius:var(--r-m)!important;background:#fff!important;color:var(--ink)!important;padding:16px 20px!important}
 body.v2-on :is(.db-tile,.kpi,.stat)::after{content:"";position:absolute;inset-inline-end:-22px;top:-26px;width:92px;height:92px;border-radius:50%;background:var(--t-bg,var(--brand-tint));opacity:.95;pointer-events:none}
 body.v2-on :is(.db-tile,.kpi,.stat)::before{content:"";position:absolute;inset-inline-end:16px;top:16px;width:10px;height:10px;border-radius:50%;background:var(--t-fg,var(--brand));z-index:1;box-shadow:0 0 0 5px rgba(255,255,255,.7)}
 body.v2-on :is(.db-tile,.kpi,.stat) > *{position:relative;z-index:1}
@@ -927,7 +927,7 @@ body.v2-on .tbl th{background:var(--g-F7FAF8,#F7FAF8);color:var(--ink-3);font-we
 body.v2-on .tbl tbody tr:hover td{background:var(--g-F7FAF8,#F7FAF8)}
 body.v2-on .tbl td:first-child{font-weight:600}
 /* chips as pills */
-body.v2-on .chip{border-radius:999px;padding:3px 10px;font-weight:600}
+body.v2-on .chip{border-radius:999px;padding:4px 12px;font-weight:600}
 /* buttons */
 body.v2-on .btn{border-radius:var(--r-s);font-weight:600}
 body.v2-on :is(.btn-dark,.btn-brand){background:var(--brand);border-color:var(--brand);box-shadow:0 8px 18px -10px rgba(var(--gr-47-107-72,47,107,72),.85)}
@@ -949,11 +949,11 @@ body.v2-on .drawer .panel{border-radius:24px 24px 0 0}
 @keyframes v3pop{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}
 /* rise, cascade, grow and count-up now live in the motion system <style id="dsmo"> (2026-10-14) */
 @media (max-width:900px){
-  .v3-hero{grid-template-columns:auto minmax(0,1fr);padding:16px 18px;border-radius:16px;margin-bottom:12px}
+  .v3-hero{grid-template-columns:auto minmax(0,1fr);padding:16px 20px;border-radius:16px;margin-bottom:12px}
   .v3-hero-stats{grid-column:1 / -1;justify-content:flex-start}
   .v3-hero h1{font-size:20px}.v3-hero p{font-size:13px}.v3-hero-ic{width:44px;height:44px;border-radius:12px}.v3-hero-ic i{font-size:24px}
   .is-punch .v3-hero{display:none}
-  .v2 .page,.page.v2{padding:14px 14px 28px}
+  .v2 .page,.page.v2{padding:16px 16px 28px}
   .v2-views{overflow-x:auto;flex-wrap:nowrap}
 }
 </style>
@@ -979,7 +979,7 @@ body.v2-on main a:not(.btn):not([class]):hover{text-decoration-color:var(--brand
    html[data-theme="dark"] remaps the v2/v3 tokens and the few white surfaces the layers hard-code. Check-in keeps its pine.
    Chart series step to #1F7A4A / #C98500 / #4688E0 (validated on the var(--g-17201B,#17201B) card, see js/dashboard.js). ============ */
 html[data-theme="dark"] body.v2-on{color-scheme:dark}
-.v2-menu-th{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px;padding:2px 6px 2px 10px;font-size:14px;color:var(--ink)}.v2-menu-th > span{display:flex;align-items:center;gap:12px}.v2-menu-th > span i{font-size:18px;color:var(--ink-2)}
+.v2-menu-th{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px;padding:2px 6px 2px 12px;font-size:14px;color:var(--ink)}.v2-menu-th > span{display:flex;align-items:center;gap:12px}.v2-menu-th > span i{font-size:18px;color:var(--ink-2)}
 .v2-menu-th > div{display:inline-flex;padding:2px;border-radius:8px;background:var(--well);gap:2px}.v2-menu .v2-menu-th button{width:34px;height:30px;padding:0;justify-content:center;border-radius:8px}.v2-menu .v2-menu-th button[aria-checked="true"]{background:var(--card);box-shadow:var(--sh-1)}.v2-menu .v2-menu-th button[aria-checked="true"] i{color:var(--ink)}
 html[data-theme="dark"] body.v2-on{
   --paper:var(--g-0E1411,#0E1411); --frame:var(--g-121A15,#121A15); --card:var(--g-17201B,#17201B); --well:var(--g-1E2822,#1E2822); --ink:var(--g-E8EEE9,#E8EEE9); --ink-2:var(--g-BAC5BD,#BAC5BD); --ink-3:var(--g-95A299,#95A299);
@@ -1019,7 +1019,7 @@ html[data-theme="dark"] .gauge .needle line,html[data-theme="dark"] .gauge .need
    Phones: one column, the summary after the fields, the send button in a bar that stays above the bottom navigation. ============ */
 .fp-page{max-width:1180px!important}
 .fp-top{display:flex;align-items:center;gap:12px;margin:0 0 14px;flex-wrap:wrap}
-.fp-back{height:38px;padding:0 14px 0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:8px;cursor:pointer}
+.fp-back{height:38px;padding:0 16px 0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:8px;cursor:pointer}
 .fp-back:hover{border-color:var(--input)}.fp-back i{font-size:18px}
 .fp-crumb{font-size:13px;color:var(--ink-3);display:flex;gap:8px;align-items:center;flex-wrap:wrap}.fp-crumb i{font-size:12px}
 .fp-title{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:16px;align-items:center;margin:0 0 20px}
@@ -1029,7 +1029,7 @@ html[data-theme="dark"] .gauge .needle line,html[data-theme="dark"] .gauge .need
 .fp-grid{display:grid;grid-template-columns:minmax(0,1fr) 370px;gap:20px;align-items:start}
 .fp-main,.fp-aside{display:grid;gap:16px;min-width:0}
 .fp-aside{position:sticky;top:12px}
-.fp-card{background:var(--card);border-radius:var(--r-m);box-shadow:var(--sh-card);padding:18px 20px;min-width:0}
+.fp-card{background:var(--card);border-radius:var(--r-m);box-shadow:var(--sh-card);padding:20px 20px;min-width:0}
 .fp-card > h2{margin:0 0 14px;font-size:16px;display:flex;align-items:center;gap:12px;line-height:1.35}
 .fp-card > h2 .sp{flex:1}
 .fp-n{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;flex:none;background:var(--brand);color:var(--on-brand,#fff);font-family:var(--f-num);font-size:13px;font-weight:700}
@@ -1041,9 +1041,9 @@ html[data-theme="dark"] .gauge .needle line,html[data-theme="dark"] .gauge .need
 .fp-facts div{padding:4px 0}.fp-facts dt{font-size:12px;color:var(--ink-3)}.fp-facts dd{margin:0;font-size:14px;font-weight:600}
 .fp-sum{display:grid;gap:12px}
 .fp-big{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.fp-big b{font-family:var(--f-num);font-size:40px;font-weight:800;line-height:1.05;letter-spacing:-.02em;font-variant-numeric:tabular-nums}.fp-big span{color:var(--ink-2);font-size:14px}
-.fp-rows{display:grid;border-top:1px solid var(--line-2)}.fp-rows > div{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line-2);font-size:14px}
+.fp-rows{display:grid;border-top:1px solid var(--line-2)}.fp-rows > div{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line-2);font-size:14px}
 .fp-rows > div > span{color:var(--ink-2)}.fp-rows > div > b{font-weight:600;text-align:end}
-.fp-state{display:flex;gap:12px;align-items:flex-start;border-radius:12px;padding:10px 12px;font-size:14px;line-height:1.55}
+.fp-state{display:flex;gap:12px;align-items:flex-start;border-radius:12px;padding:12px 12px;font-size:14px;line-height:1.55}
 .fp-state i{font-size:20px;flex:none;margin-top:1px}
 .fp-state.wait{background:var(--well);color:var(--ink-2)}.fp-state.ok{background:var(--ok-bg);color:var(--ok)}.fp-state.bad{background:var(--bad-bg);color:var(--bad)}.fp-state.warn{background:var(--warn-bg);color:var(--warn)}
 .fp-split{display:flex;height:12px;border-radius:6px;overflow:hidden;gap:2px;background:var(--well)}.fp-split i{display:block;height:100%}
@@ -1058,14 +1058,14 @@ html[data-theme="dark"] .gauge .needle line,html[data-theme="dark"] .gauge .need
 .fp-chain li.done .fp-dot{background:var(--ok-bg);color:var(--ok)}.fp-chain li.now .fp-dot{background:var(--brand);color:var(--on-brand,#fff);box-shadow:0 0 0 4px var(--brand-tint)}
 .fp-chain li.no .fp-dot{background:var(--bad-bg);color:var(--bad)}.fp-chain li.off .fp-dot{background:var(--well);color:var(--ink-3)}
 .fp-chain b{display:block;font-size:14px;line-height:1.4}.fp-chain small{display:block;color:var(--ink-3);font-size:13px;line-height:1.5}
-.fp-chain .note{margin-top:6px;padding:8px 10px;border-radius:12px;background:var(--well);color:var(--ink-2);font-size:13px}
+.fp-chain .note{margin-top:6px;padding:8px 12px;border-radius:12px;background:var(--well);color:var(--ink-2);font-size:13px}
 @media (prefers-reduced-motion:no-preference){.fp-chain li.now .fp-dot::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:2px solid var(--brand);opacity:0;animation:fpPulse 2.4s var(--ease-out) infinite}}@keyframes fpPulse{0%{transform:scale(.9);opacity:.6}70%,100%{transform:scale(1.35);opacity:0}}
 .fp-hints{list-style:none;margin:0;padding:0;display:grid;gap:12px}
 .fp-hints li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px;font-size:13px;line-height:1.6;color:var(--ink-2)}.fp-hints li i{font-size:18px;color:var(--info);margin-top:1px}
-.fp-mini{display:grid}.fp-mini > div{display:flex;align-items:center;gap:12px;padding:9px 0;border-top:1px solid var(--line-2)}.fp-mini > div:first-child{border-top:0}
+.fp-mini{display:grid}.fp-mini > div{display:flex;align-items:center;gap:12px;padding:8px 0;border-top:1px solid var(--line-2)}.fp-mini > div:first-child{border-top:0}
 .fp-mini .m{flex:1;min-width:0}.fp-mini .m b{display:block;font-size:14px;font-weight:600}.fp-mini .m small{display:block;color:var(--ink-3);font-size:12px}
 .fp-mini [data-open]{cursor:pointer}.fp-mini [data-open]:hover b{color:var(--brand)}
-.fp-drop{display:flex;gap:12px;align-items:center;border:1.5px dashed var(--input);border-radius:16px;padding:14px;color:var(--ink-2);font-size:13px;line-height:1.55}
+.fp-drop{display:flex;gap:12px;align-items:center;border:1.5px dashed var(--input);border-radius:16px;padding:16px;color:var(--ink-2);font-size:13px;line-height:1.55}
 .fp-drop i{font-size:28px;color:var(--ink-3);flex:none}
 .fp-actions{display:grid;gap:8px}.fp-actions .btn{width:100%;justify-content:center;height:46px}
 .fp-types{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px}
@@ -1075,7 +1075,7 @@ html[data-theme="dark"] .gauge .needle line,html[data-theme="dark"] .gauge .need
 .fp-type > i{font-size:18px;color:var(--ink-3)}
 @media (hover:hover) and (pointer:fine){.fp-type:hover{transform:translateY(-2px);box-shadow:var(--sh-lift);border-color:var(--line)}}
 .fp-type:active{transform:scale(.98)}
-.fp-ok{display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px;align-items:center;padding:16px 18px;border-radius:var(--r-m);background:var(--ok-bg);color:var(--ok);margin:0 0 18px}
+.fp-ok{display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px;align-items:center;padding:16px 20px;border-radius:var(--r-m);background:var(--ok-bg);color:var(--ok);margin:0 0 18px}
 .fp-ok .ic{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:var(--ok);color:var(--card);font-size:24px}
 .fp-ok b{display:block;font-size:16px;color:var(--ink)}.fp-ok small{display:block;color:var(--ink-2);font-size:13px}
 @media (prefers-reduced-motion:no-preference){.fp-ok .ic{animation:moDot var(--mo-enter) var(--ease-spring) backwards;animation-delay:120ms}}
@@ -1096,7 +1096,7 @@ html[data-theme="dark"] .gauge .needle line,html[data-theme="dark"] .gauge .need
 /* shared by the request and expense pages (moved from requests.js, 2026-10-14) */
 .rq-mini-av{width:34px;height:34px;border-radius:12px;display:grid;place-items:center;flex:none;background:var(--brand-tint);color:var(--brand);font-size:18px}
 .rq-page .form .field{margin:0 0 14px}.rq-page .form .field:last-child{margin-bottom:0}
-@media (max-width:900px){.fp-bar{padding-bottom:10px}}
+@media (max-width:900px){.fp-bar{padding-bottom:12px}}
 </style>
 <style id="dspg">
 /* ============ Record pages and frozen headlines (2026-10-14). Skills: redesign-existing-projects, impeccable, ui-ux-pro-max,
@@ -1113,7 +1113,7 @@ html[data-theme="dark"] .gauge .needle line,html[data-theme="dark"] .gauge .need
 .pg-head{position:sticky;top:0;z-index:6;background:var(--paper);margin:calc(-1 * var(--pg-pt)) calc(-1 * var(--pg-px)) 0;padding:var(--pg-pt) var(--pg-px) 0;transition:box-shadow var(--mo-base) var(--ease-out)}
 .pg-head.is-stuck{box-shadow:0 1px 0 var(--line-2),0 12px 20px -18px rgba(var(--gr-15-28-20,15,28,20),.45)}
 .pg-head.fp-head{padding-bottom:2px}
-.pg-head.fp-head.is-stuck{padding-bottom:10px}
+.pg-head.fp-head.is-stuck{padding-bottom:12px}
 .pg-head .fp-title{margin-bottom:16px}
 .pg-head.is-stuck .fp-title{margin-bottom:0}
 .pg-head.is-compact{padding-top:8px}
@@ -1124,7 +1124,7 @@ html[data-theme="dark"] .gauge .needle line,html[data-theme="dark"] .gauge .need
 .pg-head.is-compact .fp-title h1{font-size:20px}
 .pg-head.is-compact .fp-back{height:34px}
 /* an area's headline: the banner shrinks to one line, the tabs stay */
-.pg-head.pg-area.is-compact .v3-hero{padding:10px 16px;border-radius:16px;margin-bottom:10px;gap:12px}
+.pg-head.pg-area.is-compact .v3-hero{padding:12px 16px;border-radius:16px;margin-bottom:10px;gap:12px}
 .pg-head.pg-area.is-compact .v3-hero p,.pg-head.pg-area.is-compact .v3-hero-stats .v3-pill:not(.hot){display:none}
 .pg-head.pg-area.is-compact .v3-hero-ic{width:36px;height:36px;border-radius:12px}.pg-head.pg-area.is-compact .v3-hero-ic i{font-size:20px}
 .pg-head.pg-area.is-compact .v3-hero h1{font-size:18px}
@@ -1145,7 +1145,7 @@ html[data-theme="dark"] .gauge .needle line,html[data-theme="dark"] .gauge .need
 /* ---- record pages (the drawer replacement) ---- */
 .dp-under{display:none!important}
 .dp-page{padding-top:var(--pg-pt)}
-.dp-panel{position:static;background:var(--card);border-radius:var(--r-m);box-shadow:var(--sh-card);padding:22px 24px;max-width:820px;margin-top:4px}
+.dp-panel{position:static;background:var(--card);border-radius:var(--r-m);box-shadow:var(--sh-card);padding:24px 24px;max-width:820px;margin-top:4px}
 .dp-panel.wide{max-width:none}
 .dp-panel.bare{background:none;box-shadow:none;padding:0;max-width:none;border-radius:0}
 .dp-panel > .dp-h3{display:none}
@@ -1156,7 +1156,7 @@ html[data-theme="dark"] .gauge .needle line,html[data-theme="dark"] .gauge .need
 @media (max-width:900px){
   .dp-panel{padding:16px;border-radius:var(--r-m)}
   .dp-panel.bare{padding:0}
-  .dp-panel form > .btnrow:last-child,.dp-panel form > .btnrow:last-of-type:not(:first-child){position:sticky;bottom:0;z-index:4;margin:14px -16px -16px;padding:10px 16px;background:color-mix(in srgb,var(--card) 94%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid var(--line-2);border-radius:0 0 var(--r-m) var(--r-m)}
+  .dp-panel form > .btnrow:last-child,.dp-panel form > .btnrow:last-of-type:not(:first-child){position:sticky;bottom:0;z-index:4;margin:14px -16px -16px;padding:12px 16px;background:color-mix(in srgb,var(--card) 94%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid var(--line-2);border-radius:0 0 var(--r-m) var(--r-m)}
   .dp-panel form > .btnrow:last-child .btn{flex:1;justify-content:center}
 }
 /* motion: a page arrives from the inline end (forward), the screen under it returns from the inline start (back) */
@@ -1168,21 +1168,21 @@ html[data-theme="dark"] .gauge .needle line,html[data-theme="dark"] .gauge .need
 @media print{.pg-head{position:static!important;box-shadow:none!important;margin:0!important;padding:0!important}.pg-sent{display:none}.dp-panel{box-shadow:none;padding:0;max-width:none}}
 
 /* ---- record page building blocks (employee file, payslip, approval item, new employee) ---- */
-.rp-hero{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:20px;align-items:center;background:var(--card);border-radius:var(--r-l);box-shadow:var(--sh-card);padding:20px 22px;margin:4px 0 16px;position:relative;overflow:hidden}
+.rp-hero{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:20px;align-items:center;background:var(--card);border-radius:var(--r-l);box-shadow:var(--sh-card);padding:20px 24px;margin:4px 0 16px;position:relative;overflow:hidden}
 .rp-hero::before{content:"";position:absolute;inset-block:0;inset-inline-start:0;width:5px;background:var(--brand)}
 .rp-av{width:72px;height:72px;border-radius:24px;display:grid;place-items:center;font-family:var(--f-head);font-size:28px;font-weight:700;background:var(--brand-tint);color:var(--brand)}
 .rp-id b{display:block;font-family:var(--f-head);font-size:24px;line-height:1.3}.rp-id small{display:block;color:var(--ink-3);font-size:13px;margin-top:2px}
 .rp-id .rp-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
 .rp-ring{display:flex;align-items:center;gap:12px}.rp-ring > div b{display:block;font-size:14px}.rp-ring > div small{display:block;color:var(--ink-3);font-size:12px;max-width:22ch}
 .rp-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:0 0 16px}
-.rp-fact{background:var(--card);border-radius:16px;box-shadow:var(--sh-card);padding:12px 14px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 10px;align-items:center;min-width:0}
+.rp-fact{background:var(--card);border-radius:16px;box-shadow:var(--sh-card);padding:12px 16px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 10px;align-items:center;min-width:0}
 .rp-fact > i{grid-row:span 2;width:36px;height:36px;border-radius:12px;display:grid;place-items:center;background:var(--a-bg,var(--brand-tint));color:var(--a-fg,var(--brand));font-size:20px}
 .rp-fact span{font-size:12px;color:var(--ink-3)}.rp-fact b{font-size:14px;font-weight:700;line-height:1.35;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .rp-fact b.warn{color:var(--warn)}.rp-fact b.bad{color:var(--bad)}
-.rp-sec{background:var(--card);border-radius:var(--r-m);box-shadow:var(--sh-card);padding:18px 20px;margin:0 0 16px;min-width:0}
+.rp-sec{background:var(--card);border-radius:var(--r-m);box-shadow:var(--sh-card);padding:20px 20px;margin:0 0 16px;min-width:0}
 .rp-sec > h2{margin:0 0 14px;font-size:16px;display:flex;align-items:center;gap:12px;font-family:var(--f-head)}.rp-sec > h2 > i{font-size:20px;color:var(--brand)}.rp-sec > h2 .sp{flex:1}
 .rp-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}
-.rp-tabs button{height:38px;padding:0 15px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink-2);font:inherit;font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:8px;cursor:pointer}
+.rp-tabs button{height:38px;padding:0 16px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink-2);font:inherit;font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:8px;cursor:pointer}
 .rp-tabs button i{font-size:18px}
 .rp-tabs button[aria-selected="true"]{background:var(--brand);border-color:var(--brand);color:var(--on-brand,#fff)}
 .rp-grid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
@@ -1297,7 +1297,7 @@ body.v2-on :is(.db-tile b,.kpi b,.stat b,.hm-facts dd,.hm-big b,.hm-k .v,[data-c
 .gate :is(.btn,.linkish,.langsw,.pinkeys button,.pw-eye):focus-visible{outline:2px solid var(--brass);outline-offset:3px}
 .gate .linkish{text-decoration:none;color:var(--g-B9C6B6,#B9C6B6);border-radius:8px;transition:color .2s}
 .gate .linkish:hover{color:var(--cream);text-decoration:underline}
-.gate .err:not(:empty){background:rgba(196,81,58,.14);border:1px solid rgba(255,180,163,.25);border-radius:12px;padding:10px 12px;animation:slabIn .3s var(--ease)}
+.gate .err:not(:empty){background:rgba(196,81,58,.14);border:1px solid rgba(255,180,163,.25);border-radius:12px;padding:12px 12px;animation:slabIn .3s var(--ease)}
 .langsw{backdrop-filter:blur(10px);transition:background-color .2s}
 .langsw:hover{background:rgba(255,255,255,.14)}
 /* PIN pad: glass keys that answer each press */
@@ -1315,8 +1315,8 @@ body.v2-on :is(.db-tile b,.kpi b,.stat b,.hm-facts dd,.hm-big b,.hm-k .v,[data-c
 .gate .linkish.lk-ic i{font-size:18px;color:var(--brass)}
 /* show / hide on every password and PIN field (gate and app) */
 .pw-wrap{position:relative;display:block}
-:root[dir="rtl"] .pw-wrap > input{padding-left:54px!important}
-:root[dir="ltr"] .pw-wrap > input{padding-right:54px!important}
+:root[dir="rtl"] .pw-wrap > input{padding-left:56px!important}
+:root[dir="ltr"] .pw-wrap > input{padding-right:56px!important}
 .pw-eye{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border:0;border-radius:12px;background:none;color:inherit;opacity:.7;display:grid;place-items:center;font-size:20px;cursor:pointer;transition:opacity .2s,background-color .2s}
 :root[dir="rtl"] .pw-eye{left:6px}
 :root[dir="ltr"] .pw-eye{right:6px}
@@ -1327,13 +1327,13 @@ body.v2-on :is(.db-tile b,.kpi b,.stat b,.hm-facts dd,.hm-big b,.hm-k .v,[data-c
 .gate input.pinin{letter-spacing:10px}
 /* phone top bar (2026-10-18): always on top while scrolling, clear of the iPhone status bar, language switch kept, search as an icon */
 @media (max-width:900px){body.v2-on .v2-top{position:sticky;top:0;z-index:40;padding-top:calc(6px + env(safe-area-inset-top));min-height:calc(56px + env(safe-area-inset-top));gap:8px}body.v2-on .v2-top .v2-lang{display:grid!important;font-size:13px;padding:0 8px;min-width:40px}body.v2-on .v2-top .v2-search{flex:0 0 auto;width:40px;height:40px;padding:0;justify-content:center;border-radius:12px}body.v2-on .v2-top .v2-search span,body.v2-on .v2-top .v2-search kbd{display:none!important}body.v2-on .v2-top .sp{flex:1}}
-.loc-help{margin-top:10px;text-align:start;border:1px solid var(--line);border-radius:16px;padding:12px 14px;background:var(--well,#F6F3EC);color:var(--ink);font-size:14px;line-height:1.6}
+.loc-help{margin-top:10px;text-align:start;border:1px solid var(--line);border-radius:16px;padding:12px 16px;background:var(--well,#F6F3EC);color:var(--ink);font-size:14px;line-height:1.6}
 .loc-help .btn{width:100%}.loc-help details{margin-top:8px}.loc-help summary{cursor:pointer;color:var(--ink-2)}
 .loc-help ol{margin:6px 0 10px;padding-inline-start:20px}
 .loc-help li{margin:3px 0}
 @media (max-width:640px){.punchrow:has(.loc-help){flex-direction:column;align-items:stretch;gap:16px}.punchrow:has(.loc-help) .punchinfo{width:100%;max-width:none}.punchrow:has(.loc-help) > :not(.punchinfo){align-self:center}}
 .loc-ios b{display:block;font-size:16px;margin-bottom:6px}.loc-steps{list-style:none;padding:0!important;margin:6px 0 12px!important;display:grid;gap:8px}
-.loc-steps li{display:flex;gap:12px;align-items:flex-start;margin:0!important;padding:10px;border-radius:12px;background:var(--card,#fff);border:1px solid var(--line)}
+.loc-steps li{display:flex;gap:12px;align-items:flex-start;margin:0!important;padding:12px;border-radius:12px;background:var(--card,#fff);border:1px solid var(--line)}
 .loc-steps .n{flex:none;width:22px;height:22px;border-radius:50%;background:var(--brand,var(--brand));color:#fff;font-size:12px;font-weight:700;display:grid;place-items:center}
 .loc-steps .i{flex:none;width:30px;height:30px;border-radius:8px;background:#8E8E93;color:#fff;display:grid;place-items:center;font-size:18px}.loc-steps li:nth-child(2) .i{background:#1E88E5}.loc-steps li:nth-child(3) .i{background:var(--brand,var(--brand))}
 /* wide screens (2026-10-18): pages use the room instead of a 1320px column with empty strips; the top bar lines up with them */
@@ -1343,7 +1343,7 @@ body.v2-on :is(.db-tile b,.kpi b,.stat b,.hm-facts dd,.hm-big b,.hm-k .v,[data-c
   .gate .gb-dial{margin-top:6px}
   .gate .gb-dial .wordmark{margin-top:18px}
   .gate-form:not(:has(.pinpad)){display:flex;flex-direction:column;align-items:stretch;gap:12px;width:100%;max-width:440px;text-align:start;background:var(--slab);border:1px solid var(--slab-line);
-    border-radius:24px;padding:24px 20px 18px;backdrop-filter:blur(14px);box-shadow:0 30px 60px -30px rgba(0,0,0,.6),inset 0 1px 0 rgba(242,238,228,.06);animation:slabIn .6s .3s var(--ease) both}
+    border-radius:24px;padding:24px 20px 20px;backdrop-filter:blur(14px);box-shadow:0 30px 60px -30px rgba(0,0,0,.6),inset 0 1px 0 rgba(242,238,228,.06);animation:slabIn .6s .3s var(--ease) both}
   .gate-form:not(:has(.pinpad)) h1,.gate-form:not(:has(.pinpad)) > p{text-align:center}
   .gate-form:not(:has(.pinpad)) form{max-width:none}
   .gate-form:not(:has(.pinpad)) .linkish{align-self:center}
@@ -1359,7 +1359,7 @@ body.v2-on :is(.db-tile b,.kpi b,.stat b,.hm-facts dd,.hm-big b,.hm-k .v,[data-c
   .gate-brand{gap:32px;min-height:min(84vh,780px)}
   .gate-brand .wm-ar{font-size:40px}
   .gate-tag{color:var(--g-B9C6B6,#B9C6B6);font-size:16px}
-  .gate-form{background:var(--slab);border:1px solid var(--slab-line);border-radius:24px;padding:44px 40px 30px;gap:16px;backdrop-filter:blur(16px);
+  .gate-form{background:var(--slab);border:1px solid var(--slab-line);border-radius:24px;padding:44px 40px 32px;gap:16px;backdrop-filter:blur(16px);
     box-shadow:0 50px 90px -40px rgba(0,0,0,.65),inset 0 1px 0 rgba(242,238,228,.07);animation:slabIn .7s .45s var(--ease) both}
   .gate-form:has(.pinpad){align-items:center;text-align:center}
   .gate-form:has(.pinpad) .linkish{justify-self:center;align-self:center}
@@ -1390,7 +1390,7 @@ body.v2-on :is(.db-tile b,.kpi b,.stat b,.hm-facts dd,.hm-big b,.hm-k .v,[data-c
   body.v2-on .v2-top .v2-av{width:34px;height:34px;margin-inline-start:4px}
   /* large-title headers: no banner, no pattern, the page name big and calm */
   body.v2-on .pg-head{background:var(--m-bg)}
-  body.v2-on .v3-hero{background:none!important;color:var(--ink)!important;box-shadow:none!important;border:0!important;border-radius:0!important;padding:14px 2px 6px!important;min-height:0!important;margin:0!important;display:block}
+  body.v2-on .v3-hero{background:none!important;color:var(--ink)!important;box-shadow:none!important;border:0!important;border-radius:0!important;padding:16px 2px 6px!important;min-height:0!important;margin:0!important;display:block}
   body.v2-on .v3-hero::before,body.v2-on .v3-hero::after{display:none!important}
   body.v2-on .v3-hero :is(.v3-hero-ic,p,.v3-pill:not(.hot)){display:none!important}
   body.v2-on .is-punch .v3-hero{display:none!important}body.v2-on .is-punch .m-pick{margin-top:12px}
@@ -1398,12 +1398,12 @@ body.v2-on :is(.db-tile b,.kpi b,.stat b,.hm-facts dd,.hm-big b,.hm-k .v,[data-c
   body.v2-on .v3-hero .v3-hero-stats{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap}
   body.v2-on .v3-hero .v3-pill.hot{background:#FDE7C8;color:#7A3E00;border:0}
   /* Home: the scope switch as a segmented control */
-  body.v2-on .hm-scope{background:rgba(var(--pine-rgb),.06)!important;border:0!important;padding:3px!important;border-radius:12px!important;width:100%;display:grid!important;grid-template-columns:1fr 1fr}
+  body.v2-on .hm-scope{background:rgba(var(--pine-rgb),.06)!important;border:0!important;padding:4px!important;border-radius:12px!important;width:100%;display:grid!important;grid-template-columns:1fr 1fr}
   body.v2-on .hm-scope button{color:var(--ink-2)!important;border-radius:8px!important;height:38px;justify-content:center}
   body.v2-on .hm-scope button[aria-pressed="true"]{background:var(--card)!important;color:var(--ink)!important;box-shadow:var(--e1)}
   /* the page picker replaces the side-scrolling strip of sub-pages */
   body.v2-on .v2-views{display:none!important}
-  body.v2-on .m-pick{display:flex;align-items:center;gap:12px;width:100%;min-height:56px;margin:10px 0 14px;padding:8px 14px;border-radius:var(--m-r);border:1px solid var(--m-sep);background:var(--card);font:inherit;color:var(--ink);text-align:start;cursor:pointer}
+  body.v2-on .m-pick{display:flex;align-items:center;gap:12px;width:100%;min-height:56px;margin:10px 0 14px;padding:8px 16px;border-radius:var(--m-r);border:1px solid var(--m-sep);background:var(--card);font:inherit;color:var(--ink);text-align:start;cursor:pointer}
   body.v2-on .m-pick .ic{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;background:var(--m-tint);color:var(--brand);font-size:20px;flex:none}
   body.v2-on .m-pick b{font-size:16px;font-weight:700;display:block}
   body.v2-on .m-pick small{color:var(--ink-3);font-size:13px}
@@ -1419,12 +1419,12 @@ body.v2-on :is(.db-tile b,.kpi b,.stat b,.hm-facts dd,.hm-big b,.hm-k .v,[data-c
   /* cards: calm surfaces, no decoration */
   body.v2-on :is(.hm-k,.db-card,.mf-card,.fp-card,.v2-card,.set-card,.op-card){border-radius:var(--m-r)!important;box-shadow:none!important;border:1px solid var(--m-sep)!important;background:var(--card)!important}
   body.v2-on .hm-k::before,body.v2-on .hm-k::after,body.v2-on .hm-k .db-go,body.v2-on .hm-k .db-tf{display:none!important}
-  body.v2-on .hm-k{padding:14px!important;min-height:0!important}
+  body.v2-on .hm-k{padding:16px!important;min-height:0!important}
   body.v2-on .hm-kpis{gap:12px!important}
   body.v2-on .hm-rowh{font-size:18px;font-weight:700}
   /* tabs inside a page wrap into chips; nothing scrolls sideways */
   body.v2-on :is(.op-tabs,.hr-seg,.v2-seg,.cp-seg){display:flex!important;flex-wrap:wrap!important;overflow:visible!important;gap:8px;padding:0;margin:0 0 12px;background:none;border:0}
-  body.v2-on :is(.op-tabs,.hr-seg,.v2-seg,.cp-seg) > button{flex:0 0 auto;min-height:40px;border-radius:999px;padding:0 14px;white-space:nowrap}
+  body.v2-on :is(.op-tabs,.hr-seg,.v2-seg,.cp-seg) > button{flex:0 0 auto;min-height:40px;border-radius:999px;padding:0 16px;white-space:nowrap}
   body.v2-on .toolbar{flex-wrap:wrap;gap:8px}
   body.v2-on .btn-sm{min-height:40px}
   /* bottom tab bar: a pill behind the active icon */
@@ -2164,7 +2164,7 @@ var T = {
     tk_wps:'رفع ملف حماية الأجور ينتظر تأكيدك', tk_onboarding:'مهام انضمام مستحقة خلال أسبوع', tk_policies:'سياسات تحتاج إقرارك', tk_survey:'استبيان ينتظر مشاركتك', tk_plans:'خطة تطوير تنتظر اطلاعك', tk_delegated:'مفوض بالموافقات نيابة عن', tk_disc_respond:'مخالفة تنتظر ردك', tk_disc_decide:'قضايا تأديبية تنتظر القرار', tk_disc_objection:'تظلمات تنتظر البت', tk_injury:'إصابات عمل تنتظر المتابعة', tk_asset_ack:'عهد تنتظر إقرارك باستلامها', tk_asset_charge:'خصومات عهد تنتظر اعتمادك', tk_clearance:'مهام إخلاء طرف لك', tk_escalated:'بنود مصعدة إليك للعلم', tk_leavecycle:'مهام دورات إجازة لفريقك', tk_leavecycle_me:'مهام في إجازتك أو إجازة زميل تغطيه', tk_expense_approve:'مطالبات مصروفات تنتظر قرارك', tk_expense_pay:'مطالبات معتمدة تنتظر تسجيل الصرف', tk_gov_visa_issue:'تأشيرات معتمدة تنتظر التسجيل', tk_gov_visa_return:'لم يعودوا بعد انتهاء التأشيرة', tk_iqama_renewal:'إقامات تنتهي خلال 30 يوما', tk_ticket_due:'تذاكر سنوية مستحقة', tk_gov_fee_verify:'رسوم حكومية تنتظر التحقق', tk_ticket_approve:'تكاليف تذاكر تنتظر اعتمادك', tk_journal_import:'قيد رواتب ينتظر الاستيراد في أودو', tk_journal_confirm:'قيد رواتب ينتظر تأكيدك', tk_recruit_req_approve:'طلبات توظيف تنتظر قرارك', tk_recruit_offer_approve:'عروض وظيفية تنتظر اعتمادك', tk_recruit_feedback:'مقابلات تنتظر تقييمك', tk_recruit_hire:'عروض مقبولة تنتظر التعيين', tk_recruit_purge:'بيانات مرشحين حان موعد محوها', tk_loan_approve:'طلبات قروض تنتظر قرارك', tk_loan_disburse:'قروض معتمدة تنتظر تسجيل الصرف', tk_loan_settle_verify:'سدادات مبكرة تنتظر التحقق', tk_training_request:'طلبات تدريب تنتظر قرارك', tk_training_mark:'دورات انتهت تنتظر تسجيل النتائج', tk_insurance_move:'حركات تأمين طبي تنتظر الإجراء', tk_insurance_request:'طلبات إضافة مرافقين للتأمين', tk_announcement_ack:'إعلانات تنتظر إقرارك', tk_hd_unassigned:'طلبات دعم بلا مسؤول', tk_hd_assigned:'طلبات دعم مسندة إليك', tk_hd_reply:'طلب دعم ينتظر ردك', tk_exit_survey:'مقابلة الخروج تنتظر إجابتك', tk_settlement_approve:'مخالصات نهائية تنتظر اعتمادك', tk_settlement_pay:'مخالصات معتمدة تنتظر تسجيل الصرف', tk_comp_review:'مراجعة الرواتب: نسب زيادة تنتظر اقتراحك', tk_timesheet:'كشوف دوام الشهر الماضي تنتظر اعتمادك',
     punchFailed:'لم يتم التسجيل', todayTitle:'اليوم',
     histTitle:'سجل الحضور', present:'أيام الحضور', totalHours:'مجموع الساعات', lateDays:'أيام التأخير', absent:'غياب',
-    st_in:'داخل الدوام', st_present:'حاضر', st_absent:'غائب', st_leave:'في إجازة', st_holiday:'عطلة رسمية', kLeave:'في إجازة', st_off:'عطلة', st_upcoming:'لم يحضر بعد', st_missing_out:'بلا انصراف',
+    st_in:'داخل الدوام', st_present:'حاضر', st_absent:'غائب', st_remote:'عن بعد', f_remote:'عمل عن بعد', st_leave:'في إجازة', st_holiday:'عطلة رسمية', kLeave:'في إجازة', st_off:'عطلة', st_upcoming:'لم يحضر بعد', st_missing_out:'بلا انصراف',
     admBoard:'اللوحة المباشرة', admEmp:'الموظفون', admZones:'النطاقات', admReports:'التقارير', admReview:'المراجعة', admSettings:'الإعدادات', admAudit:'السجل الأمني',
     kIn:'داخل الآن', kTotal:'الموظفون', kLate:'متأخرون', kAbsent:'غائبون', kUpcoming:'لم يصلوا بعد', kReview:'للمراجعة', presentNow:'نسبة الحضور الآن',
     search:'بحث بالاسم أو الرقم', addEmp:'إضافة موظف', editEmp:'تعديل موظف', save:'حفظ', cancel:'إلغاء',
@@ -2225,7 +2225,7 @@ var T = {
     tk_wps:'WPS upload waiting for your confirmation', tk_onboarding:'Onboarding tasks due within a week', tk_policies:'Policies to acknowledge', tk_survey:'A survey waiting for you', tk_plans:'A development plan to read', tk_delegated:'Approving on behalf of', tk_disc_respond:'A violation waiting for your reply', tk_disc_decide:'Disciplinary cases waiting for a decision', tk_disc_objection:'Objections waiting for a ruling', tk_injury:'Work injuries to follow up', tk_asset_ack:'Assets to confirm you received', tk_asset_charge:'Asset charges waiting for your approval', tk_clearance:'Clearance tasks for you', tk_escalated:'Items escalated to you for information', tk_leavecycle:'Leave-cycle tasks for your team', tk_leavecycle_me:'Tasks in your leave or a colleague\'s you cover', tk_expense_approve:'Expense claims waiting for your decision', tk_expense_pay:'Approved claims waiting for payment', tk_gov_visa_issue:'Approved visas to record', tk_gov_visa_return:'Not back after the visa expired', tk_iqama_renewal:'Iqamas expiring within 30 days', tk_ticket_due:'Annual tickets due', tk_gov_fee_verify:'Government fees to verify', tk_ticket_approve:'Ticket costs waiting for your approval', tk_journal_import:'Payroll journal waiting for the Odoo import', tk_journal_confirm:'Payroll journal waiting for your confirmation', tk_recruit_req_approve:'Hiring requests waiting for your decision', tk_recruit_offer_approve:'Job offers waiting for your approval', tk_recruit_feedback:'Interviews waiting for your score', tk_recruit_hire:'Accepted offers waiting to be hired', tk_recruit_purge:'Candidate data due for erasure', tk_loan_approve:'Loan requests waiting for your decision', tk_loan_disburse:'Approved loans waiting for the payout', tk_loan_settle_verify:'Early repayments waiting for verification', tk_training_request:'Training requests waiting for your decision', tk_training_mark:'Finished sessions waiting for results', tk_insurance_move:'Medical insurance changes to process', tk_insurance_request:'Requests to add dependants to insurance', tk_announcement_ack:'Announcements to acknowledge', tk_hd_unassigned:'Help desk tickets with nobody assigned', tk_hd_assigned:'Help desk tickets assigned to you', tk_hd_reply:'A help desk ticket waiting for your reply', tk_exit_survey:'Your exit interview is waiting', tk_settlement_approve:'Final settlements waiting for your approval', tk_settlement_pay:'Approved settlements waiting for payout', tk_comp_review:'Pay review: increases waiting for your proposal', tk_timesheet:'Last month\'s timesheets waiting for your approval',
     punchFailed:'Not recorded', todayTitle:'Today',
     histTitle:'Attendance record', present:'Days present', totalHours:'Total hours', lateDays:'Late days', absent:'Absent',
-    st_in:'On shift', st_present:'Present', st_absent:'Absent', st_leave:'On leave', st_holiday:'Public holiday', kLeave:'On leave', st_off:'Day off', st_upcoming:'Not in yet', st_missing_out:'No check-out',
+    st_in:'On shift', st_present:'Present', st_absent:'Absent', st_remote:'Remote', f_remote:'Remote work', st_leave:'On leave', st_holiday:'Public holiday', kLeave:'On leave', st_off:'Day off', st_upcoming:'Not in yet', st_missing_out:'No check-out',
     admBoard:'Live board', admEmp:'Employees', admZones:'Zones', admReports:'Reports', admReview:'Review', admSettings:'Settings', admAudit:'Security log',
     kIn:'In now', kTotal:'Employees', kLate:'Late', kAbsent:'Absent', kUpcoming:'Not arrived', kReview:'To review', presentNow:'Present right now',
     search:'Search name or number', addEmp:'Add employee', editEmp:'Edit employee', save:'Save', cancel:'Cancel',
@@ -2370,7 +2370,7 @@ function api(action, payload, quiet){
 // Screens already seen show their last answer at once while a fresh one loads (kept in memory only,
 // dropped on lock and after any change). Most clicks then feel instant instead of waiting ~2 s for Google.
 var READ_CACHE = {};
-var CLIENT_READS = { apiKeyList: 1, webhookDeliveries: 1, payGroupList: 1, snapshotList: 1, snapshotView: 1, reportSubList: 1, kioskList: 1, notifyStatus: 1, perkList: 1, welcome: 1, internalJobs: 1, careerPathList: 1, rolesOverview: 1, nineBox: 1, successionList: 1, kbSearch: 1, kbList: 1, oneOnOneList: 1, goalList: 1, workforcePlan: 1, careersList: 1, careerPostList: 1, shiftOfferList: 1, searchAll: 1, customFieldList: 1, customValuesGet: 1, customValuesAll: 1, timesheetList: 1, compCycleList: 1, myFinalSettlement: 1, finalSettlementList: 1, myExitSurvey: 1, kudosFeed: 1, exitSurveyResults: 1, kudosStats: 1, recruitReqList: 1, recruitCandList: 1, recruitCandGet: 1, recruitBoard: 1, recruitOfferLetter: 1, loanQuote: 1, myLoans: 1, loanList: 1, myTraining: 1, trainSessionList: 1, trainMatrix: 1, courseList: 1,
+var CLIENT_READS = { flowPreview: 1, officeMap: 1, myTotalRewards: 1, apiKeyList: 1, webhookDeliveries: 1, payGroupList: 1, snapshotList: 1, snapshotView: 1, reportSubList: 1, kioskList: 1, notifyStatus: 1, perkList: 1, welcome: 1, internalJobs: 1, careerPathList: 1, rolesOverview: 1, nineBox: 1, successionList: 1, kbSearch: 1, kbList: 1, oneOnOneList: 1, goalList: 1, workforcePlan: 1, careersList: 1, careerPostList: 1, shiftOfferList: 1, searchAll: 1, customFieldList: 1, customValuesGet: 1, customValuesAll: 1, timesheetList: 1, compCycleList: 1, myFinalSettlement: 1, finalSettlementList: 1, myExitSurvey: 1, kudosFeed: 1, exitSurveyResults: 1, kudosStats: 1, recruitReqList: 1, recruitCandList: 1, recruitCandGet: 1, recruitBoard: 1, recruitOfferLetter: 1, loanQuote: 1, myLoans: 1, loanList: 1, myTraining: 1, trainSessionList: 1, trainMatrix: 1, courseList: 1,
   myInsurance: 1, insList: 1, insCost: 1, insPolicyList: 1, myAnnouncements: 1, annList: 1, hdMine: 1, hdList: 1, hdGet: 1, shiftList: 1, rosterList: 1, discCodes: 1, discList: 1, injuryList: 1, assetList: 1, clearanceList: 1, myFile: 1, myRequests: 1, hrBootstrap: 1, hrCompList: 1, hrExpiring: 1, hrTeam: 1, hrEmpFile: 1, reqInbox: 1,
   leaveTeam: 1, holidayList: 1, leaveBalances: 1, myHistory: 1, me: 1, board: 1, empList: 1, zoneList: 1, report: 1, reviewList: 1,
   auditList: 1, settingsGet: 1, requestQuote: 1, dashboard: 1, mySlips: 1, payrollList: 1, eosQuote: 1, myPerformance: 1, perfTeam: 1, perfEmp: 1, feedbackResults: 1, perfCycleList: 1, perfOverview: 1, reportCatalog: 1, reportRun: 1, reportLog: 1, reportVerify: 1, myTasks: 1, delegationList: 1, reconList: 1, complianceCalendar: 1, wpsFile: 1, onboardList: 1, mySurveys: 1, surveyResults: 1, policyList: 1, planList: 1, hrDirectory: 1, hrDeptList: 1, hrPositionList: 1, hrDocList: 1, hrImportValidate: 1,
@@ -3311,7 +3311,7 @@ function offerPin(){
 function welcomeHtml(w){
   var L = function(a, e){ return S.lang === 'en' && e ? e : a || e || ''; }, d = w.daysToStart;
   var head = d > 0 ? t('wlDays').replace('{n}', d) : d === 0 ? t('wlToday') : t('wlStarts').replace('{d}', w.hireDate);
-  return '<section class="hm-card hm-s12 wl-card" style="padding:18px"><h2 style="margin:0 0 4px">' + ph('hand-waving', 'duotone') + ' ' + t('wlTitle') + '</h2><p class="hr-hint" style="margin:0 0 12px">' + esc(head) + (d > 0 ? ' · ' + esc(t('wlStarts').replace('{d}', w.hireDate)) : '') + '</p>' +
+  return '<section class="hm-card hm-s12 wl-card" style="padding:20px"><h2 style="margin:0 0 4px">' + ph('hand-waving', 'duotone') + ' ' + t('wlTitle') + '</h2><p class="hr-hint" style="margin:0 0 12px">' + esc(head) + (d > 0 ? ' · ' + esc(t('wlStarts').replace('{d}', w.hireDate)) : '') + '</p>' +
     '<div class="mf-kv">' + (w.position ? '<div><span>' + t('wlPos') + '</span><b>' + esc(L(w.position.titleAr, w.position.titleEn)) + '</b></div>' : '') + (w.department ? '<div><span>' + t('wlDept') + '</span><b>' + esc(w.department) + '</b></div>' : '') + (w.manager ? '<div><span>' + t('wlManager') + '</span><b>' + esc(L(w.manager.name, w.manager.nameEn)) + '</b></div>' : '') + '</div>' +
     (L(w.welcomeAr, w.welcomeEn) ? '<h3 style="margin:14px 0 4px">' + t('wlFirstDay') + '</h3><p style="white-space:pre-wrap;margin:0">' + esc(L(w.welcomeAr, w.welcomeEn)) + '</p>' : '') +
     (w.docs.length ? '<h3 style="margin:14px 0 4px">' + t('wlDocs') + '</h3><ul style="margin:0;padding-inline-start:20px">' + w.docs.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' : '') +
@@ -3427,11 +3427,11 @@ Object.assign(T.ar, {
   alTime:'سجل حضورك، جداول دوام الفريق ومراجعة البصمات.', alRequests:'طلباتك والموافقات وتقويم الإجازات والعطل الرسمية.', alPay:'قسائمك ومسيرات الرواتب والامتثال لحماية الأجور.',
   alGrowth:'أهدافك وتقييمك وخطط التطوير ونبض الموظفين.', alPeople:'سجل كل موظف: الدليل والهيكل المرئي والمستندات والخدمات الحكومية والتأمين والعهد والحقول المخصصة.', alInsights:'لوحة الإدارة والتقارير الموثقة وسجل التدقيق.',
   alSettings:'قواعد الحضور وإعدادات النظام.',
-  vwPunch:'تسجيل الحضور', vwHistory:'سجلي', vwBoard:'لوحة اليوم', vwReview:'مراجعة البصمات', vwShifts:'الورديات', vwZones:'المواقع',
+  vwPunch:'تسجيل الحضور', vwHistory:'سجلي', vwBoard:'لوحة اليوم', vwOffice:'خريطة المكتب', vwReview:'مراجعة البصمات', vwShifts:'الورديات', vwZones:'المواقع',
   vwMine:'طلباتي', vwInbox:'الموافقات', vwLeave:'تقويم الإجازات', vwHolidays:'العطل الرسمية',
   vwSlips:'قسائمي', vwRuns:'مسيرات الرواتب', vwApprovals:'اعتماد الرواتب', vwCompliance:'الامتثال',
   vwGrowth:'أدائي', vwCycle:'دورة التقييم', vwPlans:'خطط التطوير', vwPulse:'نبض الموظفين',
-  vwDirectory:'الدليل', vwTeam:'فريقي', vwOrg:'الهيكل', vwPositions:'الوظائف', vwOnboarding:'التهيئة', vwOffboarding:'إخلاء الطرف', vwCustody:'العهد', vwCentre:'مركز الموافقات', vwCycles:'دورة الإجازة', vwExpenses:'المصروفات', vwNewReq:'طلب جديد', vwReqView:'تفاصيل الطلب', vwNewClaim:'مطالبة مصروفات جديدة', vwClaimView:'مطالبة مصروفات', fpBack:'رجوع', fpCrumb:'مسار الصفحة', vwFlows:'مسارات الموافقة', vwGov:'الخدمات الحكومية', vwRecruit:'التوظيف', vwTraining:'التدريب والشهادات', vwInsurance:'التأمين الطبي', vwLoans:'القروض', vwHelpdesk:'مكتب الدعم', vwAnnounce:'الإعلانات', vwExits:'رأي المغادرين', vwKudos:'التقدير', vwSettle:'المخالصات', vwPayReview:'مراجعة الرواتب', vwTimesheets:'كشوف الدوام', qrScan:'مسح رمز المكتب', qrHint:'وجّه الكاميرا إلى الرمز على شاشة الحضور عند المدخل.', qrOk:'تم التحقق من رمز المكتب؛ يمكنك التسجيل الآن.', qrReady:'رمز المكتب متحقق منه، سجّل الآن', qrNoCamera:'لا يمكن فتح الكاميرا؛ اسمح للتطبيق باستخدامها.', vwKiosks:'شاشات الحضور', vwSchedules:'التقارير المجدولة', axRefresh:'تحديث', plConsole:'وحدة تحكم المنصة', plConsoleLead:'لمالك المنصة فقط: إنشاء الشركات وإيقافها. منفصلة عن حسابات الشركات وموظفيها.', coColor:'لون الشركة', coColorLead:'تبنى منه ألوان النظام كلها: الأزرار والقائمة وشاشة الدخول والعملة المتحركة والمطبوعات، مع تباين مقروء دائما.', coColorSave:'حفظ اللون', coColorLogo:'من الشعار', coColorReset:'الألوان الافتراضية', coColorSaved:'تم حفظ لون الشركة', coColorNone:'لم نجد لونا واضحا في الشعار.', coLogo:'شعار الشركة', coLogoLead:'يظهر في العملة المتحركة وشاشة الدخول والقائمة وكل مستند مطبوع، بنفس التصميم لكل الشركات. PNG أو JPG أو WebP، ويصغر تلقائيا.', coLogoPick:'رفع شعار', coLogoRemove:'إزالة', coLogoSaved:'تم حفظ الشعار', e_bad_logo:'تعذر استخدام هذه الصورة؛ جرب PNG أو JPG أصغر.', vwIntegrations:'الربط (API)', e_bad_api_key:'مفتاح الربط غير صحيح أو ملغى.', e_unknown_resource:'هذا المورد غير متاح.', e_scope_missing:'المفتاح لا يملك صلاحية هذا المورد.', e_bad_url:'العنوان يجب أن يبدأ بـ https وألا يكون عنوانا داخليا.', e_org_book_missing:'جدول بيانات المنشأة غير موجود.', e_org_book_error:'تعذر الوصول إلى بيانات المنشأة؛ حاول بعد قليل.', vwPayGroups:'مجموعات الرواتب', pgGroup:'مجموعة الرواتب', e_group_not_empty:'في المجموعة موظفون؛ انقلهم أولا.', e_manager_not_payroll:'المسؤول يجب أن يكون من الرواتب أو الموارد البشرية.', e_needs_two_managers:'المجموعة المغلقة تحتاج شخصين على الأقل، أحدهما من الرواتب، وأنت منهم.', e_run_open:'يوجد مسير مسودة لهذه المجموعة؛ اعتمده أو احذفه أولا.', vwPlatform:'المنشآت (المنصة)', orgId:'رقم المنشأة (Org ID)', orgTitle:'رقم المنشأة', orgLead:'كل شركة لها رقم خاص وسجلات منفصلة تماما. أدخل رقم منشأتك كما وصلك من الموارد البشرية.', orgGo:'متابعة', orgChange:'تغيير المنشأة', orgChip:'المنشأة', orgFound:'المنشأة:', codeOrg:'رقم المنشأة: {org}', e_org_required:'أدخل رقم المنشأة.', e_bad_org:'رقم المنشأة أرقام فقط، من 4 إلى 8.', e_org_not_found:'لا توجد منشأة بهذا الرقم.', e_org_suspended:'حساب هذه المنشأة موقوف؛ تواصل مع مزود الخدمة.', e_bad_cr:'رقم السجل التجاري 10 أرقام.', e_cr_exists:'هذا السجل التجاري مسجل لمنشأة أخرى.', vwHistory:'السجل الشهري', e_not_emailable:'هذا التقرير لا يرسل بالبريد (أرقام الرواتب لا تغادر النظام).', e_recipient_no_access:'أحد المستلمين لا يملك صلاحية هذا التقرير.', f_qr_kiosk:'سجل برمز المكتب', f_qr_no_gps:'رمز المكتب بدون موقع الهاتف', e_qr_invalid:'رمز المكتب غير صحيح؛ امسح الرمز الظاهر الآن.', e_qr_expired:'انتهت صلاحية الرمز؛ امسح الرمز الظاهر الآن.', e_qr_wrong_zone:'هذه الشاشة ليست في موقع عملك.', e_qr_far:'موقع هاتفك بعيد عن المكتب؛ لا يقبل رمز المكتب من خارج الموقع.', e_kiosk_revoked:'هذه الشاشة أوقفت.', atAttach:'إرفاق نسخة (PDF أو صورة حتى 5 ميجابايت)', atView:'عرض المرفق', atAttached:'تم إرفاق الملف', atReplace:'استبدال المرفق', swAttach:'مرفقات المستندات', swAttachLead:'إرفاق نسخ الهوية والعقود والشهادات بسجل المستند، تحفظ في Google Drive ولا تفتح إلا من داخل النظام. تعمل بعد موافقة مالك النظام على صلاحية Google Drive مرة واحدة.', e_attachments_off:'المرفقات غير مفعلة بعد (تحتاج موافقة مالك النظام على صلاحية Google Drive).', e_bad_file_type:'نوع الملف غير مسموح؛ المسموح PDF أو JPG أو PNG أو WebP.', e_file_too_big:'الملف أكبر من 5 ميجابايت.', e_no_attachment:'لا يوجد مرفق لهذا المستند.', e_attachment_failed:'تعذر حفظ الملف أو قراءته، حاول مرة أخرى.', arHire:'التخطيط والتوظيف', arOnboard:'التعيين والتهيئة', arEngage:'التواصل وعلاقات العمل', arOffboard:'إنهاء الخدمة', arAdmin:'الإدارة والصلاحيات', alHire:'خطة القوى العاملة والهيكل والوظائف، ثم طلبات التوظيف وصفحة الوظائف والمرشحين والعروض.', alOnboard:'تفعيل حساب الموظف الجديد ورسالة الترحيب وخطة 30-60-90 حتى نهاية التجربة.', alEngage:'الإعلانات والاستبيانات والمخالفات والإصابات والسياسات.', alOffboard:'إخلاء الطرف والمخالصة النهائية ومكافأة نهاية الخدمة ورأي المغادرين.', alAdmin:'الإعدادات والأدوار ومسارات الموافقة وتصدير البيانات.', navLife:'دورة حياة الموظف', navMgmt:'التحليل والإدارة', swNotify:'ملخص يومي بالبريد الإلكتروني', swNotifyLead:'كل صباح بعد السابعة يصل لكل موظف لديه مهام بانتظاره بريد قصير بعددها ورابط التطبيق، دون أي تفاصيل. يعمل بعد ربط Microsoft 365 وموافقة مالك النظام على صلاحية الاتصال الخارجي مرة واحدة.', ntTest:'إرسال رسالة تجربة لبريدي', ntReady:'Microsoft 365 مربوط', ntNotReady:'Microsoft 365 غير مربوط بعد', ntSentTo:'أرسلت إلى', e_email_not_configured:'البريد غير مربوط بعد (Microsoft 365).', e_no_email:'لا يوجد بريد إلكتروني في سجلك.', vwPerks:'المزايا والرفاهية', wlTitle:'أهلا بك في فريقنا', wlStarts:'تبدأ معنا في {d}', wlToday:'اليوم أول أيامك معنا', wlDays:'بقي {n} يوما على بدايتك', wlManager:'مديرك', wlDept:'القسم', wlPos:'الوظيفة', wlFirstDay:'معلومات اليوم الأول', wlDocs:'أحضر معك', wlTasks:'مهام الانضمام', wlPolicies:'سياسات تحتاج إقرارك', wlOpen:'فتح', wlEdit:'رسالة الترحيب', wlEditLead:'تظهر للموظف الجديد قبل بدايته وخلال أسبوعه الأول: معلومات اليوم الأول والمستندات التي يحضرها.', wlTextAr:'معلومات اليوم الأول بالعربية', wlTextEn:'معلومات اليوم الأول بالإنجليزية', wlDocsEdit:'المستندات المطلوبة (سطر لكل مستند)', wlPreview:'معاينة', vwWelcome:'رسالة الترحيب', vwExport:'تصدير بيانات الشركة', vwMobility:'التنقل الداخلي', vwRoles:'الأدوار والصلاحيات', a77Label:'تعويض المادة 77', a77None:'لا يوجد', a77Employer:'الشركة أنهت العقد دون سبب مشروع (يضاف للموظف)', a77Employee:'الموظف ترك العمل دون سبب مشروع (مطالبة للشركة)', a77Claim:'مطالبة للشركة (لا تخصم تلقائيا)', a77Fixed:'أجر المدة الباقية من العقد', a77Open:'15 يوم أجر عن كل سنة خدمة', a77Min:'الحد الأدنى أجر شهرين', w_art77_claim_not_deducted:'مطالبة المادة 77 على الموظف لا تخصم من المستحقات تلقائيا؛ تتم باتفاق مكتوب أو حكم (المادتان 92 و93).', e_art77_reason:'تعويض المادة 77 لصالح الموظف لا يجتمع مع الاستقالة أو الفصل وفق المادة 80.', vwTalent:'المواهب والتعاقب', vwKb:'قاعدة المعرفة', locIosTitle:'الموقع مقفل من إعدادات iPhone', locIos1:'افتح الإعدادات ثم «الخصوصية والأمان» ثم «خدمات الموقع» وتأكد أنها مفعّلة.', locIos2:'في نفس الصفحة اختر «مواقع Safari» ثم «أثناء استخدام التطبيق»، وفعّل «الموقع الدقيق».', locIos3:'ارجع إلى التطبيق؛ سيتحقق تلقائياً، أو اضغط الزر.', locCheckAgain:'تحقق مرة أخرى', locOpenSettings:'فتح الإعدادات', locNativeLead:'الموقع غير مسموح لهذا التطبيق. افتح الإعدادات واختر «الموقع: أثناء الاستخدام» و«الموقع الدقيق»، ثم ارجع.', locCoarse:'جهازك يرسل موقعاً تقريبياً فقط', locCoarseIos:'في iPhone فعّل «الموقع الدقيق»: عند ظهور طلب الموقع اضغط «دقيق: تشغيل»، أو من الإعدادات ثم الخصوصية والأمان ثم خدمات الموقع ثم مواقع Safari (أو تطبيق المتصفح) ثم «الموقع الدقيق». ثم اضغط الزر.', locCoarseOther:'فعّل «الموقع الدقيق» لهذا المتصفح في إعدادات الموقع بالجهاز، ثم اضغط الزر.', mPages:'صفحات', w2Close:'إغلاق', vwOneOnOne:'لقاءات 1:1 والأهداف', tk_one_on_one:'لقاء 1:1 خلال يومين', vwWorkforce:'خطة القوى العاملة', vwCareers:'صفحة الوظائف', pinOfferTitle:'اجعل الرمز السري طريقة دخولك', pinOfferLead:'ادخل من هذا الجهاز برمز سري من 6 أرقام بدل كلمة المرور أو بصمة الوجه. لا يلزم رمز تفعيل من الموارد البشرية.', pinOfferBtn:'اعتماد الرمز السري', pinOfferLater:'لاحقا', pinOfferPw:'كلمة المرور الحالية', pinOfferDone:'تم. ستدخل من هذا الجهاز بالرمز السري.', vwOpenShifts:'الورديات المفتوحة', tk_swap_ask:'زميل يطلب تبديل وردية معك', tk_shift_offer:'ورديات وتبديلات بانتظار اعتمادك', vwOrgChart:'الهيكل المرئي', vwCustomFields:'الحقول المخصصة', vwBuilder:'منشئ التقارير', vwJournal:'قيد الرواتب',
+  vwDirectory:'الدليل', vwTeam:'فريقي', vwOrg:'الهيكل', vwPositions:'الوظائف', vwOnboarding:'التهيئة', vwOffboarding:'إخلاء الطرف', vwCustody:'العهد', vwCentre:'مركز الموافقات', vwCycles:'دورة الإجازة', vwExpenses:'المصروفات', vwNewReq:'طلب جديد', vwReqView:'تفاصيل الطلب', vwNewClaim:'مطالبة مصروفات جديدة', vwClaimView:'مطالبة مصروفات', fpBack:'رجوع', fpCrumb:'مسار الصفحة', vwFlows:'مسارات الموافقة', vwGov:'الخدمات الحكومية', vwRecruit:'التوظيف', vwTraining:'التدريب والشهادات', vwInsurance:'التأمين الطبي', vwLoans:'القروض', vwHelpdesk:'مكتب الدعم', vwAnnounce:'الإعلانات', vwExits:'رأي المغادرين', vwKudos:'التقدير', vwSettle:'المخالصات', vwPayReview:'مراجعة الرواتب', vwTimesheets:'كشوف الدوام', qrScan:'مسح رمز المكتب', qrHint:'وجّه الكاميرا إلى الرمز على شاشة الحضور عند المدخل.', qrOk:'تم التحقق من رمز المكتب؛ يمكنك التسجيل الآن.', qrReady:'رمز المكتب متحقق منه، سجّل الآن', qrNoCamera:'لا يمكن فتح الكاميرا؛ اسمح للتطبيق باستخدامها.', vwKiosks:'شاشات الحضور', vwSchedules:'التقارير المجدولة', trTitle:'إجمالي المكافآت', trLead:'قيمة سنتك في الشركة: ما تتقاضاه، وما تدفعه الشركة عنك.', trYear:'القيمة السنوية الإجمالية', trCash:'ما تتقاضاه سنويا', trCompany:'ما تدفعه الشركة عنك', trSplit:'{a}% أجر نقدي · {b}% تدفعه الشركة عنك', trLeave:'إجازتك السنوية {d} يوما مدفوعة الأجر (قيمتها {v}) ضمن أجرك.', trAsOf:'حسب الراتب الساري في', trPrint:'طباعة', trNone:'لا يوجد راتب معتمد بعد.', tr_basic:'الراتب الأساسي', tr_housing:'بدل السكن', tr_transport:'بدل النقل', tr_gosi_employer:'التأمينات الاجتماعية (حصة الشركة)', tr_medical:'التأمين الطبي', tr_eos:'مخصص مكافأة نهاية الخدمة', axRefresh:'تحديث', plConsole:'وحدة تحكم المنصة', plConsoleLead:'لمالك المنصة فقط: إنشاء الشركات وإيقافها. منفصلة عن حسابات الشركات وموظفيها.', coColor:'لون الشركة', coColorLead:'تبنى منه ألوان النظام كلها: الأزرار والقائمة وشاشة الدخول والعملة المتحركة والمطبوعات، مع تباين مقروء دائما.', coColorSave:'حفظ اللون', coColorLogo:'من الشعار', coColorReset:'الألوان الافتراضية', coColorSaved:'تم حفظ لون الشركة', coColorNone:'لم نجد لونا واضحا في الشعار.', coLogo:'شعار الشركة', coLogoLead:'يظهر في العملة المتحركة وشاشة الدخول والقائمة وكل مستند مطبوع، بنفس التصميم لكل الشركات. PNG أو JPG أو WebP، ويصغر تلقائيا.', coLogoPick:'رفع شعار', coLogoRemove:'إزالة', coLogoSaved:'تم حفظ الشعار', e_bad_logo:'تعذر استخدام هذه الصورة؛ جرب PNG أو JPG أصغر.', vwIntegrations:'الربط (API)', e_bad_api_key:'مفتاح الربط غير صحيح أو ملغى.', e_unknown_resource:'هذا المورد غير متاح.', e_scope_missing:'المفتاح لا يملك صلاحية هذا المورد.', e_bad_url:'العنوان يجب أن يبدأ بـ https وألا يكون عنوانا داخليا.', e_org_book_missing:'جدول بيانات المنشأة غير موجود.', e_org_book_error:'تعذر الوصول إلى بيانات المنشأة؛ حاول بعد قليل.', vwPayGroups:'مجموعات الرواتب', pgGroup:'مجموعة الرواتب', e_group_not_empty:'في المجموعة موظفون؛ انقلهم أولا.', e_manager_not_payroll:'المسؤول يجب أن يكون من الرواتب أو الموارد البشرية.', e_needs_two_managers:'المجموعة المغلقة تحتاج شخصين على الأقل، أحدهما من الرواتب، وأنت منهم.', e_run_open:'يوجد مسير مسودة لهذه المجموعة؛ اعتمده أو احذفه أولا.', vwPlatform:'المنشآت (المنصة)', orgId:'رقم المنشأة (Org ID)', orgTitle:'رقم المنشأة', orgLead:'كل شركة لها رقم خاص وسجلات منفصلة تماما. أدخل رقم منشأتك كما وصلك من الموارد البشرية.', orgGo:'متابعة', orgChange:'تغيير المنشأة', orgChip:'المنشأة', orgFound:'المنشأة:', codeOrg:'رقم المنشأة: {org}', e_org_required:'أدخل رقم المنشأة.', e_bad_org:'رقم المنشأة أرقام فقط، من 4 إلى 8.', e_org_not_found:'لا توجد منشأة بهذا الرقم.', e_org_suspended:'حساب هذه المنشأة موقوف؛ تواصل مع مزود الخدمة.', e_bad_cr:'رقم السجل التجاري 10 أرقام.', e_cr_exists:'هذا السجل التجاري مسجل لمنشأة أخرى.', vwHistory:'السجل الشهري', e_not_emailable:'هذا التقرير لا يرسل بالبريد (أرقام الرواتب لا تغادر النظام).', e_recipient_no_access:'أحد المستلمين لا يملك صلاحية هذا التقرير.', f_qr_kiosk:'سجل برمز المكتب', f_qr_no_gps:'رمز المكتب بدون موقع الهاتف', e_qr_invalid:'رمز المكتب غير صحيح؛ امسح الرمز الظاهر الآن.', e_qr_expired:'انتهت صلاحية الرمز؛ امسح الرمز الظاهر الآن.', e_qr_wrong_zone:'هذه الشاشة ليست في موقع عملك.', e_qr_far:'موقع هاتفك بعيد عن المكتب؛ لا يقبل رمز المكتب من خارج الموقع.', e_kiosk_revoked:'هذه الشاشة أوقفت.', atAttach:'إرفاق نسخة (PDF أو صورة حتى 5 ميجابايت)', atView:'عرض المرفق', atAttached:'تم إرفاق الملف', atReplace:'استبدال المرفق', swAttach:'مرفقات المستندات', swAttachLead:'إرفاق نسخ الهوية والعقود والشهادات بسجل المستند، تحفظ في Google Drive ولا تفتح إلا من داخل النظام. تعمل بعد موافقة مالك النظام على صلاحية Google Drive مرة واحدة.', e_attachments_off:'المرفقات غير مفعلة بعد (تحتاج موافقة مالك النظام على صلاحية Google Drive).', e_bad_file_type:'نوع الملف غير مسموح؛ المسموح PDF أو JPG أو PNG أو WebP.', e_file_too_big:'الملف أكبر من 5 ميجابايت.', e_no_attachment:'لا يوجد مرفق لهذا المستند.', e_attachment_failed:'تعذر حفظ الملف أو قراءته، حاول مرة أخرى.', arHire:'التخطيط والتوظيف', arOnboard:'التعيين والتهيئة', arEngage:'التواصل وعلاقات العمل', arOffboard:'إنهاء الخدمة', arAdmin:'الإدارة والصلاحيات', alHire:'خطة القوى العاملة والهيكل والوظائف، ثم طلبات التوظيف وصفحة الوظائف والمرشحين والعروض.', alOnboard:'تفعيل حساب الموظف الجديد ورسالة الترحيب وخطة 30-60-90 حتى نهاية التجربة.', alEngage:'الإعلانات والاستبيانات والمخالفات والإصابات والسياسات.', alOffboard:'إخلاء الطرف والمخالصة النهائية ومكافأة نهاية الخدمة ورأي المغادرين.', alAdmin:'الإعدادات والأدوار ومسارات الموافقة وتصدير البيانات.', navLife:'دورة حياة الموظف', navMgmt:'التحليل والإدارة', swNotify:'ملخص يومي بالبريد الإلكتروني', swNotifyLead:'كل صباح بعد السابعة يصل لكل موظف لديه مهام بانتظاره بريد قصير بعددها ورابط التطبيق، دون أي تفاصيل. يعمل بعد ربط Microsoft 365 وموافقة مالك النظام على صلاحية الاتصال الخارجي مرة واحدة.', ntTest:'إرسال رسالة تجربة لبريدي', ntReady:'Microsoft 365 مربوط', ntNotReady:'Microsoft 365 غير مربوط بعد', ntSentTo:'أرسلت إلى', e_email_not_configured:'البريد غير مربوط بعد (Microsoft 365).', e_no_email:'لا يوجد بريد إلكتروني في سجلك.', vwPerks:'المزايا والرفاهية', wlTitle:'أهلا بك في فريقنا', wlStarts:'تبدأ معنا في {d}', wlToday:'اليوم أول أيامك معنا', wlDays:'بقي {n} يوما على بدايتك', wlManager:'مديرك', wlDept:'القسم', wlPos:'الوظيفة', wlFirstDay:'معلومات اليوم الأول', wlDocs:'أحضر معك', wlTasks:'مهام الانضمام', wlPolicies:'سياسات تحتاج إقرارك', wlOpen:'فتح', wlEdit:'رسالة الترحيب', wlEditLead:'تظهر للموظف الجديد قبل بدايته وخلال أسبوعه الأول: معلومات اليوم الأول والمستندات التي يحضرها.', wlTextAr:'معلومات اليوم الأول بالعربية', wlTextEn:'معلومات اليوم الأول بالإنجليزية', wlDocsEdit:'المستندات المطلوبة (سطر لكل مستند)', wlPreview:'معاينة', vwWelcome:'رسالة الترحيب', vwExport:'تصدير بيانات الشركة', vwMobility:'التنقل الداخلي', vwRoles:'الأدوار والصلاحيات', a77Label:'تعويض المادة 77', a77None:'لا يوجد', a77Employer:'الشركة أنهت العقد دون سبب مشروع (يضاف للموظف)', a77Employee:'الموظف ترك العمل دون سبب مشروع (مطالبة للشركة)', a77Claim:'مطالبة للشركة (لا تخصم تلقائيا)', a77Fixed:'أجر المدة الباقية من العقد', a77Open:'15 يوم أجر عن كل سنة خدمة', a77Min:'الحد الأدنى أجر شهرين', w_art77_claim_not_deducted:'مطالبة المادة 77 على الموظف لا تخصم من المستحقات تلقائيا؛ تتم باتفاق مكتوب أو حكم (المادتان 92 و93).', e_art77_reason:'تعويض المادة 77 لصالح الموظف لا يجتمع مع الاستقالة أو الفصل وفق المادة 80.', vwTalent:'المواهب والتعاقب', vwKb:'قاعدة المعرفة', locIosTitle:'الموقع مقفل من إعدادات iPhone', locIos1:'افتح الإعدادات ثم «الخصوصية والأمان» ثم «خدمات الموقع» وتأكد أنها مفعّلة.', locIos2:'في نفس الصفحة اختر «مواقع Safari» ثم «أثناء استخدام التطبيق»، وفعّل «الموقع الدقيق».', locIos3:'ارجع إلى التطبيق؛ سيتحقق تلقائياً، أو اضغط الزر.', locCheckAgain:'تحقق مرة أخرى', locOpenSettings:'فتح الإعدادات', locNativeLead:'الموقع غير مسموح لهذا التطبيق. افتح الإعدادات واختر «الموقع: أثناء الاستخدام» و«الموقع الدقيق»، ثم ارجع.', locCoarse:'جهازك يرسل موقعاً تقريبياً فقط', locCoarseIos:'في iPhone فعّل «الموقع الدقيق»: عند ظهور طلب الموقع اضغط «دقيق: تشغيل»، أو من الإعدادات ثم الخصوصية والأمان ثم خدمات الموقع ثم مواقع Safari (أو تطبيق المتصفح) ثم «الموقع الدقيق». ثم اضغط الزر.', locCoarseOther:'فعّل «الموقع الدقيق» لهذا المتصفح في إعدادات الموقع بالجهاز، ثم اضغط الزر.', mPages:'صفحات', w2Close:'إغلاق', vwOneOnOne:'لقاءات 1:1 والأهداف', tk_one_on_one:'لقاء 1:1 خلال يومين', vwWorkforce:'خطة القوى العاملة', vwCareers:'صفحة الوظائف', pinOfferTitle:'اجعل الرمز السري طريقة دخولك', pinOfferLead:'ادخل من هذا الجهاز برمز سري من 6 أرقام بدل كلمة المرور أو بصمة الوجه. لا يلزم رمز تفعيل من الموارد البشرية.', pinOfferBtn:'اعتماد الرمز السري', pinOfferLater:'لاحقا', pinOfferPw:'كلمة المرور الحالية', pinOfferDone:'تم. ستدخل من هذا الجهاز بالرمز السري.', vwOpenShifts:'الورديات المفتوحة', tk_swap_ask:'زميل يطلب تبديل وردية معك', tk_shift_offer:'ورديات وتبديلات بانتظار اعتمادك', vwOrgChart:'الهيكل المرئي', vwCustomFields:'الحقول المخصصة', vwBuilder:'منشئ التقارير', vwJournal:'قيد الرواتب',
   vwRelations:'علاقات العمل', vwPolicies:'السياسات', vwExpiring:'وثائق تنتهي', vwImport:'استيراد', vwAccounts:'الدخول والأجهزة',
   vwDashboard:'لوحة الإدارة', vwReports:'التقارير', vwAttendance:'تقرير الحضور', vwAudit:'سجل التدقيق', vwMain:'',
   v2System:'نظام الموارد البشرية', v2Search:'ابحث عن موظف أو صفحة', v2Menu:'القائمة', v2More:'المزيد', v2Punch:'بصمة', v2MyPay:'راتبي', v2Req:'الطلبات', v2PeopleS:'الموظفون',
@@ -3473,11 +3473,11 @@ Object.assign(T.en, {
   alTime:'Your attendance, team shifts and punch review.', alRequests:'Your requests, approvals, the leave calendar and public holidays.', alPay:'Your payslips, payroll runs and wage protection.',
   alGrowth:'Your goals and review, development plans and the pulse survey.', alPeople:'The employee record: directory, org chart, documents, government services, insurance, assets and custom fields.', alInsights:'The management dashboard, verified reports and the audit log.',
   alSettings:'Attendance rules and system settings.',
-  vwPunch:'Check in', vwHistory:'My attendance', vwBoard:'Today', vwReview:'Punch review', vwShifts:'Shifts', vwZones:'Locations',
+  vwPunch:'Check in', vwHistory:'My attendance', vwBoard:'Today', vwOffice:'Office map', vwReview:'Punch review', vwShifts:'Shifts', vwZones:'Locations',
   vwMine:'My requests', vwInbox:'Approvals', vwLeave:'Leave calendar', vwHolidays:'Public holidays',
   vwSlips:'My payslips', vwRuns:'Payroll runs', vwApprovals:'Salary approvals', vwCompliance:'Compliance',
   vwGrowth:'My growth', vwCycle:'Review cycle', vwPlans:'Development plans', vwPulse:'Pulse survey',
-  vwDirectory:'Directory', vwTeam:'My team', vwOrg:'Organisation', vwPositions:'Positions', vwOnboarding:'Onboarding', vwOffboarding:'Offboarding', vwCustody:'Assets', vwCentre:'Approvals centre', vwCycles:'Leave cycle', vwExpenses:'Expenses', vwNewReq:'New request', vwReqView:'Request details', vwNewClaim:'New expense claim', vwClaimView:'Expense claim', fpBack:'Back', fpCrumb:'Breadcrumb', vwFlows:'Approval flows', vwGov:'Government services', vwRecruit:'Recruitment', vwTraining:'Training and certificates', vwInsurance:'Medical insurance', vwLoans:'Loans', vwHelpdesk:'Help desk', vwAnnounce:'Announcements', vwExits:'Exit insights', vwKudos:'Recognition', vwSettle:'Settlements', vwPayReview:'Pay review', vwTimesheets:'Timesheets', qrScan:'Scan office QR', qrHint:'Point the camera at the code on the attendance screen at the entrance.', qrOk:'Office code verified; you can check in now.', qrReady:'Office code verified, check in now', qrNoCamera:'The camera could not open; allow the app to use it.', vwKiosks:'Attendance screens', vwSchedules:'Scheduled reports', axRefresh:'Refresh', plConsole:'Platform console', plConsoleLead:'For the platform owner only: create and suspend companies. Separate from every company and its people.', coColor:'Company colour', coColorLead:'The whole palette is built from it: buttons, menu, sign-in, the animated medallion and printed documents, always with readable contrast.', coColorSave:'Save colour', coColorLogo:'From the logo', coColorReset:'Default colours', coColorSaved:'Company colour saved', coColorNone:'No clear colour found in the logo.', coLogo:'Company logo', coLogoLead:'Shown on the animated medallion, the sign-in screen, the menu and every printed document, in the same design for every company. PNG, JPG or WebP, resized automatically.', coLogoPick:'Upload logo', coLogoRemove:'Remove', coLogoSaved:'Logo saved', e_bad_logo:'This image could not be used; try a smaller PNG or JPG.', vwIntegrations:'Integrations (API)', e_bad_api_key:'The API key is wrong or revoked.', e_unknown_resource:'This resource is not available.', e_scope_missing:'The key may not read this resource.', e_bad_url:'The address must start with https and must not be an internal address.', e_org_book_missing:'The organisation spreadsheet is missing.', e_org_book_error:'The organisation data could not be reached; try again shortly.', vwPayGroups:'Pay groups', pgGroup:'Pay group', e_group_not_empty:'The group still has people; move them first.', e_manager_not_payroll:'A manager must be from payroll or HR.', e_needs_two_managers:'A closed group needs at least two people, one from payroll, and you among them.', e_run_open:'A draft run of this group is open; approve or delete it first.', vwPlatform:'Organisations (platform)', orgId:'Organisation ID (Org ID)', orgTitle:'Organisation ID', orgLead:'Each company has its own number and completely separate records. Enter your organisation\'s ID as HR sent it to you.', orgGo:'Continue', orgChange:'Change organisation', orgChip:'Org', orgFound:'Organisation:', codeOrg:'Org ID: {org}', e_org_required:'Enter the organisation ID.', e_bad_org:'The organisation ID is 4 to 8 digits.', e_org_not_found:'There is no organisation with this ID.', e_org_suspended:'This organisation\'s account is suspended; contact the service provider.', e_bad_cr:'The CR number is 10 digits.', e_cr_exists:'This CR is already registered to another organisation.', vwHistory:'Monthly history', e_not_emailable:'This report cannot be e-mailed (pay figures never leave the system).', e_recipient_no_access:'One of the recipients has no access to this report.', f_qr_kiosk:'Office QR check-in', f_qr_no_gps:'Office QR without phone location', e_qr_invalid:'That office code is not valid; scan the code showing now.', e_qr_expired:'The code has expired; scan the code showing now.', e_qr_wrong_zone:'This screen is not at your work location.', e_qr_far:'Your phone is far from the office; an office code is not accepted from outside.', e_kiosk_revoked:'This screen was stopped.', atAttach:'Attach a scan (PDF or image up to 5 MB)', atView:'View attachment', atAttached:'File attached', atReplace:'Replace the attachment', swAttach:'Document attachments', swAttachLead:'Attach scans of IDs, contracts and certificates to the document record. Stored in Google Drive and opened only inside the system. Works once the owner approves the Google Drive permission once.', e_attachments_off:'Attachments are not switched on yet (they need the owner to approve the Google Drive permission).', e_bad_file_type:'That file type is not allowed; use PDF, JPG, PNG or WebP.', e_file_too_big:'The file is larger than 5 MB.', e_no_attachment:'This document has no attachment.', e_attachment_failed:'The file could not be saved or read; please try again.', arHire:'Plan and hire', arOnboard:'Onboard', arEngage:'Engagement and relations', arOffboard:'Offboard', arAdmin:'Administration', alHire:'Workforce plan, structure and positions, then requisitions, the careers page, candidates and offers.', alOnboard:'Activate the new hire, the welcome message and the 30-60-90 plan through probation.', alEngage:'Announcements, surveys, violations and injuries, and policies.', alOffboard:'Clearance, the final settlement with end-of-service pay, and exit interviews.', alAdmin:'Settings, roles, approval flows and data export.', navLife:'Employee lifecycle', navMgmt:'Analysis and administration', swNotify:'Daily e-mail digest', swNotifyLead:'Each morning after 7, everyone with items waiting gets a short e-mail with the count and a link to the app, no details. Works once Microsoft 365 is connected and the owner approves the external-connection permission once.', ntTest:'Send a test to my e-mail', ntReady:'Microsoft 365 connected', ntNotReady:'Microsoft 365 not connected yet', ntSentTo:'Sent to', e_email_not_configured:'E-mail is not connected yet (Microsoft 365).', e_no_email:'There is no e-mail on your record.', vwPerks:'Perks and wellbeing', wlTitle:'Welcome to the team', wlStarts:'You start with us on {d}', wlToday:'Today is your first day with us', wlDays:'{n} days until you start', wlManager:'Your manager', wlDept:'Department', wlPos:'Position', wlFirstDay:'Your first day', wlDocs:'Bring with you', wlTasks:'Onboarding tasks', wlPolicies:'Policies to acknowledge', wlOpen:'Open', wlEdit:'Welcome message', wlEditLead:'Shown to a new hire before they start and during their first week: first-day information and the documents to bring.', wlTextAr:'First-day information (Arabic)', wlTextEn:'First-day information (English)', wlDocsEdit:'Documents to bring (one per line)', wlPreview:'Preview', vwWelcome:'Welcome message', vwExport:'Company data export', vwMobility:'Internal mobility', vwRoles:'Roles and permissions', a77Label:'Art. 77 compensation', a77None:'None', a77Employer:'The company ended the contract without a valid reason (paid to the employee)', a77Employee:'The employee left without a valid reason (company claim)', a77Claim:'Company claim (not deducted automatically)', a77Fixed:'Wage for the remaining contract period', a77Open:'15 days\' wage per year of service', a77Min:'Minimum two months\' wage', w_art77_claim_not_deducted:'An Art. 77 claim against the employee is not deducted from the settlement automatically; it needs a written agreement or a court ruling (Art. 92 and 93).', e_art77_reason:'Art. 77 compensation for the employee does not go with a resignation or an Art. 80 dismissal.', vwTalent:'Talent and succession', vwKb:'Knowledge base', locIosTitle:'Location is blocked in the iPhone settings', locIos1:'Open Settings > Privacy & Security > Location Services and make sure it is on.', locIos2:'On the same page choose Safari Websites > While Using the App, and turn on Precise Location.', locIos3:'Come back to the app; it checks by itself, or press the button.', locCheckAgain:'Check again', locOpenSettings:'Open Settings', locNativeLead:'Location is not allowed for this app. Open Settings, choose Location: While Using and Precise Location, then come back.', locCoarse:'Your device is sending only an approximate location', locCoarseIos:'On iPhone, turn on Precise Location: when the location prompt shows, tap "Precise: On", or go to Settings > Privacy & Security > Location Services > Safari Websites (or your browser app) > Precise Location. Then press the button.', locCoarseOther:'Turn on precise location for this browser in the device location settings, then press the button.', mPages:'pages', w2Close:'Close', vwOneOnOne:'1:1s and goals', tk_one_on_one:'A 1:1 within two days', vwWorkforce:'Workforce plan', vwCareers:'Careers page', pinOfferTitle:'Make the PIN your sign-in', pinOfferLead:'Sign in on this device with a 6-digit PIN instead of the password or Face ID. No activation code from HR is needed.', pinOfferBtn:'Use the PIN', pinOfferLater:'Later', pinOfferPw:'Current password', pinOfferDone:'Done. This device now signs in with your PIN.', vwOpenShifts:'Open shifts', tk_swap_ask:'A colleague asks to swap a shift with you', tk_shift_offer:'Shifts and swaps waiting for your approval', vwOrgChart:'Org chart', vwCustomFields:'Custom fields', vwBuilder:'Report builder', vwJournal:'Payroll journal',
+  vwDirectory:'Directory', vwTeam:'My team', vwOrg:'Organisation', vwPositions:'Positions', vwOnboarding:'Onboarding', vwOffboarding:'Offboarding', vwCustody:'Assets', vwCentre:'Approvals centre', vwCycles:'Leave cycle', vwExpenses:'Expenses', vwNewReq:'New request', vwReqView:'Request details', vwNewClaim:'New expense claim', vwClaimView:'Expense claim', fpBack:'Back', fpCrumb:'Breadcrumb', vwFlows:'Approval flows', vwGov:'Government services', vwRecruit:'Recruitment', vwTraining:'Training and certificates', vwInsurance:'Medical insurance', vwLoans:'Loans', vwHelpdesk:'Help desk', vwAnnounce:'Announcements', vwExits:'Exit insights', vwKudos:'Recognition', vwSettle:'Settlements', vwPayReview:'Pay review', vwTimesheets:'Timesheets', qrScan:'Scan office QR', qrHint:'Point the camera at the code on the attendance screen at the entrance.', qrOk:'Office code verified; you can check in now.', qrReady:'Office code verified, check in now', qrNoCamera:'The camera could not open; allow the app to use it.', vwKiosks:'Attendance screens', vwSchedules:'Scheduled reports', trTitle:'Total rewards', trLead:'What your year with the company is worth: what you are paid, and what the company pays on your behalf.', trYear:'Total yearly value', trCash:'Your yearly pay', trCompany:'Paid by the company on your behalf', trSplit:'{a}% cash pay · {b}% paid on your behalf', trLeave:'Your {d} days of paid annual leave (worth {v}) are part of your pay.', trAsOf:'Based on the package in force on', trPrint:'Print', trNone:'No approved package yet.', tr_basic:'Basic salary', tr_housing:'Housing allowance', tr_transport:'Transport allowance', tr_gosi_employer:'GOSI (company share)', tr_medical:'Medical insurance', tr_eos:'End-of-service provision', axRefresh:'Refresh', plConsole:'Platform console', plConsoleLead:'For the platform owner only: create and suspend companies. Separate from every company and its people.', coColor:'Company colour', coColorLead:'The whole palette is built from it: buttons, menu, sign-in, the animated medallion and printed documents, always with readable contrast.', coColorSave:'Save colour', coColorLogo:'From the logo', coColorReset:'Default colours', coColorSaved:'Company colour saved', coColorNone:'No clear colour found in the logo.', coLogo:'Company logo', coLogoLead:'Shown on the animated medallion, the sign-in screen, the menu and every printed document, in the same design for every company. PNG, JPG or WebP, resized automatically.', coLogoPick:'Upload logo', coLogoRemove:'Remove', coLogoSaved:'Logo saved', e_bad_logo:'This image could not be used; try a smaller PNG or JPG.', vwIntegrations:'Integrations (API)', e_bad_api_key:'The API key is wrong or revoked.', e_unknown_resource:'This resource is not available.', e_scope_missing:'The key may not read this resource.', e_bad_url:'The address must start with https and must not be an internal address.', e_org_book_missing:'The organisation spreadsheet is missing.', e_org_book_error:'The organisation data could not be reached; try again shortly.', vwPayGroups:'Pay groups', pgGroup:'Pay group', e_group_not_empty:'The group still has people; move them first.', e_manager_not_payroll:'A manager must be from payroll or HR.', e_needs_two_managers:'A closed group needs at least two people, one from payroll, and you among them.', e_run_open:'A draft run of this group is open; approve or delete it first.', vwPlatform:'Organisations (platform)', orgId:'Organisation ID (Org ID)', orgTitle:'Organisation ID', orgLead:'Each company has its own number and completely separate records. Enter your organisation\'s ID as HR sent it to you.', orgGo:'Continue', orgChange:'Change organisation', orgChip:'Org', orgFound:'Organisation:', codeOrg:'Org ID: {org}', e_org_required:'Enter the organisation ID.', e_bad_org:'The organisation ID is 4 to 8 digits.', e_org_not_found:'There is no organisation with this ID.', e_org_suspended:'This organisation\'s account is suspended; contact the service provider.', e_bad_cr:'The CR number is 10 digits.', e_cr_exists:'This CR is already registered to another organisation.', vwHistory:'Monthly history', e_not_emailable:'This report cannot be e-mailed (pay figures never leave the system).', e_recipient_no_access:'One of the recipients has no access to this report.', f_qr_kiosk:'Office QR check-in', f_qr_no_gps:'Office QR without phone location', e_qr_invalid:'That office code is not valid; scan the code showing now.', e_qr_expired:'The code has expired; scan the code showing now.', e_qr_wrong_zone:'This screen is not at your work location.', e_qr_far:'Your phone is far from the office; an office code is not accepted from outside.', e_kiosk_revoked:'This screen was stopped.', atAttach:'Attach a scan (PDF or image up to 5 MB)', atView:'View attachment', atAttached:'File attached', atReplace:'Replace the attachment', swAttach:'Document attachments', swAttachLead:'Attach scans of IDs, contracts and certificates to the document record. Stored in Google Drive and opened only inside the system. Works once the owner approves the Google Drive permission once.', e_attachments_off:'Attachments are not switched on yet (they need the owner to approve the Google Drive permission).', e_bad_file_type:'That file type is not allowed; use PDF, JPG, PNG or WebP.', e_file_too_big:'The file is larger than 5 MB.', e_no_attachment:'This document has no attachment.', e_attachment_failed:'The file could not be saved or read; please try again.', arHire:'Plan and hire', arOnboard:'Onboard', arEngage:'Engagement and relations', arOffboard:'Offboard', arAdmin:'Administration', alHire:'Workforce plan, structure and positions, then requisitions, the careers page, candidates and offers.', alOnboard:'Activate the new hire, the welcome message and the 30-60-90 plan through probation.', alEngage:'Announcements, surveys, violations and injuries, and policies.', alOffboard:'Clearance, the final settlement with end-of-service pay, and exit interviews.', alAdmin:'Settings, roles, approval flows and data export.', navLife:'Employee lifecycle', navMgmt:'Analysis and administration', swNotify:'Daily e-mail digest', swNotifyLead:'Each morning after 7, everyone with items waiting gets a short e-mail with the count and a link to the app, no details. Works once Microsoft 365 is connected and the owner approves the external-connection permission once.', ntTest:'Send a test to my e-mail', ntReady:'Microsoft 365 connected', ntNotReady:'Microsoft 365 not connected yet', ntSentTo:'Sent to', e_email_not_configured:'E-mail is not connected yet (Microsoft 365).', e_no_email:'There is no e-mail on your record.', vwPerks:'Perks and wellbeing', wlTitle:'Welcome to the team', wlStarts:'You start with us on {d}', wlToday:'Today is your first day with us', wlDays:'{n} days until you start', wlManager:'Your manager', wlDept:'Department', wlPos:'Position', wlFirstDay:'Your first day', wlDocs:'Bring with you', wlTasks:'Onboarding tasks', wlPolicies:'Policies to acknowledge', wlOpen:'Open', wlEdit:'Welcome message', wlEditLead:'Shown to a new hire before they start and during their first week: first-day information and the documents to bring.', wlTextAr:'First-day information (Arabic)', wlTextEn:'First-day information (English)', wlDocsEdit:'Documents to bring (one per line)', wlPreview:'Preview', vwWelcome:'Welcome message', vwExport:'Company data export', vwMobility:'Internal mobility', vwRoles:'Roles and permissions', a77Label:'Art. 77 compensation', a77None:'None', a77Employer:'The company ended the contract without a valid reason (paid to the employee)', a77Employee:'The employee left without a valid reason (company claim)', a77Claim:'Company claim (not deducted automatically)', a77Fixed:'Wage for the remaining contract period', a77Open:'15 days\' wage per year of service', a77Min:'Minimum two months\' wage', w_art77_claim_not_deducted:'An Art. 77 claim against the employee is not deducted from the settlement automatically; it needs a written agreement or a court ruling (Art. 92 and 93).', e_art77_reason:'Art. 77 compensation for the employee does not go with a resignation or an Art. 80 dismissal.', vwTalent:'Talent and succession', vwKb:'Knowledge base', locIosTitle:'Location is blocked in the iPhone settings', locIos1:'Open Settings > Privacy & Security > Location Services and make sure it is on.', locIos2:'On the same page choose Safari Websites > While Using the App, and turn on Precise Location.', locIos3:'Come back to the app; it checks by itself, or press the button.', locCheckAgain:'Check again', locOpenSettings:'Open Settings', locNativeLead:'Location is not allowed for this app. Open Settings, choose Location: While Using and Precise Location, then come back.', locCoarse:'Your device is sending only an approximate location', locCoarseIos:'On iPhone, turn on Precise Location: when the location prompt shows, tap "Precise: On", or go to Settings > Privacy & Security > Location Services > Safari Websites (or your browser app) > Precise Location. Then press the button.', locCoarseOther:'Turn on precise location for this browser in the device location settings, then press the button.', mPages:'pages', w2Close:'Close', vwOneOnOne:'1:1s and goals', tk_one_on_one:'A 1:1 within two days', vwWorkforce:'Workforce plan', vwCareers:'Careers page', pinOfferTitle:'Make the PIN your sign-in', pinOfferLead:'Sign in on this device with a 6-digit PIN instead of the password or Face ID. No activation code from HR is needed.', pinOfferBtn:'Use the PIN', pinOfferLater:'Later', pinOfferPw:'Current password', pinOfferDone:'Done. This device now signs in with your PIN.', vwOpenShifts:'Open shifts', tk_swap_ask:'A colleague asks to swap a shift with you', tk_shift_offer:'Shifts and swaps waiting for your approval', vwOrgChart:'Org chart', vwCustomFields:'Custom fields', vwBuilder:'Report builder', vwJournal:'Payroll journal',
   vwRelations:'Employee relations', vwPolicies:'Policies', vwExpiring:'Expiring documents', vwImport:'Import', vwAccounts:'Logins & devices',
   vwDashboard:'Dashboard', vwReports:'Reports', vwAttendance:'Attendance report', vwAudit:'Audit log', vwMain:'',
   v2System:'HR system', v2Search:'Search people or pages', v2Menu:'Menu', v2More:'More', v2Punch:'Punch', v2MyPay:'My pay', v2Req:'Requests', v2PeopleS:'People',
@@ -3557,6 +3557,7 @@ var AREAS = [
     { id: 'punch', n: 'vwPunch', ok: ALL, run: function(){ renderHome(); } },
     { id: 'history', n: 'vwHistory', ok: ALL, run: function(){ renderHistory(); } },
     { id: 'board', n: 'vwBoard', ok: isHr, adm: 'board' },
+    { id: 'office', n: 'vwOffice', ok: ALL, files: ['js/presence.js'], run: function(b){ OfficeMap.section(b); } },
     { id: 'review', n: 'vwReview', ok: isHr, adm: 'review', badge: 'revBadge' },
     { id: 'shifts', n: 'vwShifts', ok: any('hr', 'manager'), sec: 'shifts', ops: 1 },
     { id: 'openshifts', n: 'vwOpenShifts', ok: ALL, files: W4_FILES, run: function(b){ OpenShifts.section(b); } },
@@ -3623,7 +3624,7 @@ var AREAS = [
     { id: 'account', i: 'user-circle', foot: true, bare: true, subs: [{ id: 'main', n: 'vwMain', ok: ALL, run: function(){ renderMe(); } }] }
 ];
 /** One icon per sub-page tab (2026-10-18 redesign): the same Phosphor set as the side menu and the bell. */
-var SUB_ICON = { integrations: 'plugs-connected', paygroups: 'users-four', paygroups: 'users-four', platform: 'buildings', history: 'clock-counter-clockwise', schedules: 'envelope-simple', kiosks: 'qr-code', perks: 'gift', welcome: 'hand-waving', export: 'download-simple', mobility: 'path', roles: 'shield-check', talent: 'squares-four', kb: 'books', oneonone: 'chats-circle', workforce: 'users-four', careers: 'globe', openshifts: 'calendar-plus', punch: 'fingerprint', history: 'calendar-dots', board: 'users-four', review: 'shield-warning', timesheets: 'calendar-check', shifts: 'clock-clockwise', zones: 'map-pin-area',
+var SUB_ICON = { office: 'map-trifold', integrations: 'plugs-connected', paygroups: 'users-four', paygroups: 'users-four', platform: 'buildings', history: 'clock-counter-clockwise', schedules: 'envelope-simple', kiosks: 'qr-code', perks: 'gift', welcome: 'hand-waving', export: 'download-simple', mobility: 'path', roles: 'shield-check', talent: 'squares-four', kb: 'books', oneonone: 'chats-circle', workforce: 'users-four', careers: 'globe', openshifts: 'calendar-plus', punch: 'fingerprint', history: 'calendar-dots', board: 'users-four', review: 'shield-warning', timesheets: 'calendar-check', shifts: 'clock-clockwise', zones: 'map-pin-area',
   mine: 'tray', inbox: 'check-square', centre: 'stamp', cycles: 'arrows-clockwise', expenses: 'receipt', helpdesk: 'lifebuoy', leave: 'calendar-blank', holidays: 'confetti', flows: 'flow-arrow',
   slips: 'file-text', runs: 'money', approvals: 'seal-check', compliance: 'scales', journal: 'notebook', settlements: 'handshake', loans: 'hand-coins',
   me: 'user-focus', cycle: 'target', plans: 'path', pulse: 'heartbeat', payreview: 'trend-up', kudos: 'hands-clapping', training: 'graduation-cap',
@@ -4368,7 +4369,7 @@ function openTasks(){
     if (!r || !r.ok) return failBox(el, function(){ api('myTasks', {}, true).then(draw); });
     var list = r.tasks.slice(), work = list.filter(function(x){ return x.kind !== 'delegated'; }), total = work.reduce(function(n, x){ return n + (x.count || 0); }, 0);
     d.setHead({ lead: total ? t('tkWaitingN').replace('{n}', total) : t('tkNoneLead'), chips: total ? '' : '<span class="chip in">' + t('tkClear') + '</span>' });
-    if (!list.length) { el.innerHTML = '<div class="rp-sec"><div class="empty" style="padding:36px 10px">' + ph('check-circle') + '<b>' + t('tkNone') + '</b><p style="color:var(--ink-2);margin:6px 0 0">' + t('tkNoneLead') + '</p></div></div>'; return; }
+    if (!list.length) { el.innerHTML = '<div class="rp-sec"><div class="empty" style="padding:36px 12px">' + ph('check-circle') + '<b>' + t('tkNone') + '</b><p style="color:var(--ink-2);margin:6px 0 0">' + t('tkNoneLead') + '</p></div></div>'; return; }
     var byArea = {}, order = [];
     list.forEach(function(x, i){ var a = x.kind === 'delegated' ? 'info' : taskDest(x).split(':')[0]; if (!byArea[a]) { byArea[a] = []; order.push(a); } byArea[a].push(i); });
     var tiles = order.filter(function(a){ return a !== 'info'; }).map(function(a){ var ar = areaOf(a), n = byArea[a].reduce(function(s, i){ return s + (list[i].count || 0); }, 0);
@@ -4599,7 +4600,7 @@ function updateRadar(){
   hero.classList.toggle('inside', g.kind === 'inside');
   var next = S.today ? S.today.next : 'in';
   var canOutside = next === 'out' && S.rules && S.rules.allowCheckoutOutside;
-  var enabled = (g.kind === 'inside' && !g.weak) || (canOutside && (g.kind === 'inside' || g.kind === 'outside')) || (!!qrFresh() && g.kind !== 'nozone');
+  var enabled = (g.kind === 'inside' && !g.weak) || (canOutside && (g.kind === 'inside' || g.kind === 'outside')) || (!!qrFresh() && g.kind !== 'nozone') || !!(S.today && S.today.remoteDay); // an approved remote day: from anywhere
   btn.setAttribute('aria-disabled', enabled ? 'false' : 'true');
   if (g.kind === 'nozone') { stateTxt.textContent = t('outside'); distTxt.innerHTML = '--'; subTxt.textContent = ''; pTitle.textContent = t('noZone'); pHint.textContent = ''; zoneEl.style.width = zoneEl.style.height = '40%'; return; }
   if (qrFresh() && g.kind !== 'nozone') { pTitle.textContent = t('qrReady'); }

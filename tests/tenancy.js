@@ -79,5 +79,13 @@ const l = B.raw({ action: 'orgList', setupKey: 'k' });
 ok(l.ok && l.home === '1001' && l.orgs.length === 1 && l.orgs[0].cr === '1010123456', 'the platform lists its organisations', l);
 ok(B.raw({ action: 'me', token: E.token }).ok && B.raw({ action: 'me', token: E.token }).company.orgId === '1002', 'the app is told its Org ID');
 
+console.log('Platform usage overview');
+ok(B.raw({ action: 'orgOverview', setupKey: 'bad' }).error === 'bad_setup_key', 'only the platform owner sees the overview');
+ok(B.raw({ action: 'orgSetGroup', setupKey: 'k', id: '1002', group: 'Holding' }).ok && B.raw({ action: 'orgSetGroup', setupKey: 'k', id: '1001', group: 'Holding' }).ok, 'companies are put in a group');
+const ov = B.raw({ action: 'orgOverview', setupKey: 'k' });
+const o1 = ov.rows && ov.rows.find(x => x.id === '1001'), o2 = ov.rows && ov.rows.find(x => x.id === '1002');
+ok(ov.ok && o1 && o2 && o1.group === 'Holding' && o2.group === 'Holding' && o2.employees === 4 && o1.employees >= 1 && o2.nameAr === 'شركة النخبة', 'each company is counted inside its own book, listed under its group', ov.rows);
+ok(!/basic|"net|iban|salary|empNo|"name"/.test(JSON.stringify(ov.rows)), 'counts only: no salary, no person, no personal data leaves a company', ov.rows);
+
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);

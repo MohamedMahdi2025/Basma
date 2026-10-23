@@ -412,3 +412,20 @@ Every company is an organisation with a numeric Org ID, and each has **its own s
     v2 and dark scopes;
   - every green shade is `var(--g-RRGGBB,#RRGGBB)` (`GREEN_LITERALS`); status greens stay green;
   - never add a raw brand green; `tests/brand.js` fails on one.
+
+## Live office map (2026-10-23, after Roam; docs/research/2026-10-23-roam-office-map.md)
+
+Page `time:office` (`js/presence.js`, `api_officeMap` + `api_presenceSet` at the end of Attendance.gs, tab `presenceNotes`):
+one room per zone with who is checked in there, then remote / work trip / left / away. Colleagues get presence only ("away"
+hides leave and absence); `day` (status, late, leave type) only for HR/admin/executive, a manager's own people and yourself.
+"My status" is ≤ 60 chars with an optional end time. Remote work requests (`remote`, RW) and the total rewards statement
+(`myTotalRewards`, button in the payslip card) landed the same day. Tests: tests/presence.js.
+
+## Visual workflow designer (2026-10-23)
+
+Admin > approval flows > "Edit flow" opens a designer (js/flows.js `editFlow`). It has a palette of approver kinds (drag or
+tap), a canvas (drag to reorder, Alt+arrows, Delete), an inspector (kind, person, conditions, SLA) and "try it". Try it calls
+`flowPreview`, which runs the draft through `flowClean_` (the same checks as `flowSave`) and `flowResolve_` (the same
+resolution `flowPlan_` uses for real requests), so the preview cannot drift from reality. Tests: tests/flowdesign.js.
+Trap: W2K/flows `fld()` injects its own id into the control, so never look a field up by an id you wrote inside `fld()`;
+use a data attribute.

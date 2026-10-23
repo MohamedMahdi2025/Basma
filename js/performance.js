@@ -71,7 +71,7 @@ var css = '' +
 '.pf-stages{display:flex;gap:4px;margin:4px 0 14px;overflow-x:auto}' +
 '.pf-stages span{flex:1;min-width:88px;text-align:center;font-size:13px;padding:8px 6px;border-radius:8px;background:#EFECE3;color:var(--ink-2)}' +
 '.pf-stages span.done{background:var(--g-DDEFE0,#DDEFE0);color:var(--g-255B31,#255B31)}.pf-stages span.cur{background:var(--pine);color:var(--cream);font-weight:500}' +
-'.pf-dist{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;align-items:end;height:150px;padding:10px 4px 0}' +
+'.pf-dist{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;align-items:end;height:150px;padding:12px 4px 0}' +
 '.pf-dist div{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px;font-size:12px;color:var(--ink-2)}' +
 '.pf-dist i{display:block;width:70%;max-width:56px;background:var(--brand);border-radius:6px 6px 0 0;min-height:2px}' +
 '.pf-dist b{font-variant-numeric:tabular-nums;color:var(--ink)}' +
@@ -205,7 +205,7 @@ function teamTable(rows, cycle, calib){
 }
 
 function hrView(body){
-  body.innerHTML = '<div class="hr-h"><h2>' + t('pfTitle') + '</h2><select id="pfCy" style="height:38px;border:1px solid var(--line);border-radius:var(--r-s);background:var(--card);padding:0 10px"></select><button type="button" class="btn btn-line btn-sm" id="pfNewB">' + ph('plus') + t('pfNew') + '</button></div><div id="pfH"></div>';
+  body.innerHTML = '<div class="hr-h"><h2>' + t('pfTitle') + '</h2><select id="pfCy" style="height:38px;border:1px solid var(--line);border-radius:var(--r-s);background:var(--card);padding:0 12px"></select><button type="button" class="btn btn-line btn-sm" id="pfNewB">' + ph('plus') + t('pfNew') + '</button></div><div id="pfH"></div>';
   $('#pfNewB', body).onclick = function(){ newCycle(function(){ hrView(body); }); };
   api('perfCycleList', {}, true).then(function(cl){
     if (!cl.ok) return;
@@ -277,7 +277,7 @@ function empDrawer(empId, cycleId, done){
       var v = r.review || {}, editable = st === 'review' && !v.mgrAt;
       h += (v.selfComps ? '<p class="hr-hint">' + t('pfSelfBy') + ': ' + (v.selfAt ? t('pfDone') : t('pfPending')) + (v.selfComment ? '، ' + esc(v.selfComment) : '') + '</p>' : '');
       h += '<h4 class="hr-sub">' + t('pfMgrReview') + '</h4>' + r.kpis.map(function(k){ return kpiLine(k, '<small>' + t('pfActual') + ': ' + esc(k.actual || '-') + '، ' + t('pfSelf') + ': ' + (k.selfScore || '-') + (k.selfComment ? '، ' + esc(k.selfComment) : '') + '</small>' +
-        (editable ? picker('k_' + k.id, k.mgrScore) + '<input data-mc="' + k.id + '" value="' + esc(k.mgrComment || '') + '" placeholder="' + t('pfComment') + '" style="width:100%;margin-top:6px;height:38px;border:1px solid var(--line);border-radius:var(--r-s);padding:0 10px">' : '<small>' + t('pfMgrReview') + ': <b>' + (k.mgrScore || '-') + '</b></small>')); }).join('') +
+        (editable ? picker('k_' + k.id, k.mgrScore) + '<input data-mc="' + k.id + '" value="' + esc(k.mgrComment || '') + '" placeholder="' + t('pfComment') + '" style="width:100%;margin-top:6px;height:38px;border:1px solid var(--line);border-radius:var(--r-s);padding:0 12px">' : '<small>' + t('pfMgrReview') + ': <b>' + (k.mgrScore || '-') + '</b></small>')); }).join('') +
         '<h4 class="hr-sub">' + t('pfComps') + '</h4>' + r.competencies.map(function(cp){ var sv = v.selfComps ? v.selfComps[cp] : null, mv = v.mgrComps ? v.mgrComps[cp] : null;
           return '<div class="pf-item"><div class="top"><b>' + t('cp_' + cp) + '</b>' + (sv ? '<small>' + t('pfSelf') + ': ' + sv + '</small>' : '') + '</div>' + (editable ? picker('c_' + cp, mv) : '<small>' + t('pfMgrReview') + ': <b>' + (mv || '-') + '</b></small>') + '</div>'; }).join('') +
         (editable ? '<div class="form"><div class="field"><label>' + t('pfMgrComment') + '</label><textarea id="mgrC" maxlength="1500">' + esc(v.mgrComment || '') + '</textarea></div><div class="err" id="mrE" style="color:var(--red)"></div><div class="btnrow"><button type="button" class="btn btn-dark" id="mrSend">' + t('pfSend') + '</button><button type="button" class="btn btn-line" id="mrSave">' + t('pfSave') + '</button></div></div>'
@@ -309,11 +309,11 @@ function kpiRow(k){
 }
 function wireKpiEditor(el, r, done, d){
   var box = $('#kpiRows', el); if (!box) return;
-  $$('input', box).forEach(function(i){ i.style.cssText = 'height:40px;border:1px solid var(--line);border-radius:var(--r-s);padding:0 10px;background:var(--card);width:100%'; });
+  $$('input', box).forEach(function(i){ i.style.cssText = 'height:40px;border:1px solid var(--line);border-radius:var(--r-s);padding:0 12px;background:var(--card);width:100%'; });
   var sum = function(){ var n = 0; $$('[data-f="weight"]', box).forEach(function(i){ n += Number(i.value) || 0; }); $('#kpiSum', el).textContent = t('pfTotal') + ': ' + n + ' / 100'; $('#kpiSum', el).style.color = n === 100 ? '#255B31' : 'var(--ink-2)'; };
   var wireRow = function(row){ row.querySelector('[data-rm]').onclick = function(){ row.remove(); sum(); }; row.oninput = sum; };
   $$('.pf-kpirow', box).forEach(wireRow); sum();
-  $('#kpiAdd', el).onclick = function(){ if ($$('.pf-kpirow', box).length >= 7) return; box.insertAdjacentHTML('beforeend', kpiRow({})); var row = box.lastElementChild; $$('input', row).forEach(function(i){ i.style.cssText = 'height:40px;border:1px solid var(--line);border-radius:var(--r-s);padding:0 10px;background:var(--card);width:100%'; }); wireRow(row); };
+  $('#kpiAdd', el).onclick = function(){ if ($$('.pf-kpirow', box).length >= 7) return; box.insertAdjacentHTML('beforeend', kpiRow({})); var row = box.lastElementChild; $$('input', row).forEach(function(i){ i.style.cssText = 'height:40px;border:1px solid var(--line);border-radius:var(--r-s);padding:0 12px;background:var(--card);width:100%'; }); wireRow(row); };
   $('#kpiSave', el).onclick = function(){
     var list = $$('.pf-kpirow', box).map(function(row){ var o = { id: row.dataset.kid || undefined }; $$('[data-f]', row).forEach(function(i){ o[i.dataset.f] = i.dataset.f === 'weight' ? Number(i.value) : i.value; }); return o; }).filter(function(k){ return k.titleAr || k.weight; });
     api('kpiSave', { cycleId: r.cycle.id, empId: r.emp.id, kpis: list }).then(function(x){ if (!x.ok) return $('#kpiE', el).textContent = errText(x.error); d.remove(); toast(t('saved')); done(); });

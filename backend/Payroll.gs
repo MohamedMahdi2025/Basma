@@ -966,3 +966,35 @@ function lastAttTo_() {
   });
   return o;
 }
+
+
+// ======================================================================= total rewards statement (2026-10-23)
+// The year's value to the employee: cash pay (package x 12) plus what the company pays on their behalf (GOSI employer share,
+// medical insurance premiums, the end-of-service provision, Art. 84). Paid annual leave is shown as part of pay, not added.
+// Own statement for everyone; another person's only for payroll staff with access to their pay group (logged as a salary view).
+function api_myTotalRewards(req, me) {
+  var who = me;
+  if (req.empId && req.empId !== me.id) {
+    if (!canPayroll_(me)) fail_('forbidden');
+    who = findBy_(SHEETS.EMP, 'id', String(req.empId)); if (!who) fail_('not_found');
+    if (!payGroupAccess_(me, groupOf_(who))) fail_('forbidden');
+    audit_(me.id, 'salary_view', who.id, { totalRewards: true });
+  }
+  var t = today_(), c = currentComp_(who.id, t);
+  if (!c) return { ok: true, none: true };
+  var priv = findBy_(SHEETS.PRIV, 'empId', who.id) || {}, saudi = bool_(who.isSaudi), rates = gosiRates_(saudi, priv.gosiCohort, t.slice(0, 7));
+  var gWage = Number(priv.gosiWage) || (c.basic + c.housing), base = Math.min(GOSI_MAX, Math.max(saudi ? GOSI_MIN : 0, gWage));
+  var hire = isoDate_(who.hireDate) || joinedDate_(who), years = hire ? Math.max(0, (Date.parse(t) - Date.parse(hire)) / (365.25 * 864e5)) : 0;
+  var ins = 0, insPeople = 0;
+  readAll_(SHEETS.INSM).forEach(function (m) { if (m.empId === who.id && m.status === 'active') { ins += Number(m.premium) || 0; insPeople++; } });
+  var cash = [{ code: 'basic', annual: r2_(c.basic * 12) }, { code: 'housing', annual: r2_(c.housing * 12) }, { code: 'transport', annual: r2_(c.transport * 12) }];
+  Object.keys(c.other || {}).forEach(function (k) { cash.push({ code: 'allowance', label: k, annual: r2_((Number(c.other[k]) || 0) * 12) }); });
+  cash = cash.filter(function (l) { return l.annual; });
+  var leaveDays = Number(who.annualLeaveDays) || (years >= 5 ? 30 : 21);
+  var company = [{ code: 'gosi_employer', annual: r2_(base * rates.er / 100 * 12), rate: rates.er },
+    { code: 'medical', annual: r2_(ins), people: insPeople },
+    { code: 'eos', annual: r2_(c.total * (years >= 5 ? 1 : 0.5)), perYear: years >= 5 ? 1 : 0.5 }].filter(function (l) { return l.annual; });
+  var sum = function (a) { return r2_(a.reduce(function (s, l) { return s + l.annual; }, 0)); }, cashTotal = sum(cash), companyTotal = sum(company);
+  return { ok: true, asOf: t, emp: { name: who.name, empNo: String(who.empNo) }, monthly: c.total, cash: cash, company: company, cashTotal: cashTotal, companyTotal: companyTotal,
+    total: r2_(cashTotal + companyTotal), leave: { days: leaveDays, value: r2_(leaveDays * c.total / 30) }, years: Math.round(years * 10) / 10 };
+}

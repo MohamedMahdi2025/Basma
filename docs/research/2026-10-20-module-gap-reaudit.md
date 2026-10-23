@@ -45,8 +45,8 @@ Each row is re-checked against the code that is live today (@87).
 |---|---|
 | WPS / Mudad | files are produced and checked; there is no direct API (that needs a partner agreement) |
 | E-signature | in-app acknowledgements only; Nafath needs a government integrator |
-| Visual workflow designer | approval chains are configurable per request type, but there is no drag-and-drop designer for any form |
-| History snapshots | periods are compared, but there is no stored monthly snapshot for trend drill-down |
+| Visual workflow designer | **done 2026-10-23**: drag-and-drop canvas, palette, inspector and a "try it" preview on a real employee (flows.js editFlow, Flows.gs flowPreview); forms themselves are still fixed |
+| History snapshots | **done 2026-10-21** (insights:history) |
 
 ## Still missing, and what each needs
 
@@ -74,3 +74,8 @@ Each row is re-checked against the code that is live today (@87).
 4. **Several pay groups.**
 5. **Public API and webhooks.**
 6. **Multi-entity.**
+
+
+## Status on 2026-10-23
+
+Every code-only row is built: kiosk QR, scheduled reports, pay groups, public API and webhooks, history snapshots, multi-company (Org ID tenancy plus company groups in the platform console), the visual workflow designer, remote work, total rewards and the live office map. What remains needs the owner: rows 6-11 above and docs/OWNER-STEPS.md.

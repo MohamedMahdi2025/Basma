@@ -28,6 +28,7 @@ var REQUEST_STEPS = {
   exit_reentry: ['manager', 'hr'], // exit/re-entry visa for a non-Saudi (GovServices.gs): HR then records the visa issued in Muqeem
   permission: ['manager', 'hr'], // hourly permission (استئذان): hours out of the working day, capped per request and per month
   travel: ['manager', 'hr'], // business trip with per diem: on final approval the per diem goes to payroll (non-wage)
+  remote: ['manager', 'hr'], // remote work days (2026-10-23): never absent; a check-in that day is accepted from anywhere
   overtime: ['manager', 'hr'] // overtime pre-approval: on final approval an overtime_hours adjustment goes to payroll (Art. 107)
 };
 var DATA_FIELDS = { phone: 'emp', personalEmail: 'priv', nationalAddress: 'priv', address: 'priv', maritalStatus: 'priv',
@@ -262,6 +263,19 @@ function quote_(emp, d, excludeId) {
     q.fromDate = pd; q.toDate = pd; q.hours = round2_(mins / 60);
     q.payload = { date: pd, fromTime: f1, toTime: f2, minutes: mins, monthUsed: used, monthCap: capH * 60 };
     if (used + mins > capH * 60) return Object.assign(q, { error: 'permission_month_cap', max: capH });
+    return q;
+  }
+  if (type === 'remote') {
+    var rf = isoDate_(d.fromDate), rt = isoDate_(d.toDate || d.fromDate);
+    if (!rf || !rt || rt < rf) return { error: 'bad_date' };
+    if (rf < addDays_(t, -7) && !d._recheck) return { error: 'bad_date' };
+    var rdays = daysBetween_(rf, rt) + 1;
+    if (rdays > 31) return { error: 'too_many_days', max: 31 };
+    if (!str_(p.reason, 300)) return { error: 'note_required' };
+    if (reqs.some(function (r) { return r.id !== excludeId && (r.type === 'remote' || r.type === 'leave' || r.type === 'travel') && (r.status === 'approved' || r.status === 'pending') && !(String(r.toDate) < rf || String(r.fromDate) > rt); })) return { error: 'overlaps' };
+    var sh = shiftOf_(emp, s), work = 0;
+    for (var dd = rf, k = 0; dd <= rt && k < 40; dd = addDays_(dd, 1), k++) if (sh.workdays.indexOf(new Date(dd + 'T00:00:00Z').getUTCDay()) >= 0) work++;
+    q.fromDate = rf; q.toDate = rt; q.days = work; q.payload = { reason: str_(p.reason, 300), days: work, calendarDays: rdays };
     return q;
   }
   if (type === 'travel') {
@@ -675,8 +689,9 @@ function api_leaveOpeningSave(req, me) {
  * { holiday: name } | { leave: subtype } | { holiday, leave } | null.
  */
 function offIndex_(from, to) {
-  var hol = holidayMap_(), leave = {};
+  var hol = holidayMap_(), leave = {}, remote = {};
   readAll_(SHEETS.REQ).forEach(function (r) {
+    if (r.type === 'remote' && r.status === 'approved') { var ra = maxDate_(String(r.fromDate).slice(0, 10), from), rb = minDate_(String(r.toDate).slice(0, 10), to); for (var rd = ra, ri = 0; rd <= rb && ri < 62; rd = addDays_(rd, 1), ri++) remote[r.empId + '|' + rd] = 1; return; }
     if (r.type !== 'leave' || r.status !== 'approved') return;
     var a = maxDate_(String(r.fromDate).slice(0, 10), from), b = minDate_(String(r.toDate).slice(0, 10), to);
     for (var d = a, i = 0; d <= b && i < 200; d = addDays_(d, 1), i++) leave[r.empId + '|' + d] = r.subtype;
@@ -688,8 +703,8 @@ function offIndex_(from, to) {
     for (var d = a, i = 0; d <= b && i < 200; d = addDays_(d, 1), i++) if (!leave[x.empId + '|' + d]) leave[x.empId + '|' + d] = 'injury';
   });
   return function (empId, date) {
-    var h = hol[date], l = leave[empId + '|' + date];
-    if (!h && !l) return null;
-    var o = {}; if (h) o.holiday = h; if (l) o.leave = l; return o;
+    var h = hol[date], l = leave[empId + '|' + date], rm = remote[empId + '|' + date];
+    if (!h && !l && !rm) return null;
+    var o = {}; if (h) o.holiday = h; if (l) o.leave = l; if (rm) o.remote = true; return o;
   };
 }
