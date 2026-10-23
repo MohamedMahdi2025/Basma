@@ -218,7 +218,7 @@ function slaChip(s){ return chip(t('sla_' + s.state), s.state === 'late' ? 'abse
 
 function centre(body){
   var filter = S.cnType || '', sel = {};
-  body.innerHTML = head(t('cnTitle'), '<button type="button" class="btn btn-line btn-sm" id="cnR">' + ph('arrows-clockwise') + '</button>') + '<p class="hr-hint" style="margin:-4px 0 12px">' + t('cnLead') + '</p><div id="cnB"></div>';
+  body.innerHTML = head(t('cnTitle'), '<button type="button" class="btn btn-line btn-sm" id="cnR" aria-label="' + t('axRefresh') + '" title="' + t('axRefresh') + '">' + ph('arrows-clockwise') + '</button>') + '<p class="hr-hint" style="margin:-4px 0 12px">' + t('cnLead') + '</p><div id="cnB"></div>';
   var box = $('#cnB', body);
   $('#cnR', body).onclick = function(){ load(true); };
   function load(fresh){

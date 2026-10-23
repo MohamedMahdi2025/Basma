@@ -411,7 +411,7 @@ function people(body){
     body.innerHTML = '<div class="hr-h"><h2>' + t('hrPeople') + '</h2><button type="button" class="btn btn-dark btn-sm" id="hrAdd">' + ph('user-plus') + t('hrAddEmp') + '</button></div>' +
       (window.Viz ? peopleDash(s) : '') +
       '<div class="toolbar"><input class="grow" id="pq" type="search" placeholder="' + t('hrSearch') + '" value="' + esc(S.hrQ || '') + '">' +
-      '<select id="pd">' + opt('', t('hrAllDepts'), S.hrD) + H.depts.map(function(d){ return opt(d.id, lang(d.nameAr, d.nameEn), S.hrD); }).join('') + '</select></div><div id="plist"></div>';
+      '<select id="pd" aria-label="' + t('hrAllDepts') + '">' + opt('', t('hrAllDepts'), S.hrD) + H.depts.map(function(d){ return opt(d.id, lang(d.nameAr, d.nameEn), S.hrD); }).join('') + '</select></div><div id="plist"></div>';
     if (window.Viz) Viz.wire(body);
     $('#hrAdd').onclick = function(){ if (typeof newEmpPage === 'function') newEmpPage(); else if (typeof empDrawer === 'function') empDrawer(null); };
     $('#pq').oninput = function(){ S.hrQ = this.value; list(); };

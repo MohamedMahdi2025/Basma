@@ -706,8 +706,8 @@ function platformSection(body){
     api('orgList', { setupKey: key }, true).then(function(r){
       if (!r.ok) { el.innerHTML = ''; $('#plE', box).textContent = errText(r.error); key = ''; return; }
       $('#plE', box).textContent = '';
-      var rows = [{ id: r.home, nameAr: t('plHome'), status: 'active', home: true }].concat(r.orgs);
-      el.innerHTML = K.tiles([[t('plCount'), K.n(rows.length), '', true], [t('plThis'), '<bdi dir="ltr">' + esc(S.orgId) + '</bdi>']]) +
+      var rows = [{ id: r.home, nameAr: r.homeNameAr || t('plHome'), nameEn: r.homeNameEn || '', status: 'active', home: true }].concat(r.orgs);
+      el.innerHTML = K.tiles([[t('plCount'), K.n(rows.length), '', true]]) +
         '<div class="toolbar"><span class="sp"></span><button type="button" class="btn btn-dark btn-sm" id="plN">' + ph('plus') + t('plNew') + '</button></div>' +
         '<div class="list">' + rows.map(function(o, i){
           return '<div class="row w2-row"><div class="main"><b><bdi dir="ltr">' + esc(o.id) + '</bdi> · ' + esc(o.nameAr || '') + (o.nameEn ? ' · ' + esc(o.nameEn) : '') + '</b><small>' + (o.cr ? 'CR ' + esc(o.cr) + ' · ' : '') + (o.createdAt ? K.fmt(o.createdAt.slice(0, 10)) : '') + '</small></div>' +

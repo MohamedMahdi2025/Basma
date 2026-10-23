@@ -868,7 +868,8 @@ function orgAll_() {
 }
 function api_orgList(req) {
   platformKeyOk_(req);
-  return { ok: true, home: homeOrgId_(), orgs: orgAll_().map(function (o) { return { id: o.id, nameAr: o.nameAr, nameEn: o.nameEn, cr: o.cr, status: o.status, createdAt: o.createdAt }; }) };
+  var hs = settings_(); // the first company (this script's own spreadsheet) is listed by its name, like every other customer
+  return { ok: true, home: homeOrgId_(), homeNameAr: hs.companyNameAr || '', homeNameEn: hs.companyNameEn || '', orgs: orgAll_().map(function (o) { return { id: o.id, nameAr: o.nameAr, nameEn: o.nameEn, cr: o.cr, status: o.status, createdAt: o.createdAt }; }) };
 }
 /** Suspend or re-open an organisation (its data stays; every request is refused while suspended). */
 function api_orgSetStatus(req) {

@@ -19,7 +19,7 @@ Object.assign(T.ar, {
   dbAdvances:'سلف غير مسددة', dbCostTrend:'تكلفة الرواتب الشهرية (الإجمالي والتأمينات على الشركة)', dbCostDept:'تكلفة آخر مسير حسب الإدارة', dbNoRuns:'لا توجد مسيرات معتمدة بعد.',
   dbTable:'جدول', dbChart:'رسم', dbGenerated:'أعدت في', dbReview:'بصمات للمراجعة', dbMissingOut:'بلا انصراف', dbLiabNote:'تقدير حتى اليوم: المكافأة كاملة لكل الموظفين حسب المادة 84، والإجازة بالأجر الإجمالي.',
   dbNoData:'لا توجد بيانات في هذه الفترة.', dbHideDash:'إخفاء الملخص', dbShowDash:'إظهار الملخص', lt_unpaid_short:'بدون راتب',
-  dbNoChange:'دون تغيير', dbOpen:'فتح', dbOpenIn:'افتح الشاشة', dbChartView:'عرض الرسم', dbTableView:'عرض الجدول', dbSparkOf:'الاتجاه', dbFromTo:'من {a} إلى {b}',
+  dbViewAs:'طريقة العرض', dbNoChange:'دون تغيير', dbOpen:'فتح', dbOpenIn:'افتح الشاشة', dbChartView:'عرض الرسم', dbTableView:'عرض الجدول', dbSparkOf:'الاتجاه', dbFromTo:'من {a} إلى {b}',
   dbLoading:'جار تحميل اللوحة', dbPrevPeriod:'الفترة السابقة', dbBasis:'الأسهم تقارن بالفترة السابقة بنفس الطول ({a} - {b})', dbBasisRun:'الأسهم تقارن بالمسير السابق', dbVsTarget:'عن المستهدف', dbVsLastMonth:'عن الشهر الماضي', dbVsRun:'عن المسير السابق'
 });
 Object.assign(T.en, {
@@ -37,7 +37,7 @@ Object.assign(T.en, {
   dbAdvances:'Advances outstanding', dbCostTrend:'Monthly payroll cost (gross plus employer GOSI)', dbCostDept:'Last payroll cost by department', dbNoRuns:'No approved payroll yet.',
   dbTable:'Table', dbChart:'Chart', dbGenerated:'Prepared', dbReview:'Punches to review', dbMissingOut:'No check-out', dbLiabNote:'Estimate as of today: full Art. 84 award for everyone, leave at total wage.',
   dbNoData:'No data in this period.', dbHideDash:'Hide summary', dbShowDash:'Show summary', lt_unpaid_short:'Unpaid',
-  dbNoChange:'No change', dbOpen:'Open', dbOpenIn:'Open the screen', dbChartView:'Chart view', dbTableView:'Table view', dbSparkOf:'Trend', dbFromTo:'from {a} to {b}',
+  dbViewAs:'View as', dbNoChange:'No change', dbOpen:'Open', dbOpenIn:'Open the screen', dbChartView:'Chart view', dbTableView:'Table view', dbSparkOf:'Trend', dbFromTo:'from {a} to {b}',
   dbLoading:'Loading the dashboard', dbPrevPeriod:'Previous period', dbBasis:'Arrows compare with the previous period of the same length ({a} - {b})', dbBasisRun:'Arrows compare with the previous payroll run', dbVsTarget:'vs target', dbVsLastMonth:'vs last month', dbVsRun:'vs previous run'
 });
 // Workforce analytics (prefix wa). Arabic counts of people go through plural(n, 'people').
@@ -110,7 +110,7 @@ var css = '' +
 '.db-tile.lead b{font-size:48px}.db-tile.lead .up{color:var(--signal)}.db-tile.lead .down{color:#F4B4A8}' +
 '.db-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;margin-bottom:14px}' +
 '.db-card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-m);padding:14px 16px;min-width:0;position:relative}' +
-'.db-card h3{margin:0;font-size:16px;font-weight:600;display:flex;align-items:center;gap:8px}.db-card h3 .sp{flex:1}' +
+'.db-card h3{margin:0;font-size:16px;font-weight:600;display:flex;align-items:center;gap:8px}.db-ch{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 4px}.db-ch .sp{flex:1}.db-card h3 .sp{flex:1}' +
 '.db-card > p{margin:2px 0 10px;color:var(--ink-2);font-size:13px}' +
 '.db-card .tg{height:28px;padding:0 10px;border-radius:8px;border:1px solid var(--line);background:var(--paper);font-size:12px;color:var(--ink-2)}' +
 '.db-h{margin:22px 0 10px;font-size:18px;font-weight:600}' +
@@ -151,7 +151,7 @@ var css = '' +
 '.db-tile b{font-variant-numeric:tabular-nums;letter-spacing:-.01em}' +
 '.db-tile b .db-status{display:inline-flex;font-size:inherit;color:inherit;gap:8px}.db-tile b .db-status i{font-size:.6em}' +
 '.db-panel{background:var(--paper);border:1px solid var(--line);border-radius:var(--r-m);padding:12px 14px 2px;margin:0 0 16px}' +
-'.db-ph{display:flex;align-items:center;gap:8px;margin-bottom:10px}.db-ph h3{margin:0;font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px;flex:1}.db-ph h3 i{color:var(--brand);font-size:18px}' +
+'.db-ph{display:flex;align-items:center;gap:8px;margin-bottom:10px}.db-ph h3,.db-ph h2{margin:0;font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px;flex:1}.db-ph h2 i,.db-ph h3 i{color:var(--brand);font-size:18px}' +
 '.db-panel .db-tiles{margin-bottom:12px}.db-panel .db-grid{margin-bottom:12px}.db-panel .db-tile.lead b{font-size:32px}' +
 '.db-panel .tg{height:28px;padding:0 10px;border-radius:8px;border:1px solid var(--line);background:var(--card);font-size:12px;color:var(--ink-2)}' +
 // workforce analytics: three-series columns, signal chips, information notes (status colours only, never a series colour on text)
@@ -265,10 +265,10 @@ function empty(text, icon){ return '<div class="db-empty">' + ph(icon || 'chart-
 /** A card with a chart and its table view (a two-button chart / table switch). go: a screen to open from the card. */
 function card(id, title, lead, chart, table, go){
   var dest = goOk(go === undefined ? CARD_GO[id] : go); // CARD_GO only for the dashboard's own cards (other screens call Viz.card)
-  var tools = (table ? '<span class="db-seg" role="group" aria-label="' + tx(String(title).replace(/<[^>]*>/g, '')) + '"><button type="button" data-tg="' + id + '" data-m="chart" aria-pressed="true" aria-label="' + t('dbChartView') + '" title="' + t('dbChartView') + '">' + ph('chart-bar') + '</button>' +
+  var tools = (table ? '<span class="db-seg" role="group" aria-label="' + t('dbViewAs') + '"><button type="button" data-tg="' + id + '" data-m="chart" aria-pressed="true" aria-label="' + t('dbChartView') + '" title="' + t('dbChartView') + '">' + ph('chart-bar') + '</button>' +
       '<button type="button" data-tg="' + id + '" data-m="table" aria-pressed="false" aria-label="' + t('dbTableView') + '" title="' + t('dbTableView') + '">' + ph('table') + '</button></span>' : '') +
     (dest ? '<button type="button" class="db-open" data-go="' + dest + '">' + t('dbOpen') + ph(S.lang === 'ar' ? 'arrow-up-left' : 'arrow-up-right') + '</button>' : '');
-  return '<div class="db-card" data-card="' + id + '"><h3>' + title + '<span class="sp"></span>' + (tools ? '<span class="db-tools">' + tools + '</span>' : '') + '</h3>' +
+  return '<div class="db-card" data-card="' + id + '"><div class="db-ch"><h3>' + title + '</h3><span class="sp"></span>' + (tools ? '<span class="db-tools">' + tools + '</span>' : '') + '</div>' +
     (lead ? '<p>' + lead + '</p>' : '') + '<div data-v="chart">' + chart + '</div>' + (table ? '<div data-v="table" class="hidden">' + table + '</div>' : '') + '</div>';
 }
 /** Where each dashboard card drills to (first allowed screen wins). */
@@ -618,7 +618,7 @@ function drawAnalytics(A){
 /** A screen's own dashboard: a titled band that can be folded (remembered per device). */
 function panel(key, title, html){
   var hid = false; try { hid = (JSON.parse(localStorage.getItem('bgatt.dashFold') || '{}') || {})[key]; } catch (e) {}
-  return '<section class="db db-panel" data-fold="' + key + '"><div class="db-ph"><h3>' + ph('chart-pie-slice') + title + '</h3><button type="button" class="tg" data-foldbtn aria-expanded="' + !hid + '">' + (hid ? t('dbShowDash') : t('dbHideDash')) + '</button></div>' +
+  return '<section class="db db-panel" data-fold="' + key + '"><div class="db-ph"><h2>' + ph('chart-pie-slice') + title + '</h2><button type="button" class="tg" data-foldbtn aria-expanded="' + !hid + '">' + (hid ? t('dbShowDash') : t('dbHideDash')) + '</button></div>' +
     '<div class="db-pb' + (hid ? ' hidden' : '') + '">' + html + '</div></section>';
 }
 function wire(root){
