@@ -345,7 +345,7 @@ function companyOf_(s) {
  * The HR and payroll settings an administrator may set from the settings screen. Each value is checked and
  * written into next; returns '' when all are valid, else the key of the first bad one (nothing is saved then).
  */
-var SETTING_BOOLS_ = ['rostersEnabled', 'deductAbsence', 'deductLateMinutes', 'payOvertimeFromAttendance', 'adminSeesPay', 'timesheetRequired', 'notifyDigest', 'attachmentsEnabled'];
+var SETTING_BOOLS_ = ['rostersEnabled', 'deductAbsence', 'deductLateMinutes', 'payOvertimeFromAttendance', 'adminSeesPay', 'timesheetRequired', 'notifyDigest', 'attachmentsEnabled', 'aiAssistant', 'whatsappDigest'];
 function settingBool_(v) { return v === true || v === 'true' ? true : v === false || v === 'false' ? false : null; }
 /** 'MM-DD' with a real month and day (02-29 allowed), else ''. */
 function settingMmdd_(v) { var m = /^(\d{2})-(\d{2})$/.exec(String(v == null ? '' : v)); return m && ymd_(2024, +m[1], +m[2]) ? m[0] : ''; }
@@ -504,7 +504,7 @@ function api_dataExport(req, me) {
 //   X-HRIS-Signature: sha256=HMAC(secret, timestamp + '.' + body). The secret is derived, never stored; shown once.
 //   Events are captured at the data layer (append_/update_) into tab webhookOutbox and delivered lazily after write
 //   requests, with retries (1, 2, 4 … minutes, 8 attempts). Salaries and private data are never in an API answer or event.
-var API_SCOPES_ = { employees: 1, org: 1, attendance: 1, leave: 1, payroll: 1 };
+var API_SCOPES_ = { employees: 1, org: 1, attendance: 1, leave: 1, payroll: 1, device: 1 };
 var API_RESOURCES_ = { employees: 'employees', departments: 'org', positions: 'org', attendance: 'attendance', leave: 'leave', payrollRuns: 'payroll', journal: 'payroll' };
 var WH_EVENTS_ = { 'employee.created': 1, 'employee.updated': 1, 'employee.left': 1, 'leave.approved': 1, 'attendance.punch': 1, 'payroll.locked': 1, 'ping': 1 };
 var API_PAGE_ = 500;
@@ -759,5 +759,109 @@ function api_brandSave(req, me) {
     cache_().put('brand:color', color, 21600);
     audit_(me.id, 'brand_color', '', { color: color });
     return { ok: true, color: color };
+  });
+}
+
+
+// ======================================================================= single sign-on (2026-10-23)
+// "Sign in with Google" / "Sign in with Microsoft" beside the employee number. The provider proves the e-mail address; the
+// employee is the active record with that e-mail in this organisation. The session is the same kind as a password session
+// (check-in still needs the device passkey or the PIN). Off until the client ID is in Script properties:
+//   Google:    SSO_GOOGLE_CLIENT_ID (and optionally SSO_GOOGLE_DOMAIN: only accounts of that Workspace domain)
+//   Microsoft: SSO_MS_CLIENT_ID and SSO_MS_TENANT (the Entra tenant ID; only accounts of that tenant)
+// Each may also be set per organisation with the 'o<id>:' prefix. Client IDs are public; there is no secret to keep.
+function ssoProp_(k) { var p = PropertiesService.getScriptProperties(); return p.getProperty(orgKey_(k)) || p.getProperty(k) || ''; }
+function ssoPublic_() {
+  var g = ssoProp_('SSO_GOOGLE_CLIENT_ID'), m = ssoProp_('SSO_MS_CLIENT_ID'), t = ssoProp_('SSO_MS_TENANT');
+  return { google: g || '', microsoft: m && t ? { clientId: m, tenant: t } : null };
+}
+function ssoJwtPayload_(tok) {
+  var part = String(tok || '').split('.')[1];
+  if (!part) return null;
+  try { return JSON.parse(bytesToUtf8_(b64uToBytes_(part))); } catch (e) { return null; }
+}
+/** The verified e-mail behind a Google ID token, checked by Google's tokeninfo endpoint (signature, expiry), then audience. */
+function ssoGoogleEmail_(idToken) {
+  var cid = ssoProp_('SSO_GOOGLE_CLIENT_ID'); if (!cid) fail_('sso_not_configured');
+  var r = UrlFetchApp.fetch('https://oauth2.googleapis.com/tokeninfo?id_token=' + encodeURIComponent(idToken), { muteHttpExceptions: true });
+  if (r.getResponseCode() !== 200) fail_('sso_failed');
+  var j = JSON.parse(r.getContentText()), dom = ssoProp_('SSO_GOOGLE_DOMAIN');
+  if (j.aud !== cid || (j.iss !== 'accounts.google.com' && j.iss !== 'https://accounts.google.com') || String(j.email_verified) !== 'true' || Number(j.exp) * 1000 < Date.now()) fail_('sso_failed');
+  if (dom && j.hd !== dom) fail_('sso_failed');
+  return String(j.email || '').toLowerCase();
+}
+/**
+ * The e-mail behind a Microsoft access token for Graph. Graph itself checks the signature and expiry when it answers /me;
+ * the token's own claims (trusted once Graph accepted it) must name our app and our tenant, so a token issued to another
+ * app cannot be replayed here.
+ */
+function ssoMicrosoftEmail_(accessToken) {
+  var cid = ssoProp_('SSO_MS_CLIENT_ID'), tid = ssoProp_('SSO_MS_TENANT'); if (!cid || !tid) fail_('sso_not_configured');
+  var r = UrlFetchApp.fetch('https://graph.microsoft.com/v1.0/me?$select=mail,userPrincipalName', { muteHttpExceptions: true, headers: { Authorization: 'Bearer ' + accessToken } });
+  if (r.getResponseCode() !== 200) fail_('sso_failed');
+  var c = ssoJwtPayload_(accessToken);
+  if (!c || (c.appid || c.azp) !== cid || c.tid !== tid) fail_('sso_failed');
+  var j = JSON.parse(r.getContentText());
+  return String(j.mail || j.userPrincipalName || '').toLowerCase();
+}
+function api_ssoLogin(req) {
+  if (!rateLimit_('sso', 120, 600)) fail_('too_many_attempts');
+  var prov = String(req.provider || ''), cred = String(req.credential || '');
+  if (!cred || cred.length > 8000) fail_('missing_fields');
+  var email = prov === 'google' ? ssoGoogleEmail_(cred) : prov === 'microsoft' ? ssoMicrosoftEmail_(cred) : fail_('bad_value');
+  if (!email) fail_('sso_failed');
+  return withLock_(function () {
+    var hits = readAll_(SHEETS.EMP).filter(function (e) { return e.status === 'active' && String(e.email || '').trim().toLowerCase() === email; });
+    if (hits.length !== 1) { audit_('', 'sso_no_match', '', { provider: prov, matches: hits.length }); fail_('sso_no_account'); } // two records with one e-mail: refuse, never guess
+    var emp = hits[0];
+    audit_(emp.id, 'login_sso', emp.id, { provider: prov });
+    return { ok: true, token: issueToken_(emp, 'pw'), me: publicEmp_(emp), home: homePayload_(emp, true), mustChange: false, sso: prov };
+  });
+}
+
+// ======================================================================= punches from devices (2026-10-23)
+// Fingerprint or face terminals (or their vendor cloud) POST punches here with an API key that has the 'device' scope
+// (Administration > Integrations). The terminal has already identified the person, so these punches count (status ok,
+// source device, flagged 'device'). Re-sending the same punch is harmless (same person + same minute = skipped).
+var DEVICE_BATCH_ = 200;
+function devTs_(v) {
+  var s = String(v || '').trim();
+  if (/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(:\d{2})?$/.test(s)) s = s.replace(' ', 'T') + (s.length === 16 ? ':00' : '') + '+03:00'; // device local time is Riyadh
+  var d = new Date(s);
+  return isNaN(d.getTime()) ? null : d;
+}
+function api_devicePunch(req) {
+  var p = apiKeyParse_(req.apiKey);
+  if (!p) fail_('bad_api_key');
+  if (!rateLimit_('apikey:' + p.id, 120, 60)) fail_('too_many_attempts');
+  var k = findBy_(SHEETS.APIKEY, 'keyId', p.id);
+  if (!k || k.status !== 'active' || !safeEqual_(sha256Hex_(p.secret), k.hash)) { rateLimit_('apibad', 1000, 600); fail_('bad_api_key'); }
+  if (parseJson_(k.scopesJson, []).indexOf('device') < 0) fail_('scope_missing');
+  var ev = Array.isArray(req.events) ? req.events : [];
+  if (!ev.length || ev.length > DEVICE_BATCH_) fail_('bad_value');
+  var s = settings_(), zones = {};
+  readAll_(SHEETS.ZONES).forEach(function (z) { zones[z.id] = z; });
+  return withLock_(function () {
+    var emps = {}; readAll_(SHEETS.EMP).forEach(function (e) { if (e.status === 'active') emps[String(e.empNo)] = e; });
+    var all = readAll_(SHEETS.PUNCH), seen = {}, mine = {};
+    all.forEach(function (x) { if (!isCounted_(x)) return; seen[x.empId + '|' + String(x.ts).slice(0, 16)] = 1; (mine[x.empId] = mine[x.empId] || []).push(x); });
+    var rows = [], out = { added: 0, duplicate: 0, unknown: [], bad: 0 }, now = new Date().toISOString();
+    ev.map(function (e) { return { e: e, d: devTs_(e && e.ts) }; }).sort(function (a, b) { return (a.d ? a.d.getTime() : 0) - (b.d ? b.d.getTime() : 0); }).forEach(function (x) {
+      var e = x.e || {}, d = x.d, emp = emps[String(e.empNo || '').trim()];
+      if (!d || d.getTime() > Date.now() + 5 * 60000) { out.bad++; return; }
+      if (!emp) { if (out.unknown.indexOf(String(e.empNo)) < 0 && out.unknown.length < 50) out.unknown.push(String(e.empNo || '')); return; }
+      var iso = d.toISOString(), key = emp.id + '|' + iso.slice(0, 16);
+      if (seen[key]) { out.duplicate++; return; }
+      var date = workDate_(emp, d, s), list = (mine[emp.id] || []).filter(function (y) { return y.date === date; }).sort(function (a, b) { return a.ts < b.ts ? -1 : 1; });
+      var type = e.type === 'in' || e.type === 'out' ? e.type : list.length && list[list.length - 1].type === 'in' ? 'out' : 'in';
+      var zid = e.zoneId && zones[e.zoneId] ? e.zoneId : '';
+      var row = { id: newId_('P'), empId: emp.id, type: type, ts: iso, date: date, lat: '', lng: '', acc: '', zoneId: zid, distance: '', status: 'ok', risk: 0, flags: 'device',
+        source: 'device', note: str_(e.deviceId, 60), reviewBy: '', reviewAt: '', credId: '', ua: 'device:' + k.keyId, createdAt: now };
+      rows.push(row); seen[key] = 1; (mine[emp.id] = mine[emp.id] || []).push(row); out.added++;
+    });
+    if (rows.length) appendMany_(SHEETS.PUNCH, rows);
+    var x = findBy_(SHEETS.APIKEY, 'id', k.id); x.lastUsedAt = now; x.uses = (Number(x.uses) || 0) + 1; update_(SHEETS.APIKEY, x);
+    audit_('api:' + k.keyId, 'device_punch', '', { added: out.added, duplicate: out.duplicate, unknown: out.unknown.length, bad: out.bad });
+    out.ok = true; return out;
   });
 }

@@ -695,7 +695,7 @@ function homePayload_(me, noPunch) {
   var home = { me: publicEmp_(me), hasPassword: !!me.pwHash, zones: zonesFor_(me).map(publicZone_), today: today, shift: shiftOf_(me, s),
     devices: activeCreds_(me.id).map(publicDevice_),
     rules: { maxAccuracy: s.maxAccuracy, maxAccuracyDesktop: s.maxAccuracyDesktop, allowCheckoutOutside: s.allowCheckoutOutside },
-    company: companyOf_(s), serverTime: new Date().toISOString() };
+    company: companyOf_(s), ai: typeof aiOn_ === 'function' ? aiOn_() : false, serverTime: new Date().toISOString() };
   home.punch = null;
   if (!noPunch) { try { home.punch = { type: today.next, options: punchOptions_(me, today.next) }; } catch (e) { home.punch = null; } }
   return home;

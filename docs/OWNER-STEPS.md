@@ -40,13 +40,51 @@ Scans of IDs, contracts and certificates go into a Drive folder that the app cre
 - **Who opens them:** files are never shared by link; they open only inside the app. The employee opens their own; HR opens any. Every view is audited.
 - **Switching on:** at the time you choose for step 3 of item 1, Claude also adds the `drive.file` permission, so the one Allow covers both. The administrator then turns on Settings, then **Document attachments**.
 
-## 3. WhatsApp notifications
+## 3. WhatsApp notifications (code ready, switched off)
 
-**Needs:** a Meta WhatsApp Business account, with a verified business, a phone number for sending and approved message
-templates.
+**Needs:** a Meta WhatsApp Business account with a verified business, a sending phone number, and one **approved message
+template** whose body has one variable, the number of items waiting. Example (Arabic):
+لديك {{1}} بانتظارك في نظام الموارد البشرية.
 
-The WhatsApp Cloud API is free to start; Meta charges per conversation. When it is ready, give Claude the phone number ID.
-Put the token itself in Script properties, never in chat.
+1. In Meta Business Suite, then WhatsApp Manager, note the **phone number ID**, create a **permanent token** (system user),
+   and get the template approved.
+2. In the Apps Script project, then Project Settings, then Script properties, add **WA_PHONE_ID**, **WA_TOKEN** and
+   **WA_TEMPLATE** (the template name). If the template language is not Arabic, also add **WA_LANG** (for example en).
+   Never paste the token in chat.
+3. The administrator opens Settings, then Pay rules, turns on **Daily digest by WhatsApp** and presses **Test WhatsApp
+   message**. The test goes to the administrator's own mobile number in their file.
+
+Employees get it on the Saudi mobile number in their file (05…). Only the count is sent: no names or details.
+
+## 3a. AI HR assistant, "Ask HR" (code ready, switched off)
+
+**Needs:** an Anthropic API key (console.anthropic.com, then API keys).
+
+1. Add the Script property **ANTHROPIC_API_KEY**.
+2. The administrator turns on **AI HR assistant** in Settings, then Pay rules. The page **Requests, then Ask HR** appears for
+   everyone.
+3. The assistant answers from the published policies and knowledge-base articles and from the asker's own file (job, shift,
+   leave balance, open requests). It never sees anyone else, cannot take actions, and cites the policy it used.
+4. Each person can ask 20 questions a day. Questions are not stored; the audit log keeps only counts and token use.
+   The question and the asker's own record are sent to Anthropic to produce the answer: mention this in your privacy notice
+   (PDPL).
+
+## 3b. Sign in with Google or Microsoft (code ready, switched off)
+
+The buttons appear on the password sign-in screen once a client ID is set. An employee is matched by the e-mail in their
+file, so make sure every file has the work e-mail. Check-in still needs the phone's passkey or PIN.
+
+- **Google (Workspace):** in Google Cloud Console, create an OAuth client of type *Web application*. Add the authorised
+  redirect URI **https://besgasksa.github.io/BG-attendance/** (exactly, with the final slash). Put the client ID in the Script
+  property **SSO_GOOGLE_CLIENT_ID**. Optionally add **SSO_GOOGLE_DOMAIN** (for example bestgas.sa) so only company accounts
+  work.
+- **Microsoft (Entra ID):** register an app (single tenant). Under Authentication, add the platform *Single-page application*
+  with the redirect URI **https://besgasksa.github.io/BG-attendance/** and tick **Access tokens (implicit flow)**. The API
+  permission **Microsoft Graph, User.Read** is enough. Put the Application (client) ID in **SSO_MS_CLIENT_ID** and the
+  Directory (tenant) ID in **SSO_MS_TENANT**.
+
+Each property can also be set for one organisation only by prefixing it with `o<Org ID>:` (for example
+`o1002:SSO_MS_CLIENT_ID`).
 
 ## 4. Speed (the 2 to 3 second wait on every action)
 
@@ -80,5 +118,5 @@ These are contracts, not code. Claude builds each connector once its access exis
 - **Mudad (WPS), GOSI, Qiwa, Muqeem:** apply through each platform's business or integrator programme. The WPS file is
   already produced and checked in Compliance.
 - **Tameeni (medical insurance):** through your insurer or broker.
-- **Fingerprint and face devices:** choose a vendor whose devices can push punches (for example ZKTeco with a cloud API).
+- **Fingerprint and face devices (code ready):** in Administration, then Integrations, create an API key with the scope **Fingerprint / face devices**. The device or the vendor cloud sends punches as POST JSON `{"action":"devicePunch","orgId":"1001","apiKey":"…","events":[{"empNo":"1234","ts":"2026-10-24 07:58:10","deviceId":"ZK-1"}]}` to the web app URL (Riyadh local time; in/out is worked out by order when the device does not say). Ask the vendor (for example ZKTeco BioTime or a cloud API) to forward to that URL, or give Claude the vendor API so it can pull instead.
 - **Salary benchmarking data:** a market data provider.

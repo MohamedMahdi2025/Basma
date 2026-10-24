@@ -809,15 +809,16 @@ var NOTIFY_BATCH_ = 5;
 function notifySweep_() {
   try {
     var s = settings_();
-    if (!(s.notifyDigest === true || String(s.notifyDigest) === 'true')) return;
+    var mailOn = s.notifyDigest === true || String(s.notifyDigest) === 'true', waOn = s.whatsappDigest === true || String(s.whatsappDigest) === 'true';
+    if (!mailOn && !waOn) return; // each channel has its own switch
     var now = localParts_(new Date()), hour = Number(String(now.time || '00:00').slice(0, 2));
     if (hour < (Number(s.notifyHour) || 7)) return;
     var c = cache_(), doneKey = 'notify:done:' + now.date;
     if (c.get(doneKey)) return;
-    var cfg = mailConfig_(); if (!cfg) return;
+    var cfg = mailOn ? mailConfig_() : null, wa = waOn ? waConfig_() : null; if (!cfg && !wa) return;
     if (!rateLimit_('notify:run', 1, 20)) return; // one sweep at a time
     var sent = {}; readAll_(SHEETS.NLOG).forEach(function (x) { if (String(x.date).slice(0, 10) === now.date) sent[x.empId] = 1; });
-    var ctx = orgCtx_(), todo = Object.keys(ctx.emps).map(function (k) { return ctx.emps[k]; }).filter(function (e) { return e.status === 'active' && e.email && !sent[e.id]; });
+    var ctx = orgCtx_(), todo = Object.keys(ctx.emps).map(function (k) { return ctx.emps[k]; }).filter(function (e) { return e.status === 'active' && ((cfg && e.email) || (wa && waPhone_(e.phone))) && !sent[e.id]; });
     if (!todo.length) { c.put(doneKey, '1', 21600); return; }
     var token = null, rows = [], url = s.appUrl || 'https://besgasksa.github.io/BG-attendance/';
     todo.slice(0, NOTIFY_BATCH_).forEach(function (e) {
@@ -825,8 +826,8 @@ function notifySweep_() {
       try { n = (api_myTasks({}, e).tasks || []).filter(function (x) { return x.kind !== 'delegated'; }).reduce(function (a, x) { return a + (x.count || 0); }, 0); } catch (err) { n = 0; }
       var row = { id: newId_('N'), empId: e.id, date: now.date, count: n, status: 'none', at: new Date().toISOString() };
       if (n) {
-        try { token = token || graphToken_(cfg); graphSend_(cfg, token, e.email, 'لديك ' + n + ' بانتظارك | ' + n + ' waiting for you', notifyHtml_(e, n, url)); row.status = 'sent'; }
-        catch (err) { row.status = 'failed'; }
+        if (cfg && e.email) { try { token = token || graphToken_(cfg); graphSend_(cfg, token, e.email, 'لديك ' + n + ' بانتظارك | ' + n + ' waiting for you', notifyHtml_(e, n, url)); row.status = 'sent'; } catch (err) { row.status = 'failed'; } }
+        if (wa && waPhone_(e.phone)) { try { waSend_(wa, waPhone_(e.phone), [String(n)]); row.wa = 'sent'; if (row.status !== 'sent') row.status = 'sent'; } catch (err) { row.wa = 'failed'; if (row.status === 'none') row.status = 'failed'; } }
       }
       rows.push(row);
     });
@@ -997,4 +998,38 @@ function api_myTotalRewards(req, me) {
   var sum = function (a) { return r2_(a.reduce(function (s, l) { return s + l.annual; }, 0)); }, cashTotal = sum(cash), companyTotal = sum(company);
   return { ok: true, asOf: t, emp: { name: who.name, empNo: String(who.empNo) }, monthly: c.total, cash: cash, company: company, cashTotal: cashTotal, companyTotal: companyTotal,
     total: r2_(cashTotal + companyTotal), leave: { days: leaveDays, value: r2_(leaveDays * c.total / 30) }, years: Math.round(years * 10) / 10 };
+}
+
+
+// ======================================================================= WhatsApp (2026-10-23)
+// The daily digest can also go by WhatsApp (Meta WhatsApp Cloud API): an approved template with one body parameter, the
+// number of items waiting. Nothing else leaves the system. Needs script properties WA_PHONE_ID, WA_TOKEN, WA_TEMPLATE
+// (template name) and optionally WA_LANG (default 'ar'), plus the admin setting whatsappDigest. The token is never in code.
+function waConfig_() {
+  var p = PropertiesService.getScriptProperties(), c = { phoneId: p.getProperty(orgKey_('WA_PHONE_ID')) || p.getProperty('WA_PHONE_ID'), token: p.getProperty(orgKey_('WA_TOKEN')) || p.getProperty('WA_TOKEN'),
+    template: p.getProperty(orgKey_('WA_TEMPLATE')) || p.getProperty('WA_TEMPLATE'), lang: p.getProperty(orgKey_('WA_LANG')) || p.getProperty('WA_LANG') || 'ar' };
+  return c.phoneId && c.token && c.template ? c : null;
+}
+/** A Saudi mobile in international form without +: 05XXXXXXXX, 5XXXXXXXX, 9665XXXXXXXX, +966 5X... all give 9665XXXXXXXX; anything else ''. */
+function waPhone_(raw) {
+  var d = String(raw || '').replace(/\D/g, '');
+  if (/^05\d{8}$/.test(d)) d = '966' + d.slice(1); else if (/^5\d{8}$/.test(d)) d = '966' + d; else if (/^009665\d{8}$/.test(d)) d = d.slice(2);
+  return /^9665\d{8}$/.test(d) ? d : '';
+}
+function waSend_(c, to, params) {
+  var r = UrlFetchApp.fetch('https://graph.facebook.com/v21.0/' + encodeURIComponent(c.phoneId) + '/messages', { method: 'post', contentType: 'application/json', muteHttpExceptions: true,
+    headers: { Authorization: 'Bearer ' + c.token },
+    payload: JSON.stringify({ messaging_product: 'whatsapp', to: to, type: 'template', template: { name: c.template, language: { code: c.lang },
+      components: [{ type: 'body', parameters: params.map(function (x) { return { type: 'text', text: String(x) }; }) }] } }) });
+  if (r.getResponseCode() >= 300) { console.error('whatsapp ' + r.getResponseCode() + ': ' + String(r.getContentText()).slice(0, 300)); throw new Error('whatsapp_failed'); }
+  return true;
+}
+function api_waTest(req, me) {
+  if (me.role !== 'admin') fail_('forbidden');
+  var c = waConfig_(); if (!c) fail_('whatsapp_not_configured');
+  var emp = findBy_(SHEETS.EMP, 'id', me.id), to = emp && waPhone_(emp.phone); if (!to) fail_('no_phone');
+  if (!rateLimit_('watest:' + me.id, 5, 3600)) fail_('too_many_attempts');
+  try { waSend_(c, to, ['1']); } catch (e) { fail_('whatsapp_failed'); }
+  audit_(me.id, 'whatsapp_test', me.id, null);
+  return { ok: true, to: to.slice(0, 5) + '•••' + to.slice(-2) };
 }

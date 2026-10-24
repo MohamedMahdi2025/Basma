@@ -1194,6 +1194,7 @@ html[data-theme="dark"] .gauge .needle line,html[data-theme="dark"] .gauge .need
 @media (max-width:700px){.rp-hero{grid-template-columns:auto minmax(0,1fr);padding:16px}.rp-hero .rp-ring{grid-column:1 / -1}.rp-av{width:56px;height:56px;font-size:20px;border-radius:16px}.rp-id b{font-size:20px}}
 .cn-open{cursor:pointer;border-radius:8px}.cn-open:hover > b{color:var(--brand)}.cn-open:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
 .fp-top{flex-wrap:nowrap}.fp-crumb{flex:1;min-width:0;flex-wrap:nowrap;white-space:nowrap;overflow:hidden;mask-image:linear-gradient(to left,#000 85%,transparent);-webkit-mask-image:linear-gradient(to left,#000 85%,transparent)}[dir="ltr"] .fp-crumb{mask-image:linear-gradient(to right,#000 85%,transparent);-webkit-mask-image:linear-gradient(to right,#000 85%,transparent)}.fp-crumb span{flex:none}
+.sso-box{display:grid;gap:8px;margin-top:12px}.sso-or{display:flex;align-items:center;gap:8px;font-size:13px;opacity:.8}.sso-or::before,.sso-or::after{content:"";flex:1;height:1px;background:currentColor;opacity:.3}.sso-btn{width:100%;justify-content:center;gap:8px}
 .sr-only{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
 /* the frozen headline's key actions */
 .fp-chips .btn{height:38px}
@@ -1371,6 +1372,28 @@ body.v2-on :is(.db-tile b,.kpi b,.stat b,.hm-facts dd,.hm-big b,.hm-k .v,[data-c
   .gate-form,.gate .err:not(:empty){animation:none!important}.gate .pindots i.on{animation:none}.gate .btn-primary::after{display:none}
 }
 </style>
+<style id="dsfbx">
+/* Phone design, second pass (2026-10-24), a design choice in our own brand: badge dots on the bottom tabs, pull-to-refresh
+   feedback, spring tap feedback on tabs, tiles and rows. Phones only; reduced motion turns every movement off. */
+@media (max-width:900px){
+  body.v2-on .v2-bottom button .fbx-dot{position:absolute;top:4px;inset-inline-start:calc(50% + 8px);min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:#C62828;color:#fff;font-size:11px;font-weight:700;line-height:18px;text-align:center;box-shadow:0 0 0 2px var(--card,#fff);animation:fbxPop .35s cubic-bezier(.3,1.6,.5,1) both}
+  body.v2-on .v2-bottom button .fbx-dot:empty{min-width:10px;width:10px;height:10px;padding:0;top:6px}
+  body.v2-on :is(.v2-bottom button,.fb-quick button,.m-pick,.list .row,.v2-top .v2-ib,.v2-top .v2-search){transition:transform .28s cubic-bezier(.3,1.5,.5,1),background .15s}
+  body.v2-on :is(.v2-bottom button,.fb-quick button,.v2-top .v2-ib,.v2-top .v2-search):active{transform:scale(.9);transition-duration:.08s}
+  body.v2-on :is(.m-pick,.list .row):active{transform:scale(.985);transition-duration:.08s}
+  body.v2-on .fbx-ptr{position:fixed;top:calc(64px + env(safe-area-inset-top));left:50%;z-index:60;width:40px;height:40px;margin-left:-20px;border-radius:50%;background:var(--card,#fff);box-shadow:var(--e2);display:grid;place-items:center;color:var(--brand);font-size:22px;opacity:0;transform:translateY(-56px) scale(.6);pointer-events:none}
+  body.v2-on .fbx-ptr.go{opacity:1}
+  body.v2-on .fbx-ptr.spin i{animation:fbxSpin .8s linear infinite}
+  @keyframes fbxPop{0%{transform:scale(0)}100%{transform:scale(1)}}
+  @keyframes fbxSpin{to{transform:rotate(360deg)}}
+}
+@media (max-width:900px) and (prefers-reduced-motion:reduce){
+  body.v2-on *{transition:none!important}
+  body.v2-on .fbx-dot{animation:none!important}
+  body.v2-on .fbx-ptr.spin i{animation:none!important}
+  body.v2-on .sk{animation:none!important}
+}
+</style>
 <style id="dsfb">
 /* Phone design 2026 (2026-10-19). Patterns from the public 2026 platform guidance (Apple HIG for iOS 26, Material 3
    Expressive), applied in our own brand: a calm top bar with at most three actions, large-title page headers, a page picker
@@ -1461,7 +1484,7 @@ body.v2-on :is(.db-tile b,.kpi b,.stat b,.hm-facts dd,.hm-big b,.hm-k .v,[data-c
 @media (prefers-reduced-motion:reduce){.m-sheet .m-panel,.m-sheet .m-scrim,body.v2-on .sk{animation:none!important}}
 :root[data-theme="dark"] body.v2-on,html[data-theme="dark"] body.v2-on{--m-bg:var(--g-0F1512,#0F1512);--m-sep:rgba(255,255,255,.08);--m-tint:var(--g-1F3326,#1F3326)}
 html[data-theme="dark"] .m-sheet .m-grid button[aria-current="page"]{background:var(--g-1F3326,#1F3326)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) body.v2-on{--m-bg:var(--g-0F1512,#0F1512);--m-sep:rgba(255,255,255,.08);--m-tint:var(--g-1F3326,#1F3326)}}
+/* (2026-10-24) no prefers-color-scheme rule here: the app is light unless the user picks dark or system, and applyTheme then sets data-theme="dark" */
 </style>
 </head>
 <body>
@@ -2370,7 +2393,7 @@ function api(action, payload, quiet){
 // Screens already seen show their last answer at once while a fresh one loads (kept in memory only,
 // dropped on lock and after any change). Most clicks then feel instant instead of waiting ~2 s for Google.
 var READ_CACHE = {};
-var CLIENT_READS = { flowPreview: 1, officeMap: 1, myTotalRewards: 1, apiKeyList: 1, webhookDeliveries: 1, payGroupList: 1, snapshotList: 1, snapshotView: 1, reportSubList: 1, kioskList: 1, notifyStatus: 1, perkList: 1, welcome: 1, internalJobs: 1, careerPathList: 1, rolesOverview: 1, nineBox: 1, successionList: 1, kbSearch: 1, kbList: 1, oneOnOneList: 1, goalList: 1, workforcePlan: 1, careersList: 1, careerPostList: 1, shiftOfferList: 1, searchAll: 1, customFieldList: 1, customValuesGet: 1, customValuesAll: 1, timesheetList: 1, compCycleList: 1, myFinalSettlement: 1, finalSettlementList: 1, myExitSurvey: 1, kudosFeed: 1, exitSurveyResults: 1, kudosStats: 1, recruitReqList: 1, recruitCandList: 1, recruitCandGet: 1, recruitBoard: 1, recruitOfferLetter: 1, loanQuote: 1, myLoans: 1, loanList: 1, myTraining: 1, trainSessionList: 1, trainMatrix: 1, courseList: 1,
+var CLIENT_READS = { aiStatus: 1, flowPreview: 1, officeMap: 1, myTotalRewards: 1, apiKeyList: 1, webhookDeliveries: 1, payGroupList: 1, snapshotList: 1, snapshotView: 1, reportSubList: 1, kioskList: 1, notifyStatus: 1, perkList: 1, welcome: 1, internalJobs: 1, careerPathList: 1, rolesOverview: 1, nineBox: 1, successionList: 1, kbSearch: 1, kbList: 1, oneOnOneList: 1, goalList: 1, workforcePlan: 1, careersList: 1, careerPostList: 1, shiftOfferList: 1, searchAll: 1, customFieldList: 1, customValuesGet: 1, customValuesAll: 1, timesheetList: 1, compCycleList: 1, myFinalSettlement: 1, finalSettlementList: 1, myExitSurvey: 1, kudosFeed: 1, exitSurveyResults: 1, kudosStats: 1, recruitReqList: 1, recruitCandList: 1, recruitCandGet: 1, recruitBoard: 1, recruitOfferLetter: 1, loanQuote: 1, myLoans: 1, loanList: 1, myTraining: 1, trainSessionList: 1, trainMatrix: 1, courseList: 1,
   myInsurance: 1, insList: 1, insCost: 1, insPolicyList: 1, myAnnouncements: 1, annList: 1, hdMine: 1, hdList: 1, hdGet: 1, shiftList: 1, rosterList: 1, discCodes: 1, discList: 1, injuryList: 1, assetList: 1, clearanceList: 1, myFile: 1, myRequests: 1, hrBootstrap: 1, hrCompList: 1, hrExpiring: 1, hrTeam: 1, hrEmpFile: 1, reqInbox: 1,
   leaveTeam: 1, holidayList: 1, leaveBalances: 1, myHistory: 1, me: 1, board: 1, empList: 1, zoneList: 1, report: 1, reviewList: 1,
   auditList: 1, settingsGet: 1, requestQuote: 1, dashboard: 1, mySlips: 1, payrollList: 1, eosQuote: 1, myPerformance: 1, perfTeam: 1, perfEmp: 1, feedbackResults: 1, perfCycleList: 1, perfOverview: 1, reportCatalog: 1, reportRun: 1, reportLog: 1, reportVerify: 1, myTasks: 1, delegationList: 1, reconList: 1, complianceCalendar: 1, wpsFile: 1, onboardList: 1, mySurveys: 1, surveyResults: 1, policyList: 1, planList: 1, hrDirectory: 1, hrDeptList: 1, hrPositionList: 1, hrDocList: 1, hrImportValidate: 1,
@@ -2726,7 +2749,59 @@ function splash(next){
   setTimeout(go, reduced ? 400 : 2200);
 }
 
+/**
+ * Single sign-on (2026-10-23), no provider library: a popup goes to Google or Microsoft (implicit flow, token in the URL
+ * fragment) and comes back to this same page, which hands the token to the window that opened it and closes. The server
+ * verifies the token with the provider (Admin.gs api_ssoLogin). The redirect URI to register is this page's address.
+ */
+function ssoReturn(){
+  if (!window.opener || !/(id_token|access_token)=/.test(location.hash)) return false;
+  var q = {}; location.hash.slice(1).split('&').forEach(function(kv){ var i = kv.indexOf('='); if (i > 0) q[decodeURIComponent(kv.slice(0, i))] = decodeURIComponent(kv.slice(i + 1)); });
+  if (!/^sso\./.test(q.state || '')) return false;
+  try { window.opener.postMessage({ sso: { state: q.state, id_token: q.id_token || '', access_token: q.access_token || '', error: q.error || '' } }, location.origin); } catch (e) {}
+  document.body.textContent = ''; window.close();
+  return true;
+}
+function ssoRedirect(){ return location.origin + location.pathname; }
+function ssoStart(prov, cfg, done){
+  var state = 'sso.' + prov + '.' + Math.random().toString(36).slice(2) + Date.now().toString(36), nonce = Math.random().toString(36).slice(2), url;
+  if (prov === 'google') url = 'https://accounts.google.com/o/oauth2/v2/auth?response_type=id_token&scope=openid%20email&prompt=select_account&client_id=' + encodeURIComponent(cfg.google);
+  else url = 'https://login.microsoftonline.com/' + encodeURIComponent(cfg.microsoft.tenant) + '/oauth2/v2.0/authorize?response_type=token&response_mode=fragment&scope=' + encodeURIComponent('https://graph.microsoft.com/User.Read') + '&prompt=select_account&client_id=' + encodeURIComponent(cfg.microsoft.clientId);
+  url += '&redirect_uri=' + encodeURIComponent(ssoRedirect()) + '&state=' + encodeURIComponent(state) + '&nonce=' + nonce;
+  var w = window.open(url, 'sso', 'width=480,height=640');
+  if (!w) return done({ error: 'popup_blocked' });
+  var timer = setInterval(function(){ if (w.closed) { clearInterval(timer); window.removeEventListener('message', on); done(null); } }, 700);
+  function on(ev){
+    if (ev.origin !== location.origin || !ev.data || !ev.data.sso || ev.data.sso.state !== state) return;
+    clearInterval(timer); window.removeEventListener('message', on);
+    var s = ev.data.sso; done(s.error ? { error: 'sso_failed' } : { credential: prov === 'google' ? s.id_token : s.access_token });
+  }
+  window.addEventListener('message', on);
+}
+/** The Google / Microsoft buttons under a sign-in form, shown only when this organisation has set them up. */
+function ssoButtons(box, onToken){
+  if (!box || !S.orgId) { if (box) box.innerHTML = ''; return; }
+  api('orgCheck', { orgId: S.orgId }, true).then(function(r){
+    if (!box.isConnected) return;
+    var c = r && r.ok && r.sso;
+    if (!c || (!c.google && !c.microsoft)) { box.innerHTML = ''; return; }
+    box.innerHTML = '<div class="sso-or"><span>' + t('ssoOr') + '</span></div>' +
+      (c.google ? '<button type="button" class="btn btn-line sso-btn" data-sso="google">' + ph('google-logo') + t('ssoGoogle') + '</button>' : '') +
+      (c.microsoft ? '<button type="button" class="btn btn-line sso-btn" data-sso="microsoft">' + ph('microsoft-outlook-logo') + t('ssoMicrosoft') + '</button>' : '');
+    $$('[data-sso]', box).forEach(function(b){ b.onclick = function(){
+      var prov = b.dataset.sso; b.disabled = true;
+      ssoStart(prov, c, function(x){
+        b.disabled = false;
+        if (!x) return;
+        if (x.error) return onToken(null, x.error);
+        api('ssoLogin', { provider: prov, credential: x.credential }).then(function(res){ onToken(res.ok ? res : null, res.ok ? '' : res.error); });
+      });
+    }; });
+  });
+}
+
 function boot(){
+  if (ssoReturn()) return;
   applyLang();
   var po = location.hash.match(/^#(?:careers|kiosk)\/(\d{4,8})(?:\/|$)/); if (po) S.orgId = po[1];
   // office kiosk QR (2026-10-20): #kiosk is the tablet screen; #qr/<code> is a code scanned with the phone camera
@@ -2963,7 +3038,7 @@ function renderPwLogin(prefNo){
     '<div class="field"><label for="pno">' + t('empNo') + '</label><input id="pno" name="username" autocomplete="username" inputmode="numeric" required value="' + esc(prefNo || S.empNo || '') + '"></div>' +
     '<div class="field"><label for="ppw">' + t('password') + '</label><input id="ppw" name="password" type="password" autocomplete="current-password" required minlength="8" dir="ltr"></div>' +
     '<div class="err" id="err" role="alert">' + (S.lockMsg ? esc(S.lockMsg) : '') + '</div>' +
-    '<button class="btn btn-primary" id="pgo">' + I.lock + t('signIn') + '</button></form>' +
+    '<button class="btn btn-primary" id="pgo">' + I.lock + t('signIn') + '</button></form><div id="ssoBox" class="sso-box"></div>' +
     '<button class="linkish lk-ic" type="button" id="fpw"><i class="ph ph-question" aria-hidden="true"></i>' + t('forgotPw') + '</button>' +
     (hasDevice ? '<button class="linkish" type="button" id="back">' + t('backToPin') + '</button>' : '<button class="linkish" type="button" id="back">' + t('activateTitle') + '</button>') + '</div>');
   S.lockMsg = '';
@@ -2985,6 +3060,14 @@ function renderPwLogin(prefNo){
       enterApp(r.home);
     });
   };
+  var ssoDone = function(r, err){
+    if (!r) { if (err) $('#err').textContent = errText(err); return; }
+    S.auth = 'pw'; store('org', S.orgId);
+    if (!S.empNo || S.pwOnly) { S.empNo = r.me.empNo; store('empNo', r.me.empNo); S.pwOnly = true; store('pwOnly', '1'); }
+    S.me = r.me; enterApp(r.home);
+  };
+  ssoButtons($('#ssoBox'), ssoDone);
+  $('#org').addEventListener('change', function(){ if (takeOrg()) ssoButtons($('#ssoBox'), ssoDone); });
   $('#pno').value ? $('#ppw').focus() : $('#pno').focus();
 }
 
@@ -3077,6 +3160,7 @@ function applyHome(r){
   S.hasPassword = !!r.hasPassword;
   S.me = r.me; S.zones = r.zones; S.today = r.today; S.shift = r.shift; S.rules = r.rules; S.devices = r.devices || [];
   if (r.punch && r.punch.options) { S.punchOpts = r.punch.options; S.punchType = r.punch.type; S.punchOptsAt = Date.now(); }
+  S.aiOn = !!r.ai;
   if (r.company) setCompany(r.company, true);
   paintChip();
 }
@@ -3333,6 +3417,11 @@ document.addEventListener('click', function(ev){
     api('notifyTest', {}).then(function(x){ b.disabled = false; if (st) st.textContent = x.ok ? t('ntReady') + ' · ' + t('ntSentTo') + ' ' + x.to : errText(x.error); });
   });
 });
+document.addEventListener('click', function(ev){
+  var b = ev.target.closest && ev.target.closest('#waTest'); if (!b) return;
+  var st = $('#ntState'); b.disabled = true;
+  api('waTest', {}).then(function(x){ b.disabled = false; if (st) st.textContent = x.ok ? t('ntSentTo') + ' ' + x.to : errText(x.error); });
+});
 /** Document attachments (2026-10-20): view a scan (an image in a panel, a PDF opened or saved by the browser) and attach one. */
 function docFileOpen(docId){
   api('docFile', { docId: docId }).then(function(r){
@@ -3427,7 +3516,7 @@ Object.assign(T.ar, {
   alTime:'سجل حضورك، جداول دوام الفريق ومراجعة البصمات.', alRequests:'طلباتك والموافقات وتقويم الإجازات والعطل الرسمية.', alPay:'قسائمك ومسيرات الرواتب والامتثال لحماية الأجور.',
   alGrowth:'أهدافك وتقييمك وخطط التطوير ونبض الموظفين.', alPeople:'سجل كل موظف: الدليل والهيكل المرئي والمستندات والخدمات الحكومية والتأمين والعهد والحقول المخصصة.', alInsights:'لوحة الإدارة والتقارير الموثقة وسجل التدقيق.',
   alSettings:'قواعد الحضور وإعدادات النظام.',
-  vwPunch:'تسجيل الحضور', vwHistory:'سجلي', vwBoard:'لوحة اليوم', vwOffice:'خريطة المكتب', vwReview:'مراجعة البصمات', vwShifts:'الورديات', vwZones:'المواقع',
+  vwPunch:'تسجيل الحضور', vwHistory:'سجلي', ssoOr:'أو', ssoGoogle:'الدخول بحساب Google', ssoMicrosoft:'الدخول بحساب Microsoft', e_sso_failed:'تعذر التحقق من الحساب. حاول مرة أخرى.', e_sso_no_account:'لا يوجد موظف بهذا البريد في هذه المنشأة. راجع الموارد البشرية.', e_sso_not_configured:'الدخول الموحد غير مفعل لهذه المنشأة.', e_popup_blocked:'المتصفح منع النافذة المنبثقة. اسمح بها ثم حاول مرة أخرى.', e_ai_not_configured:'المساعد غير مفعل بعد.', e_ai_daily_limit:'وصلت إلى حد الأسئلة لليوم. حاول غدا.', e_ai_error:'تعذر الحصول على إجابة الآن. حاول بعد قليل.', e_ai_busy:'المساعد مشغول الآن. حاول بعد دقيقة.', e_whatsapp_not_configured:'واتساب غير مربوط بعد.', e_whatsapp_failed:'تعذر الإرسال عبر واتساب.', e_no_phone:'لا يوجد رقم جوال سعودي في ملفك.', swAi:'المساعد الذكي للموارد البشرية', swAiLead:'يجيب الموظفين من السياسات والمقالات وملف السائل فقط. يحتاج مفتاح ANTHROPIC_API_KEY في خصائص السكربت. السؤال وبيانات السائل تُرسل إلى Anthropic للإجابة ولا تُحفظ في النظام.', swWa:'الملخص اليومي عبر واتساب', swWaLead:'يرسل عدد المهام المنتظرة فقط بقالب معتمد من Meta. يحتاج WA_PHONE_ID وWA_TOKEN وWA_TEMPLATE في خصائص السكربت.', waTestBtn:'رسالة واتساب تجريبية', vwBoard:'لوحة اليوم', vwAsk:'اسأل الموارد البشرية', vwOffice:'خريطة المكتب', vwReview:'مراجعة البصمات', vwShifts:'الورديات', vwZones:'المواقع',
   vwMine:'طلباتي', vwInbox:'الموافقات', vwLeave:'تقويم الإجازات', vwHolidays:'العطل الرسمية',
   vwSlips:'قسائمي', vwRuns:'مسيرات الرواتب', vwApprovals:'اعتماد الرواتب', vwCompliance:'الامتثال',
   vwGrowth:'أدائي', vwCycle:'دورة التقييم', vwPlans:'خطط التطوير', vwPulse:'نبض الموظفين',
@@ -3473,7 +3562,7 @@ Object.assign(T.en, {
   alTime:'Your attendance, team shifts and punch review.', alRequests:'Your requests, approvals, the leave calendar and public holidays.', alPay:'Your payslips, payroll runs and wage protection.',
   alGrowth:'Your goals and review, development plans and the pulse survey.', alPeople:'The employee record: directory, org chart, documents, government services, insurance, assets and custom fields.', alInsights:'The management dashboard, verified reports and the audit log.',
   alSettings:'Attendance rules and system settings.',
-  vwPunch:'Check in', vwHistory:'My attendance', vwBoard:'Today', vwOffice:'Office map', vwReview:'Punch review', vwShifts:'Shifts', vwZones:'Locations',
+  vwPunch:'Check in', vwHistory:'My attendance', ssoOr:'or', ssoGoogle:'Sign in with Google', ssoMicrosoft:'Sign in with Microsoft', e_sso_failed:'We could not verify that account. Try again.', e_sso_no_account:'No employee in this organisation has that e-mail. Ask HR.', e_sso_not_configured:'Single sign-on is not set up for this organisation.', e_popup_blocked:'The browser blocked the pop-up. Allow it and try again.', e_ai_not_configured:'The assistant is not switched on yet.', e_ai_daily_limit:'You have reached today\'s question limit. Try tomorrow.', e_ai_error:'No answer right now. Try again shortly.', e_ai_busy:'The assistant is busy. Try again in a minute.', e_whatsapp_not_configured:'WhatsApp is not connected yet.', e_whatsapp_failed:'Could not send by WhatsApp.', e_no_phone:'There is no Saudi mobile number in your file.', swAi:'AI HR assistant', swAiLead:'Answers employees from policies, articles and the asker\'s own file only. Needs ANTHROPIC_API_KEY in Script properties. The question and the asker\'s record go to Anthropic for the answer and are not stored here.', swWa:'Daily digest by WhatsApp', swWaLead:'Sends only the number of waiting items, with a template approved by Meta. Needs WA_PHONE_ID, WA_TOKEN and WA_TEMPLATE in Script properties.', waTestBtn:'Test WhatsApp message', vwBoard:'Today', vwAsk:'Ask HR', vwOffice:'Office map', vwReview:'Punch review', vwShifts:'Shifts', vwZones:'Locations',
   vwMine:'My requests', vwInbox:'Approvals', vwLeave:'Leave calendar', vwHolidays:'Public holidays',
   vwSlips:'My payslips', vwRuns:'Payroll runs', vwApprovals:'Salary approvals', vwCompliance:'Compliance',
   vwGrowth:'My growth', vwCycle:'Review cycle', vwPlans:'Development plans', vwPulse:'Pulse survey',
@@ -3566,6 +3655,7 @@ var AREAS = [
     { id: 'kiosks', n: 'vwKiosks', ok: isHr, files: W4_FILES, run: function(b){ KioskAdmin.section(b); } }] },
   { id: 'requests', i: 'tray', grp: 'life', subs: [
     { id: 'mine', n: 'vwMine', ok: ALL, files: MY_FILES, run: myRequestsView },
+    { id: 'ask', n: 'vwAsk', ok: function(){ return !!S.aiOn; }, files: ['js/assistant.js'], run: function(b){ Assistant.section(b); } },
     { id: 'inbox', n: 'vwInbox', ok: any('hr', 'payroll', 'manager'), sec: 'inbox' },
     { id: 'centre', n: 'vwCentre', ok: approverOk, files: FLOW_FILES, run: function(b){ Flows.centre(b); } },
     { id: 'leave', n: 'vwLeave', ok: any('hr', 'manager'), sec: 'leave' },
@@ -3624,7 +3714,7 @@ var AREAS = [
     { id: 'account', i: 'user-circle', foot: true, bare: true, subs: [{ id: 'main', n: 'vwMain', ok: ALL, run: function(){ renderMe(); } }] }
 ];
 /** One icon per sub-page tab (2026-10-18 redesign): the same Phosphor set as the side menu and the bell. */
-var SUB_ICON = { office: 'map-trifold', integrations: 'plugs-connected', paygroups: 'users-four', paygroups: 'users-four', platform: 'buildings', history: 'clock-counter-clockwise', schedules: 'envelope-simple', kiosks: 'qr-code', perks: 'gift', welcome: 'hand-waving', export: 'download-simple', mobility: 'path', roles: 'shield-check', talent: 'squares-four', kb: 'books', oneonone: 'chats-circle', workforce: 'users-four', careers: 'globe', openshifts: 'calendar-plus', punch: 'fingerprint', history: 'calendar-dots', board: 'users-four', review: 'shield-warning', timesheets: 'calendar-check', shifts: 'clock-clockwise', zones: 'map-pin-area',
+var SUB_ICON = { ask: 'sparkle', office: 'map-trifold', integrations: 'plugs-connected', paygroups: 'users-four', paygroups: 'users-four', platform: 'buildings', history: 'clock-counter-clockwise', schedules: 'envelope-simple', kiosks: 'qr-code', perks: 'gift', welcome: 'hand-waving', export: 'download-simple', mobility: 'path', roles: 'shield-check', talent: 'squares-four', kb: 'books', oneonone: 'chats-circle', workforce: 'users-four', careers: 'globe', openshifts: 'calendar-plus', punch: 'fingerprint', history: 'calendar-dots', board: 'users-four', review: 'shield-warning', timesheets: 'calendar-check', shifts: 'clock-clockwise', zones: 'map-pin-area',
   mine: 'tray', inbox: 'check-square', centre: 'stamp', cycles: 'arrows-clockwise', expenses: 'receipt', helpdesk: 'lifebuoy', leave: 'calendar-blank', holidays: 'confetti', flows: 'flow-arrow',
   slips: 'file-text', runs: 'money', approvals: 'seal-check', compliance: 'scales', journal: 'notebook', settlements: 'handshake', loans: 'hand-coins',
   me: 'user-focus', cycle: 'target', plans: 'path', pulse: 'heartbeat', payreview: 'trend-up', kudos: 'hands-clapping', training: 'graduation-cap',
@@ -3640,7 +3730,7 @@ function areaLead(a){ var k = 'al' + a.id.charAt(0).toUpperCase() + a.id.slice(1
 /** Where the page body goes: the area body in the shell, #main before the shell exists. */
 function view(){ return $('#v2Body') || $('#main'); }
 /** The v2 block must come after every module's own <style>, so equal selectors resolve to v2. */
-function themeLast(){ ['dsv2', 'dsv3', 'dsed', 'dsfp', 'dspg', 'dsdark', 'dsmo', 'dsgate', 'dsfb', 'brandTheme'].forEach(function(id){ var s = document.getElementById(id); if (s) document.head.appendChild(s); }); }
+function themeLast(){ ['dsv2', 'dsv3', 'dsed', 'dsfp', 'dspg', 'dsdark', 'dsmo', 'dsgate', 'dsfb', 'dsfbx', 'brandTheme'].forEach(function(id){ var s = document.getElementById(id); if (s) document.head.appendChild(s); }); }
 function loadAll(files){ return files.reduce(function(p, f){ return p.then(function(){ return loadScript(f); }); }, Promise.resolve()); }
 
 /** Where a task from the bell opens. HR sections map to their area; personal items to growth or the profile. */
@@ -3726,8 +3816,11 @@ function paintNav(){
   foot.innerHTML = vis.filter(function(a){ return a.foot; }).map(item).join('') + '<button type="button" id="v2Lock" data-area="account"><span class="v3-ic">' + ph('lock-simple', 'duotone') + '</span><span>' + t('signOut') + '</span></button>';
   var r = R(), fourth = r.hr || r.manager ? ['people', 'users-three', r.hr ? 'v2PeopleS' : 'vwTeam'] : ['pay', 'wallet', 'v2MyPay'];
   var bn = [['home', 'house', 'arHome'], ['requests', 'tray', 'v2Req'], ['time:punch', 'fingerprint', 'v2Punch', 1], fourth, ['more', 'dots-three-outline', 'v2More']];
-  bot.innerHTML = bn.map(function(b){ var id = b[0].split(':')[0];
-    return '<button type="button" data-area="' + b[0] + '" class="' + (b[3] ? 'center' : '') + '"' + (!b[3] && S.tab === id ? ' aria-current="page"' : '') + ' aria-label="' + t(b[2]) + '">' + ph(b[1], b[3] ? 'fill' : 'duotone') + (b[3] ? '' : '<span>' + t(b[2]) + '</span>') + '</button>'; }).join('');
+  // badge dots (2026-10-24): a count on the tab that holds the work; More carries the areas that have no tab of their own
+  var inBar = bn.map(function(b){ return b[0].split(':')[0]; }), rest = vis.reduce(function(n, a){ return inBar.indexOf(a.id) < 0 ? n + (cnt[a.id] || 0) : n; }, 0);
+  bot.innerHTML = bn.map(function(b){ var id = b[0].split(':')[0], c = b[3] ? 0 : id === 'more' ? rest : cnt[id] || 0;
+    return '<button type="button" data-area="' + b[0] + '" class="' + (b[3] ? 'center' : '') + '"' + (!b[3] && S.tab === id ? ' aria-current="page"' : '') + ' aria-label="' + t(b[2]) + (c ? ' (' + c + ')' : '') + '">' + ph(b[1], b[3] ? 'fill' : 'duotone') + (b[3] ? '' : '<span>' + t(b[2]) + '</span>') + (c ? '<span class="fbx-dot num" aria-hidden="true">' + (c > 99 ? '99+' : c) + '</span>' : '') + '</button>'; }).join('');
+  fbxPull();
   $$('#v2Side [data-area], #v2Bottom [data-area]').forEach(function(el){ el.onclick = function(e){ // only the nav routes; tiles elsewhere use data-tint
     e.preventDefault();
     if (el.dataset.area === 'more') return openSide();
@@ -3756,6 +3849,26 @@ function heroHtml(a){
     '<span class="v3-pill">' + ph('calendar-blank') + esc(today) + '</span></div></header>';
 }
 /** Motion system (2026-10-14): durations come from the CSS tokens in <style id="dsmo">; reduced motion skips all of it. */
+/** Pull-to-refresh on phones (2026-10-24): pull down from the top of a page past 72px and the page opens again with fresh
+ *  data (apiFresh redraws when the answer changed). Never on the check-in screen, where a re-render would restart the radar. */
+function fbxPull(){
+  var m = $('#main'); if (!m || m._fbx) return; m._fbx = 1;
+  var y0 = -1, d = 0, ind = null;
+  function phone(){ return window.matchMedia && matchMedia('(max-width:900px)').matches; }
+  function put(p, spin){
+    if (!ind) { ind = document.createElement('div'); ind.className = 'fbx-ptr'; ind.setAttribute('aria-hidden', 'true'); ind.innerHTML = ph('arrows-clockwise', 'bold'); document.body.appendChild(ind); }
+    ind.classList.toggle('go', p > 0); ind.classList.toggle('spin', !!spin);
+    ind.style.transform = 'translateY(' + Math.round(Math.min(p, 1) * 56 - 56) + 'px) scale(' + (0.6 + Math.min(p, 1) * 0.4) + ') rotate(' + Math.round(p * 270) + 'deg)';
+  }
+  m.addEventListener('touchstart', function(e){ y0 = phone() && m.scrollTop <= 0 && !onPunch() && !$('.drawer') && e.touches.length === 1 ? e.touches[0].clientY : -1; d = 0; }, { passive: true });
+  m.addEventListener('touchmove', function(e){ if (y0 < 0) return; d = e.touches[0].clientY - y0; if (d <= 0 || m.scrollTop > 0) { d = 0; return put(0); } put(Math.min(d / 72, 1.2)); }, { passive: true });
+  m.addEventListener('touchend', function(){
+    if (y0 < 0) return; y0 = -1;
+    if (d < 72) return put(0);
+    put(1, true); if (navigator.vibrate) try { navigator.vibrate(8); } catch (e) {}
+    setTimeout(function(){ goArea(S.tab, S.fullPage || S.sub[S.tab], S.subArg, { replace: 1 }); put(0); }, moReduced() ? 0 : 450);
+  }, { passive: true });
+}
 function moReduced(){ return !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches); }
 function moMs(name, dflt){ var v = parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name)); return isFinite(v) && v > 0 ? v : dflt; }
 /** Numbers count up once when they come into view (a tile, a fact, a big figure); the final text is restored exactly. */
@@ -5175,7 +5288,7 @@ function admSettings(){
       '</section>' +
       // HR and payroll rules (settingsSave validates each one and answers bad_setting + key)
       '<section class="set-card"><h3>' + ph('money') + t('secPay') + '</h3><p>' + t('secPayLead') + '</p>' +
-        sw('deductAbsence', t('swAbs'), t('swAbsLead')) + sw('deductLateMinutes', t('swLate'), t('swLateLead')) + sw('payOvertimeFromAttendance', t('swOt'), t('swOtLead')) + sw('adminSeesPay', t('swAdminPay'), t('swAdminPayLead')) + sw('timesheetRequired', t('swTs'), t('swTsLead')) + sw('notifyDigest', t('swNotify'), t('swNotifyLead')) + sw('attachmentsEnabled', t('swAttach'), t('swAttachLead')) + '<div class="btnrow" style="margin:4px 0 10px"><button type="button" class="btn btn-line btn-sm" id="ntTest">' + ph('envelope-simple') + t('ntTest') + '</button> <small id="ntState" class="hr-hint"></small></div>' +
+        sw('deductAbsence', t('swAbs'), t('swAbsLead')) + sw('deductLateMinutes', t('swLate'), t('swLateLead')) + sw('payOvertimeFromAttendance', t('swOt'), t('swOtLead')) + sw('adminSeesPay', t('swAdminPay'), t('swAdminPayLead')) + sw('timesheetRequired', t('swTs'), t('swTsLead')) + sw('notifyDigest', t('swNotify'), t('swNotifyLead')) + sw('attachmentsEnabled', t('swAttach'), t('swAttachLead')) + sw('aiAssistant', t('swAi'), t('swAiLead')) + sw('whatsappDigest', t('swWa'), t('swWaLead')) + '<div class="btnrow" style="margin:4px 0 10px"><button type="button" class="btn btn-line btn-sm" id="ntTest">' + ph('envelope-simple') + t('ntTest') + '</button> <button type="button" class="btn btn-line btn-sm" id="waTest">' + ph('whatsapp-logo') + t('waTestBtn') + '</button> <small id="ntState" class="hr-hint"></small></div>' +
         '<div class="field"><label for="eosWageBasis">' + t('eosBasis') + '</label><select id="eosWageBasis" name="eosWageBasis">' +
           [['total', t('eosTotal')], ['basic_housing', t('eosBH')]].map(function(o){ return '<option value="' + o[0] + '"' + (st.eosWageBasis === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select><small>' + t('eosBasisHint') + '</small></div>' +
         num('wpsDueDay', t('wpsDay'), t('wpsDayHint'), 1, 28, t('dayOfMonth')) +
@@ -5203,7 +5316,7 @@ function admSettings(){
       $$('[aria-invalid]', f).forEach(function(x){ x.removeAttribute('aria-invalid'); });
       api('settingsSave', { settings: { shiftStart: f.shiftStart.value, shiftEnd: f.shiftEnd.value, graceMin: f.graceMin.value, minPunchGapMin: f.minPunchGapMin.value, maxAccuracy: f.maxAccuracy.value, reviewRiskThreshold: f.reviewRiskThreshold.value,
         workdays: $$('input[name=wd]:checked', f).map(function(x){ return x.value; }).join(',') || '0,1,2,3,4', allowCheckoutOutside: f.allowCheckoutOutside.checked, allowDeviceKey: f.allowDeviceKey.checked, allowDesktop: f.allowDesktop.checked, allowPasswordPunch: f.allowPasswordPunch.checked, maxAccuracyDesktop: f.maxAccuracyDesktop.value,
-        deductAbsence: f.deductAbsence.checked, deductLateMinutes: f.deductLateMinutes.checked, adminSeesPay: f.adminSeesPay.checked, timesheetRequired: f.timesheetRequired.checked, notifyDigest: f.notifyDigest.checked, attachmentsEnabled: f.attachmentsEnabled.checked, payOvertimeFromAttendance: f.payOvertimeFromAttendance.checked, eosWageBasis: f.eosWageBasis.value, wpsDueDay: Number(f.wpsDueDay.value),
+        deductAbsence: f.deductAbsence.checked, deductLateMinutes: f.deductLateMinutes.checked, adminSeesPay: f.adminSeesPay.checked, timesheetRequired: f.timesheetRequired.checked, notifyDigest: f.notifyDigest.checked, attachmentsEnabled: f.attachmentsEnabled.checked, aiAssistant: f.aiAssistant.checked, whatsappDigest: f.whatsappDigest.checked, payOvertimeFromAttendance: f.payOvertimeFromAttendance.checked, eosWageBasis: f.eosWageBasis.value, wpsDueDay: Number(f.wpsDueDay.value),
         saudizationTarget: f.saudizationTarget.value === '' ? '' : Number(f.saudizationTarget.value), refPrefixes: f.refPrefixes.value.trim(), rostersEnabled: f.rostersEnabled.checked,
         ramadanFrom: f.ramadanFrom.value, ramadanTo: f.ramadanTo.value, ramadanHours: Number(f.ramadanHours.value), permissionMaxHours: Number(f.permissionMaxHours.value), permissionMonthHours: Number(f.permissionMonthHours.value), perDiemInside: Number(f.perDiemInside.value), perDiemAbroad: Number(f.perDiemAbroad.value), overtimeYearHours: Number(f.overtimeYearHours.value), summerBanFrom: f.summerBanFrom.value.trim(), summerBanTo: f.summerBanTo.value.trim(),
         summerBanStart: f.summerBanStart.value, summerBanEnd: f.summerBanEnd.value,

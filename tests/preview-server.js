@@ -14,6 +14,16 @@ const ORIGIN = 'http://localhost:' + PORT;
 const ROOT = process.argv[3] === 'built' ? path.join(__dirname, '..', '..', 'app') : path.join(__dirname, '..');
 const SETUP = 'preview-setup';
 const B = load({ props: { RP_ID: 'localhost', ORIGINS: ORIGIN }, setupKeyHash: crypto.createHash('sha256').update(SETUP).digest('hex') });
+// Owner-key connectors, preview only: placeholder IDs so the sign-in buttons and "Ask HR" show, and a canned assistant
+// answer instead of a real Claude API call (nothing leaves this machine). The real keys live only in Script properties.
+Object.assign(B.props, { SSO_GOOGLE_CLIENT_ID: 'preview.apps.googleusercontent.com', SSO_MS_CLIENT_ID: 'preview-app', SSO_MS_TENANT: 'preview-tenant', ANTHROPIC_API_KEY: 'preview-only' });
+const realFetch = B.ctx.UrlFetchApp.fetch;
+B.ctx.UrlFetchApp.fetch = (url, o) => {
+  if (!String(url).startsWith('https://api.anthropic.com/')) return realFetch(url, o);
+  const q = JSON.parse(o.payload).messages.slice(-1)[0].content;
+  const txt = 'معاينة محلية: لم يُرسل سؤالك «' + q + '» إلى أي خدمة. في النظام الحي يجيب المساعد من سياسات الشركة وملفك، مثل: **رصيدك السنوي** يظهر في ملفي، ويمكنك طلب خطاب من صفحة الطلبات.';
+  return { getResponseCode: () => 200, getContentText: () => JSON.stringify({ stop_reason: 'end_turn', content: [{ type: 'text', text: txt }], usage: {} }) };
+};
 
 // Seed: HQ zone + demo staff with punches, so the board has something to show.
 (function seed() {

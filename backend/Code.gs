@@ -450,7 +450,7 @@ var DEFAULT_SETTINGS = {
   adminSeesPay: true,        // the system administrator also holds payroll; switch off to keep pay apart from administration
   wpsDueDay: 10,            // WPS / Mudad: salaries of month M uploaded by this day of month M+1 (check with the bank / Mudad)
   attachmentsEnabled: false, // document scans in Drive (Hr.gs api_docUpload): needs the drive.file and external_request scopes
-  notifyDigest: false, notifyHour: 7, appUrl: '', // daily e-mail digest (Payroll.gs notifySweep_): needs M365 properties and the external_request scope
+  notifyDigest: false, notifyHour: 7, appUrl: '', aiAssistant: false, whatsappDigest: false, // daily e-mail digest (Payroll.gs notifySweep_): needs M365 properties and the external_request scope
   welcomeAr: '', welcomeEn: '', preboardDocs: '', // pre-boarding welcome text and documents to bring (Engage.gs api_welcome)
   internalMinMonths: 6,      // internal mobility: months of service before applying internally (Recruitment.gs)
   rostersEnabled: false,     // shifts and rosters (Shifts.gs); off = everyone keeps their own shift, nothing extra is read
@@ -683,7 +683,7 @@ function rateLimit_(key, max, seconds) {
 // issued by another organisation. The spreadsheet this script is bound to is the home organisation (HOME_ORG_ID,
 // Best Gas): its keys are unprefixed, so nothing of the live system moved.
 var ORG_ = null, ORG_SS_ = null;
-var ORG_REQUIRED_ = { authBegin: 1, enrollBegin: 1, pwLogin: 1, adminRecover: 1, bootstrap: 1, orgCheck: 1 };
+var ORG_REQUIRED_ = { ssoLogin: 1, authBegin: 1, enrollBegin: 1, pwLogin: 1, adminRecover: 1, bootstrap: 1, orgCheck: 1 };
 var PLATFORM_ACTIONS_ = { orgCreate: 1, orgList: 1, orgSetStatus: 1, orgSetGroup: 1, orgOverview: 1 };
 function homeOrgId_() { return PropertiesService.getScriptProperties().getProperty('HOME_ORG_ID') || CONFIG.HOME_ORG_ID; }
 function orgRec_(id) {
@@ -920,7 +920,7 @@ function api_orgOverview(req) {
 function api_orgCheck(req) {
   if (!rateLimit_('orgcheck', 120, 600)) fail_('too_many_attempts');
   var s = settings_();
-  return { ok: true, orgId: orgId_(), nameAr: s.companyNameAr || '', nameEn: s.companyNameEn || '', home: !!(ORG_ && ORG_.home), logoVer: logoVer_(), brandColor: brandColor_() };
+  return { ok: true, orgId: orgId_(), nameAr: s.companyNameAr || '', nameEn: s.companyNameEn || '', home: !!(ORG_ && ORG_.home), logoVer: logoVer_(), brandColor: brandColor_(), sso: ssoPublic_() };
 }
 
 // ---------------- HTTP ----------------
@@ -954,11 +954,11 @@ function doPost(e) {
   return json_(handle_(req));
 }
 
-var PUBLIC_ACTIONS = { orgLogo: 1, apiQuery: 1, orgCreate: 1, orgList: 1, orgSetStatus: 1, orgSetGroup: 1, orgOverview: 1, orgCheck: 1, kioskPing: 1, careersList: 1, careersApply: 1,
+var PUBLIC_ACTIONS = { ssoLogin: 1, devicePunch: 1, orgLogo: 1, apiQuery: 1, orgCreate: 1, orgList: 1, orgSetStatus: 1, orgSetGroup: 1, orgOverview: 1, orgCheck: 1, kioskPing: 1, careersList: 1, careersApply: 1,
   ping: 1, bootstrapStatus: 1, bootstrap: 1, enrollBegin: 1, enrollFinish: 1,
   authBegin: 1, authFinish: 1, punchBegin: 1, punchFinish: 1, adminRecover: 1, pwLogin: 1, pinChange: 1, diag: 1, demoData: 1
 };
-var EMP_ACTIONS = { officeMap: 1, presenceSet: 1, myTotalRewards: 1, brandSave: 1, logoSave: 1, apiKeyList: 1, apiKeySave: 1, webhookSave: 1, webhookDeliveries: 1, payGroupList: 1, payGroupSave: 1, payGroupAssign: 1, snapshotList: 1, snapshotView: 1, snapshotPeople: 1, snapshotTake: 1, reportSubList: 1, reportSubSave: 1, reportSubSend: 1, kioskList: 1, kioskSave: 1, docUpload: 1, docFile: 1, notifyStatus: 1, notifyTest: 1, perkList: 1, perkView: 1, welcome: 1, dataExport: 1, internalJobs: 1, internalApply: 1, careerPathList: 1, nineBox: 1, potentialSave: 1, successionList: 1, successionSave: 1, kbSearch: 1, kbList: 1, kbGet: 1, kbFeedback: 1, oneOnOneList: 1, oneOnOneSave: 1, oneOnOneUpdate: 1, goalList: 1, goalSave: 1, goalCheckIn: 1, workforcePlan: 1, workforcePlanSave: 1, pinEnrollBegin: 1, pinEnrollFinish: 1, shiftOfferList: 1, openShiftPost: 1, openShiftClaim: 1, shiftSwapAsk: 1, shiftSwapAnswer: 1, shiftOfferDecide: 1, shiftOfferCancel: 1, me: 1, myHistory: 1, passwordSet: 1, punchPw: 1, searchAll: 1, customFieldList: 1, customFieldSave: 1, customValuesGet: 1, customValuesSave: 1, customValuesAll: 1, timesheetList: 1, timesheetApprove: 1, compCycleSave: 1, compCycleList: 1, compPropose: 1, compCycleClose: 1, finalSettlementCreate: 1, finalSettlementDecide: 1, finalSettlementPaid: 1, finalSettlementList: 1, myFinalSettlement: 1, myExitSurvey: 1, exitSurveySubmit: 1, kudosSend: 1, kudosFeed: 1, exitSurveyResults: 1, kudosStats: 1,
+var EMP_ACTIONS = { aiStatus: 1, aiAsk: 1, officeMap: 1, presenceSet: 1, myTotalRewards: 1, brandSave: 1, logoSave: 1, apiKeyList: 1, apiKeySave: 1, webhookSave: 1, webhookDeliveries: 1, payGroupList: 1, payGroupSave: 1, payGroupAssign: 1, snapshotList: 1, snapshotView: 1, snapshotPeople: 1, snapshotTake: 1, reportSubList: 1, reportSubSave: 1, reportSubSend: 1, kioskList: 1, kioskSave: 1, docUpload: 1, docFile: 1, notifyStatus: 1, notifyTest: 1, perkList: 1, perkView: 1, welcome: 1, dataExport: 1, internalJobs: 1, internalApply: 1, careerPathList: 1, nineBox: 1, potentialSave: 1, successionList: 1, successionSave: 1, kbSearch: 1, kbList: 1, kbGet: 1, kbFeedback: 1, oneOnOneList: 1, oneOnOneSave: 1, oneOnOneUpdate: 1, goalList: 1, goalSave: 1, goalCheckIn: 1, workforcePlan: 1, workforcePlanSave: 1, pinEnrollBegin: 1, pinEnrollFinish: 1, shiftOfferList: 1, openShiftPost: 1, openShiftClaim: 1, shiftSwapAsk: 1, shiftSwapAnswer: 1, shiftOfferDecide: 1, shiftOfferCancel: 1, me: 1, myHistory: 1, passwordSet: 1, punchPw: 1, searchAll: 1, customFieldList: 1, customFieldSave: 1, customValuesGet: 1, customValuesSave: 1, customValuesAll: 1, timesheetList: 1, timesheetApprove: 1, compCycleSave: 1, compCycleList: 1, compPropose: 1, compCycleClose: 1, finalSettlementCreate: 1, finalSettlementDecide: 1, finalSettlementPaid: 1, finalSettlementList: 1, myFinalSettlement: 1, myExitSurvey: 1, exitSurveySubmit: 1, kudosSend: 1, kudosFeed: 1, exitSurveyResults: 1, kudosStats: 1,
   myFile: 1, hrEmpFile: 1, hrTeam: 1, hrCompList: 1, hrCompPropose: 1, hrCompDecide: 1,
   myRequests: 1, requestQuote: 1, requestCreate: 1, requestCancel: 1, reqInbox: 1, reqDecide: 1, holidayList: 1, leaveTeam: 1,
   mySlips: 1, payrollList: 1, payrollGet: 1, payrollCreate: 1, payrollRecalc: 1, payrollApprove: 1, payrollDelete: 1, payrollAdjSave: 1,
@@ -990,7 +990,7 @@ var HR_ACTIONS = { flowPreview: 1, perkSave: 1, welcomeSave: 1, careerPathSave: 
  * Actions that only read (plus the audit line of a salary view). They may use the cached tab copies;
  * update_ refuses a cached row, so a mistake here fails loudly instead of overwriting the Sheet.
  */
-var READ_ONLY_ACTIONS = { flowPreview: 1, officeMap: 1, myTotalRewards: 1, apiKeyList: 1, webhookDeliveries: 1, payGroupList: 1, snapshotList: 1, snapshotView: 1, reportSubList: 1, kioskList: 1, notifyStatus: 1, perkList: 1, welcome: 1, internalJobs: 1, careerPathList: 1, rolesOverview: 1, nineBox: 1, successionList: 1, kbSearch: 1, kbList: 1, oneOnOneList: 1, goalList: 1, workforcePlan: 1, careersList: 1, careerPostList: 1, shiftOfferList: 1, searchAll: 1, customFieldList: 1, customValuesGet: 1, customValuesAll: 1, myFinalSettlement: 1, myExitSurvey: 1, kudosFeed: 1, exitSurveyResults: 1, kudosStats: 1, me: 1, myHistory: 1, myFile: 1, hrEmpFile: 1, hrTeam: 1, hrCompList: 1, hrDirectory: 1, hrDeptList: 1,
+var READ_ONLY_ACTIONS = { aiStatus: 1, flowPreview: 1, officeMap: 1, myTotalRewards: 1, apiKeyList: 1, webhookDeliveries: 1, payGroupList: 1, snapshotList: 1, snapshotView: 1, reportSubList: 1, kioskList: 1, notifyStatus: 1, perkList: 1, welcome: 1, internalJobs: 1, careerPathList: 1, rolesOverview: 1, nineBox: 1, successionList: 1, kbSearch: 1, kbList: 1, oneOnOneList: 1, goalList: 1, workforcePlan: 1, careersList: 1, careerPostList: 1, shiftOfferList: 1, searchAll: 1, customFieldList: 1, customValuesGet: 1, customValuesAll: 1, myFinalSettlement: 1, myExitSurvey: 1, kudosFeed: 1, exitSurveyResults: 1, kudosStats: 1, me: 1, myHistory: 1, myFile: 1, hrEmpFile: 1, hrTeam: 1, hrCompList: 1, hrDirectory: 1, hrDeptList: 1,
   hrPositionList: 1, hrDocList: 1, hrExpiring: 1, hrBootstrap: 1, hrImportValidate: 1, board: 1, empList: 1, zoneList: 1, report: 1,
   reviewList: 1, auditList: 1, settingsGet: 1, myRequests: 1, requestQuote: 1, reqInbox: 1, holidayList: 1, leaveTeam: 1, leaveBalances: 1,
   dashboard: 1, mySlips: 1, payrollList: 1, payrollGet: 1, eosQuote: 1, myPerformance: 1, perfTeam: 1, perfEmp: 1, feedbackResults: 1, perfCycleList: 1, perfOverview: 1,
@@ -1001,7 +1001,7 @@ var READ_ONLY_ACTIONS = { flowPreview: 1, officeMap: 1, myTotalRewards: 1, apiKe
   myTraining: 1, trainSessionList: 1, trainMatrix: 1, courseList: 1, myInsurance: 1, insList: 1, insCost: 1, insPolicyList: 1,
   myAnnouncements: 1, annList: 1, hdMine: 1, hdList: 1, hdGet: 1 };
 
-var ADMIN_ACTIONS = { hrRolesSave: 1, empResetDevice: 1, zoneSave: 1, zoneDelete: 1, settingsSave: 1 };
+var ADMIN_ACTIONS = { waTest: 1, hrRolesSave: 1, empResetDevice: 1, zoneSave: 1, zoneDelete: 1, settingsSave: 1 };
 
 function handle_(req) {
   READ_MEMO_ = {};

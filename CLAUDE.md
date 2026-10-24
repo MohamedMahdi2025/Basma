@@ -429,3 +429,19 @@ tap), a canvas (drag to reorder, Alt+arrows, Delete), an inspector (kind, person
 resolution `flowPlan_` uses for real requests), so the preview cannot drift from reality. Tests: tests/flowdesign.js.
 Trap: W2K/flows `fld()` injects its own id into the control, so never look a field up by an id you wrote inside `fld()`;
 use a data attribute.
+
+## Owner-key connectors (2026-10-23 / 24; owner steps in docs/OWNER-STEPS.md §3, 3a, 3b, 7)
+
+All four are complete code, off until a Script property (and, for the first two, an admin switch) is set. Tests: tests/connectors.js
+(outbound calls answered by a fake). The preview server sets placeholder IDs and answers the Claude API with a canned reply.
+- **AI HR assistant** (HelpDesk.gs end, `aiAsk`/`aiStatus`, page `requests:ask` = js/assistant.js, shown when home `ai` is true):
+  Claude API over UrlFetchApp (Apps Script has no SDK), model claude-opus-5-5, effort low, `fallbacks: 'default'`, policies and
+  KB in a cached system block, the asker's own record in a second block. 20 a day per person; nothing stored but counts.
+  Property ANTHROPIC_API_KEY + setting aiAssistant.
+- **WhatsApp digest** (Payroll.gs `waConfig_`/`waPhone_`/`waSend_`, admin `waTest`): the daily digest's second channel, an
+  approved template with only the count. Each channel has its own switch (notifyDigest, whatsappDigest).
+- **SSO** (Admin.gs `api_ssoLogin`, client `ssoStart`/`ssoButtons`/`ssoReturn` in index.html): implicit-flow popup back to
+  the app's own URL, no provider library. Google: tokeninfo + aud (+ optional hd). Microsoft: Graph /me must accept the token
+  and its appid/tid must be ours. One active employee with that e-mail, else `sso_no_account`. Session kind = 'pw'.
+- **Device punches** (Admin.gs `api_devicePunch`, API key scope `device`): status ok, source device, idempotent per minute.
+Trap: never use the class `.me` (or `.bot`) inside a module: index.html styles `.me` as position:absolute.
