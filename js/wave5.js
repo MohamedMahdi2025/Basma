@@ -291,6 +291,120 @@ function retroSection(body){
 }
 window.Retro = { section: retroSection };
 
+// =================================================================== 5. CONTINGENT WORKFORCE
+Object.assign(T.ar, {
+  cwTitle:'العمالة غير المباشرة', cwLead:'من يعمل لدى الشركة دون أن يكون موظفا فيها: عمالة شركات التوظيف، والمستقلون، والمستشارون، والمتدربون، والمعارون. سجل مختصر بلا رواتب أو تأمينات، يسجل المشرف ساعاتهم شهريا وتعتمدها الموارد البشرية أو الرواتب، وتُطابق فاتورة الشركة على الساعات المعتمدة.',
+  cwPeople:'الأشخاص', cwHours:'الساعات الشهرية', cwInvoices:'فواتير الشركات', cwAgencies:'شركات التوظيف', cwNew:'إضافة شخص', cwAgencyNew:'إضافة شركة', cwInvNew:'تسجيل فاتورة',
+  cwk_agency_worker:'عامل شركة توظيف', cwk_freelancer:'مستقل', cwk_consultant:'مستشار', cwk_intern:'متدرب', cwk_secondee:'معار',
+  cwKind:'النوع', cwName:'الاسم', cwNameEn:'الاسم بالإنجليزية', cwAgency:'شركة التوظيف', cwJob:'العمل', cwSup:'المشرف', cwId:'رقم الهوية أو الإقامة', cwPhone:'الجوال', cwEmail:'البريد',
+  cwStart:'من', cwEnd:'إلى', cwRate:'السعر', cwUnit:'لكل', cwu_hour:'ساعة', cwu_day:'يوم', cwu_month:'شهر', cwPo:'أمر الشراء', cwNote:'ملاحظة', cwEndNow:'إنهاء التعاقد', cwEnding:'ينتهي قريبا',
+  cws_active:'نشط', cws_ended:'منتهٍ', cwRecord:'تسجيل الساعات', cwMonth:'الشهر', cwHrs:'الساعات', cwDays:'الأيام', cwApprove:'اعتماد', cwReject:'رفض',
+  cwh_submitted:'بانتظار الاعتماد', cwh_approved:'معتمدة', cwh_rejected:'مرفوضة', cwBy:'سجلها',
+  cwAgName:'اسم الشركة', cwCr:'السجل التجاري', cwContact:'جهة الاتصال', cwContractEnd:'نهاية العقد', cwInvNo:'رقم الفاتورة', cwAmount:'المبلغ', cwExpected:'المتوقع من الساعات', cwDiff:'الفرق',
+  cwFlag:'فرق يستحق المراجعة', cwMissing:'{n} بلا ساعات معتمدة لهذا الشهر', cwi_pending:'بانتظار الاعتماد', cwi_approved:'معتمدة', cwi_rejected:'مرفوضة', cwNone:'لا يوجد أحد بعد.', cwActive:'نشطون',
+  e_agency_required:'اختر شركة التوظيف.', e_outside_contract:'الشهر خارج مدة التعاقد.', e_already_approved:'اعتُمدت ساعات هذا الشهر.', e_bad_id:'رقم الهوية أو الإقامة 10 أرقام يبدأ بـ1 أو 2.'
+});
+Object.assign(T.en, {
+  cwTitle:'Contingent workforce', cwLead:'People who work for the company without being its employees: manpower-agency workers, freelancers, consultants, interns and secondees. A short record with no payroll or GOSI; the supervisor records their hours each month, HR or payroll approves them, and the agency invoice is matched against the approved hours.',
+  cwPeople:'People', cwHours:'Monthly hours', cwInvoices:'Agency invoices', cwAgencies:'Agencies', cwNew:'Add a person', cwAgencyNew:'Add an agency', cwInvNew:'Record an invoice',
+  cwk_agency_worker:'Agency worker', cwk_freelancer:'Freelancer', cwk_consultant:'Consultant', cwk_intern:'Intern', cwk_secondee:'Secondee',
+  cwKind:'Type', cwName:'Name', cwNameEn:'English name', cwAgency:'Agency', cwJob:'Work', cwSup:'Supervisor', cwId:'ID or iqama number', cwPhone:'Mobile', cwEmail:'E-mail',
+  cwStart:'From', cwEnd:'To', cwRate:'Rate', cwUnit:'per', cwu_hour:'hour', cwu_day:'day', cwu_month:'month', cwPo:'Purchase order', cwNote:'Note', cwEndNow:'End the engagement', cwEnding:'Ending soon',
+  cws_active:'Active', cws_ended:'Ended', cwRecord:'Record hours', cwMonth:'Month', cwHrs:'Hours', cwDays:'Days', cwApprove:'Approve', cwReject:'Reject',
+  cwh_submitted:'Waiting for approval', cwh_approved:'Approved', cwh_rejected:'Rejected', cwBy:'Recorded by',
+  cwAgName:'Agency name', cwCr:'CR number', cwContact:'Contact', cwContractEnd:'Contract ends', cwInvNo:'Invoice number', cwAmount:'Amount', cwExpected:'Expected from hours', cwDiff:'Difference',
+  cwFlag:'Difference to review', cwMissing:'{n} without approved hours this month', cwi_pending:'Waiting for approval', cwi_approved:'Approved', cwi_rejected:'Rejected', cwNone:'Nobody yet.', cwActive:'Active',
+  e_agency_required:'Pick the agency.', e_outside_contract:'The month is outside the engagement.', e_already_approved:'This month\'s hours are already approved.', e_bad_id:'The ID or iqama number is 10 digits starting with 1 or 2.'
+});
+function cwSection(body){
+  var box = K.head(body, 'cwTitle', 'cwLead'), tab = S.cwTab || 'people';
+  function load(){
+    K.busy(box);
+    var calls = [api('cwList', {}, true)]; if (tab === 'invoices') calls.push(api('cwInvoices', {}, true));
+    Promise.all(calls).then(function(res){
+      if (!box.isConnected) return;
+      var L = res[0], I = res[1];
+      if (!L.ok) return box.innerHTML = K.bad(L.error);
+      var tabs = [['people', 'users', 'cwPeople'], ['hours', 'clock', 'cwHours']];
+      if (L.decide) tabs.push(['invoices', 'receipt', 'cwInvoices']);
+      if (L.canEdit) tabs.push(['agencies', 'buildings', 'cwAgencies']);
+      var btn = tab === 'people' && L.canEdit ? '<button type="button" class="btn btn-dark btn-sm" id="cwN">' + ph('user-plus') + t('cwNew') + '</button>'
+        : tab === 'agencies' ? '<button type="button" class="btn btn-dark btn-sm" id="cwA">' + ph('plus') + t('cwAgencyNew') + '</button>'
+        : tab === 'invoices' ? '<button type="button" class="btn btn-dark btn-sm" id="cwI">' + ph('plus') + t('cwInvNew') + '</button>' : '';
+      var h = '<div class="toolbar">' + K.tabsBar(tab, tabs) + '<span class="sp"></span>' + btn + '</div>';
+      var byId = {}; L.rows.forEach(function(c){ byId[c.id] = c; });
+      if (tab === 'people') {
+        var act = L.rows.filter(function(c){ return c.status === 'active'; });
+        h += K.tiles(L.kinds.map(function(k){ return [t('cwk_' + k), K.n(act.filter(function(c){ return c.kind === k; }).length), '']; }).filter(function(x){ return x[1] !== '0'; }).concat([[t('cwActive'), K.n(act.length), '', true]]));
+        h += L.rows.length ? '<div class="list">' + L.rows.map(function(c, i){
+          return '<div class="row w2-row"><div class="av">' + esc(initials(c.name)) + '</div><div class="main"><b>' + esc(K.lang(c.name, c.nameEn)) + ' <bdi class="num">' + esc(c.ref) + '</bdi></b><small>' + t('cwk_' + c.kind) + (c.agency ? K.sep() + esc(c.agency) : '') + (c.title ? K.sep() + esc(c.title) : '') + K.sep() + t('cwSup') + ' ' + K.empLine(c.supervisor) +
+            K.sep() + K.fmt(c.startDate) + (c.endDate ? ' – ' + K.fmt(c.endDate) : '') + (L.money && c.rate ? K.sep() + K.money(c.rate) + ' / ' + t('cwu_' + c.rateUnit) : '') + '</small></div>' +
+            '<div class="act" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">' + (c.ending ? K.chip(t('cwEnding'), 'late') : '') + K.chip(t('cws_' + c.status), c.status === 'active' ? 'in' : 'off') +
+            (c.status === 'active' ? '<button type="button" class="btn btn-line btn-sm" data-cwh="' + c.id + '">' + t('cwRecord') + '</button>' : '') + (L.canEdit ? '<button type="button" class="btn btn-line btn-sm" data-cwe="' + i + '">' + t('w2Edit') + '</button>' : '') + '</div></div>';
+        }).join('') + '</div>' : K.empty('users', t('cwNone'));
+      } else if (tab === 'hours') {
+        h += L.hours.length ? '<div class="list">' + L.hours.map(function(x){
+          var c = byId[x.contractorId] || {};
+          return '<div class="row w2-row"><div class="main"><b>' + esc(K.lang(c.name, c.nameEn)) + K.sep() + '<bdi class="num">' + esc(x.month) + '</bdi></b><small>' + (x.hours ? '<span class="num">' + x.hours + '</span> ' + t('cwHrs') : '') + (x.days ? ' <span class="num">' + x.days + '</span> ' + t('cwDays') : '') + K.sep() + t('cwBy') + ' ' + esc(x.recordedBy) + (x.note ? K.sep() + esc(x.note) : '') + '</small></div>' +
+            '<div class="act" style="display:flex;gap:6px;align-items:center">' + K.chip(t('cwh_' + x.status), x.status === 'approved' ? 'in' : x.status === 'rejected' ? 'absent' : 'late') +
+            (L.decide && x.status === 'submitted' && x.recordedById !== S.me.id ? '<button type="button" class="btn btn-dark btn-sm" data-hd="approved" data-id="' + x.id + '">' + t('cwApprove') + '</button><button type="button" class="btn btn-line btn-sm" data-hd="rejected" data-id="' + x.id + '">' + t('cwReject') + '</button>' : '') + '</div></div>';
+        }).join('') + '</div>' : K.empty('clock', t('w2None'));
+      } else if (tab === 'invoices' && I && I.ok) {
+        h += I.rows.length ? I.rows.map(function(v){
+          return '<div class="db-card w5-card" style="padding:16px;margin-bottom:10px"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b><bdi class="num">' + esc(v.ref) + '</bdi>' + K.sep() + esc(v.agency) + K.sep() + '<bdi class="num">' + esc(v.month) + '</bdi></b><span style="flex:1"></span>' +
+            (v.flagged ? K.chip(t('cwFlag'), 'absent') + ' ' : '') + K.chip(t('cwi_' + v.status), v.status === 'approved' ? 'in' : v.status === 'rejected' ? 'absent' : 'late') + '</div>' +
+            '<small class="hr-hint">' + t('cwInvNo') + ' <bdi>' + esc(v.number) + '</bdi>' + K.sep() + t('cwAmount') + ' ' + K.money(v.amount) + K.sep() + t('cwExpected') + ' ' + K.money(v.expected) + K.sep() + t('cwDiff') + ' <b class="num">' + (v.diff > 0 ? '+' : '') + Number(v.diff).toLocaleString(LOCALE()) + '</b></small>' +
+            (v.missing ? '<p class="w2-warn">' + ph('warning') + ' ' + t('cwMissing').replace('{n}', v.missing) + '</p>' : '') +
+            (v.lines.length ? '<table class="w5-tbl"><tbody>' + v.lines.map(function(l){ return '<tr><td>' + esc(l.name) + '</td><td class="num">' + l.qty + ' × ' + Number(l.rate).toLocaleString(LOCALE()) + '</td><td class="num">' + Number(l.amount).toLocaleString(LOCALE()) + '</td></tr>'; }).join('') + '</tbody></table>' : '') +
+            (v.status === 'pending' && v.recordedById !== S.me.id ? '<div class="btnrow"><button type="button" class="btn btn-dark btn-sm" data-iv="approved" data-id="' + v.id + '" data-flag="' + (v.flagged ? 1 : 0) + '">' + t('cwApprove') + '</button><button type="button" class="btn btn-line btn-sm" data-iv="rejected" data-id="' + v.id + '">' + t('cwReject') + '</button></div>' : '') + '</div>';
+        }).join('') : K.empty('receipt', t('w2None'));
+      } else if (tab === 'agencies') {
+        h += L.agencies.length ? '<div class="list">' + L.agencies.map(function(a, i){ return '<div class="row w2-row"><div class="main"><b>' + esc(a.name) + '</b><small>' + (a.cr ? t('cwCr') + ' <bdi class="num">' + esc(a.cr) + '</bdi>' : '') + (a.contact ? K.sep() + esc(a.contact) : '') + (a.phone ? K.sep() + '<bdi class="num">' + esc(a.phone) + '</bdi>' : '') + (a.contractEnd ? K.sep() + t('cwContractEnd') + ' ' + K.fmt(a.contractEnd) : '') + '</small></div><div class="act"><button type="button" class="btn btn-line btn-sm" data-ae="' + i + '">' + t('w2Edit') + '</button></div></div>'; }).join('') + '</div>' : K.empty('buildings', t('w2None'));
+      } else h += K.bad(I && I.error);
+      box.innerHTML = h; K.wire(box);
+      $$('[data-tab]', box).forEach(function(b){ b.onclick = function(){ tab = S.cwTab = b.dataset.tab; load(); }; });
+      var n = $('#cwN', box); if (n) n.onclick = function(){ personForm({}, L); };
+      $$('[data-cwe]', box).forEach(function(b){ b.onclick = function(){ personForm(L.rows[b.dataset.cwe], L); }; });
+      var a = $('#cwA', box); if (a) a.onclick = function(){ agencyForm({}); };
+      $$('[data-ae]', box).forEach(function(b){ b.onclick = function(){ agencyForm(L.agencies[b.dataset.ae]); }; });
+      var iv = $('#cwI', box); if (iv) iv.onclick = function(){ K.formDrawer(t('cwInvNew'), '', K.fld(t('cwAgency'), '<select name="agencyId" required>' + K.opts(L.agencies.map(function(x){ return [x.id, x.name]; }), '', '') + '</select>') +
+        K.two(K.fld(t('cwMonth'), '<input type="month" name="month" required value="' + riyadhToday().slice(0, 7) + '">'), K.fld(t('cwInvNo'), '<input name="number" maxlength="40" required>')) + K.fld(t('cwAmount'), '<input type="number" name="amount" min="1" step="0.01" required>'),
+        function(v){ return api('cwInvoiceSave', { invoice: { agencyId: v.agencyId, month: v.month, number: v.number, amount: Number(v.amount) } }); }, load); };
+      $$('[data-cwh]', box).forEach(function(b){ b.onclick = function(){ var c = byId[b.dataset.cwh];
+        K.formDrawer(t('cwRecord'), esc(K.lang(c.name, c.nameEn)), K.fld(t('cwMonth'), '<input type="month" name="month" required value="' + riyadhToday().slice(0, 7) + '" max="' + riyadhToday().slice(0, 7) + '">') +
+          K.two(K.fld(t('cwHrs'), '<input type="number" name="hours" min="0" max="320" step="0.5">'), K.fld(t('cwDays'), '<input type="number" name="days" min="0" max="31">')) + K.fld(t('cwNote'), '<input name="note" maxlength="300">'),
+          function(v){ return api('cwHoursSave', { contractorId: c.id, month: v.month, hours: v.hours, days: v.days, note: v.note }); }, load); }; });
+      $$('[data-hd]', box).forEach(function(b){ var go = function(note){ return api('cwHoursDecide', { id: b.dataset.id, decision: b.dataset.hd, note: note }); };
+        b.onclick = function(){ if (b.dataset.hd === 'rejected') return K.noteDrawer(t('cwReject'), '', go, load); go('').then(function(r){ if (!r.ok) return toast(errText(r.error)); K.refreshTasks(); load(); }); }; });
+      $$('[data-iv]', box).forEach(function(b){ var go = function(note){ return api('cwInvoiceDecide', { id: b.dataset.id, decision: b.dataset.iv, note: note }); };
+        b.onclick = function(){ if (b.dataset.iv === 'rejected' || b.dataset.flag === '1') return K.noteDrawer(t(b.dataset.iv === 'rejected' ? 'cwReject' : 'cwApprove'), '', go, load); go('').then(function(r){ if (!r.ok) return toast(errText(r.error)); K.refreshTasks(); load(); }); }; });
+    });
+  }
+  function personForm(c, L){
+    K.people(function(P){
+      var d = K.formDrawer(c.id ? t('w2Edit') : t('cwNew'), '', K.two(K.fld(t('cwKind'), '<select name="kind" required>' + K.opts(L.kinds.map(function(k){ return [k, t('cwk_' + k)]; }), c.kind || 'agency_worker') + '</select>'),
+          K.fld(t('cwAgency'), '<select name="agencyId">' + K.opts(L.agencies.map(function(a){ return [a.id, a.name]; }), c.agencyId, '-') + '</select>')) +
+        K.two(K.fld(t('cwName'), '<input name="name" maxlength="120" required value="' + esc(c.name || '') + '">'), K.fld(t('cwNameEn'), '<input name="nameEn" maxlength="120" value="' + esc(c.nameEn || '') + '">')) +
+        K.two(K.fld(t('cwJob'), '<input name="title" maxlength="120" value="' + esc(c.title || '') + '">'), K.fld(t('cwSup'), '<select name="supervisorId" required>' + K.empOpts(P.rows, c.supervisorId, '') + '</select>')) +
+        K.two(K.fld(t('cwId'), '<input name="idNo" maxlength="10" inputmode="numeric" dir="ltr" value="' + esc(c.idNo || '') + '">'), K.fld(t('cwPhone'), '<input name="phone" maxlength="20" dir="ltr" value="' + esc(c.phone || '') + '">')) +
+        K.two(K.fld(t('cwStart'), '<input type="date" name="startDate" required value="' + esc(c.startDate || riyadhToday()) + '">'), K.fld(t('cwEnd'), '<input type="date" name="endDate" value="' + esc(c.endDate || '') + '">')) +
+        K.two(K.fld(t('cwRate'), '<input type="number" name="rate" min="0" step="0.01" value="' + (c.rate || '') + '">'), K.fld(t('cwUnit'), '<select name="rateUnit">' + K.opts(L.units.map(function(u){ return [u, t('cwu_' + u)]; }), c.rateUnit || 'hour') + '</select>')) +
+        K.two(K.fld(t('cwPo'), '<input name="poNumber" maxlength="40" value="' + esc(c.poNumber || '') + '">'), K.fld(t('cwNote'), '<input name="note" maxlength="300" value="' + esc(c.note || '') + '">')) +
+        (c.id && c.status === 'active' ? '<p><button type="button" class="btn btn-danger btn-sm" id="cwEndB">' + t('cwEndNow') + '</button></p>' : ''),
+        function(v){ v.id = c.id; return api('cwSave', { contractor: v }); }, load);
+      var e = $('#cwEndB', d); if (e) K.confirmTap(e, function(){ api('cwEnd', { id: c.id }).then(function(r){ if (!r.ok) return toast(errText(r.error)); d.remove(); load(); }); });
+    });
+  }
+  function agencyForm(a){
+    K.formDrawer(a.id ? t('w2Edit') : t('cwAgencyNew'), '', K.fld(t('cwAgName'), '<input name="name" maxlength="120" required value="' + esc(a.name || '') + '">') +
+      K.two(K.fld(t('cwCr'), '<input name="cr" maxlength="10" inputmode="numeric" dir="ltr" value="' + esc(a.cr || '') + '">'), K.fld(t('cwContractEnd'), '<input type="date" name="contractEnd" value="' + esc(a.contractEnd || '') + '">')) +
+      K.two(K.fld(t('cwContact'), '<input name="contact" maxlength="120" value="' + esc(a.contact || '') + '">'), K.fld(t('cwPhone'), '<input name="phone" maxlength="20" dir="ltr" value="' + esc(a.phone || '') + '">')),
+      function(v){ v.id = a.id; return api('cwAgencySave', { agency: v }); }, load);
+  }
+  load();
+}
+window.Contingent = { section: cwSection };
+
 if (!document.getElementById('w5css')) {
   var st = document.createElement('style'); st.id = 'w5css';
   st.textContent = '.w5-h{font-size:16px;margin:16px 0 8px}.w5-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-top:12px}.w5-card .btnrow{margin-top:10px;flex-wrap:wrap;gap:6px}.w5-tbl{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px}.w5-tbl th,.w5-tbl td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:start}.w5-muted{color:var(--ink-3)}.w5-band{position:relative;height:8px;border-radius:4px;background:var(--line);margin:6px 0;max-width:360px}.w5-band i{position:absolute;top:0;bottom:0;border-radius:4px;background:var(--brand-tint)}.w5-band b{position:absolute;top:-2px;width:2px;height:12px;background:var(--brand)}.w5-band em{position:absolute;top:-3px;width:14px;height:14px;margin-inline-start:-7px;border-radius:50%;background:var(--brand);border:2px solid var(--card,#fff)}';

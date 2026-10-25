@@ -243,5 +243,53 @@ console.log('Retro pay');
   call('3001', 'payrollDelete', { id: nov.run.id });
 }
 
+// ===================================================================== 5. contingent workforce
+console.log('Contingent workforce');
+{
+  ok(call('5001', 'cwAgencySave', { agency: { name: 'شركة الإمداد' } }).error === 'forbidden', 'only HR adds agencies');
+  r = call('3001', 'cwAgencySave', { agency: { name: 'شركة الإمداد للتوظيف', cr: '1010101010', contact: 'أبو سعد', contractEnd: '2027-06-30' } });
+  ok(r.ok, 'HR adds a manpower agency', r);
+  const ag = r.agency.id;
+  ok(call('3001', 'cwSave', { contractor: { kind: 'agency_worker', name: 'عامل بلا شركة', supervisorId: ids['5001'], startDate: '2026-09-01' } }).error === 'agency_required', 'an agency worker needs the agency');
+  r = call('3001', 'cwSave', { contractor: { kind: 'agency_worker', agencyId: ag, name: 'رحيم الدين', title: 'عامل تحميل', supervisorId: ids['5001'], idNo: '2123456789', startDate: '2026-09-01', endDate: '2026-11-20', rate: 25, rateUnit: 'hour' } });
+  ok(r.ok && /^CWK-/.test(r.contractor.ref) && r.contractor.ending, 'HR adds an agency worker; a contract ending within 30 days is flagged', r);
+  const w1 = r.contractor.id;
+  r = call('3001', 'cwSave', { contractor: { kind: 'agency_worker', agencyId: ag, name: 'كمال حسين', supervisorId: ids['5001'], startDate: '2026-09-01', rate: 200, rateUnit: 'day' } });
+  const w2 = r.contractor.id;
+  call('3001', 'cwSave', { contractor: { kind: 'consultant', name: 'مستشار السلامة', supervisorId: ids['5003'], startDate: '2026-10-01', rate: 15000, rateUnit: 'month' } });
+  ok(call('3001', 'cwSave', { contractor: { kind: 'freelancer', name: 'نسخة', supervisorId: ids['5001'], idNo: '2123456789', startDate: '2026-09-01' } }).error === 'duplicate', 'the same ID cannot be active twice');
+  r = call('5001', 'cwList');
+  ok(r.ok && r.rows.length === 2 && r.rows.every(x => x.rate === undefined && x.idNo === undefined) && !r.decide, 'the supervisor sees their own workers, never the rate or the ID number', r.rows);
+  ok(call('5002', 'cwList').rows.length === 0, 'an employee sees nobody');
+  r = call('5005', 'cwList');
+  ok(r.rows.length === 3 && r.rows.some(x => x.rate === 25) && r.decide && !r.canEdit, 'payroll sees everyone with rates and approves, but does not edit records');
+  ok(tasks('3001').cw_ending === 1, 'HR\'s bell shows the contract ending soon');
+
+  console.log('Contingent workforce: hours and the agency invoice');
+  ok(call('5004', 'cwHoursSave', { contractorId: w1, month: '2026-10', hours: 160 }).error === 'forbidden', 'only the supervisor or HR records hours');
+  ok(call('5001', 'cwHoursSave', { contractorId: w1, month: '2026-08', hours: 10 }).error === 'outside_contract', 'not before the engagement started');
+  ok(call('5001', 'cwHoursSave', { contractorId: w1, month: '2026-10', hours: 400 }).error === 'bad_amount', 'an impossible number of hours is refused');
+  { const a = call('5001', 'cwHoursSave', { contractorId: w1, month: '2026-10', hours: 160 }), b = call('5001', 'cwHoursSave', { contractorId: w2, month: '2026-10', days: 22 }); ok(a.ok && b.ok, 'the supervisor records October', [a, b]); }
+  const hs = call('3001', 'cwList').hours;
+  ok(hs.length === 2 && hs.every(h => h.status === 'submitted') && tasks('3001').cw_hours === 2, 'HR is asked to approve');
+  ok(call('3001', 'cwHoursDecide', { id: hs[0].id, decision: 'rejected' }).error === 'note_required', 'a rejection needs a note');
+  hs.forEach(h => call('3001', 'cwHoursDecide', { id: h.id, decision: 'approved' }));
+  ok(call('3001', 'cwList').hours.every(h => h.status === 'approved'), 'HR approves both');
+  ok(call('5001', 'cwHoursSave', { contractorId: w1, month: '2026-10', hours: 170 }).error === 'already_approved', 'approved hours cannot be changed');
+  r = call('3001', 'cwHoursSave', { contractorId: w1, month: '2026-11', hours: 20 });
+  const own = call('3001', 'cwList').hours.filter(h => h.month === '2026-11')[0];
+  ok(call('3001', 'cwHoursDecide', { id: own.id, decision: 'approved' }).error === 'second_approver_required', 'nobody approves hours they recorded themselves');
+  // expected: 160 h x 25 + 22 d x 200 = 4,000 + 4,400 = 8,400
+  r = call('3001', 'cwInvoiceSave', { invoice: { agencyId: ag, month: '2026-10', number: 'INV-77', amount: 9100 } });
+  ok(r.ok && r.invoice.expected === 8400 && r.invoice.diff === 700 && r.invoice.flagged, 'the invoice is matched against approved hours x rates: 700 over is flagged', r.invoice);
+  ok(call('5005', 'cwInvoiceSave', { invoice: { agencyId: ag, month: '2026-10', number: 'INV-78', amount: 8400 } }).error === 'duplicate', 'one invoice per agency and month');
+  const inv = call('5005', 'cwInvoices').rows[0];
+  ok(call('3001', 'cwInvoiceDecide', { id: inv.id, decision: 'approved' }).error === 'second_approver_required', 'whoever recorded the invoice cannot approve it');
+  ok(call('5005', 'cwInvoiceDecide', { id: inv.id, decision: 'approved' }).error === 'note_required', 'approving a flagged invoice needs a note');
+  ok(call('5005', 'cwInvoiceDecide', { id: inv.id, decision: 'approved', note: 'فرق ساعات إضافية متفق عليها' }).ok, 'payroll approves it with the reason');
+  ok(call('5001', 'cwInvoices').error === 'forbidden', 'a supervisor never sees invoices');
+  ok(call('3001', 'cwEnd', { id: w1, endDate: '2026-11-15' }).ok && call('3001', 'cwList').rows.filter(x => x.id === w1)[0].status === 'ended', 'HR ends the engagement');
+}
+
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);

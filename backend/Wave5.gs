@@ -529,3 +529,183 @@ function api_retroLog(req, me) {
     .sort(function (a, b) { return a.createdAt < b.createdAt ? 1 : -1; });
   return { ok: true, rows: rows };
 }
+
+// ======================================================================= 5. contingent workforce
+// People who work for the company without being its employees: manpower-agency workers (common in KSA), freelancers,
+// consultants, interns and secondees. A lighter record than an employee (no payroll, GOSI or leave here), with a supervisor,
+// dates and a rate. The supervisor (or HR) records the hours each month; HR or payroll approves them, never the person who
+// recorded them. An agency's monthly invoice is checked against the approved hours x rates: a difference over 1% (or 100 SAR)
+// is flagged, and the invoice is approved by someone other than whoever recorded it. Rates and invoices: HR and payroll only;
+// a supervisor sees their own contractors and their hours, never the rate. Contracts ending within 30 days reach the HR bell.
+var CW_KINDS = ['agency_worker', 'freelancer', 'consultant', 'intern', 'secondee'];
+var CW_UNITS = ['hour', 'day', 'month'];
+function cwMoney_(me) { return me.role === 'hr' || me.role === 'admin' || hasRole_(me, 'payroll'); }
+function cwHr_(me) { return isHr_(me) || hasRole_(me, 'payroll'); }
+function cwView_(c, ctx, money, agencies) {
+  var o = { id: c.id, ref: c.ref, name: c.name, nameEn: c.nameEn, kind: c.kind, agency: agencies[c.agencyId] ? agencies[c.agencyId].name : '', agencyId: c.agencyId,
+    title: c.title, departmentId: c.departmentId, supervisor: empCard_(ctx.emps[c.supervisorId]), supervisorId: c.supervisorId, phone: String(c.phone || ''), email: c.email,
+    startDate: String(c.startDate).slice(0, 10), endDate: String(c.endDate || '').slice(0, 10), status: c.status, poNumber: c.poNumber, note: c.note,
+    ending: c.status === 'active' && c.endDate && String(c.endDate).slice(0, 10) <= addDays_(today_(), 30) };
+  if (money) { o.rate = Number(c.rate) || 0; o.rateUnit = c.rateUnit; o.idNo = String(c.idNo || ''); }
+  return o;
+}
+function cwAgencies_() { var m = {}; readAll_(SHEETS.CWAG).forEach(function (a) { m[a.id] = a; }); return m; }
+function cwSees_(me, c, ctx) { return cwHr_(me) || c.supervisorId === me.id || (ctx.emps[c.supervisorId] && manages_(me, ctx.emps[c.supervisorId], ctx)); }
+function api_cwList(req, me) {
+  var ctx = orgCtx_(), money = cwMoney_(me), ag = cwAgencies_();
+  var rows = readAll_(SHEETS.CW).filter(function (c) { return c.status !== 'deleted' && cwSees_(me, c, ctx); }).map(function (c) { return cwView_(c, ctx, money, ag); })
+    .sort(function (a, b) { return (a.status === 'active' ? 0 : 1) - (b.status === 'active' ? 0 : 1) || String(a.name).localeCompare(String(b.name)); });
+  var ids = {}; rows.forEach(function (r) { ids[r.id] = 1; });
+  var hours = readAll_(SHEETS.CWH).filter(function (h) { return ids[h.contractorId]; }).map(function (h) { return { id: h.id, contractorId: h.contractorId, month: h.month, hours: Number(h.hours) || 0, days: Number(h.days) || 0,
+    status: h.status, note: h.note, recordedBy: ctx.emps[h.recordedBy] ? ctx.emps[h.recordedBy].name : '', recordedById: h.recordedBy, decidedBy: ctx.emps[h.decidedBy] ? ctx.emps[h.decidedBy].name : '' }; })
+    .sort(function (a, b) { return a.month < b.month ? 1 : -1; });
+  return { ok: true, rows: rows, hours: hours, agencies: cwHr_(me) ? Object.keys(ag).map(function (k) { var a = ag[k]; return { id: a.id, name: a.name, cr: String(a.cr || ''), contact: a.contact, phone: String(a.phone || ''), contractEnd: String(a.contractEnd || '').slice(0, 10), status: a.status }; }) : [],
+    canEdit: isHr_(me), money: money, decide: cwHr_(me), kinds: CW_KINDS, units: CW_UNITS };
+}
+function api_cwSave(req, me) {
+  if (!isHr_(me)) fail_('forbidden');
+  var x = req.contractor || {}, ctx = orgCtx_();
+  if (CW_KINDS.indexOf(x.kind) < 0) fail_('bad_kind');
+  if (str_(x.name, 120).length < 3) fail_('missing_fields');
+  var sup = ctx.emps[x.supervisorId]; if (!sup || sup.status !== 'active') fail_('not_found');
+  var start = isoDate_(x.startDate), end = x.endDate ? isoDate_(x.endDate) : '';
+  if (!start || (x.endDate && (!end || end < start))) fail_('bad_range');
+  if (x.kind === 'agency_worker' && !findBy_(SHEETS.CWAG, 'id', x.agencyId)) fail_('agency_required');
+  var rate = x.rate === '' || x.rate == null ? 0 : num_(x.rate); if (!(rate >= 0)) fail_('bad_amount');
+  if (CW_UNITS.indexOf(x.rateUnit || 'hour') < 0) fail_('bad_value');
+  if (x.idNo && !/^[12]\d{9}$/.test(String(x.idNo))) fail_('bad_id');
+  return withLock_(function () {
+    var now = new Date().toISOString(), cur = x.id ? findBy_(SHEETS.CW, 'id', x.id) : null;
+    if (x.id && !cur) fail_('not_found');
+    if (x.idNo && readAll_(SHEETS.CW).some(function (c) { return c.status === 'active' && String(c.idNo) === String(x.idNo) && (!cur || c.id !== cur.id); })) fail_('duplicate');
+    var row = cur || { id: newId_('CW'), ref: nextRef_('contractor', refsOf_(SHEETS.CW)), status: 'active', createdBy: me.id, createdAt: now };
+    row.name = str_(x.name, 120); row.nameEn = str_(x.nameEn, 120); row.kind = x.kind; row.agencyId = x.kind === 'agency_worker' ? x.agencyId : str_(x.agencyId, 40);
+    row.title = str_(x.title, 120); row.departmentId = str_(x.departmentId, 40); row.supervisorId = sup.id; row.idNo = String(x.idNo || ''); row.phone = str_(x.phone, 20); row.email = str_(x.email, 120);
+    row.startDate = start; row.endDate = end; row.rate = rate; row.rateUnit = x.rateUnit || 'hour'; row.poNumber = str_(x.poNumber, 40); row.note = str_(x.note, 300); row.updatedAt = now;
+    if (cur) update_(SHEETS.CW, row); else append_(SHEETS.CW, row);
+    audit_(me.id, cur ? 'contractor_update' : 'contractor_create', '', { ref: row.ref, kind: row.kind });
+    return { ok: true, contractor: cwView_(row, ctx, true, cwAgencies_()) };
+  });
+}
+function api_cwEnd(req, me) {
+  if (!isHr_(me)) fail_('forbidden');
+  return withLock_(function () {
+    var c = findBy_(SHEETS.CW, 'id', req.id); if (!c || c.status !== 'active') fail_('not_found');
+    var d = isoDate_(req.endDate) || today_(); if (d < String(c.startDate).slice(0, 10)) fail_('bad_range');
+    c.status = 'ended'; c.endDate = d; c.updatedAt = new Date().toISOString(); update_(SHEETS.CW, c);
+    audit_(me.id, 'contractor_end', '', { ref: c.ref, endDate: d });
+    return { ok: true };
+  });
+}
+function api_cwAgencySave(req, me) {
+  if (!isHr_(me)) fail_('forbidden');
+  var a = req.agency || {};
+  if (str_(a.name, 120).length < 2) fail_('missing_fields');
+  if (a.cr && !/^\d{10}$/.test(String(a.cr))) fail_('bad_cr');
+  var ce = a.contractEnd ? isoDate_(a.contractEnd) : ''; if (a.contractEnd && !ce) fail_('bad_date');
+  return withLock_(function () {
+    var now = new Date().toISOString(), cur = a.id ? findBy_(SHEETS.CWAG, 'id', a.id) : null; if (a.id && !cur) fail_('not_found');
+    var row = cur || { id: newId_('AG'), status: 'active', createdAt: now };
+    row.name = str_(a.name, 120); row.cr = String(a.cr || ''); row.contact = str_(a.contact, 120); row.phone = str_(a.phone, 20); row.email = str_(a.email, 120); row.contractEnd = ce;
+    if (a.status === 'inactive' || a.status === 'active') row.status = a.status; row.updatedAt = now;
+    if (cur) update_(SHEETS.CWAG, row); else append_(SHEETS.CWAG, row);
+    audit_(me.id, 'agency_save', '', { name: row.name });
+    return { ok: true, agency: { id: row.id, name: row.name } };
+  });
+}
+/** The supervisor (or HR) records a month's hours or days; a second record for the same month replaces a pending one. */
+function api_cwHoursSave(req, me) {
+  var ctx = orgCtx_(), c = findBy_(SHEETS.CW, 'id', req.contractorId);
+  if (!c || c.status === 'deleted') fail_('not_found');
+  if (!(isHr_(me) || c.supervisorId === me.id)) fail_('forbidden');
+  var month = String(req.month || ''); if (!/^\d{4}-\d{2}$/.test(month) || month > today_().slice(0, 7)) fail_('bad_date');
+  if (month < String(c.startDate).slice(0, 7) || (c.endDate && month > String(c.endDate).slice(0, 7))) fail_('outside_contract');
+  var hours = req.hours === '' || req.hours == null ? 0 : num_(req.hours), days = req.days === '' || req.days == null ? 0 : num_(req.days);
+  if (!(hours >= 0 && hours <= 320) || !(days >= 0 && days <= 31) || !(hours > 0 || days > 0)) fail_('bad_amount');
+  return withLock_(function () {
+    var cur = readAll_(SHEETS.CWH).filter(function (h) { return h.contractorId === c.id && h.month === month && h.status !== 'rejected'; })[0], now = new Date().toISOString();
+    if (cur && cur.status === 'approved') fail_('already_approved');
+    var row = cur || { id: newId_('CH'), contractorId: c.id, month: month, createdAt: now };
+    row.hours = hours; row.days = days; row.note = str_(req.note, 300); row.status = 'submitted'; row.recordedBy = me.id; row.decidedBy = ''; row.decidedAt = ''; row.updatedAt = now;
+    if (cur) update_(SHEETS.CWH, row); else append_(SHEETS.CWH, row);
+    audit_(me.id, 'contractor_hours', '', { ref: c.ref, month: month, hours: hours, days: days });
+    return { ok: true };
+  });
+}
+function api_cwHoursDecide(req, me) {
+  if (!cwHr_(me)) fail_('forbidden');
+  return withLock_(function () {
+    var h = findBy_(SHEETS.CWH, 'id', req.id); if (!h || h.status !== 'submitted') fail_('not_found');
+    if (h.recordedBy === me.id) fail_('second_approver_required');
+    if (req.decision !== 'approved' && req.decision !== 'rejected') fail_('bad_value');
+    if (req.decision === 'rejected' && !str_(req.note, 300)) fail_('note_required');
+    h.status = req.decision; h.decidedBy = me.id; h.decidedAt = new Date().toISOString(); if (req.note) h.note = str_(req.note, 300); h.updatedAt = h.decidedAt;
+    update_(SHEETS.CWH, h);
+    audit_(me.id, 'contractor_hours_' + req.decision, '', { id: h.id, month: h.month });
+    return { ok: true };
+  });
+}
+/** What an agency should bill for a month: approved hours/days x each worker's rate (a monthly rate counts once). */
+function cwExpected_(agencyId, month) {
+  var cws = {}, lines = [], total = 0, missing = 0;
+  readAll_(SHEETS.CW).forEach(function (c) { if (c.agencyId === agencyId && c.kind === 'agency_worker') cws[c.id] = c; });
+  var seen = {};
+  readAll_(SHEETS.CWH).forEach(function (h) {
+    var c = cws[h.contractorId]; if (!c || h.month !== month) return;
+    if (h.status !== 'approved') { if (h.status === 'submitted') missing++; return; }
+    seen[c.id] = 1;
+    var q = c.rateUnit === 'day' ? Number(h.days) || 0 : c.rateUnit === 'month' ? 1 : Number(h.hours) || 0, amt = r2_(q * (Number(c.rate) || 0));
+    total += amt; lines.push({ contractorId: c.id, name: c.name, ref: c.ref, qty: q, unit: c.rateUnit, rate: Number(c.rate) || 0, amount: amt });
+  });
+  Object.keys(cws).forEach(function (k) { var c = cws[k]; if (!seen[k] && c.status === 'active' && String(c.startDate).slice(0, 7) <= month) missing++; });
+  return { lines: lines, total: r2_(total), missing: missing };
+}
+function api_cwInvoiceSave(req, me) {
+  if (!cwHr_(me)) fail_('forbidden');
+  var x = req.invoice || {}, month = String(x.month || ''), amount = num_(x.amount);
+  if (!findBy_(SHEETS.CWAG, 'id', x.agencyId)) fail_('not_found');
+  if (!/^\d{4}-\d{2}$/.test(month)) fail_('bad_date');
+  if (!(amount > 0)) fail_('bad_amount');
+  if (!str_(x.number, 40)) fail_('missing_fields');
+  return withLock_(function () {
+    if (readAll_(SHEETS.CWINV).some(function (v) { return v.agencyId === x.agencyId && v.month === month && v.status !== 'rejected'; })) fail_('duplicate');
+    var exp = cwExpected_(x.agencyId, month), diff = r2_(amount - exp.total), flag = Math.abs(diff) > Math.max(100, exp.total * 0.01);
+    var now = new Date().toISOString(), row = { id: newId_('IV'), ref: nextRef_('agencyInvoice', refsOf_(SHEETS.CWINV)), agencyId: x.agencyId, month: month, number: str_(x.number, 40), amount: amount,
+      expected: exp.total, diff: diff, flagged: flag, status: 'pending', recordedBy: me.id, decidedBy: '', decidedAt: '', note: str_(x.note, 300), createdAt: now, updatedAt: now };
+    append_(SHEETS.CWINV, row);
+    audit_(me.id, 'agency_invoice', '', { ref: row.ref, amount: amount, expected: exp.total });
+    return { ok: true, invoice: { ref: row.ref, expected: exp.total, diff: diff, flagged: flag, missing: exp.missing, lines: exp.lines } };
+  });
+}
+function api_cwInvoiceDecide(req, me) {
+  if (!cwHr_(me)) fail_('forbidden');
+  return withLock_(function () {
+    var v = findBy_(SHEETS.CWINV, 'id', req.id); if (!v || v.status !== 'pending') fail_('not_found');
+    if (v.recordedBy === me.id) fail_('second_approver_required');
+    if (req.decision !== 'approved' && req.decision !== 'rejected') fail_('bad_value');
+    var note = str_(req.note, 300);
+    if ((req.decision === 'rejected' || (req.decision === 'approved' && bool_(v.flagged))) && !note) fail_('note_required');
+    v.status = req.decision; v.decidedBy = me.id; v.decidedAt = new Date().toISOString(); if (note) v.note = note; v.updatedAt = v.decidedAt;
+    update_(SHEETS.CWINV, v);
+    audit_(me.id, 'agency_invoice_' + req.decision, '', { ref: v.ref });
+    return { ok: true };
+  });
+}
+function api_cwInvoices(req, me) {
+  if (!cwHr_(me)) fail_('forbidden');
+  var ctx = orgCtx_(), ag = cwAgencies_();
+  var rows = readAll_(SHEETS.CWINV).map(function (v) {
+    var exp = v.status === 'pending' ? cwExpected_(v.agencyId, v.month) : null;
+    return { id: v.id, ref: v.ref, agency: ag[v.agencyId] ? ag[v.agencyId].name : '', agencyId: v.agencyId, month: v.month, number: v.number, amount: Number(v.amount),
+      expected: exp ? exp.total : Number(v.expected), diff: exp ? r2_(Number(v.amount) - exp.total) : Number(v.diff), flagged: exp ? Math.abs(Number(v.amount) - exp.total) > Math.max(100, exp.total * 0.01) : bool_(v.flagged),
+      lines: exp ? exp.lines : [], missing: exp ? exp.missing : 0, status: v.status, note: v.note, recordedBy: ctx.emps[v.recordedBy] ? ctx.emps[v.recordedBy].name : '', recordedById: v.recordedBy,
+      decidedBy: ctx.emps[v.decidedBy] ? ctx.emps[v.decidedBy].name : '' };
+  }).sort(function (a, b) { return a.month < b.month ? 1 : -1; });
+  return { ok: true, rows: rows };
+}
+hrisHook_('tasks', function (me, ctx, add) {
+  if (!cwHr_(me)) return;
+  add('cw_hours', readAll_(SHEETS.CWH).filter(function (h) { return h.status === 'submitted' && h.recordedBy !== me.id; }).length, { tab: 'hr', sec: 'contingent' });
+  add('cw_invoice', readAll_(SHEETS.CWINV).filter(function (v) { return v.status === 'pending' && v.recordedBy !== me.id; }).length, { tab: 'hr', sec: 'contingent' });
+  if (isHr_(me)) add('cw_ending', readAll_(SHEETS.CW).filter(function (c) { return c.status === 'active' && c.endDate && String(c.endDate).slice(0, 10) <= addDays_(today_(), 30); }).length, { tab: 'hr', sec: 'contingent' });
+});
