@@ -277,7 +277,7 @@ function api_hrEmpSave(req, me) {
 
 /** Admin grants the payroll role. Kept apart from HR so the person who edits people is not the one who pays them. */
 function api_hrRolesSave(req, me) {
-  var roles = trimList_(req.extraRoles).filter(function (r) { return r === 'payroll' || r === 'executive'; });
+  var roles = trimList_(req.extraRoles).filter(function (r) { return r === 'payroll' || r === 'executive' || r === 'hse'; });
   if (String(req.id) === String(me.id)) fail_('cannot_change_own_roles'); // nobody grants or removes their own rights
   return withLock_(function () {
     var emp = findBy_(SHEETS.EMP, 'id', req.id);
@@ -822,7 +822,7 @@ function api_myFile(req, me) {
   var team = Object.keys(ctx.emps).filter(function (k) { return ctx.emps[k].status === 'active' && manages_(me, ctx.emps[k], ctx); });
   file.isManager = team.length > 0;
   file.teamCount = team.length;
-  file.roles = { hr: isHr_(me), payroll: hasRole_(me, 'payroll'), executive: hasRole_(me, 'executive'), admin: me.role === 'admin' };
+  file.roles = { hr: isHr_(me), payroll: hasRole_(me, 'payroll'), executive: hasRole_(me, 'executive'), hse: hasRole_(me, 'hse'), admin: me.role === 'admin' };
   return { ok: true, file: file };
 }
 

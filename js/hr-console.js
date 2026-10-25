@@ -41,7 +41,7 @@ Object.assign(T.ar, {
   payNone:'لا يوجد راتب معتمد.', st_pending:'بانتظار الاعتماد', st_approved:'معتمد', st_rejected:'مرفوض',
   payOwnNote:'لا يمكنك اقتراح راتبك.', docAdd:'إضافة وثيقة', docType:'نوع الوثيقة', docNo:'الرقم', docIssue:'تاريخ الإصدار',
   docExp:'تاريخ الانتهاء', docNote:'ملاحظة', docDelete:'حذف', docSaved:'حفظت الوثيقة', docNone:'لا توجد وثائق.',
-  rolePayroll:'صلاحية الرواتب', rolePayrollLead:'يعتمد الرواتب ويطلع عليها. يبدأ مفعولها عند الدخول التالي.',
+  roleX_executive:'صلاحية الإدارة العليا', roleX_executiveLead:'يرى لوحة الإدارة والتقارير المجمعة دون الرواتب الفردية.', roleX_hse:'مسؤول الصحة والسلامة', roleX_hseLead:'يحقق في البلاغات ويتابع الإجراءات التصحيحية ويصرف معدات الوقاية.', rolePayroll:'صلاحية الرواتب', rolePayrollLead:'يعتمد الرواتب ويطلع عليها. يبدأ مفعولها عند الدخول التالي.',
   orgDepts:'حسب الإدارات', orgChart:'حسب المدير', orgAdd:'إضافة إدارة', orgEdit:'تعديل إدارة', orgNameAr:'اسم الإدارة',
   orgNameEn:'الاسم بالإنجليزية', orgCode:'الرمز', orgParent:'تتبع إدارة', orgHead:'مدير الإدارة', orgCost:'مركز التكلفة',
   orgEmpty:'لا توجد إدارات بعد. أضف أول إدارة أو استورد ملف الموظفين.', orgPeople:'موظف', orgActive:'نشطة', orgDisabled:'موقوفة',
@@ -111,7 +111,7 @@ Object.assign(T.en, {
   payNone:'No approved salary.', st_pending:'Waiting for approval', st_approved:'Approved', st_rejected:'Rejected',
   payOwnNote:'You cannot propose your own salary.', docAdd:'Add document', docType:'Document type', docNo:'Number', docIssue:'Issue date',
   docExp:'Expiry date', docNote:'Note', docDelete:'Delete', docSaved:'Document saved', docNone:'No documents.',
-  rolePayroll:'Payroll access', rolePayrollLead:'Sees and approves salaries. Takes effect at the next sign-in.',
+  roleX_executive:'Executive access', roleX_executiveLead:'Sees the management dashboard and summary reports, never individual salaries.', roleX_hse:'Health and safety officer', roleX_hseLead:'Investigates reports, follows corrective actions and issues protective equipment.', rolePayroll:'Payroll access', rolePayrollLead:'Sees and approves salaries. Takes effect at the next sign-in.',
   orgDepts:'By department', orgChart:'By manager', orgAdd:'Add department', orgEdit:'Edit department', orgNameAr:'Department name (Arabic)',
   orgNameEn:'Name in English', orgCode:'Code', orgParent:'Belongs to', orgHead:'Department head', orgCost:'Cost centre',
   orgEmpty:'No departments yet. Add the first one or import the employee file.', orgPeople:'people', orgActive:'Active', orgDisabled:'Stopped',
@@ -576,6 +576,7 @@ function jobTab(el, f, reload, ro){
     '<div class="two">' + inp('annualLeaveDays', t('fLeave'), j.annualLeaveDays, ' type="number" min="21" max="60" inputmode="numeric"') + inp('noticeDays', t('fNotice'), j.noticeDays, ' type="number" min="0" max="180" inputmode="numeric"') + '</div>' +
     '<div class="two">' + dateInp('effectiveFrom', t('fEff'), riyadhToday()) + inp('reason', t('fReason'), '', ' maxlength="200"') + '</div>' +
     (isAdmin() ? '<label class="hr-check"><input type="checkbox" id="payRole"' + (/payroll/.test(f.extraRoles || '') ? ' checked' : '') + '><span><b>' + t('rolePayroll') + '</b><small>' + t('rolePayrollLead') + '</small></span></label>' : '') +
+    (isAdmin() ? ['executive', 'hse'].map(function(k){ return '<label class="hr-check"><input type="checkbox" data-xrole="' + k + '"' + (new RegExp('\b' + k + '\b').test(f.extraRoles || '') ? ' checked' : '') + '><span><b>' + t('roleX_' + k) + '</b><small>' + t('roleX_' + k + 'Lead') + '</small></span></label>'; }).join('') : '') +
     '<div class="err" id="jerr" style="color:var(--red)"></div><div class="btnrow"><button class="btn btn-dark">' + t('save') + '</button></div></form>';
   var form = $('#jf', el), roleBox = $('#payRole', el);
   form.onsubmit = function(ev){
@@ -585,7 +586,13 @@ function jobTab(el, f, reload, ro){
     d.id = f.emp.id;
     busy(btn, true); $('#jerr', el).textContent = '';
     var calls = [api('hrEmpSave', { emp: d })];
-    if (roleBox && roleBox.checked !== /payroll/.test(f.extraRoles || '')) calls.push(api('hrRolesSave', { id: f.emp.id, extraRoles: roleBox.checked ? 'payroll' : '' }));
+    // every extra role in one list, so ticking one never drops the others
+    if (roleBox) {
+      var had = String(f.extraRoles || '').split(',').map(function(s){ return s.trim(); }).filter(String), want = had.filter(function(r){ return ['payroll', 'executive', 'hse'].indexOf(r) < 0; });
+      if (roleBox.checked) want.push('payroll');
+      Array.prototype.forEach.call(el.querySelectorAll('[data-xrole]'), function(x){ if (x.checked) want.push(x.dataset.xrole); });
+      if (want.slice().sort().join(',') !== had.slice().sort().join(',')) calls.push(api('hrRolesSave', { id: f.emp.id, extraRoles: want.join(',') }));
+    }
     Promise.all(calls).then(function(rs){
       busy(btn, false);
       var bad = rs.filter(function(r){ return !r.ok; })[0];

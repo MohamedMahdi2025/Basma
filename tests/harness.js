@@ -134,7 +134,7 @@ function load(opts = {}) {
   ctx.globalThis = ctx;
   vm.createContext(ctx);
   const dir = path.join(__dirname, '..', 'backend');
-  for (const f of ['Code.gs', 'WebAuthn.gs', 'Attendance.gs', 'Admin.gs', 'Hr.gs', 'Leave.gs', 'Payroll.gs', 'Performance.gs', 'Dashboard.gs', 'Reports.gs', 'Engage.gs', 'Compliance.gs', 'Shifts.gs', 'Relations.gs', 'Custody.gs', 'Demo.gs', 'GovServices.gs', 'Expenses.gs', 'Journal.gs', 'Flows.gs', 'Recruitment.gs', 'Loans.gs', 'Training.gs', 'Insurance.gs', 'Announce.gs', 'HelpDesk.gs']) vm.runInContext(fs.readFileSync(path.join(dir, f), 'utf8'), ctx, { filename: f });
+  for (const f of ['Code.gs', 'WebAuthn.gs', 'Attendance.gs', 'Admin.gs', 'Hr.gs', 'Leave.gs', 'Payroll.gs', 'Performance.gs', 'Dashboard.gs', 'Reports.gs', 'Engage.gs', 'Compliance.gs', 'Shifts.gs', 'Relations.gs', 'Custody.gs', 'Demo.gs', 'GovServices.gs', 'Expenses.gs', 'Journal.gs', 'Flows.gs', 'Recruitment.gs', 'Loans.gs', 'Training.gs', 'Insurance.gs', 'Announce.gs', 'HelpDesk.gs', 'Wave5.gs']) vm.runInContext(fs.readFileSync(path.join(dir, f), 'utf8'), ctx, { filename: f });
   if (opts.setupKeyHash) vm.runInContext(`var SETUP_KEY_HASH = ${JSON.stringify(opts.setupKeyHash)};`, ctx);
   const self = {
     ctx, sheets, books, props, cache,

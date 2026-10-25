@@ -1445,7 +1445,9 @@ const EXPECT = {
   // timesheets (Attendance.gs): HR (incl. admin) and managers
   timesheetList: 'mgr', timesheetApprove: 'mgr', openShiftPost: 'mgr', shiftOfferDecide: 'mgr', workforcePlan: 'mgrAll', workforcePlanSave: 'hrA', oneOnOneSave: 'none', nineBox: 'mgrX', successionList: 'hrExecA', successionSave: 'hrA', dataExport: 'adm', notifyStatus: 'adm', notifyTest: 'adm', docUpload: 'hrA', kioskSave: 'adm', kioskList: 'hrA', logoSave: 'adm', brandSave: 'adm', apiKeyList: 'adm', apiKeySave: 'adm', webhookSave: 'adm', webhookDeliveries: 'adm', payGroupList: 'pay', payGroupSave: 'pay', payGroupAssign: 'pay', snapshotList: 'dash', snapshotView: 'dash', snapshotPeople: 'hrOnly', snapshotTake: 'hrA',
   // custom fields (Hr.gs): definitions and values written by HR (incl. admin); everyone may list and read what they may see
-  customFieldSave: 'hrA', customValuesSave: 'hrA', customValuesAll: 'hrA'
+  customFieldSave: 'hrA', customValuesSave: 'hrA', customValuesAll: 'hrA',
+  // Wave 5 (Wave5.gs): HSE run by HR (incl. admin) or the safety officer role; safety figures also for executives
+  hseUpdate: 'hrA', hseActionSave: 'hrA', ppeIssue: 'hrA', hseStats: 'hrExecA'
 };
 const T16 = ids['1018'];
 const PROBE = { hrEmpFile: { id: T16 }, perfEmp: { empId: T16, cycleId: CYC.id }, planSave: { plan: { empId: T16, type: 'idp' } }, delegationSave: { delegation: { toEmpId: ids['1003'] } },
