@@ -168,9 +168,80 @@ function safetySection(body){
 }
 window.Safety = { section: safetySection };
 
+// =================================================================== 3. SALARY STRUCTURES
+Object.assign(T.ar, {
+  grTitle:'هيكل الرواتب', grLead:'لكل درجة نطاق شهري: حد أدنى ونقطة منتصف وحد أعلى، على الراتب الإجمالي أو الأساسي. ترتبط الوظيفة بالدرجة عبر حقل الدرجة في الوظائف. نسبة المقارنة = الراتب ÷ نقطة المنتصف. العروض الوظيفية خارج النطاق تظهر بتنبيه.',
+  grStructure:'الدرجات والنطاقات', grPeople:'الموظفون مقابل النطاق', grNew:'درجة جديدة', grCode:'رمز الدرجة', grName:'اسم الدرجة', grNameEn:'الاسم بالإنجليزية', grBasis:'يقاس على', grb_total:'الراتب الإجمالي', grb_basic:'الراتب الأساسي',
+  grMin:'الحد الأدنى', grMid:'نقطة المنتصف', grMax:'الحد الأعلى', grSpread:'اتساع النطاق', grPositions:'الوظائف المرتبطة', grNote:'ملاحظة', grDelete:'حذف الدرجة', grUnlinked:'درجات في الوظائف دون نطاق:',
+  grCompa:'نسبة المقارنة', grPen:'الموقع في النطاق', grPay:'الراتب', grs_below:'أقل من النطاق', grs_within:'داخل النطاق', grs_above:'أعلى من النطاق', grNoGrade:'بلا درجة', grNoPkg:'بلا راتب معتمد',
+  grToMin:'تكلفة رفع الجميع إلى الحد الأدنى', grPerMonth:'شهريا', grPerYear:'سنويا', grAvgCompa:'متوسط نسبة المقارنة حسب الدرجة', grFilter:'عرض', grAll:'الكل', grNone:'لم تُعرَّف درجات بعد.',
+  e_band_too_wide:'الحد الأعلى يتجاوز أربعة أضعاف الحد الأدنى؛ راجع النطاق.', e_grade_in_use:'الدرجة مرتبطة بوظائف؛ غيّر درجة الوظائف أولا.', e_duplicate:'هذا الرمز مستخدم.'
+});
+Object.assign(T.en, {
+  grTitle:'Salary structure', grLead:'Each grade has a monthly range: minimum, midpoint and maximum, on the whole package or on basic pay. A position links to a grade through its grade field. Compa-ratio = pay ÷ midpoint. Offers outside the range are flagged.',
+  grStructure:'Grades and ranges', grPeople:'People against the range', grNew:'New grade', grCode:'Grade code', grName:'Grade name', grNameEn:'English name', grBasis:'Measured on', grb_total:'Whole package', grb_basic:'Basic pay',
+  grMin:'Minimum', grMid:'Midpoint', grMax:'Maximum', grSpread:'Range spread', grPositions:'Linked positions', grNote:'Note', grDelete:'Delete the grade', grUnlinked:'Grades used on positions with no range:',
+  grCompa:'Compa-ratio', grPen:'Range penetration', grPay:'Pay', grs_below:'Below range', grs_within:'Within range', grs_above:'Above range', grNoGrade:'No grade', grNoPkg:'No approved package',
+  grToMin:'Cost to bring everyone to the minimum', grPerMonth:'a month', grPerYear:'a year', grAvgCompa:'Average compa-ratio by grade', grFilter:'Show', grAll:'All', grNone:'No grades defined yet.',
+  e_band_too_wide:'The maximum is more than four times the minimum; check the range.', e_grade_in_use:'Positions use this grade; change their grade first.', e_duplicate:'This code is already used.'
+});
+function gradesSection(body){
+  var box = K.head(body, 'grTitle', 'grLead'), tab = S.grTab || 'structure', show = S.grShow || '';
+  function load(){
+    K.busy(box);
+    var calls = [api('gradeList', {}, true)]; if (tab === 'people') calls.push(api('bandReport', {}, true));
+    Promise.all(calls).then(function(res){
+      if (!box.isConnected) return;
+      var G = res[0], P = res[1];
+      if (!G.ok) return box.innerHTML = K.bad(G.error);
+      var tabs = [['structure', 'stairs', 'grStructure']]; if (G.canEdit) tabs.push(['people', 'users-three', 'grPeople']);
+      var h = '<div class="toolbar">' + K.tabsBar(tab, tabs) + '<span class="sp"></span>' + (G.canEdit && tab === 'structure' ? '<button type="button" class="btn btn-dark btn-sm" id="grNew">' + ph('plus') + t('grNew') + '</button>' : '') + '</div>';
+      if (tab === 'structure') {
+        if (G.unlinked.length) h += '<p class="w2-warn">' + ph('warning') + ' ' + t('grUnlinked') + ' <bdi>' + G.unlinked.map(esc).join('، ') + '</bdi></p>';
+        var top = Math.max.apply(null, G.rows.map(function(g){ return g.max; }).concat([1]));
+        h += G.rows.length ? '<div class="list">' + G.rows.map(function(g, i){
+          return '<div class="row w2-row"><div class="main"><b><bdi class="num">' + esc(g.code) + '</bdi>' + K.sep() + esc(K.lang(g.nameAr, g.nameEn)) + '</b><small>' + t('grb_' + g.basis) + K.sep() + t('grPositions') + ' <span class="num">' + g.positions + '</span>' + (g.spread != null ? K.sep() + t('grSpread') + ' <span class="num">' + g.spread + '%</span>' : '') + '</small>' +
+            '<div class="w5-band" aria-hidden="true"><i style="inset-inline-start:' + pct(g.min, top) + '%;width:' + (pct(g.max, top) - pct(g.min, top)) + '%"></i><b style="inset-inline-start:' + pct(g.mid, top) + '%"></b></div>' +
+            '<small>' + t('grMin') + ' ' + K.money(g.min) + K.sep() + t('grMid') + ' ' + K.money(g.mid) + K.sep() + t('grMax') + ' ' + K.money(g.max) + '</small></div>' +
+            (G.canEdit ? '<div class="act"><button type="button" class="btn btn-line btn-sm" data-ge="' + i + '">' + t('w2Edit') + '</button></div>' : '') + '</div>';
+        }).join('') + '</div>' : K.empty('stairs', t('grNone'));
+      } else if (P && P.ok) {
+        var s = P.summary, list = P.rows.filter(function(r){ return !show || r.status === show; });
+        h += K.tiles([[t('grs_below'), K.n(s.below), '', true], [t('grs_within'), K.n(s.within), ''], [t('grs_above'), K.n(s.above), ''], [t('grNoGrade'), K.n(s.noGrade), ''],
+          [t('grToMin'), K.n(s.toMinMonthly), K.lang('ر.س ', 'SAR ') + t('grPerMonth') + ' · ' + Number(s.toMinYearly).toLocaleString(LOCALE()) + ' ' + t('grPerYear')]]);
+        h += '<div class="w5-grid">' + Viz.card('grC', t('grAvgCompa'), '', P.byGrade.length ? Viz.hbars(P.byGrade.map(function(g){ return { label: g.grade, value: g.compa, text: g.compa.toFixed(2) }; }), { max: Math.max(1.3, Math.max.apply(null, P.byGrade.map(function(g){ return g.compa; }))) }) : K.empty('chart-bar-horizontal', t('w2None')), null, null) + '</div>';
+        h += '<div class="toolbar" style="margin-top:12px"><label>' + t('grFilter') + ' <select id="grShow">' + K.opts([['', t('grAll')], ['below', t('grs_below')], ['within', t('grs_within')], ['above', t('grs_above')]], show) + '</select></label></div>';
+        h += list.length ? '<div class="list">' + list.map(function(r){
+          return '<div class="row w2-row"><div class="main"><b>' + K.empLine(r.emp) + '</b><small>' + esc(K.lang(r.position, r.positionEn)) + K.sep() + '<bdi class="num">' + esc(r.grade) + '</bdi>' + K.sep() + t('grPay') + ' ' + K.money(r.pay) + K.sep() + t('grMin') + ' ' + K.money(r.min) + K.sep() + t('grMax') + ' ' + K.money(r.max) + '</small>' +
+            '<div class="w5-band" aria-hidden="true"><i style="inset-inline-start:0;width:100%"></i><b style="inset-inline-start:50%"></b><em style="inset-inline-start:' + Math.max(0, Math.min(100, r.penetration == null ? 50 : r.penetration)) + '%"></em></div></div>' +
+            '<div class="act" style="display:flex;gap:6px;align-items:center"><b class="num" title="' + t('grCompa') + '">' + (r.compa == null ? '-' : r.compa.toFixed(2)) + '</b>' + K.chip(t('grs_' + r.status), r.status === 'within' ? 'in' : r.status === 'below' ? 'absent' : 'late') + '</div></div>';
+        }).join('') + '</div>' : K.empty('users-three', t('w2None'));
+      } else h += K.bad(P && P.error);
+      box.innerHTML = h; K.wire(box);
+      $$('[data-tab]', box).forEach(function(b){ b.onclick = function(){ tab = S.grTab = b.dataset.tab; load(); }; });
+      var sh = $('#grShow', box); if (sh) sh.onchange = function(){ show = S.grShow = this.value; load(); };
+      var nw = $('#grNew', box); if (nw) nw.onclick = function(){ gradeForm({}, load); };
+      $$('[data-ge]', box).forEach(function(b){ b.onclick = function(){ gradeForm(G.rows[b.dataset.ge], load); }; });
+    });
+  }
+  function gradeForm(g, again){
+    var d = K.formDrawer(g.id ? t('w2Edit') : t('grNew'), '', K.two(K.fld(t('grCode'), '<input name="code" maxlength="12" required dir="ltr" value="' + esc(g.code || '') + '">'), K.fld(t('grBasis'), '<select name="basis">' + K.opts(['total', 'basic'].map(function(k){ return [k, t('grb_' + k)]; }), g.basis || 'total') + '</select>')) +
+      K.two(K.fld(t('grName'), '<input name="nameAr" maxlength="80" required value="' + esc(g.nameAr || '') + '">'), K.fld(t('grNameEn'), '<input name="nameEn" maxlength="80" value="' + esc(g.nameEn || '') + '">')) +
+      K.two(K.fld(t('grMin'), '<input type="number" name="min" min="1" step="0.01" required value="' + (g.min || '') + '">'), K.fld(t('grMax'), '<input type="number" name="max" min="1" step="0.01" required value="' + (g.max || '') + '">')) +
+      K.fld(t('grMid'), '<input type="number" name="mid" min="1" step="0.01" required value="' + (g.mid || '') + '">', K.lang('يُقترح منتصف المسافة تلقائيا', 'Filled in as the halfway point; change it if needed')) + K.fld(t('grNote'), '<input name="note" maxlength="300" value="' + esc(g.note || '') + '">') +
+      (g.id && !g.positions ? '<p><button type="button" class="btn btn-danger btn-sm" id="grDel">' + t('grDelete') + '</button></p>' : ''),
+      function(v){ return api('gradeSave', { grade: { id: g.id, code: v.code, basis: v.basis, nameAr: v.nameAr, nameEn: v.nameEn, min: Number(v.min), mid: Number(v.mid), max: Number(v.max), note: v.note } }); }, again);
+    var f = $('#w2F', d), mid = f.mid, auto = function(){ if (!mid.dataset.touched && f.min.value && f.max.value) mid.value = Math.round((Number(f.min.value) + Number(f.max.value)) / 2); };
+    mid.oninput = function(){ mid.dataset.touched = '1'; }; f.min.oninput = auto; f.max.oninput = auto;
+    var del = $('#grDel', d); if (del) K.confirmTap(del, function(){ api('gradeDelete', { id: g.id }).then(function(r){ if (!r.ok) return toast(errText(r.error)); d.remove(); again(); }); });
+  }
+  load();
+}
+window.Grades = { section: gradesSection };
+
 if (!document.getElementById('w5css')) {
   var st = document.createElement('style'); st.id = 'w5css';
-  st.textContent = '.w5-h{font-size:16px;margin:16px 0 8px}.w5-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-top:12px}.w5-card .btnrow{margin-top:10px;flex-wrap:wrap;gap:6px}';
+  st.textContent = '.w5-h{font-size:16px;margin:16px 0 8px}.w5-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-top:12px}.w5-card .btnrow{margin-top:10px;flex-wrap:wrap;gap:6px}.w5-band{position:relative;height:8px;border-radius:4px;background:var(--line);margin:6px 0;max-width:360px}.w5-band i{position:absolute;top:0;bottom:0;border-radius:4px;background:var(--brand-tint)}.w5-band b{position:absolute;top:-2px;width:2px;height:12px;background:var(--brand)}.w5-band em{position:absolute;top:-3px;width:14px;height:14px;margin-inline-start:-7px;border-radius:50%;background:var(--brand);border:2px solid var(--card,#fff)}';
   document.head.appendChild(st);
 }
 })();

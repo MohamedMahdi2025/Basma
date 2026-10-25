@@ -168,5 +168,44 @@ console.log('Push notifications');
   B.ctx.UrlFetchApp.fetch = realFetch;
 }
 
+// ===================================================================== 3. salary structures
+console.log('Salary structures');
+person('5005', 'مسؤول الرواتب', 'employee');
+call('1000', 'hrRolesSave', { id: ids['5005'], extraRoles: 'payroll' }); tok('5005', true);
+person('5006', 'الرئيس التنفيذي', 'employee');
+call('1000', 'hrRolesSave', { id: ids['5006'], extraRoles: 'executive' }); tok('5006', true);
+direct(() => {
+  B.ctx.append_('positions', { id: 'POS5', code: 'DRV', titleAr: 'سائق صهريج', titleEn: 'Tanker driver', departmentId: '', grade: 'g5', status: 'active' });
+  B.ctx.append_('positions', { id: 'POS9', code: 'OPM', titleAr: 'مدير تشغيل', titleEn: 'Operations manager', departmentId: '', grade: 'G9', status: 'active' });
+  const emp = no => B.ctx.findBy_('employees', 'id', ids[no]);
+  const e2 = emp('5002'); e2.positionId = 'POS5'; B.ctx.update_('employees', e2);
+  const e4 = emp('5004'); e4.positionId = 'POS5'; B.ctx.update_('employees', e4);
+  const pkg = (no, basic, housing, transport) => B.ctx.append_('compensation', { id: 'C' + no, empId: ids[no], effectiveFrom: '2026-01-01', basic, housing, transport, otherJson: '{}', currency: 'SAR', status: 'approved', approvedAt: '2026-01-01', ref: 'SAL-' + no });
+  pkg('5002', 5000, 1250, 500); pkg('5004', 3500, 875, 300);
+});
+ok(call('5002', 'gradeSave', { grade: { code: 'G5', nameAr: 'الدرجة الخامسة', min: 6000, mid: 8000, max: 10000 } }).error === 'forbidden', 'an employee cannot set pay ranges');
+ok(call('5001', 'gradeList').error === 'forbidden', 'a manager does not see the pay ranges');
+ok(call('3001', 'gradeSave', { grade: { code: 'G5', nameAr: 'خ', min: 6000, mid: 11000, max: 10000 } }).error === 'bad_range', 'the midpoint must sit between the minimum and the maximum');
+ok(call('3001', 'gradeSave', { grade: { code: 'G5', nameAr: 'خ', min: 2000, mid: 5000, max: 9000 } }).error === 'band_too_wide', 'a range wider than four times its minimum is refused');
+r = call('3001', 'gradeSave', { grade: { code: 'g5', nameAr: 'الدرجة الخامسة', nameEn: 'Grade 5', min: 6000, mid: 8000, max: 10000 } });
+ok(r.ok && r.grade.code === 'G5' && r.grade.spread === 66.7, 'HR defines grade G5 (code in capitals, spread worked out)', r);
+const g5 = r.grade;
+ok(call('3001', 'gradeSave', { grade: { code: 'G5', nameAr: 'نسخة', min: 1, mid: 2, max: 3 } }).error === 'duplicate', 'two grades cannot share a code');
+r = call('5006', 'gradeList');
+ok(r.ok && r.rows.length === 1 && r.rows[0].positions === 1 && !r.canEdit && r.unlinked.indexOf('G9') >= 0, 'the executive sees the ranges (read only), how many positions use each, and grades used with no range', r);
+ok(call('5006', 'bandReport').error === 'forbidden', 'but not individual compa-ratios (that is pay)');
+r = call('5005', 'bandReport');
+const row = no => r.rows.filter(x => x.emp.id === ids[no])[0];
+ok(r.ok && row('5002').status === 'within' && row('5002').compa === 0.844 && row('5002').penetration === 18.8, 'payroll sees each person: 6,750 in 6,000-10,000 is within, compa 0.844, 18.8% into the range', row('5002'));
+ok(row('5004').status === 'below' && row('5004').toMin === 1325, 'someone at 4,675 is below the minimum by 1,325', row('5004'));
+ok(r.summary.below === 1 && r.summary.within === 1 && r.summary.toMinMonthly === 1325 && r.summary.toMinYearly === 15900, 'the cost to bring everyone to the minimum, a month and a year', r.summary);
+ok(r.byGrade[0].grade === 'G5' && r.byGrade[0].n === 2, 'average compa-ratio by grade');
+r = call('3001', 'gradeSave', { grade: { id: g5.id, code: 'G5', nameAr: 'الدرجة الخامسة', basis: 'basic', min: 4000, mid: 5000, max: 6000 } });
+ok(r.ok && call('5005', 'bandReport').rows.filter(x => x.emp.id === ids['5002'])[0].pay === 5000, 'a grade measured on basic pay compares basic only');
+r = call('5005', 'hrCompPropose', { empId: ids['5004'], effectiveFrom: '2026-12-01', basic: 3800, housing: 950, transport: 300, reason: 'زيادة' });
+ok(r.ok && r.band && r.band.status === 'below' && r.band.grade === 'G5', 'a package proposal answers with where it falls in the range', r.band);
+ok(call('3001', 'gradeDelete', { id: g5.id }).error === 'grade_in_use', 'a grade used by positions cannot be deleted');
+ok(B.ctx.bandWarn_('POS5', 9000, 7000) === 'above_band' && B.ctx.bandWarn_('POS5', 9000, 4500) === '' && B.ctx.bandWarn_('POS9', 1, 1) === '', 'offers outside the range get a warning; a grade without a range gives none');
+
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);

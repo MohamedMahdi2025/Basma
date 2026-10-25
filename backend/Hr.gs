@@ -520,7 +520,8 @@ function api_hrCompPropose(req, me) {
     row.ref = nextRef_('salary', refsOf_(SHEETS.COMP));
     append_(SHEETS.COMP, row);
     audit_(me.id, 'comp_propose', req.empId, { ref: row.ref, effectiveFrom: row.effectiveFrom });
-    return { ok: true, comp: compView_(row) };
+    var emp = findBy_(SHEETS.EMP, 'id', req.empId), band = typeof bandOf_ === 'function' ? bandOf_(gradeOfPosition_(emp.positionId), compView_(row)) : null; // Wave5.gs
+    return { ok: true, comp: compView_(row), band: band };
   });
 }
 

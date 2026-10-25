@@ -363,6 +363,7 @@ function api_recruitOfferSave(req, me) {
     if (Number(q.budgetMin) && total < Number(q.budgetMin)) warn.push('under_budget');
     if (saudi && gw < 4000) warn.push(gw >= 3000 ? 'nitaqat_half' : 'nitaqat_zero'); // Nitaqat: a Saudi counts 1 at >= 4,000, 0.5 at 3,000-3,999
     if (c.expectedSalary !== '' && Number(c.expectedSalary) > total) warn.push('below_expectation');
+    if (typeof bandWarn_ === 'function') { var bw = bandWarn_(row.positionId, total, basic); if (bw) warn.push(bw); } // Wave5.gs salary structure
     row.warningsJson = JSON.stringify(warn); row.status = 'pending'; row.preparedBy = me.id; row.updatedAt = now;
     if (o) update_(SHEETS.OFFER, row); else append_(SHEETS.OFFER, row);
     if (c.stage !== 'offer') { var h = parseJson_(c.historyJson, []); h.push({ from: c.stage, to: 'offer', by: me.id, at: now }); c.historyJson = JSON.stringify(h); c.stage = 'offer'; c.updatedAt = now; update_(SHEETS.CAND, c); }

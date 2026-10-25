@@ -340,3 +340,94 @@ function pushSweep_() {
     withLock_(function () { changes.forEach(function (x) { var row = findBy_(SHEETS.PUSH, 'id', x[0]); if (row) { Object.keys(x[1]).forEach(function (k) { row[k] = x[1][k]; }); row.updatedAt = now; update_(SHEETS.PUSH, row); } }); });
   } catch (e) { console.error('push: ' + (e && e.message)); }
 }
+
+// ======================================================================= 3. salary structures (grades and bands)
+// Each grade has a monthly range: minimum, midpoint, maximum, measured on the whole package (basic + housing + transport + other
+// fixed allowances, as compView_ totals it) or on basic only, per grade. A position's grade (positions.grade, free text) links it
+// to the range. Per person: compa-ratio = pay / midpoint, range penetration = (pay - min) / (max - min), and below / within / above.
+// Who sees what: the ranges themselves are company pay policy (hr role, payroll, executive; not an admin alone, not managers);
+// individual compa-ratios are pay, so only the hr role or a payroll holder (canProposeComp_), as for packages. Offers outside the
+// range get a warning (Recruitment.gs), and a package proposal answers with where it falls in the range.
+var GRADE_BASES = ['total', 'basic'];
+function gradeSees_(me) { return me.role === 'hr' || hasRole_(me, 'payroll') || hasRole_(me, 'executive'); }
+function gradeView_(g, used) {
+  var mn = Number(g.min) || 0, mx = Number(g.max) || 0, md = Number(g.mid) || 0;
+  return { id: g.id, code: g.code, nameAr: g.nameAr, nameEn: g.nameEn, basis: g.basis || 'total', min: mn, mid: md, max: mx, spread: mn ? Math.round((mx - mn) / mn * 1000) / 10 : null,
+    note: g.note, positions: used || 0, updatedAt: g.updatedAt };
+}
+function gradeMap_() { var m = {}; readAll_(SHEETS.GRADE).forEach(function (g) { if (g.status !== 'deleted') m[String(g.code).trim().toUpperCase()] = g; }); return m; }
+/** Where a monthly package falls in a grade's range; null without a grade or a range. c: compView_-shaped ({ basic, total }). */
+function bandOf_(g, c) {
+  if (!g || !c) return null;
+  var pay = g.basis === 'basic' ? Number(c.basic) || 0 : Number(c.total) || 0, mn = Number(g.min), md = Number(g.mid), mx = Number(g.max);
+  return { grade: g.code, basis: g.basis || 'total', pay: r2_(pay), min: mn, mid: md, max: mx, compa: md ? Math.round(pay / md * 1000) / 1000 : null,
+    penetration: mx > mn ? Math.round((pay - mn) / (mx - mn) * 1000) / 10 : null, status: pay < mn ? 'below' : pay > mx ? 'above' : 'within', toMin: pay < mn ? r2_(mn - pay) : 0 };
+}
+function gradeOfPosition_(positionId, gm) { var p = positionId && findBy_(SHEETS.POS, 'id', positionId); return p && p.grade ? (gm || gradeMap_())[String(p.grade).trim().toUpperCase()] || null : null; }
+/** Recruitment.gs offers: 'below_band' / 'above_band' for a package outside the position's range, '' otherwise. */
+function bandWarn_(positionId, total, basic) {
+  var b = bandOf_(gradeOfPosition_(positionId), { total: total, basic: basic });
+  return b && b.status !== 'within' ? b.status + '_band' : '';
+}
+function api_gradeList(req, me) {
+  if (!gradeSees_(me)) fail_('forbidden');
+  var used = {}; readAll_(SHEETS.POS).forEach(function (p) { if (p.grade) { var k = String(p.grade).trim().toUpperCase(); used[k] = (used[k] || 0) + 1; } });
+  var rows = readAll_(SHEETS.GRADE).filter(function (g) { return g.status !== 'deleted'; }).map(function (g) { return gradeView_(g, used[String(g.code).trim().toUpperCase()]); })
+    .sort(function (a, b) { return a.min - b.min || (a.code < b.code ? -1 : 1); });
+  var codes = {}; rows.forEach(function (g) { codes[String(g.code).toUpperCase()] = 1; });
+  var unlinked = Object.keys(used).filter(function (k) { return !codes[k]; });
+  return { ok: true, rows: rows, unlinked: unlinked, canEdit: canProposeComp_(me) };
+}
+function api_gradeSave(req, me) {
+  if (!canProposeComp_(me)) fail_('forbidden');
+  var g = req.grade || {}, code = str_(g.code, 12).toUpperCase(), mn = num_(g.min), md = num_(g.mid), mx = num_(g.max);
+  if (!/^[A-Z0-9][A-Z0-9-]{0,11}$/.test(code) || !str_(g.nameAr, 80)) fail_('missing_fields');
+  if (!(mn > 0) || !(md > 0) || !(mx > 0) || !(mn < md && md < mx)) fail_('bad_range');
+  if (mx > mn * 4) fail_('band_too_wide');
+  if (GRADE_BASES.indexOf(g.basis || 'total') < 0) fail_('bad_value');
+  return withLock_(function () {
+    var rows = readAll_(SHEETS.GRADE), now = new Date().toISOString(), cur = g.id ? findBy_(SHEETS.GRADE, 'id', g.id) : null;
+    if (g.id && !cur) fail_('not_found');
+    if (rows.some(function (x) { return x.status !== 'deleted' && String(x.code).toUpperCase() === code && (!cur || x.id !== cur.id); })) fail_('duplicate');
+    var row = cur || { id: newId_('GR'), createdBy: me.id, createdAt: now, status: 'active' };
+    var before = cur ? { min: cur.min, mid: cur.mid, max: cur.max } : null;
+    row.code = code; row.nameAr = str_(g.nameAr, 80); row.nameEn = str_(g.nameEn, 80); row.basis = g.basis || 'total'; row.min = mn; row.mid = md; row.max = mx;
+    row.note = str_(g.note, 300); row.updatedBy = me.id; row.updatedAt = now;
+    if (cur) update_(SHEETS.GRADE, row); else append_(SHEETS.GRADE, row);
+    audit_(me.id, cur ? 'grade_update' : 'grade_create', '', { code: code, before: before, min: mn, mid: md, max: mx });
+    return { ok: true, grade: gradeView_(row) };
+  });
+}
+function api_gradeDelete(req, me) {
+  if (!canProposeComp_(me)) fail_('forbidden');
+  return withLock_(function () {
+    var g = findBy_(SHEETS.GRADE, 'id', req.id); if (!g || g.status === 'deleted') fail_('not_found');
+    var code = String(g.code).toUpperCase();
+    if (readAll_(SHEETS.POS).some(function (p) { return String(p.grade || '').trim().toUpperCase() === code; })) fail_('grade_in_use');
+    g.status = 'deleted'; g.updatedAt = new Date().toISOString(); update_(SHEETS.GRADE, g);
+    audit_(me.id, 'grade_delete', '', { code: code });
+    return { ok: true };
+  });
+}
+/** Everyone's package against their grade: compa-ratio, penetration, below / within / above, and the cost to bring all to the minimum. */
+function api_bandReport(req, me) {
+  if (!canProposeComp_(me)) fail_('forbidden');
+  var t = today_(), comps = currentCompMap_(t), gm = gradeMap_(), pos = {}, ctx = orgCtx_();
+  readAll_(SHEETS.POS).forEach(function (p) { pos[p.id] = p; });
+  var rows = [], sum = { below: 0, within: 0, above: 0, noGrade: 0, noPackage: 0, toMinMonthly: 0 }, byGrade = {};
+  Object.keys(ctx.emps).forEach(function (k) {
+    var e = ctx.emps[k]; if (e.status !== 'active') return;
+    var p = pos[e.positionId], g = p && p.grade ? gm[String(p.grade).trim().toUpperCase()] : null, c = comps[e.id];
+    if (!c) { sum.noPackage++; return; }
+    if (!g) { sum.noGrade++; return; }
+    var b = bandOf_(g, c); sum[b.status]++; sum.toMinMonthly += b.toMin;
+    var bg = byGrade[g.code] = byGrade[g.code] || { grade: g.code, n: 0, compa: 0, below: 0, above: 0 };
+    bg.n++; bg.compa += b.compa || 0; if (b.status === 'below') bg.below++; if (b.status === 'above') bg.above++;
+    rows.push(Object.assign({ emp: empCard_(e), position: p ? (p.titleAr || p.title || '') : '', positionEn: p ? p.titleEn || '' : '', department: e.department || '' }, b));
+  });
+  Object.keys(byGrade).forEach(function (k) { byGrade[k].compa = Math.round(byGrade[k].compa / byGrade[k].n * 1000) / 1000; });
+  sum.toMinMonthly = r2_(sum.toMinMonthly); sum.toMinYearly = r2_(sum.toMinMonthly * 12);
+  rows.sort(function (a, b) { return (a.compa || 0) - (b.compa || 0); });
+  audit_(me.id, 'salary_view', '', { report: 'bands', count: rows.length });
+  return { ok: true, asOf: t, rows: rows, summary: sum, byGrade: Object.keys(byGrade).sort().map(function (k) { return byGrade[k]; }) };
+}
