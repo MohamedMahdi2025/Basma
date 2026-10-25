@@ -116,5 +116,57 @@ ok(r.ok && r.hours === 18 && r.lti === 1 && r.recordable === 1, 'hours come from
 ok(r.ltifr === Math.round(1e6 / 18 * 100) / 100 && r.trir === Math.round(2e5 / 18 * 100) / 100, 'LTIFR per million hours and TRIR per 200,000 hours', [r.ltifr, r.trir]);
 ok(r.daysSinceLti === 2 && r.byKind.near_miss === 1 && r.byRoot.equipment === 1, 'days since the last lost-time injury and the breakdowns', r);
 
+// ===================================================================== 2. push notifications
+console.log('Push notifications');
+{
+  const pushes = [], realFetch = B.ctx.UrlFetchApp.fetch;
+  let pushReply = 201;
+  B.ctx.UrlFetchApp.fetch = (url, o) => {
+    if (/^https:\/\/(fcm\.googleapis\.com|updates\.push\.services\.mozilla\.com|[a-z0-9.-]*notify\.windows\.com|[a-z0-9.-]*push\.apple\.com)\//.test(url)) { pushes.push({ url, o }); return { getResponseCode: () => pushReply, getContentText: () => '' }; }
+    return realFetch(url, o);
+  };
+  r = call('5002', 'pushKey');
+  const pub = Buffer.from(r.key, 'base64url');
+  ok(r.ok && pub.length === 65 && pub[0] === 4 && r.devices === 0, 'everyone gets the public VAPID key (65-byte uncompressed P-256)', r);
+  ok(call('5004', 'pushKey').key === r.key, 'one key pair for the whole system, made once');
+  ok(call('5002', 'pushSubscribe', { endpoint: 'https://evil.example.com/push/1' }).error === 'bad_url', 'an endpoint that is not a browser push service is refused (no requests to arbitrary addresses)');
+  ok(call('5002', 'pushSubscribe', { endpoint: 'http://fcm.googleapis.com/fcm/send/x' }).error === 'bad_url', 'plain http is refused');
+  ok(call('5002', 'pushTest').error === 'no_push_device', 'a test needs a device first');
+  const EP = 'https://fcm.googleapis.com/fcm/send/abc123', EP2 = 'https://web.push.apple.com/QXYZ';
+  r = call('5002', 'pushSubscribe', { endpoint: EP, ua: 'test' });
+  ok(r.ok && call('5002', 'pushKey').devices === 1, 'the employee turns notifications on for a device', r);
+  ok(call('5002', 'pushSubscribe', { endpoint: EP }).ok && call('5002', 'pushKey').devices === 1, 'subscribing the same device again does not duplicate it');
+  r = call('5002', 'pushTest');
+  ok(r.ok && r.result.sent === 1 && pushes.length === 1, 'a test push goes to the device', r);
+  const p = pushes[0];
+  ok(p.o.payload === '' && p.o.headers.TTL && p.o.headers.Urgency === 'normal', 'the push carries no payload at all (nothing about the person leaves the system)', p.o.headers);
+  const auth = p.o.headers.Authorization, m = auth.match(/^vapid t=([^.]+)\.([^.]+)\.([^,]+), k=(.+)$/);
+  ok(m && m[4] === Buffer.from(pub).toString('base64url'), 'the VAPID header carries the JWT and the public key', auth);
+  const claims = JSON.parse(Buffer.from(m[2], 'base64url').toString());
+  ok(claims.aud === 'https://fcm.googleapis.com' && claims.exp > T0 / 1000 && claims.exp <= T0 / 1000 + 24 * 3600 && /^https:|^mailto:/.test(claims.sub), 'the JWT names the push service, expires within 24 h and carries a contact', claims);
+  const key = crypto.createPublicKey({ key: { kty: 'EC', crv: 'P-256', x: pub.slice(1, 33).toString('base64url'), y: pub.slice(33).toString('base64url') }, format: 'jwk' });
+  ok(crypto.verify('sha256', Buffer.from(m[1] + '.' + m[2]), { key, dsaEncoding: 'ieee-p1363' }, Buffer.from(m[3], 'base64url')), 'the ES256 signature verifies with Node crypto (what the push services check)');
+  ok(call('5002', 'pushTest').error === 'too_many_attempts', 'tests are limited to one a minute');
+
+  // the sweep: a push only when the bell count goes up
+  pushes.length = 0;
+  B.ctx.cache_().remove('push:sweep'); B.ctx.READ_MEMO_ = {}; B.ctx.pushSweep_();
+  ok(pushes.length === 0, 'nothing new for the person: no push');
+  call('5003', 'ppeIssue', { ppe: { empId: ids['5002'], item: 'gloves', qty: 2 } }); // a new bell item for 5002
+  B.ctx.cache_().remove('push:sweep'); B.ctx.READ_MEMO_ = {}; B.ctx.pushSweep_();
+  ok(pushes.length === 1 && pushes[0].url === EP, 'a new item for the person: one push to their device', pushes.length);
+  B.ctx.cache_().remove('push:sweep'); B.ctx.READ_MEMO_ = {}; B.ctx.pushSweep_();
+  ok(pushes.length === 1, 'the same count again: no second push');
+  B.ctx.READ_MEMO_ = {}; B.ctx.pushSweep_();
+  ok(pushes.length === 1, 'the sweep runs at most every two minutes');
+  // a dropped subscription is retired
+  call('5004', 'pushSubscribe', { endpoint: EP2 });
+  pushReply = 410;
+  ok(call('5004', 'pushTest').result.gone === 1 && call('5004', 'pushKey').devices === 0, 'a subscription the browser dropped (410) is retired');
+  pushReply = 201;
+  ok(call('5002', 'pushUnsubscribe', { endpoint: EP }).removed === 1 && call('5002', 'pushKey').devices === 0, 'turning it off removes the device');
+  B.ctx.UrlFetchApp.fetch = realFetch;
+}
+
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);

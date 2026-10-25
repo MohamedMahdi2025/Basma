@@ -221,3 +221,122 @@ hrisHook_('tasks', function (me, ctx, add) {
     add('hse_verify', readAll_(SHEETS.HSEA).filter(function (a) { return a.status === 'done' && a.ownerId !== me.id; }).length, { tab: 'hr', sec: 'safety' });
   }
 });
+
+// ======================================================================= 2. push notifications (web push, VAPID)
+// Each person turns notifications on per device. The push carries no payload at all (nothing to encrypt, nothing to leak):
+// the service worker shows a fixed "you have new items waiting" and opens the app, where the bell shows what it is (the same
+// rule as the e-mail and WhatsApp digests: never a name or a detail outside the app). A lazy sweep after write requests, at most
+// every PUSH_SWEEP_S_ seconds and PUSH_BATCH_ devices at a time, recounts each subscribed person's bell and pushes only when the
+// count went up since the last check. The VAPID key pair is made once (P-256, Utilities.getUuid as the randomness) and kept in
+// script properties; the JWT is signed ES256 with a deterministic nonce (HMAC of the key and the hash, as in RFC 6979).
+// Only the known browser push services are accepted as endpoints (no request to an arbitrary address).
+var PUSH_SWEEP_S_ = 120, PUSH_BATCH_ = 12, PUSH_MAX_PER_EMP_ = 5;
+var PUSH_HOSTS_ = [/^fcm\.googleapis\.com$/, /^updates\.push\.services\.mozilla\.com$/, /(^|\.)notify\.windows\.com$/, /(^|\.)push\.apple\.com$/];
+function pushEndpointOk_(u) {
+  var m = String(u || '').match(/^https:\/\/([^\/:?#]+)(\/\S*)$/);
+  return !!(m && String(u).length <= 1000 && PUSH_HOSTS_.some(function (re) { return re.test(m[1].toLowerCase()); }));
+}
+function jMul_(k, P) {
+  var C = p256_(), R = [C.I, C.I, C.Z], Q = P;
+  while (k > C.Z) { if (k & C.I) R = jAdd_(R, Q); Q = jDouble_(Q); k >>= C.I; }
+  return R;
+}
+function jAffine_(R) { var C = P256_, zi = modInv_(R[2], C.p), zi2 = zi * zi % C.p; return [R[0] * zi2 % C.p, R[1] * zi2 % C.p * zi % C.p]; }
+function bigToBytes32_(v) { var h = v.toString(16); while (h.length < 64) h = '0' + h; var o = []; for (var i = 0; i < 64; i += 2) o.push(parseInt(h.substr(i, 2), 16)); return o; }
+/** The VAPID key pair { d (BigInt), pub (65 bytes) }: made once and stored in script properties. */
+function vapidKeys_() {
+  var pr = PropertiesService.getScriptProperties(), C = p256_(), d = pr.getProperty('PUSH_VAPID_D');
+  if (!d) {
+    var seed = []; for (var i = 0; i < 4; i++) seed = seed.concat(utf8Bytes_(Utilities.getUuid()));
+    var dv = bytesToBig_(sha256_(seed)) % (C.n - C.I) + C.I, Q = jAffine_(jMul_(dv, [C.gx, C.gy, C.I]));
+    pr.setProperty('PUSH_VAPID_D', bytesToB64u_(bigToBytes32_(dv)));
+    pr.setProperty('PUSH_VAPID_PUB', bytesToB64u_([4].concat(bigToBytes32_(Q[0]), bigToBytes32_(Q[1]))));
+    d = pr.getProperty('PUSH_VAPID_D');
+  }
+  return { d: bytesToBig_(b64uToBytes_(d)), pub: b64uToBytes_(pr.getProperty('PUSH_VAPID_PUB')) };
+}
+/** ES256 over bytes: the 64-byte r||s, nonce k = HMAC-SHA256(d, hash || counter) mod n, low s. */
+function es256Sign_(msgBytes, d) {
+  var C = p256_(), h = sha256_(msgBytes), e = bytesToBig_(h), key = s8_(bigToBytes32_(d));
+  for (var ctr = 0; ctr < 64; ctr++) {
+    var k = bytesToBig_(u8_(Utilities.computeHmacSha256Signature(s8_(h.concat([ctr])), key))) % C.n;
+    if (k === C.Z) continue;
+    var r = jAffine_(jMul_(k, [C.gx, C.gy, C.I]))[0] % C.n; if (r === C.Z) continue;
+    var s = modInv_(k, C.n) * ((e + r * d) % C.n) % C.n; if (s === C.Z) continue;
+    if (s > C.n / C.T2) s = C.n - s;
+    return bigToBytes32_(r).concat(bigToBytes32_(s));
+  }
+  throw new Error('sign failed');
+}
+function vapidAuth_(endpoint, keys) {
+  var aud = endpoint.match(/^https:\/\/[^\/]+/)[0], s = settings_();
+  var enc = function (o) { return bytesToB64u_(utf8Bytes_(JSON.stringify(o))); };
+  var input = enc({ typ: 'JWT', alg: 'ES256' }) + '.' + enc({ aud: aud, exp: Math.floor(Date.now() / 1000) + 12 * 3600, sub: s.appUrl || 'https://besgasksa.github.io/BG-attendance/' });
+  return 'vapid t=' + input + '.' + bytesToB64u_(es256Sign_(utf8Bytes_(input), keys.d)) + ', k=' + bytesToB64u_(keys.pub);
+}
+/** One push with no body. Returns 'sent', 'gone' (the browser dropped the subscription) or 'failed'. */
+function pushSend_(endpoint, keys) {
+  if (!pushEndpointOk_(endpoint)) return 'gone';
+  try {
+    var r = UrlFetchApp.fetch(endpoint, { method: 'post', muteHttpExceptions: true, followRedirects: false, payload: '', contentType: 'application/octet-stream',
+      headers: { TTL: '86400', Urgency: 'normal', Topic: 'hr-tasks', Authorization: vapidAuth_(endpoint, keys) } });
+    var c = r.getResponseCode();
+    return c >= 200 && c < 300 ? 'sent' : c === 404 || c === 410 ? 'gone' : 'failed';
+  } catch (e) { return 'failed'; }
+}
+function pushCount_(emp) {
+  try { return (api_myTasks({}, emp).tasks || []).filter(function (x) { return x.kind !== 'delegated'; }).reduce(function (a, x) { return a + (x.count || 0); }, 0); } catch (e) { return 0; }
+}
+function pushHash_(endpoint) { return bytesToB64u_(sha256_(utf8Bytes_(String(endpoint)))).slice(0, 22); }
+function api_pushKey(req, me) {
+  var mine = readAll_(SHEETS.PUSH).filter(function (p) { return p.empId === me.id && p.status === 'active'; });
+  return { ok: true, key: bytesToB64u_(vapidKeys_().pub), devices: mine.length, hashes: mine.map(function (p) { return p.endpointHash; }) };
+}
+function api_pushSubscribe(req, me) {
+  var ep = String(req.endpoint || '');
+  if (!pushEndpointOk_(ep)) fail_('bad_url');
+  var n = pushCount_(me);
+  return withLock_(function () {
+    var h = pushHash_(ep), rows = readAll_(SHEETS.PUSH), now = new Date().toISOString(), cur = rows.filter(function (p) { return p.endpointHash === h; })[0];
+    if (cur) { cur.empId = me.id; cur.status = 'active'; cur.endpoint = ep; cur.lastCount = n; cur.updatedAt = now; update_(SHEETS.PUSH, cur); }
+    else {
+      var mine = rows.filter(function (p) { return p.empId === me.id && p.status === 'active'; }).sort(function (a, b) { return a.updatedAt < b.updatedAt ? -1 : 1; });
+      while (mine.length >= PUSH_MAX_PER_EMP_) { var old = mine.shift(); old.status = 'replaced'; old.updatedAt = now; update_(SHEETS.PUSH, old); }
+      append_(SHEETS.PUSH, { id: newId_('PS'), empId: me.id, endpoint: ep, endpointHash: h, ua: str_(req.ua, 120), status: 'active', lastCount: n, lastCheckedAt: now, lastSentAt: '', createdAt: now, updatedAt: now });
+    }
+    audit_(me.id, 'push_on', me.id, {});
+    return { ok: true, hash: h };
+  });
+}
+function api_pushUnsubscribe(req, me) {
+  return withLock_(function () {
+    var h = req.endpoint ? pushHash_(req.endpoint) : String(req.hash || ''), n = 0;
+    readAll_(SHEETS.PUSH).forEach(function (p) { if (p.empId === me.id && p.status === 'active' && (req.all || p.endpointHash === h)) { p.status = 'off'; p.updatedAt = new Date().toISOString(); update_(SHEETS.PUSH, p); n++; } });
+    return { ok: true, removed: n };
+  });
+}
+/** A test push to each of your own devices (at most once a minute). */
+function api_pushTest(req, me) {
+  var mine = readAll_(SHEETS.PUSH).filter(function (p) { return p.empId === me.id && p.status === 'active'; });
+  if (!mine.length) fail_('no_push_device');
+  if (!rateLimit_('pushtest:' + me.id, 1, 60)) fail_('too_many_attempts');
+  var keys = vapidKeys_(), out = { sent: 0, gone: 0, failed: 0 }, gone = [];
+  mine.forEach(function (p) { var r = pushSend_(p.endpoint, keys); out[r]++; if (r === 'gone') gone.push(p.id); });
+  if (gone.length) withLock_(function () { gone.forEach(function (id) { var x = findBy_(SHEETS.PUSH, 'id', id); x.status = 'gone'; x.updatedAt = new Date().toISOString(); update_(SHEETS.PUSH, x); }); });
+  return { ok: true, result: out };
+}
+function pushSweep_() {
+  try {
+    var c = cache_(); if (c.get('push:sweep')) return; c.put('push:sweep', '1', PUSH_SWEEP_S_);
+    var subs = readAll_(SHEETS.PUSH).filter(function (p) { return p.status === 'active'; }).sort(function (a, b) { return String(a.lastCheckedAt) < String(b.lastCheckedAt) ? -1 : 1; }).slice(0, PUSH_BATCH_);
+    if (!subs.length) return;
+    var ctx = orgCtx_(), keys = null, counts = {}, now = new Date().toISOString(), changes = [];
+    subs.forEach(function (p) {
+      var e = ctx.emps[p.empId]; if (!e || e.status !== 'active') { changes.push([p.id, { status: 'off' }]); return; }
+      var n = counts[e.id] != null ? counts[e.id] : (counts[e.id] = pushCount_(e)), ch = { lastCount: n, lastCheckedAt: now };
+      if (n > (Number(p.lastCount) || 0)) { keys = keys || vapidKeys_(); var r = pushSend_(p.endpoint, keys); if (r === 'sent') ch.lastSentAt = now; if (r === 'gone') ch.status = 'gone'; }
+      changes.push([p.id, ch]);
+    });
+    withLock_(function () { changes.forEach(function (x) { var row = findBy_(SHEETS.PUSH, 'id', x[0]); if (row) { Object.keys(x[1]).forEach(function (k) { row[k] = x[1][k]; }); row.updatedAt = now; update_(SHEETS.PUSH, row); } }); });
+  } catch (e) { console.error('push: ' + (e && e.message)); }
+}
