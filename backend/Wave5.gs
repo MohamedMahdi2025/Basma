@@ -431,3 +431,101 @@ function api_bandReport(req, me) {
   audit_(me.id, 'salary_view', '', { report: 'bands', count: rows.length });
   return { ok: true, asOf: t, rows: rows, summary: sum, byGrade: Object.keys(byGrade).sort().map(function (k) { return byGrade[k]; }) };
 }
+
+// ======================================================================= 4. retro pay (arrears)
+// A package approved with an effective date in a month whose payroll is already locked was never paid for those months. The
+// scan compares, for every locked payslip of the last RETRO_MONTHS_ months, the package the slip paid (infoJson.package) with
+// the package in force today for that month's end, over the same paid days (and only from the effective date when it falls
+// inside the month). Positive differences become one 'arrears' earning in an open month (Payroll.gs ADJ_CODES), recorded in
+// retroLog per employee and month so a month is never paid twice. A negative difference (a package lowered back in time) is
+// shown but never deducted automatically: recovering it needs the employee's written agreement (Art. 92). Prepared by the hr
+// role or payroll; the run itself is still approved by a payroll holder who did not prepare it. GOSI wages of past months are
+// corrected in GOSI itself, so each arrears line carries a reminder.
+var RETRO_MONTHS_ = 12;
+function pkgTotal_(p) { if (!p) return null; var t = (Number(p.basic) || 0) + (Number(p.housing) || 0) + (Number(p.transport) || 0); Object.keys(p.other || {}).forEach(function (k) { t += Number(p.other[k]) || 0; }); return r2_(t); }
+function monthEnd_(m) { var y = +m.slice(0, 4), mo = +m.slice(5, 7); return new Date(Date.UTC(y, mo, 0)).toISOString().slice(0, 10); }
+/** Owed differences per employee: { empId: { months: [{ month, paid, should, days, diff, settled }], owed, overpaid } }. */
+function retroCompute_(onlyEmp) {
+  var t = today_(), since = addDays_(t, -RETRO_MONTHS_ * 31).slice(0, 7), runs = {}, settled = {}, out = {};
+  readAll_(SHEETS.RUN).forEach(function (r) { if (r.status === 'locked') runs[r.id] = r; });
+  readAll_(SHEETS.RETRO).forEach(function (x) { if (x.status === 'active') settled[x.empId + '|' + x.month] = x.ref; });
+  var comps = {}; readAll_(SHEETS.COMP).forEach(function (c) { if (c.status === 'approved' && (!onlyEmp || c.empId === onlyEmp)) (comps[c.empId] = comps[c.empId] || []).push(c); });
+  var compOn = function (empId, d) { var best = null; (comps[empId] || []).forEach(function (c) { if (String(c.effectiveFrom) <= d && better_(c, best)) best = c; }); return best ? compView_(best) : null; };
+  var slips = {}; // one per employee and month: the latest locked slip of a locked run
+  readAll_(SHEETS.SLIP).forEach(function (sl) {
+    if (sl.status !== 'locked' || !runs[sl.runId] || String(sl.month) < since || (onlyEmp && sl.empId !== onlyEmp)) return;
+    var k = sl.empId + '|' + sl.month; if (!slips[k] || String(sl.updatedAt) > String(slips[k].updatedAt)) slips[k] = sl;
+  });
+  Object.keys(slips).forEach(function (k) {
+    var sl = slips[k], ij = parseJson_(sl.infoJson, {}), info = ij.info || ij, paidPkg = info.package; if (!paidPkg) return;
+    var end = monthEnd_(sl.month), now = compOn(sl.empId, end); if (!now) return;
+    var paid = pkgTotal_(paidPkg), should = now.total; if (Math.abs(should - paid) < 0.01) return;
+    var from = String(info.from || sl.month + '-01'), to = String(info.to || end), eff = String(now.effectiveFrom).slice(0, 10);
+    var start = eff > from ? eff : from; if (start > to) return;
+    var full = start === sl.month + '-01' && to === end, days = full ? 30 : Math.min(30, daysBetween_(start, to) + 1);
+    var diff = r2_((should - paid) * days / 30), e = out[sl.empId] = out[sl.empId] || { months: [], owed: 0, overpaid: 0 };
+    var s = settled[k] || '';
+    e.months.push({ month: sl.month, paid: paid, should: should, days: days, diff: diff, settled: s, compRef: now.ref || '' });
+    if (!s) { if (diff > 0) e.owed = r2_(e.owed + diff); else e.overpaid = r2_(e.overpaid - diff); }
+  });
+  Object.keys(out).forEach(function (k) { out[k].months.sort(function (a, b) { return a.month < b.month ? -1 : 1; }); });
+  return out;
+}
+function api_retroScan(req, me) {
+  if (!canProposeComp_(me)) fail_('forbidden');
+  var ctx = orgCtx_(), data = retroCompute_(''), rows = [];
+  Object.keys(data).forEach(function (id) { var e = ctx.emps[id]; if (!e || !payGroupAccess_(me, groupOf_(e))) return; rows.push(Object.assign({ emp: empCard_(e), empId: id }, data[id])); });
+  rows.sort(function (a, b) { return b.owed - a.owed || b.overpaid - a.overpaid; });
+  var log = readAll_(SHEETS.RETRO).filter(function (x) { return x.status === 'active'; }).length;
+  audit_(me.id, 'salary_view', '', { report: 'retro', count: rows.length });
+  return { ok: true, rows: rows, owed: r2_(rows.reduce(function (a, r) { return a + r.owed; }, 0)), people: rows.filter(function (r) { return r.owed > 0; }).length, settledMonths: log, monthsBack: RETRO_MONTHS_ };
+}
+/** Pays an employee's unsettled positive differences as one arrears line in an open month. */
+function api_retroApply(req, me) {
+  if (!canProposeComp_(me)) fail_('forbidden');
+  var month = String(req.month || '');
+  if (!/^\d{4}-\d{2}$/.test(month)) fail_('bad_date');
+  if (req.empId === me.id) fail_('cannot_change_own_salary');
+  return withLock_(function () {
+    var emp = findBy_(SHEETS.EMP, 'id', req.empId); if (!emp) fail_('not_found');
+    if (!payGroupAccess_(me, groupOf_(emp))) fail_('forbidden');
+    if (monthLocked_(emp.id, month)) fail_('month_locked');
+    var d = retroCompute_(emp.id)[emp.id], todo = d ? d.months.filter(function (m) { return !m.settled && m.diff > 0; }) : [];
+    if (!todo.length) fail_('nothing_owed');
+    var amount = r2_(todo.reduce(function (a, m) { return a + m.diff; }, 0)), now = new Date().toISOString();
+    var span = todo[0].month + (todo.length > 1 ? '..' + todo[todo.length - 1].month : '');
+    var ref = nextRef_('retro', refsOf_(SHEETS.RETRO));
+    var adj = { id: newId_('A'), ref: nextRef_('adjustment', refsOf_(SHEETS.ADJ)), empId: emp.id, month: month, kind: 'earning', code: 'arrears', amount: amount,
+      reason: 'فروقات بأثر رجعي ' + span + ' (' + ref + ')', enteredBy: me.id, status: 'active', createdAt: now };
+    append_(SHEETS.ADJ, adj);
+    appendMany_(SHEETS.RETRO, todo.map(function (m) { return { id: newId_('RT'), ref: ref, empId: emp.id, month: m.month, paid: m.paid, should: m.should, days: m.days, diff: m.diff,
+      adjId: adj.id, payMonth: month, compRef: m.compRef, status: 'active', createdBy: me.id, createdAt: now }; }));
+    audit_(me.id, 'retro_apply', emp.id, { ref: ref, amount: amount, months: todo.length, payMonth: month });
+    return { ok: true, ref: ref, amount: amount, months: todo.length, adjRef: adj.ref, warnings: ['gosi_past_months'] };
+  });
+}
+/** Withdraws an arrears line before its month is locked; the months become owed again. */
+function api_retroCancel(req, me) {
+  if (!canProposeComp_(me)) fail_('forbidden');
+  return withLock_(function () {
+    var rows = readAll_(SHEETS.RETRO).filter(function (x) { return x.ref === req.ref && x.status === 'active'; });
+    if (!rows.length) fail_('not_found');
+    if (rows[0].empId === me.id) fail_('cannot_change_own_salary');
+    if (monthLocked_(rows[0].empId, rows[0].payMonth)) fail_('month_locked');
+    var a = findBy_(SHEETS.ADJ, 'id', rows[0].adjId); if (a && a.status !== 'deleted') { a.status = 'deleted'; update_(SHEETS.ADJ, a); }
+    rows.forEach(function (x) { x.status = 'cancelled'; update_(SHEETS.RETRO, x); });
+    audit_(me.id, 'retro_cancel', rows[0].empId, { ref: req.ref });
+    return { ok: true };
+  });
+}
+function api_retroLog(req, me) {
+  if (!canProposeComp_(me)) fail_('forbidden');
+  var ctx = orgCtx_(), by = {};
+  readAll_(SHEETS.RETRO).forEach(function (x) {
+    var g = by[x.ref] = by[x.ref] || { ref: x.ref, emp: empCard_(ctx.emps[x.empId]), payMonth: x.payMonth, months: [], amount: 0, status: x.status, createdAt: x.createdAt, locked: false };
+    g.months.push(x.month); g.amount = r2_(g.amount + Number(x.diff));
+  });
+  var rows = Object.keys(by).map(function (k) { var g = by[k]; g.locked = g.status === 'active' && monthLocked_(readAll_(SHEETS.RETRO).filter(function (x) { return x.ref === k; })[0].empId, g.payMonth); return g; })
+    .sort(function (a, b) { return a.createdAt < b.createdAt ? 1 : -1; });
+  return { ok: true, rows: rows };
+}

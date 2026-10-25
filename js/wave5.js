@@ -239,9 +239,61 @@ function gradesSection(body){
 }
 window.Grades = { section: gradesSection };
 
+// =================================================================== 4. RETRO PAY
+Object.assign(T.ar, {
+  rtTitle:'الفروقات بأثر رجعي', rtLead:'راتب اعتُمد بتاريخ سريان في شهر أُقفل مسيره لم يُصرف فرقه عن تلك الأشهر. تقارن الصفحة كل قسيمة مقفلة في آخر 12 شهرا بالراتب الساري الآن، وتصرف الفرق الموجب في شهر مفتوح سطرا واحدا. الفرق السالب يظهر ولا يُخصم تلقائيا (المادة 92).',
+  rtOwed:'مستحقون', rtTotal:'إجمالي الفروقات المستحقة', rtSettled:'أشهر سُويت', rtPay:'صرف الفروقات', rtPayIn:'تُصرف مع رواتب شهر', rtLog:'السجل', rtScan:'الفروقات',
+  rtMonth:'الشهر', rtPaid:'المصروف', rtShould:'المستحق', rtDays:'الأيام', rtDiff:'الفرق', rtOverpaid:'صُرف أكثر من المستحق (لا يُخصم تلقائيا)', rtDone:'سُوي', rtNone:'لا توجد فروقات غير مسواة.',
+  rtCancel:'سحب الفروقات', rtLocked:'صُرفت (الشهر مقفل)', rtPending:'بانتظار المسير', rtGosi:'تذكير: صحّح أجر التأمينات للأشهر السابقة في منصة التأمينات.', rtsc_active:'نشطة', rtsc_cancelled:'مسحوبة',
+  e_nothing_owed:'لا توجد فروقات مستحقة غير مسواة لهذا الموظف.'
+});
+Object.assign(T.en, {
+  rtTitle:'Retro pay (arrears)', rtLead:'A package approved with an effective date in a month already locked was never paid for those months. This page compares every locked payslip of the last 12 months with the package in force now and pays the positive difference in an open month as one line. A negative difference is shown, never deducted automatically (Art. 92).',
+  rtOwed:'People owed', rtTotal:'Total arrears owed', rtSettled:'Months settled', rtPay:'Pay the arrears', rtPayIn:'Pay with the salaries of', rtLog:'Log', rtScan:'Differences',
+  rtMonth:'Month', rtPaid:'Paid', rtShould:'Due', rtDays:'Days', rtDiff:'Difference', rtOverpaid:'Paid more than due (never deducted automatically)', rtDone:'Settled', rtNone:'No unsettled differences.',
+  rtCancel:'Withdraw the arrears', rtLocked:'Paid (month locked)', rtPending:'Waiting for the run', rtGosi:'Reminder: correct the GOSI wage of the past months on the GOSI portal.', rtsc_active:'Active', rtsc_cancelled:'Withdrawn',
+  e_nothing_owed:'There are no unsettled arrears for this employee.'
+});
+function retroSection(body){
+  var box = K.head(body, 'rtTitle', 'rtLead'), tab = S.rtTab || 'scan';
+  function load(){
+    K.busy(box);
+    api(tab === 'scan' ? 'retroScan' : 'retroLog', {}, true).then(function(r){
+      if (!box.isConnected) return;
+      if (!r.ok) return box.innerHTML = K.bad(r.error);
+      var h = '<div class="toolbar">' + K.tabsBar(tab, [['scan', 'clock-counter-clockwise', 'rtScan'], ['log', 'list-checks', 'rtLog']]) + '</div>';
+      if (tab === 'scan') {
+        h += K.tiles([[t('rtOwed'), K.n(r.people), '', true], [t('rtTotal'), K.n(r.owed), K.lang('ر.س', 'SAR')], [t('rtSettled'), K.n(r.settledMonths), '']]);
+        var rows = r.rows.filter(function(x){ return x.owed > 0 || x.overpaid > 0; });
+        h += rows.length ? rows.map(function(x, i){
+          var tb = '<table class="w5-tbl"><thead><tr><th>' + t('rtMonth') + '</th><th>' + t('rtPaid') + '</th><th>' + t('rtShould') + '</th><th>' + t('rtDays') + '</th><th>' + t('rtDiff') + '</th></tr></thead><tbody>' +
+            x.months.map(function(m){ return '<tr' + (m.settled ? ' class="w5-muted"' : '') + '><td><bdi class="num">' + esc(m.month) + '</bdi>' + (m.settled ? ' ' + K.chip(t('rtDone'), 'in') : '') + '</td><td class="num">' + K.n(m.paid) + '</td><td class="num">' + K.n(m.should) + '</td><td class="num">' + m.days + '</td><td class="num">' + (m.diff > 0 ? '+' : '') + m.diff.toLocaleString(LOCALE()) + '</td></tr>'; }).join('') + '</tbody></table>';
+          return '<div class="db-card w5-card" style="padding:16px;margin-bottom:10px"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>' + K.empLine(x.emp) + '</b><span style="flex:1"></span>' +
+            (x.owed > 0 ? '<b class="num">' + K.money(x.owed) + '</b> <button type="button" class="btn btn-dark btn-sm" data-rp="' + i + '">' + ph('hand-coins') + t('rtPay') + '</button>' : '') + '</div>' + tb +
+            (x.overpaid > 0 ? '<p class="w2-warn">' + ph('warning') + ' ' + t('rtOverpaid') + ': ' + K.money(x.overpaid) + '</p>' : '') + '</div>';
+        }).join('') : K.empty('check-circle', t('rtNone'));
+        box.innerHTML = h;
+        $$('[data-rp]', box).forEach(function(b){ b.onclick = function(){ var x = rows[b.dataset.rp];
+          K.formDrawer(t('rtPay'), K.empLine(x.emp) + ' · ' + K.money(x.owed) + '<br>' + t('rtGosi'), K.fld(t('rtPayIn'), '<input type="month" name="month" required value="' + riyadhToday().slice(0, 7) + '">'),
+            function(v){ return api('retroApply', { empId: x.empId, month: v.month }); }, load); }; });
+      } else {
+        h += r.rows.length ? '<div class="list">' + r.rows.map(function(g, i){
+          return '<div class="row w2-row"><div class="main"><b><bdi class="num">' + esc(g.ref) + '</bdi>' + K.sep() + K.empLine(g.emp) + '</b><small>' + g.months.map(function(m){ return '<bdi class="num">' + esc(m) + '</bdi>'; }).join('، ') + K.sep() + t('rtPayIn') + ' <bdi class="num">' + esc(g.payMonth) + '</bdi></small></div>' +
+            '<div class="act" style="display:flex;gap:6px;align-items:center"><b class="num">' + K.money(g.amount) + '</b>' + (g.status !== 'active' ? K.chip(t('rtsc_cancelled'), 'off') : g.locked ? K.chip(t('rtLocked'), 'in') : K.chip(t('rtPending'), 'late') + ' <button type="button" class="btn btn-line btn-sm" data-rc="' + i + '">' + t('rtCancel') + '</button>') + '</div></div>';
+        }).join('') + '</div>' : K.empty('list-checks', t('w2None'));
+        box.innerHTML = h;
+        $$('[data-rc]', box).forEach(function(b){ K.confirmTap(b, function(){ api('retroCancel', { ref: r.rows[b.dataset.rc].ref }).then(function(x){ if (!x.ok) return toast(errText(x.error)); toast(t('w2Saved')); load(); }); }); });
+      }
+      $$('[data-tab]', box).forEach(function(b){ b.onclick = function(){ tab = S.rtTab = b.dataset.tab; load(); }; });
+    });
+  }
+  load();
+}
+window.Retro = { section: retroSection };
+
 if (!document.getElementById('w5css')) {
   var st = document.createElement('style'); st.id = 'w5css';
-  st.textContent = '.w5-h{font-size:16px;margin:16px 0 8px}.w5-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-top:12px}.w5-card .btnrow{margin-top:10px;flex-wrap:wrap;gap:6px}.w5-band{position:relative;height:8px;border-radius:4px;background:var(--line);margin:6px 0;max-width:360px}.w5-band i{position:absolute;top:0;bottom:0;border-radius:4px;background:var(--brand-tint)}.w5-band b{position:absolute;top:-2px;width:2px;height:12px;background:var(--brand)}.w5-band em{position:absolute;top:-3px;width:14px;height:14px;margin-inline-start:-7px;border-radius:50%;background:var(--brand);border:2px solid var(--card,#fff)}';
+  st.textContent = '.w5-h{font-size:16px;margin:16px 0 8px}.w5-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-top:12px}.w5-card .btnrow{margin-top:10px;flex-wrap:wrap;gap:6px}.w5-tbl{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px}.w5-tbl th,.w5-tbl td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:start}.w5-muted{color:var(--ink-3)}.w5-band{position:relative;height:8px;border-radius:4px;background:var(--line);margin:6px 0;max-width:360px}.w5-band i{position:absolute;top:0;bottom:0;border-radius:4px;background:var(--brand-tint)}.w5-band b{position:absolute;top:-2px;width:2px;height:12px;background:var(--brand)}.w5-band em{position:absolute;top:-3px;width:14px;height:14px;margin-inline-start:-7px;border-radius:50%;background:var(--brand);border:2px solid var(--card,#fff)}';
   document.head.appendChild(st);
 }
 })();

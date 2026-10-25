@@ -207,5 +207,41 @@ ok(r.ok && r.band && r.band.status === 'below' && r.band.grade === 'G5', 'a pack
 ok(call('3001', 'gradeDelete', { id: g5.id }).error === 'grade_in_use', 'a grade used by positions cannot be deleted');
 ok(B.ctx.bandWarn_('POS5', 9000, 7000) === 'above_band' && B.ctx.bandWarn_('POS5', 9000, 4500) === '' && B.ctx.bandWarn_('POS9', 1, 1) === '', 'offers outside the range get a warning; a grade without a range gives none');
 
+// ===================================================================== 4. retro pay
+console.log('Retro pay');
+{
+  const run = month => { const c = call('3001', 'payrollCreate', { month }); if (!c.ok) return c; return call('5005', 'payrollApprove', { id: c.run.id }); };
+  r = run('2026-09'); ok(r.ok, 'September payroll locked (prepared by HR, approved by payroll)', r);
+  r = run('2026-10'); ok(r.ok, 'October payroll locked', r);
+  ok(call('5005', 'retroScan').rows.filter(x => x.owed > 0).length === 0, 'nothing owed while packages match what was paid');
+  // a raise approved now, effective back on 16 September: 6,750 -> 7,500 a month
+  direct(() => B.ctx.append_('compensation', { id: 'CR5002', empId: ids['5002'], effectiveFrom: '2026-09-16', basic: 5600, housing: 1400, transport: 500, otherJson: '{}', currency: 'SAR', status: 'approved', approvedAt: '2026-11-03T08:00:00Z', ref: 'SAL-RETRO' }));
+  // and a package lowered back in time (never deducted automatically)
+  direct(() => B.ctx.append_('compensation', { id: 'CR5004', empId: ids['5004'], effectiveFrom: '2026-10-01', basic: 3000, housing: 750, transport: 250, otherJson: '{}', currency: 'SAR', status: 'approved', approvedAt: '2026-11-03T08:00:00Z', ref: 'SAL-DOWN' }));
+  ok(call('5002', 'retroScan').error === 'forbidden' && call('5001', 'retroScan').error === 'forbidden', 'employees and managers never see arrears (that is pay)');
+  r = call('5005', 'retroScan');
+  const R2 = r.rows.filter(x => x.empId === ids['5002'])[0], R4 = r.rows.filter(x => x.empId === ids['5004'])[0];
+  ok(R2 && R2.months.length === 2 && R2.months[0].month === '2026-09' && R2.months[0].days === 15 && R2.months[0].diff === 375, 'September: 750 more a month from the 16th = 15 days = 375', R2);
+  ok(R2.months[1].diff === 750 && R2.owed === 1125, 'October in full: 750; 1,125 owed in all', R2);
+  ok(R4 && R4.owed === 0 && R4.overpaid === 675, 'a package lowered back in time shows as paid too much, never as a deduction', R4);
+  ok(r.owed === 1125 && r.people === 1, 'the totals', [r.owed, r.people]);
+  ok(call('5005', 'retroApply', { empId: ids['5005'], month: '2026-11' }).error === 'cannot_change_own_salary', 'nobody pays arrears to themselves');
+  ok(call('3001', 'retroApply', { empId: ids['5002'], month: '2026-10' }).error === 'month_locked', 'arrears cannot go into a locked month');
+  r = call('3001', 'retroApply', { empId: ids['5002'], month: '2026-11' });
+  ok(r.ok && r.amount === 1125 && r.months === 2 && /^RTR-/.test(r.ref) && r.warnings.indexOf('gosi_past_months') >= 0, 'HR pays them as one line in November, with the GOSI reminder', r);
+  const rref = r.ref;
+  ok(call('5005', 'retroScan').rows.filter(x => x.empId === ids['5002'])[0].owed === 0, 'the months are settled: nothing owed any more');
+  ok(call('3001', 'retroApply', { empId: ids['5002'], month: '2026-11' }).error === 'nothing_owed', 'so the same months can never be paid twice');
+  const nov = call('3001', 'payrollCreate', { month: '2026-11' });
+  const slip = nov.ok && call('3001', 'payrollGet', { id: nov.run.id }).slips.filter(s => s.empId === ids['5002'] || (s.emp && s.emp.id === ids['5002']))[0];
+  const line = slip && (slip.lines || []).filter(l => l.code === 'arrears')[0];
+  ok(line && line.amount === 1125 && !line.nonWage, 'the November payslip carries the arrears as a wage earning', slip && slip.lines);
+  ok(call('5005', 'retroLog').rows[0].ref === rref && call('5005', 'retroLog').rows[0].locked === false, 'the log shows it waiting for the run');
+  r = call('3001', 'retroCancel', { ref: rref });
+  ok(r.ok && call('5005', 'retroScan').rows.filter(x => x.empId === ids['5002'])[0].owed === 1125, 'withdrawing it before the month locks makes the months owed again');
+  ok(!call('3001', 'payrollGet', { id: nov.run.id }).adjustments.some(a => a.code === 'arrears'), 'and removes the line');
+  call('3001', 'payrollDelete', { id: nov.run.id });
+}
+
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);

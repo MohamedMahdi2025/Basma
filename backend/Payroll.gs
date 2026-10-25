@@ -10,9 +10,9 @@ var GOSI_LEGACY = [9.75, 11.75], GOSI_NON_SAUDI_ER = 2, GOSI_MIN = 1500, GOSI_MA
 // GCC states other than KSA (ISO 2 and 3 letter codes): covered by the GCC extension, see calcSlip_
 var GOSI_GCC = { KW: 1, KWT: 1, BH: 1, BHR: 1, QA: 1, QAT: 1, AE: 1, ARE: 1, OM: 1, OMN: 1 };
 var ADJ_CODES = { bonus: 'earning', commission: 'earning', other_earning: 'earning', overtime_hours: 'hours', fine: 'deduction', other_deduction: 'deduction',
-  reimbursement: 'earning', per_diem: 'earning' }; // per_diem: an approved business trip (Leave.gs 'travel'), non-wage like reimbursement; an approved expense claim (Expenses.gs): paid with the salary, not wage (no GOSI, outside the Art. 93 base)
+  reimbursement: 'earning', per_diem: 'earning', arrears: 'earning' }; // arrears: Wave5.gs retro pay // per_diem: an approved business trip (Leave.gs 'travel'), non-wage like reimbursement; an approved expense claim (Expenses.gs): paid with the salary, not wage (no GOSI, outside the Art. 93 base)
 var ADJ_NON_WAGE = { reimbursement: 1, per_diem: 1 };
-var ADJ_SYSTEM_ONLY = { reimbursement: 1, per_diem: 1 }; // only written by an approved claim, never typed in payroll
+var ADJ_SYSTEM_ONLY = { reimbursement: 1, per_diem: 1, arrears: 1 }; // arrears: withdrawn with retroCancel // only written by an approved claim, never typed in payroll
 
 function gosiRates_(isSaudi, cohort, month) {
   if (!isSaudi) return { emp: 0, er: GOSI_NON_SAUDI_ER, cohort: 'non_saudi' };
@@ -596,7 +596,7 @@ function graphSend_(c, token, to, subject, html, files) {
       attachments: (files || []).map(function (f) { return { '@odata.type': '#microsoft.graph.fileAttachment', name: f.name, contentType: f.type, contentBytes: Utilities.base64Encode(f.bytes) }; }) }, saveToSentItems: true }) });
   if (r.getResponseCode() >= 300) fail_('email_send_failed');
 }
-var PAY_LABELS_AR = { basic: 'الراتب الأساسي', housing: 'بدل السكن', transport: 'بدل النقل', allowance: 'بدل', overtime: 'عمل إضافي', bonus: 'مكافأة', commission: 'عمولة',
+var PAY_LABELS_AR = { arrears: 'فروقات بأثر رجعي', basic: 'الراتب الأساسي', housing: 'بدل السكن', transport: 'بدل النقل', allowance: 'بدل', overtime: 'عمل إضافي', bonus: 'مكافأة', commission: 'عمولة',
   other_earning: 'استحقاق آخر', reimbursement: 'تعويض مصروفات', unpaid_leave: 'إجازة بدون راتب', sick_75: 'إجازة مرضية بثلاثة أرباع الأجر', sick_unpaid: 'إجازة مرضية بدون أجر', absence: 'غياب',
   late: 'دقائق التأخير', gosi: 'التأمينات الاجتماعية (حصة الموظف)', advance: 'قسط سلفة', fine: 'جزاء', other_deduction: 'خصم آخر' };
 function payslipEmailHtml_(sl) {

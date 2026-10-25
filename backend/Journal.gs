@@ -20,7 +20,7 @@
 
 var GL_KEYS = ['basic', 'housing', 'transport', 'allowance', 'overtime', 'bonus', 'commission', 'other_earning', 'reimbursement', 'per_diem', 'gosi_expense', 'pay_reduction',
   'gosi_payable', 'net_payable', 'advances', 'fines', 'other_deductions', 'eos_expense', 'eos_provision'];
-var GL_EARN = { basic: 'basic', housing: 'housing', transport: 'transport', overtime: 'overtime', bonus: 'bonus', commission: 'commission', other_earning: 'other_earning', reimbursement: 'reimbursement', per_diem: 'per_diem' }; // per_diem: business trips (Leave.gs 'travel')
+var GL_EARN = { arrears: 'basic', basic: 'basic', housing: 'housing', transport: 'transport', overtime: 'overtime', bonus: 'bonus', commission: 'commission', other_earning: 'other_earning', reimbursement: 'reimbursement', per_diem: 'per_diem' }; // per_diem: business trips (Leave.gs 'travel')
 var GL_REDUCE = { unpaid_leave: 1, sick_75: 1, sick_unpaid: 1, absence: 1, late: 1 };
 var GL_DEDUCT = { gosi: 'gosi_payable', advance: 'advances', fine: 'fines', other_deduction: 'other_deductions' };
 

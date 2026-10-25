@@ -1448,7 +1448,7 @@ const EXPECT = {
   customFieldSave: 'hrA', customValuesSave: 'hrA', customValuesAll: 'hrA',
   // Wave 5 (Wave5.gs): HSE run by HR (incl. admin) or the safety officer role; safety figures also for executives
   hseUpdate: 'hrA', hseActionSave: 'hrA', ppeIssue: 'hrA', hseStats: 'hrExecA',
-  gradeList: 'money', gradeSave: 'pay', gradeDelete: 'pay', bandReport: 'pay'
+  gradeList: 'money', gradeSave: 'pay', gradeDelete: 'pay', bandReport: 'pay', retroScan: 'pay', retroApply: 'pay', retroCancel: 'pay', retroLog: 'pay'
 };
 const T16 = ids['1018'];
 const PROBE = { hrEmpFile: { id: T16 }, perfEmp: { empId: T16, cycleId: CYC.id }, planSave: { plan: { empId: T16, type: 'idp' } }, delegationSave: { delegation: { toEmpId: ids['1003'] } },
