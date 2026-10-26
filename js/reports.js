@@ -172,7 +172,7 @@ var CODES = {
   low: ['منخفض', 'Low'], watch: ['للمتابعة', 'Watch'], concern: ['مقلق', 'Concern'], high: ['مرتفع', 'High'],
   sun: ['الأحد', 'Sunday'], mon: ['الاثنين', 'Monday'], tue: ['الثلاثاء', 'Tuesday'], wed: ['الأربعاء', 'Wednesday'], thu: ['الخميس', 'Thursday'], fri: ['الجمعة', 'Friday'], sat: ['السبت', 'Saturday'],
   early_30: ['مبكر 30 دقيقة فأكثر', '30+ min early'], early: ['مبكر', 'Early'], on_time: ['في الموعد', 'On time'], late_30: ['متأخر حتى 30 دقيقة', 'Up to 30 min late'], late_60: ['متأخر 31-60 دقيقة', '31-60 min late'],
-  late_over: ['متأخر أكثر من ساعة', 'Over an hour late'], static_samples: ['مواقع متطابقة (ثابتة)', 'Frozen samples'], zero_accuracy: ['دقة صفرية', 'Zero accuracy'], stale_fix: ['موقع قديم', 'Stale fix'],
+  late_over: ['متأخر أكثر من ساعة', 'Over an hour late'], static_precise: ['نقطة دقيقة ثابتة', 'Precise frozen point'], edge_outside: ['خارج الحد ضمن هامش GPS', 'Just past the fence'], static_samples: ['مواقع متطابقة (ثابتة)', 'Frozen samples'], zero_accuracy: ['دقة صفرية', 'Zero accuracy'], stale_fix: ['موقع قديم', 'Stale fix'],
   clock_drift: ['فرق في ساعة الجهاز', 'Clock drift'], impossible_travel: ['تنقل مستحيل', 'Impossible travel'], new_device: ['جهاز جديد', 'New device'], few_samples: ['عينات قليلة', 'Few samples'],
   off_hours: ['خارج الساعات', 'Off hours'], edge: ['على حافة النطاق', 'Zone edge'], outside_checkout: ['انصراف خارج النطاق', 'Check-out outside'], no_biometric: ['بلا بصمة حيوية', 'No biometric'], laptop: ['حاسب محمول', 'Laptop'],
   password_login: ['دخول بكلمة مرور', 'Password sign-in'], mismatch: ['لا يطابق', 'Mismatch'], matched: ['مطابق', 'Matched'], not_in_upload: ['غير موجود في الملف', 'Not in the file'], no_upload: ['لم يرفع ملف', 'No file uploaded'],

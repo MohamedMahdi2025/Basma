@@ -445,3 +445,23 @@ All four are complete code, off until a Script property (and, for the first two,
   and its appid/tid must be ours. One active employee with that e-mail, else `sso_no_account`. Session kind = 'pw'.
 - **Device punches** (Admin.gs `api_devicePunch`, API key scope `device`): status ok, source device, idempotent per minute.
 Trap: never use the class `.me` (or `.bot`) inside a module: index.html styles `.me` as position:absolute.
+
+## GPS, speed and SaaS sign-in (2026-10-26)
+
+- **Geofence** (Attendance.gs `evaluateGeo_`, tests/geo.js): every recent sample is judged; the most accurate sample inside a
+  zone within `maxAccuracy` is the fix. A good reading whose accuracy circle reaches up to 50 m (never more than half the
+  radius) into the zone counts, flagged `edge_outside` (40, so HR reviews it). Duplicate readings (same lat/lng/acc/t) count
+  once. `static_precise` (+10): frozen readings claiming under 20 m, the fake-location pattern; Wi-Fi repeats stay below review.
+- **Phone location** (index.html `startWatch`): a GPS watch with no timeout plus a network watch side by side (GPS used to be
+  switched off for a minute after a 15 s timeout indoors). `punchSamples()` waits up to 5 s for a fresh reading after Face ID,
+  then sends the newest reading of the last 2 minutes rather than nothing.
+- **Speed** (Code.gs): `settings_()` is memoised per request (`SETTINGS_MEMO_`, cleared by any settings write and by
+  `settingsForget_()`); `append_` adds the new row to the request memo (`READ_LEN_`) instead of forcing a re-read;
+  `readQuick_(tab)` reads a small tab from the versioned cache copy without memoising it (remote-day check on sign-in and home).
+  Profile script: scratchpad `profile.js` (counts sheet reads, cache, lock, properties per action).
+- **SaaS sign-in**: with no Org ID on the device the app shows the platform identity (`CO_PLATFORM`, `platformMark()`, the
+  default blue). Typing an Org ID previews that company's name, logo and colour; "change organisation" calls `platformReset()`.
+  Title and manifest are neutral.
+- **Home smart insights** (home.js `insights`/`insightsHtml`, card `#hmIns`): up to five explained nudges from the person's own
+  data, each with one action; plus a ring of today's hours on the shift card. Trap: dsv3's `body.v2-on :is(.hm-card…)` paints
+  cards white; the shift card keeps its pine with `.hm-card.hm-clock.hm-clock`.

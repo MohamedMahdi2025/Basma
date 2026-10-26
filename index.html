@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>حضور الناقل الأفضل</title>
-<meta name="description" content="Best Gas attendance: check in and out at head office with your PIN or password">
+<title>منصة الحضور والموارد البشرية</title>
+<meta name="description" content="Attendance and HR for every company: check in at your workplace with your fingerprint, PIN or password">
 <meta name="theme-color" content="#1C2A1F">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="حضور Best Gas">
+<meta name="apple-mobile-web-app-title" content="الحضور والموارد البشرية">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="48x48" href="favicon-48.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
@@ -2155,7 +2155,7 @@ var MARK = 'data:image/png;base64,iVBORw0KGgoAAAAN' +
 // ---------------- i18n ----------------
 var T = {
   ar: {
-    appName:'حضور الناقل الأفضل', company:'شركة الناقل الأفضل للغاز', gateTag:'سجّل حضورك من مقر الشركة بلمسة واحدة، محمية برمزك السري.',
+    appName:'منصة الحضور والموارد البشرية', company:'منصة الحضور والموارد البشرية', gateTag:'سجّل حضورك من مقر الشركة بلمسة واحدة، محمية برمزك السري.',
     pwLogin:'الدخول بكلمة المرور', setPermMax:'ساعات الاستئذان في الطلب', swTs:'اعتماد كشوف الدوام قبل إقفال الرواتب', swTsLead:'لا يعتمد مسير الشهر حتى يعتمد المدير أو الموارد البشرية كشف دوام كل موظف فيه.', setPermMonth:'ساعات الاستئذان في الشهر', setPerDiemIn:'بدل الانتداب اليومي داخل المملكة (ر.س)', setPerDiemOut:'بدل الانتداب اليومي خارج المملكة (ر.س)', setOtYear:'السقف السنوي للعمل الإضافي (ساعة)', eyeShowPw:'إظهار كلمة المرور', eyeHidePw:'إخفاء كلمة المرور', eyeShowPin:'إظهار الرمز', eyeHidePin:'إخفاء الرمز', forgotPin:'نسيت الرمز السري؟', forgotPw:'نسيت كلمة المرور؟',
     forgotPinText:'اطلب من الموارد البشرية رمز تفعيل جديد. تفعّل به جهازك مرة أخرى وتختار رمزاً سرياً جديداً.', forgotPwText:'اطلب من الموارد البشرية كلمة مرور مؤقتة. ستُطلب منك كلمة مرور جديدة عند أول دخول.',
     mustChangeTitle:'اختر كلمة مرور جديدة', mustChangeLead:'دخلت بكلمة مرور مؤقتة. اختر كلمة مرورك الخاصة للمتابعة.', pwTemp:'كلمة المرور المؤقتة', continueBtn:'حفظ والمتابعة',
@@ -2206,7 +2206,7 @@ var T = {
     setShift:'الدوام الافتراضي', secHours:'الدوام وأيام العمل', secHoursLead:'يُطبَّق على كل موظف ليس له دوام خاص.', secLoc:'دقة الموقع والمراجعة', secLocLead:'متى يُقبل الموقع، ومتى تُحال الحركة للموارد البشرية.', secMethods:'طرق الدخول والتسجيل', secMethodsLead:'ما يُسمح به للموظفين. التسجيل يبقى داخل نطاق المقر دائماً.', graceHint:'بعدها يُحسب التأخير.', gapHint:'يمنع التسجيل المكرر بالخطأ.', accHint:'الهاتف عادة 5 إلى 30 م.', accDeskHint:'الكمبيوتر يحدد موقعه بالواي فاي، فيحتاج هامشاً أوسع.', riskHint:'مجموع إشارات الخطر الذي تُحال عنده الحركة للمراجعة.', swDesk:'التسجيل من الكمبيوتر', swDeskLead:'برمز سري من 6 أرقام على جهاز مفعّل.', swPw:'التسجيل بكلمة المرور', swPwLead:'من أي جهاز غير مسجل، ويُعلَّم للمراجعة.', swDk:'التسجيل بالرمز السري على الهاتف', swDkLead:'الطريقة الأساسية للهواتف.', swOut:'الانصراف من خارج النطاق', swOutLead:'للحالات الطارئة فقط، ويُحال للمراجعة.', mins:'دقيقة', meters:'م', grace:'فترة السماح (دقيقة)', workdays:'أيام العمل', maxAcc:'أقصى خطأ مسموح في الموقع (م)', riskTh:'حد المراجعة', allowOut:'السماح بالانصراف من خارج النطاق (يُحال للمراجعة)', minGap:'أقل فاصل بين حركتين (دقيقة)',
     dows:['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'],
     updateReady:'نسخة جديدة متاحة، اضغط للتحديث', saved:'تم الحفظ', device:'الجهاز', since:'منذ', signOut:'قفل التطبيق', forgetDevice:'إزالة الحساب من هذا الجهاز', installHint:'لتثبيت التطبيق: شارك ← أضف إلى الشاشة الرئيسية',
-    f_static_samples:'إحداثيات ثابتة تماماً (احتمال موقع وهمي)', f_zero_accuracy:'دقة غير واقعية', f_stale_fix:'موقع قديم', f_clock_drift:'ساعة الجهاز غير مضبوطة', f_impossible_travel:'انتقال مستحيل', f_new_device:'جهاز جديد', f_few_samples:'قراءة موقع واحدة', f_off_hours:'خارج الأوقات', f_edge:'على حافة النطاق', f_weak_fix:'موقع تقريبي داخل النطاق (يراجع)', f_outside_checkout:'انصراف من خارج النطاق',
+    f_static_samples:'إحداثيات ثابتة تماماً (احتمال موقع وهمي)', f_static_precise:'نقطة دقيقة لا تتحرك إطلاقاً (نمط تطبيقات الموقع الوهمي)', f_edge_outside:'خارج حد الموقع بقليل ضمن هامش دقة GPS', f_zero_accuracy:'دقة غير واقعية', f_stale_fix:'موقع قديم', f_clock_drift:'ساعة الجهاز غير مضبوطة', f_impossible_travel:'انتقال مستحيل', f_new_device:'جهاز جديد', f_few_samples:'قراءة موقع واحدة', f_off_hours:'خارج الأوقات', f_edge:'على حافة النطاق', f_weak_fix:'موقع تقريبي داخل النطاق (يراجع)', f_outside_checkout:'انصراف من خارج النطاق',
     e_outside_zone:'أنت خارج نطاق المقر', e_accuracy_too_low:'دقة الموقع ضعيفة جداً، حاول مجدداً', e_no_location:'تعذّر تحديد موقعك', e_no_zone:'لا يوجد نطاق عمل محدد لك',
     e_too_soon:'سُجّلت حركتك للتو', e_state_changed:'تغيّرت حالتك، حدّث الشاشة', e_bad_activation:'الرقم الوظيفي أو رمز التفعيل غير صحيح', e_activation_expired:'انتهت صلاحية رمز التفعيل، اطلب رمزاً جديداً',
     e_activation_locked:'تم إيقاف الرمز بعد محاولات خاطئة، اطلب رمزاً جديداً', e_too_many_attempts:'محاولات كثيرة، انتظر قليلاً', e_no_device:'لا يوجد جهاز مفعّل لهذا الرقم', e_unknown_employee:'الرقم الوظيفي غير معروف',
@@ -2216,7 +2216,7 @@ var T = {
     e_future_time:'لا يمكن التسجيل في وقت لاحق', e_bad_zone:'بيانات النطاق غير صحيحة', e_bad_radius:'نصف القطر بين 20 و 5000 م', e_missing_fields:'أكمل الحقول المطلوبة', e_server_error:'خطأ في الخادم', e_generic:'حدث خطأ'
   },
   en: {
-    appName:'Best Gas Attendance', company:'Best Gas Carrier Co.', gateTag:'Check in at head office with one tap, protected by your PIN.',
+    appName:'Attendance & HR Platform', company:'Attendance & HR Platform', gateTag:'Check in at head office with one tap, protected by your PIN.',
     pwLogin:'Sign in with password', setPermMax:'Permission hours per request', swTs:'Approve timesheets before the payroll lock', swTsLead:'A month\'s payroll cannot lock until a manager or HR approves every person\'s timesheet.', setPermMonth:'Permission hours per month', setPerDiemIn:'Daily per diem inside the Kingdom (SAR)', setPerDiemOut:'Daily per diem outside the Kingdom (SAR)', setOtYear:'Yearly overtime ceiling (hours)', eyeShowPw:'Show password', eyeHidePw:'Hide password', eyeShowPin:'Show PIN', eyeHidePin:'Hide PIN', forgotPin:'Forgot your PIN?', forgotPw:'Forgot your password?',
     forgotPinText:'Ask HR for a new activation code. Use it to activate this device again and choose a new PIN.', forgotPwText:'Ask HR for a temporary password. You will choose a new one the first time you sign in.',
     mustChangeTitle:'Choose a new password', mustChangeLead:'You signed in with a temporary password. Choose your own to continue.', pwTemp:'Temporary password', continueBtn:'Save and continue',
@@ -2267,7 +2267,7 @@ var T = {
     setShift:'Default shift', secHours:'Hours and work days', secHoursLead:'Applies to everyone without a custom shift.', secLoc:'Location accuracy and review', secLocLead:'When a location is trusted, and when a punch goes to HR.', secMethods:'Sign-in and check-in methods', secMethodsLead:'What employees may use. Check-in always stays inside the HQ zone.', graceHint:'Lateness counts after this.', gapHint:'Stops accidental double punches.', accHint:'Phones are usually 5 to 30 m.', accDeskHint:'Computers locate by Wi-Fi and need a wider margin.', riskHint:'Total risk score at which a punch goes to review.', swDesk:'Check-in from computers', swDeskLead:'With a 6-digit PIN on an activated computer.', swPw:'Check-in with password', swPwLead:'From any unregistered device, flagged for review.', swDk:'PIN check-in on phones', swDkLead:'The main method for phones.', swOut:'Check-out outside the zone', swOutLead:'Emergencies only; sent to review.', mins:'min', meters:'m', grace:'Grace period (min)', workdays:'Work days', maxAcc:'Largest location error allowed (m)', riskTh:'Review threshold', allowOut:'Allow check-out outside the zone (sent to review)', minGap:'Minimum gap between punches (min)',
     dows:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
     updateReady:'A new version is ready. Tap to update', saved:'Saved', device:'Device', since:'since', signOut:'Lock app', forgetDevice:'Remove account from this device', installHint:'To install: Share → Add to Home Screen',
-    f_static_samples:'Perfectly frozen coordinates (possible fake GPS)', f_zero_accuracy:'Unrealistic accuracy', f_stale_fix:'Old location fix', f_clock_drift:'Device clock is wrong', f_impossible_travel:'Impossible travel', f_new_device:'New device', f_few_samples:'Single location reading', f_off_hours:'Off hours', f_edge:'At zone edge', f_weak_fix:'Approximate location inside the zone (for review)', f_outside_checkout:'Checked out outside zone',
+    f_static_samples:'Perfectly frozen coordinates (possible fake GPS)', f_static_precise:'A precise point that never moves (fake-location pattern)', f_edge_outside:'Just past the fence, within the GPS margin', f_zero_accuracy:'Unrealistic accuracy', f_stale_fix:'Old location fix', f_clock_drift:'Device clock is wrong', f_impossible_travel:'Impossible travel', f_new_device:'New device', f_few_samples:'Single location reading', f_off_hours:'Off hours', f_edge:'At zone edge', f_weak_fix:'Approximate location inside the zone (for review)', f_outside_checkout:'Checked out outside zone',
     e_outside_zone:'You are outside the HQ zone', e_accuracy_too_low:'Location is too imprecise, try again', e_no_location:'Could not get your location', e_no_zone:'No work zone is set for you',
     e_too_soon:'You just punched', e_state_changed:'Your status changed, refresh', e_bad_activation:'Employee number or activation code is wrong', e_activation_expired:'The activation code expired, ask for a new one',
     e_activation_locked:'The code was locked after wrong attempts, ask for a new one', e_too_many_attempts:'Too many attempts, wait a little', e_no_device:'No device is activated for this number', e_unknown_employee:'Unknown employee number',
@@ -2901,8 +2901,8 @@ function wireOrgField(){
   var look = function(){
     var v = i.value.replace(/\D/g, ''); if (v !== i.value) i.value = v;
     out.textContent = ''; out.className = 'org-name'; clearTimeout(timer);
-    if (!validOrg(v)) return;
-    timer = setTimeout(function(){ api('orgCheck', { orgId: v }, true).then(function(r){ if (i.value !== v) return; if (r.ok) { out.textContent = t('orgFound') + ' ' + ((S.lang === 'en' ? r.nameEn : r.nameAr) || r.nameAr || v); out.className = 'org-name ok'; var was = S.orgId; S.orgId = v; syncLogo(r); applyBrand(r.brandColor || '', !!r.home); S.orgId = was; } else { out.textContent = errText(r.error); out.className = 'org-name bad'; } }); }, 350);
+    if (!validOrg(v)) { if (!store('org') && S.orgId) { S.orgId = ''; platformReset(); $$('.wordmark').forEach(function(w){ w.outerHTML = wordmarkHtml(); }); } return; }
+    timer = setTimeout(function(){ api('orgCheck', { orgId: v }, true).then(function(r){ if (i.value !== v) return; if (r.ok) { out.textContent = t('orgFound') + ' ' + ((S.lang === 'en' ? r.nameEn : r.nameAr) || r.nameAr || v); out.className = 'org-name ok'; S.orgId = v; setCompany({ nameAr: r.nameAr || v, nameEn: r.nameEn || r.nameAr || v, shortAr: r.nameAr || v, shortEn: r.nameEn || r.nameAr || v, logoVer: r.logoVer || '', home: !!r.home, brandColor: r.brandColor || '' }); syncLogo(r); applyBrand(r.brandColor || '', !!r.home); paintMarks(); $$('.wordmark').forEach(function(w){ w.outerHTML = wordmarkHtml(); }); } else { out.textContent = errText(r.error); out.className = 'org-name bad'; if (!store('org')) { S.orgId = ''; platformReset(); $$('.wordmark').forEach(function(w){ w.outerHTML = wordmarkHtml(); }); } } }); }, 350); // the company's own look as soon as it is found (kept in memory only; stored after a successful sign-in)
   };
   i.addEventListener('input', look); look();
 }
@@ -2956,7 +2956,7 @@ function renderOrgGate(next){
   };
 }
 function orgChipHtml(){ return S.orgId ? '<p class="org-chip">' + t('orgChip') + ' <b class="num" dir="ltr">' + esc(S.orgId) + '</b> · <button class="linkish" type="button" id="orgx">' + t('orgChange') + '</button></p>' : ''; }
-function wireOrgChip(){ var b = $('#orgx'); if (b) b.onclick = function(){ forget(); S.orgId = ''; store('org', null); store('co', null); renderActivate(); }; }
+function wireOrgChip(){ var b = $('#orgx'); if (b) b.onclick = function(){ S.orgId = ''; store('org', null); store('co', null); platformReset(); forget(); }; }
 
 function pinPadHtml(){
   var keys = ['1','2','3','4','5','6','7','8','9','', '0', 'del'];
@@ -3168,6 +3168,24 @@ function applyHome(r){
  * The employer's profile (white-label: settings companyName*). Every screen and document names the company through
  * coName / coShort / coMeta, never a literal. Remembered on the device so the sign-in screen shows it too.
  */
+/** No organisation chosen yet (a new phone, or after "change organisation"): the platform's own neutral name and mark. */
+var CO_PLATFORM = { nameAr: 'منصة الحضور والموارد البشرية', nameEn: 'Attendance & HR Platform', shortAr: 'الحضور والموارد البشرية', shortEn: 'HR Platform', cr: '', vat: '', addressAr: '', addressEn: '', platform: true };
+var PLATFORM_MARK = '';
+function platformMark(){
+  if (PLATFORM_MARK) return PLATFORM_MARK;
+  try { var c = document.createElement('canvas'); c.width = c.height = 512; var g = c.getContext('2d');
+    g.fillStyle = BRAND_DEFAULT; g.beginPath(); g.arc(256, 256, 250, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = '#F2EEE4'; g.lineCap = 'round'; g.lineWidth = 10; g.beginPath(); g.arc(256, 256, 214, 0, Math.PI * 2); g.stroke();
+    g.lineWidth = 16; [40, 74, 108, 142].forEach(function(r, i){ g.beginPath(); g.arc(256, 276, r, Math.PI * (1.08 + i * .02), Math.PI * (1.92 - i * .02) + (i % 2 ? .35 : 0)); g.stroke(); });
+    g.beginPath(); g.moveTo(256, 276); g.lineTo(256, 330); g.stroke();
+    PLATFORM_MARK = c.toDataURL('image/png'); } catch (e) { PLATFORM_MARK = ''; }
+  return PLATFORM_MARK;
+}
+/** Back to the neutral platform look: no organisation, no company logo or colour. */
+function platformReset(){
+  S.company = null; setCompany(null); CO_LOGO = { org: null, img: '', home: false }; applyBrand('', false);
+  if (window.Brand3D && Brand3D.reset) Brand3D.reset(); paintMarks();
+}
 var CO_DEFAULT = { nameAr: 'شركة الناقل الأفضل للغاز', nameEn: 'Best Gas Carrier Co.', shortAr: 'الناقل الأفضل', shortEn: 'Best Gas', cr: '', vat: '', addressAr: '', addressEn: '' };
 /* ---------------- the organisation's own colours (2026-10-22) ----------------
  * One brand colour per organisation drives the whole palette: primary, hover, tint, the dark chrome (gate, sidebar
@@ -3261,9 +3279,9 @@ function monogram(){
     return c.toDataURL('image/png'); } catch (e) { return ''; }
 }
 /** The mark to show: the company's upload, else the home artwork (home organisation only), else its monogram. */
-function brandImg(){ return CO_LOGO.img || (CO_LOGO.home ? LOGO : monogram()); }
-function brandMark(){ return CO_LOGO.img || (CO_LOGO.home ? MARK : monogram()); }
-function brandCustom(){ return !!CO_LOGO.img || !CO_LOGO.home; }
+function brandImg(){ return !S.orgId ? platformMark() : CO_LOGO.img || (CO_LOGO.home ? LOGO : monogram()); }
+function brandMark(){ return !S.orgId ? platformMark() : CO_LOGO.img || (CO_LOGO.home ? MARK : monogram()); }
+function brandCustom(){ return !S.orgId || !!CO_LOGO.img || !CO_LOGO.home; }
 /** Called with every company payload (sign-in, orgCheck): fetches the logo when its version changed. */
 function syncLogo(info){
   if (!info || !S.orgId) return;
@@ -3321,16 +3339,17 @@ function wireLogoUpload(){
 function setCompany(c, keep){
   var prev = S.company || {}; c = Object.assign({}, c || {}); // the logo fields survive a profile edit (settings send names only)
   ['logoVer', 'home', 'orgId', 'brandColor'].forEach(function(k){ if (c[k] === undefined && prev[k] !== undefined) c[k] = prev[k]; });
-  S.company = Object.assign({}, CO_DEFAULT, c);
+  S.company = Object.assign({}, S.orgId ? CO_DEFAULT : CO_PLATFORM, c);
   if (c && c.logoVer !== undefined) syncLogo(c);
   if (c && c.home !== undefined) applyBrand(c.brandColor || '', c.home !== false);
   T.ar.company = S.company.nameAr; T.en.company = S.company.nameEn;
-  T.ar.appName = 'حضور ' + S.company.shortAr; T.en.appName = S.company.shortEn + ' Attendance';
+  if (S.company.platform) { T.ar.appName = CO_PLATFORM.nameAr; T.en.appName = CO_PLATFORM.nameEn; }
+  else { T.ar.appName = 'حضور ' + S.company.shortAr; T.en.appName = S.company.shortEn + ' Attendance'; }
   if (keep) store('co', JSON.stringify(S.company));
   document.title = t('appName');
 }
-function coName(l){ var c = S.company || CO_DEFAULT; return (l || S.lang) === 'en' ? c.nameEn : c.nameAr; }
-function coShort(l){ var c = S.company || CO_DEFAULT; return (l || S.lang) === 'en' ? c.shortEn : c.shortAr; }
+function coName(l){ var c = S.company || (S.orgId ? CO_DEFAULT : CO_PLATFORM); return (l || S.lang) === 'en' ? c.nameEn : c.nameAr; }
+function coShort(l){ var c = S.company || (S.orgId ? CO_DEFAULT : CO_PLATFORM); return (l || S.lang) === 'en' ? c.shortEn : c.shortAr; }
 /** CR, VAT and address for letterheads, in the letter's language; '' when none is set. */
 function coMeta(l){
   var c = S.company || CO_DEFAULT, en = (l || S.lang) === 'en', p = [];
@@ -3339,7 +3358,8 @@ function coMeta(l){
   var a = en ? c.addressEn : c.addressAr; if (a) p.push(a);
   return p.map(function(x){ return '<bdi>' + esc(x) + '</bdi>'; }).join(' · ');
 }
-try { setCompany(JSON.parse(store('co') || 'null')); } catch (e) { setCompany(null); }
+try { setCompany(S.orgId ? JSON.parse(store('co') || 'null') : null); } catch (e) { setCompany(null); }
+if (!S.orgId) { CO_LOGO = { org: null, img: '', home: false }; applyBrand('', false); } // a new phone: the neutral platform look until an Org ID is entered
 /**
  * The logo file is cream on transparent (made for the pine screens), so on white paper it vanishes. Printed documents
  * use this copy, inked in the brand green on a canvas once at start-up (an <img> always prints; backgrounds may not).
@@ -4526,7 +4546,8 @@ function takeFix(p){
   var s = { lat: p.coords.latitude, lng: p.coords.longitude, acc: p.coords.accuracy, t: p.timestamp || Date.now() };
   if (!(s.acc >= 0) || !isFinite(s.lat)) return;
   S.locErr = null; S.samples.push(s); if (S.samples.length > 8) S.samples.shift();
-  if (!S.fix || s.acc <= S.fix.acc * 1.5 || Date.now() - S.fix.t > 30000) S.fix = s;
+  if (s.t > Date.now() + 60000) s.t = Date.now(); // a device clock ahead must not make a reading look fresh forever
+  if (!S.fix || (Date.now() - s.t < 30000 && (s.acc <= S.fix.acc * 1.5 || Date.now() - S.fix.t > 30000))) S.fix = s;
   updateRadar();
 }
 /** Location (2026-10-19): indoors a phone often has no GPS fix at all, and asking only for high accuracy then ends in a
@@ -4536,27 +4557,42 @@ function takeFix(p){
 function startWatch(){
   if (!navigator.geolocation || S.watchId !== null) return;
   if (!S.fix) { S.locStart = Date.now(); clearTimeout(S.locSlow); S.locSlow = setTimeout(updateRadar, 8500); }
-  var hi = S.locLow ? false : true;
+  var onErr = function(err){ if (!S.fix) { S.locErr = err.code; updateRadar(); } };
   try { navigator.geolocation.getCurrentPosition(takeFix, function(){}, { enableHighAccuracy: false, maximumAge: 60000, timeout: 10000 }); } catch (e) {}
-  S.watchId = navigator.geolocation.watchPosition(takeFix, function(err){
-    if (err.code === 3 && !S.locLow) { S.locLow = true; stopWatch(); return startWatch(); } // GPS timed out: carry on with network positions
-    if (!S.fix) { S.locErr = err.code; updateRadar(); }
-  }, { enableHighAccuracy: hi, maximumAge: hi ? 0 : 10000, timeout: hi ? 15000 : 30000 });
-  // on network positions, try GPS again every minute (the person may walk to a window or outside)
-  clearTimeout(S.locRetry);
-  if (!hi) S.locRetry = setTimeout(function(){ if (S.watchId !== null && !document.hidden) { S.locLow = false; stopWatch(); startWatch(); } }, 60000);
+  // 2026-10-26: two watches side by side. GPS never stops (no timeout, so it keeps refining indoors instead of giving up after
+  // 15 s as before), and a network / Wi-Fi watch answers quickly when GPS has nothing yet. The best recent reading wins.
+  S.watchId = navigator.geolocation.watchPosition(takeFix, onErr, { enableHighAccuracy: true, maximumAge: 0 });
+  try { S.watchLo = navigator.geolocation.watchPosition(takeFix, function(){}, { enableHighAccuracy: false, maximumAge: 15000 }); } catch (e) { S.watchLo = null; }
 }
-function stopWatch(){ if (S.watchId !== null && navigator.geolocation) navigator.geolocation.clearWatch(S.watchId); S.watchId = null; clearTimeout(S.locRetry); }
+function stopWatch(){
+  if (navigator.geolocation) { if (S.watchId !== null) navigator.geolocation.clearWatch(S.watchId); if (S.watchLo != null) navigator.geolocation.clearWatch(S.watchLo); }
+  S.watchId = null; S.watchLo = null; clearTimeout(S.locRetry);
+}
+/** Readings for a punch: the recent ones; if none arrived in the last 30 s, wait up to 5 s for one (the watch is running),
+ *  then fall back to the newest reading of the last 2 minutes (the server flags it stale) rather than send nothing. */
+function punchSamples(){
+  return new Promise(function(res){
+    var t0 = Date.now();
+    (function poll(){
+      var f = freshSamples();
+      if (f.length || Date.now() - t0 > 5000) {
+        if (!f.length) { var last = S.samples[S.samples.length - 1]; if (last && Date.now() - last.t < 120000) f = [last]; }
+        return res(f);
+      }
+      setTimeout(poll, 250);
+    })();
+  });
+}
 document.addEventListener('visibilitychange', function(){
   if (!document.hidden && S.me && S.locErr === 1 && $('#hero')) { requestLoc(); return; } // back from Settings: check at once
   if (document.hidden || !S.me || S.watchId === null) return;
-  S.locLow = false; stopWatch(); startWatch();
+  stopWatch(); startWatch(); // iPhone pauses a watch in the background: start fresh on return
 });
 /** Ask again for location (a user tap, so iPhone and every browser can show its permission prompt), then keep watching. */
 function requestLoc(btn){
   if (!navigator.geolocation) { S.locErr = 2; return updateRadar(); }
   if (btn) btn.disabled = true;
-  stopWatch(); S.locErr = null; S.locLow = false; updateRadar();
+  stopWatch(); S.locErr = null; updateRadar();
   // straight from the tap (iPhone shows its prompt only from a user gesture): a quick answer first, then the watch
   navigator.geolocation.getCurrentPosition(function(p){ takeFix(p); startWatch(); }, function(err){
     if (err.code === 1) { S.locErr = 1; if (btn) btn.disabled = false; return updateRadar(); }
@@ -4812,7 +4848,7 @@ function doPunch(){
   if (S.auth === 'pw') {
     S.busy = true;
     var ptype = S.today ? S.today.next : 'in';
-    api('punchPw', { type: ptype, geo: { samples: freshSamples() }, qr: qrFresh() || undefined, deviceTime: Date.now(), ua: navigator.userAgent }).then(function(r){
+    punchSamples().then(function(gs){ return api('punchPw', { type: ptype, geo: { samples: gs }, qr: qrFresh() || undefined, deviceTime: Date.now(), ua: navigator.userAgent }); }).then(function(r){
       S.busy = false;
       if (r.ok) { S.today = r.today; showStamp(true, ptype, r.punch); } else showStamp(false, ptype, null, r.error);
       if (onPunch()) renderHome();
@@ -4825,7 +4861,7 @@ function doPunch(){
   S.busy = true; S.punchOpts = null;
   var type = S.punchType;
   getAssertion(o).then(function(cred){
-    return api('punchFinish', { credential: cred, pin: usesPin() ? S.pin : undefined, geo: { samples: freshSamples() }, qr: qrFresh() || undefined, deviceTime: Date.now(), ua: navigator.userAgent });
+    return punchSamples().then(function(gs){ return api('punchFinish', { credential: cred, pin: usesPin() ? S.pin : undefined, geo: { samples: gs }, qr: qrFresh() || undefined, deviceTime: Date.now(), ua: navigator.userAgent }); });
   }, function(e){ return { ok:false, error: passkeyError(e), silent: true }; }).then(function(r){
     S.busy = false;
     if (r.ok) { S.today = r.today; showStamp(true, type, r.punch); }

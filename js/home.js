@@ -7,6 +7,22 @@
 (function(){
 'use strict';
 var V = window.Viz;
+Object.assign(T.ar, { inTitle:'لمحات ذكية لك', inLead:'ملاحظات من بياناتك أنت، كل واحدة بسببها وبخطوتها التالية.', inNone:'لا شيء يحتاج انتباهك الآن. يوم موفق!',
+  inMissOut:'لم يُسجَّل انصرافك يوم {d}. اطلب تصحيحا حتى يُحسب يومك كاملا.', inMissOutGo:'طلب تصحيح',
+  inNotIn:'لم تسجل حضورك اليوم بعد، وبدأ دوامك الساعة {t}.', inSoon:'يبدأ دوامك بعد {m} دقيقة (الساعة {t}).', inGoPunch:'سجّل الآن',
+  inWorked:'عملت اليوم {w} من {s} ساعات الدوام، يتبقى {r}.', inDone:'أكملت ساعات دوامك اليوم ({w}). يمكنك تسجيل الانصراف.', inRemote:'اليوم يوم عمل عن بعد معتمد لك: سجّل حضورك من أي مكان.',
+  inOnTime:'حضرت في الموعد {a} من {b} يوما هذا الشهر، ومتوسط وصولك الساعة {t}.', inLateRun:'تأخرت {n} أيام من آخر سبعة أيام عمل، ومتوسط وصولك {t} بعد بداية الدوام {s}.', inSeeLog:'سجلي',
+  inPending:'طلبك {r} بانتظار {w} منذ {d}.', inSeeReq:'طلباتي', inWho_manager:'مديرك', inWho_hr:'الموارد البشرية', inWho_payroll:'الرواتب', inWho_dept_head:'رئيس الإدارة', inWho_executive:'الإدارة العليا', inWho_other:'المعتمد',
+  inLeave:'رصيدك {n} من الإجازة السنوية. التخطيط المبكر يسهل اعتمادها.', inLeaveGo:'طلب إجازة', inHoliday:'العطلة الرسمية القادمة: {h}، بعد {n}.', inHolidayToday:'اليوم عطلة رسمية: {h}.',
+  inSlip:'مسير راتب {m} متاح: صافي {v}.', inSlipGo:'عرض المسير', inToday:'اليوم', inDays1:'يوم', inDays:'{n} أيام', inHm:'{h}:{m}' });
+Object.assign(T.en, { inTitle:'Smart insights for you', inLead:'Notes from your own data, each with its reason and next step.', inNone:'Nothing needs your attention right now. Have a good day!',
+  inMissOut:'No check-out was recorded on {d}. Ask for a correction so the whole day counts.', inMissOutGo:'Ask for a correction',
+  inNotIn:'You have not checked in today; your shift started at {t}.', inSoon:'Your shift starts in {m} minutes ({t}).', inGoPunch:'Check in now',
+  inWorked:'You have worked {w} of your {s} today; {r} to go.', inDone:'You have completed today\'s hours ({w}). You can check out.', inRemote:'Today is an approved remote day: check in from anywhere.',
+  inOnTime:'On time {a} of {b} days this month; you arrive at {t} on average.', inLateRun:'Late {n} of the last seven working days; on average you arrive {t} after your {s} start.', inSeeLog:'My attendance',
+  inPending:'Your request {r} has been waiting for {w} for {d}.', inSeeReq:'My requests', inWho_manager:'your manager', inWho_hr:'HR', inWho_payroll:'payroll', inWho_dept_head:'the department head', inWho_executive:'senior management', inWho_other:'the approver',
+  inLeave:'You have {n} of annual leave. Planning early makes approval easier.', inLeaveGo:'Request leave', inHoliday:'Next public holiday: {h}, in {n}.', inHolidayToday:'Today is a public holiday: {h}.',
+  inSlip:'Your {m} payslip is ready: net {v}.', inSlipGo:'View payslip', inToday:'today', inDays1:'1 day', inDays:'{n} days', inHm:'{h}:{m}' });
 
 Object.assign(T.ar, {
   hmMorning:'صباح الخير', hmEvening:'مساء الخير', hmCompany:'الشركة', hmMine:'أنا', hmToday:'الحضور اليوم', hmTodaySentence:'{p} من {e} بدأوا يومهم. {l} متأخرون و{v} في إجازة.',
@@ -45,6 +61,12 @@ var css = '' +
 '.hm-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:16px}.hm-grid > *{min-width:0}' +
 '.hm-s4{grid-column:span 4}.hm-s5{grid-column:span 5}.hm-s7{grid-column:span 7}.hm-s8{grid-column:span 8}.hm-s12{grid-column:1 / -1}' +
 '.hm-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 20px;position:relative}' +
+'.hm-ins-list{display:grid;gap:8px;margin-top:8px}.hm-in{display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;background:var(--in-bg);border:1px solid transparent}.hm-in p{flex:1;margin:0;font-size:14px;line-height:1.6}' +
+'.hm-in .ic{display:grid;place-items:center;flex:none;width:36px;height:36px;border-radius:12px;background:var(--card);color:var(--in-c);font-size:20px;box-shadow:var(--e1)}.hm-in .btn{flex:none;gap:4px}' +
+'.hm-in-g{--in-c:var(--brand);--in-bg:color-mix(in srgb,var(--brand) 8%,transparent)}.hm-in-b{--in-c:var(--info);--in-bg:color-mix(in srgb,var(--info) 8%,transparent)}.hm-in-y{--in-c:var(--amber);--in-bg:color-mix(in srgb,var(--amber) 10%,transparent)}.hm-in-r{--in-c:var(--bad);--in-bg:color-mix(in srgb,var(--bad) 8%,transparent)}' +
+'.hm-ins-none{display:flex;align-items:center;gap:8px;margin:8px 0 0;color:var(--ink-2)}.hm-ring{float:inline-end;margin:-4px 0 0 8px}.hm-clock .db-ring text{fill:#F2EEE4}.hm-clock .db-ring .tr{stroke:rgba(242,238,228,.18)}.hm-clock .db-ring .fg{stroke:var(--signal)}' +
+'@media (prefers-reduced-motion:no-preference){.hm-in{animation:hmIn .35s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i) * 60ms)}}@keyframes hmIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}' +
+'@media (max-width:600px){.hm-in{flex-wrap:wrap}.hm-in .btn{margin-inline-start:48px}}' +
 '.hm-card h2{margin:0;font-size:16px;font-weight:600;line-height:1.4;display:flex;align-items:center;gap:8px;flex-wrap:wrap}.hm-card h2 > i{color:var(--brand);font-size:20px}.hm-card h2 .sp{flex:1}' +
 '.hm-card h2 > button:not(.db-open){border:0;background:none;color:var(--brand);font-size:13px;font-weight:500;padding:0;cursor:pointer}' +
 '.hm-card .lead{margin:2px 0 12px;color:var(--ink-3,var(--g-5F6D63,#5F6D63));font-size:13px}' +
@@ -61,6 +83,7 @@ var css = '' +
 '.hm-sev{border-inline-start:3px solid var(--line);padding-inline-start:12px}.hm-sev.error{border-color:var(--bad)}.hm-sev.warn{border-color:var(--s2)}.hm-sev.info{border-color:var(--s3)}' +
 '.hm-mini{height:32px;padding:0 12px;border-radius:6px;border:1px solid var(--line);background:var(--card);font-size:13px;color:var(--ink);cursor:pointer}.hm-mini:hover{border-color:var(--input,#8F8878)}' +
 '.hm-clock{background:var(--pine);color:#F2EEE4;border-color:var(--pine);position:relative;overflow:hidden}' +
+'body.v2-on .hm-card.hm-clock.hm-clock{background:var(--pine);border-color:var(--pine)}' + /* the v3 card rule paints every .hm-card white; the shift card stays the one pine surface */
 '.hm-clock::after{content:"";position:absolute;inset:auto -40px -60px auto;width:220px;height:220px;border-radius:50%;border:1px solid rgba(var(--signal-rgb),.18);box-shadow:0 0 0 30px rgba(var(--signal-rgb),.05),0 0 0 60px rgba(var(--signal-rgb),.035);pointer-events:none}' +
 '.hm-clock h2{color:var(--g-AFC0AD,#AFC0AD);font-weight:500;font-size:14px}.hm-clock h2 > i{color:var(--signal)}.hm-clock .t{font-size:clamp(28px,7.5vw,38px);white-space:nowrap;font-weight:600;line-height:1.2;font-variation-settings:"HEXP" 70;margin:6px 0 2px;font-variant-numeric:tabular-nums}' +
 '.hm-clock small{color:var(--g-AFC0AD,#AFC0AD);font-size:13px}.hm-clock .go{margin-top:16px;height:44px;padding:0 20px;border-radius:8px;border:0;background:#F2EEE4;color:var(--pine);font-weight:600;font-size:16px;display:inline-flex;align-items:center;gap:8px;cursor:pointer;position:relative;z-index:1}' +
@@ -280,7 +303,8 @@ function myHome(el){
   var D = {}; // answers as they arrive: hist, prev, leave, slips, team, teamLeave, tasks
   el.innerHTML = '<div class="hm-grid">' + (mgr ? '<section class="hm-s12" id="hmTeamRow">' + teamRow(D) + '</section>' : '') +
     '<section class="hm-s12" id="hmMineRow">' + mineRow(D) + '</section>' +
-    '<section class="hm-card hm-clock hm-s5"><h2>' + ph('clock') + t('hmShift') + '</h2><div class="t"><bdi dir="ltr">' + esc(sh.start || '--:--') + ' – ' + esc(sh.end || '--:--') + '</bdi></div><small>' + status + '</small><br>' +
+    '<section class="hm-card hm-s12 hm-ins" id="hmIns" aria-live="polite"><h2>' + ph('sparkle', 'duotone') + t('inTitle') + '</h2><p class="lead">' + t('inLead') + '</p><div class="hm-ins-list">' + sk(2) + '</div></section>' +
+    '<section class="hm-card hm-clock hm-s5"><h2>' + ph('clock') + t('hmShift') + '</h2>' + todayRing(td, sh) + '<div class="t"><bdi dir="ltr">' + esc(sh.start || '--:--') + ' – ' + esc(sh.end || '--:--') + '</bdi></div><small>' + status + '</small><br>' +
       '<button type="button" class="go" data-go="time:punch">' + ph('fingerprint') + (next === 'out' ? t('hmCheckOut') : t('hmCheckIn')) + '</button></section>' +
     '<section class="hm-card hm-s7" id="hmTasks"><h2>' + ph('bell') + t('hmMyTasks') + '<span class="sp"></span><button type="button" data-open-tasks>' + t('hmAllTasks') + '</button></h2><div class="hm-rows">' + sk(3) + '</div></section>' +
     '<section class="hm-card hm-s8" id="hmMonth"><h2>' + ph('calendar-check') + t('hmMonthStrip') + '</h2><p class="lead">' + t('hmMonthLead') + '</p>' + sk(2) + '</section>' +
@@ -290,6 +314,7 @@ function myHome(el){
   wire(el);
   var pq = 0;
   function paint(){ if (pq) return; pq = requestAnimationFrame(function(){ pq = 0; if (!live()) return;
+    var ib = $('#hmIns .hm-ins-list', el); if (ib && D.hist && D.leave) { ib.innerHTML = insightsHtml(D); wire(ib); }
     [['#hmMineRow', mineRow], ['#hmTeamRow', teamRow]].forEach(function(x){ var box = $(x[0], el); if (!box) return; var again = !!box.dataset.p; box.dataset.p = '1'; box.innerHTML = x[1](D); if (again) still(box); V.wire(box); });
   }); }
   var month = riyadhToday().slice(0, 7);
@@ -298,10 +323,84 @@ function myHome(el){
   apiFresh('myHistory', { month: prevMonth(month) }, function(r){ if (!live() || !r.ok) return; D.prev = r; paint(); }, true);
   apiFresh('myRequests', {}, function(r){ if (!live() || !r.ok) return; D.leave = r; paint(); }, true);
   apiFresh('mySlips', {}, function(r){ if (!live() || !r.ok) return; D.slips = r; paint(); }, true);
+  apiFresh('holidayList', {}, function(r){ if (!live() || !r.ok) return; D.hol = r; paint(); }, true);
   if (mgr) {
     apiFresh('hrTeam', {}, function(r){ if (!live() || !r.ok) return; D.team = r; paint(); }, true);
     apiFresh('leaveTeam', {}, function(r){ if (!live() || !r.ok) return; D.teamLeave = r; paint(); }, true);
   }
+}
+function hmOf(min){ min = Math.max(0, Math.round(min || 0)); return t('inHm').replace('{h}', Math.floor(min / 60)).replace('{m}', ('0' + (min % 60)).slice(-2)); }
+function minOf(hm){ var m = /^(\d{1,2}):(\d{2})/.exec(hm || ''); return m ? +m[1] * 60 + +m[2] : null; }
+function riyadhMin(iso){ var d = new Date(Date.parse(iso) + 180 * 60000); return d.getUTCHours() * 60 + d.getUTCMinutes(); }
+function daysWord(n){ return n === 0 ? t('inToday') : n === 1 ? t('inDays1') : t('inDays').replace('{n}', n); }
+/** Today's hours against the shift, as a ring (only on a working day with a known shift). */
+function todayRing(td, sh){
+  var s = minOf(sh.start), e = minOf(sh.end); if (s == null || e == null || td.status === 'off') return '';
+  var plan = (e > s ? e - s : e + 1440 - s), w = td.workedMin || 0;
+  return '<div class="hm-ring" aria-label="' + esc(t('inWorked').replace('{w}', hmOf(w)).replace('{s}', hmOf(plan)).replace('{r}', hmOf(plan - w))) + '">' + V.ring(Math.min(100, w / plan * 100), hmOf(w), t('hmShift'), { size: 64 }) + '</div>';
+}
+/**
+ * Smart insights: plain rules over the person's own data (today, this month's days, requests, leave, payslips, holidays).
+ * Each says why and offers one next step. At most five, most urgent first. Nothing here is sent anywhere.
+ */
+function insights(D){
+  var out = [], td = S.today || {}, sh = S.shift || {}, now = riyadhMin(new Date().toISOString()), today = riyadhToday();
+  var start = minOf(td.shiftStart || sh.start), end = minOf(td.shiftEnd || sh.end);
+  var add = function(pri, tone, icon, text, go, label){ out.push({ pri: pri, tone: tone, icon: icon, text: text, go: go, label: label }); };
+  var days = (D.hist && D.hist.days) || [];
+  // 1. a check-out that never came (last 7 days)
+  var miss = days.filter(function(d){ return d.status === 'missing_out' && d.date < today && d.date >= addDays(today, -7); }).pop();
+  if (miss) add(1, 'r', 'clock-counter-clockwise', t('inMissOut').replace('{d}', V.shortDate(miss.date)), V.goOk('requests:new:correction'), t('inMissOutGo'));
+  // 2. today
+  if (td.remoteDay) add(3, 'b', 'house-line', t('inRemote'), td.firstIn ? '' : 'time:punch', td.firstIn ? '' : t('inGoPunch'));
+  else if (td.workday !== false && td.status !== 'off' && td.status !== 'leave' && td.status !== 'holiday' && start != null) {
+    if (!td.firstIn && now < start && start - now <= 90) add(2, 'b', 'alarm', t('inSoon').replace('{m}', start - now).replace('{t}', esc(td.shiftStart || sh.start)), 'time:punch', t('inGoPunch'));
+    else if (!td.firstIn && now >= start && (end == null || now < end)) add(1, 'y', 'fingerprint', t('inNotIn').replace('{t}', esc(td.shiftStart || sh.start)), 'time:punch', t('inGoPunch'));
+    else if (td.firstIn && td.next === 'out' && end != null) {
+      var plan = end > start ? end - start : end + 1440 - start, w = td.workedMin || 0;
+      if (w >= plan) add(3, 'g', 'check-circle', t('inDone').replace('{w}', hmOf(w)), 'time:punch', t('inGoPunch'));
+      else add(5, 'g', 'hourglass-medium', t('inWorked').replace('{w}', hmOf(w)).replace('{s}', hmOf(plan)).replace('{r}', hmOf(plan - w)), '', '');
+    }
+  }
+  // 3. punctuality: a run of late days, or the month's good record
+  var work = days.filter(function(d){ return d.workday && d.firstIn && d.date <= today; });
+  var last7 = work.slice(-7), lateN = last7.filter(function(d){ return d.lateMin > 0; }).length;
+  var avg = function(list){ return list.length ? Math.round(list.reduce(function(a, d){ return a + riyadhMin(d.firstIn); }, 0) / list.length) : null; };
+  if (lateN >= 3 && start != null) {
+    var lateAvg = Math.round(last7.filter(function(d){ return d.lateMin > 0; }).reduce(function(a, d){ return a + d.lateMin; }, 0) / lateN);
+    add(2, 'y', 'clock-countdown', t('inLateRun').replace('{n}', lateN).replace('{t}', hmOf(lateAvg)).replace('{s}', esc(td.shiftStart || sh.start)), 'time:history', t('inSeeLog'));
+  } else if (work.length >= 5) {
+    var onTime = work.filter(function(d){ return !d.lateMin; }).length, a = avg(work);
+    add(6, 'g', 'medal', t('inOnTime').replace('{a}', onTime).replace('{b}', work.length).replace('{t}', hmOf(a)), 'time:history', t('inSeeLog'));
+  }
+  // 4. the oldest request still waiting
+  var pend = ((D.leave && D.leave.rows) || []).filter(function(r){ return r.status === 'pending'; }).sort(function(a, b){ return a.createdAt < b.createdAt ? -1 : 1; })[0];
+  if (pend) {
+    var age = Math.max(0, Math.floor((Date.now() - Date.parse(pend.createdAt)) / 864e5)), st = String(pend.step || '');
+    var who = st.indexOf('person:') === 0 ? esc(pend.stepWho || t('inWho_other')) : t('inWho_' + (['manager', 'hr', 'payroll', 'dept_head', 'executive'].indexOf(st) >= 0 ? st : 'other'));
+    if (age >= 2) add(age >= 5 ? 2 : 4, age >= 5 ? 'y' : 'b', 'hourglass-medium', t('inPending').replace('{r}', '<bdi>' + esc(pend.ref) + '</bdi>').replace('{w}', who).replace('{d}', daysWord(age)), 'requests:mine', t('inSeeReq'));
+  }
+  // 5. holidays, then leave balance
+  var hol = ((D.hol && D.hol.rows) || []).filter(function(h){ return (h.toDate || h.date) >= today; })[0];
+  if (hol) {
+    var hn = esc(S.lang === 'en' && hol.nameEn ? hol.nameEn : hol.nameAr), inN = Math.round((Date.parse(hol.date) - Date.parse(today)) / 864e5);
+    if (hol.date <= today) add(2, 'b', 'confetti', t('inHolidayToday').replace('{h}', hn), '', '');
+    else if (inN <= 45) add(5, 'b', 'calendar-star', t('inHoliday').replace('{h}', hn).replace('{n}', daysWord(inN)), '', '');
+  }
+  var an = D.leave && D.leave.leave && D.leave.leave.annual;
+  if (an && an.available >= 15) add(6, 'b', 'airplane-tilt', t('inLeave').replace('{n}', plural(Math.floor(an.available), 'days')), V.goOk('requests:new:leave'), t('inLeaveGo'));
+  // 6. a payslip from this month or last
+  var s0 = D.slips && D.slips.rows && D.slips.rows[0];
+  if (s0 && (s0.month === today.slice(0, 7) || s0.month === prevMonth(today.slice(0, 7)))) add(5, 'g', 'receipt', t('inSlip').replace('{m}', V.monthShort(s0.month)).replace('{v}', V.n1(s0.net, 0) + ' ' + t('mfSar')), V.goOk('pay:slips'), t('inSlipGo'));
+  return out.sort(function(a, b){ return a.pri - b.pri; }).slice(0, 5);
+}
+function insightsHtml(D){
+  var list = insights(D);
+  if (!list.length) return '<p class="hm-ins-none">' + ph('sun', 'duotone') + t('inNone') + '</p>';
+  return list.map(function(x, i){
+    return '<div class="hm-in hm-in-' + x.tone + '" style="--i:' + i + '"><span class="ic">' + ph(x.icon, 'duotone') + '</span><p>' + x.text + '</p>' +
+      (x.go ? '<button type="button" class="btn btn-line btn-sm" data-go="' + esc(x.go) + '">' + esc(x.label) + ph(S.lang === 'ar' ? 'caret-left' : 'caret-right') + '</button>' : '') + '</div>';
+  }).join('');
 }
 /** My month: attendance share, late days, leave balance, last net pay; each against the same days last month or the slip before. */
 function mineRow(D){

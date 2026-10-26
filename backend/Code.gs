@@ -252,8 +252,15 @@ function ensureHeader_(name, sh, width) {
 
 // Each sheet is read once per request. Apps Script sheet reads cost 100-600 ms each,
 // and one request used to read the same tab three or four times.
-var READ_MEMO_ = {};
-function forget_(name) { delete READ_MEMO_[name]; }
+var READ_MEMO_ = {}, READ_LEN_ = {}; // READ_LEN_: rows in the sheet when it was read (header included), so an append knows its row number
+function forget_(name) { delete READ_MEMO_[name]; delete READ_LEN_[name]; }
+/** After appendRow: the memo gets the new row instead of being dropped, so the same request does not read the tab again. */
+function memoAppend_(name, obj) {
+  var m = READ_MEMO_[name];
+  if (!m || READ_LEN_[name] == null || (m[0] && m[0]._cached)) { forget_(name); return; }
+  var o = {}; HEADERS[name].forEach(function (k) { o[k] = obj[k] == null ? '' : obj[k]; });
+  READ_LEN_[name] += 1; o._row = READ_LEN_[name]; m.push(o);
+}
 
 /*
  * Sign-in reads the employees and zones tabs but never writes them, and each tab read costs
@@ -279,6 +286,7 @@ var TAB_PART_ = 90000;
 var TAB_PREFETCH_ = null;
 function tabKeys_(name) { return { snap: 'tab:v2:' + name, ver: 'tabver:v1:' + name }; }
 function bumpTab_(name) {
+  if (name === SHEETS.SET) SETTINGS_MEMO_ = null; // a settings write is seen by the rest of the same request
   if (!CACHED_TABS_[name]) return;
   if (TAB_PREFETCH_) delete TAB_PREFETCH_[name];
   try { cache_().put(tabKeys_(name).ver, bytesToB64u_(randomBytes_(9)), 21600); } catch (e) {}
@@ -333,7 +341,7 @@ function onEdit(e) {
   try {
     var name = e && e.range ? e.range.getSheet().getName() : '';
     if (name) bumpTab_(name);
-    if (name === SHEETS.SET) cache_().remove(SETTINGS_CACHE_KEY);
+    if (name === SHEETS.SET) settingsForget_();
   } catch (err) {}
 }
 
@@ -350,6 +358,7 @@ function readAll_(name) {
   // One call for header and rows together (was three: last column, last row, values).
   var vals = sh.getDataRange().getValues();
   ensureHeader_(name, sh, vals.length ? vals[0].length : 0);
+  READ_LEN_[name] = vals.length;
   var out = [];
   for (var i = 1; i < vals.length; i++) {
     var o = { _row: i + 1 }, blank = true;
@@ -364,6 +373,21 @@ function readAll_(name) {
   if (tag !== null) storeTab_(name, tag, out);
   READ_MEMO_[name] = out;
   return out;
+}
+
+/**
+ * A read-only look at a small tab from the versioned cache copy, even on actions that also write (sign-in, check-in):
+ * ~50 ms instead of a 250-900 ms sheet read. The rows are not kept in the request memo, so nothing read here can be
+ * written back. A missing or outdated copy is read from the sheet once and stored for the next request.
+ */
+function readQuick_(name) {
+  if (READ_MEMO_[name]) return READ_MEMO_[name];
+  if (!CACHED_TABS_[name]) return readAll_(name);
+  var c = cachedRows_(name);
+  if (c && c.rows) return c.rows;
+  var rows = readAll_(name);
+  if (c && c.ver != null) storeTab_(name, c.ver, rows);
+  return rows;
 }
 
 /**
@@ -400,11 +424,11 @@ function cellDate_(v) {
 }
 
 function append_(name, obj) {
-  forget_(name);
   bumpTab_(name);
   var sh = sheet_(name);
   ensureHeader_(name, sh);
   sh.appendRow(toRow_(name, obj));
+  memoAppend_(name, obj);
   if (typeof whTap_ === 'function') whTap_(name, obj, true); // webhooks (Admin.gs)
 }
 
@@ -508,7 +532,14 @@ var DEFAULT_SETTINGS = {
 var SETTINGS_CACHE_KEY = 'settings:v1';
 var SETTING_MMDD_ = { summerBanFrom: 1, summerBanTo: 1 };
 
+// One settings read per request (2026-10-26): settings_() is called 10-20 times in one request and each cache get costs ~50 ms.
+var SETTINGS_MEMO_ = null;
+function settingsForget_() { SETTINGS_MEMO_ = null; try { cache_().remove(SETTINGS_CACHE_KEY); } catch (e) {} }
 function settings_() {
+  if (SETTINGS_MEMO_) return Object.assign({}, SETTINGS_MEMO_); // a copy: a caller changing it must not change the next caller's
+  var got = settingsLoad_(); SETTINGS_MEMO_ = got; return Object.assign({}, got);
+}
+function settingsLoad_() {
   try { var hit = cache_().get(SETTINGS_CACHE_KEY); if (hit) return JSON.parse(hit); } catch (e) {}
   var s = {};
   for (var k in DEFAULT_SETTINGS) s[k] = DEFAULT_SETTINGS[k];
@@ -713,7 +744,7 @@ function orgRec_(id) {
 }
 /** Switches the request to one organisation: its spreadsheet, its cache and counters. Everything per request is reset. */
 function setOrg_(o) {
-  ORG_ = o; ORG_SS_ = null; SHEET_CACHE_ = {}; HEADER_OK_ = {}; READ_MEMO_ = {};
+  ORG_ = o; ORG_SS_ = null; SHEET_CACHE_ = {}; HEADER_OK_ = {}; READ_MEMO_ = {}; READ_LEN_ = {};
   if (typeof SETTINGS_MEMO_ !== 'undefined') SETTINGS_MEMO_ = null;
 }
 function orgId_() { return ORG_ ? ORG_.id : homeOrgId_(); }
@@ -1019,7 +1050,7 @@ var READ_ONLY_ACTIONS = { cwList: 1, cwInvoices: 1, retroScan: 1, retroLog: 1, g
 var ADMIN_ACTIONS = { waTest: 1, hrRolesSave: 1, empResetDevice: 1, zoneSave: 1, zoneDelete: 1, settingsSave: 1 };
 
 function handle_(req) {
-  READ_MEMO_ = {};
+  READ_MEMO_ = {}; READ_LEN_ = {}; SETTINGS_MEMO_ = null;
   USE_TAB_CACHE_ = false;
   TAB_PREFETCH_ = null;
   var action = req && req.action;

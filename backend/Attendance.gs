@@ -489,40 +489,52 @@ function cleanSamples_(geo) {
   for (var i = 0; i < raw.length && out.length < 12; i++) {
     var s = raw[i], lat = Number(s.lat), lng = Number(s.lng), acc = Number(s.acc);
     if (!isFinite(lat) || !isFinite(lng) || !isFinite(acc) || Math.abs(lat) > 90 || Math.abs(lng) > 180 || acc < 0) continue;
-    out.push({ lat: lat, lng: lng, acc: acc, t: Number(s.t) || 0 });
+    var t = Number(s.t) || 0;
+    if (out.some(function (o) { return o.lat === lat && o.lng === lng && o.acc === acc && o.t === t; })) continue; // the same reading sent twice is one sample (not 'static')
+    out.push({ lat: lat, lng: lng, acc: acc, t: t });
   }
   return out;
 }
 
+/**
+ * Geofence (2026-10-26). Every recent sample is judged, not only the most accurate one: GPS indoors jumps, and the best-accuracy
+ * reading can land outside while the others are inside. A sample counts when its accuracy is within the limit and it is inside
+ * a zone; the most accurate such sample is the fix. A good reading just past the fence (its accuracy circle reaches into the
+ * zone by up to 50 m, never more than half the radius) also counts, flagged 'edge_outside', which sends it to HR review. Otherwise the old rules:
+ * a coarse fix centred inside goes to review (weak_fix), everything else is refused.
+ */
+function geoNearest_(x, zones) {
+  var best = null, bestD = Infinity;
+  zones.forEach(function (z) { var d = haversine_(x.lat, x.lng, Number(z.lat), Number(z.lng)) - Number(z.radius); if (d < bestD) { bestD = d; best = z; } });
+  return { zone: best, distance: haversine_(x.lat, x.lng, Number(best.lat), Number(best.lng)), radius: Number(best.radius) };
+}
 function evaluateGeo_(emp, geo, s, type, desktop) {
   var samples = cleanSamples_(geo), flags = [];
   if (!samples.length) return { reject: 'no_location', flags: flags, samples: samples };
   var fix = samples.reduce(function (b, x) { return x.acc < b.acc ? x : b; }, samples[0]);
   var zones = zonesFor_(emp);
   if (!zones.length) return { reject: 'no_zone', fix: fix, flags: flags, samples: samples };
-  var best = null, bestD = Infinity;
-  zones.forEach(function (z) {
-    var d = haversine_(fix.lat, fix.lng, Number(z.lat), Number(z.lng)) - Number(z.radius);
-    if (d < bestD) { bestD = d; best = z; }
-  });
-  var distance = haversine_(fix.lat, fix.lng, Number(best.lat), Number(best.lng));
-  var radius = Number(best.radius);
-  var res = { fix: fix, zone: best, distance: distance, radius: radius, flags: flags, samples: samples };
-  var outsideOk = type === 'out' && s.allowCheckoutOutside;
   var maxAcc = desktop ? Number(s.maxAccuracyDesktop) : Number(s.maxAccuracy);
-  if (fix.acc > maxAcc && !outsideOk) {
-    // 2026-10-18: a laptop locates by Wi-Fi (often +-150-400 m). When the fix centre is inside the zone, the punch counts
-    // and goes to HR review (weak_fix) instead of being refused. Phones keep the strict rule.
-    // phones too (2026-10-18): indoors GPS is often worse than the limit; centred inside the zone and within 300 m (1000 m on a laptop) it counts and goes to review
-    if (fix.acc <= (desktop ? 1000 : 300) && distance <= radius) flags.push('weak_fix');
+  var judged = samples.map(function (x) { var n = geoNearest_(x, zones); n.fix = x; return n; });
+  var good = judged.filter(function (j) { return j.fix.acc <= maxAcc; }).sort(function (a, b) { return a.fix.acc - b.fix.acc; });
+  var hit = good.filter(function (j) { return j.distance <= j.radius; })[0];
+  var near = hit ? null : good.filter(function (j) { return j.distance - Math.min(j.fix.acc, 50, j.radius / 2) <= j.radius; })[0];
+  var pick = hit || near || judged.filter(function (j) { return j.fix === fix; })[0];
+  var res = { fix: pick.fix, zone: pick.zone, distance: pick.distance, radius: pick.radius, flags: flags, samples: samples };
+  if (hit) { if (hit.distance + hit.fix.acc > hit.radius) flags.push('edge'); return res; }
+  if (near) { flags.push('edge_outside'); return res; } // counted, but HR reviews it: the centre is past the fence
+  var outsideOk = type === 'out' && s.allowCheckoutOutside;
+  if (pick.fix.acc > maxAcc && !outsideOk) {
+    // a coarse fix (indoors GPS, a laptop on Wi-Fi) centred inside the zone counts and goes to HR review; phones up to 300 m, laptops 1000 m
+    if (pick.fix.acc <= (desktop ? 1000 : 300) && pick.distance <= pick.radius) flags.push('weak_fix');
     else { res.reject = 'accuracy_too_low'; return res; }
   }
-  if (distance > radius) {
+  if (pick.distance > pick.radius) {
     if (outsideOk) { flags.push('outside_checkout'); return res; }
     res.reject = 'outside_zone';
     return res;
   }
-  if (distance + fix.acc > radius) flags.push('edge');
+  if (pick.distance + pick.fix.acc > pick.radius) flags.push('edge');
   return res;
 }
 
@@ -540,7 +552,7 @@ function qrGeo_(emp, geo, q) {
 // ---------------- risk ----------------
 
 var RISK_WEIGHTS = {
-  static_samples: 35, zero_accuracy: 30, stale_fix: 20, clock_drift: 25, impossible_travel: 40,
+  static_samples: 35, static_precise: 10, edge_outside: 40, zero_accuracy: 30, stale_fix: 20, clock_drift: 25, impossible_travel: 40,
   qr_kiosk: 0, qr_no_gps: 25, remote: 0,
   new_device: 10, few_samples: 10, off_hours: 10, edge: 10, weak_fix: 30, outside_checkout: 30, no_biometric: 10, laptop: 5, password_login: 20
 };
@@ -555,6 +567,7 @@ function riskScore_(emp, cred, req, geo, last, now) {
     var f = samples[0];
     var frozen = samples.every(function (x) { return x.lat === f.lat && x.lng === f.lng && x.acc === f.acc; });
     if (frozen) flags.push('static_samples');
+    if (frozen && f.acc < 20) flags.push('static_precise'); // real GPS jitters even standing still; a fake-location app repeats one precise point (Wi-Fi fixes, 20 m and more, may repeat exactly)
   }
   if (geo.fix && geo.fix.acc <= 1) flags.push('zero_accuracy');
   var deviceTime = Number(req.deviceTime) || 0;
@@ -669,7 +682,7 @@ function summarizeDay_(emp, date, punches, s, now, off) {
 
 /** Is this an approved remote-work day for the person? (one read of their requests) */
 function remoteDay_(emp, date) {
-  return requestsOf_(emp.id).some(function (r) { return r.type === 'remote' && r.status === 'approved' && String(r.fromDate).slice(0, 10) <= date && String(r.toDate).slice(0, 10) >= date; });
+  return readQuick_(SHEETS.REQ).some(function (r) { return r.empId === emp.id && r.type === 'remote' && r.status === 'approved' && String(r.fromDate).slice(0, 10) <= date && String(r.toDate).slice(0, 10) >= date; });
 }
 /** Location for a punch on an approved remote day: recorded as given, never a zone check, flagged. */
 function remoteGeo_(geo) {

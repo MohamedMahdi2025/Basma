@@ -29,7 +29,7 @@ function saveSettingKey_(key, value) {
   var row = readAll_(SHEETS.SET).filter(function (r) { return r.key === key; })[0];
   if (row) { row.value = value; update_(SHEETS.SET, row); } else append_(SHEETS.SET, { key: key, value: value });
   forget_(SHEETS.SET);
-  try { cache_().remove(SETTINGS_CACHE_KEY); } catch (e) {}
+  try { settingsForget_(); } catch (e) {}
 }
 function glMap_() {
   var m = parseJson_(settings_().glMap, {});

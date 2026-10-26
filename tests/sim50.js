@@ -165,7 +165,7 @@ const zoneOf = no => (EMP[no].dept === 'dst' ? DEPOT : HQ);
 function samples(z, opts) {
   opts = opts || {};
   const t = B.now();
-  if (opts.spoof) return [0, 1, 2].map(() => ({ lat: z.lat, lng: z.lng, acc: 1, t }));
+  if (opts.spoof) return [0, 1, 2].map(i => ({ lat: z.lat, lng: z.lng, acc: 1, t: t - (2 - i) * 1000 })) // a mock-location app: same spot, advancing clock;
   const far = opts.far ? 0.05 : 0, acc = opts.acc || between(8, 25);
   return [0, 1, 2].map(i => ({ lat: z.lat + far + (rnd() - 0.5) * 0.0004, lng: z.lng + (rnd() - 0.5) * 0.0004, acc: acc + i, t: t - i * 1500 }));
 }

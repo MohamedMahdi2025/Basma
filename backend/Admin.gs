@@ -313,7 +313,7 @@ function api_settingsSave(req, me) {
     var rows = Object.keys(next).map(function (k) { return toRow_(SHEETS.SET, { key: k, value: next[k] }); });
     sh.getRange(2, 1, rows.length, 2).setValues(rows);
     forget_(SHEETS.SET);
-    try { cache_().remove(SETTINGS_CACHE_KEY); } catch (e) {}
+    try { settingsForget_(); } catch (e) {}
     audit_(me.id, 'settings_save', '', next);
     return { ok: true, settings: next };
   });

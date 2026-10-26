@@ -194,7 +194,7 @@ ok(r.today.workedMin === 540 && r.today.lateMin === 0 && r.today.earlyMin === 5,
 
 console.log('Spoofing signals');
 B.setNow(T0 + 24 * 3600000 + 45 * 60000); // next day 08:40, late
-const frozen = [near(10, 5, 1), near(10, 5, 1), near(10, 5, 1)];
+const frozen = [near(10, 5, nowMs() - 2000), near(10, 5, nowMs() - 1000), near(10, 5, nowMs())]; // same spot, advancing clock (mock GPS)
 let hrT = login(hrDev, '3001'); adminToken = login(adminDev, '1000');
 r = punch(empDev, '2001', { samples: frozen });
 ok(r.ok && r.punch.status === 'review' && /static_samples/.test(r.punch.flags), 'frozen mock-GPS coordinates go to HR review', r.punch);

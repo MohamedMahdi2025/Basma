@@ -739,7 +739,7 @@ function api_flowSettingsSave(req, me) {
       var r = rows.filter(function (x) { return x.key === k; })[0];
       if (r) { r.value = val[k]; update_(SHEETS.SET, r); } else append_(SHEETS.SET, { key: k, value: val[k] });
     });
-    try { cache_().remove(SETTINGS_CACHE_KEY); } catch (e) {}
+    try { settingsForget_(); } catch (e) {}
     audit_(me.id, 'settings_save', '', val);
     return { ok: true, settings: val };
   });
