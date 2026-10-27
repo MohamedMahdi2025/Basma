@@ -470,5 +470,6 @@ Trap: never use the class `.me` (or `.bot`) inside a module: index.html styles `
   correction request). Bell tasks acted on from a profile card scroll to it (`TASK_SPOT` + `jumpToSpot`). Audit of every
   task's destination: scratchpad `taskaudit.js`. Manager and HR insight cards: `teamInsights` (office map + team leave, own
   people only) and `companyInsights` (dashboard today + 14 days + compliance calendar).
+- **Tiles on every screen** (index.html `tileJumps`, run from the label observer): a `.db-tile` with no `data-go` opens the nearest list, table or card after its row (`tileTarget`), scrolled to and flashed; a tile with nothing below stays plain.
 - **Platform icons**: icon-512/192, apple-touch-icon and favicon-48 are the neutral fingerprint (Phosphor glyph U+E23E), rendered
   from scratchpad `icon.html` in headless Chrome; `platformMark()` draws the same glyph once the Phosphor font is loaded.
