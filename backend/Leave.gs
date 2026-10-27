@@ -644,7 +644,7 @@ function api_leaveTeam(req, me) {
   if (!hr && !managesAny) fail_('forbidden');
   var rows = readAll_(SHEETS.REQ).filter(function (r) {
     return who[r.empId] && r.type === 'leave' && (r.status === 'approved' || r.status === 'pending') && !(String(r.toDate) < first || String(r.fromDate) > last);
-  }).map(function (r) { return { ref: r.ref, emp: empCard_(who[r.empId]), subtype: r.subtype, fromDate: String(r.fromDate).slice(0, 10), toDate: String(r.toDate).slice(0, 10), days: Number(r.days), status: r.status }; })
+  }).map(function (r) { return { ref: r.ref, emp: empCard_(who[r.empId]), subtype: r.subtype, fromDate: String(r.fromDate).slice(0, 10), toDate: String(r.toDate).slice(0, 10), days: Number(r.days), status: r.status, createdAt: r.createdAt }; })
     .sort(function (a, b) { return a.fromDate < b.fromDate ? -1 : 1; });
   var hol = holidayMap_(), hs = [];
   Object.keys(hol).sort().forEach(function (d) { if (d >= first && d <= last) hs.push({ date: d, name: hol[d] }); });

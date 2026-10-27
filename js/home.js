@@ -7,6 +7,20 @@
 (function(){
 'use strict';
 var V = window.Viz;
+Object.assign(T.ar, { tiTitle:'لمحات فريقك', tiLead:'ما يحتاج انتباهك في فريقك اليوم، من بيانات الحضور والطلبات.', tiNone:'فريقك بخير اليوم: لا تأخير ولا غياب ولا طلبات متأخرة.',
+  tiLate:'تأخر اليوم من فريقك ({n}): {who}.', tiAbsent:'بدأ الدوام ولم يسجل حضوره بعد من فريقك ({n}): {who}.', tiLeaveToday:'في إجازة اليوم من فريقك: {n}.', tiSeeMap:'خريطة المكتب',
+  tiPending:'طلبات إجازة من فريقك بانتظار قرارك: {n}، أقدمها منذ {d}.', tiPendingN:'طلبات إجازة من فريقك بانتظار قرارك: {n}.', tiDecide:'قرّر الآن', tiOverlap:'في إجازة معا يوم {d} من فريقك: {n}. راجع التغطية قبل اعتماد المزيد.', tiSeeLeave:'إجازات الفريق',
+  ciTitle:'لمحات الشركة', ciLead:'ما يستحق المتابعة اليوم، مرتبا حسب الأهمية.', ciNone:'لا شيء عاجل اليوم في الحضور والطلبات والامتثال.',
+  ciReview:'{n} تسجيلات حضور معلقة للمراجعة (إشارات موقع أو جهاز).', ciReviewGo:'مراجعة', ciAbsent:'{n} غائبون اليوم و{l} متأخرون من أصل {e} متوقعين.', ciBoard:'لوحة اليوم',
+  ciMissOut:'{n} أيام بلا تسجيل انصراف في آخر أسبوعين.', ciOld:'{n} طلبات مفتوحة منذ أكثر من 3 أيام، أقدمها منذ {d}.', ciCentre:'مركز الموافقات', ciDept:'حضور {dept} اليوم {r}%، الأدنى بين الإدارات.',
+  ciLate:'{n} مواعيد امتثال متأخرة (تأمينات أو قوى أو وثائق).', ciLateGo:'الامتثال', ciSoon:'{n} مواعيد امتثال خلال 7 أيام.', ciSaudi:'نسبة التوطين {p}% أقل من الهدف {t}%.', ciSaudiGo:'لوحة الإدارة' });
+Object.assign(T.en, { tiTitle:'Your team today', tiLead:'What needs your attention in your team, from attendance and requests.', tiNone:'Your team is fine today: nobody late or absent, no requests waiting long.',
+  tiLate:'{n} of your team are late today: {who}.', tiAbsent:'{n} of your team have not checked in and their shift has started: {who}.', tiLeaveToday:'{n} of your team are on leave today.', tiSeeMap:'Office map',
+  tiPending:'{n} leave requests from your team wait for you; the oldest for {d}.', tiPendingN:'{n} leave requests from your team wait for you.', tiDecide:'Decide now', tiOverlap:'{n} of your team are on leave at the same time on {d}. Check cover before approving more.', tiSeeLeave:'Team leave',
+  ciTitle:'Company insights', ciLead:'What deserves follow-up today, most important first.', ciNone:'Nothing urgent today in attendance, requests or compliance.',
+  ciReview:'{n} check-ins are held for review (location or device signals).', ciReviewGo:'Review', ciAbsent:'{n} absent and {l} late today, out of {e} expected.', ciBoard:'Today board',
+  ciMissOut:'{n} days without a check-out in the last two weeks.', ciOld:'{n} requests open more than 3 days; the oldest for {d}.', ciCentre:'Approvals centre', ciDept:'{dept} is at {r}% attendance today, the lowest department.',
+  ciLate:'{n} compliance deadlines are overdue (GOSI, Qiwa or documents).', ciLateGo:'Compliance', ciSoon:'{n} compliance deadlines within 7 days.', ciSaudi:'Saudization is {p}%, below the {t}% target.', ciSaudiGo:'Management dashboard' });
 Object.assign(T.ar, { inTitle:'لمحات ذكية لك', inLead:'ملاحظات من بياناتك أنت، كل واحدة بسببها وبخطوتها التالية.', inNone:'لا شيء يحتاج انتباهك الآن. يوم موفق!',
   inMissOut:'لم يُسجَّل انصرافك يوم {d}. اطلب تصحيحا حتى يُحسب يومك كاملا.', inMissOutGo:'طلب تصحيح',
   inNotIn:'لم تسجل حضورك اليوم بعد، وبدأ دوامك الساعة {t}.', inSoon:'يبدأ دوامك بعد {m} دقيقة (الساعة {t}).', inGoPunch:'سجّل الآن',
@@ -250,14 +264,16 @@ function rowsHtml(kinds, r, r14){
 function companyHome(el){
   var gen = el._g = (el._g || 0) + 1, live = function(){ return el.isConnected && el._g === gen; };
   var today = riyadhToday(), canCal = isHr() || (S.fileRoles || {}).payroll, kinds = rowKinds(), R0 = null, R14 = null;
-  el.innerHTML = '<div class="hm-grid"><section class="hm-s12 hm-rowset" id="hmRows">' + rowsHtml(kinds, null, null) + '</section>' +
+  el.innerHTML = '<div class="hm-grid"><section class="hm-s12 hm-rowset" id="hmRows">' + rowsHtml(kinds, null, null) + '</section>' + insCard('hmCoIns', 'sparkle', 'ciTitle', 'ciLead') +
     '<section class="hm-card hm-hero hm-s12" id="hmHero">' + (V ? V.gauge(null, t('hmToday')) : '') + '<div>' + sk(3) + '</div></section>' +
     '<section class="hm-card hm-s7" id="hmDecide"><h2>' + ph('tray') + t('hmDecide') + '<span class="sp"></span><button type="button" data-open-tasks>' + t('hmAllTasks') + '</button></h2><div class="hm-rows">' + sk(3) + '</div></section>' +
     (canCal ? '<section class="hm-card hm-s5" id="hmCal"><h2>' + ph('shield-check') + t('hmDeadlines') + '<span class="sp"></span><button type="button" data-go="pay:compliance">' + t('hmCalendar') + '</button></h2><p class="lead">' + t('hmDeadLead') + '</p><div class="hm-rows">' + sk(3) + '</div></section>' : '') +
     '<section class="hm-card hm-s8" id="hmMove"><h2>' + ph('users-three') + t('hmMove') + '</h2><p class="lead">' + t('hmMoveLead') + '</p>' + sk(2) + '</section>' +
     '<section class="hm-card hm-s4" id="hmDept"><h2>' + ph('buildings') + t('hmDepts') + '</h2>' + sk(4) + '</section></div>';
   wire(el);
-  function paintRows(){ var box = $('#hmRows', el); if (box && R0) { var again = !!box.dataset.p; box.dataset.p = '1'; box.innerHTML = rowsHtml(kinds, R0, R14); if (again) still(box); V.wire(box); } }
+  var CAL = null, calDone = !canCal;
+  function paintIns(){ if (R0 && R14 && calDone && live()) insPaint($('#hmCoIns .hm-ins-list', el), companyInsights(R0, R14, CAL), 'ciNone'); }
+  function paintRows(){ paintIns(); var box = $('#hmRows', el); if (box && R0) { var again = !!box.dataset.p; box.dataset.p = '1'; box.innerHTML = rowsHtml(kinds, R0, R14); if (again) still(box); V.wire(box); } }
   apiFresh('dashboard', { from: today, to: today }, function(r){
     if (!live() || !r.ok) return;
     R0 = r; paintRows();
@@ -284,6 +300,7 @@ function companyHome(el){
   apiFresh('dashboard', { from: addDays(today, -13), to: today }, function(r){ if (!live() || !r.ok) return; R14 = r; paintRows(); }, true);
   tasksInto($('#hmDecide .hm-rows', el), true);
   if (canCal) apiFresh('complianceCalendar', {}, function(r){
+    if (r && r.ok) CAL = r; calDone = true; paintIns();
     var box = $('#hmCal .hm-rows', el); if (!live() || !box || !r.ok) return;
     var items = r.items.filter(function(x){ return x.level !== 'info'; }).slice(0, 5);
     box.innerHTML = items.length ? items.map(function(x){
@@ -301,7 +318,7 @@ function myHome(el){
   var status = td.lastOut && next === 'in' ? t('hmOut') + ' ' + fmtHm(td.lastOut) : td.firstIn ? t('hmIn') + ' ' + fmtHm(td.firstIn) : off ? t('hmOff') : t('hmNotYet');
   sh = { start: td.shiftStart || sh.start, end: td.shiftEnd || sh.end };
   var D = {}; // answers as they arrive: hist, prev, leave, slips, team, teamLeave, tasks
-  el.innerHTML = '<div class="hm-grid">' + (mgr ? '<section class="hm-s12" id="hmTeamRow">' + teamRow(D) + '</section>' : '') +
+  el.innerHTML = '<div class="hm-grid">' + (mgr ? '<section class="hm-s12" id="hmTeamRow">' + teamRow(D) + '</section>' + insCard('hmTeamIns', 'users-three', 'tiTitle', 'tiLead') : '') +
     '<section class="hm-s12" id="hmMineRow">' + mineRow(D) + '</section>' +
     '<section class="hm-card hm-s12 hm-ins" id="hmIns" aria-live="polite"><h2>' + ph('sparkle', 'duotone') + t('inTitle') + '</h2><p class="lead">' + t('inLead') + '</p><div class="hm-ins-list">' + sk(2) + '</div></section>' +
     '<section class="hm-card hm-clock hm-s5"><h2>' + ph('clock') + t('hmShift') + '</h2>' + todayRing(td, sh) + '<div class="t"><bdi dir="ltr">' + esc(sh.start || '--:--') + ' – ' + esc(sh.end || '--:--') + '</bdi></div><small>' + status + '</small><br>' +
@@ -314,6 +331,7 @@ function myHome(el){
   wire(el);
   var pq = 0;
   function paint(){ if (pq) return; pq = requestAnimationFrame(function(){ pq = 0; if (!live()) return;
+    if (mgr && D.team && D.teamLeave && D.office) insPaint($('#hmTeamIns .hm-ins-list', el), teamInsights(D), 'tiNone');
     var ib = $('#hmIns .hm-ins-list', el); if (ib && D.hist && D.leave) { ib.innerHTML = insightsHtml(D); wire(ib); }
     [['#hmMineRow', mineRow], ['#hmTeamRow', teamRow]].forEach(function(x){ var box = $(x[0], el); if (!box) return; var again = !!box.dataset.p; box.dataset.p = '1'; box.innerHTML = x[1](D); if (again) still(box); V.wire(box); });
   }); }
@@ -327,6 +345,9 @@ function myHome(el){
   if (mgr) {
     apiFresh('hrTeam', {}, function(r){ if (!live() || !r.ok) return; D.team = r; paint(); }, true);
     apiFresh('leaveTeam', {}, function(r){ if (!live() || !r.ok) return; D.teamLeave = r; paint(); }, true);
+    apiFresh('officeMap', {}, function(r){ if (!live() || !r.ok) return; D.office = r; paint(); }, true);
+    var nm = addDays(riyadhToday().slice(0, 7) + '-28', 7).slice(0, 7); // next month too, for leave in the coming two weeks
+    apiFresh('leaveTeam', { month: nm }, function(r){ if (!live() || !r.ok) return; D.teamLeave2 = r; paint(); }, true);
   }
 }
 function hmOf(min){ min = Math.max(0, Math.round(min || 0)); return t('inHm').replace('{h}', Math.floor(min / 60)).replace('{m}', ('0' + (min % 60)).slice(-2)); }
@@ -394,13 +415,56 @@ function insights(D){
   if (s0 && (s0.month === today.slice(0, 7) || s0.month === prevMonth(today.slice(0, 7)))) add(5, 'g', 'receipt', t('inSlip').replace('{m}', V.monthShort(s0.month)).replace('{v}', V.n1(s0.net, 0) + ' ' + t('mfSar')), V.goOk('pay:slips'), t('inSlipGo'));
   return out.sort(function(a, b){ return a.pri - b.pri; }).slice(0, 5);
 }
-function insightsHtml(D){
-  var list = insights(D);
-  if (!list.length) return '<p class="hm-ins-none">' + ph('sun', 'duotone') + t('inNone') + '</p>';
+function insightsHtml(D, list, none){
+  list = list || insights(D);
+  if (!list.length) return '<p class="hm-ins-none">' + ph('sun', 'duotone') + t(none || 'inNone') + '</p>';
   return list.map(function(x, i){
     return '<div class="hm-in hm-in-' + x.tone + '" style="--i:' + i + '"><span class="ic">' + ph(x.icon, 'duotone') + '</span><p>' + x.text + '</p>' +
       (x.go ? '<button type="button" class="btn btn-line btn-sm" data-go="' + esc(x.go) + '">' + esc(x.label) + ph(S.lang === 'ar' ? 'caret-left' : 'caret-right') + '</button>' : '') + '</div>';
   }).join('');
+}
+function insCard(id, icon, title, lead){ return '<section class="hm-card hm-s12 hm-ins" id="' + id + '" aria-live="polite"><h2>' + ph(icon, 'duotone') + t(title) + '</h2><p class="lead">' + t(lead) + '</p><div class="hm-ins-list">' + sk(2) + '</div></section>'; }
+function insPaint(box, list, none){ if (!box) return; box.innerHTML = insightsHtml(null, list, none); wire(box); }
+function names(list){ var n = list.slice(0, 3).map(function(p){ return esc(first(p.name)); }).join('، '); return list.length > 3 ? n + ' +' + (list.length - 3) : n; }
+/** A manager's team: late and not-yet-in today (office map day status, own people only), leave today, leave waiting, overlapping leave. */
+function teamInsights(D){
+  var out = [], today = riyadhToday(), add = function(pri, tone, icon, text, go, label){ out.push({ pri: pri, tone: tone, icon: icon, text: text, go: go, label: label }); };
+  var ids = {}; ((D.team && D.team.rows) || []).forEach(function(r){ ids[(r.emp && r.emp.id) || r.id] = 1; });
+  var team = ((D.office && D.office.people) || []).filter(function(p){ return p.day && !p.me && ids[p.id]; });
+  var late = team.filter(function(p){ return p.day.lateMin > 0; }), absent = team.filter(function(p){ return p.day.status === 'absent'; }), onLeave = team.filter(function(p){ return p.day.status === 'leave'; });
+  if (absent.length) add(1, 'r', 'user-minus', t('tiAbsent').replace('{n}', absent.length).replace('{who}', names(absent)), 'time:office', t('tiSeeMap'));
+  if (late.length) add(2, 'y', 'clock-countdown', t('tiLate').replace('{n}', late.length).replace('{who}', names(late)), 'time:office', t('tiSeeMap'));
+  if (onLeave.length) add(5, 'b', 'airplane-tilt', t('tiLeaveToday').replace('{n}', onLeave.length), V.goOk('requests:leave'), t('tiSeeLeave'));
+  var lv = ((D.teamLeave && D.teamLeave.rows) || []).concat((D.teamLeave2 && D.teamLeave2.rows) || []).filter(function(x){ return x.emp && ids[x.emp.id] && (!S.me || x.emp.id !== S.me.id); }); // own people only (an HR manager gets the whole company here)
+  var pend = lv.filter(function(x){ return x.status === 'pending'; }).sort(function(a, b){ return a.createdAt < b.createdAt ? -1 : 1; });
+  if (pend.length) { var at = Date.parse(pend[0].createdAt), age = isNaN(at) ? 0 : Math.max(0, Math.floor((Date.now() - at) / 864e5)); add(age >= 3 ? 1 : 3, age >= 3 ? 'y' : 'b', 'hourglass-medium', (isNaN(at) ? t('tiPendingN') : t('tiPending')).replace('{n}', pend.length).replace('{d}', daysWord(age)), V.goOk('requests:inbox') || V.goOk('requests:centre'), t('tiDecide')); }
+  // the busiest day in the next 14 days (approved and pending leave together)
+  var busy = null;
+  for (var i = 0; i < 14; i++) {
+    var d = addDays(today, i), n = lv.filter(function(x){ return (x.status === 'approved' || x.status === 'pending') && x.fromDate <= d && x.toDate >= d; }).length;
+    if (n >= 2 && (!busy || n > busy.n)) busy = { d: d, n: n };
+  }
+  if (busy) add(3, 'y', 'users-three', t('tiOverlap').replace('{n}', busy.n).replace('{d}', V.shortDate(busy.d)), V.goOk('requests:leave'), t('tiSeeLeave'));
+  return out.sort(function(a, b){ return a.pri - b.pri; }).slice(0, 5);
+}
+/** HR, payroll and executives: today's attendance, review queue, missing check-outs, request age, departments, compliance, Saudization. */
+function companyInsights(r, r14, cal){
+  var out = [], add = function(pri, tone, icon, text, go, label){ out.push({ pri: pri, tone: tone, icon: icon, text: text, go: go, label: label }); };
+  var A = (r && r.attendance) || {}, T0 = A.totals || {}, Rq = (r && r.requests) || {}, W = (r && r.workforce) || {};
+  if (T0.review) add(1, 'y', 'shield-warning', t('ciReview').replace('{n}', T0.review), V.goOk('time:review'), t('ciReviewGo'));
+  if (T0.expected && (T0.absent || T0.late)) add(T0.absent / T0.expected >= .1 ? 1 : 3, T0.absent / T0.expected >= .1 ? 'r' : 'y', 'users', t('ciAbsent').replace('{n}', T0.absent || 0).replace('{l}', T0.late || 0).replace('{e}', T0.expected), V.goOk('time:board'), t('ciBoard'));
+  var mo = r14 && r14.attendance && r14.attendance.totals && r14.attendance.totals.missingOut;
+  if (mo) add(4, 'y', 'clock-counter-clockwise', t('ciMissOut').replace('{n}', mo), V.goOk('time:board'), t('ciBoard'));
+  if (Rq.openOver3Days) add(2, 'y', 'hourglass-medium', t('ciOld').replace('{n}', Rq.openOver3Days).replace('{d}', daysWord(Rq.oldestOpenDays || 0)), V.goOk('requests:centre') || V.goOk('requests:inbox'), t('ciCentre'));
+  var dp = (A.departments || []).filter(function(d){ return d.expected >= 3 && d.rate != null; }).sort(function(a, b){ return a.rate - b.rate; })[0];
+  if (dp && dp.rate < 80) add(4, 'y', 'buildings', t('ciDept').replace('{dept}', esc(dp.department)).replace('{r}', V.n1(dp.rate, 0)), V.goOk('time:board'), t('ciBoard'));
+  if (cal) {
+    var items = cal.items || [], over = items.filter(function(x){ return x.due && x.daysLeft < 0; }).length, soon = items.filter(function(x){ return x.due && x.daysLeft >= 0 && x.daysLeft <= 7 && x.level !== 'info'; }).length;
+    if (over) add(1, 'r', 'warning-circle', t('ciLate').replace('{n}', over), V.goOk('pay:compliance'), t('ciLateGo'));
+    else if (soon) add(4, 'b', 'calendar-dots', t('ciSoon').replace('{n}', soon), V.goOk('pay:compliance'), t('ciLateGo'));
+  }
+  if (W.target && W.saudiPct != null && W.saudiPct < W.target) add(5, 'b', 'flag', t('ciSaudi').replace('{p}', V.n1(W.saudiPct)).replace('{t}', W.target), V.goOk('insights:dashboard'), t('ciSaudiGo'));
+  return out.sort(function(a, b){ return a.pri - b.pri; }).slice(0, 5);
 }
 /** My month: attendance share, late days, leave balance, last net pay; each against the same days last month or the slip before. */
 function mineRow(D){
