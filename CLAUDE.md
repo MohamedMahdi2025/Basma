@@ -471,5 +471,6 @@ Trap: never use the class `.me` (or `.bot`) inside a module: index.html styles `
   task's destination: scratchpad `taskaudit.js`. Manager and HR insight cards: `teamInsights` (office map + team leave, own
   people only) and `companyInsights` (dashboard today + 14 days + compliance calendar).
 - **Tiles on every screen** (index.html `tileJumps`, run from the label observer): a `.db-tile` with no `data-go` opens the nearest list, table or card after its row (`tileTarget`), scrolled to and flashed; a tile with nothing below stays plain.
+- **Sign-in is always the platform's** (2026-10-27): `gateOn()` (called by `gateBrand()` and `splash()`) applies the platform colour, mark, name and title on every pre-sign-in screen, even when the device remembers an organisation; `gateOff()` in `enterApp` applies the company look. `S.gate = !S.token` at start-up stops a flash of company colours; `setCompany` and `applyLang` respect `S.gate`. Typing an Org ID names the company in text only.
 - **Platform icons**: icon-512/192, apple-touch-icon and favicon-48 are the neutral fingerprint (Phosphor glyph U+E23E), rendered
   from scratchpad `icon.html` in headless Chrome; `platformMark()` draws the same glyph once the Phosphor font is loaded.

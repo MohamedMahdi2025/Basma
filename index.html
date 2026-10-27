@@ -108,7 +108,8 @@ button{cursor:pointer}
   -webkit-mask-image:radial-gradient(circle closest-side, #000 62%, transparent 98%);mask-image:radial-gradient(circle closest-side, #000 62%, transparent 98%)}
 .b3d .b3d-fallback{position:absolute;inset:14%;width:72%;opacity:0;transition:opacity .4s}
 .b3d.no-webgl .b3d-fallback{opacity:1}
-.wordmark{display:flex;flex-direction:column;align-items:center;gap:8px;line-height:1.2;user-select:none}
+.wordmark{display:flex;flex-direction:column;align-items:center;gap:8px;line-height:1.2;user-select:none;max-width:100%;text-align:center}
+@media (max-width:600px){.wordmark{max-width:calc(100vw - 32px)}.wm-ar,.splash .wm-ar,.gate-brand .wm-ar{font-size:clamp(20px,6.4vw,28px)}.wm-en,.splash .wm-en{white-space:normal;letter-spacing:.16em;font-size:11px}}
 .wm-ar{direction:rtl;font-size:28px;font-weight:600;color:var(--cream);display:flex;gap:.32em;flex-wrap:wrap;justify-content:center}
 .wm-en{font-size:12px;font-weight:500;letter-spacing:.34em;color:var(--g-C9D3C6,#C9D3C6);direction:ltr;white-space:nowrap}
 .wm-ar .w,.wm-en .l{display:inline-block;opacity:0}
@@ -2291,7 +2292,7 @@ function errText(code){ var k = 'e_' + code; return T[S.lang][k] || t('e_generic
 function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 function $(sel, el){ return (el || document).querySelector(sel); }
 function $$(sel, el){ return Array.prototype.slice.call((el || document).querySelectorAll(sel)); }
-function applyLang(){ document.documentElement.lang = S.lang; document.documentElement.dir = S.lang === 'ar' ? 'rtl' : 'ltr'; document.title = t('appName'); }
+function applyLang(){ document.documentElement.lang = S.lang; document.documentElement.dir = S.lang === 'ar' ? 'rtl' : 'ltr'; document.title = S.gate ? (S.lang === 'en' ? CO_PLATFORM.nameEn : CO_PLATFORM.nameAr) : t('appName'); }
 var LOCALE = function(){ return S.lang === 'ar' ? 'ar-SA-u-nu-latn-ca-gregory' : 'en-GB'; };
 function fmtTime(iso){ if (!iso) return '--:--'; return new Date(iso).toLocaleTimeString(LOCALE(), { hour:'2-digit', minute:'2-digit', timeZone:'Asia/Riyadh' }); }
 function fmtDur(min){ min = Math.max(0, Math.round(min || 0)); var h = Math.floor(min / 60), m = min % 60; if (!h) return m + ' ' + t('min'); return h + ' ' + t('h') + ' ' + m + ' ' + t('min'); }
@@ -2698,7 +2699,24 @@ function root(html){
   }
 }
 
+/**
+ * Every screen before sign-in (splash, activation, Org ID, PIN lock, password, must-change) is the platform's: its colour,
+ * mark and name, whichever organisation the device remembers. The company is named in text only (the Org ID line); its own
+ * colour, logo and name take over when the app opens (enterApp).
+ */
+function gateOn(){
+  if (S.gateShown) return;
+  S.gateShown = true; S.gate = true; applyBrand('', false); document.title = S.lang === 'en' ? CO_PLATFORM.nameEn : CO_PLATFORM.nameAr;
+  if (window.Brand3D && Brand3D.reset) Brand3D.reset();
+}
+function gateOff(){
+  if (!S.gate && !S.gateShown) return;
+  S.gate = false; S.gateShown = false; var c = S.company || {};
+  applyBrand(c.brandColor || '', c.home !== false && !c.platform); document.title = t('appName');
+  if (window.Brand3D && Brand3D.reset) Brand3D.reset(); paintMarks();
+}
 function gateBrand(){
+  gateOn();
   return '<aside class="gate-brand"><div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div><div class="gb-scene" aria-hidden="true"><i></i><i></i><i></i></div>' +
     '<div class="gb-dial">' + gaugeSvg() + brand3dHtml('gate') + '</div><p class="gate-tag">' + t('gateTag') + '</p></aside>';
 }
@@ -2729,8 +2747,9 @@ function eyeify(scope){
 
 // The company name arrives word by word (Arabic), then letter by letter (English).
 function wordmarkHtml(){
-  var ar = coName('ar').split(' '), en = coName('en').toUpperCase().split('');
-  return '<div class="wordmark" role="img" aria-label="' + esc(coName('ar') + ' - ' + coName('en')) + '">' +
+  var na = S.gate ? CO_PLATFORM.nameAr : coName('ar'), ne = S.gate ? CO_PLATFORM.nameEn : coName('en'); // before sign-in: the platform's name
+  var ar = na.split(' '), en = ne.toUpperCase().split('');
+  return '<div class="wordmark" role="img" aria-label="' + esc(na + ' - ' + ne) + '">' +
     '<span class="wm-ar" aria-hidden="true">' + ar.map(function(w, i){ return '<span class="w" style="--i:' + i + '">' + esc(w) + '</span>'; }).join('') + '</span>' +
     '<span class="sweep-line" aria-hidden="true"></span>' +
     '<span class="wm-en" aria-hidden="true">' + en.map(function(c, i){ return '<span class="l" style="--i:' + i + '">' + (c === ' ' ? '&nbsp;' : esc(c)) + '</span>'; }).join('') + '</span></div>';
@@ -2741,6 +2760,7 @@ function brand3dHtml(where){
 
 // Opening moment: the medallion spins in and the name arrives word by word, then the app continues.
 function splash(next){
+  gateOn();
   var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   root('<div class="splash" id="splash"><div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>' + brand3dHtml('splash') +
     '<p class="tagline">' + t('gateTag') + '</p><div class="bar" aria-hidden="true"><i></i></div>' +
@@ -2904,7 +2924,7 @@ function wireOrgField(){
     var v = i.value.replace(/\D/g, ''); if (v !== i.value) i.value = v;
     out.textContent = ''; out.className = 'org-name'; clearTimeout(timer);
     if (!validOrg(v)) { if (!store('org') && S.orgId) { S.orgId = ''; platformReset(); $$('.wordmark').forEach(function(w){ w.outerHTML = wordmarkHtml(); }); } return; }
-    timer = setTimeout(function(){ api('orgCheck', { orgId: v }, true).then(function(r){ if (i.value !== v) return; if (r.ok) { out.textContent = t('orgFound') + ' ' + ((S.lang === 'en' ? r.nameEn : r.nameAr) || r.nameAr || v); out.className = 'org-name ok'; S.orgId = v; setCompany({ nameAr: r.nameAr || v, nameEn: r.nameEn || r.nameAr || v, shortAr: r.nameAr || v, shortEn: r.nameEn || r.nameAr || v, logoVer: r.logoVer || '', home: !!r.home, brandColor: r.brandColor || '' }); syncLogo(r); applyBrand(r.brandColor || '', !!r.home); paintMarks(); $$('.wordmark').forEach(function(w){ w.outerHTML = wordmarkHtml(); }); } else { out.textContent = errText(r.error); out.className = 'org-name bad'; if (!store('org')) { S.orgId = ''; platformReset(); $$('.wordmark').forEach(function(w){ w.outerHTML = wordmarkHtml(); }); } } }); }, 350); // the company's own look as soon as it is found (kept in memory only; stored after a successful sign-in)
+    timer = setTimeout(function(){ api('orgCheck', { orgId: v }, true).then(function(r){ if (i.value !== v) return; if (r.ok) { out.textContent = t('orgFound') + ' ' + ((S.lang === 'en' ? r.nameEn : r.nameAr) || r.nameAr || v); out.className = 'org-name ok'; S.orgId = v; syncLogo(r); } else { out.textContent = errText(r.error); out.className = 'org-name bad'; if (!store('org')) { S.orgId = ''; platformReset(); $$('.wordmark').forEach(function(w){ w.outerHTML = wordmarkHtml(); }); } } }); }, 350); // the company's own look as soon as it is found (kept in memory only; stored after a successful sign-in)
   };
   i.addEventListener('input', look); look();
 }
@@ -2982,7 +3002,7 @@ function renderOrgGate(next){
     api('orgCheck', { orgId: S.orgId }).then(function(r){
       $('#ogo').disabled = false;
       if (!r.ok) { S.orgId = ''; return $('#err').textContent = errText(r.error); }
-      store('org', S.orgId); syncLogo(r); applyBrand(r.brandColor || '', !!r.home); next();
+      store('org', S.orgId); syncLogo(r); next();
     });
   };
 }
@@ -3313,9 +3333,9 @@ function monogram(){
     return c.toDataURL('image/png'); } catch (e) { return ''; }
 }
 /** The mark to show: the company's upload, else the home artwork (home organisation only), else its monogram. */
-function brandImg(){ return !S.orgId ? platformMark() : CO_LOGO.img || (CO_LOGO.home ? LOGO : monogram()); }
-function brandMark(){ return !S.orgId ? platformMark() : CO_LOGO.img || (CO_LOGO.home ? MARK : monogram()); }
-function brandCustom(){ return !S.orgId || !!CO_LOGO.img || !CO_LOGO.home; }
+function brandImg(){ return !S.orgId || S.gate ? platformMark() : CO_LOGO.img || (CO_LOGO.home ? LOGO : monogram()); }
+function brandMark(){ return !S.orgId || S.gate ? platformMark() : CO_LOGO.img || (CO_LOGO.home ? MARK : monogram()); }
+function brandCustom(){ return !S.orgId || S.gate || !!CO_LOGO.img || !CO_LOGO.home; }
 /** Called with every company payload (sign-in, orgCheck): fetches the logo when its version changed. */
 function syncLogo(info){
   if (!info || !S.orgId) return;
@@ -3375,12 +3395,12 @@ function setCompany(c, keep){
   ['logoVer', 'home', 'orgId', 'brandColor'].forEach(function(k){ if (c[k] === undefined && prev[k] !== undefined) c[k] = prev[k]; });
   S.company = Object.assign({}, S.orgId ? CO_DEFAULT : CO_PLATFORM, c);
   if (c && c.logoVer !== undefined) syncLogo(c);
-  if (c && c.home !== undefined) applyBrand(c.brandColor || '', c.home !== false);
+  if (c && c.home !== undefined && !S.gate) applyBrand(c.brandColor || '', c.home !== false); // sign-in screens keep the platform look (gateOn / gateOff)
   T.ar.company = S.company.nameAr; T.en.company = S.company.nameEn;
   if (S.company.platform) { T.ar.appName = CO_PLATFORM.nameAr; T.en.appName = CO_PLATFORM.nameEn; }
   else { T.ar.appName = 'حضور ' + S.company.shortAr; T.en.appName = S.company.shortEn + ' Attendance'; }
   if (keep) store('co', JSON.stringify(S.company));
-  document.title = t('appName');
+  if (!S.gate) document.title = t('appName');
 }
 function coName(l){ var c = S.company || (S.orgId ? CO_DEFAULT : CO_PLATFORM); return (l || S.lang) === 'en' ? c.nameEn : c.nameAr; }
 function coShort(l){ var c = S.company || (S.orgId ? CO_DEFAULT : CO_PLATFORM); return (l || S.lang) === 'en' ? c.shortEn : c.shortAr; }
@@ -3392,6 +3412,7 @@ function coMeta(l){
   var a = en ? c.addressEn : c.addressAr; if (a) p.push(a);
   return p.map(function(x){ return '<bdi>' + esc(x) + '</bdi>'; }).join(' · ');
 }
+S.gate = !S.token; // no session: a sign-in screen comes first, so the company colours are never painted before it
 try { setCompany(S.orgId ? JSON.parse(store('co') || 'null') : null); } catch (e) { setCompany(null); }
 if (!S.orgId) { CO_LOGO = { org: null, img: '', home: false }; applyBrand('', false); } // a new phone: the neutral platform look until an Org ID is entered
 /**
@@ -3545,7 +3566,7 @@ function enterApp(home){
   if (!home) home = null;
   store('name', S.me ? S.me.name : '');
   function go(r){
-    applyHome(r); armIdleLock();
+    applyHome(r); gateOff(); armIdleLock();
     S.fileRoles = null;
     S.tab = areaFromHash(); renderShell(); startWatch(); schedulePunchPrefetch(true); setTimeout(offerPin, 2500);
     setTimeout(function(){
