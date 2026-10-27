@@ -3173,13 +3173,16 @@ var CO_PLATFORM = { nameAr: 'منصة الحضور والموارد البشري
 var PLATFORM_MARK = '';
 function platformMark(){
   if (PLATFORM_MARK) return PLATFORM_MARK;
+  var font = document.fonts && document.fonts.check && document.fonts.check('200px "Phosphor"');
   try { var c = document.createElement('canvas'); c.width = c.height = 512; var g = c.getContext('2d');
     g.fillStyle = BRAND_DEFAULT; g.beginPath(); g.arc(256, 256, 250, 0, Math.PI * 2); g.fill();
-    g.strokeStyle = '#F2EEE4'; g.lineCap = 'round'; g.lineWidth = 10; g.beginPath(); g.arc(256, 256, 214, 0, Math.PI * 2); g.stroke();
-    g.lineWidth = 16; [40, 74, 108, 142].forEach(function(r, i){ g.beginPath(); g.arc(256, 276, r, Math.PI * (1.08 + i * .02), Math.PI * (1.92 - i * .02) + (i % 2 ? .35 : 0)); g.stroke(); });
-    g.beginPath(); g.moveTo(256, 276); g.lineTo(256, 330); g.stroke();
-    PLATFORM_MARK = c.toDataURL('image/png'); } catch (e) { PLATFORM_MARK = ''; }
-  return PLATFORM_MARK;
+    g.strokeStyle = '#F2EEE4'; g.lineWidth = 10; g.beginPath(); g.arc(256, 256, 214, 0, Math.PI * 2); g.stroke();
+    if (font) { g.fillStyle = '#F2EEE4'; g.font = '250px "Phosphor"'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('\ue23e', 256, 262); } // the fingerprint, as in the app icon
+    var url = c.toDataURL('image/png');
+    if (font) PLATFORM_MARK = url;
+    else if (document.fonts && document.fonts.load) document.fonts.load('200px "Phosphor"').then(function(){ if (PLATFORM_MARK || !document.fonts.check('200px "Phosphor"')) return; if (!S.orgId) { if (window.Brand3D && Brand3D.reset) Brand3D.reset(); paintMarks(); } });
+    return url;
+  } catch (e) { return ''; }
 }
 /** Back to the neutral platform look: no organisation, no company logo or colour. */
 function platformReset(){
