@@ -1195,6 +1195,7 @@ html[data-theme="dark"] .gauge .needle line,html[data-theme="dark"] .gauge .need
 .cn-open{cursor:pointer;border-radius:8px}.cn-open:hover > b{color:var(--brand)}.cn-open:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
 .fp-top{flex-wrap:nowrap}.fp-crumb{flex:1;min-width:0;flex-wrap:nowrap;white-space:nowrap;overflow:hidden;mask-image:linear-gradient(to left,#000 85%,transparent);-webkit-mask-image:linear-gradient(to left,#000 85%,transparent)}[dir="ltr"] .fp-crumb{mask-image:linear-gradient(to right,#000 85%,transparent);-webkit-mask-image:linear-gradient(to right,#000 85%,transparent)}.fp-crumb span{flex:none}
 .sso-box{display:grid;gap:8px;margin-top:12px}.sso-or{display:flex;align-items:center;gap:8px;font-size:13px;opacity:.8}.sso-or::before,.sso-or::after{content:"";flex:1;height:1px;background:currentColor;opacity:.3}.sso-btn{width:100%;justify-content:center;gap:8px}
+.spot-flash{animation:spotFlash 1.6s ease-out 1;border-radius:12px}@keyframes spotFlash{0%,30%{box-shadow:0 0 0 3px var(--brand)}100%{box-shadow:0 0 0 0 transparent}}
 .sr-only{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
 /* the frozen headline's key actions */
 .fp-chips .btn{height:38px}
@@ -3768,6 +3769,17 @@ var SEC_DEST = { contingent: 'people:contingent', safety: 'engage:safety', opens
   approvalcentre: 'requests:centre', leavecycle: 'requests:cycles', expenses: 'requests:expenses', flows: 'admin:flows', gov: 'people:gov', journal: 'pay:journal',
   recruitment: 'hire:recruitment', loans: 'pay:loans', training: 'growth:training', insurance: 'people:insurance', helpdesk: 'requests:helpdesk', announce: 'engage:announce', settlements: 'offboard:settlements', payreview: 'pay:payreview', timesheets: 'time:timesheets' };
 var MINE_DEST = { hse_action: 'engage:safety', ppe_ack: 'engage:safety', one_on_one: 'growth:oneonone', swap_ask: 'time:openshifts', survey: 'growth:me', policies: 'growth:me', onboarding: 'growth:me', plans: 'growth:me' };
+/** Personal tasks acted on from a card on the profile page: the bell scrolls to that card (a long page on a phone). */
+var TASK_SPOT = { disc_respond: '#mfOps', asset_ack: '#mfOps', leavecycle_me: '#mfW1', announcement_ack: '#mfW2', exit_survey: '#mfW2', hd_reply: '#mfW2' };
+/** Waits (up to 6 s) for a lazily drawn card to have content, then scrolls to it and flashes it once. */
+function jumpToSpot(sel){
+  var t0 = Date.now();
+  (function look(){
+    var el = $(sel);
+    if (el && el.offsetHeight > 20) { el.scrollIntoView({ behavior: moReduced() ? 'auto' : 'smooth', block: 'start' }); el.classList.remove('spot-flash'); void el.offsetWidth; el.classList.add('spot-flash'); return; }
+    if (Date.now() - t0 < 6000) setTimeout(look, 200);
+  })();
+}
 function taskDest(x){ var g = x.target || {}; return g.tab === 'hr' ? SEC_DEST[g.sec] || 'home' : MINE_DEST[x.kind] || 'profile'; }
 function areaCounts(){
   var c = {};
@@ -4527,6 +4539,7 @@ function openTasks(){
       if (x.kind === 'delegated') return;
       if (g.view) S.rpJump = g.view;
       goArea(dest[0], dest[1]); // the bell's entry becomes the destination: Back returns to where the bell was opened
+      if (TASK_SPOT[x.kind]) jumpToSpot(TASK_SPOT[x.kind]);
     }; });
   }
   if (TASKS) draw(TASKS);

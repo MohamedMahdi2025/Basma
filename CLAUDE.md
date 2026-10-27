@@ -465,3 +465,10 @@ Trap: never use the class `.me` (or `.bot`) inside a module: index.html styles `
 - **Home smart insights** (home.js `insights`/`insightsHtml`, card `#hmIns`): up to five explained nudges from the person's own
   data, each with one action; plus a ring of today's hours on the shift card. Trap: dsv3's `body.v2-on :is(.hm-card…)` paints
   cards white; the shift card keeps its pine with `.hm-card.hm-clock.hm-clock`.
+- **Tappable numbers (2026-10-27)**: every home number opens its breakdown. KPI tiles (`kTile` go), the headline figures
+  (`factBox`), today's gauge, insight rows (`rowTap`) and the day squares (`dayDrawer`: times, late, hours, leave/holiday,
+  correction request). Bell tasks acted on from a profile card scroll to it (`TASK_SPOT` + `jumpToSpot`). Audit of every
+  task's destination: scratchpad `taskaudit.js`. Manager and HR insight cards: `teamInsights` (office map + team leave, own
+  people only) and `companyInsights` (dashboard today + 14 days + compliance calendar).
+- **Platform icons**: icon-512/192, apple-touch-icon and favicon-48 are the neutral fingerprint (Phosphor ), rendered
+  from scratchpad `icon.html` in headless Chrome; `platformMark()` draws the same glyph once the Phosphor font is loaded.

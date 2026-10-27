@@ -7,6 +7,8 @@
 (function(){
 'use strict';
 var V = window.Viz;
+Object.assign(T.ar, { dyTitle:'تفاصيل يوم {d}', dyStatus:'الحالة', dyIn:'الحضور', dyOut:'الانصراف', dyLate:'التأخير', dyWorked:'ساعات العمل', dyShift:'الدوام', dyLeave:'الإجازة', dyHoliday:'العطلة', dyFix:'طلب تصحيح لهذا اليوم', dyNone:'-', dyMin:'{n} دقيقة', dyLog:'سجل الشهر كاملا' });
+Object.assign(T.en, { dyTitle:'Details for {d}', dyStatus:'Status', dyIn:'Check-in', dyOut:'Check-out', dyLate:'Late', dyWorked:'Hours worked', dyShift:'Shift', dyLeave:'Leave', dyHoliday:'Holiday', dyFix:'Ask to correct this day', dyNone:'-', dyMin:'{n} min', dyLog:'Whole month log' });
 Object.assign(T.ar, { tiTitle:'لمحات فريقك', tiLead:'ما يحتاج انتباهك في فريقك اليوم، من بيانات الحضور والطلبات.', tiNone:'فريقك بخير اليوم: لا تأخير ولا غياب ولا طلبات متأخرة.',
   tiLate:'تأخر اليوم من فريقك ({n}): {who}.', tiAbsent:'بدأ الدوام ولم يسجل حضوره بعد من فريقك ({n}): {who}.', tiLeaveToday:'في إجازة اليوم من فريقك: {n}.', tiSeeMap:'خريطة المكتب',
   tiPending:'طلبات إجازة من فريقك بانتظار قرارك: {n}، أقدمها منذ {d}.', tiPendingN:'طلبات إجازة من فريقك بانتظار قرارك: {n}.', tiDecide:'قرّر الآن', tiOverlap:'في إجازة معا يوم {d} من فريقك: {n}. راجع التغطية قبل اعتماد المزيد.', tiSeeLeave:'إجازات الفريق',
@@ -78,6 +80,9 @@ var css = '' +
 '.hm-ins-list{display:grid;gap:8px;margin-top:8px}.hm-in{display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;background:var(--in-bg);border:1px solid transparent}.hm-in p{flex:1;margin:0;font-size:14px;line-height:1.6}' +
 '.hm-in .ic{display:grid;place-items:center;flex:none;width:36px;height:36px;border-radius:12px;background:var(--card);color:var(--in-c);font-size:20px;box-shadow:var(--e1)}.hm-in .btn{flex:none;gap:4px}' +
 '.hm-in-g{--in-c:var(--brand);--in-bg:color-mix(in srgb,var(--brand) 8%,transparent)}.hm-in-b{--in-c:var(--info);--in-bg:color-mix(in srgb,var(--info) 8%,transparent)}.hm-in-y{--in-c:var(--amber);--in-bg:color-mix(in srgb,var(--amber) 10%,transparent)}.hm-in-r{--in-c:var(--bad);--in-bg:color-mix(in srgb,var(--bad) 8%,transparent)}' +
+'.hm-in.is-go{cursor:pointer}.hm-in.is-go:hover{border-color:var(--in-c)}.hm-facts .is-go{cursor:pointer;border-radius:8px;transition:background .15s}.hm-facts .is-go:hover,.hm-facts .is-go:focus-visible{background:var(--wash,rgba(0,0,0,.04))}' +
+'button.hm-d{font:inherit;border:0;cursor:pointer;padding:0}.hm-hero .gauge.is-go{cursor:pointer}' +
+'.hm-day{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:8px 0 16px}.hm-day div{background:var(--wash,rgba(0,0,0,.04));border-radius:12px;padding:12px}.hm-day dt{font-size:12px;color:var(--ink-3)}.hm-day dd{margin:4px 0 0;font-size:18px;font-weight:600}' +
 '.hm-ins-none{display:flex;align-items:center;gap:8px;margin:8px 0 0;color:var(--ink-2)}.hm-ring{float:inline-end;margin:-4px 0 0 8px}.hm-clock .db-ring text{fill:#F2EEE4}.hm-clock .db-ring .tr{stroke:rgba(242,238,228,.18)}.hm-clock .db-ring .fg{stroke:var(--signal)}' +
 '@media (prefers-reduced-motion:no-preference){.hm-in{animation:hmIn .35s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i) * 60ms)}}@keyframes hmIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}' +
 '@media (max-width:600px){.hm-in{flex-wrap:wrap}.hm-in .btn{margin-inline-start:48px}}' +
@@ -161,6 +166,8 @@ function arrow(){ return '<span class="db-go" aria-hidden="true">' + ph(S.lang =
  * One KPI tile. o: { k: colour g/y/b/r, icon, label, value (html), unit, sub, delta (html), spark (html), go: dest or list }.
  * value null = still loading (a skeleton bar). With go the tile is a link to that screen.
  */
+/** A headline figure as a link to its breakdown (or a plain block when the viewer cannot open that screen). */
+function factBox(){ var d = V.goOk(Array.prototype.slice.call(arguments)); return d ? '<div class="is-go" data-go="' + d + '" role="link" tabindex="0">' : '<div>'; }
 function kTile(o){
   var dest = V.goOk(o.go), loading = o.value == null;
   var attrs = dest && !loading ? ' data-go="' + dest + '" role="link" tabindex="0" aria-label="' + esc(o.label) + ': ' + esc(String(o.value).replace(/<[^>]*>/g, '')) + ' · ' + t('dbOpenIn') + '"' : '';
@@ -283,8 +290,10 @@ function companyHome(el){
     var sent = t('hmTodaySentence').replace('{p}', V.n1(T0.present || 0, 0)).replace('{e}', V.n1(T0.expected || 0, 0)).replace('{l}', V.n1(T0.late || 0, 0)).replace('{v}', V.n1(T0.leave || 0, 0));
     if (!$('#hmHero', el)) return;
     $('#hmHero', el).innerHTML = V.gauge(rate == null ? null : Math.round(rate), t('hmToday')) + '<div><h2>' + t('hmToday') + '</h2><p class="big">' + sent + '</p><dl class="hm-facts">' +
-      '<div><dt>' + t('hmHeadcount') + '</dt><dd>' + V.n1(W.headcount, 0) + '</dd></div><div><dt>' + t('hmSaudi') + '</dt><dd>' + V.n1(W.saudiPct) + '%' + (W.target ? ' <small>/ ' + W.target + '%</small>' : '') + '</dd></div>' +
-      '<div><dt>' + t('hmPayroll') + '</dt><dd>' + (r.money && last ? V.n1(last.cost / 1000, 0) + 'K <small>' + V.monthShort(last.month) + '</small>' : '-') + '</dd></div><div><dt>' + t('hmOpenReq') + '</dt><dd>' + V.n1(open, 0) + (Rq.openOver3Days ? ' <small>' + Rq.openOver3Days + ' &gt; 3 ' + t('dbDays') + '</small>' : '') + '</dd></div></dl></div>';
+      factBox('people:directory', 'insights:dashboard') + '<dt>' + t('hmHeadcount') + '</dt><dd>' + V.n1(W.headcount, 0) + '</dd></div>' + factBox('insights:dashboard') + '<dt>' + t('hmSaudi') + '</dt><dd>' + V.n1(W.saudiPct) + '%' + (W.target ? ' <small>/ ' + W.target + '%</small>' : '') + '</dd></div>' +
+      factBox('pay:runs') + '<dt>' + t('hmPayroll') + '</dt><dd>' + (r.money && last ? V.n1(last.cost / 1000, 0) + 'K <small>' + V.monthShort(last.month) + '</small>' : '-') + '</dd></div>' + factBox('requests:centre', 'requests:inbox') + '<dt>' + t('hmOpenReq') + '</dt><dd>' + V.n1(open, 0) + (Rq.openOver3Days ? ' <small>' + Rq.openOver3Days + ' &gt; 3 ' + t('dbDays') + '</small>' : '') + '</dd></div></dl></div>';
+    var hg = $('#hmHero .gauge', el), hd = V.goOk(['time:board', 'insights:dashboard']); if (hg && hd) { hg.setAttribute('data-go', hd); hg.setAttribute('role', 'link'); hg.setAttribute('tabindex', '0'); hg.classList.add('is-go'); }
+    wire($('#hmHero', el));
     V.spinGauges(el);
     var dp = (A.departments || []).slice().sort(function(a, b){ return (b.expected || 0) - (a.expected || 0); }).slice(0, 7);
     var dept = $('#hmDept', el); if (dept) dept.outerHTML = chartCard('hmDept', 'hm-s4', 'buildings', t('hmDepts'), '',
@@ -332,7 +341,7 @@ function myHome(el){
   var pq = 0;
   function paint(){ if (pq) return; pq = requestAnimationFrame(function(){ pq = 0; if (!live()) return;
     if (mgr && D.team && D.teamLeave && D.office) insPaint($('#hmTeamIns .hm-ins-list', el), teamInsights(D), 'tiNone');
-    var ib = $('#hmIns .hm-ins-list', el); if (ib && D.hist && D.leave) { ib.innerHTML = insightsHtml(D); wire(ib); }
+    var ib = $('#hmIns .hm-ins-list', el); if (ib && D.hist && D.leave) { ib.innerHTML = insightsHtml(D); wire(ib); rowTap(ib); }
     [['#hmMineRow', mineRow], ['#hmTeamRow', teamRow]].forEach(function(x){ var box = $(x[0], el); if (!box) return; var again = !!box.dataset.p; box.dataset.p = '1'; box.innerHTML = x[1](D); if (again) still(box); V.wire(box); });
   }); }
   var month = riyadhToday().slice(0, 7);
@@ -424,7 +433,8 @@ function insightsHtml(D, list, none){
   }).join('');
 }
 function insCard(id, icon, title, lead){ return '<section class="hm-card hm-s12 hm-ins" id="' + id + '" aria-live="polite"><h2>' + ph(icon, 'duotone') + t(title) + '</h2><p class="lead">' + t(lead) + '</p><div class="hm-ins-list">' + sk(2) + '</div></section>'; }
-function insPaint(box, list, none){ if (!box) return; box.innerHTML = insightsHtml(null, list, none); wire(box); }
+function insPaint(box, list, none){ if (!box) return; box.innerHTML = insightsHtml(null, list, none); wire(box); rowTap(box); }
+function rowTap(box){ $$('.hm-in', box).forEach(function(r){ var b = r.querySelector('[data-go]'); if (!b) return; r.classList.add('is-go'); r.onclick = function(ev){ if (ev.target.closest('button')) return; b.click(); }; }); }
 function names(list){ var n = list.slice(0, 3).map(function(p){ return esc(first(p.name)); }).join('، '); return list.length > 3 ? n + ' +' + (list.length - 3) : n; }
 /** A manager's team: late and not-yet-in today (office map day status, own people only), leave today, leave waiting, overlapping leave. */
 function teamInsights(D){
@@ -512,12 +522,26 @@ function monthStrip(box, r){
   var word = { p: t('hmD_present'), l: t('hmD_late'), a: t('hmD_absent'), v: t('hmD_leave'), '': t('hmD_off') };
   var cells = days.map(function(d){
     var c = cls(d), lbl = V.shortDate(d.date) + ': ' + word[c] + (d.lateMin ? ' (' + d.lateMin + ' ' + t('dbMinutes') + ')' : '');
-    return '<span class="hm-d ' + c + (d.date === today ? ' today' : '') + '" role="img" tabindex="0" aria-label="' + esc(lbl) + '" data-tip="' + esc(lbl) + '">' + (+d.date.slice(8, 10)) + '</span>';
+    return '<button type="button" class="hm-d ' + c + (d.date === today ? ' today' : '') + '" data-day="' + esc(d.date) + '" aria-label="' + esc(lbl) + '" data-tip="' + esc(lbl) + '">' + (+d.date.slice(8, 10)) + '</button>';
   }).join('');
   var legend = [['p', 'ok'], ['l', 'warn'], ['a', 'bad'], ['v', 'info']].map(function(x){ return '<span><i style="background:var(--' + x[1] + '-bg);box-shadow:inset 0 0 0 1.5px var(--' + x[1] + ')"></i>' + word[x[0]] + '</span>'; }).join('');
   box.innerHTML = '<h2>' + ph('calendar-check') + t('hmMonthStrip') + '<span class="sp"></span>' + (V.goOk('time:history') ? '<button type="button" class="db-open" data-go="time:history">' + t('dbOpen') + ph(S.lang === 'ar' ? 'arrow-up-left' : 'arrow-up-right') + '</button>' : '') + '</h2><p class="lead">' + t('hmMonthLead') + '</p>' +
     (days.length ? '<div class="hm-days">' + cells + '</div><div class="hm-legend">' + legend + '</div>' : V.empty(null, 'calendar-blank'));
   V.wire(box);
+  $$('[data-day]', box).forEach(function(b){ b.onclick = function(){ dayDrawer(days.filter(function(d){ return d.date === b.dataset.day; })[0]); }; });
+}
+/** One day in full: times, lateness, hours, leave or holiday, and a correction request when the check-out is missing. */
+function dayDrawer(d){
+  if (!d) return;
+  var st = T[S.lang]['st_' + d.status] || d.status || t('dyNone'), row = function(k, v){ return '<div><dt>' + t(k) + '</dt><dd>' + (v || t('dyNone')) + '</dd></div>'; };
+  var hol = d.holiday && typeof d.holiday === 'object' ? (S.lang === 'en' && d.holiday.nameEn ? d.holiday.nameEn : d.holiday.nameAr) : d.holiday;
+  var html = '<h3>' + t('dyTitle').replace('{d}', V.shortDate(d.date)) + '</h3><dl class="hm-day">' + row('dyStatus', esc(st)) + row('dyShift', d.shiftStart ? '<bdi dir="ltr">' + esc(d.shiftStart) + ' – ' + esc(d.shiftEnd) + '</bdi>' : '') +
+    row('dyIn', d.firstIn ? '<bdi>' + fmtHm(d.firstIn) + '</bdi>' : '') + row('dyOut', d.lastOut ? '<bdi>' + fmtHm(d.lastOut) + '</bdi>' : '') +
+    row('dyLate', d.lateMin ? t('dyMin').replace('{n}', d.lateMin) : '') + row('dyWorked', d.workedMin ? '<bdi>' + hmOf(d.workedMin) + '</bdi>' : '') +
+    (d.leaveType ? row('dyLeave', esc(T[S.lang]['lt_' + d.leaveType] || d.leaveType)) : '') + (hol ? row('dyHoliday', esc(hol)) : '') + '</dl><div class="btnrow">' +
+    (d.status === 'missing_out' && V.goOk('requests:new:correction') ? '<button type="button" class="btn btn-dark btn-sm" data-go="requests:new:correction">' + ph('clock-counter-clockwise') + t('dyFix') + '</button>' : '') +
+    (V.goOk('time:history') ? '<button type="button" class="btn btn-line btn-sm" data-go="time:history">' + ph('calendar-check') + t('dyLog') + '</button>' : '') + '</div>';
+  var dr = drawer(html); $$('[data-go]', dr).forEach(function(b){ b.onclick = function(){ var q = b.dataset.go.split(':'); dr.remove(); goArea(q[0], q[1], q[2]); }; });
 }
 
 /** My tasks as rows; each opens where the work is. */
