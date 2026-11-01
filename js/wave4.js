@@ -440,7 +440,7 @@ Object.assign(T.en, {
   dxRun:'Export now', dxWorking:'Preparing the file…', dxDone:'File downloaded', dxTabs:'Tables', dxRows:'Rows', dxSkipped:'Not exported', dxNoPay:'Without pay data (you do not hold the payroll role)', dxWithPay:'With pay data'
 });
 var XLSX_SRC = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js', xlsxWait = null;
-function xlsxReady(){ if (window.XLSX) return Promise.resolve(); if (xlsxWait) return xlsxWait; xlsxWait = new Promise(function(res, rej){ var s = document.createElement('script'); s.src = XLSX_SRC; s.onload = res; s.onerror = function(){ xlsxWait = null; rej(); }; document.head.appendChild(s); }); return xlsxWait; }
+function xlsxReady(){ if (window.XLSX) return Promise.resolve(); if (xlsxWait) return xlsxWait; xlsxWait = new Promise(function(res, rej){ var s = document.createElement('script'); s.src = XLSX_SRC; sri(s, XLSX_SRC); s.onload = res; s.onerror = function(){ xlsxWait = null; rej(); }; document.head.appendChild(s); }); return xlsxWait; }
 function exportSection(body){
   var box = K.head(body, 'dxTitle', 'dxLead');
   box.innerHTML = '<div class="toolbar"><button type="button" class="btn btn-dark" id="dxGo">' + ph('download-simple') + t('dxRun') + '</button></div><div id="dxOut"></div>';

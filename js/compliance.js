@@ -73,7 +73,7 @@ function money(n){ return Number(n || 0).toLocaleString(LOCALE(), { minimumFract
 function monthName(m){ return new Date(Date.UTC(+m.slice(0, 4), +m.slice(5, 7) - 1, 15)).toLocaleDateString(LOCALE(), { month: 'long', year: 'numeric' }); }
 function busy(el){ el.innerHTML = '<span class="sk" style="width:40%"></span><span class="sk"></span>'; }
 var XLSX_URL = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js', xp = null;
-function xlsxLib(){ if (window.XLSX) return Promise.resolve(); if (xp) return xp; xp = new Promise(function(res, rej){ var s = document.createElement('script'); s.src = XLSX_URL; s.onload = res; s.onerror = function(){ xp = null; rej(); }; document.head.appendChild(s); }); return xp; }
+function xlsxLib(){ if (window.XLSX) return Promise.resolve(); if (xp) return xp; xp = new Promise(function(res, rej){ var s = document.createElement('script'); s.src = XLSX_URL; sri(s, XLSX_URL); s.onload = res; s.onerror = function(){ xp = null; rej(); }; document.head.appendChild(s); }); return xp; }
 
 function section(body){
   var v = S.cpView || 'cal';

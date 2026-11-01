@@ -877,7 +877,7 @@ var xlsxLoading = null;
 function xlsxLib(){
   if (window.XLSX) return Promise.resolve();
   if (xlsxLoading) return xlsxLoading;
-  xlsxLoading = new Promise(function(res, rej){ var s = document.createElement('script'); s.src = XLSX_URL; s.onload = res; s.onerror = function(){ xlsxLoading = null; rej(); }; document.head.appendChild(s); });
+  xlsxLoading = new Promise(function(res, rej){ var s = document.createElement('script'); s.src = XLSX_URL; sri(s, XLSX_URL); s.onload = res; s.onerror = function(){ xlsxLoading = null; rej(); }; document.head.appendChild(s); });
   return xlsxLoading;
 }
 function headKey(h){ return String(h == null ? '' : h).replace(/[*\s_]+/g, '').replace(/[إأآ]/g, 'ا').replace(/ة/g, 'ه').toLowerCase(); }

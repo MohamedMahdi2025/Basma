@@ -2,10 +2,12 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>منصة الحضور والموارد البشرية</title>
 <meta name="description" content="Attendance and HR for every company: check in at your workplace with your fingerprint, PIN or password">
-<meta name="theme-color" content="#1C2A1F">
+<meta name="theme-color" content="#142236">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -16,9 +18,9 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
-<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
-<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/duotone/style.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" integrity="sha384-6p9AefaqUhEVheRlj1mpAkbngHXy9mbYMrIdcIt4Jlc9lOLIablJq3bBsLOjGwZ7" crossorigin="anonymous">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" integrity="sha384-pPVoXE8ft+zxKtxIDDI7SfTK6y95NHm4qa+hKEg/hs8VkjW5IP+9/dGOPCbDpUPl" crossorigin="anonymous">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/duotone/style.css" integrity="sha384-UVFvhZP7fWAENUPOoq61rJg5ef6QZW0k5vpAn71041/QS4STvUcJQCGNhStZLGx9" crossorigin="anonymous">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@500;600;700;800&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght,HEXP@160..700,0..100&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500..700&family=Noto+Naskh+Arabic:wght@500..700&display=swap" rel="stylesheet">
@@ -2511,6 +2513,17 @@ var I = {
 
 // ---------------- HR screens (loaded on demand; the check-in screen never waits for them) ----------------
 var loadedScripts = {};
+/** Subresource Integrity for every third-party file (REA audit 2026-11-01): a CDN file whose bytes differ is refused. */
+var SRI = {"https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js":"sha384-b5Ya4Bq3qCyz39m2ISh+4DxjAIljdeFwK/BsXLuj9gugaNwAcj/ia15fxNZL9Nlx",
+  "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js":"sha384-3zSEDfvllQohrq0PHL1fOXJuC/jSOO34H46t6UQfobFOmxE5BpjjaIJY5F2/bMnU",
+  "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js":"sha384-CI3ELBVUz9XQO+97x6nwMDPosPR5XvsxW2ua7N1Xeygeh1IxtgqtCkGfQY9WWdHu",
+  "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js":"sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw",
+  "https://unpkg.com/@phosphor-icons/web@2.1.1/src/duotone/style.css":"sha384-UVFvhZP7fWAENUPOoq61rJg5ef6QZW0k5vpAn71041/QS4STvUcJQCGNhStZLGx9",
+  "https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css":"sha384-pPVoXE8ft+zxKtxIDDI7SfTK6y95NHm4qa+hKEg/hs8VkjW5IP+9/dGOPCbDpUPl",
+  "https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css":"sha384-6p9AefaqUhEVheRlj1mpAkbngHXy9mbYMrIdcIt4Jlc9lOLIablJq3bBsLOjGwZ7",
+  "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css":"sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H",
+  "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js":"sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH"};
+function sri(el, url){ var h = SRI[url]; if (h) { el.integrity = h; el.crossOrigin = 'anonymous'; } return el; }
 function loadScript(src){
   if (loadedScripts[src]) return loadedScripts[src];
   return (loadedScripts[src] = new Promise(function(res, rej){
@@ -2557,7 +2570,7 @@ var Brand3D = (function(){
     if (loading) return loading;
     loading = new Promise(function(res, rej){
       var sc = document.createElement('script');
-      sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+      sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js'; sri(sc, sc.src);
       sc.onload = res; sc.onerror = rej; document.head.appendChild(sc);
     });
     return loading;
@@ -3532,7 +3545,7 @@ function qrTake(p){
   return true;
 }
 var JSQR_URL = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js', jsqrWait = null;
-function jsqrReady(){ if (window.jsQR) return Promise.resolve(); if (jsqrWait) return jsqrWait; jsqrWait = new Promise(function(res, rej){ var s = document.createElement('script'); s.src = JSQR_URL; s.onload = res; s.onerror = function(){ jsqrWait = null; rej(); }; document.head.appendChild(s); }); return jsqrWait; }
+function jsqrReady(){ if (window.jsQR) return Promise.resolve(); if (jsqrWait) return jsqrWait; jsqrWait = new Promise(function(res, rej){ var s = document.createElement('script'); s.src = JSQR_URL; sri(s, JSQR_URL); s.onload = res; s.onerror = function(){ jsqrWait = null; rej(); }; document.head.appendChild(s); }); return jsqrWait; }
 /** Camera overlay: BarcodeDetector where the browser has it (Android Chrome), else jsQR (iPhone). Close (x), Escape. */
 function openQrScanner(){
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return toast(t('qrNoCamera'));
@@ -5338,8 +5351,8 @@ function manualDrawer(e){
 function loadLeaflet(){
   if (window.L) return Promise.resolve();
   return new Promise(function(res, rej){
-    var c = document.createElement('link'); c.rel = 'stylesheet'; c.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'; document.head.appendChild(c);
-    var s = document.createElement('script'); s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'; s.onload = res; s.onerror = rej; document.head.appendChild(s);
+    var c = document.createElement('link'); c.rel = 'stylesheet'; c.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'; sri(c, c.href); document.head.appendChild(c);
+    var s = document.createElement('script'); s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'; sri(s, s.src); s.onload = res; s.onerror = rej; document.head.appendChild(s);
   });
 }
 function admZones(){

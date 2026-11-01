@@ -37,7 +37,7 @@ const loader = `<!doctype html>
 <html lang="ar" dir="rtl">
 <head>
 ${head}
-<style>html,body{margin:0;height:100%;background:#1C2A1F}</style>
+<style>html,body{margin:0;height:100%;background:#142236}</style>
 </head>
 <body>
 <script>

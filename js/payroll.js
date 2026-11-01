@@ -251,7 +251,7 @@ function slipInto(d, s, who, ctx){
 
 // ---------------- HR console: payroll ----------------
 var xlsxP = null;
-function xlsx(){ if (window.XLSX) return Promise.resolve(); if (xlsxP) return xlsxP; xlsxP = new Promise(function(res, rej){ var sc = document.createElement('script'); sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'; sc.onload = res; sc.onerror = function(){ xlsxP = null; rej(); }; document.head.appendChild(sc); }); return xlsxP; }
+function xlsx(){ if (window.XLSX) return Promise.resolve(); if (xlsxP) return xlsxP; xlsxP = new Promise(function(res, rej){ var sc = document.createElement('script'); sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'; sri(sc, sc.src); sc.onload = res; sc.onerror = function(){ xlsxP = null; rej(); }; document.head.appendChild(sc); }); return xlsxP; }
 
 function section(body){
   if (S.prRun) return runView(body, S.prRun);

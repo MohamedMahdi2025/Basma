@@ -8,7 +8,7 @@ var QR_LIB = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.j
 function store(v){ try { if (v === null) localStorage.removeItem('bgKiosk'); else localStorage.setItem('bgKiosk', v); } catch (e) {} }
 function load(){ try { return localStorage.getItem('bgKiosk'); } catch (e) { return null; } }
 function b64u(buf){ var s = '', b = new Uint8Array(buf); for (var i = 0; i < b.length; i++) s += String.fromCharCode(b[i]); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
-function lib(){ return window.QRCode ? Promise.resolve() : new Promise(function(res, rej){ var s = document.createElement('script'); s.src = QR_LIB; s.onload = res; s.onerror = rej; document.head.appendChild(s); }); }
+function lib(){ return window.QRCode ? Promise.resolve() : new Promise(function(res, rej){ var s = document.createElement('script'); s.src = QR_LIB; sri(s, QR_LIB); s.onload = res; s.onerror = rej; document.head.appendChild(s); }); }
 function setupScreen(msg){
   root('<div class="k-page"><div class="k-card"><h1>' + t('kSetup') + '</h1><p>' + (msg || t('kSetupLead')) + '</p><input id="kIn" dir="ltr" style="width:100%;font-size:16px;padding:12px;border-radius:12px;border:1px solid var(--line)"><button class="btn btn-primary" id="kGo" style="margin-top:12px;width:100%">' + t('kSave') + '</button></div></div>');
   $('#kGo').onclick = function(){ var v = $('#kIn').value.trim(); if (v) start(v); };
