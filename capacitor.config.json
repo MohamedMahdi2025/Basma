@@ -1,0 +1,24 @@
+{
+  "appId": "sa.bestgas.attendance",
+  "appName": "بصمة",
+  "webDir": "www",
+  "server": {
+    "url": "https://besgasksa.github.io/basma/",
+    "cleartext": false,
+    "allowNavigation": [
+      "besgasksa.github.io",
+      "script.google.com",
+      "script.googleusercontent.com"
+    ]
+  },
+  "ios": {
+    "contentInset": "never",
+    "limitsNavigationsToAppBoundDomains": false,
+    "scheme": "BGAttendance"
+  },
+  "android": {
+    "allowMixedContent": false,
+    "webContentsDebuggingEnabled": false,
+    "captureInput": true
+  }
+}

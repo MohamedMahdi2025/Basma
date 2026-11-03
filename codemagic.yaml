@@ -1,0 +1,38 @@
+# Cloud build for iPhone from Windows (no Mac needed). Codemagic (codemagic.io) builds on its Macs and uploads to
+# TestFlight. Needs: the owner's Apple Developer account connected in Codemagic (App Store Connect API key) and the
+# bundle id sa.bestgas.attendance registered in that account. Fill APP_STORE_APP_ID after the app record exists.
+workflows:
+  ios-testflight:
+    name: iOS to TestFlight
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    integrations:
+      app_store_connect: BestGas ASC key        # the name given to the API key in Codemagic
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: sa.bestgas.attendance
+      vars:
+        APP_STORE_APP_ID: "0000000000"         # replace with the App Store Connect app id
+      node: 22
+    scripts:
+      - name: Install
+        script: npm ci || npm install
+      - name: Add iOS platform
+        script: |
+          [ -d ios ] || npm run add:ios
+          npx cap sync ios
+      - name: Signing
+        script: xcode-project use-profiles
+      - name: Build number
+        script: |
+          cd ios/App
+          agvtool new-version -all $(($(app-store-connect get-latest-testflight-build-number "$APP_STORE_APP_ID") + 1))
+      - name: Build
+        script: xcode-project build-ipa --workspace ios/App/App.xcworkspace --scheme App
+    artifacts:
+      - build/ios/ipa/*.ipa
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
