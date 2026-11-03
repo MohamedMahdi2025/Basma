@@ -745,7 +745,7 @@ function rateLimit_(key, max, seconds) {
 // Best Gas): its keys are unprefixed, so nothing of the live system moved.
 var ORG_ = null, ORG_SS_ = null;
 var ORG_REQUIRED_ = { ssoLogin: 1, authBegin: 1, enrollBegin: 1, pwLogin: 1, adminRecover: 1, bootstrap: 1, orgCheck: 1 };
-var PLATFORM_ACTIONS_ = { orgCreate: 1, orgList: 1, orgSetStatus: 1, orgSetGroup: 1, orgOverview: 1 };
+var PLATFORM_ACTIONS_ = { platformHealth: 1, orgCreate: 1, orgList: 1, orgSetStatus: 1, orgSetGroup: 1, orgOverview: 1 };
 function homeOrgId_() { return PropertiesService.getScriptProperties().getProperty('HOME_ORG_ID') || CONFIG.HOME_ORG_ID; }
 function orgRec_(id) {
   id = String(id || '');
@@ -894,6 +894,21 @@ function restCreateBook_(title) {
 
 // ---------------- platform (the owner of the platform, with the setup key) ----------------
 
+/** Public, no secrets: can this script call Google APIs (the owner approved script.external_request), and does the Sheets
+ *  API answer for this project? Creating an organisation needs both. Answers yes/no and Google's status word only. */
+function api_platformHealth() {
+  var out = { ok: true, fetch: false, sheetsApi: '' };
+  if (!rateLimit_('health', 30, 600)) fail_('too_many_attempts');
+  try { UrlFetchApp.fetch('https://sheets.googleapis.com/$discovery/rest?version=v4', { muteHttpExceptions: true }); out.fetch = true; }
+  catch (e) { out.fetchError = /external_request|UrlFetchApp/.test(String(e && e.message)) ? 'needs_owner_authorization' : 'fetch_failed'; return out; }
+  try {
+    var r = UrlFetchApp.fetch('https://sheets.googleapis.com/v4/spreadsheets/health-check-not-a-real-id?fields=spreadsheetId', { muteHttpExceptions: true, headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken() } });
+    var err = {}; try { err = JSON.parse(r.getContentText()).error || {}; } catch (x) { }
+    out.sheetsApi = r.getResponseCode() + ' ' + String(err.status || ''); // 404 NOT_FOUND: the API answers; 403: switched off for the project
+    if (r.getResponseCode() === 403) out.sheetsApiMsg = String(err.message || '').slice(0, 200);
+  } catch (e) { out.sheetsApi = 'error'; }
+  return out;
+}
 function platformKeyOk_(req) {
   var expected = (typeof SETUP_KEY_HASH === 'string') ? SETUP_KEY_HASH : '';
   if (!rateLimit_('platform', 20, 900)) fail_('too_many_attempts');
@@ -1026,7 +1041,7 @@ function doPost(e) {
   return json_(handle_(req));
 }
 
-var PUBLIC_ACTIONS = { ssoLogin: 1, devicePunch: 1, orgLogo: 1, apiQuery: 1, orgCreate: 1, orgList: 1, orgSetStatus: 1, orgSetGroup: 1, orgOverview: 1, orgCheck: 1, kioskPing: 1, careersList: 1, careersApply: 1,
+var PUBLIC_ACTIONS = { platformHealth: 1, ssoLogin: 1, devicePunch: 1, orgLogo: 1, apiQuery: 1, orgCreate: 1, orgList: 1, orgSetStatus: 1, orgSetGroup: 1, orgOverview: 1, orgCheck: 1, kioskPing: 1, careersList: 1, careersApply: 1,
   ping: 1, bootstrapStatus: 1, bootstrap: 1, enrollBegin: 1, enrollFinish: 1,
   authBegin: 1, authFinish: 1, punchBegin: 1, punchFinish: 1, adminRecover: 1, pwLogin: 1, pinChange: 1, diag: 1, demoData: 1
 };
