@@ -196,12 +196,97 @@ function quickRow(){
   var q = [['time:punch', 'fingerprint', 'vwPunch'], ['requests:new', 'plus-circle', 'vwNewReq'], ['requests:mine', 'tray', 'vwMine'], ['pay:slips', 'receipt', 'vwSlips'], ['requests:claim', 'money', 'vwNewClaim'], ['growth:oneonone', 'target', 'vwOneOnOne'], ['growth:kudos', 'hands-clapping', 'vwKudos'], ['profile:main', 'identification-card', 'arProfile']];
   return '<nav class="fb-quick" aria-label="' + t('v2Menu') + '">' + q.map(function(x){ return '<button type="button" data-qk="' + x[0] + '"><span>' + ph(x[1], 'duotone') + '</span>' + esc(t(x[2])) + '</button>'; }).join('') + '</nav>';
 }
+// ---------------- the daily welcome (2026-11-03): a wisdom and "on this day", the same for everyone on a given date ----------------
+Object.assign(T.ar, { hmWisdom:'حكمة اليوم', hmOtd:'حدث في مثل هذا اليوم', hmOtdYear:'عام {y}', hmOtdMore:'اقرأ المزيد في ويكيبيديا' });
+Object.assign(T.en, { hmWisdom:'Wisdom of the day', hmOtd:'On this day', hmOtdYear:'In {y}', hmOtdMore:'Read more on Wikipedia' });
+var WISDOM = [["من جدّ وجد، ومن زرع حصد.","Whoever strives finds, and whoever sows reaps.","مثل عربي","Arabic proverb"],
+  ["الوقت كالسيف، إن لم تقطعه قطعك.","Time is like a sword: if you do not cut it, it cuts you.","مثل عربي","Arabic proverb"],
+  ["خير الكلام ما قلّ ودلّ.","The best words are few and to the point.","مثل عربي","Arabic proverb"],
+  ["في التأني السلامة، وفي العجلة الندامة.","In patience lies safety, in haste regret.","مثل عربي","Arabic proverb"],
+  ["لا تؤجل عمل اليوم إلى الغد.","Do not put off today's work until tomorrow.","مثل عربي","Arabic proverb"],
+  ["يد واحدة لا تصفق.","One hand cannot clap.","مثل عربي","Arabic proverb"],
+  ["الصبر مفتاح الفرج.","Patience is the key to relief.","مثل عربي","Arabic proverb"],
+  ["قيمة كل امرئ ما يحسنه.","Each person is worth what they do well.","علي بن أبي طالب","Ali ibn Abi Talib"],
+  ["من سار على الدرب وصل.","Whoever keeps to the road arrives.","مثل عربي","Arabic proverb"],
+  ["العلم في الصغر كالنقش على الحجر.","Learning when young is like carving in stone.","مثل عربي","Arabic proverb"],
+  ["الجار قبل الدار، والرفيق قبل الطريق.","Choose the neighbour before the house, and the companion before the road.","مثل عربي","Arabic proverb"],
+  ["على قدر أهل العزم تأتي العزائم.","Great resolve comes to those of great resolve.","المتنبي","Al-Mutanabbi"],
+  ["إذا كان الكلام من فضة فالسكوت من ذهب.","If speech is silver, silence is gold.","مثل عربي","Arabic proverb"],
+  ["كل إناء بما فيه ينضح.","Every vessel pours out what it holds.","مثل عربي","Arabic proverb"],
+  ["القناعة كنز لا يفنى.","Contentment is a treasure that never runs out.","مثل عربي","Arabic proverb"],
+  ["ما لا يدرك كله لا يترك جله.","What cannot be done in full should not be left undone in most.","مثل عربي","Arabic proverb"],
+  ["خير الأمور أوسطها.","The best of things is the middle way.","مثل عربي","Arabic proverb"],
+  ["من طلب العلا سهر الليالي.","Whoever seeks the heights stays up the nights.","حكمة عربية","Arabic saying"],
+  ["درهم وقاية خير من قنطار علاج.","An ounce of prevention is worth a pound of cure.","مثل عربي","Arabic proverb"],
+  ["لكل مجتهد نصيب.","Every hard worker gets their share.","مثل عربي","Arabic proverb"],
+  ["الاتحاد قوة.","Unity is strength.","حكمة","Saying"],
+  ["لسانك حصانك، إن صنته صانك.","Your tongue is your horse: guard it and it guards you.","مثل عربي","Arabic proverb"],
+  ["المرء بأصغريه: قلبه ولسانه.","A person is known by two small things: the heart and the tongue.","مثل عربي","Arabic proverb"],
+  ["الحاجة أم الاختراع.","Necessity is the mother of invention.","حكمة","Saying"],
+  ["ليس الخبر كالمعاينة.","Hearing is not the same as seeing.","مثل عربي","Arabic proverb"],
+  ["قليل دائم خير من كثير منقطع.","A little that lasts is better than a lot that stops.","حكمة عربية","Arabic saying"],
+  ["إذا هبّت رياحك فاغتنمها.","When your winds blow, make the most of them.","حكمة عربية","Arabic saying"],
+  ["أول الغيث قطرة.","The first rain begins with a single drop.","مثل عربي","Arabic proverb"],
+  ["العبرة بالخواتيم.","What counts is how things end.","مثل عربي","Arabic proverb"],
+  ["ما ضاع حق وراءه مطالب.","No right is lost while someone keeps asking for it.","مثل عربي","Arabic proverb"],
+  ["الصديق وقت الضيق.","A friend is the one who stands by you in hard times.","مثل عربي","Arabic proverb"],
+  ["اسأل مجرّبًا ولا تسأل حكيمًا.","Ask someone who has done it, not someone who only knows of it.","مثل عربي","Arabic proverb"],
+  ["بالشكر تدوم النعم.","Gratitude keeps good things lasting.","حكمة عربية","Arabic saying"],
+  ["من أتقن عمله أتقن نجاحه.","Whoever perfects their work perfects their success.","حكمة","Saying"],
+  ["الكلمة الطيبة مفتاح القلوب.","A kind word is the key to every heart.","حكمة","Saying"],
+  ["اعمل لتنجح لا لتُرى.","Work to succeed, not to be seen.","حكمة","Saying"],
+  ["خطوة صغيرة كل يوم خير من قفزة لا تأتي.","A small step every day beats a leap that never comes.","حكمة","Saying"],
+  ["النظام نصف النجاح.","Order is half of success.","حكمة","Saying"],
+  ["من عرف قدر نفسه ارتاح.","Whoever knows their own worth is at peace.","حكمة عربية","Arabic saying"],
+  ["التعاون يقصر الطريق.","Working together shortens the road.","حكمة","Saying"]];
+/** Riyadh date parts: the day number of the year picks the wisdom, so everyone sees the same one all day. */
+function riyadhDay(){ var d = new Date(Date.now() + 180 * 60000); var y = d.getUTCFullYear(), start = Date.UTC(y, 0, 1); return { y: y, m: d.getUTCMonth() + 1, d: d.getUTCDate(), n: Math.floor((d.getTime() - start) / 864e5) }; }
+function wisdomHtml(){
+  var day = riyadhDay(), q = WISDOM[(day.y * 7 + day.n) % WISDOM.length], en = S.lang === 'en';
+  return '<figure class="hm-wis"><span class="hm-dly-ic" aria-hidden="true">' + ph('quotes', 'duotone') + '</span><div><small>' + t('hmWisdom') + '</small><blockquote>' + esc(en ? q[1] : q[0]) + '</blockquote><figcaption>' + esc(en ? q[3] : q[2]) + '</figcaption></div></figure>';
+}
+/** "On this day": Wikipedia's selected events for today's date, in the reader's language, fetched once a day per language. */
+function loadOnThisDay(box){
+  var day = riyadhDay(), lang = S.lang === 'en' ? 'en' : 'ar', mm = ('0' + day.m).slice(-2), dd = ('0' + day.d).slice(-2), key = 'otd:' + lang + ':' + mm + dd;
+  var show = function(list){
+    if (!box || !document.body.contains(box)) return;
+    if (!list || !list.length) { box.remove(); return; }
+    var e = list[(day.y + day.n) % list.length], page = (e.pages || [])[0] || {}, url = page.content_urls && page.content_urls.desktop && page.content_urls.desktop.page;
+    box.innerHTML = '<span class="hm-dly-ic" aria-hidden="true">' + ph('calendar-star', 'duotone') + '</span><div><small>' + t('hmOtd') + ' · ' + esc(t('hmOtdYear').replace('{y}', e.year)) + '</small><p>' + esc(e.text) + '</p>' +
+      (url && /^https:\/\/[a-z]+\.wikipedia\.org\//.test(url) ? '<a href="' + esc(url) + '" target="_blank" rel="noopener noreferrer">' + t('hmOtdMore') + ' ' + ph('arrow-square-out') + '</a>' : '') + '</div>';
+    box.hidden = false;
+  };
+  try { var kept = JSON.parse(localStorage.getItem('bgatt.' + key) || 'null'); if (kept && kept.y === day.y) return show(kept.list); } catch (x) {}
+  fetch('https://' + lang + '.wikipedia.org/api/rest_v1/feed/onthisday/selected/' + mm + '/' + dd, { credentials: 'omit', referrerPolicy: 'no-referrer' })
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(j){
+      var list = ((j && j.selected) || []).filter(function(e){ return e && e.text && e.year; }).slice(0, 30).map(function(e){ return { year: e.year, text: String(e.text).slice(0, 320), pages: (e.pages || []).slice(0, 1).map(function(p){ return { content_urls: p.content_urls }; }) }; });
+      try { localStorage.setItem('bgatt.' + key, JSON.stringify({ y: day.y, list: list })); } catch (x) {}
+      show(list);
+    }, function(){ show(null); });
+}
+function dailyHtml(){ return '<section class="hm-daily" aria-label="' + esc(t('hmWisdom')) + '">' + wisdomHtml() + '<div class="hm-otd" id="hmOtd" hidden></div></section>'; }
+(function(){ var st = document.createElement('style'); st.textContent =
+  '.hm-daily{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin:-4px 0 18px}' +
+  '.hm-wis,.hm-otd{margin:0;display:flex;gap:14px;align-items:flex-start;padding:16px 18px;border-radius:var(--r-l,16px);background:var(--frame,#fff);border:1px solid var(--line-2,#E6E1D6)}' +
+  '.hm-wis{background:linear-gradient(135deg,var(--brand-tint,#EEF3EE),var(--frame,#fff) 70%)}' +
+  '.hm-dly-ic{flex:none;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--brand,#2F5D8C);color:#fff;font-size:22px}' +
+  '.hm-otd .hm-dly-ic{background:var(--accent2,var(--brand-h,#1E4A70))}' +
+  '.hm-daily small{display:block;font-size:12px;font-weight:600;color:var(--ink-3,#5F6D63);margin-bottom:4px}' +
+  '.hm-wis blockquote{margin:0;font-family:var(--f-head,inherit);font-size:18px;line-height:1.6;color:var(--ink,#14202F)}' +
+  '.hm-wis figcaption{margin-top:6px;font-size:13px;color:var(--ink-2,#3A4A40)}' +
+  '.hm-otd p{margin:0;font-size:15px;line-height:1.65;color:var(--ink,#14202F)}' +
+  '.hm-otd a{display:inline-flex;align-items:center;gap:6px;margin-top:6px;font-size:13px;font-weight:600;color:var(--brand,#2F5D8C);text-decoration:none}.hm-otd a:hover{text-decoration:underline}' +
+  '.hm-daily [hidden]{display:none!important}' +
+  '@media (max-width:760px){.hm-daily{grid-template-columns:1fr}.hm-wis blockquote{font-size:17px}}';
+  document.head.appendChild(st); })();
 function render(main){
   var company = companyRole(), scope = company ? (S.homeScope || 'company') : 'mine';
   var h = new Date(Date.now() + 180 * 60000).getUTCHours();
   main.innerHTML = '<div class="page v2"><header class="v3-hero hm-banner"><span class="v3-hero-ic">' + ph(h < 12 ? 'sun-horizon' : h < 17 ? 'sun' : 'moon-stars', 'duotone') + '</span><div><h1>' + greet() + '</h1><p>' + dateLine() + '</p></div>' +
     '<div class="v3-hero-stats">' + (company ? '<div class="hm-scope" role="group"><button type="button" data-sc="company" aria-pressed="' + (scope === 'company') + '">' + ph('buildings', 'duotone') + t('hmCompany') + '</button><button type="button" data-sc="mine" aria-pressed="' + (scope === 'mine') + '">' + ph('user', 'duotone') + t('hmMine') + '</button></div>' : '') + '</div></header>' +
-    quickRow() + '<div id="hmBody"></div></div>';
+    dailyHtml() + quickRow() + '<div id="hmBody"></div></div>';
+  loadOnThisDay($('#hmOtd', main));
   $$('[data-qk]', main).forEach(function(b){ b.onclick = function(){ var p = b.dataset.qk.split(':'); goArea(p[0], p[1]); }; });
   $$('[data-sc]', main).forEach(function(b){ b.onclick = function(){
     if (S.homeScope === b.dataset.sc || (!S.homeScope && b.dataset.sc === 'company')) return;
