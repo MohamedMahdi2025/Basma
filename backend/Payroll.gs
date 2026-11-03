@@ -1050,7 +1050,10 @@ function api_waTest(req, me) {
  */
 function api_orgImport(req) {
   platformKeyOk_(req);
-  var id = String(req.id || ''), month = String(req.month || ''), rows = Array.isArray(req.rows) ? req.rows : [];
+  return orgImport_(String(req.id || ''), String(req.month || ''), Array.isArray(req.rows) ? req.rows : []);
+}
+/** The import itself, for the console (above) and for a one-off run by the owner from the Apps Script editor. */
+function orgImport_(id, month, rows) {
   if (!PropertiesService.getScriptProperties().getProperty('ORG:' + id)) fail_('org_not_found');
   if (!/^\d{4}-\d{2}$/.test(month)) fail_('bad_date');
   if (!rows.length || rows.length > 2000) fail_('bad_request');
