@@ -50,8 +50,8 @@ function api_bootstrap(req) {
     if (hasAdmin_()) fail_('already_setup');
     var expected = (typeof SETUP_KEY_HASH === 'string') ? SETUP_KEY_HASH : '';
     if (!expected || !safeEqual_(sha256Hex_(String(req.setupKey || '').trim()), expected)) fail_('bad_setup_key');
-    var name = String(req.name || '').trim(), empNo = String(req.empNo || '').trim();
-    if (!name || !empNo) fail_('missing_fields');
+    var name = String(req.name || '').trim(), empNo = String(req.empNo || '').trim() || nextEmpNos_(1)[0];
+    if (!name) fail_('missing_fields');
     var now = new Date().toISOString();
     var emp = { id: newId_('E'), empNo: empNo, name: name, nameEn: String(req.nameEn || ''), email: String(req.email || ''),
       phone: '', department: 'Management', title: '', role: 'admin', status: 'active', zoneIds: '', shiftStart: '', shiftEnd: '',
@@ -87,6 +87,13 @@ function empByNo_(empNo) {
   if (!n) return null;
   var rows = readAll_(SHEETS.EMP);
   for (var i = 0; i < rows.length; i++) if (String(rows[i].empNo).trim() === n) return rows[i];
+  // the number alone ("42" or "1042") finds "WNS-0042" / "WNS-1042" when the organisation numbers with a prefix:
+  // phones keep the number pad at sign-in
+  var st = settings_(), px = String(st.empNoPrefix || '').trim();
+  if (px && /^\d+$/.test(n)) {
+    var want = px + n.padStart(Math.min(8, Math.max(1, Math.round(Number(st.empNoDigits) || 4))), '0');
+    for (i = 0; i < rows.length; i++) { var v = String(rows[i].empNo).trim(); if (v === want || v === px + n) return rows[i]; }
+  }
   return null;
 }
 

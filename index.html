@@ -2279,7 +2279,7 @@ var T = {
     e_device_not_recognised:'هذا الجهاز غير مربوط بحسابك', e_bad_signature:'تعذّر التحقق من البصمة', e_challenge_expired:'انتهت المهلة، حاول مجدداً', e_session_expired:'انتهت الجلسة', e_network:'تعذّر الاتصال بالخادم',
     e_bad_setup_key:'مفتاح التهيئة غير صحيح', e_duplicate_emp_no:'الرقم الوظيفي مستخدم', e_forbidden:'ليست لديك صلاحية', e_no_user_verification:'يلزم Face ID أو البصمة',
     e_cancelled:'أُلغيت عملية التحقق', e_no_passkey:'هذا المتصفح لا يدعم Face ID / البصمة. استخدم Safari أو Chrome حديثاً.', e_cannot_correct_self:'لا يمكنك تصحيح حضورك بنفسك', e_cannot_review_self:'لا يمكنك مراجعة حركتك بنفسك',
-    e_future_time:'لا يمكن التسجيل في وقت لاحق', e_bad_zone:'بيانات النطاق غير صحيحة', e_bad_radius:'نصف القطر بين 20 و 5000 م', e_missing_fields:'أكمل الحقول المطلوبة', e_bad_unn:'الرقم الوطني الموحد 10 أرقام ويبدأ بالرقم 7', e_unn_exists:'توجد منشأة بهذا الرقم الوطني الموحد', e_server_error:'خطأ في الخادم', e_generic:'حدث خطأ'
+    e_future_time:'لا يمكن التسجيل في وقت لاحق', e_bad_zone:'بيانات النطاق غير صحيحة', e_bad_radius:'نصف القطر بين 20 و 5000 م', e_missing_fields:'أكمل الحقول المطلوبة', empNoAuto:'يولد تلقائيا', empNoNextIs:'الرقم التالي: {n}', e_needs_owner_authorization:'يحتاج النظام موافقة مالك الحساب على صلاحية الاتصال الخارجي مرة واحدة (من محرر Apps Script).', setEmpNo:'أرقام الموظفين', setEmpNoLead:'يولد النظام رقم كل موظف جديد تلقائيا: البادئة ثم رقم متسلسل. يمكن للموظف الدخول بالرقم وحده دون البادئة.', setEmpNoPrefix:'البادئة (حروف إنجليزية أو أرقام، اختيارية)', setEmpNoDigits:'عدد الخانات', setEmpNoStart:'أول رقم', setEmpNoEx:'مثال: {n}', e_bad_unn:'الرقم الوطني الموحد 10 أرقام ويبدأ بالرقم 7', e_unn_exists:'توجد منشأة بهذا الرقم الوطني الموحد', e_server_error:'خطأ في الخادم', e_generic:'حدث خطأ'
   },
   en: {
     appName:'BASMA', company:'BASMA', gateTag:'Check in at head office with one tap, protected by your PIN.',
@@ -2340,7 +2340,7 @@ var T = {
     e_device_not_recognised:'This device is not linked to your account', e_bad_signature:'Biometric check could not be verified', e_challenge_expired:'Timed out, try again', e_session_expired:'Session ended', e_network:'Cannot reach the server',
     e_bad_setup_key:'Setup key is wrong', e_duplicate_emp_no:'Employee number already used', e_forbidden:'You do not have access', e_no_user_verification:'Face ID or fingerprint is required',
     e_cancelled:'Verification was cancelled', e_no_passkey:'This browser cannot use Face ID / fingerprint. Use an up-to-date Safari or Chrome.', e_cannot_correct_self:'You cannot correct your own attendance', e_cannot_review_self:'You cannot review your own punch',
-    e_future_time:'That time is in the future', e_bad_zone:'Zone details are invalid', e_bad_radius:'Radius must be 20 to 5000 m', e_missing_fields:'Fill in the required fields', e_bad_unn:'The unified national number is 10 digits starting with 7', e_unn_exists:'An organisation with this unified national number already exists', e_server_error:'Server error', e_generic:'Something went wrong'
+    e_future_time:'That time is in the future', e_bad_zone:'Zone details are invalid', e_bad_radius:'Radius must be 20 to 5000 m', e_missing_fields:'Fill in the required fields', empNoAuto:'Generated automatically', empNoNextIs:'Next number: {n}', e_needs_owner_authorization:'The system needs the account owner to approve the external-request permission once (in the Apps Script editor).', setEmpNo:'Employee numbers', setEmpNoLead:'The system gives every new employee the next number: the prefix, then a running number. People can sign in with the number alone, without the prefix.', setEmpNoPrefix:'Prefix (English letters or digits, optional)', setEmpNoDigits:'Digits', setEmpNoStart:'First number', setEmpNoEx:'Example: {n}', e_bad_unn:'The unified national number is 10 digits starting with 7', e_unn_exists:'An organisation with this unified national number already exists', e_server_error:'Server error', e_generic:'Something went wrong'
   }
 };
 
@@ -2805,6 +2805,18 @@ function gaugeSvg(){
     '<circle class="trk" cx="100" cy="100" r="80" transform="rotate(135 100 100)"/><circle class="val" cx="100" cy="100" r="80" transform="rotate(135 100 100)"/>' +
     '<g class="mk"><circle cx="180" cy="100" r="3.4"/></g></svg>');
 }
+/** A blank employee number is generated: the field says which number it will be. */
+function autoNoHints(scope){
+  var list = (scope || document).querySelectorAll('input[data-autono]:not([data-hinted])'); if (!list.length) return;
+  Array.prototype.forEach.call(list, function(i){ i.setAttribute('data-hinted', '1'); });
+  api('empNoNext', {}, true).then(function(r){ if (!r || !r.ok) return; Array.prototype.forEach.call(list, function(i){ if (document.body.contains(i)) i.placeholder = t('empNoNextIs').replace('{n}', r.empNo); }); });
+}
+/** Settings: the example number follows the prefix, digits and first number as they are typed. */
+function empNoExample(){
+  var ex = document.getElementById('empNoEx'), f = ex && ex.closest('form'); if (!f || ex.dataset.wired) { if (ex && f) paint(); return; } ex.dataset.wired = '1';
+  function paint(){ var d = Math.min(8, Math.max(1, Number(f.empNoDigits.value) || 4)); ex.textContent = t('setEmpNoEx').replace('{n}', (f.empNoPrefix.value || '').trim() + String(Number(f.empNoStart.value) || 1001).padStart(d, '0')); }
+  ['empNoPrefix', 'empNoDigits', 'empNoStart'].forEach(function(n){ f[n].addEventListener('input', paint); }); paint();
+}
 /** Show / hide on every password and PIN field, wherever it is drawn (sign-in, account, drawers). */
 function eyeify(scope){
   Array.prototype.forEach.call((scope || document).querySelectorAll('input[type="password"]:not([data-eye])'), function(inp){
@@ -2817,7 +2829,7 @@ function eyeify(scope){
     paint(); wrap.appendChild(b);
   });
 }
-(function(){ var busy = false; new MutationObserver(function(){ if (busy) return; busy = true; requestAnimationFrame(function(){ busy = false; eyeify(document); }); }).observe(document.documentElement, { childList: true, subtree: true }); })();
+(function(){ var busy = false; new MutationObserver(function(){ if (busy) return; busy = true; requestAnimationFrame(function(){ busy = false; eyeify(document); autoNoHints(document); empNoExample(); }); }).observe(document.documentElement, { childList: true, subtree: true }); })();
 
 // The company name arrives word by word (Arabic), then letter by letter (English).
 function wordmarkHtml(){
@@ -5329,7 +5341,7 @@ function empDrawer(e){
   var next = e ? '' : '<section class="fp-card"><h2>' + ph('flow-arrow') + t('neNext') + '</h2><ol class="fp-chain">' + [['floppy-disk', 'neStep1', 'neStep1s', 'now'], ['key', 'neStep2', 'neStep2s', 'off'], ['fingerprint', 'neStep3', 'neStep3s', 'off'], ['map-pin', 'neStep4', 'neStep4s', 'off']]
     .map(function(x){ return '<li class="' + x[3] + '"><span class="fp-dot">' + ph(x[0]) + '</span><div><b>' + t(x[1]) + '</b><small>' + t(x[2]) + '</small></div></li>'; }).join('') + '</ol></section>';
   var d = drawer('<form class="form" id="ef" novalidate><div class="fp-grid"><div class="fp-main">' +
-      '<section class="fp-card"><h2><span class="fp-n">1</span>' + t('neIdentity') + '</h2><div class="two">' + fld(t('empNo'), '<input name="empNo" required inputmode="numeric" dir="ltr" value="' + esc(e ? e.empNo : '') + '">') +
+      '<section class="fp-card"><h2><span class="fp-n">1</span>' + t('neIdentity') + '</h2><div class="two">' + fld(t('empNo'), '<input name="empNo" inputmode="numeric" dir="ltr" data-autono="1" placeholder="' + esc(t('empNoAuto')) + '" value="' + esc(e ? e.empNo : '') + '">') +
         fld(t('role'), '<select name="role">' + roles.map(function(x){ return '<option value="' + x + '"' + (e && e.role === x ? ' selected' : '') + '>' + t('r_' + x) + '</option>'; }).join('') + '</select>') + '</div>' +
         fld(t('fullName'), '<input name="name" required value="' + esc(e ? e.name : '') + '">', t('neNameHint')) + fld(t('nameEn'), '<input name="nameEn" dir="ltr" value="' + esc(e ? e.nameEn : '') + '">') +
         (e ? fld(t('status'), '<select name="status"><option value="active">' + t('s_active') + '</option><option value="disabled"' + (e.status === 'disabled' ? ' selected' : '') + '>' + t('s_disabled') + '</option></select>') : '') + '</section>' +
@@ -5540,6 +5552,8 @@ function admSettings(){
         '<div class="two" style="max-width:820px">' + co('companyNameAr', t('coNameAr'), ' required maxlength="80"') + co('companyNameEn', t('coNameEn'), ' required maxlength="80" dir="ltr"') + '</div>' +
         '<div class="two" style="max-width:820px">' + co('companyShortAr', t('coShortAr'), ' required maxlength="30"') + co('companyShortEn', t('coShortEn'), ' required maxlength="30" dir="ltr"') + '</div>' +
         '<div class="two" style="max-width:820px">' + co('companyUnn', t('coUnn'), ' inputmode="numeric" maxlength="10" pattern="7[0-9]{9}" dir="ltr"') + co('companyCr', t('coCr'), ' inputmode="numeric" maxlength="10" pattern="[0-9]{10}" dir="ltr"') + co('companyVat', t('coVat'), ' inputmode="numeric" maxlength="15" pattern="3[0-9]{13}3" dir="ltr"') + '</div>' +
+        '<h3 style="margin:18px 0 4px">' + t('setEmpNo') + '</h3><p class="hr-hint" style="margin:0 0 8px">' + t('setEmpNoLead') + ' <b id="empNoEx" dir="ltr"></b></p>' +
+        '<div class="two" style="max-width:820px">' + co('empNoPrefix', t('setEmpNoPrefix'), ' maxlength="10" pattern="[A-Za-z0-9-]{0,10}" dir="ltr"') + co('empNoDigits', t('setEmpNoDigits'), ' type="number" min="1" max="8" dir="ltr"') + co('empNoStart', t('setEmpNoStart'), ' type="number" min="1" dir="ltr"') + '</div>' +
         '<div class="two" style="max-width:820px">' + co('companyAddressAr', t('coAddrAr'), ' maxlength="200"') + co('companyAddressEn', t('coAddrEn'), ' maxlength="200" dir="ltr"') + '</div>' +
         // the company's own logo: medallion, sidebar and every printed document (one design, its own mark)
         '<div class="co-logo"><img id="coLogoImg" alt="" src="' + brandMark() + '"><div><b>' + t('coLogo') + '</b><p class="hr-hint" style="margin:2px 0 8px">' + t('coLogoLead') + '</p>' +
@@ -5597,7 +5611,7 @@ function admSettings(){
         ramadanFrom: f.ramadanFrom.value, ramadanTo: f.ramadanTo.value, ramadanHours: Number(f.ramadanHours.value), permissionMaxHours: Number(f.permissionMaxHours.value), permissionMonthHours: Number(f.permissionMonthHours.value), perDiemInside: Number(f.perDiemInside.value), perDiemAbroad: Number(f.perDiemAbroad.value), overtimeYearHours: Number(f.overtimeYearHours.value), summerBanFrom: f.summerBanFrom.value.trim(), summerBanTo: f.summerBanTo.value.trim(),
         summerBanStart: f.summerBanStart.value, summerBanEnd: f.summerBanEnd.value,
         companyNameAr: f.companyNameAr.value, companyNameEn: f.companyNameEn.value, companyShortAr: f.companyShortAr.value, companyShortEn: f.companyShortEn.value,
-        companyUnn: f.companyUnn.value.trim(), companyCr: f.companyCr.value.trim(), companyVat: f.companyVat.value.trim(), companyAddressAr: f.companyAddressAr.value, companyAddressEn: f.companyAddressEn.value } })
+        empNoPrefix: f.empNoPrefix.value.trim(), empNoDigits: Number(f.empNoDigits.value) || 4, empNoStart: Number(f.empNoStart.value) || 1001, companyUnn: f.companyUnn.value.trim(), companyCr: f.companyCr.value.trim(), companyVat: f.companyVat.value.trim(), companyAddressAr: f.companyAddressAr.value, companyAddressEn: f.companyAddressEn.value } })
         .then(function(x){
           if (x.ok) {
             var n = x.settings || {};

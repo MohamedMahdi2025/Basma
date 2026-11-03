@@ -446,8 +446,7 @@ function api_recruitHire(req, me) {
   if (!c || !q) fail_('not_found');
   var code = null, steps = [];
   if (!o.empId) {
-    var empNo = str_(req.empNo, 30);
-    if (!empNo) fail_('missing_fields');
+    var empNo = str_(req.empNo, 30) || nextEmpNos_(1)[0]; // blank: the organisation's next employee number
     var created = api_empSave({ emp: { empNo: empNo, name: c.name, nameEn: c.nameEn, email: c.email, phone: String(c.phone || ''), title: o.titleAr, role: 'employee',
       zoneIds: str_(req.zoneIds, 200) } }, me);
     code = created.activationCode;

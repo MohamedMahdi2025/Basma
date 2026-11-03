@@ -69,13 +69,15 @@ function api_empList(req, me) {
   return { ok: true, rows: rows };
 }
 
+/** The number the next new employee will get (shown in the form before saving). */
+function api_empNoNext(req, me) { return { ok: true, empNo: nextEmpNos_(1)[0] }; }
 function api_empSave(req, me) {
   var d = req.emp || {};
   return withLock_(function () {
     var all = readAll_(SHEETS.EMP);
     var emp = d.id ? all.filter(function (e) { return e.id === d.id; })[0] : null;
     if (d.id && !emp) fail_('not_found');
-    var empNo = str_(d.empNo, 30);
+    var empNo = str_(d.empNo, 30) || (emp ? String(emp.empNo) : nextEmpNos_(1, all)[0]); // blank on a new employee: the next number
     var name = str_(d.name, 80);
     if (!empNo || !name) fail_('missing_fields');
     if (all.some(function (e) { return String(e.empNo).trim() === empNo && (!emp || e.id !== emp.id); })) fail_('duplicate_emp_no');
@@ -304,6 +306,9 @@ function api_settingsSave(req, me) {
   if (d.allowDesktop !== undefined) next.allowDesktop = !!d.allowDesktop;
   if (d.allowPasswordPunch !== undefined) next.allowPasswordPunch = !!d.allowPasswordPunch;
   if (d.maxAccuracyDesktop !== undefined) next.maxAccuracyDesktop = Math.max(20, Math.min(1000, Math.round(Number(d.maxAccuracyDesktop) || 150)));
+  if (d.empNoPrefix !== undefined) { var px = String(d.empNoPrefix == null ? '' : d.empNoPrefix).trim(); if (!/^[A-Za-z0-9-]{0,10}$/.test(px)) return { ok: false, error: 'bad_setting', key: 'empNoPrefix' }; next.empNoPrefix = px; }
+  if (d.empNoDigits !== undefined) { var dg = Math.round(Number(d.empNoDigits)); if (!(dg >= 1 && dg <= 8)) return { ok: false, error: 'bad_setting', key: 'empNoDigits' }; next.empNoDigits = dg; }
+  if (d.empNoStart !== undefined) { var st = Math.round(Number(d.empNoStart)); if (!(st >= 1 && st <= 99999999)) return { ok: false, error: 'bad_setting', key: 'empNoStart' }; next.empNoStart = st; }
   var bad = hrSettings_(d, next) || companySettings_(d, next);
   if (bad) return { ok: false, error: 'bad_setting', key: bad };
   return withLock_(function () {

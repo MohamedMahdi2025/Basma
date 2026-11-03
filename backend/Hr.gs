@@ -634,7 +634,7 @@ function api_hrExpiring(req, me) {
 
 // ---------------- Excel import ----------------
 
-var IMPORT_REQUIRED = ['empNo', 'nameAr', 'department', 'position', 'hireDate', 'nationality', 'nationalId', 'basic'];
+var IMPORT_REQUIRED = ['nameAr', 'department', 'position', 'hireDate', 'nationality', 'nationalId', 'basic'];
 var IMPORT_DATES = ['hireDate', 'idExpiry', 'birthDate', 'contractEnd', 'probationEnd', 'passportExpiry', 'leaveOpeningDate'];
 
 function validateImport_(rows, ctx, me) {
@@ -653,6 +653,7 @@ function validateImport_(rows, ctx, me) {
     var r = {};
     Object.keys(raw || {}).forEach(function (k) { r[k] = typeof raw[k] === 'string' ? raw[k].trim() : raw[k]; });
     r.empNo = String(r.empNo == null ? '' : r.empNo).trim();
+    if (!r.empNo) { if (!ctx.autoNos) ctx.autoNos = nextEmpNos_(rows.length, Object.keys(ctx.emps).map(function (k) { return ctx.emps[k]; })); r.empNo = ctx.autoNos[ctx.autoUsed = (ctx.autoUsed || 0) + 1, ctx.autoUsed - 1]; r._autoNo = true; }
     IMPORT_REQUIRED.forEach(function (k) { if (r[k] === '' || r[k] == null) e(k, 'required'); });
     if (r.empNo) { if (seenNo[r.empNo]) e('empNo', 'duplicate_emp_no'); else seenNo[r.empNo] = line; }
     var ex = existingByNo[r.empNo];

@@ -499,6 +499,9 @@ var DEFAULT_SETTINGS = {
   payOvertimeFromAttendance: false, // overtime hours from punches; off = HR enters approved hours
   saudizationTarget: '',           // the Nitaqat % the company must reach (from the Qiwa calculator), shown on the dashboard
   eosWageBasis: 'total',            // end of service on the total wage, or 'basic_housing'
+  empNoPrefix: '',           // employee numbers: letters/digits before the number (e.g. WNS-), empty = digits only
+  empNoDigits: 4,            // the number is padded to this many digits (0042); it grows past them when needed
+  empNoStart: 1001,          // the first number handed out; later ones follow the highest already used with the prefix
   refPrefixes: '',           // JSON to rename prefixes, e.g. {"leave":"VAC"}; empty keeps the defaults
   shiftStart: '08:00',
   shiftEnd: '17:00',
@@ -652,6 +655,18 @@ function nextRefs_(kind, n, taken) {
 }
 function nextRef_(kind, taken) { return nextRefs_(kind, 1, taken)[0]; }
 
+/** The next n employee numbers of this organisation: empNoPrefix + a number padded to empNoDigits, one above the highest
+ *  number already used with that prefix and never below empNoStart. Read from the employees themselves under the lock,
+ *  so a number typed by hand or imported is never handed out again and nothing drifts. */
+function nextEmpNos_(n, emps) {
+  var s = settings_(), prefix = String(s.empNoPrefix || '').trim(), digits = Math.min(8, Math.max(1, Math.round(Number(s.empNoDigits) || 4)));
+  var start = Math.max(1, Math.round(Number(s.empNoStart) || 1001)), quoted = prefix.replace(/[.*+?^${}()|[\]\\]/g, function (c) { return '\\' + c; });
+  var re = new RegExp('^' + quoted + '(\\d+)$'), max = start - 1, taken = {}, out = [];
+  (emps || readAll_(SHEETS.EMP)).forEach(function (e) { var v = String(e.empNo == null ? '' : e.empNo).trim(); if (!v) return; taken[v] = 1; var m = v.match(re); if (m) max = Math.max(max, Number(m[1])); });
+  while (out.length < (n || 1)) { max++; var no = prefix + String(max).padStart(digits, '0'); if (!taken[no]) { taken[no] = 1; out.push(no); } }
+  return out;
+}
+
 function newId_(prefix) {
   return (prefix || '') + bytesToB64u_(randomBytes_(9));
 }
@@ -799,7 +814,7 @@ function sheetsFetch_(method, url, body) {
   var o = { method: method, muteHttpExceptions: true, headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken() } };
   if (body !== undefined) { o.contentType = 'application/json'; o.payload = JSON.stringify(body); }
   var r = UrlFetchApp.fetch(url, o), code = r.getResponseCode(), txt = r.getContentText();
-  if (code >= 300) { console.error('sheets api ' + code + ': ' + String(txt).slice(0, 300)); fail_(code === 404 ? 'org_book_missing' : 'org_book_error'); }
+  if (code >= 300) { console.error('sheets api ' + code + ': ' + String(txt).slice(0, 300)); var gm = ''; try { gm = (JSON.parse(txt).error || {}).message || ''; } catch (e) { } FAIL_DETAIL_ = code + ' ' + String(gm || txt).slice(0, 240); fail_(code === 404 ? 'org_book_missing' : 'org_book_error'); }
   return txt ? JSON.parse(txt) : {};
 }
 function colA1_(n) { var s = ''; while (n > 0) { var m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = Math.floor((n - 1) / 26); } return s; }
@@ -885,12 +900,13 @@ function platformKeyOk_(req) {
   if (!expected || !safeEqual_(sha256Hex_(String(req.setupKey || '').trim()), expected)) fail_('bad_setup_key');
   PLATFORM_OK_ = true;
 }
+var FAIL_DETAIL_ = ''; // what Google said, for the platform owner only
 var PLATFORM_OK_ = false; // set once the setup key matched: then a server error carries its message (owner only)
 /** A new organisation: a new spreadsheet of its own, a new Org ID, and a one-time code for its first administrator. */
 function api_orgCreate(req) {
   platformKeyOk_(req);
   var nameAr = str_(req.nameAr, 120), nameEn = str_(req.nameEn, 120), cr = String(req.cr || '').replace(/\D/g, ''), unn = String(req.unn || '').replace(/\D/g, '');
-  if (!nameAr || !unn || !str_(req.adminName, 80) || !str_(req.adminEmpNo, 20)) fail_('missing_fields');
+  if (!nameAr || !unn || !str_(req.adminName, 80)) fail_('missing_fields');
   if (!/^7\d{9}$/.test(unn)) fail_('bad_unn'); // the unified national number of a Saudi establishment: 10 digits, starts with 7
   if (cr && cr.length !== 10) fail_('bad_cr');
   var p = PropertiesService.getScriptProperties(), lock = LockService.getScriptLock(); lock.waitLock(20000);
@@ -916,7 +932,7 @@ function api_orgCreate(req) {
     try { var fr = parseJson_(p.getProperty('ORG:' + id), {}); fr.status = 'failed'; fr.error = String(e && e.message || e).slice(0, 200); p.setProperty('ORG:' + id, JSON.stringify(fr)); } catch (x) { }
     throw e;
   }
-  return { ok: true, orgId: id, nameAr: nameAr, activationCode: b.activationCode, adminEmpNo: String(req.adminEmpNo) };
+  return { ok: true, orgId: id, nameAr: nameAr, activationCode: b.activationCode, adminEmpNo: String(b.empNo) };
 }
 function orgAll_() {
   var p = PropertiesService.getScriptProperties().getProperties(), out = [];
@@ -1038,7 +1054,7 @@ var EMP_ACTIONS = { cwList: 1, cwSave: 1, cwEnd: 1, cwAgencySave: 1, cwHoursSave
   myInsurance: 1, insDependantRequest: 1, insList: 1, insCost: 1,
   myAnnouncements: 1, annRead: 1,
   hdCreate: 1, hdMine: 1, hdList: 1, hdGet: 1, hdReply: 1, hdAssign: 1, hdStatus: 1, hdRate: 1 };
-var HR_ACTIONS = { flowPreview: 1, perkSave: 1, welcomeSave: 1, careerPathSave: 1, rolesOverview: 1, kbSave: 1, kbSeed: 1, careerPostList: 1, careerPostSave: 1, resignationDefer: 1, recruitReqClose: 1, recruitCandSave: 1, recruitCandStage: 1, recruitInterviewSave: 1, recruitOfferSave: 1, recruitOfferSend: 1, recruitOfferRespond: 1,
+var HR_ACTIONS = { empNoNext: 1, flowPreview: 1, perkSave: 1, welcomeSave: 1, careerPathSave: 1, rolesOverview: 1, kbSave: 1, kbSeed: 1, careerPostList: 1, careerPostSave: 1, resignationDefer: 1, recruitReqClose: 1, recruitCandSave: 1, recruitCandStage: 1, recruitInterviewSave: 1, recruitOfferSave: 1, recruitOfferSend: 1, recruitOfferRespond: 1,
   recruitOfferLetter: 1, recruitHire: 1, courseSave: 1, trainSessionSave: 1, trainMark: 1, certRecord: 1, insPolicySave: 1, insPolicyList: 1, insMemberAdd: 1,
   insMemberDelete: 1, insMoveStep: 1, annSave: 1, annPublish: 1, annArchive: 1, annList: 1, flowList: 1, flowSave: 1, flowSettingsSave: 1, leaveCycleOpen: 1, discNotice: 1, govVisaIssue: 1, govVisaCancel: 1, govFinalExit: 1, ticketSave: 1, ticketUse: 1, assetSave: 1, assetAssign: 1, assetReturn: 1, clearanceStart: 1, discCodesSave: 1, discHearing: 1, discDecide: 1, discObjectionDecide: 1, injuryUpdate: 1, shiftSave: 1, rosterSave: 1, rosterDelete: 1, onboardStart: 1, surveySave: 1, surveyClose: 1, policySave: 1, planClose: 1, perfCycleSave: 1, perfCycleList: 1, perfCycleStage: 1, perfOverview: 1, perfCalibrate: 1, feedbackLaunch: 1, hrBootstrap: 1, holidaySave: 1, holidayDelete: 1, leaveBalances: 1, leaveOpeningSave: 1, hrDirectory: 1, hrDeptList: 1, hrDeptSave: 1, hrPositionList: 1, hrPositionSave: 1, hrEmpSave: 1,
   hrPrivateSave: 1, hrImportValidate: 1, hrImportCommit: 1, hrDocList: 1, hrDocSave: 1, hrExpiring: 1, empPasswordReset: 1, board: 1, empList: 1, zoneList: 1, report: 1, reviewList: 1, reviewDecide: 1, manualPunch: 1, auditList: 1, settingsGet: 1, empSave: 1, empActivation: 1 };
@@ -1083,8 +1099,9 @@ function handle_(req) {
     return { ok: false, error: 'forbidden' };
   } catch (err) {
     var msg = String(err && err.message || err);
-    if (msg.indexOf('E:') === 0) return { ok: false, error: msg.slice(2) };
+    if (msg.indexOf('E:') === 0) return PLATFORM_OK_ && FAIL_DETAIL_ ? { ok: false, error: msg.slice(2), detail: FAIL_DETAIL_ } : { ok: false, error: msg.slice(2) };
     console.error(action + ': ' + msg + '\n' + (err && err.stack));
+    if (/UrlFetchApp|script\.external_request/.test(msg)) return PLATFORM_OK_ ? { ok: false, error: 'needs_owner_authorization', detail: msg.slice(0, 300) } : { ok: false, error: 'server_error' };
     return PLATFORM_OK_ ? { ok: false, error: 'server_error', detail: msg.slice(0, 300) } : { ok: false, error: 'server_error' };
   }
 }

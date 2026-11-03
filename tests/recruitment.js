@@ -116,7 +116,7 @@ console.log('Hire');
 ok(call('3001', 'recruitHire', { offerId: O1.id, empNo: '7001' }).error === 'not_found', 'not before the candidate accepts');
 ok(call('3001', 'recruitOfferRespond', { id: O1.id, response: 'accepted', note: 'وقع على العرض' }).ok, 'the candidate accepts');
 ok(call('3001', 'myTasks').tasks.some(t => t.kind === 'recruit_hire' && t.count === 1), 'HR is asked to hire');
-ok(call('3001', 'recruitHire', { offerId: O1.id }).error === 'missing_fields', 'the employee number is required');
+ok(/^\d+$/.test(call('3001', 'empNoNext', {}).empNo || ''), 'a blank number on hire is filled by the next one (the form shows it)');
 ok(call('3001', 'recruitHire', { offerId: O1.id, empNo: '5002' }).error === 'duplicate_emp_no', 'an employee number in use is refused');
 r = call('3001', 'recruitHire', { offerId: O1.id, empNo: '7001' });
 ok(r.ok && r.activationCode && r.packagePending && /^SAL-2026-/.test(r.compRef) && r.steps.join() === 'employee,job,package_pending,onboarding', 'hired: employee 7001, job, package pending approval, onboarding plan', r);
