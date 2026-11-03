@@ -754,7 +754,7 @@ function platformSection(body){
       $('#plN', el).onclick = function(){
         K.formDrawer(t('plNew'), '', K.fld(t('plNameAr'), '<input name="nameAr" required maxlength="120">') + K.fld(t('plNameEn'), '<input name="nameEn" maxlength="120" dir="ltr">') +
           K.fld(t('plUnn'), '<input name="unn" required inputmode="numeric" maxlength="10" pattern="7\\d{9}" title="' + esc(t('plUnnHint')) + '" dir="ltr">') + K.fld(t('plCr'), '<input name="cr" inputmode="numeric" maxlength="10" pattern="\\d{10}" dir="ltr">') + K.fld(t('plAdmin'), '<input name="adminName" required maxlength="80">') +
-          K.fld(t('plAdminNo'), '<input name="adminEmpNo" maxlength="20" inputmode="numeric" dir="ltr" placeholder="' + esc(t('empNoAuto')) + '">') + K.fld(t('plAdminEmail'), '<input name="adminEmail" type="email" dir="ltr">'),
+          K.fld(t('plAdminEmail'), '<input name="adminEmail" type="email" dir="ltr">'),
           function(v){ v.setupKey = key; return api('orgCreate', v); },
           function(x){
             load();

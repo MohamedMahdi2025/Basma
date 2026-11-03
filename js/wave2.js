@@ -918,8 +918,8 @@ function candDrawer(id, again){
     off('data-on', function(b, o){ b.onclick = function(){ d.remove(); noteDrawer(t('rcDeclined'), '<bdi>' + esc(o.ref) + '</bdi>', function(note){ return api('recruitOfferRespond', { id: o.id, response: 'declined', note: note }); }, re, false); }; });
     off('data-ol', function(b, o){ b.onclick = function(){ offerLetter(o); }; });
     off('data-oh', function(b, o){ b.onclick = function(){ d.remove();
-      formDrawer(t('rcHire'), esc(c.name) + sep() + '<bdi>' + esc(o.ref) + '</bdi>', o.empId ? '' : fld(t('rcEmpNo'), '<input name="empNo" dir="ltr" maxlength="30" data-autono="1" placeholder="' + esc(t('empNoAuto')) + '">'),
-        function(v){ return api('recruitHire', { offerId: o.id, empNo: v.empNo }); },
+      formDrawer(t('rcHire'), esc(c.name) + sep() + '<bdi>' + esc(o.ref) + '</bdi>', o.empId ? '' : fld(t('rcEmpNo'), '<input class="ro-no" readonly aria-readonly="true" tabindex="-1" dir="ltr" data-autono="1" placeholder="' + esc(t('empNoAuto')) + '">') + '<small class="ro-hint">' + t('empNoBySystem') + '</small>',
+        function(v){ return api('recruitHire', { offerId: o.id }); },
         function(y){ drawer('<h3>' + t('rcHire') + '</h3><p>' + t('rcHired') + ' <b class="num" dir="ltr">' + esc(y.activationCode || '-') + '</b></p>' + (y.packagePending ? '<p class="hr-hint">' + t('rcPkgPending') + ' <bdi>' + esc(y.compRef) + '</bdi></p>' : '')); re(); }, t('rcHire')); }; });
   });
 }
