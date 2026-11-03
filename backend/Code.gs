@@ -1134,7 +1134,7 @@ function hrisHook_(kind, fn) { (HRIS_HOOKS_[kind] = HRIS_HOOKS_[kind] || []).pus
 function hrisHooks_(kind) { return HRIS_HOOKS_[kind] || []; }
 
 /** Run once from the Apps Script editor so Google asks the owner to approve the sheet access. */
-function authorize() { ss_(); sheet_(SHEETS.EMP); DriveApp_touch_(); UrlFetchApp.fetch("https://sheets.googleapis.com/$discovery/rest?version=v4", { muteHttpExceptions: true }); return "ok"; }
+function authorize() { if (ScriptApp.requireAllScopes) ScriptApp.requireAllScopes(ScriptApp.AuthMode.FULL); ss_(); sheet_(SHEETS.EMP); DriveApp_touch_(); UrlFetchApp.fetch("https://sheets.googleapis.com/$discovery/rest?version=v4", { muteHttpExceptions: true }); return "ok"; }
 
 /** Nothing to do: a reference that keeps drive.file on the consent screen. */
 function DriveApp_touch_() { return 'drive.file'; }
