@@ -20,13 +20,13 @@ B.raw({ action: 'settingsSave', token: H.token, settings: { companyNameAr: 'شر
 
 console.log('A new organisation gets its own spreadsheet');
 ok(B.raw({ action: 'orgCreate', setupKey: 'bad', nameAr: 'x', adminName: 'y', adminEmpNo: '1' }).error === 'bad_setup_key', 'only the platform owner (setup key) creates an organisation');
-const c = B.raw({ action: 'orgCreate', setupKey: 'k', nameAr: 'شركة النخبة', nameEn: 'Elite Co', unn: '7001234567', cr: '1010123456', adminName: 'مدير النخبة', adminEmpNo: '1000' });
+const c = B.raw({ action: 'orgCreate', setupKey: 'k', logo: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', color: '#1E6B3F', accent: '#C98500', nameAr: 'شركة النخبة', nameEn: 'Elite Co', unn: '7001234567', cr: '1010123456', adminName: 'مدير النخبة', adminEmpNo: '1000' });
 ok(c.ok && c.orgId === '1002' && c.activationCode, 'the platform creates organisation 1002 with a code for its first administrator', c);
 ok(Object.keys(B.books).length === 1 && B.books.book1.tabs.employees && B.books.book1.tabs.employees._rows.length === 2, 'its data lives in a new spreadsheet of its own (header + its administrator)', Object.keys(B.books.book1.tabs).length);
-ok(B.raw({ action: 'orgCreate', setupKey: 'k', nameAr: 'نسخة', unn: '7009999999', cr: '1010123456', adminName: 'a', adminEmpNo: '1' }).error === 'cr_exists', 'one organisation per CR');
-ok(B.raw({ action: 'orgCreate', setupKey: 'k', nameAr: 'نسخة', unn: '7001234567', adminName: 'a', adminEmpNo: '1' }).error === 'unn_exists', 'one organisation per unified national number');
-ok(B.raw({ action: 'orgCreate', setupKey: 'k', nameAr: 'نسخة', adminName: 'a', adminEmpNo: '1' }).error === 'missing_fields', 'the unified national number is required');
-ok(B.raw({ action: 'orgCreate', setupKey: 'k', nameAr: 'نسخة', unn: '1010651570', adminName: 'a', adminEmpNo: '1' }).error === 'bad_unn', 'a unified number that does not start with 7 (an old CR) is refused');
+ok(B.raw({ action: 'orgCreate', setupKey: 'k', logo: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', color: '#1E6B3F', accent: '#C98500', nameAr: 'نسخة', unn: '7009999999', cr: '1010123456', adminName: 'a', adminEmpNo: '1' }).error === 'cr_exists', 'one organisation per CR');
+ok(B.raw({ action: 'orgCreate', setupKey: 'k', logo: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', color: '#1E6B3F', accent: '#C98500', nameAr: 'نسخة', unn: '7001234567', adminName: 'a', adminEmpNo: '1' }).error === 'unn_exists', 'one organisation per unified national number');
+ok(B.raw({ action: 'orgCreate', setupKey: 'k', logo: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', color: '#1E6B3F', accent: '#C98500', nameAr: 'نسخة', adminName: 'a', adminEmpNo: '1' }).error === 'missing_fields', 'the unified national number is required');
+ok(B.raw({ action: 'orgCreate', setupKey: 'k', logo: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', color: '#1E6B3F', accent: '#C98500', nameAr: 'نسخة', unn: '1010651570', adminName: 'a', adminEmpNo: '1' }).error === 'bad_unn', 'a unified number that does not start with 7 (an old CR) is refused');
 const E = enroll('1002', '1000', c.activationCode);
 ok(E.token && E.me.role === 'admin', 'its administrator enrols with Org ID 1002 and the same employee number as the other company', E.f);
 

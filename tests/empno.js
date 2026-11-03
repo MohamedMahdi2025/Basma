@@ -42,7 +42,7 @@ const R2 = B.raw({ action: 'authBegin', orgId: '1001', empNo: 'WNS-0001' });
 ok(R2.ok, 'the full number works too');
 
 console.log('Each organisation numbers its own people');
-const c = B.raw({ action: 'orgCreate', setupKey: 'k', nameAr: 'منشأة', unn: '7001112223', adminName: 'مدير' });
+const c = B.raw({ action: 'orgCreate', setupKey: 'k', logo: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', color: '#1E6B3F', accent: '#C98500', nameAr: 'منشأة', unn: '7001112223', adminName: 'مدير' });
 ok(c.ok && c.adminEmpNo === '1001', 'a new organisation without a number for its administrator: 1001 in its own books', c);
 
 console.log('\n' + passed + ' passed, ' + failed + ' failed');

@@ -745,7 +745,7 @@ function rateLimit_(key, max, seconds) {
 // Best Gas): its keys are unprefixed, so nothing of the live system moved.
 var ORG_ = null, ORG_SS_ = null;
 var ORG_REQUIRED_ = { ssoLogin: 1, authBegin: 1, enrollBegin: 1, pwLogin: 1, adminRecover: 1, bootstrap: 1, orgCheck: 1 };
-var PLATFORM_ACTIONS_ = { orgImport: 1, platformHealth: 1, orgCreate: 1, orgList: 1, orgSetStatus: 1, orgSetGroup: 1, orgOverview: 1 };
+var PLATFORM_ACTIONS_ = { orgBrandSet: 1, orgImport: 1, platformHealth: 1, orgCreate: 1, orgList: 1, orgSetStatus: 1, orgSetGroup: 1, orgOverview: 1 };
 function homeOrgId_() { return PropertiesService.getScriptProperties().getProperty('HOME_ORG_ID') || CONFIG.HOME_ORG_ID; }
 function orgRec_(id) {
   id = String(id || '');
@@ -926,6 +926,7 @@ function api_orgCreate(req) {
   if (!nameAr || !unn || !str_(req.adminName, 80)) fail_('missing_fields');
   if (!/^7\d{9}$/.test(unn)) fail_('bad_unn'); // the unified national number of a Saudi establishment: 10 digits, starts with 7
   if (cr && cr.length !== 10) fail_('bad_cr');
+  var brand = brandFromReq_(req); // the logo is required: the organisation's whole theme is built from it
   var p = PropertiesService.getScriptProperties(), lock = LockService.getScriptLock(); lock.waitLock(20000);
   try {
     var all = orgAll_().filter(function (o) { return o.status !== 'deleted' && o.status !== 'failed'; }); // a failed attempt does not block its retry
@@ -943,6 +944,7 @@ function api_orgCreate(req) {
     withLock_(function () {
       // its own names everywhere: the short names too, or the defaults (the home company's) would show
       [['companyNameAr', nameAr], ['companyNameEn', nameEn || nameAr], ['companyShortAr', nameAr.slice(0, 30)], ['companyShortEn', (nameEn || nameAr).slice(0, 30)], ['companyUnn', unn], ['companyCr', cr]].forEach(function (kv) { if (kv[1]) append_(SHEETS.SET, { key: kv[0], value: kv[1] }); });
+      brandSet_(brand, 'platform'); // its logo and the two colours read from it
     });
     b = api_bootstrap({ setupKey: req.setupKey, name: req.adminName, empNo: req.adminEmpNo, nameEn: req.adminNameEn, email: req.adminEmail });
   } catch (e) {
@@ -1043,7 +1045,7 @@ function doPost(e) {
   return json_(handle_(req));
 }
 
-var PUBLIC_ACTIONS = { orgImport: 1, platformHealth: 1, ssoLogin: 1, devicePunch: 1, orgLogo: 1, apiQuery: 1, orgCreate: 1, orgList: 1, orgSetStatus: 1, orgSetGroup: 1, orgOverview: 1, orgCheck: 1, kioskPing: 1, careersList: 1, careersApply: 1,
+var PUBLIC_ACTIONS = { orgBrandSet: 1, orgImport: 1, platformHealth: 1, ssoLogin: 1, devicePunch: 1, orgLogo: 1, apiQuery: 1, orgCreate: 1, orgList: 1, orgSetStatus: 1, orgSetGroup: 1, orgOverview: 1, orgCheck: 1, kioskPing: 1, careersList: 1, careersApply: 1,
   ping: 1, bootstrapStatus: 1, bootstrap: 1, enrollBegin: 1, enrollFinish: 1,
   authBegin: 1, authFinish: 1, punchBegin: 1, punchFinish: 1, adminRecover: 1, pwLogin: 1, pinChange: 1, diag: 1, demoData: 1
 };

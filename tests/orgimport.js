@@ -7,8 +7,13 @@ function ok(c, name, extra) { if (c) { passed++; console.log('  ok  ' + name); }
 const sha = s => crypto.createHash('sha256').update(s).digest('hex');
 const B = load({ setupKeyHash: sha('k'), now: Date.parse('2026-11-03T06:00:00Z') });
 B.raw({ action: 'bootstrap', orgId: '1001', setupKey: 'k', name: 'مدير', empNo: '1000' });
-const org = B.raw({ action: 'orgCreate', setupKey: 'k', nameAr: 'ونس', unn: '7056469011', adminName: 'صبحي' });
+const org = B.raw({ action: 'orgCreate', setupKey: 'k', logo: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', color: '#1E6B3F', accent: '#C98500', nameAr: 'ونس', unn: '7056469011', adminName: 'صبحي' });
 ok(org.ok, 'organisation created', org);
+ok(B.raw({ action: 'orgCreate', setupKey: 'k', nameAr: 'بلا شعار', unn: '7000000001', adminName: 'م' }).error === 'logo_required', 'a new organisation needs its logo');
+const chk = B.raw({ action: 'orgCheck', orgId: org.orgId });
+ok(chk.ok && chk.logoVer && chk.brandColor === '#1E6B3F' && chk.brandAccent === '#C98500', 'it is born with its logo and the two colours read from it', chk);
+const set = B.raw({ action: 'orgBrandSet', setupKey: 'k', id: org.orgId, logo: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', color: '#2F5D8C', accent: '' });
+ok(set.ok && B.raw({ action: 'orgCheck', orgId: org.orgId }).brandColor === '#2F5D8C', 'the platform owner can change an organisation logo and theme later');
 const rows = [
   { branch: 'الإدارة العامة', empNo: '', name: 'حسين', days: 30, basic: 12000, housing: 0, transport: 0, net: 12000 },
   { branch: 'فرع 1 - كافيه', empNo: '6', name: 'رقيب', days: 27, basic: 1700, absence: 170, fine: 28, advance: 100, net: 1402 },

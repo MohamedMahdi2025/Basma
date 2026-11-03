@@ -735,6 +735,34 @@ function api_orgLogo() {
   var r = brandRow_('logo');
   return { ok: true, orgId: orgId_(), ver: logoVer_(), logo: r ? String(r.value) : '', home: !!(ORG_ && ORG_.home) };
 }
+/** Writes branding rows (logo, logoVer, color, accent) of the current organisation and refreshes their cached copies. */
+function brandSet_(pairs, by) {
+  var now = new Date().toISOString(), c = cache_();
+  pairs.forEach(function (kv) {
+    var r = brandRow_(kv[0]);
+    if (r) { r.value = kv[1]; r.updatedAt = now; r.updatedBy = by; update_(SHEETS.BRAND, r); }
+    else append_(SHEETS.BRAND, { key: kv[0], value: kv[1], updatedAt: now, updatedBy: by });
+    c.put(kv[0] === 'logoVer' ? 'logo:ver' : 'brand:' + kv[0], kv[1], 21600);
+  });
+}
+/** A logo and its two colours, checked: what a new organisation is born with and what the platform owner can set later. */
+function brandFromReq_(req) {
+  var logo = String(req.logo || ''), color = String(req.color || '').toUpperCase(), accent = String(req.accent || '').toUpperCase();
+  if (!logo) fail_('logo_required');
+  if (!/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+\/=]+$/.test(logo) || logo.length > LOGO_MAX_) fail_('bad_logo');
+  if (color && !/^#[0-9A-F]{6}$/.test(color)) fail_('bad_value');
+  if (accent && !/^#[0-9A-F]{6}$/.test(accent)) fail_('bad_value');
+  return [['logo', logo], ['logoVer', sha256Hex_(logo).slice(0, 12)], ['color', color], ['accent', color ? accent : '']];
+}
+/** Platform owner: set an organisation's logo and theme (for organisations created before the logo was required). */
+function api_orgBrandSet(req) {
+  platformKeyOk_(req);
+  var id = String(req.id || ''); if (!PropertiesService.getScriptProperties().getProperty('ORG:' + id)) fail_('org_not_found');
+  var pairs = brandFromReq_(req);
+  setOrg_(orgRec_(id));
+  withLock_(function () { brandSet_(pairs, 'platform'); audit_('platform', 'org_brand', id, { color: pairs[2][1], accent: pairs[3][1] }); });
+  return { ok: true, ver: pairs[1][1], color: pairs[2][1], accent: pairs[3][1] };
+}
 /** Administrator: set or remove the logo. */
 function api_logoSave(req, me) {
   if (me.role !== 'admin') fail_('forbidden');
