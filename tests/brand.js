@@ -3,7 +3,7 @@ const fs = require('fs'), path = require('path'), vm = require('vm');
 let passed = 0, failed = 0;
 function ok(c, name, extra) { if (c) { passed++; console.log('  ok  ' + name); } else { failed++; console.log('  FAIL ' + name + (extra !== undefined ? '  -> ' + JSON.stringify(extra) : '')); } }
 const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
-const a = html.indexOf('var GREEN_LITERALS = '), b = html.indexOf('function applyBrand(hex, home){');
+const a = html.indexOf('var GREEN_LITERALS = '), b = html.indexOf('function applyBrand(hex, home, accent){');
 const ctx = {}; vm.createContext(ctx); vm.runInContext(html.slice(a, b), ctx);
 const W = [255, 255, 255];
 console.log('Palette from any brand colour');

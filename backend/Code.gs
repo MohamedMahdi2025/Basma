@@ -976,7 +976,7 @@ function api_orgOverview(req) {
 function api_orgCheck(req) {
   if (!rateLimit_('orgcheck', 120, 600)) fail_('too_many_attempts');
   var s = settings_();
-  return { ok: true, orgId: orgId_(), nameAr: s.companyNameAr || '', nameEn: s.companyNameEn || '', home: !!(ORG_ && ORG_.home), logoVer: logoVer_(), brandColor: brandColor_(), sso: ssoPublic_() };
+  return { ok: true, orgId: orgId_(), nameAr: s.companyNameAr || '', nameEn: s.companyNameEn || '', home: !!(ORG_ && ORG_.home), logoVer: logoVer_(), brandColor: brandColor_(), brandAccent: brandAccent_(), sso: ssoPublic_() };
 }
 
 // ---------------- HTTP ----------------
@@ -1100,7 +1100,7 @@ function hrisHook_(kind, fn) { (HRIS_HOOKS_[kind] = HRIS_HOOKS_[kind] || []).pus
 function hrisHooks_(kind) { return HRIS_HOOKS_[kind] || []; }
 
 /** Run once from the Apps Script editor so Google asks the owner to approve the sheet access. */
-function authorize() { ss_(); sheet_(SHEETS.EMP); return 'ok'; }
+function authorize() { ss_(); sheet_(SHEETS.EMP); UrlFetchApp.fetch("https://sheets.googleapis.com/$discovery/rest?version=v4", { muteHttpExceptions: true }); return "ok"; }
 
 function api_ping() { return { ok: true, time: new Date().toISOString() }; }
 

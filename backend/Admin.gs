@@ -338,7 +338,7 @@ function companySettings_(d, next) {
 }
 /** What the app shows as the employer on every screen and document. */
 function companyOf_(s) {
-  return { orgId: orgId_(), home: !!(!ORG_ || ORG_.home), logoVer: logoVer_(), brandColor: brandColor_(), nameAr: s.companyNameAr, nameEn: s.companyNameEn, shortAr: s.companyShortAr, shortEn: s.companyShortEn, unn: s.companyUnn, cr: s.companyCr, vat: s.companyVat,
+  return { orgId: orgId_(), home: !!(!ORG_ || ORG_.home), logoVer: logoVer_(), brandColor: brandColor_(), brandAccent: brandAccent_(), nameAr: s.companyNameAr, nameEn: s.companyNameEn, shortAr: s.companyShortAr, shortEn: s.companyShortEn, unn: s.companyUnn, cr: s.companyCr, vat: s.companyVat,
     addressAr: s.companyAddressAr, addressEn: s.companyAddressEn };
 }
 
@@ -748,18 +748,25 @@ function api_logoSave(req, me) {
   });
 }
 /** The organisation's brand colour ('' = the default palette). Cached like the logo version. */
+function brandAccent_() { var c = cache_(), v = c.get('brand:accent'); if (v !== null && v !== undefined) return v; var r = brandRow_('accent'); v = r ? String(r.value) : ''; c.put('brand:accent', v, 21600); return v; }
 function brandColor_() { var c = cache_(), v = c.get('brand:color'); if (v !== null && v !== undefined) return v; var r = brandRow_('color'); v = r ? String(r.value) : ''; c.put('brand:color', v, 21600); return v; }
 /** Administrator: the brand colour the whole palette is drawn from (#RRGGBB, or '' for the default). */
 function api_brandSave(req, me) {
   if (me.role !== 'admin') fail_('forbidden');
-  var color = String(req.color || '').toUpperCase();
+  var color = String(req.color || '').toUpperCase(), accent = req.accent === undefined ? null : String(req.accent || '').toUpperCase();
   if (color && !/^#[0-9A-F]{6}$/.test(color)) fail_('bad_value');
+  if (accent && !/^#[0-9A-F]{6}$/.test(accent)) fail_('bad_value');
+  if (!color) accent = ''; // back to the default palette clears the second colour too
   return withLock_(function () {
-    var r = brandRow_('color'), now = new Date().toISOString();
-    if (r) { r.value = color; r.updatedAt = now; r.updatedBy = me.id; update_(SHEETS.BRAND, r); } else append_(SHEETS.BRAND, { key: 'color', value: color, updatedAt: now, updatedBy: me.id });
-    cache_().put('brand:color', color, 21600);
-    audit_(me.id, 'brand_color', '', { color: color });
-    return { ok: true, color: color };
+    var now = new Date().toISOString();
+    [['color', color], ['accent', accent]].forEach(function (kv) {
+      if (kv[1] === null) return; // only the main colour was sent (the manual picker): the second colour stays
+      var r = brandRow_(kv[0]);
+      if (r) { r.value = kv[1]; r.updatedAt = now; r.updatedBy = me.id; update_(SHEETS.BRAND, r); } else append_(SHEETS.BRAND, { key: kv[0], value: kv[1], updatedAt: now, updatedBy: me.id });
+      cache_().put('brand:' + kv[0], kv[1], 21600);
+    });
+    audit_(me.id, 'brand_color', '', { color: color, accent: accent, from: req.from === 'logo' ? 'logo' : 'picker' });
+    return { ok: true, color: color, accent: accent === null ? brandAccent_() : accent };
   });
 }
 

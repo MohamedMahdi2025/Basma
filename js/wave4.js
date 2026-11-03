@@ -685,22 +685,35 @@ window.SnapHistory = { section: historySection };
 
 // =================================================================== PLATFORM: ORGANISATIONS (SaaS tenancy, 2026-10-22)
 Object.assign(T.ar, {
-  plTitle:'المنشآت على المنصة', plLead:'كل منشأة (سجل تجاري) لها رقم منشأة (Org ID) وجدول بيانات خاص بها: دفاتر منفصلة تماما، ولا تظهر بيانات منشأة لأخرى. هذه الشاشة لمالك المنصة ومفتاح الإعداد مطلوب لكل عملية ولا يحفظ.',
+  pxTitle:'وحدة تحكم بصمة', pxLead:'من هنا تنشئ المنشآت وتديرها: كل منشأة برقمها الخاص وسجلاتها المنفصلة وألوانها المأخوذة من شعارها.', pxF1:'سجلات كل منشأة في جدول بيانات خاص بها، لا تصل إليه منشأة أخرى.', pxF2:'تأخذ كل منشأة ألوان النظام من شعارها تلقائيا عند رفعه.', pxF3:'هذه الشاشة لمالك المنصة وحده، وتفتح بمفتاح الإعداد.', pxKeyTitle:'افتح وحدة التحكم', pxKeyLead:'أدخل مفتاح إعداد المنصة للاطلاع على المنشآت وإنشاء منشأة جديدة.', pxShow:'إظهار المفتاح', pxHide:'إخفاء المفتاح', pxUnlock:'فتح وحدة التحكم', pxNote:'لا يحفظ المفتاح في هذا المتصفح، ويطلب من جديد كلما فتحت الصفحة.', pxLock:'قفل', pxOrgs:'منشأة', pxActive:'تعمل', pxSince:'منذ', plTitle:'المنشآت على المنصة', plLead:'كل منشأة (سجل تجاري) لها رقم منشأة (Org ID) وجدول بيانات خاص بها: دفاتر منفصلة تماما، ولا تظهر بيانات منشأة لأخرى. هذه الشاشة لمالك المنصة ومفتاح الإعداد مطلوب لكل عملية ولا يحفظ.',
   plKey:'مفتاح إعداد المنصة', plOpen:'عرض المنشآت', plNew:'منشأة جديدة', plNameAr:'اسم المنشأة (عربي)', plNameEn:'اسم المنشأة (إنجليزي)', plUnn:'الرقم الوطني الموحد للمنشأة (يبدأ بـ 7)', plUnnHint:'10 أرقام تبدأ بالرقم 7', plUnnShort:'الموحد', pls_failed:'لم يكتمل الإنشاء', plCr:'السجل التجاري (اختياري، 10 أرقام)', plAdmin:'اسم أول مدير للنظام', plAdminNo:'رقمه الوظيفي', plAdminEmail:'بريده (اختياري)',
   plCreated:'أنشئت المنشأة', plSend:'أرسل هذه البيانات لمدير المنشأة الجديدة:', plMsg:'نظام الموارد البشرية\nرقم المنشأة: {org}\nالرقم الوظيفي: {no}\nرمز التفعيل: {code}\nالرابط: {url}',
   plHome:'المنشأة الأم', plOverview:'نظرة عامة على الاستخدام', plOvLead:'حجم كل شركة ونشاطها فقط، بلا رواتب ولا أسماء ولا بيانات شخصية.', plGroup:'المجموعة', plNoGroup:'بدون مجموعة', plSetGroup:'المجموعة', plEmps:'الموظفون', plEnrolled:'أجهزة مفعلة', plToday:'نشطون اليوم', plPending:'طلبات معلقة', plLast:'آخر نشاط', plTotal:'الإجمالي', plGroupName:'اسم المجموعة (مثلا: المجموعة القابضة)', plSuspend:'إيقاف', plResume:'تفعيل', pls_active:'تعمل', pls_suspended:'موقوفة', plCount:'عدد المنشآت', plThis:'منشأتك الحالية'
 });
 Object.assign(T.en, {
-  plTitle:'Organisations on the platform', plLead:'Each organisation (each CR) has an Org ID and a spreadsheet of its own: completely separate books, and no organisation ever sees another\'s data. This screen is for the platform owner; the setup key is needed for every action and is never stored.',
+  pxTitle:'BASMA console', pxLead:'Create and run the organisations on the platform: each with its own ID, its own separate records and colours taken from its logo.', pxF1:'Each organisation\'s records live in a spreadsheet of its own that no other organisation can reach.', pxF2:'Each organisation gets its colours from its logo automatically when the logo is uploaded.', pxF3:'This screen is for the platform owner only and opens with the setup key.', pxKeyTitle:'Unlock the console', pxKeyLead:'Enter the platform setup key to see the organisations and create new ones.', pxShow:'Show key', pxHide:'Hide key', pxUnlock:'Unlock the console', pxNote:'The key is not saved in this browser; you enter it again each time you open the page.', pxLock:'Lock', pxOrgs:'organisations', pxActive:'active', pxSince:'Since', plTitle:'Organisations on the platform', plLead:'Each organisation (each CR) has an Org ID and a spreadsheet of its own: completely separate books, and no organisation ever sees another\'s data. This screen is for the platform owner; the setup key is needed for every action and is never stored.',
   plKey:'Platform setup key', plOpen:'Show organisations', plNew:'New organisation', plNameAr:'Name (Arabic)', plNameEn:'Name (English)', plUnn:'Unified national number (starts with 7)', plUnnHint:'10 digits starting with 7', plUnnShort:'UNN', pls_failed:'Creation did not finish', plCr:'CR number (optional, 10 digits)', plAdmin:'First administrator\'s name', plAdminNo:'Their employee number', plAdminEmail:'Their e-mail (optional)',
   plCreated:'Organisation created', plSend:'Send these details to the new organisation\'s administrator:', plMsg:'HR system\nOrg ID: {org}\nEmployee number: {no}\nActivation code: {code}\nLink: {url}',
   plHome:'Home organisation', plOverview:'Usage overview', plOvLead:'Each company\'s size and activity only: no salaries, names or personal data.', plGroup:'Group', plNoGroup:'No group', plSetGroup:'Group', plEmps:'Employees', plEnrolled:'Devices enrolled', plToday:'Active today', plPending:'Pending requests', plLast:'Last activity', plTotal:'Total', plGroupName:'Group name (for example: Holding group)', plSuspend:'Suspend', plResume:'Re-open', pls_active:'Active', pls_suspended:'Suspended', plCount:'Organisations', plThis:'Your current organisation'
 });
 function platformSection(body){
-  var box = K.head(body, 'plTitle', 'plLead'), key = '';
-  box.innerHTML = '<form class="form" id="plK" autocomplete="off" style="max-width:420px">' + K.fld(t('plKey'), '<input type="password" name="k" required autocomplete="off" dir="ltr">') +
-    '<div class="btnrow"><button class="btn btn-dark" type="submit">' + ph('buildings') + t('plOpen') + '</button></div><p class="hr-bad" id="plE"></p></form><div id="plL"></div>';
-  $('#plK', box).onsubmit = function(ev){ ev.preventDefault(); key = this.k.value; this.k.value = ''; load(); };
+  var full = body.id === 'platBody', box = body, key = '';
+  if (!full) body.classList.add('plx-in');
+  box.innerHTML = '<div class="plx-lockwrap" id="plLk"><section class="plx-vault"><div class="plx-ring" aria-hidden="true"><img src="' + platformMark() + '" alt=""></div>' +
+      '<h1>' + t('pxTitle') + '</h1><p>' + t('pxLead') + '</p><ul class="plx-facts"><li>' + ph('database') + '<span>' + t('pxF1') + '</span></li><li>' + ph('palette') + '<span>' + t('pxF2') + '</span></li><li>' + ph('lock-key') + '<span>' + t('pxF3') + '</span></li></ul></section>' +
+      '<section class="plx-lock"><h2>' + t('pxKeyTitle') + '</h2><p>' + t('pxKeyLead') + '</p><form id="plK" autocomplete="off"><label for="plKi">' + t('plKey') + '</label>' +
+      '<div class="plx-key"><input id="plKi" data-eye="1" type="password" name="k" required autocomplete="off" spellcheck="false" autocapitalize="off" dir="ltr"><button type="button" id="plEye" aria-label="' + esc(t('pxShow')) + '">' + ph('eye') + '</button></div>' +
+      '<button class="plx-go" type="submit" id="plGo">' + ph('lock-key-open') + t('pxUnlock') + '</button><p class="hr-bad" id="plE" role="alert"></p></form>' +
+      '<p class="plx-note">' + ph('info') + '<span>' + t('pxNote') + '</span></p></section></div>' +
+    '<header class="plx-bar" id="plBar" hidden><img class="plx-dot" src="' + platformMark() + '" alt=""><div><b>' + t('pxTitle') + '</b><small>' + t('plLead') + '</small></div><span class="sp"></span><button type="button" id="plLock">' + ph('lock-key') + t('pxLock') + '</button></header>' +
+    '<div class="plx-work"><div id="plL"></div></div>';
+  if (!full) { var bar = $('#plBar', box); bar.remove(); }
+  var ki = $('#plKi', box);
+  $('#plEye', box).onclick = function(){ var show = ki.type === 'password'; ki.type = show ? 'text' : 'password'; this.innerHTML = ph(show ? 'eye-slash' : 'eye'); this.setAttribute('aria-label', t(show ? 'pxHide' : 'pxShow')); ki.focus(); };
+  if (full) setTimeout(function(){ ki.focus(); }, 50);
+  var lock = function(){ key = ''; $('#plL', box).innerHTML = ''; $('#plLk', box).hidden = false; var b = $('#plBar', box); if (b) b.hidden = true; var px = $('#plX'); if (px) px.classList.remove('open'); ki.value = ''; ki.type = 'password'; ki.focus(); };
+  if ($('#plLock', box)) $('#plLock', box).onclick = lock;
+  $('#plK', box).onsubmit = function(ev){ ev.preventDefault(); key = ki.value.trim(); ki.value = ''; $('#plE', box).textContent = ''; $('#plGo', box).disabled = true; load(); };
   /** Usage by group, with subtotals: counts only. */
   function overview(host){
     var box2 = document.createElement('section'); box2.className = 'v2-card'; box2.style.cssText = 'padding:16px;margin:14px 0'; host.appendChild(box2);
@@ -721,15 +734,18 @@ function platformSection(body){
   function load(){
     var el = $('#plL', box); K.busy(el);
     api('orgList', { setupKey: key }, true).then(function(r){
-      if (!r.ok) { el.innerHTML = ''; $('#plE', box).textContent = errText(r.error); key = ''; return; }
+      var go = $('#plGo', box); if (go) go.disabled = false;
+      if (!r.ok) { el.innerHTML = ''; $('#plE', box).textContent = errText(r.error); key = ''; ki.focus(); return; }
+      $('#plLk', box).hidden = true; var pb = $('#plBar', box); if (pb) pb.hidden = false; var px = $('#plX'); if (px) px.classList.add('open');
       $('#plE', box).textContent = '';
       var rows = [{ id: r.home, nameAr: r.homeNameAr || t('plHome'), nameEn: r.homeNameEn || '', group: r.homeGroup || '', status: 'active', home: true }].concat(r.orgs);
-      el.innerHTML = K.tiles([[t('plCount'), K.n(rows.length), '', true]]) +
-        '<div class="toolbar"><span class="sp"></span><button type="button" class="btn btn-dark btn-sm" id="plN">' + ph('plus') + t('plNew') + '</button></div>' +
-        '<div class="list">' + rows.map(function(o, i){
-          return '<div class="row w2-row"><div class="main"><b><bdi dir="ltr">' + esc(o.id) + '</bdi> · ' + esc(o.nameAr || '') + (o.nameEn ? ' · ' + esc(o.nameEn) : '') + '</b><small>' + (o.unn ? esc(t('plUnnShort')) + ' ' + esc(o.unn) + ' · ' : '') + (o.cr ? 'CR ' + esc(o.cr) + ' · ' : '') + (o.createdAt ? K.fmt(o.createdAt.slice(0, 10)) : '') + '</small></div>' +
-            '<div class="act" style="display:flex;gap:8px;align-items:center">' + K.chip(t('pls_' + o.status), o.status === 'active' ? 'in' : 'absent') +
-            '<button type="button" class="btn btn-line btn-sm" data-gr="' + i + '">' + ph('stack') + (o.group ? esc(o.group) : t('plSetGroup')) + '</button>' + (o.home ? '' : '<button type="button" class="btn btn-line btn-sm" data-st="' + i + '">' + t(o.status === 'active' ? 'plSuspend' : 'plResume') + '</button>') + '</div></div>';
+      var act = rows.filter(function(o){ return o.status === 'active'; }).length;
+      el.innerHTML = '<div class="plx-top"><div><h2>' + t('plTitle') + '</h2><p>' + K.n(rows.length) + ' ' + t('pxOrgs') + ' · ' + K.n(act) + ' ' + t('pxActive') + '</p></div><button type="button" class="plx-new" id="plN">' + ph('plus') + t('plNew') + '</button></div>' +
+        '<div class="plx-grid">' + rows.map(function(o, i){
+          var nm = (S.lang === 'en' ? o.nameEn : o.nameAr) || o.nameAr || o.nameEn || o.id, ini = String(nm).trim().split(/s+/).slice(0, 2).map(function(w){ return w[0]; }).join('');
+          return '<article class="plx-org' + (o.status === 'active' ? '' : ' off') + '"><div class="plx-org-h"><span class="plx-ava" aria-hidden="true">' + esc(ini) + '</span><div><b>' + esc(nm) + '</b>' + (o.nameEn && S.lang !== 'en' ? '<small dir="ltr">' + esc(o.nameEn) + '</small>' : '') + '</div>' + K.chip(t('pls_' + o.status), o.status === 'active' ? 'in' : 'absent') + '</div>' +
+            '<dl class="plx-facts2"><div><dt>Org ID</dt><dd dir="ltr">' + esc(o.id) + '</dd></div>' + (o.unn ? '<div><dt>' + t('plUnnShort') + '</dt><dd dir="ltr">' + esc(o.unn) + '</dd></div>' : '') + (o.cr ? '<div><dt>CR</dt><dd dir="ltr">' + esc(o.cr) + '</dd></div>' : '') + (o.createdAt ? '<div><dt>' + t('pxSince') + '</dt><dd>' + K.fmt(o.createdAt.slice(0, 10)) + '</dd></div>' : '') + '</dl>' +
+            '<div class="plx-org-a"><button type="button" class="btn btn-line btn-sm" data-gr="' + i + '">' + ph('stack') + (o.group ? esc(o.group) : t('plSetGroup')) + '</button>' + (o.home ? '<span class="plx-home">' + t('plHome') + '</span>' : (o.status === 'failed' ? '' : '<button type="button" class="btn btn-line btn-sm" data-st="' + i + '">' + t(o.status === 'active' ? 'plSuspend' : 'plResume') + '</button>')) + '</div></article>';
         }).join('') + '</div>';
       $$('[data-gr]', el).forEach(function(b){ b.onclick = function(){ var o = rows[b.dataset.gr];
         K.formDrawer(t('plSetGroup') + ' · ' + esc(o.nameAr || o.id), '', K.fld(t('plGroupName'), '<input name="group" maxlength="60" value="' + esc(o.group || '') + '">'), function(v){ return api('orgSetGroup', { setupKey: key, id: o.id, group: v.group }); }, function(){ load(); }); }; });
