@@ -268,7 +268,7 @@ function formDrawer(title, lead, html, submit, after, btn){
     ev.preventDefault(); var b = f.querySelector('[type=submit]'); b.disabled = true;
     var p = submit(formVals(f), f);
     if (!p || !p.then) { b.disabled = false; return; }
-    p.then(function(r){ b.disabled = false; if (!r.ok) return $('#w2E', d).textContent = errText(r.error); d.remove(); toast(t('w2Saved')); refreshTasks(); if (after) after(r); });
+    p.then(function(r){ b.disabled = false; if (!r.ok) return $('#w2E', d).textContent = errText(r.error) + (r.detail ? ' (' + r.detail + ')' : ''); d.remove(); toast(t('w2Saved')); refreshTasks(); if (after) after(r); });
   };
   return d;
 }

@@ -2211,14 +2211,14 @@ var T = {
     setShift:'الدوام الافتراضي', secHours:'الدوام وأيام العمل', secHoursLead:'يُطبَّق على كل موظف ليس له دوام خاص.', secLoc:'دقة الموقع والمراجعة', secLocLead:'متى يُقبل الموقع، ومتى تُحال الحركة للموارد البشرية.', secMethods:'طرق الدخول والتسجيل', secMethodsLead:'ما يُسمح به للموظفين. التسجيل يبقى داخل نطاق المقر دائماً.', graceHint:'بعدها يُحسب التأخير.', gapHint:'يمنع التسجيل المكرر بالخطأ.', accHint:'الهاتف عادة 5 إلى 30 م.', accDeskHint:'الكمبيوتر يحدد موقعه بالواي فاي، فيحتاج هامشاً أوسع.', riskHint:'مجموع إشارات الخطر الذي تُحال عنده الحركة للمراجعة.', swDesk:'التسجيل من الكمبيوتر', swDeskLead:'برمز سري من 6 أرقام على جهاز مفعّل.', swPw:'التسجيل بكلمة المرور', swPwLead:'من أي جهاز غير مسجل، ويُعلَّم للمراجعة.', swDk:'التسجيل بالرمز السري على الهاتف', swDkLead:'الطريقة الأساسية للهواتف.', swOut:'الانصراف من خارج النطاق', swOutLead:'للحالات الطارئة فقط، ويُحال للمراجعة.', mins:'دقيقة', meters:'م', grace:'فترة السماح (دقيقة)', workdays:'أيام العمل', maxAcc:'أقصى خطأ مسموح في الموقع (م)', riskTh:'حد المراجعة', allowOut:'السماح بالانصراف من خارج النطاق (يُحال للمراجعة)', minGap:'أقل فاصل بين حركتين (دقيقة)',
     dows:['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'],
     updateReady:'نسخة جديدة متاحة، اضغط للتحديث', saved:'تم الحفظ', device:'الجهاز', since:'منذ', signOut:'قفل التطبيق', forgetDevice:'إزالة الحساب من هذا الجهاز', installHint:'لتثبيت التطبيق: شارك ← أضف إلى الشاشة الرئيسية',
-    f_static_samples:'إحداثيات ثابتة تماماً (احتمال موقع وهمي)', f_static_precise:'نقطة دقيقة لا تتحرك إطلاقاً (نمط تطبيقات الموقع الوهمي)', f_edge_outside:'خارج حد الموقع بقليل ضمن هامش دقة GPS', f_zero_accuracy:'دقة غير واقعية', f_stale_fix:'موقع قديم', f_clock_drift:'ساعة الجهاز غير مضبوطة', f_impossible_travel:'انتقال مستحيل', f_new_device:'جهاز جديد', f_few_samples:'قراءة موقع واحدة', f_off_hours:'خارج الأوقات', f_edge:'على حافة النطاق', f_weak_fix:'موقع تقريبي داخل النطاق (يراجع)', f_outside_checkout:'انصراف من خارج النطاق',
+    f_device_rooted:'جهاز مكسور الحماية (روت)', f_device_emulator:'محاكي وليس هاتفاً حقيقياً', f_device_hooked:'أداة تلاعب تعمل على الجهاز', f_app_tampered:'نسخة معدلة من التطبيق', f_mock_location:'الهاتف أبلغ عن موقع وهمي', f_static_samples:'إحداثيات ثابتة تماماً (احتمال موقع وهمي)', f_static_precise:'نقطة دقيقة لا تتحرك إطلاقاً (نمط تطبيقات الموقع الوهمي)', f_edge_outside:'خارج حد الموقع بقليل ضمن هامش دقة GPS', f_zero_accuracy:'دقة غير واقعية', f_stale_fix:'موقع قديم', f_clock_drift:'ساعة الجهاز غير مضبوطة', f_impossible_travel:'انتقال مستحيل', f_new_device:'جهاز جديد', f_few_samples:'قراءة موقع واحدة', f_off_hours:'خارج الأوقات', f_edge:'على حافة النطاق', f_weak_fix:'موقع تقريبي داخل النطاق (يراجع)', f_outside_checkout:'انصراف من خارج النطاق',
     e_outside_zone:'أنت خارج نطاق المقر', e_accuracy_too_low:'دقة الموقع ضعيفة جداً، حاول مجدداً', e_no_location:'تعذّر تحديد موقعك', e_no_zone:'لا يوجد نطاق عمل محدد لك',
     e_too_soon:'سُجّلت حركتك للتو', e_state_changed:'تغيّرت حالتك، حدّث الشاشة', e_bad_activation:'الرقم الوظيفي أو رمز التفعيل غير صحيح', e_activation_expired:'انتهت صلاحية رمز التفعيل، اطلب رمزاً جديداً',
     e_activation_locked:'تم إيقاف الرمز بعد محاولات خاطئة، اطلب رمزاً جديداً', e_too_many_attempts:'محاولات كثيرة، انتظر قليلاً', e_no_device:'لا يوجد جهاز مفعّل لهذا الرقم', e_unknown_employee:'الرقم الوظيفي غير معروف',
     e_device_not_recognised:'هذا الجهاز غير مربوط بحسابك', e_bad_signature:'تعذّر التحقق من البصمة', e_challenge_expired:'انتهت المهلة، حاول مجدداً', e_session_expired:'انتهت الجلسة', e_network:'تعذّر الاتصال بالخادم',
     e_bad_setup_key:'مفتاح التهيئة غير صحيح', e_duplicate_emp_no:'الرقم الوظيفي مستخدم', e_forbidden:'ليست لديك صلاحية', e_no_user_verification:'يلزم Face ID أو البصمة',
     e_cancelled:'أُلغيت عملية التحقق', e_no_passkey:'هذا المتصفح لا يدعم Face ID / البصمة. استخدم Safari أو Chrome حديثاً.', e_cannot_correct_self:'لا يمكنك تصحيح حضورك بنفسك', e_cannot_review_self:'لا يمكنك مراجعة حركتك بنفسك',
-    e_future_time:'لا يمكن التسجيل في وقت لاحق', e_bad_zone:'بيانات النطاق غير صحيحة', e_bad_radius:'نصف القطر بين 20 و 5000 م', e_missing_fields:'أكمل الحقول المطلوبة', e_server_error:'خطأ في الخادم', e_generic:'حدث خطأ'
+    e_future_time:'لا يمكن التسجيل في وقت لاحق', e_bad_zone:'بيانات النطاق غير صحيحة', e_bad_radius:'نصف القطر بين 20 و 5000 م', e_missing_fields:'أكمل الحقول المطلوبة', e_bad_unn:'الرقم الوطني الموحد 10 أرقام ويبدأ بالرقم 7', e_unn_exists:'توجد منشأة بهذا الرقم الوطني الموحد', e_server_error:'خطأ في الخادم', e_generic:'حدث خطأ'
   },
   en: {
     appName:'Attendance & HR Platform', company:'Attendance & HR Platform', gateTag:'Check in at head office with one tap, protected by your PIN.',
@@ -2272,14 +2272,14 @@ var T = {
     setShift:'Default shift', secHours:'Hours and work days', secHoursLead:'Applies to everyone without a custom shift.', secLoc:'Location accuracy and review', secLocLead:'When a location is trusted, and when a punch goes to HR.', secMethods:'Sign-in and check-in methods', secMethodsLead:'What employees may use. Check-in always stays inside the HQ zone.', graceHint:'Lateness counts after this.', gapHint:'Stops accidental double punches.', accHint:'Phones are usually 5 to 30 m.', accDeskHint:'Computers locate by Wi-Fi and need a wider margin.', riskHint:'Total risk score at which a punch goes to review.', swDesk:'Check-in from computers', swDeskLead:'With a 6-digit PIN on an activated computer.', swPw:'Check-in with password', swPwLead:'From any unregistered device, flagged for review.', swDk:'PIN check-in on phones', swDkLead:'The main method for phones.', swOut:'Check-out outside the zone', swOutLead:'Emergencies only; sent to review.', mins:'min', meters:'m', grace:'Grace period (min)', workdays:'Work days', maxAcc:'Largest location error allowed (m)', riskTh:'Review threshold', allowOut:'Allow check-out outside the zone (sent to review)', minGap:'Minimum gap between punches (min)',
     dows:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
     updateReady:'A new version is ready. Tap to update', saved:'Saved', device:'Device', since:'since', signOut:'Lock app', forgetDevice:'Remove account from this device', installHint:'To install: Share → Add to Home Screen',
-    f_static_samples:'Perfectly frozen coordinates (possible fake GPS)', f_static_precise:'A precise point that never moves (fake-location pattern)', f_edge_outside:'Just past the fence, within the GPS margin', f_zero_accuracy:'Unrealistic accuracy', f_stale_fix:'Old location fix', f_clock_drift:'Device clock is wrong', f_impossible_travel:'Impossible travel', f_new_device:'New device', f_few_samples:'Single location reading', f_off_hours:'Off hours', f_edge:'At zone edge', f_weak_fix:'Approximate location inside the zone (for review)', f_outside_checkout:'Checked out outside zone',
+    f_device_rooted:'Rooted phone', f_device_emulator:'Emulator, not a real phone', f_device_hooked:'Tampering tool running on the phone', f_app_tampered:'Modified copy of the app', f_mock_location:'The phone reported a fake location', f_static_samples:'Perfectly frozen coordinates (possible fake GPS)', f_static_precise:'A precise point that never moves (fake-location pattern)', f_edge_outside:'Just past the fence, within the GPS margin', f_zero_accuracy:'Unrealistic accuracy', f_stale_fix:'Old location fix', f_clock_drift:'Device clock is wrong', f_impossible_travel:'Impossible travel', f_new_device:'New device', f_few_samples:'Single location reading', f_off_hours:'Off hours', f_edge:'At zone edge', f_weak_fix:'Approximate location inside the zone (for review)', f_outside_checkout:'Checked out outside zone',
     e_outside_zone:'You are outside the HQ zone', e_accuracy_too_low:'Location is too imprecise, try again', e_no_location:'Could not get your location', e_no_zone:'No work zone is set for you',
     e_too_soon:'You just punched', e_state_changed:'Your status changed, refresh', e_bad_activation:'Employee number or activation code is wrong', e_activation_expired:'The activation code expired, ask for a new one',
     e_activation_locked:'The code was locked after wrong attempts, ask for a new one', e_too_many_attempts:'Too many attempts, wait a little', e_no_device:'No device is activated for this number', e_unknown_employee:'Unknown employee number',
     e_device_not_recognised:'This device is not linked to your account', e_bad_signature:'Biometric check could not be verified', e_challenge_expired:'Timed out, try again', e_session_expired:'Session ended', e_network:'Cannot reach the server',
     e_bad_setup_key:'Setup key is wrong', e_duplicate_emp_no:'Employee number already used', e_forbidden:'You do not have access', e_no_user_verification:'Face ID or fingerprint is required',
     e_cancelled:'Verification was cancelled', e_no_passkey:'This browser cannot use Face ID / fingerprint. Use an up-to-date Safari or Chrome.', e_cannot_correct_self:'You cannot correct your own attendance', e_cannot_review_self:'You cannot review your own punch',
-    e_future_time:'That time is in the future', e_bad_zone:'Zone details are invalid', e_bad_radius:'Radius must be 20 to 5000 m', e_missing_fields:'Fill in the required fields', e_server_error:'Server error', e_generic:'Something went wrong'
+    e_future_time:'That time is in the future', e_bad_zone:'Zone details are invalid', e_bad_radius:'Radius must be 20 to 5000 m', e_missing_fields:'Fill in the required fields', e_bad_unn:'The unified national number is 10 digits starting with 7', e_unn_exists:'An organisation with this unified national number already exists', e_server_error:'Server error', e_generic:'Something went wrong'
   }
 };
 
@@ -3420,6 +3420,7 @@ function coShort(l){ var c = S.company || (S.orgId ? CO_DEFAULT : CO_PLATFORM); 
 /** CR, VAT and address for letterheads, in the letter's language; '' when none is set. */
 function coMeta(l){
   var c = S.company || CO_DEFAULT, en = (l || S.lang) === 'en', p = [];
+  if (c.unn) p.push((en ? 'UNN ' : 'الرقم الموحد ') + c.unn);
   if (c.cr) p.push((en ? 'C.R. ' : 'س.ت ') + c.cr);
   if (c.vat) p.push((en ? 'VAT ' : 'الرقم الضريبي ') + c.vat);
   var a = en ? c.addressEn : c.addressAr; if (a) p.push(a);
@@ -3674,7 +3675,7 @@ Object.assign(T.ar, {
   swAdminPay:'مسؤول النظام يدير الرواتب', swAdminPayLead:'يرى الرواتب ويعتمدها مثل صاحب صلاحية الرواتب. أوقفه لفصل الرواتب عن إدارة النظام؛ يبقى مبدأ الشخصين في الاعتماد قائما.',
   secCo:'ملف الشركة', secCoLead:'الاسم والسجل التجاري والرقم الضريبي والعنوان. تظهر في رأس كل خطاب وشهادة وقسيمة راتب وتقرير.',
   coNameAr:'اسم الشركة بالعربية', coNameEn:'اسم الشركة بالإنجليزية', coShortAr:'الاسم المختصر بالعربية', coShortEn:'الاسم المختصر بالإنجليزية',
-  coCr:'رقم السجل التجاري (10 أرقام)', coVat:'الرقم الضريبي (15 رقما)', coAddrAr:'العنوان بالعربية', coAddrEn:'العنوان بالإنجليزية',
+  coUnn:'الرقم الوطني الموحد للمنشأة (10 أرقام يبدأ بـ 7)', coCr:'رقم السجل التجاري (10 أرقام)', coVat:'الرقم الضريبي (15 رقما)', coAddrAr:'العنوان بالعربية', coAddrEn:'العنوان بالإنجليزية',
   v2Theme:'المظهر', thLight:'فاتح', thDark:'داكن', thSystem:'حسب الجهاز',
   v2Print:'طباعة', v2Excel:'تصدير إلى Excel', v2NoTable:'لا توجد جداول أو قوائم في هذه الصفحة لتصديرها.', v2PrintedBy:'طبعه', v2PrintedAt:'التاريخ',
   v2Sheets:'عدد الأوراق', v2Exported:'نزل ملف Excel', v2XlNote:'كل جدول في الصفحة في ورقة مستقلة. الإجماليات تتبع المرشحات المطبقة في Excel.',
@@ -3720,7 +3721,7 @@ Object.assign(T.en, {
   swAdminPay:'Administrator manages pay', swAdminPayLead:'Sees and approves salaries like a payroll holder. Switch off to keep pay apart from system administration; the two-person approval rule still applies.',
   secCo:'Company profile', secCoLead:'Name, commercial registration, VAT number and address. They head every letter, certificate, payslip and report.',
   coNameAr:'Company name in Arabic', coNameEn:'Company name in English', coShortAr:'Short name in Arabic', coShortEn:'Short name in English',
-  coCr:'Commercial registration (10 digits)', coVat:'VAT number (15 digits)', coAddrAr:'Address in Arabic', coAddrEn:'Address in English',
+  coUnn:'Unified national number (10 digits, starts with 7)', coCr:'Commercial registration (10 digits)', coVat:'VAT number (15 digits)', coAddrAr:'Address in Arabic', coAddrEn:'Address in English',
   v2Theme:'Appearance', thLight:'Light', thDark:'Dark', thSystem:'Device',
   v2Print:'Print', v2Excel:'Export to Excel', v2NoTable:'This page has no table or list to export.', v2PrintedBy:'Printed by', v2PrintedAt:'Date',
   v2Sheets:'Sheets', v2Exported:'Excel file downloaded', v2XlNote:'Each table on the page is its own sheet. Totals follow the filters you apply in Excel.',
@@ -4746,6 +4747,9 @@ function locHelpHtml(code){
   return '<div class="loc-help" role="status"><button type="button" class="btn btn-brand" id="locAsk">' + ph('crosshair') + t('locBtn') + '</button>' +
     (code === 1 || code === 2 ? '<details><summary>' + t(denied ? 'locDeniedTitle' : 'locOffTitle') + '</summary><ol>' + steps.map(function(s){ return '<li>' + s + '</li>'; }).join('') + '</ol></details>' : '') + '</div>';
 }
+/** Phone app integrity (Android 1.2.0+, MainActivity): rooted, emulator, hook tools, re-signed copy, fake-location readings.
+ *  Only signals for HR review, like the other risk flags; a browser sends nothing. */
+function integSnap(){ var g = window.BGIntegrity; if (!g || typeof g !== 'object') return undefined; return { v: g.v, app: g.app, checked: !!g.checked, rooted: !!g.rooted, emulator: !!g.emulator, hooked: !!g.hooked, signature: g.signature !== false, mockAt: Number(g.mockAt) || 0, at: Number(g.at) || 0 }; }
 // Inside the iPhone / Android app (native/, Capacitor; 2026-10-19). In a browser this does nothing.
 //  - BGNative.openSettings(): one tap opens this app's own page in the phone's Settings (location switch included).
 //  - navigator.geolocation is served by the native plugin: one native permission question (not the web view's second one).
@@ -4972,7 +4976,7 @@ function doPunch(){
   if (S.auth === 'pw') {
     S.busy = true;
     var ptype = S.today ? S.today.next : 'in';
-    punchSamples().then(function(gs){ return api('punchPw', { type: ptype, geo: { samples: gs }, qr: qrFresh() || undefined, deviceTime: Date.now(), ua: navigator.userAgent }); }).then(function(r){
+    punchSamples().then(function(gs){ return api('punchPw', { type: ptype, geo: { samples: gs }, qr: qrFresh() || undefined, deviceTime: Date.now(), ua: navigator.userAgent, integ: integSnap() }); }).then(function(r){
       S.busy = false;
       if (r.ok) { S.today = r.today; showStamp(true, ptype, r.punch); } else showStamp(false, ptype, null, r.error);
       if (onPunch()) renderHome();
@@ -4985,7 +4989,7 @@ function doPunch(){
   S.busy = true; S.punchOpts = null;
   var type = S.punchType;
   getAssertion(o).then(function(cred){
-    return punchSamples().then(function(gs){ return api('punchFinish', { credential: cred, pin: usesPin() ? S.pin : undefined, geo: { samples: gs }, qr: qrFresh() || undefined, deviceTime: Date.now(), ua: navigator.userAgent }); });
+    return punchSamples().then(function(gs){ return api('punchFinish', { credential: cred, pin: usesPin() ? S.pin : undefined, geo: { samples: gs }, qr: qrFresh() || undefined, deviceTime: Date.now(), ua: navigator.userAgent, integ: integSnap() }); });
   }, function(e){ return { ok:false, error: passkeyError(e), silent: true }; }).then(function(r){
     S.busy = false;
     if (r.ok) { S.today = r.today; showStamp(true, type, r.punch); }
@@ -5462,7 +5466,7 @@ function admSettings(){
       '<section class="set-card wide"><h3>' + ph('buildings') + t('secCo') + '</h3><p>' + t('secCoLead') + '</p>' +
         '<div class="two" style="max-width:820px">' + co('companyNameAr', t('coNameAr'), ' required maxlength="80"') + co('companyNameEn', t('coNameEn'), ' required maxlength="80" dir="ltr"') + '</div>' +
         '<div class="two" style="max-width:820px">' + co('companyShortAr', t('coShortAr'), ' required maxlength="30"') + co('companyShortEn', t('coShortEn'), ' required maxlength="30" dir="ltr"') + '</div>' +
-        '<div class="two" style="max-width:820px">' + co('companyCr', t('coCr'), ' inputmode="numeric" maxlength="10" pattern="[0-9]{10}" dir="ltr"') + co('companyVat', t('coVat'), ' inputmode="numeric" maxlength="15" pattern="3[0-9]{13}3" dir="ltr"') + '</div>' +
+        '<div class="two" style="max-width:820px">' + co('companyUnn', t('coUnn'), ' inputmode="numeric" maxlength="10" pattern="7[0-9]{9}" dir="ltr"') + co('companyCr', t('coCr'), ' inputmode="numeric" maxlength="10" pattern="[0-9]{10}" dir="ltr"') + co('companyVat', t('coVat'), ' inputmode="numeric" maxlength="15" pattern="3[0-9]{13}3" dir="ltr"') + '</div>' +
         '<div class="two" style="max-width:820px">' + co('companyAddressAr', t('coAddrAr'), ' maxlength="200"') + co('companyAddressEn', t('coAddrEn'), ' maxlength="200" dir="ltr"') + '</div>' +
         // the company's own logo: medallion, sidebar and every printed document (one design, its own mark)
         '<div class="co-logo"><img id="coLogoImg" alt="" src="' + brandMark() + '"><div><b>' + t('coLogo') + '</b><p class="hr-hint" style="margin:2px 0 8px">' + t('coLogoLead') + '</p>' +
@@ -5520,11 +5524,11 @@ function admSettings(){
         ramadanFrom: f.ramadanFrom.value, ramadanTo: f.ramadanTo.value, ramadanHours: Number(f.ramadanHours.value), permissionMaxHours: Number(f.permissionMaxHours.value), permissionMonthHours: Number(f.permissionMonthHours.value), perDiemInside: Number(f.perDiemInside.value), perDiemAbroad: Number(f.perDiemAbroad.value), overtimeYearHours: Number(f.overtimeYearHours.value), summerBanFrom: f.summerBanFrom.value.trim(), summerBanTo: f.summerBanTo.value.trim(),
         summerBanStart: f.summerBanStart.value, summerBanEnd: f.summerBanEnd.value,
         companyNameAr: f.companyNameAr.value, companyNameEn: f.companyNameEn.value, companyShortAr: f.companyShortAr.value, companyShortEn: f.companyShortEn.value,
-        companyCr: f.companyCr.value.trim(), companyVat: f.companyVat.value.trim(), companyAddressAr: f.companyAddressAr.value, companyAddressEn: f.companyAddressEn.value } })
+        companyUnn: f.companyUnn.value.trim(), companyCr: f.companyCr.value.trim(), companyVat: f.companyVat.value.trim(), companyAddressAr: f.companyAddressAr.value, companyAddressEn: f.companyAddressEn.value } })
         .then(function(x){
           if (x.ok) {
             var n = x.settings || {};
-            setCompany({ nameAr: n.companyNameAr, nameEn: n.companyNameEn, shortAr: n.companyShortAr, shortEn: n.companyShortEn, cr: n.companyCr, vat: n.companyVat, addressAr: n.companyAddressAr, addressEn: n.companyAddressEn }, true);
+            setCompany({ nameAr: n.companyNameAr, nameEn: n.companyNameEn, shortAr: n.companyShortAr, shortEn: n.companyShortEn, unn: n.companyUnn, cr: n.companyCr, vat: n.companyVat, addressAr: n.companyAddressAr, addressEn: n.companyAddressEn }, true);
             var bt = $('.v2-brand b'); if (bt) bt.textContent = t('company');
             return toast(t('saved'));
           }

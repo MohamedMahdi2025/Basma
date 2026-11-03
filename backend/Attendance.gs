@@ -554,7 +554,8 @@ function qrGeo_(emp, geo, q) {
 var RISK_WEIGHTS = {
   static_samples: 35, static_precise: 10, edge_outside: 40, zero_accuracy: 30, stale_fix: 20, clock_drift: 25, impossible_travel: 40,
   qr_kiosk: 0, qr_no_gps: 25, remote: 0,
-  new_device: 10, few_samples: 10, off_hours: 10, edge: 10, weak_fix: 30, outside_checkout: 30, no_biometric: 10, laptop: 5, password_login: 20
+  new_device: 10, few_samples: 10, off_hours: 10, edge: 10, weak_fix: 30, outside_checkout: 30, no_biometric: 10, laptop: 5, password_login: 20,
+  device_rooted: 25, device_emulator: 40, device_hooked: 60, app_tampered: 60, mock_location: 60
 };
 
 function riskScore_(emp, cred, req, geo, last, now) {
@@ -581,9 +582,22 @@ function riskScore_(emp, cred, req, geo, last, now) {
     var hrs = Math.max((now.getTime() - new Date(last.ts).getTime()) / 3600000, 1 / 60);
     if (km > 5 && km / hrs > 200) flags.push('impossible_travel');
   }
+  integrityFlags_(req.integ, deviceTime, flags);
   var all = flags.concat(geo.flags || []);
   var score = all.reduce(function (t, k) { return t + (RISK_WEIGHTS[k] || 0); }, 0);
   return { score: Math.min(score, 100), flags: flags };
+}
+
+/** Signals the Android app (1.2.0+) reports about the phone. A browser sends none, and a page can always omit them, so they only
+ *  add to the risk score; Android marks fake-location readings itself (Location.isMock), which a web page cannot see. */
+function integrityFlags_(g, deviceTime, flags) {
+  if (!g || typeof g !== 'object') return;
+  if (g.rooted === true) flags.push('device_rooted');
+  if (g.emulator === true) flags.push('device_emulator');
+  if (g.hooked === true) flags.push('device_hooked');
+  if (g.signature === false) flags.push('app_tampered');
+  var mockAt = Number(g.mockAt) || 0, ref = deviceTime || Number(g.at) || 0;
+  if (mockAt > 0 && ref && Math.abs(ref - mockAt) < 10 * 60000) flags.push('mock_location');
 }
 
 // ---------------- punch state and summaries ----------------

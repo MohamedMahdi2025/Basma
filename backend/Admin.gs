@@ -331,13 +331,14 @@ function companySettings_(d, next) {
     if (v.length < lim[0] || v.length > lim[1] || /[<>]/.test(v)) return k;
     next[k] = v;
   }
+  if (d.companyUnn !== undefined) { var un = String(d.companyUnn == null ? '' : d.companyUnn).trim(); if (un && !/^7\d{9}$/.test(un)) return 'companyUnn'; next.companyUnn = un; }
   if (d.companyCr !== undefined) { var cr = String(d.companyCr == null ? '' : d.companyCr).trim(); if (cr && !/^\d{10}$/.test(cr)) return 'companyCr'; next.companyCr = cr; }
   if (d.companyVat !== undefined) { var vat = String(d.companyVat == null ? '' : d.companyVat).trim(); if (vat && !/^3\d{13}3$/.test(vat)) return 'companyVat'; next.companyVat = vat; }
   return '';
 }
 /** What the app shows as the employer on every screen and document. */
 function companyOf_(s) {
-  return { orgId: orgId_(), home: !!(!ORG_ || ORG_.home), logoVer: logoVer_(), brandColor: brandColor_(), nameAr: s.companyNameAr, nameEn: s.companyNameEn, shortAr: s.companyShortAr, shortEn: s.companyShortEn, cr: s.companyCr, vat: s.companyVat,
+  return { orgId: orgId_(), home: !!(!ORG_ || ORG_.home), logoVer: logoVer_(), brandColor: brandColor_(), nameAr: s.companyNameAr, nameEn: s.companyNameEn, shortAr: s.companyShortAr, shortEn: s.companyShortEn, unn: s.companyUnn, cr: s.companyCr, vat: s.companyVat,
     addressAr: s.companyAddressAr, addressEn: s.companyAddressEn };
 }
 

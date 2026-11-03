@@ -883,29 +883,39 @@ function platformKeyOk_(req) {
   var expected = (typeof SETUP_KEY_HASH === 'string') ? SETUP_KEY_HASH : '';
   if (!rateLimit_('platform', 20, 900)) fail_('too_many_attempts');
   if (!expected || !safeEqual_(sha256Hex_(String(req.setupKey || '').trim()), expected)) fail_('bad_setup_key');
+  PLATFORM_OK_ = true;
 }
+var PLATFORM_OK_ = false; // set once the setup key matched: then a server error carries its message (owner only)
 /** A new organisation: a new spreadsheet of its own, a new Org ID, and a one-time code for its first administrator. */
 function api_orgCreate(req) {
   platformKeyOk_(req);
-  var nameAr = str_(req.nameAr, 120), nameEn = str_(req.nameEn, 120), cr = String(req.cr || '').replace(/\D/g, '');
-  if (!nameAr || !str_(req.adminName, 80) || !str_(req.adminEmpNo, 20)) fail_('missing_fields');
+  var nameAr = str_(req.nameAr, 120), nameEn = str_(req.nameEn, 120), cr = String(req.cr || '').replace(/\D/g, ''), unn = String(req.unn || '').replace(/\D/g, '');
+  if (!nameAr || !unn || !str_(req.adminName, 80) || !str_(req.adminEmpNo, 20)) fail_('missing_fields');
+  if (!/^7\d{9}$/.test(unn)) fail_('bad_unn'); // the unified national number of a Saudi establishment: 10 digits, starts with 7
   if (cr && cr.length !== 10) fail_('bad_cr');
   var p = PropertiesService.getScriptProperties(), lock = LockService.getScriptLock(); lock.waitLock(20000);
   try {
-    var all = orgAll_();
-    if (cr && all.some(function (o) { return o.cr === cr && o.status !== 'deleted'; })) fail_('cr_exists');
+    var all = orgAll_().filter(function (o) { return o.status !== 'deleted' && o.status !== 'failed'; }); // a failed attempt does not block its retry
+    if (unn && all.some(function (o) { return o.unn === unn; })) fail_('unn_exists');
+    if (cr && all.some(function (o) { return o.cr === cr; })) fail_('cr_exists');
     var next = Math.max(Number(p.getProperty('ORG_SEQ')) || Number(homeOrgId_()), Number(homeOrgId_())) + 1;
     var id = String(next), bookId = restCreateBook_((nameEn || nameAr) + ' · HRIS · ' + id);
-    var rec = { sheetId: bookId, nameAr: nameAr, nameEn: nameEn, cr: cr, group: str_(req.group, 60), status: 'active', createdAt: new Date().toISOString() };
+    var rec = { sheetId: bookId, nameAr: nameAr, nameEn: nameEn, unn: unn, cr: cr, group: str_(req.group, 60), status: 'active', createdAt: new Date().toISOString() };
     p.setProperty('ORG:' + id, JSON.stringify(rec)); p.setProperty('ORG_SEQ', String(next));
   } finally { lock.releaseLock(); }
-  // the new organisation's own first steps run inside it
-  setOrg_(orgRec_(id));
-  withLock_(function () {
-    // its own names everywhere: the short names too, or the defaults (the home company's) would show
-    [['companyNameAr', nameAr], ['companyNameEn', nameEn || nameAr], ['companyShortAr', nameAr.slice(0, 30)], ['companyShortEn', (nameEn || nameAr).slice(0, 30)], ['companyCr', cr]].forEach(function (kv) { if (kv[1]) append_(SHEETS.SET, { key: kv[0], value: kv[1] }); });
-  });
-  var b = api_bootstrap({ setupKey: req.setupKey, name: req.adminName, empNo: req.adminEmpNo, nameEn: req.adminNameEn, email: req.adminEmail });
+  // the new organisation's own first steps run inside it; if one fails the organisation is marked failed (its book stays on Drive)
+  var b;
+  try {
+    setOrg_(orgRec_(id));
+    withLock_(function () {
+      // its own names everywhere: the short names too, or the defaults (the home company's) would show
+      [['companyNameAr', nameAr], ['companyNameEn', nameEn || nameAr], ['companyShortAr', nameAr.slice(0, 30)], ['companyShortEn', (nameEn || nameAr).slice(0, 30)], ['companyUnn', unn], ['companyCr', cr]].forEach(function (kv) { if (kv[1]) append_(SHEETS.SET, { key: kv[0], value: kv[1] }); });
+    });
+    b = api_bootstrap({ setupKey: req.setupKey, name: req.adminName, empNo: req.adminEmpNo, nameEn: req.adminNameEn, email: req.adminEmail });
+  } catch (e) {
+    try { var fr = parseJson_(p.getProperty('ORG:' + id), {}); fr.status = 'failed'; fr.error = String(e && e.message || e).slice(0, 200); p.setProperty('ORG:' + id, JSON.stringify(fr)); } catch (x) { }
+    throw e;
+  }
   return { ok: true, orgId: id, nameAr: nameAr, activationCode: b.activationCode, adminEmpNo: String(req.adminEmpNo) };
 }
 function orgAll_() {
@@ -916,7 +926,7 @@ function orgAll_() {
 function api_orgList(req) {
   platformKeyOk_(req);
   var hs = settings_(); // the first company (this script's own spreadsheet) is listed by its name, like every other customer
-  return { ok: true, home: homeOrgId_(), homeGroup: PropertiesService.getScriptProperties().getProperty('HOME_GROUP') || '', homeNameAr: hs.companyNameAr || '', homeNameEn: hs.companyNameEn || '', orgs: orgAll_().map(function (o) { return { id: o.id, nameAr: o.nameAr, nameEn: o.nameEn, cr: o.cr, group: o.group || '', status: o.status, createdAt: o.createdAt }; }) };
+  return { ok: true, home: homeOrgId_(), homeGroup: PropertiesService.getScriptProperties().getProperty('HOME_GROUP') || '', homeNameAr: hs.companyNameAr || '', homeNameEn: hs.companyNameEn || '', orgs: orgAll_().map(function (o) { return { id: o.id, nameAr: o.nameAr, nameEn: o.nameEn, unn: o.unn || '', cr: o.cr, group: o.group || '', status: o.status, createdAt: o.createdAt }; }) };
 }
 /** Suspend or re-open an organisation (its data stays; every request is refused while suspended). */
 function api_orgSetStatus(req) {
@@ -1075,7 +1085,7 @@ function handle_(req) {
     var msg = String(err && err.message || err);
     if (msg.indexOf('E:') === 0) return { ok: false, error: msg.slice(2) };
     console.error(action + ': ' + msg + '\n' + (err && err.stack));
-    return { ok: false, error: 'server_error' };
+    return PLATFORM_OK_ ? { ok: false, error: 'server_error', detail: msg.slice(0, 300) } : { ok: false, error: 'server_error' };
   }
 }
 

@@ -67,5 +67,24 @@ const real = [0, 1, 2].map(i => Object.assign(m(10 + i * 0.6, i * 0.4), { acc: 6
 k = B.ctx.riskScore_({ id: 'E1' }, cred, { deviceTime: T }, { samples: real, fix: real[0], flags: [] }, null, now);
 ok(k.score === 0, 'real GPS with normal jitter scores nothing', k);
 
+console.log('Phone app integrity (Android 1.2.0)');
+const ig = integ => B.ctx.riskScore_({ id: 'E1' }, cred, { deviceTime: T, integ }, { samples: real, fix: real[0], flags: [] }, null, now);
+const clean = { v: 1, checked: true, rooted: false, emulator: false, hooked: false, signature: true, mockAt: 0, at: T };
+ok(ig(clean).score === 0 && ig(undefined).score === 0, 'a clean phone and a browser (nothing sent) score nothing');
+k = ig(Object.assign({}, clean, { mockAt: T - 60000 }));
+ok(k.flags.indexOf('mock_location') >= 0 && k.score >= s.reviewRiskThreshold, 'Android marked a reading as fake a minute ago: HR review', k);
+k = ig(Object.assign({}, clean, { mockAt: T - 3600000 }));
+ok(k.flags.indexOf('mock_location') < 0, 'a fake reading an hour ago (app since switched off) does not flag today', k);
+k = ig(Object.assign({}, clean, { hooked: true }));
+ok(k.flags.indexOf('device_hooked') >= 0 && k.score >= s.reviewRiskThreshold, 'Frida / Xposed on the phone: HR review', k);
+k = ig(Object.assign({}, clean, { signature: false }));
+ok(k.flags.indexOf('app_tampered') >= 0 && k.score >= s.reviewRiskThreshold, 'a re-signed copy of the app: HR review', k);
+k = ig(Object.assign({}, clean, { emulator: true }));
+ok(k.flags.indexOf('device_emulator') >= 0 && k.score >= s.reviewRiskThreshold, 'an emulator: HR review', k);
+k = ig(Object.assign({}, clean, { rooted: true }));
+ok(k.flags.indexOf('device_rooted') >= 0 && k.score < s.reviewRiskThreshold, 'a rooted phone alone is noted but an honest punch is not sent to review', k);
+k = ig({ rooted: 'yes', hooked: 1, signature: 0, mockAt: 'x' });
+ok(k.score === 0, 'junk values (not true / false) are ignored', k);
+
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exitCode = failed ? 1 : 0;

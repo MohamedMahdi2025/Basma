@@ -686,13 +686,13 @@ window.SnapHistory = { section: historySection };
 // =================================================================== PLATFORM: ORGANISATIONS (SaaS tenancy, 2026-10-22)
 Object.assign(T.ar, {
   plTitle:'المنشآت على المنصة', plLead:'كل منشأة (سجل تجاري) لها رقم منشأة (Org ID) وجدول بيانات خاص بها: دفاتر منفصلة تماما، ولا تظهر بيانات منشأة لأخرى. هذه الشاشة لمالك المنصة ومفتاح الإعداد مطلوب لكل عملية ولا يحفظ.',
-  plKey:'مفتاح إعداد المنصة', plOpen:'عرض المنشآت', plNew:'منشأة جديدة', plNameAr:'اسم المنشأة (عربي)', plNameEn:'اسم المنشأة (إنجليزي)', plCr:'السجل التجاري (10 أرقام)', plAdmin:'اسم أول مدير للنظام', plAdminNo:'رقمه الوظيفي', plAdminEmail:'بريده (اختياري)',
+  plKey:'مفتاح إعداد المنصة', plOpen:'عرض المنشآت', plNew:'منشأة جديدة', plNameAr:'اسم المنشأة (عربي)', plNameEn:'اسم المنشأة (إنجليزي)', plUnn:'الرقم الوطني الموحد للمنشأة (يبدأ بـ 7)', plUnnHint:'10 أرقام تبدأ بالرقم 7', plUnnShort:'الموحد', pls_failed:'لم يكتمل الإنشاء', plCr:'السجل التجاري (اختياري، 10 أرقام)', plAdmin:'اسم أول مدير للنظام', plAdminNo:'رقمه الوظيفي', plAdminEmail:'بريده (اختياري)',
   plCreated:'أنشئت المنشأة', plSend:'أرسل هذه البيانات لمدير المنشأة الجديدة:', plMsg:'نظام الموارد البشرية\nرقم المنشأة: {org}\nالرقم الوظيفي: {no}\nرمز التفعيل: {code}\nالرابط: {url}',
   plHome:'المنشأة الأم', plOverview:'نظرة عامة على الاستخدام', plOvLead:'حجم كل شركة ونشاطها فقط، بلا رواتب ولا أسماء ولا بيانات شخصية.', plGroup:'المجموعة', plNoGroup:'بدون مجموعة', plSetGroup:'المجموعة', plEmps:'الموظفون', plEnrolled:'أجهزة مفعلة', plToday:'نشطون اليوم', plPending:'طلبات معلقة', plLast:'آخر نشاط', plTotal:'الإجمالي', plGroupName:'اسم المجموعة (مثلا: المجموعة القابضة)', plSuspend:'إيقاف', plResume:'تفعيل', pls_active:'تعمل', pls_suspended:'موقوفة', plCount:'عدد المنشآت', plThis:'منشأتك الحالية'
 });
 Object.assign(T.en, {
   plTitle:'Organisations on the platform', plLead:'Each organisation (each CR) has an Org ID and a spreadsheet of its own: completely separate books, and no organisation ever sees another\'s data. This screen is for the platform owner; the setup key is needed for every action and is never stored.',
-  plKey:'Platform setup key', plOpen:'Show organisations', plNew:'New organisation', plNameAr:'Name (Arabic)', plNameEn:'Name (English)', plCr:'CR number (10 digits)', plAdmin:'First administrator\'s name', plAdminNo:'Their employee number', plAdminEmail:'Their e-mail (optional)',
+  plKey:'Platform setup key', plOpen:'Show organisations', plNew:'New organisation', plNameAr:'Name (Arabic)', plNameEn:'Name (English)', plUnn:'Unified national number (starts with 7)', plUnnHint:'10 digits starting with 7', plUnnShort:'UNN', pls_failed:'Creation did not finish', plCr:'CR number (optional, 10 digits)', plAdmin:'First administrator\'s name', plAdminNo:'Their employee number', plAdminEmail:'Their e-mail (optional)',
   plCreated:'Organisation created', plSend:'Send these details to the new organisation\'s administrator:', plMsg:'HR system\nOrg ID: {org}\nEmployee number: {no}\nActivation code: {code}\nLink: {url}',
   plHome:'Home organisation', plOverview:'Usage overview', plOvLead:'Each company\'s size and activity only: no salaries, names or personal data.', plGroup:'Group', plNoGroup:'No group', plSetGroup:'Group', plEmps:'Employees', plEnrolled:'Devices enrolled', plToday:'Active today', plPending:'Pending requests', plLast:'Last activity', plTotal:'Total', plGroupName:'Group name (for example: Holding group)', plSuspend:'Suspend', plResume:'Re-open', pls_active:'Active', pls_suspended:'Suspended', plCount:'Organisations', plThis:'Your current organisation'
 });
@@ -727,7 +727,7 @@ function platformSection(body){
       el.innerHTML = K.tiles([[t('plCount'), K.n(rows.length), '', true]]) +
         '<div class="toolbar"><span class="sp"></span><button type="button" class="btn btn-dark btn-sm" id="plN">' + ph('plus') + t('plNew') + '</button></div>' +
         '<div class="list">' + rows.map(function(o, i){
-          return '<div class="row w2-row"><div class="main"><b><bdi dir="ltr">' + esc(o.id) + '</bdi> · ' + esc(o.nameAr || '') + (o.nameEn ? ' · ' + esc(o.nameEn) : '') + '</b><small>' + (o.cr ? 'CR ' + esc(o.cr) + ' · ' : '') + (o.createdAt ? K.fmt(o.createdAt.slice(0, 10)) : '') + '</small></div>' +
+          return '<div class="row w2-row"><div class="main"><b><bdi dir="ltr">' + esc(o.id) + '</bdi> · ' + esc(o.nameAr || '') + (o.nameEn ? ' · ' + esc(o.nameEn) : '') + '</b><small>' + (o.unn ? esc(t('plUnnShort')) + ' ' + esc(o.unn) + ' · ' : '') + (o.cr ? 'CR ' + esc(o.cr) + ' · ' : '') + (o.createdAt ? K.fmt(o.createdAt.slice(0, 10)) : '') + '</small></div>' +
             '<div class="act" style="display:flex;gap:8px;align-items:center">' + K.chip(t('pls_' + o.status), o.status === 'active' ? 'in' : 'absent') +
             '<button type="button" class="btn btn-line btn-sm" data-gr="' + i + '">' + ph('stack') + (o.group ? esc(o.group) : t('plSetGroup')) + '</button>' + (o.home ? '' : '<button type="button" class="btn btn-line btn-sm" data-st="' + i + '">' + t(o.status === 'active' ? 'plSuspend' : 'plResume') + '</button>') + '</div></div>';
         }).join('') + '</div>';
@@ -737,7 +737,7 @@ function platformSection(body){
       $$('[data-st]', el).forEach(function(b){ K.confirmTap(b, function(){ var o = rows[b.dataset.st]; api('orgSetStatus', { setupKey: key, id: o.id, status: o.status === 'active' ? 'suspended' : 'active' }).then(function(x){ if (!x.ok) return toast(errText(x.error)); load(); }); }); });
       $('#plN', el).onclick = function(){
         K.formDrawer(t('plNew'), '', K.fld(t('plNameAr'), '<input name="nameAr" required maxlength="120">') + K.fld(t('plNameEn'), '<input name="nameEn" maxlength="120" dir="ltr">') +
-          K.fld(t('plCr'), '<input name="cr" inputmode="numeric" maxlength="10" pattern="\\d{10}" dir="ltr">') + K.fld(t('plAdmin'), '<input name="adminName" required maxlength="80">') +
+          K.fld(t('plUnn'), '<input name="unn" required inputmode="numeric" maxlength="10" pattern="7\\d{9}" title="' + esc(t('plUnnHint')) + '" dir="ltr">') + K.fld(t('plCr'), '<input name="cr" inputmode="numeric" maxlength="10" pattern="\\d{10}" dir="ltr">') + K.fld(t('plAdmin'), '<input name="adminName" required maxlength="80">') +
           K.fld(t('plAdminNo'), '<input name="adminEmpNo" required maxlength="20" inputmode="numeric" dir="ltr">') + K.fld(t('plAdminEmail'), '<input name="adminEmail" type="email" dir="ltr">'),
           function(v){ v.setupKey = key; return api('orgCreate', v); },
           function(x){

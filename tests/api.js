@@ -32,7 +32,7 @@ ok(B.raw({ action: 'apiQuery', orgId: '1001', apiKey: k.key, resource: 'salaries
 ok(B.raw({ action: 'apiQuery', orgId: '1001', apiKey: k.key, resource: 'departments' }).ok, 'the organisation structure with the org scope');
 const csv = B.ctx.doGet({ parameter: { org: '1001', key: k.key, resource: 'employees', format: 'csv' } });
 ok(typeof csv === 'string' && csv.charCodeAt(0) === 0xFEFF && /^﻿id,empNo,name/.test(csv) && csv.includes('مدير النظام'), 'Power BI / Excel read it with a GET link, as CSV', String(csv).slice(0, 80));
-const org2 = B.raw({ action: 'orgCreate', setupKey: 'k', nameAr: 'منشأة أخرى', adminName: 'م', adminEmpNo: '1' });
+const org2 = B.raw({ action: 'orgCreate', setupKey: 'k', nameAr: 'منشأة أخرى', unn: '7005550001', adminName: 'م', adminEmpNo: '1' });
 ok(B.raw({ action: 'apiQuery', orgId: org2.orgId, apiKey: k.key, resource: 'employees' }).error === 'bad_api_key', 'a key of one organisation means nothing to another');
 const kid = call('1000', 'apiKeyList', {}).rows[0];
 ok(kid.uses === 3 && kid.lastUsedAt, 'the administrator sees when and how often each key was used', kid);
