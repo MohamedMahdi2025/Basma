@@ -270,6 +270,7 @@ function api_payrollRecalc(req, me) {
   return withLock_(function () {
     var run = findBy_(SHEETS.RUN, 'id', req.id); if (run && !runAccess_(me, run)) fail_('forbidden'); // a closed pay group: its own payroll staff only
     if (!run || run.status !== 'draft') fail_('not_found');
+    if (run.scope === 'import') fail_('imported_run'); // the lines are the employer's own sheet: correct it there and import again
     var x = payrollCtx_(run.month, String(run.payGroupId || '')), existing = {}, now = new Date().toISOString();
     readAll_(SHEETS.SLIP).forEach(function (s) { if (s.runId === run.id) existing[s.empId] = s; });
     var upd = [], add = [], seen = {};
@@ -1032,4 +1033,97 @@ function api_waTest(req, me) {
   try { waSend_(c, to, ['1']); } catch (e) { fail_('whatsapp_failed'); }
   audit_(me.id, 'whatsapp_test', me.id, null);
   return { ok: true, to: to.slice(0, 5) + '•••' + to.slice(-2) };
+}
+
+
+// ======================================================================= platform import of a salary sheet (2026-11-03)
+/**
+ * Platform owner (setup key): load one organisation from its own monthly salary sheet, rows already parsed by the console.
+ * - Each branch / group becomes a department with its own cost centre (CC-01, CC-02, ... in sheet order; existing ones reused).
+ * - Each person becomes an employee (the number in the sheet, or the organisation's next number), marked incomplete:
+ *   national ID, nationality, hire date and job title are left for HR.
+ * - The package (basic, housing, transport) is approved from the month's first day: the sheet is the employer's own record.
+ * - The month's payroll is a draft run with scope 'import': every line exactly as the sheet (absence, advances, fines,
+ *   other deductions, bonuses, overtime), no GOSI added; a recalculation is refused so it can never drift from the sheet.
+ *   A row whose net the sheet left at 0 is kept with a "withheld" line, so the run's totals equal the sheet's.
+ * Approval and locking stay with the organisation's payroll people (second person rule), as for any run.
+ */
+function api_orgImport(req) {
+  platformKeyOk_(req);
+  var id = String(req.id || ''), month = String(req.month || ''), rows = Array.isArray(req.rows) ? req.rows : [];
+  if (!PropertiesService.getScriptProperties().getProperty('ORG:' + id)) fail_('org_not_found');
+  if (!/^\d{4}-\d{2}$/.test(month)) fail_('bad_date');
+  if (!rows.length || rows.length > 2000) fail_('bad_request');
+  setOrg_(orgRec_(id));
+  var n = function (v) { var x = Number(v); return isFinite(x) ? Math.round(x * 100) / 100 : 0; };
+  var clean = rows.map(function (r, i) {
+    var o = { line: i + 1, branch: str_(r.branch, 80) || 'الإدارة العامة', empNo: str_(r.empNo, 30), name: str_(r.name, 80), days: Math.max(0, Math.min(31, Math.round(n(r.days)))),
+      basic: n(r.basic), housing: n(r.housing), transport: n(r.transport), overtime: n(r.overtime), bonus: n(r.bonus),
+      absence: n(r.absence), advance: n(r.advance), fine: n(r.fine), other: n(r.other), net: r.net === '' || r.net == null ? null : n(r.net), note: str_(r.note, 200) };
+    if (!o.name) fail_('missing_fields');
+    if ([o.basic, o.housing, o.transport, o.overtime, o.bonus, o.absence, o.advance, o.fine, o.other].some(function (v) { return v < 0; })) fail_('bad_amount');
+    return o;
+  });
+  return withLock_(function () {
+    var now = new Date().toISOString(), first = month + '-01';
+    if (readAll_(SHEETS.RUN).some(function (r) { return r.month === month && r.status !== 'cancelled' && !isDemoRun_(r) && !String(r.payGroupId || ''); })) fail_('run_exists');
+    // departments = cost centres
+    var depts = readAll_(SHEETS.DEPT), byName = {}, newDepts = [], cc = 0;
+    depts.forEach(function (d) { byName[normName_(d.nameAr)] = d; var m = String(d.costCenter || '').match(/^CC-(\d+)$/); if (m) cc = Math.max(cc, Number(m[1])); });
+    var branches = []; clean.forEach(function (r) { if (branches.indexOf(r.branch) < 0) branches.push(r.branch); });
+    var codes = nextRefs_('department', branches.filter(function (b) { return !byName[normName_(b)]; }).length, codesOf_(depts)), ci = 0;
+    branches.forEach(function (b) {
+      if (byName[normName_(b)]) return;
+      cc++; var d = { id: newId_('D'), code: codes[ci++] || '', nameAr: b, nameEn: '', parentId: '', headEmpId: '', costCenter: 'CC-' + String(cc).padStart(2, '0'), status: 'active', createdAt: now, updatedAt: now };
+      byName[normName_(b)] = d; newDepts.push(d);
+    });
+    // employees
+    var emps = readAll_(SHEETS.EMP), byNo = {}; emps.forEach(function (e) { byNo[String(e.empNo).trim()] = e; });
+    var autoNos = nextEmpNos_(clean.filter(function (r) { return !r.empNo; }).length, emps), ai = 0, newEmps = [], updEmps = [], seen = {};
+    clean.forEach(function (r) {
+      if (r.empNo && seen[r.empNo]) fail_('duplicate_emp_no'); if (r.empNo) seen[r.empNo] = 1;
+      var d = byName[normName_(r.branch)], e = r.empNo ? byNo[r.empNo] : null;
+      if (e) { e.departmentId = d.id; e.department = d.nameAr; e.updatedAt = now; updEmps.push(e); }
+      else {
+        e = { id: newId_('E'), empNo: r.empNo || autoNos[ai++], name: r.name, nameEn: '', email: '', phone: '', department: d.nameAr, title: '', role: 'employee', status: 'active',
+          zoneIds: '', shiftStart: '', shiftEnd: '', workdays: '', tokenVer: 0, actHash: '', actExp: '', actTries: 0, createdAt: now, updatedAt: now, departmentId: d.id,
+          employmentType: '', hireDate: '', nationality: '' };
+        newEmps.push(e); byNo[e.empNo] = e;
+      }
+      r.emp = e;
+    });
+    // approved packages from the month's first day
+    var comps = [];
+    clean.forEach(function (r) {
+      if (!(r.basic > 0)) return;
+      var c = compRowFrom_({ empId: r.emp.id, effectiveFrom: first, basic: r.basic, housing: r.housing, transport: r.transport, reason: 'استيراد من كشف رواتب ' + month }, 'platform');
+      c.status = 'approved'; c.approvedBy = 'platform'; c.approvedAt = now; comps.push(c);
+    });
+    var salRefs = nextRefs_('salary', comps.length, refsOf_(SHEETS.COMP)); comps.forEach(function (c, i) { c.ref = salRefs[i]; });
+    // the month's run, line by line as the sheet
+    var run = { id: newId_('P'), ref: nextRef_('payroll', refsOf_(SHEETS.RUN)), month: month, status: 'draft', preparedBy: 'import', preparedAt: now, approvedBy: '', approvedAt: '',
+      totalsJson: '', note: 'استيراد من كشف الرواتب كما هو (بدون تأمينات محسوبة)', emailedAt: '', createdAt: now, updatedAt: now, scope: 'import', payGroupId: '' };
+    var slips = [], mismatch = [];
+    clean.forEach(function (r) {
+      var lines = [], add = function (l) { l.amount = r2_(l.amount); if (l.amount) lines.push(l); };
+      add({ kind: 'earning', code: 'basic', amount: r.basic }); add({ kind: 'earning', code: 'housing', amount: r.housing }); add({ kind: 'earning', code: 'transport', amount: r.transport });
+      add({ kind: 'earning', code: 'overtime', amount: r.overtime }); add({ kind: 'earning', code: 'bonus', amount: r.bonus });
+      add({ kind: 'deduction', code: 'absence', days: Math.max(0, 30 - r.days) || undefined, amount: r.absence }); add({ kind: 'deduction', code: 'advance', amount: r.advance });
+      add({ kind: 'deduction', code: 'fine', amount: r.fine }); add({ kind: 'deduction', code: 'other_deduction', amount: r.other });
+      var calc = finish_({ lines: lines, warnings: [], info: { paidDays: r.days, imported: true, note: r.note } });
+      if (r.net !== null && Math.abs(calc.net - r.net) > 0.01) {
+        var due = calc.net;
+        if (r.net === 0 && calc.net > 0) { add({ kind: 'deduction', code: 'other_deduction', label: 'موقوف الصرف (صافي الكشف صفر)', amount: calc.net }); calc = finish_({ lines: lines, warnings: ['withheld'], info: { paidDays: r.days, imported: true, note: r.note } }); }
+        mismatch.push({ line: r.line, name: r.name, sheet: r.net, net: due });
+      }
+      slips.push(slipRow_(r.emp, run, calc, null));
+    });
+    var refs = nextRefs_('payslip', slips.length, refsOf_(SHEETS.SLIP)); slips.forEach(function (x, i) { x.ref = refs[i]; });
+    run.totalsJson = JSON.stringify(totals_(slips));
+    appendMany_(SHEETS.DEPT, newDepts); updateMany_(SHEETS.EMP, updEmps); appendMany_(SHEETS.EMP, newEmps);
+    appendMany_(SHEETS.COMP, comps); append_(SHEETS.RUN, run); appendMany_(SHEETS.SLIP, slips);
+    audit_('platform', 'org_import', run.id, { month: month, departments: newDepts.length, employees: newEmps.length, updated: updEmps.length, packages: comps.length, slips: slips.length });
+    return { ok: true, orgId: id, month: month, run: run.ref, departments: newDepts.map(function (d) { return { name: d.nameAr, costCenter: d.costCenter }; }),
+      created: newEmps.length, updated: updEmps.length, numbered: ai, packages: comps.length, totals: totals_(slips), mismatch: mismatch };
+  });
 }
