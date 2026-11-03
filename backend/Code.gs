@@ -906,6 +906,8 @@ function api_platformHealth() {
     var err = {}; try { err = JSON.parse(r.getContentText()).error || {}; } catch (x) { }
     out.sheetsApi = r.getResponseCode() + ' ' + String(err.status || ''); // 404 NOT_FOUND: the API answers; 403: switched off for the project
     if (r.getResponseCode() === 403) out.sheetsApiMsg = String(err.message || '').slice(0, 200);
+    var ti = UrlFetchApp.fetch('https://oauth2.googleapis.com/tokeninfo?access_token=' + encodeURIComponent(ScriptApp.getOAuthToken()), { muteHttpExceptions: true });
+    try { out.scopes = String(JSON.parse(ti.getContentText()).scope || '').split(' ').map(function (x) { return x.replace('https://www.googleapis.com/auth/', ''); }); } catch (x) { } // the names of the granted permissions only, never the token
   } catch (e) { out.sheetsApi = 'error'; }
   return out;
 }
@@ -1132,7 +1134,10 @@ function hrisHook_(kind, fn) { (HRIS_HOOKS_[kind] = HRIS_HOOKS_[kind] || []).pus
 function hrisHooks_(kind) { return HRIS_HOOKS_[kind] || []; }
 
 /** Run once from the Apps Script editor so Google asks the owner to approve the sheet access. */
-function authorize() { ss_(); sheet_(SHEETS.EMP); UrlFetchApp.fetch("https://sheets.googleapis.com/$discovery/rest?version=v4", { muteHttpExceptions: true }); return "ok"; }
+function authorize() { ss_(); sheet_(SHEETS.EMP); DriveApp_touch_(); UrlFetchApp.fetch("https://sheets.googleapis.com/$discovery/rest?version=v4", { muteHttpExceptions: true }); return "ok"; }
+
+/** Nothing to do: a reference that keeps drive.file on the consent screen. */
+function DriveApp_touch_() { return 'drive.file'; }
 
 function api_ping() { return { ok: true, time: new Date().toISOString() }; }
 
