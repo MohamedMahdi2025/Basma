@@ -699,7 +699,7 @@ Object.assign(T.en, {
 function platformSection(body){
   var full = body.id === 'platBody', box = body, key = '';
   if (!full) body.classList.add('plx-in');
-  box.innerHTML = '<div class="plx-lockwrap" id="plLk"><section class="plx-vault"><div class="plx-ring" aria-hidden="true">' + (typeof basmaLiveSvg === 'function' ? basmaLiveSvg() : '<img src="' + platformMark() + '" alt="">') + '</div>' +
+  box.innerHTML = '<div class="plx-lockwrap" id="plLk"><section class="plx-vault"><div class="plx-ring" aria-hidden="true">' + (typeof basmaLiveSvg === 'function' ? basmaLiveSvg() : '<img src="' + platformMark() + '" alt="">') + '<span class="plx-hubtag">' + ph('graph', 'fill') + '</span></div>' +
       '<h1>' + t('pxTitle') + '</h1><p>' + t('pxLead') + '</p><ul class="plx-facts"><li>' + ph('database') + '<span>' + t('pxF1') + '</span></li><li>' + ph('palette') + '<span>' + t('pxF2') + '</span></li><li>' + ph('lock-key') + '<span>' + t('pxF3') + '</span></li></ul></section>' +
       '<section class="plx-lock"><h2>' + t('pxKeyTitle') + '</h2><p>' + t('pxKeyLead') + '</p><form id="plK" autocomplete="off"><label for="plKi">' + t('plKey') + '</label>' +
       '<div class="plx-key"><input id="plKi" data-eye="1" type="password" name="k" required autocomplete="off" spellcheck="false" autocapitalize="off" dir="ltr"><button type="button" id="plEye" aria-label="' + esc(t('pxShow')) + '">' + ph('eye') + '</button></div>' +
