@@ -1425,7 +1425,7 @@ const ALLW = { all: COLS, hrOnly: ['hr'], hrA: ['hr', 'admin'], adm: ['admin'], 
   mgr: ['manager', 'hr', 'admin'], none: [], fileView: ['manager', 'hr', 'payroll', 'admin'],
   mgrX: ['manager', 'hr', 'executive', 'admin'], money: ['hr', 'payroll', 'executive'], hrExec: ['hr', 'executive'], hrExecA: ['hr', 'executive', 'admin'], mgrPay: ['manager', 'hr', 'payroll', 'admin'], mgrAll: ['manager', 'hr', 'payroll', 'executive', 'admin'] };
 const EXPECT = {
-  hrCompList: 'pay', hrCompPropose: 'pay', hrCompDecide: 'pay', leaveTeam: 'mgr', payrollList: 'pay', payrollGet: 'pay', payrollCreate: 'pay', payrollRecalc: 'pay', payrollApprove: 'payOnly',
+  hrCompList: 'pay', hrCompPropose: 'pay', hrCompDecide: 'pay', leaveTeam: 'mgr', payrollList: 'pay', payrollGet: 'pay', payrollVariance: 'pay', payrollCreate: 'pay', payrollRecalc: 'pay', payrollApprove: 'payOnly',
   payrollDelete: 'pay', payrollAdjSave: 'pay', payrollAdjDelete: 'pay', payrollExport: 'pay', payrollEmail: 'pay', eosQuote: 'pay', dashboard: 'dash', reportLog: 'hrPay', reportReview: 'hrPay',
   reportVerify: 'dash', surveyResults: 'dash', wpsFile: 'pay', wpsStep: 'pay', reconUpload: 'pay', reconList: 'pay', reconResolve: 'pay', complianceCalendar: 'hrPay', shiftList: 'mgr',
   rosterList: 'mgr', discCodes: 'mgr', assetCharge: 'payOnly', punchPw: 'none', hrEmpFile: 'fileView', perfEmp: 'mgr', planSave: 'mgr', delegationSave: 'mgr', discOpen: 'mgr', injuryReport: 'mgr',

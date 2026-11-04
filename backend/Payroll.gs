@@ -1130,3 +1130,96 @@ function orgImport_(id, month, rows) {
       created: newEmps.length, updated: updEmps.length, numbered: ai, packages: comps.length, totals: totals_(slips), mismatch: mismatch };
   });
 }
+
+
+// ======================================================================= payroll variance analysis (2026-11-04)
+/**
+ * Every number of a run against the two months before it, the way a payroll reviewer checks a batch before approving:
+ * - totals: headcount, gross, deductions, net, GOSI (employee, employer), company cost; change vs last month, vs two months
+ *   ago and vs their average;
+ * - by department (cost centre) and by pay line (basic, housing, overtime, bonus, absence, advance, GOSI...);
+ * - every person: each line this month and the two before, the change and why it matters. Flags: joiner, leaver (paid
+ *   before, not now), returner, net up/down beyond the threshold, a line that appears or disappears, package change (basic
+ *   or allowances moved), deductions spike, net zero or negative, one-off earnings, absence or unpaid days;
+ * - a score per person (bigger and stranger changes first) so the reviewer reads the riskiest payslips first.
+ * Prior months use every non-demo run of that month that is not cancelled (locked first, else draft), all pay groups added.
+ * Read only: salary_view is audited like the run itself.
+ */
+var VAR_PCT_ = 10, VAR_MIN_ = 100; // a change counts when it is both 10% and 100 SAR or more
+function api_payrollVariance(req, me) {
+  if (!canPayroll_(me)) fail_('forbidden');
+  var run = findBy_(SHEETS.RUN, 'id', req.id); if (!run) fail_('not_found'); if (!runAccess_(me, run)) fail_('forbidden');
+  var pct = Math.max(1, Math.min(100, Number(req.pct) || VAR_PCT_)), minAmt = Math.max(0, Number(req.min) || VAR_MIN_);
+  var m0 = run.month, m1 = addMonths_(m0, -1), m2 = addMonths_(m0, -2);
+  var runs = readAll_(SHEETS.RUN).filter(function (r) { return r.status !== 'cancelled' && !isDemoRun_(r); });
+  var pick = function (month) { var rs = runs.filter(function (r) { return r.month === month; }); var locked = rs.filter(function (r) { return r.status === 'locked'; }); return (locked.length ? locked : rs).map(function (r) { return r.id; }); };
+  var ids = { m0: [run.id], m1: pick(m1), m2: pick(m2) };
+  var slips = readAll_(SHEETS.SLIP).filter(function (x) { return x.status !== 'void'; });
+  var emps = {}; readAll_(SHEETS.EMP).forEach(function (e) { emps[e.id] = e; });
+  var depts = {}; readAll_(SHEETS.DEPT).forEach(function (d) { depts[d.id] = d; });
+  var keys = ['m0', 'm1', 'm2'], per = {}, lineCodes = {};
+  keys.forEach(function (k) {
+    slips.filter(function (x) { return ids[k].indexOf(x.runId) >= 0; }).forEach(function (x) {
+      var p = per[x.empId] = per[x.empId] || { m0: null, m1: null, m2: null };
+      var cur = p[k] || { gross: 0, deductions: 0, net: 0, gosiEmployee: 0, gosiEmployer: 0, companyCost: 0, paidDays: 0, absentDays: 0, lines: {} };
+      cur.gross += Number(x.gross) || 0; cur.deductions += Number(x.deductions) || 0; cur.net += Number(x.net) || 0;
+      cur.gosiEmployee += Number(x.gosiEmployee) || 0; cur.gosiEmployer += Number(x.gosiEmployer) || 0;
+      cur.companyCost += Number(x.companyCost) || ((Number(x.gross) || 0) + (Number(x.gosiEmployer) || 0));
+      cur.paidDays += Number(x.paidDays) || 0; cur.absentDays += Number(x.absentDays) || 0;
+      lines_(x).forEach(function (l) { var c = (l.kind === 'deduction' ? 'd:' : 'e:') + l.code + (l.label && l.code !== 'basic' ? ':' + l.label : ''); lineCodes[c] = 1; cur.lines[c] = r2_((cur.lines[c] || 0) + (Number(l.amount) || 0)); });
+      p[k] = cur;
+    });
+  });
+  var chg = function (a, b) { a = Number(a) || 0; b = Number(b) || 0; return { diff: r2_(a - b), pct: b ? r2_((a - b) / Math.abs(b) * 100) : (a ? null : 0) }; };
+  var big = function (a, b) { var c = chg(a, b); return Math.abs(c.diff) >= minAmt && (c.pct === null || Math.abs(c.pct) >= pct); };
+  var people = [], tot = { m0: {}, m1: {}, m2: {} }, byDept = {}, byLine = {};
+  var F = ['gross', 'deductions', 'net', 'gosiEmployee', 'gosiEmployer', 'companyCost'];
+  Object.keys(per).forEach(function (empId) {
+    var p = per[empId], e = emps[empId] || {}, dname = (depts[e.departmentId] && depts[e.departmentId].nameAr) || e.department || '-';
+    var cc = (depts[e.departmentId] && depts[e.departmentId].costCenter) || '';
+    keys.forEach(function (k) {
+      if (!p[k]) return;
+      tot[k].headcount = (tot[k].headcount || 0) + 1;
+      F.forEach(function (f) { tot[k][f] = r2_((tot[k][f] || 0) + p[k][f]); });
+      var dk = dname; byDept[dk] = byDept[dk] || { name: dname, costCenter: cc, m0: { net: 0, gross: 0, head: 0 }, m1: { net: 0, gross: 0, head: 0 }, m2: { net: 0, gross: 0, head: 0 } };
+      byDept[dk][k].net = r2_(byDept[dk][k].net + p[k].net); byDept[dk][k].gross = r2_(byDept[dk][k].gross + p[k].gross); byDept[dk][k].head++;
+      Object.keys(p[k].lines).forEach(function (c) { byLine[c] = byLine[c] || { code: c, m0: 0, m1: 0, m2: 0, people: { m0: 0, m1: 0, m2: 0 } }; byLine[c][k] = r2_(byLine[c][k] + p[k].lines[c]); byLine[c].people[k]++; });
+    });
+    if (!p.m0 && !p.m1) return; // only two months ago: not part of this comparison
+    var c0 = p.m0 || { gross: 0, deductions: 0, net: 0, lines: {} }, c1 = p.m1, c2 = p.m2, flags = [], score = 0;
+    var base = c1 || c2;
+    if (p.m0 && !c1 && !c2) { flags.push('joiner'); score += 30; }
+    if (p.m0 && !c1 && c2) { flags.push('returner'); score += 25; }
+    if (!p.m0 && c1) { flags.push('leaver'); score += 35; }
+    if (p.m0 && base) {
+      var nc = chg(c0.net, base.net);
+      if (big(c0.net, base.net)) { flags.push(nc.diff > 0 ? 'net_up' : 'net_down'); score += Math.min(60, Math.abs(nc.pct || 100) * 0.6); }
+      if (big(c0.deductions, base.deductions) && c0.deductions > base.deductions) { flags.push('deductions_spike'); score += 15; }
+      var pk = ['e:basic', 'e:housing', 'e:transport'].some(function (k) { return Math.abs((c0.lines[k] || 0) - (base.lines[k] || 0)) >= 1 && (base.lines[k] || 0) > 0 && (c0.lines[k] || 0) > 0; });
+      if (pk) { flags.push('package_change'); score += 20; }
+      Object.keys(c0.lines).forEach(function (k) { if (!base.lines[k] && c0.lines[k] >= minAmt) { flags.push('new_line:' + k); score += 10; } });
+      Object.keys(base.lines).forEach(function (k) { if (!c0.lines[k] && base.lines[k] >= minAmt) { flags.push('gone_line:' + k); score += 8; } });
+    }
+    if (p.m0 && c0.net <= 0) { flags.push('net_zero'); score += 40; }
+    if (p.m0 && (c0.lines['e:bonus'] || c0.lines['e:overtime'] || c0.lines['e:other_earning'])) { flags.push('one_off'); score += 5; }
+    if (p.m0 && (c0.lines['d:absence'] || c0.lines['d:unpaid_leave'])) { flags.push('absence'); score += 5; }
+    var lines = {}; Object.keys(c0.lines || {}).concat(Object.keys((c1 || {}).lines || {}), Object.keys((c2 || {}).lines || {})).forEach(function (k) { lines[k] = [r2_((c0.lines || {})[k] || 0), r2_(c1 ? c1.lines[k] || 0 : 0), r2_(c2 ? c2.lines[k] || 0 : 0)]; });
+    people.push({ empId: empId, empNo: String(e.empNo || ''), name: e.name || '', department: dname, costCenter: cc,
+      m0: p.m0 ? { gross: r2_(c0.gross), deductions: r2_(c0.deductions), net: r2_(c0.net), days: c0.paidDays } : null,
+      m1: c1 ? { gross: r2_(c1.gross), deductions: r2_(c1.deductions), net: r2_(c1.net), days: c1.paidDays } : null,
+      m2: c2 ? { gross: r2_(c2.gross), deductions: r2_(c2.deductions), net: r2_(c2.net), days: c2.paidDays } : null,
+      netVsM1: c1 ? chg(c0.net, c1.net) : null, netVsM2: c2 ? chg(c0.net, c2.net) : null, lines: lines, flags: flags, score: Math.round(score) });
+  });
+  people.sort(function (a, b) { return b.score - a.score || Math.abs((b.netVsM1 || {}).diff || 0) - Math.abs((a.netVsM1 || {}).diff || 0); });
+  var totals = {}; ['headcount'].concat(F).forEach(function (f) { var a = tot.m0[f] || 0, b = tot.m1[f] || 0, c = tot.m2[f] || 0; totals[f] = { m0: a, m1: b, m2: c, vsM1: chg(a, b), vsM2: chg(a, c), vsAvg: chg(a, (b && c) ? (b + c) / 2 : (b || c)) }; });
+  var dl = Object.keys(byDept).map(function (k) { var d = byDept[k]; d.vsM1 = chg(d.m0.net, d.m1.net); d.vsM2 = chg(d.m0.net, d.m2.net); return d; }).sort(function (a, b) { return Math.abs(b.vsM1.diff) - Math.abs(a.vsM1.diff); });
+  var ll = Object.keys(byLine).map(function (k) { var l = byLine[k]; l.vsM1 = chg(l.m0, l.m1); l.vsM2 = chg(l.m0, l.m2); return l; }).sort(function (a, b) { return Math.abs(b.vsM1.diff) - Math.abs(a.vsM1.diff); });
+  var count = {}; people.forEach(function (x) { x.flags.forEach(function (f) { var k = f.split(':')[0]; count[k] = (count[k] || 0) + 1; }); });
+  // what explains the change in net: joiners and leavers, then people who stayed (by line)
+  var bridge = { from: totals.net.m1, joiners: 0, leavers: 0, stayers: 0, to: totals.net.m0 };
+  people.forEach(function (x) { var a = x.m0 ? x.m0.net : 0, b = x.m1 ? x.m1.net : 0; if (x.m0 && !x.m1) bridge.joiners = r2_(bridge.joiners + a); else if (!x.m0 && x.m1) bridge.leavers = r2_(bridge.leavers - b); else bridge.stayers = r2_(bridge.stayers + a - b); });
+  audit_(me.id, 'salary_view', run.id, { variance: run.ref });
+  return { ok: true, run: { id: run.id, ref: run.ref, month: m0, status: run.status }, months: { m0: m0, m1: m1, m2: m2, have1: ids.m1.length > 0, have2: ids.m2.length > 0 },
+    threshold: { pct: pct, min: minAmt }, totals: totals, bridge: bridge, departments: dl, lines: ll, people: people, counts: count };
+}
+function addMonths_(ym, n) { var y = Number(ym.slice(0, 4)), m = Number(ym.slice(5, 7)) - 1 + n; y += Math.floor(m / 12); m = ((m % 12) + 12) % 12; return y + '-' + String(m + 1).padStart(2, '0'); }

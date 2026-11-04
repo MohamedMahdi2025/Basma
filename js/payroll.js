@@ -322,13 +322,14 @@ function runView(body, id){
       '<div class="kpi"><span>' + t('prHead') + '</span><b class="num" style="font-size:20px">' + tt.headcount + '</b></div></div>' +
       (window.Viz ? runDash(r) : '') + '<div class="btnrow" style="margin-bottom:12px">' + (draft ? '<button type="button" class="btn btn-line btn-sm" id="prRe">' + ph('arrows-clockwise') + t('prRecalc') + '</button>' + (r.canApprove ? '<button type="button" class="btn btn-dark btn-sm" id="prOk">' + ph('seal-check') + t('prApprove') + '</button>' : '') +
         '<button type="button" class="btn btn-danger btn-sm" id="prDel">' + t('prDelete') + '</button>' : '<button type="button" class="btn btn-dark btn-sm" id="prMail">' + ph('envelope-simple') + t('prEmail') + '</button>') +
-      '<button type="button" class="btn btn-line btn-sm" id="prXls">' + ph('microsoft-excel-logo') + t('prExport') + '</button></div>' +
+      '<button type="button" class="btn btn-dark btn-sm" id="prVar">' + ph('chart-line-up') + t('vaBtn') + '</button><button type="button" class="btn btn-line btn-sm" id="prXls">' + ph('microsoft-excel-logo') + t('prExport') + '</button></div>' +
       (draft ? '<p class="hr-hint">' + t('prApproveHint') + '</p>' : '') + '<div class="err" id="prMsg" style="color:var(--red);margin-bottom:8px"></div>' +
       '<div class="tblwrap"><table class="tbl"><thead><tr><th>' + t('hrName') + '</th><th class="hr-amt">' + t('prGross') + '</th><th class="hr-amt">' + t('prDed') + '</th><th class="hr-amt">' + t('prNet') + '</th><th>' + t('prWarn') + '</th></tr></thead><tbody>' +
       r.slips.map(function(s){ return '<tr class="click" data-s="' + s.id + '" tabindex="0"><td><b style="font-weight:500">' + esc(s.emp ? s.emp.name : '') + '</b> <small class="num" style="color:var(--ink-2)">' + esc(s.emp ? s.emp.empNo : '') + '</small></td>' +
         '<td class="hr-amt">' + money(s.gross) + '</td><td class="hr-amt">' + money(s.deductions) + '</td><td class="hr-amt"><b>' + money(s.net) + '</b></td><td>' + warnChips(s.warnings) + '</td></tr>'; }).join('') + '</tbody></table></div>' +
       '<h3 class="hr-sub">' + t('prAdj') + '</h3><div id="prAdj"></div>';
     $('#prBack', el).onclick = function(){ S.prRun = null; section(body); };
+    $('#prVar', el).onclick = function(){ varianceView(run); };
     if (window.Viz) Viz.wire(el);
     $$('[data-s]', el).forEach(function(x){ var go = function(){ openSlip(r.slips.filter(function(s){ return s.id === x.dataset.s; })[0], null, { run: run }); }; x.onclick = go; x.onkeydown = function(e){ if (e.key === 'Enter') go(); }; });
     var msg = $('#prMsg', el), act = function(action, done){ return function(){ this.disabled = true; var b = this; api(action, { id: run.id }).then(function(x){ b.disabled = false; if (!x.ok) { msg.textContent = errText(x.error); if (x.error === 'email_not_configured') msg.textContent = t('prEmailNo'); return; } done(x); }); }; };
@@ -451,5 +452,83 @@ function totalRewards(empId){
     $('#trPrint', el).onclick = function(){ window.print(); };
   });
 }
-window.Payroll = { section: section, myCard: myCard, totalRewards: totalRewards, openSlip: openSlip, openSlipRef: openSlipRef, printSlip: printSlip };
+// ======================================================================= variance analysis (2026-11-04)
+Object.assign(T.ar, { vaBtn:'تحليل الفروقات', vaTitle:'تحليل فروقات الرواتب', vaLead:'كل رقم في هذا المسير مقارنا بالشهرين السابقين: الإجماليات، الإدارات، بنود الراتب، وكل موظف مرتبا من الأعلى خطورة.',
+  vaM1:'الشهر السابق', vaM2:'قبل شهرين', vaAvg:'متوسط الشهرين', vaNow:'هذا المسير', vaHead:'عدد الموظفين', vaGross:'الإجمالي المستحق', vaDed:'الاستقطاعات', vaNet:'صافي الرواتب', vaGosiE:'تأمينات الموظف', vaGosiR:'تأمينات الشركة', vaCost:'تكلفة الشركة',
+  vaBridge:'من أين جاء الفرق في الصافي؟', vaFrom:'صافي الشهر السابق', vaJoin:'موظفون جدد', vaLeave:'موظفون غادروا', vaStay:'تغيرات المستمرين', vaTo:'صافي هذا المسير',
+  vaDepts:'حسب الإدارة / مركز التكلفة', vaLines:'حسب بند الراتب', vaPeople:'الموظفون (الأعلى خطورة أولا)', vaFilter:'عرض', vaAll:'الكل', vaFlagged:'بها ملاحظات', vaUp:'زيادة', vaDown:'نقص', vaNew:'جدد', vaGone:'غادروا',
+  vaThr:'حد الفرق', vaPct:'٪', vaMin:'ريال', vaApply:'تطبيق', vaCsv:'تصدير التقرير (CSV)', vaNoPrev:'لا يوجد مسير للشهرين السابقين بعد: كل الموظفين يظهرون جددا. تكتمل المقارنة من الشهر القادم.',
+  vaLine:'البند', vaChange:'التغير', vaScore:'الخطورة', vaWhy:'الملاحظات', vaPeopleN:'موظف',
+  vf_joiner:'موظف جديد', vf_returner:'عاد بعد انقطاع', vf_leaver:'غادر (صرف سابقا ولا يظهر الآن)', vf_net_up:'زيادة كبيرة في الصافي', vf_net_down:'نقص كبير في الصافي', vf_deductions_spike:'قفزة في الاستقطاعات',
+  vf_package_change:'تغير في الراتب الأساسي أو البدلات', vf_new_line:'بند جديد', vf_gone_line:'بند اختفى', vf_net_zero:'صافي صفر أو سالب', vf_one_off:'مبالغ لمرة واحدة (مكافأة / إضافي)', vf_absence:'خصم غياب أو إجازة بدون راتب' });
+Object.assign(T.en, { vaBtn:'Variance analysis', vaTitle:'Payroll variance analysis', vaLead:'Every number in this run against the two months before it: totals, departments, pay lines, and every employee, riskiest first.',
+  vaM1:'Last month', vaM2:'Two months ago', vaAvg:'Two-month average', vaNow:'This run', vaHead:'Headcount', vaGross:'Gross pay', vaDed:'Deductions', vaNet:'Net pay', vaGosiE:'GOSI (employee)', vaGosiR:'GOSI (company)', vaCost:'Company cost',
+  vaBridge:'Where the change in net comes from', vaFrom:'Last month net', vaJoin:'Joiners', vaLeave:'Leavers', vaStay:'Changes for people who stayed', vaTo:'This run net',
+  vaDepts:'By department / cost centre', vaLines:'By pay line', vaPeople:'Employees (riskiest first)', vaFilter:'Show', vaAll:'All', vaFlagged:'Flagged', vaUp:'Up', vaDown:'Down', vaNew:'Joiners', vaGone:'Leavers',
+  vaThr:'Threshold', vaPct:'%', vaMin:'SAR', vaApply:'Apply', vaCsv:'Export the report (CSV)', vaNoPrev:'No run exists for the two previous months yet: everyone shows as a joiner. The comparison completes from next month.',
+  vaLine:'Line', vaChange:'Change', vaScore:'Risk', vaWhy:'Notes', vaPeopleN:'employees',
+  vf_joiner:'Joiner', vf_returner:'Back after a gap', vf_leaver:'Left (paid before, not now)', vf_net_up:'Big rise in net', vf_net_down:'Big drop in net', vf_deductions_spike:'Deductions spike',
+  vf_package_change:'Basic or allowances changed', vf_new_line:'New line', vf_gone_line:'Line disappeared', vf_net_zero:'Net zero or negative', vf_one_off:'One-off amounts (bonus / overtime)', vf_absence:'Absence or unpaid leave deduction' });
+(function(){ var st = document.createElement('style'); st.textContent =
+  '.va .va-kp{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin:12px 0}' +
+  '.va .va-k{background:var(--frame,#fff);border:1px solid var(--line-2,#E6E1D6);border-radius:14px;padding:14px}' +
+  '.va .va-k span{display:block;font-size:12px;color:var(--ink-3)}.va .va-k b{display:block;font-size:22px;margin:4px 0;font-variant-numeric:tabular-nums}' +
+  '.va .va-d{display:flex;gap:8px;flex-wrap:wrap;font-size:12px}.va .va-d i{font-style:normal;padding:2px 8px;border-radius:999px;background:var(--well,#F3F5F8)}' +
+  '.va .up{color:#B42318}.va .dn{color:#027A48}.va .va-d i.up{background:#FEE4E2}.va .va-d i.dn{background:#D1FADF}' +
+  '.va .va-br{display:flex;align-items:flex-end;gap:6px;height:180px;padding:10px 4px;border-bottom:1px solid var(--line,#ddd);margin:8px 0 4px}' +
+  '.va .va-br div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px;font-size:11px;text-align:center}' +
+  '.va .va-br i{display:block;width:70%;border-radius:6px 6px 0 0;background:var(--brand,#2F5D8C)}.va .va-br i.pos{background:#D92D20}.va .va-br i.neg{background:#12B76A}' +
+  '.va .va-tbl td,.va .va-tbl th{font-variant-numeric:tabular-nums;white-space:nowrap}.va .va-tbl tr.open+tr.det{display:table-row}.va .va-tbl tr.det{display:none;background:var(--well,#F7F8FA)}' +
+  '.va .va-sc{display:inline-grid;place-items:center;min-width:34px;height:24px;border-radius:999px;font-weight:700;font-size:12px;color:#fff}' +
+  '.va .va-fl{display:flex;gap:4px;flex-wrap:wrap}.va .va-fl small{padding:2px 8px;border-radius:999px;background:#FEF0C7;color:#93370D;font-size:11px}' +
+  '.va .va-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0}.va .va-bar button[aria-pressed="true"]{background:var(--brand,#2F5D8C);color:#fff;border-color:var(--brand,#2F5D8C)}' +
+  '.va .va-bar input{width:72px}';
+  document.head.appendChild(st); })();
+function varianceView(run, pct, min){
+  var d = drawer('<div class="va"><h3>' + t('vaTitle') + ' · ' + esc(monthName(run.month)) + '</h3><p class="hr-hint">' + t('vaLead') + '</p><div id="vaB"><div class="list"><div class="row"><span class="sk" style="width:60%"></span></div></div></div></div>', { wide: true });
+  api('payrollVariance', { id: run.id, pct: pct, min: min }, true).then(function(r){
+    var B = $('#vaB', d); if (!r.ok) return B.innerHTML = '<p class="hr-bad">' + esc(errText(r.error)) + '</p>';
+    var fmt = function(n){ return n === null || n === undefined ? '-' : money(n); };
+    var pc = function(c, whole){ if (!c) return '<i>-</i>'; var up = c.diff > 0, cls = c.diff === 0 ? '' : (up ? 'up' : 'dn'); return '<i class="' + cls + '">' + (c.diff > 0 ? '+' : '') + (whole ? Math.round(c.diff) : money(c.diff)) + (c.pct === null ? '' : ' · ' + (c.pct > 0 ? '+' : '') + c.pct + '%') + '</i>'; };
+    var K = [['headcount', 'vaHead'], ['gross', 'vaGross'], ['deductions', 'vaDed'], ['net', 'vaNet'], ['gosiEmployee', 'vaGosiE'], ['gosiEmployer', 'vaGosiR'], ['companyCost', 'vaCost']];
+    var tiles = K.map(function(k){ var x = r.totals[k[0]]; return '<div class="va-k"><span>' + t(k[1]) + '</span><b>' + (k[0] === 'headcount' ? x.m0 : money(x.m0)) + '</b><div class="va-d"><span>' + t('vaM1') + '</span>' + pc(x.vsM1, k[0] === 'headcount') + '</div><div class="va-d"><span>' + t('vaM2') + '</span>' + pc(x.vsM2, k[0] === 'headcount') + '</div><div class="va-d"><span>' + t('vaAvg') + '</span>' + pc(x.vsAvg, k[0] === 'headcount') + '</div></div>'; }).join('');
+    var b = r.bridge, steps = [[t('vaFrom'), b.from, ''], [t('vaJoin'), b.joiners, 'pos'], [t('vaLeave'), b.leavers, 'neg'], [t('vaStay'), b.stayers, b.stayers >= 0 ? 'pos' : 'neg'], [t('vaTo'), b.to, '']];
+    var mx = Math.max.apply(null, steps.map(function(x){ return Math.abs(x[1]) || 1; }));
+    var bridge = '<h4>' + t('vaBridge') + '</h4><div class="va-br">' + steps.map(function(x){ return '<div><b>' + money(x[1]) + '</b><i class="' + x[2] + '" style="height:' + Math.max(4, Math.round(Math.abs(x[1]) / mx * 130)) + 'px"></i><span>' + esc(x[0]) + '</span></div>'; }).join('') + '</div>';
+    var tbl = function(head, rows){ return '<div class="tblwrap"><table class="tbl va-tbl"><thead><tr>' + head.map(function(h){ return '<th>' + h + '</th>'; }).join('') + '</tr></thead><tbody>' + rows.join('') + '</tbody></table></div>'; };
+    var lineName = function(c){ var parts = c.split(':'), code = parts[1], lab = parts.slice(2).join(':'); return esc((typeof lab === 'string' && lab) ? lab : (L[S.lang] || L.ar)[code] || code) + (parts[0] === 'd' ? ' <small>(−)</small>' : ''); };
+    var depts = tbl([t('vaDepts'), t('vaNow'), t('vaM1'), t('vaM2'), t('vaChange')], r.departments.map(function(x){ return '<tr><td>' + esc(x.name) + (x.costCenter ? ' <small dir="ltr">' + esc(x.costCenter) + '</small>' : '') + ' <small>(' + x.m0.head + ')</small></td><td>' + money(x.m0.net) + '</td><td>' + money(x.m1.net) + '</td><td>' + money(x.m2.net) + '</td><td class="va-d">' + pc(x.vsM1) + '</td></tr>'; }));
+    var lines = tbl([t('vaLine'), t('vaNow'), t('vaM1'), t('vaM2'), t('vaChange')], r.lines.map(function(x){ return '<tr><td>' + lineName(x.code) + ' <small>(' + x.people.m0 + ')</small></td><td>' + money(x.m0) + '</td><td>' + money(x.m1) + '</td><td>' + money(x.m2) + '</td><td class="va-d">' + pc(x.vsM1) + '</td></tr>'; }));
+    var flagTxt = function(f){ var p2 = f.split(':'); return t('vf_' + p2[0]) + (p2[1] ? ': ' + lineName(p2.slice(1).join(':')) : ''); };
+    var scoreCol = function(n){ return n >= 60 ? '#D92D20' : n >= 30 ? '#F79009' : n > 0 ? '#2E90FA' : '#98A2B3'; };
+    var filt = 'flagged';
+    var rowsFor = function(){ return r.people.filter(function(x){
+      if (filt === 'all') return true; if (filt === 'flagged') return x.flags.length > 0;
+      if (filt === 'up') return x.netVsM1 && x.netVsM1.diff > 0; if (filt === 'down') return x.netVsM1 && x.netVsM1.diff < 0;
+      if (filt === 'new') return x.flags.indexOf('joiner') >= 0 || x.flags.indexOf('returner') >= 0; if (filt === 'gone') return x.flags.indexOf('leaver') >= 0; return true; }); };
+    var peopleTbl = function(){ var list = rowsFor(); return tbl([t('vaScore'), t('hrName'), t('vaNow'), t('vaM1'), t('vaM2'), t('vaChange'), t('vaWhy')], list.map(function(x, i){
+      var det = '<tr class="det"><td colspan="7">' + tbl([t('vaLine'), t('vaNow'), t('vaM1'), t('vaM2')], Object.keys(x.lines).map(function(c){ var v = x.lines[c]; var ch = v[0] !== v[1]; return '<tr' + (ch ? ' style="font-weight:600"' : '') + '><td>' + lineName(c) + '</td><td>' + money(v[0]) + '</td><td>' + money(v[1]) + '</td><td>' + money(v[2]) + '</td></tr>'; })) + '</td></tr>';
+      return '<tr class="click" data-i="' + i + '"><td><span class="va-sc" style="background:' + scoreCol(x.score) + '">' + x.score + '</span></td><td><b style="font-weight:500">' + esc(x.name) + '</b> <small dir="ltr">' + esc(x.empNo) + '</small><br><small>' + esc(x.department) + '</small></td>' +
+        '<td>' + fmt(x.m0 && x.m0.net) + '</td><td>' + fmt(x.m1 && x.m1.net) + '</td><td>' + fmt(x.m2 && x.m2.net) + '</td><td class="va-d">' + pc(x.netVsM1) + '</td><td><div class="va-fl">' + x.flags.map(function(f){ return '<small>' + flagTxt(f) + '</small>'; }).join('') + '</div></td></tr>' + det; })) + '<p class="hr-hint">' + list.length + ' ' + t('vaPeopleN') + '</p>'; };
+    var F = [['flagged', 'vaFlagged'], ['all', 'vaAll'], ['up', 'vaUp'], ['down', 'vaDown'], ['new', 'vaNew'], ['gone', 'vaGone']];
+    B.innerHTML = (!r.months.have1 && !r.months.have2 ? '<p class="hr-hint" style="background:#FEF0C7;padding:10px 12px;border-radius:10px">' + t('vaNoPrev') + '</p>' : '') +
+      '<p class="hr-hint">' + t('vaNow') + ': <b>' + esc(monthName(r.months.m0)) + '</b> · ' + t('vaM1') + ': ' + esc(monthName(r.months.m1)) + ' · ' + t('vaM2') + ': ' + esc(monthName(r.months.m2)) + '</p>' +
+      '<div class="va-kp">' + tiles + '</div>' + bridge + '<h4>' + t('vaDepts') + '</h4>' + depts + '<h4>' + t('vaLines') + '</h4>' + lines +
+      '<h4>' + t('vaPeople') + '</h4><div class="va-bar"><span>' + t('vaFilter') + ':</span>' + F.map(function(f){ return '<button type="button" class="btn btn-line btn-sm" data-f="' + f[0] + '" aria-pressed="' + (f[0] === filt) + '">' + t(f[1]) + ' (' + (f[0] === 'all' ? r.people.length : r.people.filter(function(x){ var o = filt; filt = f[0]; var keep = rowsFor().indexOf(x) >= 0; filt = o; return keep; }).length) + ')</button>'; }).join('') +
+      '<span style="margin-inline-start:auto">' + t('vaThr') + '</span><input type="number" id="vaP" min="1" max="100" value="' + r.threshold.pct + '">' + t('vaPct') + '<input type="number" id="vaM" min="0" value="' + r.threshold.min + '">' + t('vaMin') + '<button type="button" class="btn btn-line btn-sm" id="vaGo">' + t('vaApply') + '</button>' +
+      '<button type="button" class="btn btn-dark btn-sm" id="vaCsv">' + ph('download-simple') + t('vaCsv') + '</button></div><div id="vaPpl">' + peopleTbl() + '</div>';
+    var wirePeople = function(){ $$('#vaPpl tr.click', B).forEach(function(tr){ tr.onclick = function(){ tr.classList.toggle('open'); }; }); };
+    wirePeople();
+    $$('[data-f]', B).forEach(function(btn){ btn.onclick = function(){ filt = btn.dataset.f; $$('[data-f]', B).forEach(function(x){ x.setAttribute('aria-pressed', String(x === btn)); }); $('#vaPpl', B).innerHTML = peopleTbl(); wirePeople(); }; });
+    $('#vaGo', B).onclick = function(){ d.remove(); varianceView(run, Number($('#vaP', B).value), Number($('#vaM', B).value)); };
+    $('#vaCsv', B).onclick = function(){
+      var q = function(v){ return '"' + String(v === null || v === undefined ? '' : v).replace(/"/g, '""') + '"'; };
+      var rows = [[t('vaScore'), t('hrName'), 'No', t('vaDepts'), t('vaNow'), t('vaM1'), t('vaM2'), t('vaChange'), '%', t('vaWhy')].map(q).join(',')];
+      r.people.forEach(function(x){ rows.push([x.score, x.name, x.empNo, x.department, x.m0 && x.m0.net, x.m1 && x.m1.net, x.m2 && x.m2.net, x.netVsM1 && x.netVsM1.diff, x.netVsM1 && x.netVsM1.pct, x.flags.map(flagTxt).join(' | ').replace(/<[^>]+>/g, '')].map(q).join(',')); });
+      var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['\ufeff' + rows.join('\n')], { type: 'text/csv;charset=utf-8' })); a.download = 'variance-' + run.month + '.csv'; document.body.appendChild(a); a.click(); a.remove();
+    };
+  });
+}
+
+window.Payroll = { section: section, myCard: myCard, totalRewards: totalRewards, openSlip: openSlip, openSlipRef: openSlipRef, printSlip: printSlip, variance: varianceView };
 })();
