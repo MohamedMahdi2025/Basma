@@ -10,7 +10,7 @@
  */
 
 var CONFIG = {
-  RP_NAME: 'Best Gas Attendance',
+  RP_NAME: 'BASMA',
   RP_ID: 'besgasksa.github.io',
   ORIGINS: ['https://besgasksa.github.io'],
   TZ_OFFSET_MIN: 180, // Asia/Riyadh, no DST
