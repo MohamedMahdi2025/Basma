@@ -217,6 +217,35 @@ function api_passwordSet(req, me) {
   });
 }
 
+/** Sign in with the 6-digit PIN on a phone that has no key yet (a new phone, BASMA's new link): the PIN of the person's
+ *  newest device is checked; 5 wrong tries lock PIN sign-in for 15 minutes (counted on that device record, unknown numbers
+ *  lock too). The session is a device session: the app then gives this phone its own key with the same PIN, and every
+ *  check-in still needs that key. */
+function api_pinLogin(req) {
+  var empNo = String(req.empNo || '').trim(), pin = String(req.pin || '');
+  if (!rateLimit_('pinl:' + empNo, 12, 900)) fail_('too_many_attempts');
+  if (!/^\d{6}$/.test(pin)) fail_('bad_pin_format');
+  return withLock_(function () {
+    var emp = empByNo_(empNo), cred = null;
+    if (emp && emp.status === 'active') readAll_(SHEETS.CRED).forEach(function (c) { if (c.empId === emp.id && c.status === 'active' && c.pinHash && (!cred || String(c.createdAt) > String(cred.createdAt))) cred = c; });
+    if (!cred) { // one answer for unknown number, no PIN yet and wrong PIN
+      var ch = cache_(), k = 'pinghost:' + empNo, n = Number(ch.get(k) || 0) + 1; ch.put(k, String(n), PW_LOCK_MINUTES * 60);
+      fail_(n >= PW_MAX_TRIES ? 'pin_locked' : 'bad_pin_login');
+    }
+    if (cred.pinLockUntil && new Date(cred.pinLockUntil).getTime() > Date.now()) fail_('pin_locked');
+    if (!safeEqual_(pinHash_(pin, cred.pinSalt), cred.pinHash)) {
+      cred.pinTries = Number(cred.pinTries || 0) + 1;
+      var locked = cred.pinTries >= PW_MAX_TRIES;
+      if (locked) { cred.pinLockUntil = new Date(Date.now() + PW_LOCK_MINUTES * 60000).toISOString(); cred.pinTries = 0; }
+      update_(SHEETS.CRED, cred);
+      audit_(emp.id, 'pin_login_failed', emp.id, { locked: locked });
+      fail_(locked ? 'pin_locked' : 'bad_pin_login');
+    }
+    if (Number(cred.pinTries || 0) || cred.pinLockUntil) { cred.pinTries = 0; cred.pinLockUntil = ''; update_(SHEETS.CRED, cred); }
+    audit_(emp.id, 'login_pin_any_device', emp.id, null);
+    return { ok: true, token: issueToken_(emp), me: publicEmp_(emp), home: homePayload_(emp, false), pinLogin: true };
+  });
+}
 function api_pwLogin(req) {
   var empNo = String(req.empNo || '').trim();
   if (!rateLimit_('pw:' + empNo, 12, 900)) fail_('too_many_attempts');

@@ -85,7 +85,7 @@ var HEADERS = {
     // pay groups (2026-10-21): '' = the general group
     'payGroupId'],
   credentials: ['credId', 'empId', 'x', 'y', 'signCount', 'label', 'status', 'createdAt', 'lastUsedAt', 'aaguid', 'kind',
-    'platform', 'pinHash', 'pinSalt', 'pinTries'],
+    'platform', 'pinHash', 'pinSalt', 'pinTries', 'pinLockUntil'],
   zones: ['id', 'name', 'nameEn', 'lat', 'lng', 'radius', 'status', 'createdAt', 'updatedAt'],
   punches: ['id', 'empId', 'type', 'ts', 'date', 'lat', 'lng', 'acc', 'zoneId', 'distance', 'status', 'risk', 'flags',
     'source', 'note', 'reviewBy', 'reviewAt', 'credId', 'ua', 'createdAt'],
@@ -746,7 +746,7 @@ function rateLimit_(key, max, seconds) {
 // issued by another organisation. The spreadsheet this script is bound to is the home organisation (HOME_ORG_ID,
 // Best Gas): its keys are unprefixed, so nothing of the live system moved.
 var ORG_ = null, ORG_SS_ = null;
-var ORG_REQUIRED_ = { ssoLogin: 1, authBegin: 1, enrollBegin: 1, pwLogin: 1, adminRecover: 1, bootstrap: 1, orgCheck: 1 };
+var ORG_REQUIRED_ = { pinLogin: 1, ssoLogin: 1, authBegin: 1, enrollBegin: 1, pwLogin: 1, adminRecover: 1, bootstrap: 1, orgCheck: 1 };
 var PLATFORM_ACTIONS_ = { orgActivation: 1, orgRenumber: 1, orgBrandSet: 1, orgImport: 1, platformHealth: 1, orgCreate: 1, orgList: 1, orgSetStatus: 1, orgSetGroup: 1, orgOverview: 1 };
 function homeOrgId_() { return PropertiesService.getScriptProperties().getProperty('HOME_ORG_ID') || CONFIG.HOME_ORG_ID; }
 function orgRec_(id) {
@@ -1049,7 +1049,7 @@ function doPost(e) {
 
 var PUBLIC_ACTIONS = { orgActivation: 1, orgRenumber: 1, orgBrandSet: 1, orgImport: 1, platformHealth: 1, ssoLogin: 1, devicePunch: 1, orgLogo: 1, apiQuery: 1, orgCreate: 1, orgList: 1, orgSetStatus: 1, orgSetGroup: 1, orgOverview: 1, orgCheck: 1, kioskPing: 1, careersList: 1, careersApply: 1,
   ping: 1, bootstrapStatus: 1, bootstrap: 1, enrollBegin: 1, enrollFinish: 1,
-  authBegin: 1, authFinish: 1, punchBegin: 1, punchFinish: 1, adminRecover: 1, pwLogin: 1, pinChange: 1, diag: 1, demoData: 1
+  pinLogin: 1, authBegin: 1, authFinish: 1, punchBegin: 1, punchFinish: 1, adminRecover: 1, pwLogin: 1, pinChange: 1, diag: 1, demoData: 1
 };
 var EMP_ACTIONS = { moveCode: 1, cwList: 1, cwSave: 1, cwEnd: 1, cwAgencySave: 1, cwHoursSave: 1, cwHoursDecide: 1, cwInvoiceSave: 1, cwInvoiceDecide: 1, cwInvoices: 1, retroScan: 1, retroApply: 1, retroCancel: 1, retroLog: 1, gradeList: 1, gradeSave: 1, gradeDelete: 1, bandReport: 1, pushKey: 1, pushSubscribe: 1, pushUnsubscribe: 1, pushTest: 1, hseReport: 1, hseList: 1, hseUpdate: 1, hseActionSave: 1, hseActionStep: 1, ppeIssue: 1, ppeStep: 1, ppeList: 1, hseStats: 1, aiStatus: 1, aiAsk: 1, officeMap: 1, presenceSet: 1, myTotalRewards: 1, brandSave: 1, logoSave: 1, apiKeyList: 1, apiKeySave: 1, webhookSave: 1, webhookDeliveries: 1, payGroupList: 1, payGroupSave: 1, payGroupAssign: 1, snapshotList: 1, snapshotView: 1, snapshotPeople: 1, snapshotTake: 1, reportSubList: 1, reportSubSave: 1, reportSubSend: 1, kioskList: 1, kioskSave: 1, docUpload: 1, docFile: 1, notifyStatus: 1, notifyTest: 1, perkList: 1, perkView: 1, welcome: 1, dataExport: 1, internalJobs: 1, internalApply: 1, careerPathList: 1, nineBox: 1, potentialSave: 1, successionList: 1, successionSave: 1, kbSearch: 1, kbList: 1, kbGet: 1, kbFeedback: 1, oneOnOneList: 1, oneOnOneSave: 1, oneOnOneUpdate: 1, goalList: 1, goalSave: 1, goalCheckIn: 1, workforcePlan: 1, workforcePlanSave: 1, pinEnrollBegin: 1, pinEnrollFinish: 1, shiftOfferList: 1, openShiftPost: 1, openShiftClaim: 1, shiftSwapAsk: 1, shiftSwapAnswer: 1, shiftOfferDecide: 1, shiftOfferCancel: 1, me: 1, myHistory: 1, passwordSet: 1, punchPw: 1, searchAll: 1, customFieldList: 1, customFieldSave: 1, customValuesGet: 1, customValuesSave: 1, customValuesAll: 1, timesheetList: 1, timesheetApprove: 1, compCycleSave: 1, compCycleList: 1, compPropose: 1, compCycleClose: 1, finalSettlementCreate: 1, finalSettlementDecide: 1, finalSettlementPaid: 1, finalSettlementList: 1, myFinalSettlement: 1, myExitSurvey: 1, exitSurveySubmit: 1, kudosSend: 1, kudosFeed: 1, exitSurveyResults: 1, kudosStats: 1,
   myFile: 1, hrEmpFile: 1, hrTeam: 1, hrCompList: 1, hrCompPropose: 1, hrCompDecide: 1,
