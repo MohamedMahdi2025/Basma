@@ -224,7 +224,8 @@ function readClientData_(b64, type) {
 function checkAuthData_(ad, requireUv) {
   if (requireUv === undefined) requireUv = true;
   if (ad.length < 37) fail_('bad_auth_data');
-  if (!bytesEq_(ad.slice(0, 32), sha256_(utf8Bytes_(cfg_().rpId)))) fail_('bad_rp');
+  var rpHash = ad.slice(0, 32); // a key made on either of our domains (each passkey belongs to the domain it was made on)
+  if (!cfg_().hosts.some(function (h) { return bytesEq_(rpHash, sha256_(utf8Bytes_(h))); })) fail_('bad_rp');
   var flags = ad[32];
   if (!(flags & 0x01)) fail_('no_user_presence');
   if (requireUv && !(flags & 0x04)) fail_('no_user_verification');

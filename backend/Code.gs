@@ -12,7 +12,8 @@
 var CONFIG = {
   RP_NAME: 'BASMA',
   RP_ID: 'besgasksa.github.io',
-  ORIGINS: ['https://besgasksa.github.io'],
+  ORIGINS: ['https://besgasksa.github.io', 'https://mohamedmahdi2025.github.io'], // the old and the new BASMA home (2026-11-04)
+  NEW_HOME: 'https://mohamedmahdi2025.github.io/basma/',
   TZ_OFFSET_MIN: 180, // Asia/Riyadh, no DST
   HOME_ORG_ID: '1001', // the organisation this script's own spreadsheet belongs to (Best Gas); script property HOME_ORG_ID overrides
   EMP_TOKEN_HOURS: 12,
@@ -205,14 +206,14 @@ var HEADERS = {
 
 var ROLES = { employee: 1, hr: 2, admin: 3 };
 
+var REQ_HOST_ = ''; // the domain the request comes from, when it is one of ours: passkeys are made for that domain
 function cfg_() {
   var p = PropertiesService.getScriptProperties();
   var rp = p.getProperty('RP_ID');
-  var or = p.getProperty('ORIGINS');
-  return {
-    rpId: rp || CONFIG.RP_ID,
-    origins: or ? or.split(',').map(function (s) { return s.trim(); }) : CONFIG.ORIGINS
-  };
+  var or = p.getProperty('ORIGINS'), origins = CONFIG.ORIGINS.slice();
+  if (or) or.split(',').forEach(function (s) { s = s.trim(); if (s && origins.indexOf(s) < 0) origins.push(s); });
+  var hosts = origins.map(function (o) { return String(o).replace(/^https:\/\//, '').replace(/\/.*$/, ''); });
+  return { rpId: REQ_HOST_ && hosts.indexOf(REQ_HOST_) >= 0 ? REQ_HOST_ : (rp || CONFIG.RP_ID), origins: origins, hosts: hosts };
 }
 
 // ---------------- sheet database ----------------
@@ -1049,7 +1050,7 @@ var PUBLIC_ACTIONS = { orgBrandSet: 1, orgImport: 1, platformHealth: 1, ssoLogin
   ping: 1, bootstrapStatus: 1, bootstrap: 1, enrollBegin: 1, enrollFinish: 1,
   authBegin: 1, authFinish: 1, punchBegin: 1, punchFinish: 1, adminRecover: 1, pwLogin: 1, pinChange: 1, diag: 1, demoData: 1
 };
-var EMP_ACTIONS = { cwList: 1, cwSave: 1, cwEnd: 1, cwAgencySave: 1, cwHoursSave: 1, cwHoursDecide: 1, cwInvoiceSave: 1, cwInvoiceDecide: 1, cwInvoices: 1, retroScan: 1, retroApply: 1, retroCancel: 1, retroLog: 1, gradeList: 1, gradeSave: 1, gradeDelete: 1, bandReport: 1, pushKey: 1, pushSubscribe: 1, pushUnsubscribe: 1, pushTest: 1, hseReport: 1, hseList: 1, hseUpdate: 1, hseActionSave: 1, hseActionStep: 1, ppeIssue: 1, ppeStep: 1, ppeList: 1, hseStats: 1, aiStatus: 1, aiAsk: 1, officeMap: 1, presenceSet: 1, myTotalRewards: 1, brandSave: 1, logoSave: 1, apiKeyList: 1, apiKeySave: 1, webhookSave: 1, webhookDeliveries: 1, payGroupList: 1, payGroupSave: 1, payGroupAssign: 1, snapshotList: 1, snapshotView: 1, snapshotPeople: 1, snapshotTake: 1, reportSubList: 1, reportSubSave: 1, reportSubSend: 1, kioskList: 1, kioskSave: 1, docUpload: 1, docFile: 1, notifyStatus: 1, notifyTest: 1, perkList: 1, perkView: 1, welcome: 1, dataExport: 1, internalJobs: 1, internalApply: 1, careerPathList: 1, nineBox: 1, potentialSave: 1, successionList: 1, successionSave: 1, kbSearch: 1, kbList: 1, kbGet: 1, kbFeedback: 1, oneOnOneList: 1, oneOnOneSave: 1, oneOnOneUpdate: 1, goalList: 1, goalSave: 1, goalCheckIn: 1, workforcePlan: 1, workforcePlanSave: 1, pinEnrollBegin: 1, pinEnrollFinish: 1, shiftOfferList: 1, openShiftPost: 1, openShiftClaim: 1, shiftSwapAsk: 1, shiftSwapAnswer: 1, shiftOfferDecide: 1, shiftOfferCancel: 1, me: 1, myHistory: 1, passwordSet: 1, punchPw: 1, searchAll: 1, customFieldList: 1, customFieldSave: 1, customValuesGet: 1, customValuesSave: 1, customValuesAll: 1, timesheetList: 1, timesheetApprove: 1, compCycleSave: 1, compCycleList: 1, compPropose: 1, compCycleClose: 1, finalSettlementCreate: 1, finalSettlementDecide: 1, finalSettlementPaid: 1, finalSettlementList: 1, myFinalSettlement: 1, myExitSurvey: 1, exitSurveySubmit: 1, kudosSend: 1, kudosFeed: 1, exitSurveyResults: 1, kudosStats: 1,
+var EMP_ACTIONS = { moveCode: 1, cwList: 1, cwSave: 1, cwEnd: 1, cwAgencySave: 1, cwHoursSave: 1, cwHoursDecide: 1, cwInvoiceSave: 1, cwInvoiceDecide: 1, cwInvoices: 1, retroScan: 1, retroApply: 1, retroCancel: 1, retroLog: 1, gradeList: 1, gradeSave: 1, gradeDelete: 1, bandReport: 1, pushKey: 1, pushSubscribe: 1, pushUnsubscribe: 1, pushTest: 1, hseReport: 1, hseList: 1, hseUpdate: 1, hseActionSave: 1, hseActionStep: 1, ppeIssue: 1, ppeStep: 1, ppeList: 1, hseStats: 1, aiStatus: 1, aiAsk: 1, officeMap: 1, presenceSet: 1, myTotalRewards: 1, brandSave: 1, logoSave: 1, apiKeyList: 1, apiKeySave: 1, webhookSave: 1, webhookDeliveries: 1, payGroupList: 1, payGroupSave: 1, payGroupAssign: 1, snapshotList: 1, snapshotView: 1, snapshotPeople: 1, snapshotTake: 1, reportSubList: 1, reportSubSave: 1, reportSubSend: 1, kioskList: 1, kioskSave: 1, docUpload: 1, docFile: 1, notifyStatus: 1, notifyTest: 1, perkList: 1, perkView: 1, welcome: 1, dataExport: 1, internalJobs: 1, internalApply: 1, careerPathList: 1, nineBox: 1, potentialSave: 1, successionList: 1, successionSave: 1, kbSearch: 1, kbList: 1, kbGet: 1, kbFeedback: 1, oneOnOneList: 1, oneOnOneSave: 1, oneOnOneUpdate: 1, goalList: 1, goalSave: 1, goalCheckIn: 1, workforcePlan: 1, workforcePlanSave: 1, pinEnrollBegin: 1, pinEnrollFinish: 1, shiftOfferList: 1, openShiftPost: 1, openShiftClaim: 1, shiftSwapAsk: 1, shiftSwapAnswer: 1, shiftOfferDecide: 1, shiftOfferCancel: 1, me: 1, myHistory: 1, passwordSet: 1, punchPw: 1, searchAll: 1, customFieldList: 1, customFieldSave: 1, customValuesGet: 1, customValuesSave: 1, customValuesAll: 1, timesheetList: 1, timesheetApprove: 1, compCycleSave: 1, compCycleList: 1, compPropose: 1, compCycleClose: 1, finalSettlementCreate: 1, finalSettlementDecide: 1, finalSettlementPaid: 1, finalSettlementList: 1, myFinalSettlement: 1, myExitSurvey: 1, exitSurveySubmit: 1, kudosSend: 1, kudosFeed: 1, exitSurveyResults: 1, kudosStats: 1,
   myFile: 1, hrEmpFile: 1, hrTeam: 1, hrCompList: 1, hrCompPropose: 1, hrCompDecide: 1,
   myRequests: 1, requestQuote: 1, requestCreate: 1, requestCancel: 1, reqInbox: 1, reqDecide: 1, holidayList: 1, leaveTeam: 1,
   mySlips: 1, payrollList: 1, payrollGet: 1, payrollCreate: 1, payrollRecalc: 1, payrollApprove: 1, payrollDelete: 1, payrollAdjSave: 1,
@@ -1096,6 +1097,7 @@ var ADMIN_ACTIONS = { waTest: 1, hrRolesSave: 1, empResetDevice: 1, zoneSave: 1,
 
 function handle_(req) {
   READ_MEMO_ = {}; READ_LEN_ = {}; SETTINGS_MEMO_ = null;
+  REQ_HOST_ = req && typeof req.host === 'string' ? req.host.toLowerCase().slice(0, 80) : '';
   USE_TAB_CACHE_ = false;
   TAB_PREFETCH_ = null;
   var action = req && req.action;

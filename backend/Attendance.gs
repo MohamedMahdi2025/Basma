@@ -99,6 +99,17 @@ function empByNo_(empNo) {
 
 // ---------------- enrollment: activation code -> passkey ----------------
 
+/** Moving to the new BASMA link: a signed-in person gets a one-time activation code for themselves. Enrolling with it on
+ *  the new link replaces this device (enrolment retires earlier keys), so the move needs no HR step. */
+function api_moveCode(req, me) {
+  if (!rateLimit_('move:' + me.id, 5, 3600)) fail_('too_many_attempts');
+  return withLock_(function () {
+    var emp = findBy_(SHEETS.EMP, 'id', me.id); if (!emp || emp.status !== 'active') fail_('not_found');
+    var code = setActivation_(emp); emp.updatedAt = new Date().toISOString(); update_(SHEETS.EMP, emp);
+    audit_(me.id, 'move_code', me.id, { to: CONFIG.NEW_HOME });
+    return { ok: true, code: code, empNo: String(emp.empNo), orgId: orgId_(), to: CONFIG.NEW_HOME };
+  });
+}
 function api_enrollBegin(req) {
   var empNo = String(req.empNo || '').trim();
   if (!rateLimit_('enroll:' + empNo, 8, 900)) fail_('too_many_attempts');

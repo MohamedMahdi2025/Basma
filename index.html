@@ -1426,6 +1426,7 @@ body.v2-on :is(.db-tile b,.kpi b,.stat b,.hm-facts dd,.hm-big b,.hm-k .v,[data-c
 .gate .linkish.lk-ic i{font-size:18px;color:var(--brass)}
 /* show / hide on every password and PIN field (gate and app) */
 .ro-no{background:var(--well,#F3F5F8)!important;color:var(--ink-2,#3A4A40)!important;cursor:default;font-variant-numeric:tabular-nums;font-weight:600}.ro-hint{display:block;margin-top:4px;font-size:12px;color:var(--ink-3,#5F6D63)}
+.mv-card{text-align:center;padding:8px 4px}.mv-card img{border-radius:50%;box-shadow:0 8px 24px rgba(20,34,54,.3)}.mv-card h3{margin:12px 0 6px}.mv-card p{margin:0 0 10px;color:var(--ink-2,#3A4A40);line-height:1.6}.mv-url{font-weight:700;color:var(--brand,#2F5D8C)!important}.mv-card .btnrow{justify-content:center}
 .pw-wrap{position:relative;display:block}
 :root[dir="rtl"] .pw-wrap > input{padding-left:56px!important}
 :root[dir="ltr"] .pw-wrap > input{padding-right:56px!important}
@@ -2326,7 +2327,7 @@ var T = {
     e_device_not_recognised:'هذا الجهاز غير مربوط بحسابك', e_bad_signature:'تعذّر التحقق من البصمة', e_challenge_expired:'انتهت المهلة، حاول مجدداً', e_session_expired:'انتهت الجلسة', e_network:'تعذّر الاتصال بالخادم',
     e_bad_setup_key:'مفتاح التهيئة غير صحيح', e_duplicate_emp_no:'الرقم الوظيفي مستخدم', e_forbidden:'ليست لديك صلاحية', e_no_user_verification:'يلزم Face ID أو البصمة',
     e_cancelled:'أُلغيت عملية التحقق', e_no_passkey:'هذا المتصفح لا يدعم Face ID / البصمة. استخدم Safari أو Chrome حديثاً.', e_cannot_correct_self:'لا يمكنك تصحيح حضورك بنفسك', e_cannot_review_self:'لا يمكنك مراجعة حركتك بنفسك',
-    e_future_time:'لا يمكن التسجيل في وقت لاحق', e_bad_zone:'بيانات النطاق غير صحيحة', e_bad_radius:'نصف القطر بين 20 و 5000 م', e_missing_fields:'أكمل الحقول المطلوبة', empNoAuto:'يولد تلقائيا', empNoBySystem:'يصدر النظام الرقم الوظيفي تلقائيا عند الحفظ، حسب إعدادات أرقام الموظفين.', empNoNextIs:'الرقم التالي: {n}', e_needs_owner_authorization:'يحتاج النظام موافقة مالك الحساب على صلاحية الاتصال الخارجي مرة واحدة (من محرر Apps Script).', setEmpNo:'أرقام الموظفين', setEmpNoLead:'يولد النظام رقم كل موظف جديد تلقائيا: البادئة ثم رقم متسلسل. يمكن للموظف الدخول بالرقم وحده دون البادئة.', setEmpNoPrefix:'البادئة (حروف إنجليزية أو أرقام، اختيارية)', setEmpNoDigits:'عدد الخانات', setEmpNoStart:'أول رقم', setEmpNoEx:'مثال: {n}', e_bad_unn:'الرقم الوطني الموحد 10 أرقام ويبدأ بالرقم 7', e_unn_exists:'توجد منشأة بهذا الرقم الوطني الموحد', e_server_error:'خطأ في الخادم', e_generic:'حدث خطأ'
+    e_future_time:'لا يمكن التسجيل في وقت لاحق', e_bad_zone:'بيانات النطاق غير صحيحة', e_bad_radius:'نصف القطر بين 20 و 5000 م', e_missing_fields:'أكمل الحقول المطلوبة', mvTitle:'بصمة انتقلت إلى رابط جديد', mvLead:'انتقل الآن بضغطة واحدة: يفتح الرابط الجديد ورمز التفعيل جاهز، ثم تختار رمزك السري. لا تحتاج رمزا من الموارد البشرية.', mvGo:'انتقل الآن', mvLater:'لاحقا', mvIn:'مرحبا في الرابط الجديد لبصمة. اختر رمزك السري لإكمال الانتقال.', empNoAuto:'يولد تلقائيا', empNoBySystem:'يصدر النظام الرقم الوظيفي تلقائيا عند الحفظ، حسب إعدادات أرقام الموظفين.', empNoNextIs:'الرقم التالي: {n}', e_needs_owner_authorization:'يحتاج النظام موافقة مالك الحساب على صلاحية الاتصال الخارجي مرة واحدة (من محرر Apps Script).', setEmpNo:'أرقام الموظفين', setEmpNoLead:'يولد النظام رقم كل موظف جديد تلقائيا: البادئة ثم رقم متسلسل. يمكن للموظف الدخول بالرقم وحده دون البادئة.', setEmpNoPrefix:'البادئة (حروف إنجليزية أو أرقام، اختيارية)', setEmpNoDigits:'عدد الخانات', setEmpNoStart:'أول رقم', setEmpNoEx:'مثال: {n}', e_bad_unn:'الرقم الوطني الموحد 10 أرقام ويبدأ بالرقم 7', e_unn_exists:'توجد منشأة بهذا الرقم الوطني الموحد', e_server_error:'خطأ في الخادم', e_generic:'حدث خطأ'
   },
   en: {
     appName:'BASMA', company:'BASMA', gateTag:'Check in at head office with one tap, protected by your PIN.',
@@ -2387,7 +2388,7 @@ var T = {
     e_device_not_recognised:'This device is not linked to your account', e_bad_signature:'Biometric check could not be verified', e_challenge_expired:'Timed out, try again', e_session_expired:'Session ended', e_network:'Cannot reach the server',
     e_bad_setup_key:'Setup key is wrong', e_duplicate_emp_no:'Employee number already used', e_forbidden:'You do not have access', e_no_user_verification:'Face ID or fingerprint is required',
     e_cancelled:'Verification was cancelled', e_no_passkey:'This browser cannot use Face ID / fingerprint. Use an up-to-date Safari or Chrome.', e_cannot_correct_self:'You cannot correct your own attendance', e_cannot_review_self:'You cannot review your own punch',
-    e_future_time:'That time is in the future', e_bad_zone:'Zone details are invalid', e_bad_radius:'Radius must be 20 to 5000 m', e_missing_fields:'Fill in the required fields', empNoAuto:'Generated automatically', empNoBySystem:'The system issues the employee number when you save, following the employee number settings.', empNoNextIs:'Next number: {n}', e_needs_owner_authorization:'The system needs the account owner to approve the external-request permission once (in the Apps Script editor).', setEmpNo:'Employee numbers', setEmpNoLead:'The system gives every new employee the next number: the prefix, then a running number. People can sign in with the number alone, without the prefix.', setEmpNoPrefix:'Prefix (English letters or digits, optional)', setEmpNoDigits:'Digits', setEmpNoStart:'First number', setEmpNoEx:'Example: {n}', e_bad_unn:'The unified national number is 10 digits starting with 7', e_unn_exists:'An organisation with this unified national number already exists', e_server_error:'Server error', e_generic:'Something went wrong'
+    e_future_time:'That time is in the future', e_bad_zone:'Zone details are invalid', e_bad_radius:'Radius must be 20 to 5000 m', e_missing_fields:'Fill in the required fields', mvTitle:'BASMA has a new link', mvLead:'Move now with one tap: the new link opens with your activation code filled in, then you choose your PIN. No code from HR is needed.', mvGo:'Move now', mvLater:'Later', mvIn:'Welcome to BASMA\'s new link. Choose your PIN to finish the move.', empNoAuto:'Generated automatically', empNoBySystem:'The system issues the employee number when you save, following the employee number settings.', empNoNextIs:'Next number: {n}', e_needs_owner_authorization:'The system needs the account owner to approve the external-request permission once (in the Apps Script editor).', setEmpNo:'Employee numbers', setEmpNoLead:'The system gives every new employee the next number: the prefix, then a running number. People can sign in with the number alone, without the prefix.', setEmpNoPrefix:'Prefix (English letters or digits, optional)', setEmpNoDigits:'Digits', setEmpNoStart:'First number', setEmpNoEx:'Example: {n}', e_bad_unn:'The unified national number is 10 digits starting with 7', e_unn_exists:'An organisation with this unified national number already exists', e_server_error:'Server error', e_generic:'Something went wrong'
   }
 };
 
@@ -2488,6 +2489,7 @@ function progressCard(el, label){
 // ---------------- API ----------------
 function api(action, payload, quiet){
   payload = payload || {}; payload.action = action; if (S.token) payload.token = S.token;
+  payload.host = location.hostname; // passkeys belong to a domain: the server makes and checks them for this one
   if (S.orgId && payload.orgId === undefined) payload.orgId = S.orgId; // SaaS tenancy (2026-10-22): one Org ID, one set of books
   var pid = quiet ? 0 : Progress.start(action);
   return fetch(API_URL, { method:'POST', headers:{ 'Content-Type':'text/plain;charset=utf-8' }, body: JSON.stringify(payload) })
@@ -2989,6 +2991,8 @@ function boot(){
   // the public careers page (2026-10-19): no sign-in, its own small script
   // the platform console (2026-10-23): the vendor's own page, outside every company; no company sign-in, the setup key
   if (/^#platform/.test(location.hash)) return renderPlatform();
+  var mv = location.hash.match(/^#move\/(\d{4,8})\/([^/]{1,30})\/([A-Z0-9-]{6,12})$/i);
+  if (mv) { S.orgId = mv[1]; store('org', mv[1]); history.replaceState(null, '', location.pathname); S.movedIn = true; return renderActivate(decodeURIComponent(mv[2]), mv[3].toUpperCase()); }
   if (/^#careers/.test(location.hash)) return loadScript('js/careers.js').then(function(){ Careers.render(); });
   if (!window.__splashed) {
     window.__splashed = true;
@@ -3024,7 +3028,7 @@ function renderSetup(){
 function renderActivate(prefNo, prefCode){
   rerender = function(){ renderActivate($('#no') && $('#no').value, $('#cd') && $('#cd').value); };
   root(langBtn() + '<div class="gate">' + gateBrand() + '' +
-    '<h1>' + t('activateTitle') + '</h1><p>' + t('activateLead') + '</p>' +
+    '<h1>' + t('activateTitle') + '</h1><p>' + t(S.movedIn ? 'mvIn' : 'activateLead') + '</p>' +
     '<form id="f" autocomplete="off">' + '<div class="field"><label for="org">' + t('orgId') + '</label><input id="org" inputmode="numeric" pattern="\\d{4,8}" maxlength="8" required dir="ltr" value="' + esc(S.orgId || '') + '"><small class="org-name" id="orgName"></small></div>' +
     '<div class="field"><label for="no">' + t('empNo') + '</label><input id="no" inputmode="numeric" required value="' + esc(prefNo || '') + '"></div>' +
     '<div class="field"><label for="cd">' + t('actCode') + '</label><input id="cd" required autocapitalize="characters" placeholder="XXXX-XXXX" dir="ltr" value="' + esc(prefCode || '') + '"></div>' +
@@ -3790,8 +3794,27 @@ function renderPinSetup(home){
     });
   };
 }
+/** BASMA's new home (2026-11-04). On the old link, a signed-in person moves with one tap: no HR code needed. */
+var NEW_HOME = 'https://mohamedmahdi2025.github.io/basma/', OLD_HOSTS = ['besgasksa.github.io'];
+function moveOffer(){
+  if (OLD_HOSTS.indexOf(location.hostname) < 0 || !S.token || window.__moveShown) return false;
+  window.__moveShown = true;
+  // only once the new home answers: nobody is sent to a page that is not there yet
+  fetch(NEW_HOME + 'version.json', { cache: 'no-store', credentials: 'omit' }).then(function(r){ if (r.ok) moveDrawer(); }, function(){});
+  return true;
+}
+function moveDrawer(){
+  var d = drawer('<div class="mv-card"><img src="' + platformMark() + '" alt="" width="72" height="72"><h3>' + t('mvTitle') + '</h3><p>' + t('mvLead') + '</p><p class="mv-url" dir="ltr">' + esc(NEW_HOME.replace('https://', '')) + '</p>' +
+    '<div class="btnrow"><button class="btn btn-dark" id="mvGo">' + ph('arrow-square-out') + t('mvGo') + '</button><button class="btn btn-line" id="mvLater">' + t('mvLater') + '</button></div><p class="hr-bad" id="mvE" role="alert"></p></div>');
+  $('#mvLater', d).onclick = function(){ d.remove(); };
+  $('#mvGo', d).onclick = function(){ var b = this; b.disabled = true;
+    api('moveCode', {}).then(function(r){ if (!r.ok) { b.disabled = false; $('#mvE', d).textContent = errText(r.error); return; }
+      location.href = r.to + '#move/' + encodeURIComponent(r.orgId) + '/' + encodeURIComponent(r.empNo) + '/' + encodeURIComponent(r.code); }); };
+  return true;
+}
 function enterApp(home){
   if (!home) home = null;
+  setTimeout(moveOffer, 900);
   if (pinNeeded()) return renderPinSetup(home);
   store('name', S.me ? S.me.name : '');
   function go(r){
