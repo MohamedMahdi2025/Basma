@@ -41,3 +41,12 @@ ok(B.ctx.readAll_('employees').length === 1, 'nothing landed in the home organis
 
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exitCode = failed ? 1 : 0;
+
+console.log('Renumbering');
+B.ctx.setOrg_(B.ctx.orgRec_('1001'));
+const rn = B.raw({ action: 'orgRenumber', setupKey: 'k', id: org.orgId });
+ok(rn.ok && rn.renumbered >= 4 && rn.map.every(x => /^\d{4}$/.test(x.to)), 'every employee without a device gets a system number', rn);
+const tos = rn.map.map(x => x.to); ok(new Set(tos).size === tos.length, 'no number twice', tos);
+ok(B.raw({ action: 'orgRenumber', setupKey: 'bad', id: org.orgId }).error === 'bad_setup_key', 'only the platform owner renumbers');
+console.log('\n' + passed + ' passed, ' + failed + ' failed (with renumbering)');
+process.exitCode = failed ? 1 : 0;

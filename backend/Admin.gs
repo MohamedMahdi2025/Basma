@@ -754,6 +754,31 @@ function brandFromReq_(req) {
   if (accent && !/^#[0-9A-F]{6}$/.test(accent)) fail_('bad_value');
   return [['logo', logo], ['logoVer', sha256Hex_(logo).slice(0, 12)], ['color', color], ['accent', color ? accent : '']];
 }
+/** Platform owner: give an organisation's employees system numbers (the organisation's prefix, digits and first number).
+ *  Whoever already has an active device keeps their number so their sign-in still works. Returns old -> new for HR. */
+function api_orgRenumber(req) {
+  platformKeyOk_(req);
+  var id = String(req.id || ''); if (!PropertiesService.getScriptProperties().getProperty('ORG:' + id)) fail_('org_not_found');
+  setOrg_(orgRec_(id));
+  return withLock_(function () {
+    var emps = readAll_(SHEETS.EMP), withDevice = {};
+    readAll_(SHEETS.CRED).forEach(function (c) { if (c.status === 'active') withDevice[c.empId] = 1; });
+    var keep = emps.filter(function (e) { return withDevice[e.id]; }), move = emps.filter(function (e) { return !withDevice[e.id]; });
+    move.sort(function (a, b) { return String(a.department || '').localeCompare(String(b.department || ''), 'ar') || String(a.name || '').localeCompare(String(b.name || ''), 'ar'); });
+    // numbers are counted afresh: only the kept people's numbers are taken
+    var s = settings_(), prefix = String(s.empNoPrefix || '').trim(), digits = Math.min(8, Math.max(1, Math.round(Number(s.empNoDigits) || 4))), n = Math.max(1, Math.round(Number(s.empNoStart) || 1001)) - 1;
+    var taken = {}; keep.forEach(function (e) { taken[String(e.empNo).trim()] = 1; });
+    var now = new Date().toISOString(), map = [];
+    move.forEach(function (e) {
+      var no; do { n++; no = prefix + String(n).padStart(digits, '0'); } while (taken[no]);
+      taken[no] = 1; map.push({ name: e.name, department: e.department || '', from: String(e.empNo), to: no });
+      e.empNo = no; e.updatedAt = now;
+    });
+    updateMany_(SHEETS.EMP, move);
+    audit_('platform', 'org_renumber', id, { renumbered: move.length, kept: keep.length });
+    return { ok: true, renumbered: move.length, kept: keep.map(function (e) { return { name: e.name, empNo: String(e.empNo) }; }), map: map };
+  });
+}
 /** Platform owner: set an organisation's logo and theme (for organisations created before the logo was required). */
 function api_orgBrandSet(req) {
   platformKeyOk_(req);

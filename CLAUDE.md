@@ -501,3 +501,20 @@ Trap: never use the class `.me` (or `.bot`) inside a module: index.html styles `
 - **Phone integrity:** Android 1.2.0 sends `integ` with punches (rooted, emulator, hook tools, re-signed app, Android's
   fake-location mark). `integrityFlags_` scores it in Attendance.gs; a fake-location reading, hook tools, a re-signed app or an
   emulator each send the punch to HR review.
+
+## BASMA's home moved (2026-11-04)
+
+- **Live:** <https://mohamedmahdi2025.github.io/> (repo `MohamedMahdi2025/mohamedmahdi2025.github.io`, public, GitHub
+  Pages from `main`). The platform console is `#platform` there.
+- **Code:** `MohamedMahdi2025/Basma`, private.
+  - `main`: this src repo; deploy.sh pushes it every time.
+  - `native`: the phone app.
+  - `site`: a copy of the published site.
+- **Old link:** `besgasksa.github.io/BG-attendance` is still pushed (deploy.sh: `home` then `origin`) while people move.
+- **Two domains:** passkeys and PINs belong to a domain. CONFIG.ORIGINS lists both. The client sends `host` with every
+  request; `cfg_().rpId` is that host when it is one of ours. `checkAuthData_` accepts the rpIdHash of either domain.
+- **One-tap move:** on the old domain, a signed-in person sees `moveOffer`, but only once the new home answers its
+  `version.json`. `moveCode` issues their own activation code, and the new link opens at `#move/<org>/<empNo>/<code>` with
+  activation filled in. That enrolment retires the old device. Tests: tests/move.js.
+- **When everyone has moved:** replace the old repo with the redirect page prepared in `../app-redirect`.
+- **Android 1.3.0:** loads the new home; allowNavigation covers both domains.
