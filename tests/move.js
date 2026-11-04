@@ -16,7 +16,7 @@ ok(login('1000', a.d, OLD).token, 'and signs in there as before');
 
 console.log('The move');
 const mv = B.raw({ action: 'moveCode', orgId: '1001', token: a.f.token, host: OLD.rpId });
-ok(mv.ok && mv.code && mv.empNo === '1000' && /mohamedmahdi2025\.github\.io\/basma\/$/.test(mv.to), 'a signed-in person gets a one-time code for the new link', mv);
+ok(mv.ok && mv.code && mv.empNo === '1000' && mv.to === 'https://mohamedmahdi2025.github.io/', 'a signed-in person gets a one-time code for the new link', mv);
 ok(B.raw({ action: 'moveCode', orgId: '1001', host: OLD.rpId }).error === 'session_expired', 'only when signed in');
 const n = enroll('1000', mv.code, NEW);
 ok(n.f.token && n.b.options.rp.id === 'mohamedmahdi2025.github.io', 'on the new link the new passkey is made for mohamedmahdi2025.github.io', n.b.options.rp);

@@ -28,10 +28,12 @@ git add -A
 git -c core.autocrlf=false commit -q -m "$MSG
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>" || echo "site: nothing new to commit"
-git push -q origin main
+git push -q home main   # BASMA's home: https://mohamedmahdi2025.github.io/ (repo MohamedMahdi2025/mohamedmahdi2025.github.io)
+git push -q origin main # the old link (BesGasKSA/BG-attendance), kept while people move with the one-tap move
 echo "site: pushed (live in about a minute)"
 
 cd "$SRC"
 git add -A
 git -c core.autocrlf=false commit -q -m "$MSG" || true
 echo "source: committed locally"
+git push -q origin HEAD:main 2>/dev/null && echo "source: pushed to MohamedMahdi2025/Basma" || echo "source: committed locally (push to Basma did not go through)"

@@ -13,7 +13,7 @@ var CONFIG = {
   RP_NAME: 'BASMA',
   RP_ID: 'besgasksa.github.io',
   ORIGINS: ['https://besgasksa.github.io', 'https://mohamedmahdi2025.github.io'], // the old and the new BASMA home (2026-11-04)
-  NEW_HOME: 'https://mohamedmahdi2025.github.io/basma/',
+  NEW_HOME: 'https://mohamedmahdi2025.github.io/',
   TZ_OFFSET_MIN: 180, // Asia/Riyadh, no DST
   HOME_ORG_ID: '1001', // the organisation this script's own spreadsheet belongs to (Best Gas); script property HOME_ORG_ID overrides
   EMP_TOKEN_HOURS: 12,
