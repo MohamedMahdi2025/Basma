@@ -754,6 +754,19 @@ function brandFromReq_(req) {
   if (accent && !/^#[0-9A-F]{6}$/.test(accent)) fail_('bad_value');
   return [['logo', logo], ['logoVer', sha256Hex_(logo).slice(0, 12)], ['color', color], ['accent', color ? accent : '']];
 }
+/** Platform owner: a one-time activation code for one person of an organisation (a locked-out administrator, a new phone).
+ *  Activating with it on a phone sets their 6-digit PIN and retires their earlier devices. Audited in that organisation. */
+function api_orgActivation(req) {
+  platformKeyOk_(req);
+  var id = String(req.id || ''); if (!PropertiesService.getScriptProperties().getProperty('ORG:' + id) && id !== homeOrgId_()) fail_('org_not_found');
+  setOrg_(orgRec_(id));
+  return withLock_(function () {
+    var emp = empByNo_(req.empNo); if (!emp || emp.status !== 'active') fail_('not_found');
+    var code = setActivation_(emp); emp.updatedAt = new Date().toISOString(); update_(SHEETS.EMP, emp);
+    audit_('platform', 'activation_by_platform', emp.id, { empNo: String(emp.empNo) });
+    return { ok: true, orgId: id, empNo: String(emp.empNo), name: emp.name, role: emp.role, activationCode: code, expires: emp.actExp };
+  });
+}
 /** Platform owner: give an organisation's employees system numbers (the organisation's prefix, digits and first number).
  *  Whoever already has an active device keeps their number so their sign-in still works. Returns old -> new for HR. */
 function api_orgRenumber(req) {

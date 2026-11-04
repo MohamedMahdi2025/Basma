@@ -50,3 +50,11 @@ const tos = rn.map.map(x => x.to); ok(new Set(tos).size === tos.length, 'no numb
 ok(B.raw({ action: 'orgRenumber', setupKey: 'bad', id: org.orgId }).error === 'bad_setup_key', 'only the platform owner renumbers');
 console.log('\n' + passed + ' passed, ' + failed + ' failed (with renumbering)');
 process.exitCode = failed ? 1 : 0;
+
+console.log('Activation code from the Hub');
+const ac = B.raw({ action: 'orgActivation', setupKey: 'k', id: org.orgId, empNo: '1001' });
+ok(ac.ok && ac.activationCode && ac.empNo === '1001', 'the platform owner issues an activation code for someone in the organisation', ac);
+ok(B.raw({ action: 'orgActivation', setupKey: 'bad', id: org.orgId, empNo: '1001' }).error === 'bad_setup_key', 'only with the setup key');
+ok(B.raw({ action: 'orgActivation', setupKey: 'k', id: org.orgId, empNo: '999999' }).error === 'not_found', 'an unknown number is refused');
+console.log('\n' + passed + ' passed, ' + failed + ' failed (with activation codes)');
+process.exitCode = failed ? 1 : 0;
