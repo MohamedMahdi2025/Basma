@@ -60,7 +60,7 @@ document.open();document.write(h);document.close();
 fs.writeFileSync(path.join(OUT, 'index.html'), loader);
 fs.writeFileSync(path.join(OUT, 'version.json'), JSON.stringify({ build: STAMP }) + '\n');
 fs.writeFileSync(path.join(OUT, 'sw.js'), fs.readFileSync(path.join(SRC, 'sw.js'), 'utf8').replace(/var CACHE = '[^']*';/, "var CACHE = 'bgatt-" + STAMP + "';"));
-for (const f of ['manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png', 'favicon-48.png']) {
+for (const f of ['manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png', 'favicon-48.png', 'hub.webmanifest', 'hub-192.png', 'hub-512.png', 'hub-apple.png']) {
   fs.copyFileSync(path.join(SRC, f), path.join(OUT, f));
 }
 // Lazily loaded screens (js/*.js) get the same treatment: a fresh key each, decoded and run in page scope.

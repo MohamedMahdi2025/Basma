@@ -12,7 +12,7 @@ B.ctx.withLock_(() => {
 });
 B.ctx.READ_MEMO_ = {};
 const s = B.ctx.settings_(), emp = { id: 'E1', zoneIds: '' };
-const T = Date.now();
+const T = Date.parse('2026-10-26T06:30:00Z'); // 09:30 in Riyadh: a fixed working-hours clock, so the suite passes at night too
 const smp = (north, acc, i) => Object.assign(m(north, 0), { acc, t: T - (i || 0) * 1000 });
 const geo = (list, type, desktop) => B.ctx.evaluateGeo_(emp, { samples: list }, s, type || 'in', !!desktop);
 
