@@ -3357,8 +3357,14 @@ function renderPinLogin(prefNo){
     var no = $('#ino').value.trim(), pin = $('#ipin').value, e = $('#err'), btn = $('#lgo');
     if (!validPin(pin)) return e.textContent = t('e_bad_pin_format');
     btn.disabled = true; e.textContent = '';
-    api('pinLogin', { empNo: no, pin: pin }).then(function(r){
-      if (!r.ok) { btn.disabled = false; e.textContent = errText(r.error); return; }
+    pinSignIn(no, pin, function(err){ btn.disabled = false; e.textContent = errText(err); });
+  };
+  $('#ino').value ? $('#ipin').focus() : $('#org').value ? $('#ino').focus() : $('#org').focus();
+}
+/** Number + 6-digit PIN checked by the server (any device), then this device gets its own key with the same PIN. */
+function pinSignIn(no, pin, fail){
+  api('pinLogin', { empNo: no, pin: pin }).then(function(r){
+      if (!r.ok) return fail(r.error);
       S.token = r.token; store('token', r.token); S.me = r.me; S.empNo = String(r.me.empNo); store('empNo', S.empNo); S.pwOnly = false; store('pwOnly', null); S.auth = 'dev';
       // this phone gets its own key with the same PIN, so next time it opens straight on the PIN pad
       var done = function(){ enterApp(r.home); };
@@ -3372,8 +3378,6 @@ function renderPinLogin(prefNo){
           done();
         }).catch(function(){ done(); });
     });
-  };
-  $('#ino').value ? $('#ipin').focus() : $('#org').value ? $('#ino').focus() : $('#org').focus();
 }
 function renderPwLogin(prefNo){
   clearInterval(lockRefresh);
@@ -3478,6 +3482,10 @@ function doUnlock(padPin, retried){
       if (!r.ok && r.error === 'challenge_expired' && !retried) {
         // The challenge aged out while the pad waited: fetch a fresh one and try the same PIN once more.
         return api('authBegin', { empNo: S.empNo }, true).then(function(b){ if (b.ok) { S.loginOpts = b.options; doUnlock(pin, true); } else { $('#err').textContent = errText(b.error); if (pad) pad.reset(true); } });
+      }
+      if (!r.ok && pin && !retried && /^(device_not_recognised|bad_credential|device_unknown|unknown_credential)$/.test(r.error)) {
+        clearInterval(lockRefresh);
+        return pinSignIn(S.empNo, pin, function(err){ $('#err').textContent = errText(err); if (pad) pad.reset(true); });
       }
       if (!r.ok) {
         $('#err').textContent = errText(r.error);
