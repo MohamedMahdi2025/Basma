@@ -1393,6 +1393,9 @@ body.v2-on :is(.db-tile b,.kpi b,.stat b,.hm-facts dd,.hm-big b,.hm-k .v,[data-c
 @media (prefers-reduced-motion:reduce){.xr-r,.xr-pin{animation:none;stroke-dashoffset:0}.xr-rv{animation:none;transform:none}.xr-core{animation:none;transform:none}.xr-lock,.xr-lock .xr-c{animation:none;opacity:.9}.xr-bd,.xr-beam,.xr-ping,.xr-film{animation:none}.xr-beam,.xr-ping{opacity:0}.xr-hot{display:none}}
 .gate .gb-dial .b3d{width:var(--d)}
 .gb-dial .brand3d{position:relative;z-index:1}
+/* the name sits below the watch, never under its hands or ticks (2026-11-04) */
+.gate .gb-dial.has-watch .brand3d .wordmark{margin-top:calc(var(--d) * .34 + 14px)}
+.gate .gb-dial.has-watch + .gate-tag{margin-top:10px}
 .gt-dial{position:absolute;left:50%;top:calc(var(--d) / 2);width:calc(var(--d) * 1.62);aspect-ratio:1;transform:translate(-50%,-50%);z-index:0;pointer-events:none;overflow:visible}
 .gt-dial .trk{fill:none;stroke:rgba(242,238,228,.1);stroke-width:1.6;stroke-dasharray:376.99 502.65}
 .gt-dial .val{fill:none;stroke:var(--mint);stroke-width:2.6;stroke-linecap:round;stroke-dasharray:282.74 502.65;stroke-dashoffset:282.74;filter:drop-shadow(0 0 5px rgba(var(--signal-rgb),.65));animation:gArc 1.6s .5s cubic-bezier(.3,.7,.1,1) forwards}
@@ -2874,7 +2877,7 @@ function gateOff(){
 function gateBrand(){
   gateOn();
   return '<aside class="gate-brand"><div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div><div class="gb-scene" aria-hidden="true"><i></i><i></i><i></i></div>' +
-    '<div class="gb-dial">' + (S.gate || !S.orgId ? watchSvg() : gaugeSvg()) + brand3dHtml('gate') + '</div><p class="gate-tag">' + t('gateTag') + '</p></aside>';
+    '<div class="gb-dial' + (S.gate || !S.orgId ? ' has-watch' : '') + '">' + (S.gate || !S.orgId ? watchSvg() : gaugeSvg()) + brand3dHtml('gate') + '</div><p class="gate-tag">' + t('gateTag') + '</p></aside>';
 }
 /** The BASMA watch (2026-11-04): around the fingerprint, a watch face with 60 minute marks and three hands riding the
  *  ring, showing Riyadh time live: hour (gold) and minute (white) as glowing bars, seconds as a bright bead that ticks. */
@@ -3989,6 +3992,7 @@ Object.assign(T.ar, {
   banFrom:'بداية الحظر الصيفي (شهر-يوم)', banTo:'نهاية الحظر الصيفي (شهر-يوم)', banStart:'يبدأ المنع الساعة', banEnd:'وينتهي الساعة',
   banHint:'مثال: من 06-15 إلى 09-15، من 12:00 إلى 15:00.',
   v3Waiting:'بانتظارك',
+  swSelfComp:'الموارد البشرية تعتمد الرواتب وحدها', swSelfCompLead:'يعتمد موظف الموارد البشرية تغيير الراتب الذي أدخله بنفسه دون موافقة شخص ثانٍ. لا يغيّر أحد راتبه هو أبداً.',
   swAdminPay:'مسؤول النظام يدير الرواتب', swAdminPayLead:'يرى الرواتب ويعتمدها مثل صاحب صلاحية الرواتب. أوقفه لفصل الرواتب عن إدارة النظام؛ يبقى مبدأ الشخصين في الاعتماد قائما.',
   secCo:'ملف الشركة', secCoLead:'الاسم والسجل التجاري والرقم الضريبي والعنوان. تظهر في رأس كل خطاب وشهادة وقسيمة راتب وتقرير.',
   coNameAr:'اسم الشركة بالعربية', coNameEn:'اسم الشركة بالإنجليزية', coShortAr:'الاسم المختصر بالعربية', coShortEn:'الاسم المختصر بالإنجليزية',
@@ -4035,6 +4039,7 @@ Object.assign(T.en, {
   banFrom:'Summer ban from (MM-DD)', banTo:'Summer ban to (MM-DD)', banStart:'Ban starts at', banEnd:'Ban ends at',
   banHint:'For example 06-15 to 09-15, 12:00 to 15:00.',
   v3Waiting:'waiting for you',
+  swSelfComp:'HR approves salaries alone', swSelfCompLead:'An HR user may approve a salary change they entered, without a second person. Nobody ever changes their own salary.',
   swAdminPay:'Administrator manages pay', swAdminPayLead:'Sees and approves salaries like a payroll holder. Switch off to keep pay apart from system administration; the two-person approval rule still applies.',
   secCo:'Company profile', secCoLead:'Name, commercial registration, VAT number and address. They head every letter, certificate, payslip and report.',
   coNameAr:'Company name in Arabic', coNameEn:'Company name in English', coShortAr:'Short name in Arabic', coShortEn:'Short name in English',
@@ -5810,7 +5815,7 @@ function admSettings(){
       '</section>' +
       // HR and payroll rules (settingsSave validates each one and answers bad_setting + key)
       '<section class="set-card"><h3>' + ph('money') + t('secPay') + '</h3><p>' + t('secPayLead') + '</p>' +
-        sw('deductAbsence', t('swAbs'), t('swAbsLead')) + sw('deductLateMinutes', t('swLate'), t('swLateLead')) + sw('payOvertimeFromAttendance', t('swOt'), t('swOtLead')) + sw('adminSeesPay', t('swAdminPay'), t('swAdminPayLead')) + sw('timesheetRequired', t('swTs'), t('swTsLead')) + sw('notifyDigest', t('swNotify'), t('swNotifyLead')) + sw('attachmentsEnabled', t('swAttach'), t('swAttachLead')) + sw('aiAssistant', t('swAi'), t('swAiLead')) + sw('whatsappDigest', t('swWa'), t('swWaLead')) + '<div class="btnrow" style="margin:4px 0 10px"><button type="button" class="btn btn-line btn-sm" id="ntTest">' + ph('envelope-simple') + t('ntTest') + '</button> <button type="button" class="btn btn-line btn-sm" id="waTest">' + ph('whatsapp-logo') + t('waTestBtn') + '</button> <small id="ntState" class="hr-hint"></small></div>' +
+        sw('deductAbsence', t('swAbs'), t('swAbsLead')) + sw('deductLateMinutes', t('swLate'), t('swLateLead')) + sw('payOvertimeFromAttendance', t('swOt'), t('swOtLead')) + sw('compSelfApprove', t('swSelfComp'), t('swSelfCompLead')) + sw('adminSeesPay', t('swAdminPay'), t('swAdminPayLead')) + sw('timesheetRequired', t('swTs'), t('swTsLead')) + sw('notifyDigest', t('swNotify'), t('swNotifyLead')) + sw('attachmentsEnabled', t('swAttach'), t('swAttachLead')) + sw('aiAssistant', t('swAi'), t('swAiLead')) + sw('whatsappDigest', t('swWa'), t('swWaLead')) + '<div class="btnrow" style="margin:4px 0 10px"><button type="button" class="btn btn-line btn-sm" id="ntTest">' + ph('envelope-simple') + t('ntTest') + '</button> <button type="button" class="btn btn-line btn-sm" id="waTest">' + ph('whatsapp-logo') + t('waTestBtn') + '</button> <small id="ntState" class="hr-hint"></small></div>' +
         '<div class="field"><label for="eosWageBasis">' + t('eosBasis') + '</label><select id="eosWageBasis" name="eosWageBasis">' +
           [['total', t('eosTotal')], ['basic_housing', t('eosBH')]].map(function(o){ return '<option value="' + o[0] + '"' + (st.eosWageBasis === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select><small>' + t('eosBasisHint') + '</small></div>' +
         num('wpsDueDay', t('wpsDay'), t('wpsDayHint'), 1, 28, t('dayOfMonth')) +
@@ -5838,7 +5843,7 @@ function admSettings(){
       $$('[aria-invalid]', f).forEach(function(x){ x.removeAttribute('aria-invalid'); });
       api('settingsSave', { settings: { shiftStart: f.shiftStart.value, shiftEnd: f.shiftEnd.value, graceMin: f.graceMin.value, minPunchGapMin: f.minPunchGapMin.value, maxAccuracy: f.maxAccuracy.value, reviewRiskThreshold: f.reviewRiskThreshold.value,
         workdays: $$('input[name=wd]:checked', f).map(function(x){ return x.value; }).join(',') || '0,1,2,3,4', allowCheckoutOutside: f.allowCheckoutOutside.checked, allowDeviceKey: f.allowDeviceKey.checked, allowDesktop: f.allowDesktop.checked, allowPasswordPunch: f.allowPasswordPunch.checked, maxAccuracyDesktop: f.maxAccuracyDesktop.value,
-        deductAbsence: f.deductAbsence.checked, deductLateMinutes: f.deductLateMinutes.checked, adminSeesPay: f.adminSeesPay.checked, timesheetRequired: f.timesheetRequired.checked, notifyDigest: f.notifyDigest.checked, attachmentsEnabled: f.attachmentsEnabled.checked, aiAssistant: f.aiAssistant.checked, whatsappDigest: f.whatsappDigest.checked, payOvertimeFromAttendance: f.payOvertimeFromAttendance.checked, eosWageBasis: f.eosWageBasis.value, wpsDueDay: Number(f.wpsDueDay.value),
+        deductAbsence: f.deductAbsence.checked, deductLateMinutes: f.deductLateMinutes.checked, adminSeesPay: f.adminSeesPay.checked, compSelfApprove: f.compSelfApprove.checked, timesheetRequired: f.timesheetRequired.checked, notifyDigest: f.notifyDigest.checked, attachmentsEnabled: f.attachmentsEnabled.checked, aiAssistant: f.aiAssistant.checked, whatsappDigest: f.whatsappDigest.checked, payOvertimeFromAttendance: f.payOvertimeFromAttendance.checked, eosWageBasis: f.eosWageBasis.value, wpsDueDay: Number(f.wpsDueDay.value),
         saudizationTarget: f.saudizationTarget.value === '' ? '' : Number(f.saudizationTarget.value), refPrefixes: f.refPrefixes.value.trim(), rostersEnabled: f.rostersEnabled.checked,
         ramadanFrom: f.ramadanFrom.value, ramadanTo: f.ramadanTo.value, ramadanHours: Number(f.ramadanHours.value), permissionMaxHours: Number(f.permissionMaxHours.value), permissionMonthHours: Number(f.permissionMonthHours.value), perDiemInside: Number(f.perDiemInside.value), perDiemAbroad: Number(f.perDiemAbroad.value), overtimeYearHours: Number(f.overtimeYearHours.value), summerBanFrom: f.summerBanFrom.value.trim(), summerBanTo: f.summerBanTo.value.trim(),
         summerBanStart: f.summerBanStart.value, summerBanEnd: f.summerBanEnd.value,

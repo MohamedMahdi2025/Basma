@@ -173,6 +173,14 @@ ok(!r.ok && r.error === 'forbidden', 'nor approve one', r);
 r = B.call({ action: 'hrCompPropose', token: tok('1000'), empId: E5003, effectiveFrom: '2026-10-01', basic: 8000 });
 ok(!r.ok && r.error === 'forbidden', 'nor propose one', r);
 ok(!B.call({ action: 'myTasks', token: tok('1000') }).tasks.some(x => x.kind === 'salaries'), 'and the bell offers the administrator no salaries to approve');
+// company setting compSelfApprove: HR approves a change they entered themselves (never their own salary)
+B.ctx.DEFAULT_SETTINGS.compSelfApprove = true; B.ctx.settingsForget_();
+r = B.call({ action: 'hrCompPropose', token: hrT, empId: ids['3002'], effectiveFrom: '2026-12-01', basic: 9100 });
+r = B.call({ action: 'hrCompDecide', token: hrT, ids: [r.comp.id], decision: 'approve' });
+ok(r.ok && r.decided === 1, 'with HR approves alone on, HR approves the change they entered', r);
+r = B.call({ action: 'hrCompPropose', token: hrT, empId: B.call({ action: 'me', token: hrT }).me.id, effectiveFrom: '2026-12-01', basic: 99999 });
+ok(!r.ok && r.error === 'cannot_change_own_salary', 'and still never their own salary', r);
+B.ctx.DEFAULT_SETTINGS.compSelfApprove = false; B.ctx.settingsForget_();
 ok(B.call({ action: 'myTasks', token: payT }).tasks.some(x => x.kind === 'salaries'), 'while payroll sees the waiting package');
 r = B.call({ action: 'hrEmpFile', token: tok('1000'), id: E5002 });
 ok(r.ok && !('comp' in r.file), 'admin without payroll does not see the salary', r.file && Object.keys(r.file));

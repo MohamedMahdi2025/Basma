@@ -12,7 +12,8 @@ Object.assign(T.ar, {
   hrInbox:'الطلبات', hrLeave:'الإجازات', hrHolidays:'العطل الرسمية', inMine:'بانتظاري', inAll:'كل الطلبات', inAllStatus:'كل الحالات',
   inEmpty:'لا توجد طلبات بانتظارك.', inEmptyAll:'لا توجد طلبات.', inApprove:'اعتماد', inReject:'رفض', inNote:'ملاحظة للموظف (مطلوبة عند الرفض)',
   inDone:'تم الاعتماد', inRejectedT:'تم الرفض', inBalance:'رصيده المتاح بعد طلباته المعلقة', inAfter:'بعد الطلب', inOnBehalf:'تعتمد نيابة عن المدير',
-  lvMonthEmpty:'لا إجازات في هذا الشهر.', lvApproved:'معتمدة', lvPendingK:'قيد الاعتماد', lvHolidayK:'عطلة رسمية', lvBalances:'أرصدة الإجازات',
+  lvMonthEmpty:'لا إجازات في هذا الشهر.', lvApproved:'معتمدة', lvPendingK:'قيد الاعتماد', lvHolidayK:'عطلة رسمية', lvBalances:'أرصدة الإجازات', obUp:'رفع الأرصدة الافتتاحية', obTitle:'رفع أرصدة الإجازات الافتتاحية', obLead:'نزّل الملف وفيه موظفوك، واكتب لكل موظف تاريخ تعيينه ورصيده المتبقي كما في يوم الانتقال من النظام القديم، ثم ارفعه. يُحفظ الملف كاملاً أو لا يُحفظ منه شيء.', obTpl:'تنزيل الملف بأسماء الموظفين', obChoose:'اختيار الملف', obEmpNo:'الرقم الوظيفي', obName:'الاسم', obHire:'تاريخ التعيين', obDays:'الرصيد المتبقي (يوم)', obAsOf:'الرصيد كما في', obSheet:'الأرصدة الافتتاحية', obReady:'جاهزة للحفظ', obSave:'حفظ الأرصدة', obSaved:'حُفظت الأرصدة', obHireSet:'وتواريخ التعيين', obErrs:'صفوف تحتاج تصحيحاً، ولم يُحفظ شيء', obRow:'الصف', obNone:'لا صفوف في الملف.', obTotal:'مجموع الأيام', obCount:'موظفون في الملف', obBadHead:'لم نجد عمود الرقم الوظيفي أو الرصيد في الملف.', obMissing:'بلا رصيد افتتاحي', obRule:'بلا رصيد افتتاحي يبدأ الاستحقاق من تاريخ تشغيل النظام لا من تاريخ التعيين، فيظهر الرصيد قريباً من الصفر.',
+  e_invalid_rows:'في الملف صفوف غير صحيحة.', e_no_rows:'لا صفوف في الملف.', e_too_many_rows:'الملف أكبر من 2000 صف.', e_future_date:'تاريخ في المستقبل', e_after_as_of:'تاريخ التعيين بعد تاريخ الرصيد', e_duplicate:'الموظف مكرر في الملف',
   lvEmp:'الموظف', lvAvail:'المتاح', lvUsedK:'المستخدم', lvOpeningK:'الرصيد المنقول', lvEditOpening:'تعديل الرصيد المنقول', lvOpenDays:'عدد الأيام المنقولة',
   lvOpenAsOf:'كما في تاريخ', lvOpenLead:'الرصيد من النظام السابق حتى هذا التاريخ. يكتسب الموظف بعده تلقائيا.', lvOnLeave:'في إجازة اليوم',
   hoAdd:'إضافة عطلة', hoFrom:'من', hoTo:'إلى', hoName:'اسم العطلة', hoNameEn:'الاسم بالإنجليزية', hoEmpty:'لم تضف عطل بعد.', hoDelete:'حذف',
@@ -82,7 +83,8 @@ Object.assign(T.en, {
   hrInbox:'Requests', hrLeave:'Leave', hrHolidays:'Public holidays', inMine:'Waiting for me', inAll:'All requests', inAllStatus:'Any status',
   inEmpty:'Nothing is waiting for you.', inEmptyAll:'No requests.', inApprove:'Approve', inReject:'Reject', inNote:'Note to the employee (needed to reject)',
   inDone:'Approved', inRejectedT:'Rejected', inBalance:'Available after pending requests', inAfter:'after this', inOnBehalf:'You approve on the manager\'s behalf',
-  lvMonthEmpty:'No leave this month.', lvApproved:'Approved', lvPendingK:'Waiting approval', lvHolidayK:'Public holiday', lvBalances:'Leave balances',
+  lvMonthEmpty:'No leave this month.', lvApproved:'Approved', lvPendingK:'Waiting approval', lvHolidayK:'Public holiday', lvBalances:'Leave balances', obUp:'Upload opening balances', obTitle:'Upload opening leave balances', obLead:'Download the file with your people in it, fill in each person\'s hire date and remaining days as at the day you left the old system, then upload it. The whole file is saved, or nothing is.', obTpl:'Download the file with names', obChoose:'Choose file', obEmpNo:'Employee No', obName:'Name', obHire:'Hire date', obDays:'Remaining days', obAsOf:'Balance as of', obSheet:'Opening balances', obReady:'Ready to save', obSave:'Save balances', obSaved:'Balances saved', obHireSet:'and hire dates', obErrs:'Rows need fixing; nothing was saved', obRow:'Row', obNone:'No rows in the file.', obTotal:'Total days', obCount:'People in the file', obBadHead:'No employee number or days column found in the file.', obMissing:'without an opening balance', obRule:'Without an opening balance, accrual starts at the system go-live, not the hire date, so the balance shows close to zero.',
+  e_invalid_rows:'Some rows in the file are not valid.', e_no_rows:'No rows in the file.', e_too_many_rows:'The file has more than 2,000 rows.', e_future_date:'Date in the future', e_after_as_of:'Hire date is after the balance date', e_duplicate:'Employee repeated in the file',
   lvEmp:'Employee', lvAvail:'Available', lvUsedK:'Used', lvOpeningK:'Carried over', lvEditOpening:'Edit carried-over balance', lvOpenDays:'Days carried over',
   lvOpenAsOf:'As of', lvOpenLead:'The balance from the old system up to this date. Accrual continues automatically after it.', lvOnLeave:'On leave today',
   hoAdd:'Add holiday', hoFrom:'From', hoTo:'To', hoName:'Holiday name (Arabic)', hoNameEn:'Name in English', hoEmpty:'No holidays yet.', hoDelete:'Delete',
@@ -1030,7 +1032,7 @@ function leaveSec(body){
   var shift = function(n){ var p = m.split('-'), d = new Date(Date.UTC(+p[0], +p[1] - 1 + n, 1)); S.lvMonth = d.toISOString().slice(0, 7); leaveSec(body); };
   var label = new Date(Date.UTC(+m.slice(0, 4), +m.slice(5, 7) - 1, 15)).toLocaleDateString(LOCALE(), { month: 'long', year: 'numeric' });
   body.innerHTML = '<div class="hr-h"><h2>' + t('hrLeave') + '</h2><div class="monthbar" style="margin:0"><button class="iconbtn" type="button" id="lvPrev" aria-label="previous">' + (S.lang === 'ar' ? I.chev : I.chevb) + '</button><b>' + esc(label) + '</b>' +
-    '<button class="iconbtn" type="button" id="lvNext" aria-label="next">' + (S.lang === 'ar' ? I.chevb : I.chev) + '</button></div></div><div id="lvCal"></div>' + (roles().hr ? '<h3 class="hr-sub">' + t('lvBalances') + '</h3><div id="lvBal"></div>' : '');
+    '<button class="iconbtn" type="button" id="lvNext" aria-label="next">' + (S.lang === 'ar' ? I.chevb : I.chev) + '</button></div></div><div id="lvCal"></div>' + (roles().hr ? '<div class="ob-h"><h3 class="hr-sub">' + t('lvBalances') + '</h3><button type="button" class="btn btn-dark btn-sm" id="obUp">' + ph('upload-simple') + t('obUp') + '</button></div><div id="obNote"></div><div id="lvBal"></div>' : '');
   $('#lvPrev', body).onclick = function(){ shift(-1); }; $('#lvNext', body).onclick = function(){ shift(1); };
   var cal = $('#lvCal', body); loading(cal);
   apiFresh('leaveTeam', { month: m }, function(r){
@@ -1058,8 +1060,13 @@ function leaveSec(body){
   });
   if (!roles().hr) return;
   var bal = $('#lvBal', body); loading(bal);
+  $('#obUp', body).onclick = function(){ openingUpload(function(){ leaveSec(body); }); };
   apiFresh('leaveBalances', {}, function(r){
     if (!r.ok) return failed(bal, function(){ leaveSec(body); });
+    LV_ROWS = r.rows || [];
+    var miss = LV_ROWS.filter(function(x){ return x.openingDays == null || !x.openingDate; }).length;
+    obCssOn();
+    $('#obNote', body).innerHTML = miss ? '<div class="ob-note">' + ph('warning-circle') + '<div><b>' + esc(plural(miss, 'people')) + ' ' + t('obMissing') + '</b><span>' + t('obRule') + '</span></div></div>' : '';
     var f1 = function(n){ return Number(n || 0).toLocaleString(LOCALE(), { maximumFractionDigits: 1 }); };
     bal.innerHTML = '<div class="tblwrap"><table class="tbl"><thead><tr><th>' + t('lvEmp') + '</th><th class="hr-amt">' + t('lvAvail') + '</th><th class="hr-amt">' + t('lvUsedK') + '</th><th class="hr-amt">' + t('lvPending') + '</th><th class="hr-amt">' + t('lvOpeningK') + '</th><th class="hr-amt">' + t('lvSick') + '</th><th></th></tr></thead><tbody>' +
       r.rows.sort(function(a, b){ return String(a.emp.name).localeCompare(b.emp.name, 'ar'); }).map(function(x){
@@ -1090,6 +1097,84 @@ function openingDrawer(x, done){
   $('#opc', dr).onclick = function(){ dr.remove(); };
   $('#opf', dr).onsubmit = function(ev){ ev.preventDefault(); var v = formData(this);
     api('leaveOpeningSave', { empId: x.emp.id, days: v.days, asOf: v.asOf }).then(function(r){ if (!r.ok) return showErr($('#operr', dr), r); dr.remove(); toast(t('saved')); done(); }); };
+}
+
+// ---------------- opening balances in bulk (2026-11-04) ----------------
+var LV_ROWS = [];
+var OB_COLS = [['empNo', 'obEmpNo'], ['name', 'obName'], ['hireDate', 'obHire'], ['days', 'obDays'], ['asOf', 'obAsOf']];
+var OB_CSS = '.ob-h{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:22px}.ob-h .hr-sub{margin:0}' +
+  '.ob-note{display:flex;gap:10px;align-items:flex-start;margin:12px 0;padding:12px 14px;border-radius:12px;background:#FFF6E0;border:1px solid #F0D58A;color:#6B4E00}.ob-note i{font-size:20px;flex:none}.ob-note b{display:block;font-weight:600}.ob-note span{font-size:13px}' +
+  '.ob-acts{margin:12px 0 16px}.ob-sum{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 12px}.ob-sum div{padding:10px 12px;border-radius:12px;background:var(--panel,#F4F1EA)}.ob-sum b{display:block;font-size:20px}.ob-sum span{font-size:12px;opacity:.75}' +
+  '.ob-sum .good{background:#E7F3EC;color:#1F5C3A}.ob-sum .bad{background:#FDECEC;color:#9B1C1C}.ob-badrow{background:#FFF5F5}.ob-bad{color:#9B1C1C;font-weight:600}.ob-bad small{display:block;font-weight:400;font-size:11px}';
+function obDigits(s){ return String(s).replace(/[٠-٩]/g, function(d){ return '٠١٢٣٤٥٦٧٨٩'.indexOf(d); }); }
+function obDate(v){
+  if (v instanceof Date && !isNaN(v)) return v.getFullYear() + '-' + String(v.getMonth() + 1).padStart(2, '0') + '-' + String(v.getDate()).padStart(2, '0');
+  var s = obDigits(v == null ? '' : v).trim(), m = s.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/);
+  if (m) return m[3] + '-' + m[2].padStart(2, '0') + '-' + m[1].padStart(2, '0');
+  m = s.match(/^(\d{4})[\/.-](\d{1,2})[\/.-](\d{1,2})/);
+  return m ? m[1] + '-' + m[2].padStart(2, '0') + '-' + m[3].padStart(2, '0') : s;
+}
+function obCssOn(){ if (document.getElementById('obCss')) return; var st = document.createElement('style'); st.id = 'obCss'; st.textContent = OB_CSS; document.head.appendChild(st); if (window.themeLast) themeLast(); }
+function openingUpload(done){
+  obCssOn();
+  var heads = {}; OB_COLS.forEach(function(c){ heads[headKey(c[0])] = c[0]; heads[headKey(T.ar[c[1]])] = c[0]; heads[headKey(T.en[c[1]])] = c[0]; });
+  var rows = null, dr = drawer('<h3>' + t('obTitle') + '</h3><p class="hr-hint">' + t('obLead') + '</p>' +
+    '<div class="btnrow ob-acts"><button type="button" class="btn btn-line btn-sm" id="obTpl">' + ph('download-simple') + t('obTpl') + '</button>' +
+    '<label class="btn btn-dark btn-sm" style="cursor:pointer">' + ph('upload-simple') + t('obChoose') + '<input type="file" id="obFile" accept=".xlsx,.xls,.csv" hidden></label></div>' +
+    '<div id="obRes"></div>', { wide: true });
+  var res = $('#obRes', dr);
+  $('#obTpl', dr).onclick = function(){ var b = this; b.disabled = true;
+    xlsxLib().then(function(){
+      var today = riyadhToday(), aoa = [OB_COLS.map(function(c){ return t(c[1]); })].concat(LV_ROWS.slice().sort(function(a, b){ return String(a.emp.empNo).localeCompare(String(b.emp.empNo), 'en', { numeric: true }); }).map(function(x){
+        return [String(x.emp.empNo), x.emp.name, String(x.hireDate || '').slice(0, 10), x.openingDays != null ? x.openingDays : '', x.openingDate || today]; }));
+      var wb = XLSX.utils.book_new(), ws = XLSX.utils.aoa_to_sheet(aoa);
+      ws['!cols'] = [{ wch: 14 }, { wch: 30 }, { wch: 14 }, { wch: 18 }, { wch: 14 }];
+      XLSX.utils.book_append_sheet(wb, ws, t('obSheet'));
+      if (S.lang === 'ar') wb.Workbook = { Views: [{ RTL: true }] };
+      XLSX.writeFile(wb, 'opening-leave-balances.xlsx'); b.disabled = false;
+    }, function(){ b.disabled = false; toast(t('e_generic')); });
+  };
+  $('#obFile', dr).onchange = function(){
+    var f = this.files && this.files[0]; if (!f) return; this.value = ''; loading(res);
+    Promise.all([xlsxLib(), f.arrayBuffer()]).then(function(v){ obParse(XLSX.read(v[1], { type: 'array', cellDates: true })); }, function(){ res.innerHTML = '<p class="err">' + t('e_generic') + '</p>'; });
+  };
+  function obParse(wb){
+    var ws = wb.Sheets[wb.SheetNames[0]], aoa = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', raw: true });
+    var hi = aoa.findIndex(function(r){ return r.some(function(c){ return heads[headKey(c)] === 'empNo'; }); });
+    var map = hi < 0 ? [] : aoa[hi].map(function(c){ return heads[headKey(c)] || ''; });
+    if (hi < 0 || map.indexOf('days') < 0) { res.innerHTML = '<p class="err" style="color:var(--red)">' + t('obBadHead') + '</p>'; return; }
+    rows = [];
+    aoa.slice(hi + 1).forEach(function(r, i){
+      var o = { _line: hi + i + 2 }; map.forEach(function(k, j){ if (k) o[k] = r[j]; });
+      if (String(o.empNo == null ? '' : o.empNo).trim() === '' && String(o.days == null ? '' : o.days).trim() === '') return;
+      o.empNo = obDigits(o.empNo == null ? '' : o.empNo).trim(); o.hireDate = obDate(o.hireDate); o.asOf = obDate(o.asOf);
+      o.days = typeof o.days === 'number' ? o.days : obDigits(o.days == null ? '' : o.days).trim().replace('٫', '.');
+      rows.push(o);
+    });
+    obPreview(null);
+  }
+  openingUpload.parse = obParse; // the preview harness feeds a workbook straight in
+  function obPreview(errs){
+    if (!rows || !rows.length) { res.innerHTML = '<p class="hr-hint">' + t('obNone') + '</p>'; return; }
+    var bad = {}; (errs || []).forEach(function(e){ (bad[e.row] = bad[e.row] || []).push(e); });
+    var total = rows.reduce(function(s, r){ var n = Number(String(r.days).replace(',', '.')); return s + (isFinite(n) ? n : 0); }, 0);
+    var byNo = {}; LV_ROWS.forEach(function(x){ byNo[String(x.emp.empNo)] = x.emp.name; });
+    res.innerHTML = '<div class="ob-sum"><div><b class="num">' + rows.length + '</b><span>' + t('obCount') + '</span></div><div><b class="num">' + Number(total).toLocaleString(LOCALE(), { maximumFractionDigits: 1 }) + '</b><span>' + t('obTotal') + '</span></div>' +
+      '<div class="' + (errs ? 'bad' : 'good') + '"><b class="num">' + (errs ? Object.keys(bad).length : rows.length) + '</b><span>' + (errs ? t('obErrs') : t('obReady')) + '</span></div></div>' +
+      '<div class="tblwrap"><table class="tbl"><thead><tr><th>' + t('obRow') + '</th>' + OB_COLS.map(function(c){ return '<th>' + t(c[1]) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+      rows.map(function(r, i){ var e = bad[i] || [], f = function(k){ return e.filter(function(x){ return x.field === k; })[0]; };
+        var cell = function(k, v){ var x = f(k); return '<td' + (x ? ' class="ob-bad"' : '') + '>' + esc(v == null || v === '' ? '-' : v) + (x ? '<small>' + esc(errText(x.error)) + '</small>' : '') + '</td>'; };
+        return '<tr' + (e.length ? ' class="ob-badrow"' : '') + '><td class="num">' + r._line + '</td>' + cell('empNo', r.empNo) + '<td>' + esc(r.name || byNo[r.empNo] || '') + '</td>' + cell('hireDate', r.hireDate) + cell('days', r.days) + cell('asOf', r.asOf) + '</tr>'; }).join('') +
+      '</tbody></table></div><div class="err" id="oberr" style="color:var(--red)"></div><div class="btnrow"><button type="button" class="btn btn-dark" id="obSave"' + (errs ? ' disabled' : '') + '>' + ph('check') + t('obSave') + '</button></div>';
+    var sv = $('#obSave', res);
+    sv.onclick = function(){ sv.disabled = true;
+      api('leaveOpeningImport', { rows: rows.map(function(r){ return { empNo: r.empNo, hireDate: r.hireDate || '', days: r.days, asOf: r.asOf }; }) }).then(function(r){
+        if (r.ok) { dr.remove(); toast(t('obSaved') + ': ' + plural(r.saved, 'people') + (r.hireDates ? ' ' + t('obHireSet') + ' (' + r.hireDates + ')' : '')); done(); return; }
+        if (r.errors) return obPreview(r.errors);
+        sv.disabled = false; showErr($('#oberr', res), r);
+      });
+    };
+  }
 }
 
 // ---------------- public holidays ----------------

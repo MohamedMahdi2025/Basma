@@ -682,6 +682,52 @@ function api_leaveOpeningSave(req, me) {
   });
 }
 
+/**
+ * Opening balances in bulk (2026-11-04): HR uploads one sheet of { empNo, hireDate?, days, asOf } rows.
+ * Every row is checked first; any error and nothing is saved (errors carry the row index). The hire date,
+ * when given, is saved too, so the 5-year rate (30 days) starts from the right day.
+ */
+function api_leaveOpeningImport(req, me) {
+  var rows = Array.isArray(req.rows) ? req.rows : [];
+  if (!rows.length) fail_('no_rows');
+  if (rows.length > 2000) fail_('too_many_rows');
+  var t = today_();
+  return withLock_(function () {
+    var errors = [], seen = {}, plan = [];
+    rows.forEach(function (r, i) {
+      var e = function (field, code) { errors.push({ row: i, field: field, error: code }); };
+      var no = String(r.empNo == null ? '' : r.empNo).trim();
+      if (!no) return e('empNo', 'required');
+      var emp = empByNo_(no);
+      if (!emp) return e('empNo', 'not_found');
+      if (seen[emp.id] != null) return e('empNo', 'duplicate');
+      seen[emp.id] = i;
+      if (emp.id === me.id) return e('empNo', 'cannot_change_own_balance');
+      var days = Number(String(r.days == null ? '' : r.days).replace(',', '.'));
+      if (r.days === '' || r.days == null || !isFinite(days) || days < -60 || days > 365) e('days', 'bad_value');
+      var asOf = isoDate_(r.asOf);
+      if (!asOf) e('asOf', 'bad_date'); else if (asOf > t) e('asOf', 'future_date');
+      var hire = r.hireDate === '' || r.hireDate == null ? '' : isoDate_(r.hireDate);
+      if (r.hireDate !== '' && r.hireDate != null && !hire) e('hireDate', 'bad_date');
+      else if (hire && hire > t) e('hireDate', 'future_date');
+      else if (hire && asOf && hire > asOf) e('hireDate', 'after_as_of');
+      plan.push({ emp: emp, days: round2_(days), asOf: asOf, hire: hire });
+    });
+    if (errors.length) return { ok: false, error: 'invalid_rows', errors: errors };
+    var now = new Date().toISOString(), changed = [], hires = 0, logs = [];
+    plan.forEach(function (x) {
+      var e = x.emp, before = { days: e.leaveOpeningDays, asOf: e.leaveOpeningDate, hireDate: e.hireDate };
+      e.leaveOpeningDays = x.days; e.leaveOpeningDate = x.asOf;
+      if (x.hire && String(e.hireDate || '').slice(0, 10) !== x.hire) { e.hireDate = x.hire; hires++; }
+      e.updatedAt = now; changed.push(e);
+      logs.push({ ts: now, actorId: me.id, action: 'leave_opening', targetId: e.id, detail: JSON.stringify({ before: before, days: x.days, asOf: x.asOf, hireDate: x.hire || undefined, source: 'import' }).slice(0, 2000) });
+    });
+    updateMany_(SHEETS.EMP, changed);
+    try { appendMany_(SHEETS.AUDIT, logs); } catch (er) { /* audit must never break the request */ }
+    return { ok: true, saved: changed.length, hireDates: hires };
+  });
+}
+
 // ---------------- what attendance shows on leave days and public holidays ----------------
 
 /**

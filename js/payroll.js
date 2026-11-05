@@ -21,7 +21,7 @@ Object.assign(T.ar, {
   psSignHr:'الموارد البشرية', psSignPay:'الرواتب', psSignEmp:'توقيع الموظف بالاستلام',
   prTitle:'الرواتب', prMine:'رواتبي', prMineEmpty:'تظهر هنا قسيمة كل شهر بعد اعتماد مسير الرواتب.', prOpen:'عرض القسيمة', prPrint:'طباعة القسيمة',
   prRuns:'مسيرات الرواتب', prNew:'إعداد مسير شهر', prMonth:'الشهر', prCreate:'إعداد المسير', prEmpty:'لا توجد مسيرات بعد. ابدأ بإعداد مسير الشهر الماضي.',
-  pr_draft:'مسودة', pr_locked:'معتمد ومقفل', prHead:'الموظفون', prGross:'الإجمالي', prDed:'الاستقطاعات', prNet:'الصافي', prGosiEr:'تأمينات على الشركة', prWarn:'ملاحظات',
+  pr_draft:'مسودة', ptNo:'الرقم', ptDept:'الإدارة / مركز التكلفة', ptShare:'النسبة من الإجمالي', ptGosiEr:'تأمينات الشركة', ptCost:'تكلفة الشركة', ptDedRate:'من الإجمالي', ptSearch:'ابحث بالاسم أو الرقم', ptAllDept:'كل الإدارات', ptTotal:'الإجمالي', ptOpen:'عرض قسيمة الراتب', ptShown:'معروض', ptOf:'من', ptByDept:'حسب الإدارة', ptPeople:'موظف', ptNone:'لا نتائج', pr_locked:'معتمد ومقفل', prHead:'الموظفون', prGross:'الإجمالي', prDed:'الاستقطاعات', prNet:'الصافي', prGosiEr:'تأمينات على الشركة', prWarn:'ملاحظات',
   prPrepared:'أعده', prApprovedBy:'اعتمده', prRecalc:'إعادة الحساب', prApprove:'اعتماد وقفل المسير', prDelete:'حذف المسودة', prExport:'ملف البنك وحماية الأجور (Excel)',
   prEmail:'إرسال القسائم بالبريد', prEmailed:'أرسلت القسائم', prEmailNo:'البريد غير مفعل بعد. يحتاج موافقة مسؤول Microsoft 365 على صلاحية الإرسال (Mail.Send)، ثم نربط الحساب.',
   prApproveHint:'يعتمده شخص لديه صلاحية الرواتب غير الذي أعده. بعد الاعتماد تظهر القسائم للموظفين ولا يمكن تعديل المسير.',
@@ -50,7 +50,7 @@ Object.assign(T.en, {
   psSignHr:'Human Resources', psSignPay:'Payroll', psSignEmp:'Employee acknowledgement',
   prTitle:'Payroll', prMine:'My payslips', prMineEmpty:'Each month\'s payslip appears here once payroll is approved.', prOpen:'View payslip', prPrint:'Print payslip',
   prRuns:'Payroll runs', prNew:'Prepare a month', prMonth:'Month', prCreate:'Prepare payroll', prEmpty:'No payroll runs yet. Start with last month.',
-  pr_draft:'Draft', pr_locked:'Approved and locked', prHead:'Employees', prGross:'Gross', prDed:'Deductions', prNet:'Net', prGosiEr:'Employer GOSI', prWarn:'Notes',
+  pr_draft:'Draft', ptNo:'No.', ptDept:'Department / cost centre', ptShare:'Share of total', ptGosiEr:'Employer GOSI', ptCost:'Company cost', ptDedRate:'of gross', ptSearch:'Search name or number', ptAllDept:'All departments', ptTotal:'Total', ptOpen:'Open payslip', ptShown:'Showing', ptOf:'of', ptByDept:'By department', ptPeople:'people', ptNone:'No results', pr_locked:'Approved and locked', prHead:'Employees', prGross:'Gross', prDed:'Deductions', prNet:'Net', prGosiEr:'Employer GOSI', prWarn:'Notes',
   prPrepared:'Prepared by', prApprovedBy:'Approved by', prRecalc:'Recalculate', prApprove:'Approve and lock', prDelete:'Discard draft', prExport:'Bank and WPS file (Excel)',
   prEmail:'Email payslips', prEmailed:'Payslips emailed', prEmailNo:'Email is not switched on yet. The Microsoft 365 admin must grant Mail.Send, then we connect the account.',
   prApproveHint:'Approved by a payroll person other than the preparer. Once approved, employees see their payslips and the run cannot change.',
@@ -71,6 +71,16 @@ Object.assign(T.en, {
 });
 
 var css = '' +
+'.pt-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:4px 0 10px}.pt-bar input,.pt-bar select{height:38px;border-radius:10px;border:1px solid var(--line,#E4DFD3);padding:0 12px;background:var(--card,#fff);font:inherit;font-size:14px;min-width:200px}.pt-bar .pt-count{margin-inline-start:auto;font-size:13px;color:var(--ink-2)}' +
+'.pt-wrap{overflow:auto;border:1px solid var(--line,#E4DFD3);border-radius:14px;background:var(--card,#fff);max-height:70vh}' +
+'.pt{width:100%;border-collapse:separate;border-spacing:0;font-size:13.5px;min-width:1080px}.pt th{position:sticky;top:0;z-index:2;background:var(--panel,#F7F4EC);color:var(--ink-2);font-weight:600;font-size:12px;text-align:start;padding:10px 12px;border-bottom:1px solid var(--line,#E4DFD3);white-space:nowrap;cursor:pointer;user-select:none}' +
+'.pt th[data-k]:hover{color:var(--ink)}.pt th.on::after{content:" ↓";opacity:.7}.pt th.on.up::after{content:" ↑"}' +
+'.pt td{padding:10px 12px;border-bottom:1px solid var(--line-2,#EFEBE1);vertical-align:middle;white-space:nowrap}.pt .a{text-align:end;font-variant-numeric:tabular-nums;font-feature-settings:"tnum";direction:ltr;unicode-bidi:isolate}' +
+'.pt tbody tr{cursor:pointer;transition:background .12s}.pt tbody tr:hover,.pt tbody tr:focus-visible{background:rgba(var(--brand-rgb),.06);outline:none}.pt tbody tr:hover .pt-go{opacity:1}' +
+'.pt .no{font-variant-numeric:tabular-nums;color:var(--ink-2);direction:ltr;unicode-bidi:isolate}.pt .nm b{font-weight:600;display:block}.pt .nm small{color:var(--ink-2);font-size:11.5px}.pt .dp{color:var(--ink-2);max-width:220px;overflow:hidden;text-overflow:ellipsis}' +
+'.pt .net{font-weight:700}.pt .sub{display:block;font-size:11px;color:var(--ink-2);font-weight:400}.pt .shr{display:flex;align-items:center;gap:8px;justify-content:flex-end}.pt .shr i{display:block;height:6px;border-radius:3px;background:var(--brand);opacity:.55;min-width:2px}' +
+'.pt .pt-go{opacity:.35;transition:opacity .12s;color:var(--brand)}.pt tfoot td{position:sticky;bottom:0;background:var(--panel,#F7F4EC);font-weight:700;border-top:2px solid var(--line,#E4DFD3);border-bottom:0}' +
+'.pt-depts{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}.pt-depts button{border:1px solid var(--line,#E4DFD3);background:var(--card,#fff);border-radius:999px;padding:5px 12px;font:inherit;font-size:12.5px;cursor:pointer}.pt-depts button.on{background:var(--brand);color:#fff;border-color:transparent}.pt-depts button b{font-variant-numeric:tabular-nums;margin-inline-start:6px;opacity:.75;font-weight:500}' +
 '.pr-kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:14px}' +
 '.pr-kpis .net{grid-column:1 / -1;background:var(--pine);color:var(--cream);border-radius:var(--r-m);padding:16px 16px}' +
 '.pr-kpis .net span{color:var(--g-AFC0AD,#AFC0AD);font-size:13px}.pr-kpis .net b{display:block;font-size:32px;font-weight:600}' +
@@ -99,7 +109,10 @@ var css = '' +
 var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 
 function lab(l){ var m = L[S.lang] || L.ar; if (l.code !== 'allowance') return m[l.code] || l.code; var n = String(l.label || ''); return /^(بدل|allowance)/i.test(n) ? n : m.allowance + ' ' + n; }
-function money(n){ return Number(n || 0).toLocaleString(LOCALE(), { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function money(n){ var v = Number(n || 0), s = Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); return v < 0 ? '(' + s + ')' : s; }
+/** Accounting format for tables: zero as a dash, negatives in brackets, always Western digits so columns line up. */
+function acct(n){ var v = Math.round(Number(n || 0) * 100) / 100; return v === 0 ? '-' : money(v); }
+function pct(n){ return isFinite(n) ? (Math.round(n * 10) / 10).toFixed(1) + '%' : '-'; }
 function monthName(m){ return new Date(Date.UTC(+m.slice(0, 4), +m.slice(5, 7) - 1, 15)).toLocaleDateString(LOCALE(), { month: 'long', year: 'numeric' }); }
 function lineNote(l){
   var bits = [];
@@ -324,14 +337,12 @@ function runView(body, id){
         '<button type="button" class="btn btn-danger btn-sm" id="prDel">' + t('prDelete') + '</button>' : '<button type="button" class="btn btn-dark btn-sm" id="prMail">' + ph('envelope-simple') + t('prEmail') + '</button>') +
       '<button type="button" class="btn btn-dark btn-sm" id="prVar">' + ph('chart-line-up') + t('vaBtn') + '</button><button type="button" class="btn btn-line btn-sm" id="prXls">' + ph('microsoft-excel-logo') + t('prExport') + '</button></div>' +
       (draft ? '<p class="hr-hint">' + t('prApproveHint') + '</p>' : '') + '<div class="err" id="prMsg" style="color:var(--red);margin-bottom:8px"></div>' +
-      '<div class="tblwrap"><table class="tbl"><thead><tr><th>' + t('hrName') + '</th><th class="hr-amt">' + t('prGross') + '</th><th class="hr-amt">' + t('prDed') + '</th><th class="hr-amt">' + t('prNet') + '</th><th>' + t('prWarn') + '</th></tr></thead><tbody>' +
-      r.slips.map(function(s){ return '<tr class="click" data-s="' + s.id + '" tabindex="0"><td><b style="font-weight:500">' + esc(s.emp ? s.emp.name : '') + '</b> <small class="num" style="color:var(--ink-2)">' + esc(s.emp ? s.emp.empNo : '') + '</small></td>' +
-        '<td class="hr-amt">' + money(s.gross) + '</td><td class="hr-amt">' + money(s.deductions) + '</td><td class="hr-amt"><b>' + money(s.net) + '</b></td><td>' + warnChips(s.warnings) + '</td></tr>'; }).join('') + '</tbody></table></div>' +
+      '<div id="ptBox"></div>' +
       '<h3 class="hr-sub">' + t('prAdj') + '</h3><div id="prAdj"></div>';
     $('#prBack', el).onclick = function(){ S.prRun = null; section(body); };
     $('#prVar', el).onclick = function(){ varianceView(run); };
     if (window.Viz) Viz.wire(el);
-    $$('[data-s]', el).forEach(function(x){ var go = function(){ openSlip(r.slips.filter(function(s){ return s.id === x.dataset.s; })[0], null, { run: run }); }; x.onclick = go; x.onkeydown = function(e){ if (e.key === 'Enter') go(); }; });
+    slipTable($('#ptBox', el), r, run);
     var msg = $('#prMsg', el), act = function(action, done){ return function(){ this.disabled = true; var b = this; api(action, { id: run.id }).then(function(x){ b.disabled = false; if (!x.ok) { msg.textContent = errText(x.error); if (x.error === 'email_not_configured') msg.textContent = t('prEmailNo'); return; } done(x); }); }; };
     if ($('#prRe', el)) $('#prRe', el).onclick = act('payrollRecalc', function(){ toast(t('prRecalcDone')); runView(body, id); });
     if ($('#prOk', el)) $('#prOk', el).onclick = act('payrollApprove', function(){ toast(t('prApproved')); runView(body, id); });
@@ -340,6 +351,43 @@ function runView(body, id){
     $('#prXls', el).onclick = function(){ exportXls(run); };
     adjBox($('#prAdj', el), r, draft, function(){ api('payrollRecalc', { id: run.id }).then(function(){ runView(body, id); }); });
   });
+}
+
+/** The run's people as an accounting table: number, name, department, gross, deductions, net, share, employer GOSI, company cost. */
+function slipTable(box, r, run){
+  var st = { q: '', dept: '', k: 'name', up: true };
+  var dn = function(s){ return (s.emp && (s.emp.deptName || s.emp.department)) || '-'; };
+  var rows = r.slips.map(function(s){ return { s: s, no: s.emp ? String(s.emp.empNo) : '', name: s.emp ? s.emp.name : '', dept: dn(s), gross: +s.gross || 0, ded: +s.deductions || 0, net: +s.net || 0, er: +s.gosiEmployer || 0, cost: +s.companyCost || ((+s.gross || 0) + (+s.gosiEmployer || 0)) }; });
+  var totCost = rows.reduce(function(a, x){ return a + x.cost; }, 0) || 1;
+  var depts = {}; rows.forEach(function(x){ depts[x.dept] = (depts[x.dept] || 0) + 1; });
+  var dk = Object.keys(depts).sort(function(a, b){ return depts[b] - depts[a]; });
+  var cols = [['no', t('ptNo')], ['name', t('hrName')], ['dept', t('ptDept')], ['gross', t('prGross'), 1], ['ded', t('prDed'), 1], ['net', t('prNet'), 1], ['cost', t('ptShare'), 1], ['er', t('ptGosiEr'), 1], ['cost2', t('ptCost'), 1], ['w', t('prWarn')]];
+  box.innerHTML = '<div class="pt-bar"><input type="search" id="ptQ" placeholder="' + t('ptSearch') + '" aria-label="' + t('ptSearch') + '">' +
+    (dk.length > 1 ? '<select id="ptD" aria-label="' + t('ptDept') + '"><option value="">' + t('ptAllDept') + '</option>' + dk.map(function(d){ return '<option value="' + esc(d) + '">' + esc(d) + ' (' + depts[d] + ')</option>'; }).join('') + '</select>' : '') +
+    '<span class="pt-count" id="ptN"></span></div><div class="pt-wrap"><table class="pt"><thead><tr>' +
+    cols.map(function(c){ return '<th' + (c[0] === 'w' ? '' : ' data-k="' + (c[0] === 'cost2' ? 'cost' : c[0]) + '"') + (c[2] ? ' class="a"' : '') + '>' + esc(c[1]) + '</th>'; }).join('') + '<th aria-label="' + t('ptOpen') + '"></th></tr></thead><tbody id="ptB"></tbody><tfoot id="ptF"></tfoot></table></div>';
+  var body = $('#ptB', box), foot = $('#ptF', box);
+  function draw(){
+    var q = st.q.trim().toLowerCase(), list = rows.filter(function(x){ return (!st.dept || x.dept === st.dept) && (!q || x.name.toLowerCase().indexOf(q) >= 0 || x.no.toLowerCase().indexOf(q) >= 0); });
+    list.sort(function(a, b){ var A = a[st.k], B = b[st.k], c = typeof A === 'number' ? A - B : String(A).localeCompare(String(B), st.k === 'no' ? 'en' : 'ar', { numeric: true }); return st.up ? c : -c; });
+    var maxShare = Math.max.apply(null, rows.map(function(x){ return x.cost; }).concat([1]));
+    body.innerHTML = list.length ? list.map(function(x){ var s = x.s, dr = x.gross ? x.ded / x.gross * 100 : 0;
+      return '<tr data-s="' + esc(s.id) + '" tabindex="0" title="' + t('ptOpen') + '"><td class="no">' + esc(x.no) + '</td><td class="nm"><b>' + esc(x.name) + '</b>' + (s.emp && s.emp.title ? '<small>' + esc(s.emp.title) + '</small>' : '') + '</td><td class="dp">' + esc(x.dept) + '</td>' +
+        '<td class="a">' + acct(x.gross) + '</td><td class="a">' + acct(x.ded) + (x.ded ? '<span class="sub">' + pct(dr) + ' ' + t('ptDedRate') + '</span>' : '') + '</td><td class="a net">' + acct(x.net) + '</td>' +
+        '<td class="a"><span class="shr"><i style="width:' + Math.max(2, Math.round(x.cost / maxShare * 44)) + 'px"></i>' + pct(x.cost / totCost * 100) + '</span></td><td class="a">' + acct(x.er) + '</td><td class="a"><b>' + acct(x.cost) + '</b></td>' +
+        '<td>' + warnChips(s.warnings) + '</td><td class="pt-go">' + ph(S.lang === 'ar' ? 'caret-left' : 'caret-right') + '</td></tr>'; }).join('') : '<tr><td colspan="11" style="text-align:center;color:var(--ink-2);padding:24px">' + t('ptNone') + '</td></tr>';
+    var sum = function(k){ return list.reduce(function(a, x){ return a + x[k]; }, 0); }, c = sum('cost');
+    foot.innerHTML = '<tr><td></td><td>' + t('ptTotal') + ' <small style="font-weight:500;color:var(--ink-2)">(' + list.length + ' ' + t('ptPeople') + ')</small></td><td></td><td class="a">' + acct(sum('gross')) + '</td><td class="a">' + acct(sum('ded')) + '</td><td class="a net">' + acct(sum('net')) + '</td>' +
+      '<td class="a">' + pct(c / totCost * 100) + '</td><td class="a">' + acct(sum('er')) + '</td><td class="a">' + acct(c) + '</td><td colspan="2"></td></tr>';
+    $('#ptN', box).textContent = t('ptShown') + ' ' + list.length + ' ' + t('ptOf') + ' ' + rows.length;
+    $$('thead th[data-k]', box).forEach(function(th){ th.classList.toggle('on', th.dataset.k === st.k); th.classList.toggle('up', th.dataset.k === st.k && st.up); });
+    $$('tr[data-s]', body).forEach(function(tr){ var go = function(){ openSlip(r.slips.filter(function(s){ return s.id === tr.dataset.s; })[0], null, { run: run }); };
+      tr.onclick = go; tr.onkeydown = function(e){ if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } }; });
+  }
+  $('#ptQ', box).oninput = function(){ st.q = this.value; draw(); };
+  if ($('#ptD', box)) $('#ptD', box).onchange = function(){ st.dept = this.value; draw(); };
+  $$('thead th[data-k]', box).forEach(function(th){ th.onclick = function(){ var k = th.dataset.k; if (st.k === k) st.up = !st.up; else { st.k = k; st.up = !(th.classList.contains('a')); } draw(); }; });
+  draw();
 }
 
 function adjBox(el, r, draft, changed){

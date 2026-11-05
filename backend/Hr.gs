@@ -534,7 +534,7 @@ function api_hrCompDecide(req, me) {
   return withLock_(function () {
     var rows = readAll_(SHEETS.COMP).filter(function (c) { return ids.indexOf(c.id) >= 0; });
     if (rows.length !== ids.length || rows.some(function (c) { return c.status !== 'pending'; })) fail_('not_found');
-    if (rows.some(function (c) { return c.enteredBy === me.id; })) fail_('second_approver_required');
+    if (!(settings_().compSelfApprove === true && me.role === 'hr') && rows.some(function (c) { return c.enteredBy === me.id; })) fail_('second_approver_required');
     if (rows.some(function (c) { return c.empId === me.id; })) fail_('cannot_change_own_salary');
     var now = new Date().toISOString();
     rows.forEach(function (c) { c.status = decision; c.approvedBy = me.id; c.approvedAt = now; });

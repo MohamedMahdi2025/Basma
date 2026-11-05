@@ -357,7 +357,8 @@ function api_payrollGet(req, me) {
   var run = findBy_(SHEETS.RUN, 'id', req.id); if (run && !runAccess_(me, run)) fail_('forbidden'); // a closed pay group: its own payroll staff only
   if (!run) fail_('not_found');
   var emps = {}; readAll_(SHEETS.EMP).forEach(function (e) { emps[e.id] = e; });
-  var slips = readAll_(SHEETS.SLIP).filter(function (s) { return s.runId === run.id && s.status !== 'void'; }).map(function (s) { return publicSlip_(s, emps); })
+  var dnames = {}; readAll_(SHEETS.DEPT).forEach(function (d) { dnames[d.id] = d.nameAr || d.nameEn || d.code || ''; });
+  var slips = readAll_(SHEETS.SLIP).filter(function (s) { return s.runId === run.id && s.status !== 'void'; }).map(function (s) { var o = publicSlip_(s, emps); if (o.emp) o.emp.deptName = dnames[o.emp.departmentId] || o.emp.department || ''; return o; })
     .sort(function (a, b) { return String(a.emp && a.emp.name).localeCompare(String(b.emp && b.emp.name)); });
   var adjs = readAll_(SHEETS.ADJ).filter(function (a) { return a.month === run.month && a.status !== 'deleted'; }).map(function (a) {
     return { id: a.id, ref: a.ref, empId: a.empId, empName: emps[a.empId] ? emps[a.empId].name : '', kind: a.kind, code: a.code, amount: Number(a.amount), reason: a.reason, enteredBy: emps[a.enteredBy] ? emps[a.enteredBy].name : '' };

@@ -483,6 +483,7 @@ var DEFAULT_SETTINGS = {
   // Company profile (white-label: every letterhead, certificate, payslip and report header reads these)
   companyNameAr: 'شركة الناقل الأفضل للغاز', companyNameEn: 'Best Gas Carrier Co.', companyShortAr: 'الناقل الأفضل', companyShortEn: 'Best Gas',
   companyCr: '', companyVat: '', companyAddressAr: '', companyAddressEn: '',
+  compSelfApprove: false,    // HR may approve a salary change they entered (no second approver); off = four-eyes rule
   adminSeesPay: true,        // the system administrator also holds payroll; switch off to keep pay apart from administration
   wpsDueDay: 10,            // WPS / Mudad: salaries of month M uploaded by this day of month M+1 (check with the bank / Mudad)
   attachmentsEnabled: false, // document scans in Drive (Hr.gs api_docUpload): needs the drive.file and external_request scopes
@@ -1075,7 +1076,7 @@ var EMP_ACTIONS = { payrollVariance: 1, moveCode: 1, cwList: 1, cwSave: 1, cwEnd
   myInsurance: 1, insDependantRequest: 1, insList: 1, insCost: 1,
   myAnnouncements: 1, annRead: 1,
   hdCreate: 1, hdMine: 1, hdList: 1, hdGet: 1, hdReply: 1, hdAssign: 1, hdStatus: 1, hdRate: 1 };
-var HR_ACTIONS = { empNoNext: 1, flowPreview: 1, perkSave: 1, welcomeSave: 1, careerPathSave: 1, rolesOverview: 1, kbSave: 1, kbSeed: 1, careerPostList: 1, careerPostSave: 1, resignationDefer: 1, recruitReqClose: 1, recruitCandSave: 1, recruitCandStage: 1, recruitInterviewSave: 1, recruitOfferSave: 1, recruitOfferSend: 1, recruitOfferRespond: 1,
+var HR_ACTIONS = { leaveOpeningImport: 1, empNoNext: 1, flowPreview: 1, perkSave: 1, welcomeSave: 1, careerPathSave: 1, rolesOverview: 1, kbSave: 1, kbSeed: 1, careerPostList: 1, careerPostSave: 1, resignationDefer: 1, recruitReqClose: 1, recruitCandSave: 1, recruitCandStage: 1, recruitInterviewSave: 1, recruitOfferSave: 1, recruitOfferSend: 1, recruitOfferRespond: 1,
   recruitOfferLetter: 1, recruitHire: 1, courseSave: 1, trainSessionSave: 1, trainMark: 1, certRecord: 1, insPolicySave: 1, insPolicyList: 1, insMemberAdd: 1,
   insMemberDelete: 1, insMoveStep: 1, annSave: 1, annPublish: 1, annArchive: 1, annList: 1, flowList: 1, flowSave: 1, flowSettingsSave: 1, leaveCycleOpen: 1, discNotice: 1, govVisaIssue: 1, govVisaCancel: 1, govFinalExit: 1, ticketSave: 1, ticketUse: 1, assetSave: 1, assetAssign: 1, assetReturn: 1, clearanceStart: 1, discCodesSave: 1, discHearing: 1, discDecide: 1, discObjectionDecide: 1, injuryUpdate: 1, shiftSave: 1, rosterSave: 1, rosterDelete: 1, onboardStart: 1, surveySave: 1, surveyClose: 1, policySave: 1, planClose: 1, perfCycleSave: 1, perfCycleList: 1, perfCycleStage: 1, perfOverview: 1, perfCalibrate: 1, feedbackLaunch: 1, hrBootstrap: 1, holidaySave: 1, holidayDelete: 1, leaveBalances: 1, leaveOpeningSave: 1, hrDirectory: 1, hrDeptList: 1, hrDeptSave: 1, hrPositionList: 1, hrPositionSave: 1, hrEmpSave: 1,
   hrPrivateSave: 1, hrImportValidate: 1, hrImportCommit: 1, hrDocList: 1, hrDocSave: 1, hrExpiring: 1, empPasswordReset: 1, board: 1, empList: 1, zoneList: 1, report: 1, reviewList: 1, reviewDecide: 1, manualPunch: 1, auditList: 1, settingsGet: 1, empSave: 1, empActivation: 1 };
