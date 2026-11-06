@@ -1075,7 +1075,7 @@ function printCertificate(c){
         '<p>وقد أعطيت ' + (fem ? 'لها' : 'له') + ' هذه الشهادة دون مقابل عند انتهاء الخدمة تطبيقا للمادة الرابعة والستين من نظام العمل، دون أدنى مسؤولية على الشركة.</p>';
     var facts = [[t('ceName'), esc(name)], [t('ceNo'), '<bdi>' + esc(emp.empNo) + '</bdi>'], [t('cePos'), esc(pos || '-')], [t('ceHire'), dG(hire) + (hire ? '<small>' + dH(hire) + '</small>' : '')], [t('ceLast'), dG(last) + '<small>' + dH(last) + '</small>']];
     var html = '<!doctype html><html lang="' + (en ? 'en' : 'ar') + '" dir="' + (en ? 'ltr' : 'rtl') + '"><head><meta charset="utf-8"><title>' + esc(t('ceTitle') + ' ' + c.ref) + '</title>' +
-      '<link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600&display=swap" rel="stylesheet"><style>@page{size:A4;margin:22mm 20mm}' +
+      '<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet"><style>@page{size:A4;margin:22mm 20mm}' +
       'body{font-family:"IBM Plex Sans Arabic",Tahoma,sans-serif;color:var(--g-17221A,#17221A);font-size:16px;line-height:2;margin:0}bdi{unicode-bidi:isolate}' +
       'header{display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--brand);padding-bottom:12px;margin-bottom:26px}header img{height:64px}header div{text-align:end;font-size:12px;color:var(--g-4A5A4D,#4A5A4D);line-height:1.6}' +
       'h1{text-align:center;font-size:24px;margin:10px 0 24px;color:var(--pine)}.meta{display:flex;justify-content:space-between;gap:12px;font-size:13px;color:var(--g-4A5A4D,#4A5A4D);margin-bottom:18px}' +
