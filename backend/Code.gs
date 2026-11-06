@@ -85,7 +85,7 @@ var HEADERS = {
     // pay groups (2026-10-21): '' = the general group
     'payGroupId'],
   credentials: ['credId', 'empId', 'x', 'y', 'signCount', 'label', 'status', 'createdAt', 'lastUsedAt', 'aaguid', 'kind',
-    'platform', 'pinHash', 'pinSalt', 'pinTries', 'pinLockUntil'],
+    'platform', 'pinHash', 'pinSalt', 'pinTries', 'pinLockUntil', 'devId'],
   zones: ['id', 'name', 'nameEn', 'lat', 'lng', 'radius', 'status', 'createdAt', 'updatedAt'],
   punches: ['id', 'empId', 'type', 'ts', 'date', 'lat', 'lng', 'acc', 'zoneId', 'distance', 'status', 'risk', 'flags',
     'source', 'note', 'reviewBy', 'reviewAt', 'credId', 'ua', 'createdAt'],
@@ -485,6 +485,8 @@ var DEFAULT_SETTINGS = {
   // Company profile (white-label: every letterhead, certificate, payslip and report header reads these)
   companyNameAr: 'شركة الناقل الأفضل للغاز', companyNameEn: 'Best Gas Carrier Co.', companyShortAr: 'الناقل الأفضل', companyShortEn: 'Best Gas',
   companyCr: '', companyVat: '', companyAddressAr: '', companyAddressEn: '',
+  maxDevices: 3,             // devices one employee may have at once (phone, tablet, laptop); the oldest is retired past it
+  sharedDevices: false,      // true: one device may hold several employees (a shared office tablet); off = one device, one employee
   compSelfApprove: false,    // HR may approve a salary change they entered (no second approver); off = four-eyes rule
   adminSeesPay: true,        // the system administrator also holds payroll; switch off to keep pay apart from administration
   wpsDueDay: 10,            // WPS / Mudad: salaries of month M uploaded by this day of month M+1 (check with the bank / Mudad)
@@ -1137,11 +1139,13 @@ function learnTabs_(action) {
     if (all.length !== have.length) cache_().put(k, JSON.stringify(all), 21600);
   } catch (e) {}
 }
+var REQ_DEV_ = ''; // the device sending this request (see bindDevice_)
 var ADMIN_ACTIONS = { waTest: 1, hrRolesSave: 1, empResetDevice: 1, zoneSave: 1, zoneDelete: 1, settingsSave: 1 };
 
 function handle_(req) {
   READ_MEMO_ = {}; READ_LEN_ = {}; SETTINGS_MEMO_ = null; READ_SHEET_ = [];
   REQ_HOST_ = req && typeof req.host === 'string' ? req.host.toLowerCase().slice(0, 80) : '';
+  REQ_DEV_ = req && typeof req.devId === 'string' && /^[aw]:[A-Za-z0-9_-]{16,64}$/.test(req.devId) ? req.devId : '';
   USE_TAB_CACHE_ = false;
   TAB_PREFETCH_ = null;
   var action = req && req.action;

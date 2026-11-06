@@ -141,6 +141,30 @@ function api_enrollBegin(req) {
   });
 }
 
+/**
+ * One device, one employee (2026-11-06). Run inside the lock, before the new key is stored. Returns how many keys were retired.
+ * - the device is already someone else's: refused (device_taken) until HR unlinks that person's device
+ * - this person's own earlier key on the same device: replaced
+ * - more than maxDevices (setting, default 3): the least recently used ones are retired
+ * - a request without a device id (an old copy of the app): the earlier rule, one device per kind
+ */
+function bindDevice_(emp, platform) {
+  var all = readAll_(SHEETS.CRED), retired = [], st = settings_(), max = Math.max(1, Math.min(5, Math.round(Number(st.maxDevices) || 3)));
+  var mine = all.filter(function (c) { return c.empId === emp.id && c.status === 'active'; });
+  if (REQ_DEV_) {
+    var other = all.filter(function (c) { return c.devId === REQ_DEV_ && c.status === 'active' && c.empId !== emp.id; })[0];
+    if (other && !st.sharedDevices) { audit_(emp.id, 'device_taken', other.empId, { platform: platform }); fail_('device_taken'); }
+    mine.forEach(function (c) { if (c.devId === REQ_DEV_) retired.push(c); });
+    var left = mine.filter(function (c) { return retired.indexOf(c) < 0; })
+      .sort(function (a, b) { return String(a.lastUsedAt || a.createdAt) < String(b.lastUsedAt || b.createdAt) ? -1 : 1; });
+    while (left.length >= max) retired.push(left.shift());
+  } else {
+    mine.forEach(function (c) { if ((c.platform || 'mobile') === platform) retired.push(c); });
+  }
+  retired.forEach(function (c) { c.status = 'retired'; update_(SHEETS.CRED, c); });
+  return retired.length;
+}
+
 function api_enrollFinish(req) {
   var isDk = !!req.deviceKey;
   var platform = req.platform === 'desktop' ? 'desktop' : 'mobile';
@@ -159,16 +183,12 @@ function api_enrollFinish(req) {
     var emp = findBy_(SHEETS.EMP, 'id', ch.empId);
     if (!emp || emp.status !== 'active' || !emp.actHash) fail_('bad_activation');
     if (findBy_(SHEETS.CRED, 'credId', reg.credId)) fail_('bad_credential');
-    // One phone and one laptop per employee: a new enrollment retires only the earlier device of the same kind.
-    var retired = 0;
-    readAll_(SHEETS.CRED).forEach(function (c) {
-      if (c.empId === emp.id && c.status === 'active' && (c.platform || 'mobile') === platform) { c.status = 'retired'; update_(SHEETS.CRED, c); retired++; }
-    });
+    var retired = bindDevice_(emp, platform);
     var salt = pin ? bytesToB64u_(randomBytes_(16)) : '';
     var now = new Date().toISOString();
     append_(SHEETS.CRED, { credId: reg.credId, empId: emp.id, x: reg.x, y: reg.y, signCount: reg.signCount,
       label: String(req.label || '').slice(0, 80), status: 'active', createdAt: now, lastUsedAt: now, aaguid: reg.aaguid,
-      kind: isDk ? 'devicekey' : 'passkey', platform: platform, pinHash: pin ? pinHash_(pin, salt) : '', pinSalt: salt, pinTries: 0 });
+      kind: isDk ? 'devicekey' : 'passkey', platform: platform, pinHash: pin ? pinHash_(pin, salt) : '', pinSalt: salt, pinTries: 0, devId: REQ_DEV_ });
     var issuedBy = emp.actIssuedBy || '';
     emp.actHash = ''; emp.actExp = ''; emp.actTries = 0; emp.actIssuedBy = '';
     // Replacing a device ends the old device's sessions; adding a second kind (a laptop next to the phone) does not.
@@ -351,6 +371,8 @@ function finishFor_(req, purpose) {
   var cred = findBy_(SHEETS.CRED, 'credId', a.id);
   if (cred && cred.status === 'locked') fail_('device_locked');
   if (!cred || cred.status !== 'active') fail_('device_not_recognised');
+  // a PIN device key lives in this browser or app only; a passkey is already held by the phone's secure hardware
+  if (cred.kind === 'devicekey' && cred.devId && REQ_DEV_ && cred.devId !== REQ_DEV_) fail_('device_mismatch');
   var st = settings_();
   if (cred.platform === 'desktop' && !st.allowDesktop) fail_('desktop_disabled');
   if (cred.kind === 'devicekey' && cred.platform !== 'desktop' && !st.allowDeviceKey) fail_('device_key_disabled');
@@ -914,12 +936,9 @@ function api_pinEnrollFinish(req, me) {
     var ch = takeChallenge_(reg.challenge);
     if (!ch || ch.purpose !== 'reg_self' || ch.empId !== emp.id) fail_('challenge_expired');
     if (findBy_(SHEETS.CRED, 'credId', reg.credId)) fail_('bad_credential');
-    var retired = 0, now = new Date().toISOString(), salt = bytesToB64u_(randomBytes_(16));
-    readAll_(SHEETS.CRED).forEach(function (c) {
-      if (c.empId === emp.id && c.status === 'active' && (c.platform || 'mobile') === platform) { c.status = 'retired'; update_(SHEETS.CRED, c); retired++; }
-    });
+    var now = new Date().toISOString(), salt = bytesToB64u_(randomBytes_(16)), retired = bindDevice_(emp, platform);
     append_(SHEETS.CRED, { credId: reg.credId, empId: emp.id, x: reg.x, y: reg.y, signCount: reg.signCount, label: String(req.label || '').slice(0, 80), status: 'active',
-      createdAt: now, lastUsedAt: now, aaguid: reg.aaguid, kind: 'devicekey', platform: platform, pinHash: pinHash_(pin, salt), pinSalt: salt, pinTries: 0 });
+      createdAt: now, lastUsedAt: now, aaguid: reg.aaguid, kind: 'devicekey', platform: platform, pinHash: pinHash_(pin, salt), pinSalt: salt, pinTries: 0, devId: REQ_DEV_ });
     if (retired) emp.tokenVer = Number(emp.tokenVer || 0) + 1;
     emp.updatedAt = now; update_(SHEETS.EMP, emp);
     audit_(emp.id, 'pin_device_set', emp.id, { credId: reg.credId.slice(0, 12), platform: platform, replaced: retired, from: me._auth || 'dev' });

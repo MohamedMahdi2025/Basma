@@ -351,7 +351,7 @@ function companyOf_(s) {
  * The HR and payroll settings an administrator may set from the settings screen. Each value is checked and
  * written into next; returns '' when all are valid, else the key of the first bad one (nothing is saved then).
  */
-var SETTING_BOOLS_ = ['rostersEnabled', 'deductAbsence', 'deductLateMinutes', 'payOvertimeFromAttendance', 'adminSeesPay', 'compSelfApprove', 'timesheetRequired', 'notifyDigest', 'attachmentsEnabled', 'aiAssistant', 'whatsappDigest'];
+var SETTING_BOOLS_ = ['rostersEnabled', 'deductAbsence', 'deductLateMinutes', 'payOvertimeFromAttendance', 'adminSeesPay', 'compSelfApprove', 'sharedDevices', 'timesheetRequired', 'notifyDigest', 'attachmentsEnabled', 'aiAssistant', 'whatsappDigest'];
 function settingBool_(v) { return v === true || v === 'true' ? true : v === false || v === 'false' ? false : null; }
 /** 'MM-DD' with a real month and day (02-29 allowed), else ''. */
 function settingMmdd_(v) { var m = /^(\d{2})-(\d{2})$/.exec(String(v == null ? '' : v)); return m && ymd_(2024, +m[1], +m[2]) ? m[0] : ''; }
