@@ -202,7 +202,12 @@ function newRequest(file, done, preType){
 
 // ---------------- printable letters ----------------
 /** win: a window opened inside the click (iPhone Safari blocks window.open after an await); written into once the file arrives. */
+/** HR's own wording for a letter (Wave 6 letter templates), loaded once; printLetter falls back to the built-in text. */
+var LTPL = null;
+function loadLetterTpl(){ if (LTPL) return; LTPL = []; api('letterTplList', {}, true).then(function(r){ if (r && r.ok) LTPL = r.templates || []; }); }
+function tplFill(s, v){ return String(s).replace(/\{([a-zA-Z]+)\}/g, function(m, k){ return v[k] != null ? v[k] : m; }); }
 function printLetter(o, file, win){
+  loadLetterTpl();
   if (!o || !file) { if (win) try { win.close(); } catch (e) {} return; }
   var e = file.emp, j = file.job, p = file.priv || {}, c = file.comp, en = o.letter && o.letter.lang === 'en';
   var fem = j.gender === 'female', name = en ? (p.nameEnOfficial || e.nameEn || e.name) : e.name;
@@ -228,7 +233,13 @@ function printLetter(o, file, win){
           Object.keys(c.other || {}).map(function(k){ return ' و' + esc(k) + ' ' + m(c.other[k]); }).join('') : '') + '.') + '</p>' +
       '<p>وقد أعطيت هذه الشهادة بناء على ' + s.r + ' لتقديمها إلى ' + esc(to) + '، دون أدنى مسؤولية على الشركة.</p>';
   }
-  var title = en ? { salary_certificate: 'Salary Certificate', employment_certificate: 'Employment Certificate', experience: 'Experience Certificate' }[o.subtype]
+  var tpl = (LTPL || []).filter(function(x){ return x.kind === o.subtype && x.lang === (en ? 'en' : 'ar'); })[0];
+  if (tpl) {
+    var vars = { name: '<b>' + esc(name) + '</b>', title: esc(en ? (fem ? 'Ms.' : 'Mr.') : (fem ? 'السيدة' : 'السيد')), nationality: esc(nat), idNumber: esc(idno), position: esc(pos), hireDate: d(j.hireDate), lastDay: d(file.emp.lastWorkingDay),
+      total: c ? m(c.total) : '', basic: c ? m(c.basic) : '', housing: c ? m(c.housing) : '', transport: c ? m(c.transport) : '', company: esc(coName(en ? 'en' : 'ar')), addressee: esc(to), ref: esc(o.ref), date: d(o.decidedAt || o.createdAt) };
+    body = String(tpl.body).split(/\n{2,}/).map(function(p){ return '<p>' + tplFill(esc(p).replace(/\n/g, '<br>'), vars) + '</p>'; }).join('');
+  }
+  var title = (tpl && tpl.title) ? esc(tpl.title) : en ? { salary_certificate: 'Salary Certificate', employment_certificate: 'Employment Certificate', experience: 'Experience Certificate' }[o.subtype]
     : { salary_certificate: 'شهادة تعريف بالراتب', employment_certificate: 'شهادة تعريف', experience: 'شهادة خبرة' }[o.subtype];
   var html = '<!doctype html><html lang="' + (en ? 'en' : 'ar') + '" dir="' + (en ? 'ltr' : 'rtl') + '"><head><meta charset="utf-8"><title>' + esc(o.ref) + '</title>' +
     '<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;600&display=swap" rel="stylesheet">' +
