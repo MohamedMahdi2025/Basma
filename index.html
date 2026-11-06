@@ -1761,6 +1761,60 @@ body.v2-on :is(.db-tile b,.kpi b,.stat b,.hm-facts dd,.hm-big b,.hm-k .v,[data-c
 html[data-theme="dark"] .m-sheet .m-grid button[aria-current="page"]{background:var(--g-1F3326,#1F3326)}
 /* (2026-10-24) no prefers-color-scheme rule here: the app is light unless the user picks dark or system, and applyTheme then sets data-theme="dark" */
 </style>
+<style id="dsv4">
+/* Inside the system, fourth pass (2026-11-06), after the user's dashboard reference and Roam's office (REA study): light pages,
+   a glowing icon chip instead of the heavy banner, pill tabs, a gradient pill for the current menu item, rounder cards with a
+   lift, soft table headers, gradient primary buttons with a shine, a faint brand glow behind the content. Colours from tokens. */
+html body.v2-on #main{background:radial-gradient(1100px 460px at 88% -8%,color-mix(in srgb,var(--brand) 8%,transparent),transparent 70%),radial-gradient(800px 380px at -10% 110%,color-mix(in srgb,var(--accent2,var(--signal)) 6%,transparent),transparent 70%)}
+/* page header */
+html body.v2-on .v3-hero{background:none!important;color:var(--ink);padding:6px 2px 2px;margin-bottom:18px;box-shadow:none;border:0;overflow:visible;border-radius:0}
+html body.v2-on .v3-hero::before,html body.v2-on .v3-hero::after{display:none}
+html body.v2-on .v3-hero h1{color:var(--ink);font-size:clamp(22px,2.4vw,30px);letter-spacing:-.01em}
+html body.v2-on .v3-hero p{color:var(--ink-3)}
+html body.v2-on .v3-hero-ic{width:54px;height:54px;border-radius:16px;border:0;background:linear-gradient(140deg,var(--brand),color-mix(in srgb,var(--brand) 55%,var(--accent2,var(--signal))));box-shadow:0 12px 26px -10px color-mix(in srgb,var(--brand) 70%,transparent),inset 0 1px 0 rgba(255,255,255,.3)}
+html body.v2-on .v3-hero-ic i{color:#fff;font-size:28px}
+html body.v2-on .v3-hero-stats > *{background:var(--card)!important;color:var(--ink)!important;border:1px solid var(--line)!important;box-shadow:var(--e1)}
+@media (prefers-reduced-motion:no-preference){html body.v2-on .v3-hero-ic{animation:v4Float 6s ease-in-out infinite}}
+@keyframes v4Float{50%{transform:translateY(-3px) rotate(-2deg)}}
+/* tabs as pills */
+html body.v2-on .v2-views{border:1px solid var(--line);border-radius:14px;background:var(--card);padding:4px;gap:4px;box-shadow:var(--e1);width:max-content;max-width:100%}
+html body.v2-on .v2-views button{height:38px;border:0;border-radius:10px;margin:0;padding:0 14px;transition:background .2s,color .2s,box-shadow .2s}
+html body.v2-on .v2-views button:hover{background:color-mix(in srgb,var(--brand) 7%,transparent)}
+html body.v2-on .v2-views button[aria-selected="true"]{background:linear-gradient(140deg,var(--brand),color-mix(in srgb,var(--brand) 70%,var(--accent2,var(--signal))));color:#fff;box-shadow:0 8px 18px -10px color-mix(in srgb,var(--brand) 80%,transparent)}
+html body.v2-on .v2-views button[aria-selected="true"] i{opacity:1;color:#fff}
+/* side menu: the current page is a gradient pill */
+html body.v2-on .v2-nav a,html body.v2-on .v2-nav button{border-radius:12px;transition:background .18s,color .18s,transform .18s}
+html body.v2-on .v2-nav a:hover{transform:translateX(calc(var(--dirx,1) * -2px))}
+[dir="ltr"] html body.v2-on .v2-nav a:hover{--dirx:-1}
+html body.v2-on .v2-nav a[aria-current="page"]{background:linear-gradient(140deg,var(--brand),color-mix(in srgb,var(--brand) 70%,var(--accent2,var(--signal))));color:#fff;box-shadow:0 10px 22px -12px color-mix(in srgb,var(--brand) 85%,transparent)}
+html body.v2-on .v2-nav a[aria-current="page"] i{color:#fff}
+html body.v2-on .v2-nav a[aria-current="page"] .cnt{background:rgba(255,255,255,.22);color:#fff}
+/* cards and lists */
+html body.v2-on :is(.db-card,.mf-card,.v2-card,.set-card,.list,.tblwrap,.db-panel,.rp-grp,.cp-box){border-radius:18px!important;border:1px solid var(--line)!important;box-shadow:var(--e1)!important;background:var(--card)}
+html body.v2-on :is(.db-card,.mf-card,.v2-card,.set-card){transition:box-shadow .25s,transform .25s}
+html body.v2-on :is(.db-card,.mf-card,.v2-card):hover{box-shadow:var(--e2)!important}
+html body.v2-on .list .row{transition:background .15s}
+html body.v2-on .list .row.click:hover,html body.v2-on .list .row[data-go]:hover{background:color-mix(in srgb,var(--brand) 5%,transparent)}
+/* tables */
+html body.v2-on .tblwrap{overflow:auto}
+html body.v2-on .tbl th{background:color-mix(in srgb,var(--brand) 5%,var(--card))!important;color:var(--ink-2)!important;font-size:12.5px;font-weight:600;border-bottom:1px solid var(--line)}
+html body.v2-on .tbl td{border-bottom:1px solid color-mix(in srgb,var(--line) 70%,transparent)}
+html body.v2-on .tbl tbody tr{transition:background .15s}
+html body.v2-on .tbl tbody tr:hover{background:color-mix(in srgb,var(--brand) 4%,transparent)}
+html body.v2-on .tbl tbody tr:last-child td{border-bottom:0}
+/* buttons */
+html body.v2-on :is(.btn-dark,.btn-brand){position:relative;overflow:hidden;border:0;border-radius:12px;background:linear-gradient(140deg,var(--brand),color-mix(in srgb,var(--brand) 72%,var(--accent2,var(--signal))));color:#fff;box-shadow:0 10px 22px -12px color-mix(in srgb,var(--brand) 85%,transparent);transition:transform .2s,box-shadow .2s}
+html body.v2-on :is(.btn-dark,.btn-brand):hover{transform:translateY(-1px);box-shadow:0 14px 28px -12px color-mix(in srgb,var(--brand) 90%,transparent)}
+html body.v2-on :is(.btn-dark,.btn-brand)::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.28) 50%,transparent 70%);transform:translateX(-120%);transition:transform .7s}
+html body.v2-on :is(.btn-dark,.btn-brand):hover::after{transform:translateX(120%)}
+html body.v2-on .btn-line{border-radius:12px}
+/* inputs */
+html body.v2-on :is(.field input,.field select,.field textarea,.form input,.form select,.form textarea){border-radius:12px}
+html body.v2-on :is(.field input,.field select,.field textarea):focus{box-shadow:0 0 0 4px color-mix(in srgb,var(--brand) 16%,transparent);border-color:var(--brand)}
+/* chips */
+html body.v2-on .chip{border-radius:999px}
+@media (prefers-reduced-motion:reduce){html body.v2-on :is(.btn-dark,.btn-brand)::after{display:none}html body.v2-on .v2-nav a:hover{transform:none}}
+</style>
 </head>
 <body>
 <div id="root"></div>
@@ -4396,7 +4450,7 @@ function areaLead(a){ var k = 'al' + a.id.charAt(0).toUpperCase() + a.id.slice(1
 /** Where the page body goes: the area body in the shell, #main before the shell exists. */
 function view(){ return $('#v2Body') || $('#main'); }
 /** The v2 block must come after every module's own <style>, so equal selectors resolve to v2. */
-function themeLast(){ ['dsv2', 'dsv3', 'dsed', 'dsfp', 'dspg', 'dsdark', 'dsmo', 'dsgate', 'dsfb', 'dsfbx', 'brandTheme'].forEach(function(id){ var s = document.getElementById(id); if (s) document.head.appendChild(s); }); }
+function themeLast(){ ['dsv2', 'dsv3', 'dsed', 'dsfp', 'dspg', 'dsdark', 'dsmo', 'dsgate', 'dsfb', 'dsfbx', 'dsv4', 'brandTheme'].forEach(function(id){ var s = document.getElementById(id); if (s) document.head.appendChild(s); }); }
 function loadAll(files){ return files.reduce(function(p, f){ return p.then(function(){ return loadScript(f); }); }, Promise.resolve()); }
 
 /** Where a task from the bell opens. HR sections map to their area; personal items to growth or the profile. */

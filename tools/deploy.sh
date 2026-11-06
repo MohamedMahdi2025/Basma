@@ -31,19 +31,19 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>" || echo "site: nothing 
 git push -q home main   # BASMA's home: https://mohamedmahdi2025.github.io/ (repo MohamedMahdi2025/mohamedmahdi2025.github.io)
 git push -q origin main # the old link (BesGasKSA/BG-attendance), kept while people move with the one-tap move
 echo "site: pushed (live in about a minute)"
-# GitHub Pages sometimes skips a push (no build run, or a deploy stuck "in progress"): check the live build and push
-# an empty commit once more if it has not arrived after about 3 minutes.
-WANT=$(grep -o '[0-9]\{8\}\.[0-9]*' version.json)
+# GitHub Pages sometimes skips a push or leaves a deploy "in progress". Wait up to 6 minutes for the live build; only then
+# publish once more (an empty commit). Never push again while GitHub may still be deploying: a second deploy on top of a
+# running one is what gets stuck.
+WANT=$(grep -oE '[0-9]{8}.[0-9]+' version.json)
 for attempt in 1 2; do
-  for i in $(seq 1 36); do
-    GOT=$(curl -s "https://mohamedmahdi2025.github.io/version.json?nc=$(date +%s%N)" | grep -o '[0-9]\{8\}\.[0-9]*')
+  for i in $(seq 1 72); do
+    GOT=$(curl -s --max-time 15 "https://mohamedmahdi2025.github.io/version.json?nc=$(date +%s%N)" | grep -oE '[0-9]{8}.[0-9]+' || true)
     [ "$GOT" = "$WANT" ] && break 2
     sleep 5
   done
-  echo "site: not live yet after 3 minutes, publishing again"
-  git commit --allow-empty -q -m "Republish $WANT" && git push -q home main
+  if [ "$attempt" = 1 ]; then echo "site: not live after 6 minutes, publishing once more"; git commit --allow-empty -q -m "Republish $WANT" && git push -q home main || echo "site: republish push failed"; fi
 done
-[ "$GOT" = "$WANT" ] && echo "site: live $WANT" || echo "site: WARNING live is still $GOT (wanted $WANT) - check GitHub Pages"
+if [ "${GOT:-}" = "$WANT" ]; then echo "site: live $WANT"; else echo "site: WARNING live is still $GOT (wanted $WANT) - check GitHub Pages"; fi
 
 cd "$SRC"
 git add -A
