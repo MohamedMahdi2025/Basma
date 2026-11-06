@@ -33,7 +33,7 @@ function makeSheet(name) {
     getRange(r, c, nr, nc) {
       return {
         setValues(vals) { for (let i = 0; i < nr; i++) { rows[r - 1 + i] = rows[r - 1 + i] || []; for (let j = 0; j < nc; j++) rows[r - 1 + i][c - 1 + j] = sheetValue(vals[i][j]); } },
-        getValues() { const o = []; for (let i = 0; i < nr; i++) { const row = []; for (let j = 0; j < nc; j++) { const v = (rows[r - 1 + i] || [])[c - 1 + j]; row.push(v === undefined ? '' : v); } o.push(row); } return o; },
+        getValues() { if (global.__OPS) global.__OPS.push('read:' + name); const o = []; for (let i = 0; i < nr; i++) { const row = []; for (let j = 0; j < nc; j++) { const v = (rows[r - 1 + i] || [])[c - 1 + j]; row.push(v === undefined ? '' : v); } o.push(row); } return o; },
         clearContent() { for (let i = 0; i < nr; i++) for (let j = 0; j < nc; j++) if (rows[r - 1 + i]) rows[r - 1 + i][c - 1 + j] = ''; }
       };
     },
@@ -50,6 +50,7 @@ function load(opts = {}) {
   const res = (code, obj) => ({ getResponseCode: () => code, getContentText: () => JSON.stringify(obj || {}) });
   const sheetsApi = (url, o) => {
     const u = new URL(url); if (u.host !== 'sheets.googleapis.com') return res(404, { error: 'no network in tests: ' + u.host });
+    if (global.__HTTP) global.__HTTP.push(String(o.method || 'get') + ' ' + u.pathname.replace(/^.*\/spreadsheets\/[^/:]+/, ''));
     const p = u.pathname.replace('/v4/spreadsheets', ''), method = String(o.method || 'get').toLowerCase(), body = o.payload ? JSON.parse(o.payload) : {};
     if (p === '' && method === 'post') { // create with tabs
       const id = 'book' + (Object.keys(books).length + 1); books[id] = { name: body.properties.title, tabs: {}, props: {} };
@@ -66,6 +67,10 @@ function load(opts = {}) {
         if (q.appendDimension) { const pr = Object.values(b.props).find(x => x.sheetId === q.appendDimension.sheetId); pr.gridProperties[q.appendDimension.dimension === 'ROWS' ? 'rowCount' : 'columnCount'] += q.appendDimension.length; return {}; }
         return {};
       }) });
+    }
+    if (rest === '/values:batchGet') { // every range in one answer, in the order asked
+      const tabRows = n => { const sh = b.tabs[n]; if (!sh) return []; const rows = sh._rows.map(r => { const x = (r || []).map(v => v instanceof Date ? v.toISOString() : v); while (x.length && (x[x.length - 1] === '' || x[x.length - 1] == null)) x.pop(); return x; }); while (rows.length && !rows[rows.length - 1].length) rows.pop(); return rows; };
+      return res(200, { valueRanges: u.searchParams.getAll('ranges').map(rg => { const rows = tabRows(A1(rg).tab); return rows.length ? { range: rg, values: rows } : { range: rg }; }) });
     }
     const vm2 = /^\/values\/(.+?)(:clear)?$/.exec(rest); if (!vm2) return res(400, { error: 'unsupported ' + rest });
     const a = A1(vm2[1]), sh = b.tabs[a.tab], grid = b.props[a.tab] && b.props[a.tab].gridProperties; if (!sh) return res(400, { error: 'no tab ' + a.tab });

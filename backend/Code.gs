@@ -283,7 +283,8 @@ var CACHED_TABS_ = { agencyInvoices: 1, contractorHours: 1, agencies: 1, contrac
 var USE_TAB_CACHE_ = false; // true: every cached tab; an object: only those tabs (sign-in writes credentials)
 // Version tags make app writes and hand edits visible at once; the expiry only bounds what Sheets
 // never reports to onEdit (deleting or sorting rows by hand).
-var TAB_CACHE_SECONDS_ = 300;
+var TAB_CACHE_SECONDS_ = 7200; // every app write and hand edit makes a new version at once; only hand row deletes / sorts wait for this
+var READ_SHEET_ = []; // tabs this request read from the sheet itself (not memo, not cache): what to fetch together next time
 var TAB_PART_ = 90000;
 var TAB_PREFETCH_ = null;
 function tabKeys_(name) { return { snap: 'tab:v2:' + name, ver: 'tabver:v1:' + name }; }
@@ -355,6 +356,7 @@ function readAll_(name) {
     if (c && c.rows) return (READ_MEMO_[name] = c.rows);
     if (c) tag = c.ver;
   }
+  READ_SHEET_.push(name);
   var sh = sheet_(name);
   var cols = HEADERS[name];
   // One call for header and rows together (was three: last column, last row, values).
@@ -823,32 +825,55 @@ function sheetsFetch_(method, url, body) {
 function colA1_(n) { var s = ''; while (n > 0) { var m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = Math.floor((n - 1) / 26); } return s; }
 function a1_(title, r, c, nr, nc) { return "'" + String(title).replace(/'/g, "''") + "'!" + colA1_(c) + r + ':' + colA1_(c + nc - 1) + (r + nr - 1); }
 function restBook_(id) {
-  var meta = null, tabs = {};
+  var meta = null, tabs = {}, CK = 'bookmeta:v1:' + id;
+  // The layout (tab ids, grid sizes) is kept in the cache: grids only grow, and every grow or new tab here saves it again,
+  // so a cached size is never larger than the real one (a stale smaller one only adds rows a little early).
+  var saveMeta = function () { try { cache_().put(CK, JSON.stringify(meta), 21600); } catch (e) {} };
+  // Google refused a call: the cached layout may be out of date (a tab grown, removed or renamed by hand). Reload it;
+  // a tab that is really gone is created again, as on first use.
+  var hooks = { save: saveMeta, stale: function (title) { try { cache_().remove(CK); } catch (e) {} meta = null; var m = load(); if (m[title]) return m[title]; book.insertSheet(title); return load()[title] || null; } };
   var load = function () {
     if (meta) return meta;
+    try { var c = cache_().get(CK); if (c) { meta = JSON.parse(c); return meta; } } catch (e) { meta = null; }
     meta = {};
     (sheetsFetch_('get', SHEETS_API_ + id + '?fields=' + encodeURIComponent('sheets.properties(sheetId,title,gridProperties)')).sheets || []).forEach(function (s) { meta[s.properties.title] = s.properties; });
+    saveMeta();
     return meta;
   };
   var book = {
     getId: function () { return id; },
-    getSheetByName: function (n) { return load()[n] ? tabs[n] || (tabs[n] = restSheet_(id, load()[n])) : null; },
+    getSheetByName: function (n) { return load()[n] ? tabs[n] || (tabs[n] = restSheet_(id, load()[n], null, hooks)) : null; },
+    /** Many tabs in one values:batchGet (one round trip instead of one per tab). Returns how many were fetched. */
+    preload: function (names) {
+      var m = load(), want = names.filter(function (n, i) { return m[n] && !tabs[n] && names.indexOf(n) === i; }).slice(0, 80);
+      if (!want.length) return 0;
+      var q = want.map(function (n) { return 'ranges=' + encodeURIComponent("'" + String(n).replace(/'/g, "''") + "'"); }).join('&');
+      var r = sheetsFetch_('get', SHEETS_API_ + id + '/values:batchGet?' + q + '&valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=FORMATTED_STRING');
+      (r.valueRanges || []).forEach(function (vr, i) { if (want[i]) tabs[want[i]] = restSheet_(id, m[want[i]], vr.values || [], hooks); });
+      return want.length;
+    },
     insertSheet: function (n) {
       var cols = Math.max(26, ((HEADERS[n] || []).length || 0) + 4);
       var rep = sheetsFetch_('post', SHEETS_API_ + id + ':batchUpdate', { requests: [{ addSheet: { properties: { title: n, gridProperties: { rowCount: 1000, columnCount: cols, frozenRowCount: 1 } } } }] });
-      var p = rep.replies[0].addSheet.properties; load()[n] = p;
-      return (tabs[n] = restSheet_(id, p));
+      var p = rep.replies[0].addSheet.properties; load()[n] = p; saveMeta();
+      return (tabs[n] = restSheet_(id, p, null, hooks));
     },
     getSheets: function () { return Object.keys(load()).map(function (n) { return book.getSheetByName(n); }); }
   };
   return book;
 }
-function restSheet_(bookId, props) {
-  var title = props.title, grid = props.gridProperties || { rowCount: 1000, columnCount: 26 }, vals = null;
+function restSheet_(bookId, props, pre, hooks) {
+  var title = props.title, grid = props.gridProperties || (props.gridProperties = { rowCount: 1000, columnCount: 26 }), vals = pre || null;
   var url = function (rng, rest) { return SHEETS_API_ + bookId + '/values/' + encodeURIComponent(rng) + (rest || ''); };
+  var refresh = function () { // once per sheet object: reload the layout and try again
+    if (!hooks || refresh.done) return false; refresh.done = true;
+    var p = hooks.stale(title); if (!p) return false;
+    props = p; grid = p.gridProperties || (p.gridProperties = { rowCount: 1000, columnCount: 26 }); vals = null; return true;
+  };
   var read = function () { // the whole tab, once per request (readAll_ memoises above this too)
     if (vals) return vals;
-    var r = sheetsFetch_('get', url("'" + String(title).replace(/'/g, "''") + "'", '?valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=FORMATTED_STRING'));
+    var get = function () { return sheetsFetch_('get', url("'" + String(title).replace(/'/g, "''") + "'", '?valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=FORMATTED_STRING')); };
+    var r; try { r = get(); } catch (e) { if (!refresh()) throw e; r = get(); }
     vals = r.values || [];
     return vals;
   };
@@ -857,7 +882,7 @@ function restSheet_(bookId, props) {
     var req = [];
     if (lastRow > grid.rowCount) { req.push({ appendDimension: { sheetId: props.sheetId, dimension: 'ROWS', length: Math.max(lastRow - grid.rowCount, 500) } }); grid.rowCount += Math.max(lastRow - grid.rowCount, 500); }
     if (lastCol > grid.columnCount) { req.push({ appendDimension: { sheetId: props.sheetId, dimension: 'COLUMNS', length: lastCol - grid.columnCount } }); grid.columnCount = lastCol; }
-    if (req.length) sheetsFetch_('post', SHEETS_API_ + bookId + ':batchUpdate', { requests: req });
+    if (req.length) { sheetsFetch_('post', SHEETS_API_ + bookId + ':batchUpdate', { requests: req }); if (hooks) hooks.save(); }
   };
   var range = function (r, c, nr, nc) {
     return {
@@ -867,8 +892,8 @@ function restSheet_(bookId, props) {
         return out;
       },
       setValues: function (v) {
-        grow(r + nr - 1, c + nc - 1);
-        sheetsFetch_('put', url(a1_(title, r, c, nr, nc), '?valueInputOption=USER_ENTERED'), { majorDimension: 'ROWS', values: v });
+        var put = function () { grow(r + nr - 1, c + nc - 1); sheetsFetch_('put', url(a1_(title, r, c, nr, nc), '?valueInputOption=USER_ENTERED'), { majorDimension: 'ROWS', values: v }); };
+        try { put(); } catch (e) { if (!refresh()) throw e; put(); }
         vals = null;
       },
       clearContent: function () { sheetsFetch_('post', url(a1_(title, r, c, nr, nc), ':clear'), {}); vals = null; }
@@ -1095,10 +1120,27 @@ var READ_ONLY_ACTIONS = { cwList: 1, cwInvoices: 1, retroScan: 1, retroLog: 1, g
   myTraining: 1, trainSessionList: 1, trainMatrix: 1, courseList: 1, myInsurance: 1, insList: 1, insCost: 1, insPolicyList: 1,
   myAnnouncements: 1, annList: 1, hdMine: 1, hdList: 1, hdGet: 1 };
 
+/** Organisations on their own book: fetch together every tab this screen read from the sheet last time and the cache lacks. */
+function preloadFor_(action) {
+  try {
+    var book = ss_(); if (!book || typeof book.preload !== 'function') return;
+    var list = JSON.parse(cache_().get('acttabs:v1:' + orgKey_('') + action) || '[]');
+    var need = list.filter(function (n) { if (READ_MEMO_[n]) return false; if (!CACHED_TABS_[n]) return true; var c = cachedRows_(n); return !(c && c.rows); });
+    if (need.length > 1) book.preload(need);
+  } catch (e) { /* only a speed-up: reading tab by tab still works */ }
+}
+function learnTabs_(action) {
+  try {
+    if (!READ_SHEET_.length || typeof ss_().preload !== 'function') return;
+    var k = 'acttabs:v1:' + orgKey_('') + action, have = JSON.parse(cache_().get(k) || '[]');
+    var all = have.concat(READ_SHEET_).filter(function (n, i, a) { return a.indexOf(n) === i; }).slice(0, 80);
+    if (all.length !== have.length) cache_().put(k, JSON.stringify(all), 21600);
+  } catch (e) {}
+}
 var ADMIN_ACTIONS = { waTest: 1, hrRolesSave: 1, empResetDevice: 1, zoneSave: 1, zoneDelete: 1, settingsSave: 1 };
 
 function handle_(req) {
-  READ_MEMO_ = {}; READ_LEN_ = {}; SETTINGS_MEMO_ = null;
+  READ_MEMO_ = {}; READ_LEN_ = {}; SETTINGS_MEMO_ = null; READ_SHEET_ = [];
   REQ_HOST_ = req && typeof req.host === 'string' ? req.host.toLowerCase().slice(0, 80) : '';
   USE_TAB_CACHE_ = false;
   TAB_PREFETCH_ = null;
@@ -1108,7 +1150,7 @@ function handle_(req) {
     var fn = /^[a-zA-Z]+$/.test(String(action)) ? globalThis['api_' + action] : null;
     if (typeof fn !== 'function') return { ok: false, error: 'unknown_action' };
     setOrg_(PLATFORM_ACTIONS_[action] ? orgRec_(homeOrgId_()) : resolveOrg_(req, action));
-    if (READ_ONLY_ACTIONS[action]) USE_TAB_CACHE_ = true;
+    if (READ_ONLY_ACTIONS[action]) { USE_TAB_CACHE_ = true; preloadFor_(action); }
     if (PUBLIC_ACTIONS[action]) return fn(req, null);
     var me = readToken_(req.token);
     if (!me) return { ok: false, error: 'session_expired' };
@@ -1118,7 +1160,7 @@ function handle_(req) {
     var level = ROLES[me.role] || 0;
     if (!READ_ONLY_ACTIONS[action] && typeof resignationDeemedSweep_ === 'function') resignationDeemedSweep_(); // Leave.gs, at most hourly
     var allowed = (EMP_ACTIONS[action] && level >= 1) || (HR_ACTIONS[action] && level >= ROLES.hr) || (ADMIN_ACTIONS[action] && level >= ROLES.admin);
-    if (allowed) { var res = fn(req, me); if (!READ_ONLY_ACTIONS[action]) { if (typeof notifySweep_ === 'function') notifySweep_(); if (typeof reportSubsSweep_ === 'function') reportSubsSweep_(); if (typeof snapSweep_ === 'function') snapSweep_(); if (typeof whSweep_ === 'function') whSweep_(); if (typeof pushSweep_ === 'function') pushSweep_(); } return res; } // the daily digest, lazily (off by default)
+    if (allowed) { var res = fn(req, me); if (READ_ONLY_ACTIONS[action]) learnTabs_(action); if (!READ_ONLY_ACTIONS[action]) { if (typeof notifySweep_ === 'function') notifySweep_(); if (typeof reportSubsSweep_ === 'function') reportSubsSweep_(); if (typeof snapSweep_ === 'function') snapSweep_(); if (typeof whSweep_ === 'function') whSweep_(); if (typeof pushSweep_ === 'function') pushSweep_(); } return res; } // the daily digest, lazily (off by default)
     return { ok: false, error: 'forbidden' };
   } catch (err) {
     var msg = String(err && err.message || err);
