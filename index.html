@@ -1368,11 +1368,35 @@ body.v2-on :is(.db-tile b,.kpi b,.stat b,.hm-facts dd,.hm-big b,.hm-k .v,[data-c
 .gate .aurora{opacity:.35}
 .gate .gb-scene{display:none!important}
 .gb-dial{position:relative;display:flex;flex-direction:column;align-items:center;isolation:isolate}
-.bw .bw-ring{fill:none;stroke:rgba(127,216,255,.18);stroke-width:1}
-.bw .wt{stroke:rgba(220,236,255,.35);stroke-width:1;stroke-linecap:round}.bw .wt.mj{stroke:#DCEEFF;stroke-width:2.4}
-.bw .bw-h line{stroke:#F2B33D;stroke-width:4.5;stroke-linecap:round;filter:drop-shadow(0 0 3px #F2B33D)}
-.bw .bw-m line{stroke:#EAF6FF;stroke-width:3;stroke-linecap:round;filter:drop-shadow(0 0 3px #9FDFFF)}
-.bw .bw-s line{stroke:rgba(127,231,255,.55);stroke-width:1.2}.bw .bw-s circle{fill:#7FE7FF;filter:drop-shadow(0 0 4px #7FE7FF)}
+.bw .bw-ring{fill:none;stroke:rgba(127,216,255,.12);stroke-width:2.4}
+.bw .bw-arc{fill:none;stroke:url(#bwG);stroke-width:2.4;stroke-linecap:round;filter:drop-shadow(0 0 3px rgba(127,231,255,.8));stroke-dasharray:0 60}
+.bw .bw-bezel{fill:none;stroke:rgba(220,236,255,.28);stroke-width:.8;stroke-dasharray:.6 3.2;stroke-linecap:round}
+.bw .wt{stroke:rgba(220,236,255,.3);stroke-width:.9;stroke-linecap:round}.bw .wt.mj{stroke:#E6F2FF;stroke-width:2.2;filter:drop-shadow(0 0 2px rgba(127,231,255,.55))}
+.bw .bw-num text{fill:rgba(230,242,255,.78);font:600 8.5px var(--f-num,Manrope,sans-serif);text-anchor:middle;dominant-baseline:central;letter-spacing:.02em}
+.bw .bw-h path{fill:url(#bwHg);filter:drop-shadow(0 0 4px rgba(242,179,61,.9))}
+.bw .bw-m rect{fill:#F2F8FF;filter:drop-shadow(0 0 4px rgba(159,223,255,.9))}
+.bw .bw-s line{stroke:rgba(127,231,255,.4);stroke-width:.7}.bw .bw-head{fill:#BFF4FF;filter:drop-shadow(0 0 5px #7FE7FF) drop-shadow(0 0 10px rgba(127,231,255,.7))}
+.bw .bw-tail circle{fill:#7FE7FF}
+.bw .bw-pulse{fill:none;stroke:#7FE7FF;stroke-width:1.6;opacity:0;transform-origin:100px 100px}
+.bw .bw-pulse.go{animation:bwPulse 1.4s cubic-bezier(.2,.7,.2,1)}
+@keyframes bwPulse{0%{opacity:.85;transform:scale(1)}100%{opacity:0;transform:scale(1.09)}}
+.bw .bw-orbit{transform-origin:100px 100px}
+.gb-dial .gt-dial.bw2{z-index:2}
+.gate-legal{margin:6px 0 0;font-size:12.5px;opacity:.78}.gate-legal a{color:inherit;text-decoration:underline;text-underline-offset:3px}
+/* clear space between the watch and the logo: the ring sits at 0.95 of the medallion's size away, never touching it */
+.gb-dial .gt-dial.bw2,.gate:has(.pinpad) .gb-dial .gt-dial.bw2{width:calc(var(--d) * 1.95)}
+.gate .gb-dial.has-watch{margin-block:calc(var(--d) * .5 + 6px) 0}
+.gate .gb-dial.has-watch .brand3d .wordmark,.gate:has(.pinpad) .gb-dial.has-watch .brand3d .wordmark{margin-top:calc(var(--d) * .5 + 34px)}
+@media (min-width:1024px){.gate{--d:clamp(140px,min(16vw,22vh),240px)}}
+@media (prefers-reduced-motion:no-preference){
+  .bw .bw-orbit{animation:bwOrbit 120s linear infinite}
+  .bw .wt{animation:bwTick .6s ease-out backwards;animation-delay:calc(var(--i) * 14ms)}
+  .bw .bw-num text{animation:bwTick .8s .9s ease-out backwards}
+  .bw .bw-halo{animation:bwHalo 5s ease-in-out infinite alternate}
+}
+@keyframes bwOrbit{to{transform:rotate(360deg)}}
+@keyframes bwTick{from{opacity:0}}
+@keyframes bwHalo{from{opacity:.55}to{opacity:1}}
 /* the live BASMA mark: an X-ray scan of the print */
 .basma-live{aspect-ratio:1;display:grid;place-items:center}.basma-live svg{width:100%;height:100%;border-radius:50%;box-shadow:0 18px 60px rgba(4,12,26,.65),0 0 0 1px rgba(127,216,255,.28),0 0 40px rgba(95,200,255,.18);overflow:visible}
 .xr-vig{fill:none;stroke:#000;stroke-opacity:.35;stroke-width:60;filter:blur(18px)}
@@ -1461,6 +1485,42 @@ body.v2-on :is(.db-tile b,.kpi b,.stat b,.hm-facts dd,.hm-big b,.hm-k .v,[data-c
   background:radial-gradient(circle at 50% 45%,rgba(var(--brand-rgb,47,93,140),.55),rgba(10,18,32,.86) 70%);backdrop-filter:blur(6px);animation:wbIn .25s ease-out both}
 .wb.out{animation:wbOut .45s ease-in forwards}
 @keyframes wbIn{from{opacity:0}to{opacity:1}}@keyframes wbOut{to{opacity:0;transform:scale(1.04)}}
+/* welcome after sign-in, second design (2026-11-06): four seconds, the company gradient, a ring that draws itself */
+.wl{position:fixed;inset:0;z-index:210;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center;color:#fff;cursor:pointer;overflow:hidden;isolation:isolate;
+  background:radial-gradient(120% 90% at 50% 0%,var(--brand) 0%,var(--brand-deep,var(--brand)) 55%,#0B1420 120%);background-color:#0B1420;animation:wlIn .45s ease both}
+.wl.out{animation:wlOut .5s ease forwards}
+@keyframes wlIn{from{opacity:0}}@keyframes wlOut{to{opacity:0;transform:scale(1.03);filter:blur(4px)}}
+.wl .aurora{z-index:-1;opacity:.7}
+.wl-grid{position:absolute;inset:-20%;z-index:-1;background-image:linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px);background-size:44px 44px;
+  mask-image:radial-gradient(closest-side,#000,transparent);-webkit-mask-image:radial-gradient(closest-side,#000,transparent);animation:wlDrift 8s linear infinite}
+@keyframes wlDrift{to{transform:translate(44px,44px)}}
+.wl-core{position:relative;width:200px;height:200px;display:grid;place-items:center;animation:wlPop .7s cubic-bezier(.2,1.35,.4,1) both}
+@keyframes wlPop{from{transform:scale(.55);opacity:0}}
+.wl-core svg{position:absolute;inset:0;transform:rotate(-90deg);overflow:visible}
+.wl-tr{fill:none;stroke:rgba(255,255,255,.16);stroke-width:3}
+.wl-ring{fill:none;stroke:url(#wlG);stroke-width:4;stroke-linecap:round;stroke-dasharray:1 1;stroke-dashoffset:1;filter:drop-shadow(0 0 8px rgba(255,255,255,.7));animation:wlDraw 1.4s .25s cubic-bezier(.6,.1,.2,1) forwards}
+@keyframes wlDraw{to{stroke-dashoffset:0}}
+.wl-orb{fill:none;stroke:rgba(255,255,255,.35);stroke-width:1;stroke-dasharray:2 10;transform-origin:100px 100px;animation:wlSpin 14s linear infinite}
+@keyframes wlSpin{to{transform:rotate(360deg)}}
+.wl-core img{width:120px;height:120px;border-radius:50%;object-fit:contain;background:#fff;box-shadow:0 18px 50px rgba(0,0,0,.35),0 0 0 8px rgba(255,255,255,.12)}
+.wl-ok{position:absolute;inset-inline-end:28px;bottom:28px;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:#22C55E;color:#fff;font-size:22px;box-shadow:0 0 0 4px #fff,0 8px 20px rgba(0,0,0,.3);transform:scale(0);animation:wlOk .5s 1.45s cubic-bezier(.2,1.6,.4,1) forwards}
+@keyframes wlOk{to{transform:scale(1)}}
+.wl-sparks{position:absolute;inset:0;pointer-events:none}
+.wl-sparks i{position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px;border-radius:50%;background:#fff;box-shadow:0 0 10px #fff;opacity:0;transform:rotate(var(--a)) translateX(0);animation:wlSpark 1.6s calc(1.4s + var(--dl)) cubic-bezier(.2,.8,.2,1) forwards}
+@keyframes wlSpark{0%{opacity:0;transform:rotate(var(--a)) translateX(60px) scale(.4)}25%{opacity:1}100%{opacity:0;transform:rotate(var(--a)) translateX(var(--r)) scale(1)}}
+.wl-hi{margin:10px 0 0;font:700 clamp(28px,5vw,44px)/1.25 var(--f-head,var(--font));letter-spacing:-.01em}
+.wl-hi span{display:inline-block;opacity:0;transform:translateY(16px);animation:wlWord .6s calc(.55s + var(--k) * 120ms) cubic-bezier(.2,.8,.2,1) forwards}
+@keyframes wlWord{to{opacity:1;transform:none}}
+.wl-co{margin:0;font-size:15px;opacity:0;animation:wlWord .6s 1s forwards;color:rgba(255,255,255,.85)}
+.wl-date{margin:4px 0 0;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;opacity:0;animation:wlWord .6s 1.2s forwards}
+.wl-date span{padding:6px 14px;border-radius:999px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);font-size:13.5px;backdrop-filter:blur(6px)}
+.wl-load{position:absolute;bottom:calc(30px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px}
+.wl-pct{font:700 15px var(--f-num,Manrope,sans-serif);letter-spacing:.04em;text-shadow:0 0 12px rgba(255,255,255,.6);min-width:4ch;text-align:center}
+.wl-bar{position:relative;width:min(280px,60vw);height:4px;border-radius:4px;background:rgba(255,255,255,.2);overflow:hidden}
+.wl-bar i{display:block;height:100%;width:0;border-radius:4px;background:#fff;box-shadow:0 0 10px #fff;animation:wlFill linear forwards}
+@keyframes wlFill{to{width:100%}}
+.wl-skip{position:absolute;top:calc(18px + env(safe-area-inset-top));inset-inline-end:18px;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);color:#fff;border-radius:999px;padding:8px 16px;font:inherit;font-size:13px;cursor:pointer}
+@media (prefers-reduced-motion:reduce){.wl *,.wl{animation-duration:.01ms!important;animation-delay:0s!important}.wl-hi span,.wl-co,.wl-date{opacity:1;transform:none}.wl-ring{stroke-dashoffset:0}.wl-ok{transform:scale(1)}.wl-bar i{animation-duration:2200ms!important}}
 .wb-core{position:relative;width:150px;height:150px;display:grid;place-items:center;animation:wbPop .5s cubic-bezier(.2,1.4,.4,1) both}
 @keyframes wbPop{from{transform:scale(.6)}to{transform:scale(1)}}
 .wb-core svg{position:absolute;inset:0;transform:rotate(-90deg)}
@@ -2916,29 +2976,48 @@ function gateOff(){
 function gateBrand(){
   gateOn();
   return '<aside class="gate-brand"><div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div><div class="gb-scene" aria-hidden="true"><i></i><i></i><i></i></div>' +
-    '<div class="gb-dial' + (S.gate || !S.orgId ? ' has-watch' : '') + '">' + (S.gate || !S.orgId ? watchSvg() : gaugeSvg()) + brand3dHtml('gate') + '</div><p class="gate-tag">' + t('gateTag') + '</p></aside>';
+    '<div class="gb-dial' + (S.gate || !S.orgId ? ' has-watch' : '') + '">' + (S.gate || !S.orgId ? watchSvg() : gaugeSvg()) + brand3dHtml('gate') + '</div><p class="gate-tag">' + t('gateTag') + '</p><p class="gate-legal"><a href="privacy.html" target="_blank" rel="noopener">' + (S.lang === 'en' ? 'Privacy policy' : 'سياسة الخصوصية') + '</a> · <a href="delete-account.html" target="_blank" rel="noopener">' + (S.lang === 'en' ? 'Delete account' : 'حذف الحساب') + '</a></p></aside>';
 }
-/** The BASMA watch (2026-11-04): around the fingerprint, a watch face with 60 minute marks and three hands riding the
- *  ring, showing Riyadh time live: hour (gold) and minute (white) as glowing bars, seconds as a bright bead that ticks. */
+/** The BASMA watch (2026-11-06, second design): around the fingerprint, Riyadh time live. The second hand is a comet that
+ *  sweeps smoothly with a fading tail; an arc fills with the seconds and the dial pulses as each minute begins; the hour
+ *  (gold) and minute (white) hands glide; a dotted bezel orbits slowly. Reduced motion: hands step once a second, nothing orbits. */
 function watchSvg(){
-  var tk = '';
-  for (var i = 0; i < 60; i++) { var a = (i * 6 - 90) * Math.PI / 180, mj = i % 5 === 0, r1 = mj ? 83 : 88, r2 = 93;
-    tk += '<line class="wt' + (mj ? ' mj' : '') + '" x1="' + (100 + r1 * Math.cos(a)).toFixed(2) + '" y1="' + (100 + r1 * Math.sin(a)).toFixed(2) + '" x2="' + (100 + r2 * Math.cos(a)).toFixed(2) + '" y2="' + (100 + r2 * Math.sin(a)).toFixed(2) + '"/>'; }
+  var tk = '', nums = '', tail = '', P = function(r, deg){ var a = (deg - 90) * Math.PI / 180; return [(100 + r * Math.cos(a)).toFixed(2), (100 + r * Math.sin(a)).toFixed(2)]; };
+  for (var i = 0; i < 60; i++) { var mj = i % 5 === 0, a1 = P(mj ? 82 : 86, i * 6), a2 = P(90, i * 6);
+    tk += '<line class="wt' + (mj ? ' mj' : '') + '" style="--i:' + i + '" x1="' + a1[0] + '" y1="' + a1[1] + '" x2="' + a2[0] + '" y2="' + a2[1] + '"/>'; }
+  [['12', 0], ['3', 90], ['6', 180], ['9', 270]].forEach(function(n){ var q = P(74, n[1]); nums += '<text x="' + q[0] + '" y="' + q[1] + '">' + n[0] + '</text>'; });
+  for (var j = 1; j <= 14; j++) { var tp = P(95, -j * 2.2); tail += '<circle cx="' + tp[0] + '" cy="' + tp[1] + '" r="' + (3 - j * 0.17).toFixed(2) + '" opacity="' + (0.85 - j * 0.058).toFixed(2) + '"/>'; }
   setTimeout(watchTick, 0);
-  return '<svg class="gt-dial bw" viewBox="0 0 200 200" aria-hidden="true" focusable="false"><circle class="bw-ring" cx="100" cy="100" r="96"/><g>' + tk + '</g>' +
-    '<g class="bw-h" id="bwH"><line x1="100" y1="27" x2="100" y2="12"/></g><g class="bw-m" id="bwM"><line x1="100" y1="22" x2="100" y2="5"/></g>' +
-    '<g class="bw-s" id="bwS"><line x1="100" y1="30" x2="100" y2="6"/><circle cx="100" cy="6" r="3.6"/></g></svg>';
+  return '<svg class="gt-dial bw bw2" viewBox="0 0 200 200" aria-hidden="true" focusable="false"><defs>' +
+      '<linearGradient id="bwG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7FE7FF"/><stop offset=".55" stop-color="#5FB8FF"/><stop offset="1" stop-color="#F2B33D"/></linearGradient>' +
+      '<linearGradient id="bwHg" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#C98A1E"/><stop offset="1" stop-color="#FFD37A"/></linearGradient>' +
+      '<radialGradient id="bwGlow"><stop offset=".62" stop-color="rgba(95,184,255,0)"/><stop offset=".9" stop-color="rgba(95,184,255,.10)"/><stop offset="1" stop-color="rgba(95,184,255,0)"/></radialGradient></defs>' +
+    '<circle class="bw-halo" cx="100" cy="100" r="99" fill="url(#bwGlow)"/>' +
+    '<g class="bw-orbit"><circle class="bw-bezel" cx="100" cy="100" r="98"/></g>' +
+    '<circle class="bw-ring" cx="100" cy="100" r="95"/><circle class="bw-arc" id="bwArc" cx="100" cy="100" r="95" pathLength="60" transform="rotate(-90 100 100)"/>' +
+    '<g class="bw-ticks">' + tk + '</g><g class="bw-num">' + nums + '</g>' +
+    '<g class="bw-h" id="bwH"><path d="M100 19 L96.4 34 Q100 36.5 103.6 34 Z"/></g>' +
+    '<g class="bw-m" id="bwM"><rect x="98.5" y="10" width="3" height="26" rx="1.5"/></g>' +
+    '<g class="bw-s" id="bwS"><g class="bw-tail">' + tail + '</g><line x1="100" y1="37" x2="100" y2="9"/><circle class="bw-head" cx="100" cy="5" r="3.4"/></g>' +
+    '<circle class="bw-pulse" id="bwPulse" cx="100" cy="100" r="95"/></svg>';
 }
-var WATCH_T = 0;
+var WATCH_T = 0, WATCH_RAF = 0, WATCH_MIN = -1;
 function watchTick(){
-  clearTimeout(WATCH_T);
+  clearTimeout(WATCH_T); cancelAnimationFrame(WATCH_RAF);
   var hh = document.getElementById('bwH'); if (!hh) return;
-  var d = new Date(Date.now() + 180 * 60000), s = d.getUTCSeconds(), m = d.getUTCMinutes() + s / 60, hr = (d.getUTCHours() % 12) + m / 60;
-  hh.setAttribute('transform', 'rotate(' + (hr * 30).toFixed(2) + ' 100 100)');
-  document.getElementById('bwM').setAttribute('transform', 'rotate(' + (m * 6).toFixed(2) + ' 100 100)');
-  document.getElementById('bwS').setAttribute('transform', 'rotate(' + (s * 6) + ' 100 100)');
-  WATCH_T = setTimeout(watchTick, 1000 - (Date.now() % 1000));
+  var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var d = new Date(Date.now() + 180 * 60000), ms = d.getUTCMilliseconds(), s = d.getUTCSeconds() + (reduced ? 0 : ms / 1000), m = d.getUTCMinutes() + s / 60, hr = (d.getUTCHours() % 12) + m / 60;
+  hh.setAttribute('transform', 'rotate(' + (hr * 30).toFixed(3) + ' 100 100)');
+  document.getElementById('bwM').setAttribute('transform', 'rotate(' + (m * 6).toFixed(3) + ' 100 100)');
+  document.getElementById('bwS').setAttribute('transform', 'rotate(' + (s * 6).toFixed(3) + ' 100 100)');
+  var arc = document.getElementById('bwArc'); if (arc) arc.style.strokeDasharray = s.toFixed(3) + ' 60';
+  var mi = d.getUTCMinutes();
+  if (WATCH_MIN !== -1 && mi !== WATCH_MIN) { var pu = document.getElementById('bwPulse'); if (pu && !reduced) { pu.classList.remove('go'); void pu.getBBox(); pu.classList.add('go'); } }
+  WATCH_MIN = mi;
+  if (reduced || document.hidden) WATCH_T = setTimeout(watchTick, 1000 - (Date.now() % 1000));
+  else WATCH_RAF = requestAnimationFrame(watchTick);
 }
+document.addEventListener('visibilitychange', function(){ if (!document.hidden && document.getElementById('bwH')) watchTick(); });
 /** The calibrated dial around the medallion: 270 degrees of brass ticks, a mint arc that sweeps to three quarters once. */
 var GAUGE_SVG = '';
 function gaugeSvg(){
@@ -3991,15 +4070,31 @@ function renderPinSetup(home){
 /** The moment after a correct PIN: the company mark in a ring that draws itself, a check that pops, a burst in the
  *  company colours and the person greeted by name; 1.6 s, never in the way (no pointer events), skipped for reduced motion. */
 function welcomeBurst(){
-  if (moReduced && moReduced()) return;
-  var nm = S.me && S.me.name ? String(S.me.name).split(/s+/)[0] : '', dots = '';
-  for (var i = 0; i < 14; i++) { var a = i / 14 * Math.PI * 2, r = 120 + (i % 3) * 22; dots += '<i style="--x:' + Math.round(Math.cos(a) * r) + 'px;--y:' + Math.round(Math.sin(a) * r) + 'px;--d:' + (i % 4) * 40 + 'ms"></i>'; }
-  var el = document.createElement('div'); el.className = 'wb'; el.setAttribute('aria-hidden', 'true');
-  el.innerHTML = '<div class="wb-core"><svg viewBox="0 0 120 120"><circle class="wb-tr" cx="60" cy="60" r="54"/><circle class="wb-ring" cx="60" cy="60" r="54" pathLength="1"/></svg><img src="' + brandMark() + '" alt=""><b class="wb-ok">' + ph('check-bold') + '</b><span class="wb-dots">' + dots + '</span></div>' +
-    '<p class="wb-hi">' + esc(S.lang === 'en' ? 'Welcome' + (nm ? ', ' + nm : '') : 'مرحبا' + (nm ? '، ' + nm : '')) + '</p>';
+  var reduced = moReduced && moReduced(), MS = reduced ? 2200 : 4000;
+  var en = S.lang === 'en', nm = S.me && S.me.name ? String(S.me.name).trim().split(/\s+/)[0] : '';
+  var hr = new Date(Date.now() + 180 * 60000).getUTCHours();
+  var hi = en ? (hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening') : (hr < 12 ? 'صباح الخير' : 'مساء الخير');
+  var now = new Date(), tz = { timeZone: 'Asia/Riyadh' };
+  var greg = now.toLocaleDateString(en ? 'en-GB' : 'ar-SA-u-nu-latn-ca-gregory', Object.assign({ weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }, tz));
+  var hij = ''; try { hij = now.toLocaleDateString(en ? 'en-u-ca-islamic-umalqura' : 'ar-SA-u-nu-latn-ca-islamic-umalqura', Object.assign({ day: 'numeric', month: 'long', year: 'numeric' }, tz)); } catch (e) {}
+  var time = now.toLocaleTimeString(en ? 'en-GB' : 'ar-SA-u-nu-latn', Object.assign({ hour: '2-digit', minute: '2-digit' }, tz));
+  var sparks = ''; for (var i = 0; i < 18; i++) sparks += '<i style="--a:' + (i * 20) + 'deg;--r:' + (88 + (i % 3) * 14) + 'px;--dl:' + (i * 55) + 'ms"></i>';
+  var words = (hi + (nm ? (en ? ', ' : '، ') + nm : '')).split(' ').map(function(w, k){ return '<span style="--k:' + k + '">' + esc(w) + '</span>'; }).join(' ');
+  var co = (window.coName && coName(S.lang)) || '';
+  var el = document.createElement('div'); el.className = 'wl'; el.setAttribute('role', 'status'); el.setAttribute('aria-live', 'polite');
+  el.innerHTML = '<div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div><div class="wl-grid" aria-hidden="true"></div>' +
+    '<div class="wl-core" aria-hidden="true"><svg viewBox="0 0 200 200"><defs><linearGradient id="wlG" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="rgba(255,255,255,.35)"/></linearGradient></defs>' +
+      '<circle class="wl-tr" cx="100" cy="100" r="86"/><circle class="wl-ring" cx="100" cy="100" r="86" pathLength="1"/><circle class="wl-orb" cx="100" cy="100" r="96"/></svg>' +
+      '<div class="wl-sparks">' + sparks + '</div><img src="' + brandMark() + '" alt=""><b class="wl-ok">' + ph('check') + '</b></div>' +
+    '<h2 class="wl-hi">' + words + '</h2>' + (co ? '<p class="wl-co">' + esc(co) + '</p>' : '') +
+    '<p class="wl-date"><span>' + esc(greg) + '</span>' + (hij ? '<span>' + esc(hij) + '</span>' : '') + '<span class="num">' + esc(time) + '</span></p>' +
+    '<div class="wl-load" aria-hidden="true"><b class="wl-pct num" id="wlPct">0%</b><div class="wl-bar"><i style="animation-duration:' + MS + 'ms"></i></div></div><button type="button" class="wl-skip">' + (en ? 'Skip' : 'تخطي') + '</button>';
   document.body.appendChild(el);
-  setTimeout(function(){ el.classList.add('out'); }, 1250);
-  setTimeout(function(){ el.remove(); }, 1700);
+  var done = false, end = function(){ if (done) return; done = true; el.classList.add('out'); setTimeout(function(){ el.remove(); }, 520); };
+  el.onclick = end; el.addEventListener('keydown', function(e){ if (e.key === 'Escape') end(); });
+  var t0 = performance.now(), pc = el.querySelector('#wlPct');
+  (function step(){ if (done) return; var k = Math.min(1, (performance.now() - t0) / MS); pc.textContent = Math.round(k * 100) + '%'; if (k < 1) requestAnimationFrame(step); })();
+  setTimeout(end, MS);
 }
 /** BASMA's new home (2026-11-04). On the old link, a signed-in person moves with one tap: no HR code needed. */
 var NEW_HOME = 'https://mohamedmahdi2025.github.io/', OLD_HOSTS = ['besgasksa.github.io'];
