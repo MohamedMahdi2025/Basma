@@ -145,6 +145,46 @@ var css = '' +
 '@media (max-width:1100px){.hm-s4,.hm-s5,.hm-s7,.hm-s8{grid-column:1 / -1}.hm-facts{grid-template-columns:repeat(2,minmax(0,1fr))}.hm-facts div:nth-child(3){border-inline-start:0;padding-inline-start:0}}' +
 '@media (max-width:900px){.hm-hero{grid-template-columns:1fr;justify-items:center}.hm-hero > div{justify-self:stretch}.hm-ph h1{font-size:24px}}' +
 '@media (max-width:380px){.hm-k .db-tf{flex-direction:column;align-items:flex-start}.hm-k .db-spark{margin-inline-start:0}}';
+css += '' +
+// header: no banner, the greeting on the page itself
+'.hm-page .v3-hero.hm-banner{background:none;color:var(--ink);padding:6px 2px 0;margin-bottom:22px;overflow:visible;border-radius:0;box-shadow:none}' +
+'.hm-page .v3-hero.hm-banner::before,.hm-page .v3-hero.hm-banner::after{display:none}' +
+'.hm-page .hm-banner h1{color:var(--ink);font-size:clamp(24px,3vw,34px);font-weight:700;letter-spacing:-.015em;line-height:1.2}' +
+'.hm-page .hm-banner p{color:var(--ink-3);font-size:14px;margin-top:6px}' +
+'.hm-page .hm-banner .v3-hero-ic{background:var(--card);border:1px solid var(--line);box-shadow:var(--e1)}.hm-page .hm-banner .v3-hero-ic i{color:var(--brand)}' +
+'.hm-page .hm-scope{background:var(--card);border:1px solid var(--line);box-shadow:var(--e1)}' +
+'.hm-page .hm-scope button{color:var(--ink-2)}.hm-page .hm-scope button[aria-pressed="true"]{background:var(--ink);color:var(--card);box-shadow:var(--e2)}' +
+// KPI tiles: white, the icon in a corner chip, the number large, a lift on hover
+'.hm-page .hm-rowh{font-size:15px;margin-bottom:12px}' +
+'.hm-page .hm-k{border:1px solid var(--line);border-radius:20px;padding:18px 20px 16px;box-shadow:var(--e1);transition:transform .28s cubic-bezier(.2,.8,.2,1),box-shadow .28s,border-color .28s}' +
+'.hm-page .hm-k::after{display:none}' +
+'.hm-page .hm-k .db-go{display:none}.hm-page .hm-k.is-go{cursor:pointer}' +
+'.hm-page .hm-k .ic{position:absolute;top:16px;inset-inline-end:16px;width:38px;height:38px;font-size:20px;margin:0;border-radius:12px}' +
+'.hm-page .hm-k .lb{padding-inline-end:48px;min-height:20px;display:block}' +
+'.hm-page .hm-k .v{font-size:clamp(26px,2.6vw,36px);margin-top:14px}' +
+'.hm-page .hm-k.is-go:hover,.hm-page .hm-k.is-go:focus-visible{transform:translateY(-4px);box-shadow:var(--e3);border-color:transparent}' +
+// the first tile of a row is the featured one: the company gradient, white type, a soft glow that drifts slowly
+'.hm-page .hm-kpis > .hm-k:first-child{background:linear-gradient(140deg,var(--brand) 0%,color-mix(in srgb,var(--brand) 62%,var(--accent2,var(--signal))) 100%);border-color:transparent;color:#fff;box-shadow:0 18px 36px -18px color-mix(in srgb,var(--brand) 75%,transparent)}' +
+'.hm-page .hm-kpis > .hm-k:first-child::before{content:"";position:absolute;inset:-40% -30% auto auto;width:78%;aspect-ratio:1;border-radius:50%;z-index:0;pointer-events:none;' +
+  'background:radial-gradient(circle,rgba(255,255,255,.34) 0%,rgba(255,255,255,.08) 45%,transparent 70%)}' +
+'.hm-page .hm-kpis > .hm-k:first-child .lb,.hm-page .hm-kpis > .hm-k:first-child > small,.hm-page .hm-kpis > .hm-k:first-child .v small{color:rgba(255,255,255,.86)}' +
+'.hm-page .hm-kpis > .hm-k:first-child .v{color:#fff}' +
+'.hm-page .hm-kpis > .hm-k:first-child .ic{background:rgba(255,255,255,.2);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.3)}' +
+'.hm-page .hm-kpis > .hm-k:first-child .db-go{color:#fff}' +
+'.hm-page .hm-kpis > .hm-k:first-child .db-spark path,.hm-page .hm-kpis > .hm-k:first-child .db-spark polyline{stroke:#fff}' +
+'.hm-page .hm-kpis > .hm-k:first-child .db-spark .ar,.hm-page .hm-kpis > .hm-k:first-child .db-spark [fill]:not([fill="none"]){fill:rgba(255,255,255,.22)}' +
+'.hm-page .hm-kpis > .hm-k:first-child .db-delta{background:rgba(255,255,255,.18);color:#fff}' +
+'@media (prefers-reduced-motion:no-preference){.hm-page .hm-kpis > .hm-k:first-child::before{animation:hmGlow 9s ease-in-out infinite alternate}}' +
+'@keyframes hmGlow{from{transform:translate(0,0) scale(1)}to{transform:translate(-14%,18%) scale(1.15)}}' +
+// cards: rounder, quieter borders, the same lift as tiles where they open something
+'.hm-page .hm-card{border-radius:20px;box-shadow:var(--e1);padding:22px 24px}' +
+'.hm-page .hm-card h2{font-size:16px}.hm-page .hm-card h2 > i{width:32px;height:32px;border-radius:10px;display:inline-grid;place-items:center;background:var(--brand-tint,color-mix(in srgb,var(--brand) 12%,transparent));font-size:18px}' +
+'.hm-page .hm-hero{background:linear-gradient(180deg,var(--card) 0%,color-mix(in srgb,var(--brand) 4%,var(--card)) 100%)}' +
+'.hm-page .hm-hero .big{font-size:21px}' +
+'.hm-page .hm-in{border-radius:14px}' +
+// the daily wisdom and "on this day" become a quiet footer strip
+'.hm-page .hm-daily{margin-top:22px;opacity:.95}' +
+'@media (max-width:900px){.hm-page .hm-k .v{margin-top:10px}.hm-page .hm-card{padding:18px}.hm-page .hm-banner h1{font-size:22px}}';
 var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 
 function go(area, sub){ if (window.goArea) goArea(area, sub); }
@@ -283,9 +323,9 @@ function dailyHtml(){ return '<section class="hm-daily" aria-label="' + esc(t('h
 function render(main){
   var company = companyRole(), scope = company ? (S.homeScope || 'company') : 'mine';
   var h = new Date(Date.now() + 180 * 60000).getUTCHours();
-  main.innerHTML = '<div class="page v2"><header class="v3-hero hm-banner"><span class="v3-hero-ic">' + ph(h < 12 ? 'sun-horizon' : h < 17 ? 'sun' : 'moon-stars', 'duotone') + '</span><div><h1>' + greet() + '</h1><p>' + dateLine() + '</p></div>' +
+  main.innerHTML = '<div class="page v2 hm-page"><header class="v3-hero hm-banner"><span class="v3-hero-ic">' + ph(h < 12 ? 'sun-horizon' : h < 17 ? 'sun' : 'moon-stars', 'duotone') + '</span><div><h1>' + greet() + '</h1><p>' + dateLine() + '</p></div>' +
     '<div class="v3-hero-stats">' + (company ? '<div class="hm-scope" role="group"><button type="button" data-sc="company" aria-pressed="' + (scope === 'company') + '">' + ph('buildings', 'duotone') + t('hmCompany') + '</button><button type="button" data-sc="mine" aria-pressed="' + (scope === 'mine') + '">' + ph('user', 'duotone') + t('hmMine') + '</button></div>' : '') + '</div></header>' +
-    dailyHtml() + quickRow() + '<div id="hmBody"></div></div>';
+    quickRow() + '<div id="hmBody"></div>' + dailyHtml() + '</div>';
   loadOnThisDay($('#hmOtd', main));
   $$('[data-qk]', main).forEach(function(b){ b.onclick = function(){ var p = b.dataset.qk.split(':'); goArea(p[0], p[1]); }; });
   $$('[data-sc]', main).forEach(function(b){ b.onclick = function(){

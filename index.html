@@ -1005,6 +1005,18 @@ body.v2-on :is(.db-tiles,.kpis,.stats) > :nth-child(4n+1){--t-bg:var(--brand-tin
 body.v2-on :is(.db-tiles,.kpis,.stats) > :nth-child(4n+2){--t-bg:#D1E9FF;--t-fg:#175CD3}
 body.v2-on :is(.db-tiles,.kpis,.stats) > :nth-child(4n+3){--t-bg:#FEF0C7;--t-fg:#B54708}
 body.v2-on :is(.db-tiles,.kpis,.stats) > :nth-child(4n+4){--t-bg:#FCE7F6;--t-fg:#C11574}
+/* tiles everywhere, after the dashboard reference (2026-11-06): no corner blob or dot, a corner accent bar, rounder, a lift on hover;
+   the first tile of each group is the featured one in the company gradient */
+body.v2-on :is(.db-tile,.kpi,.stat)::after,body.v2-on :is(.db-tile,.kpi,.stat)::before{display:none}
+body.v2-on :is(.db-tile,.kpi,.stat){border:1px solid var(--line)!important;border-radius:20px!important;box-shadow:var(--e1)!important;background:var(--card)!important;padding:18px 20px!important;transition:transform .28s cubic-bezier(.2,.8,.2,1),box-shadow .28s}
+body.v2-on :is(.db-tile,.kpi,.stat) .db-go{display:none}
+body.v2-on :is(.db-tile,.kpi,.stat).is-go:is(:hover,:focus-visible){transform:translateY(-4px);box-shadow:var(--e3)!important}
+body.v2-on :is(.db-tiles,.kpis,.stats) > :first-child{background:linear-gradient(140deg,var(--brand) 0%,color-mix(in srgb,var(--brand) 62%,var(--accent2,var(--signal))) 100%)!important;border-color:transparent!important;box-shadow:0 18px 36px -18px color-mix(in srgb,var(--brand) 75%,transparent)!important}
+body.v2-on :is(.db-tiles,.kpis,.stats) > :first-child :is(b,span,small,i,.db-lb){color:#fff!important}
+body.v2-on :is(.db-tiles,.kpis,.stats) > :first-child :is(span,small){opacity:.88}
+body.v2-on :is(.db-tiles,.kpis,.stats) > :first-child :is(.db-spark path,.db-spark polyline){stroke:#fff!important}
+body.v2-on :is(.db-tiles,.kpis,.stats) > :first-child .db-delta{background:rgba(255,255,255,.18)!important;color:#fff!important}
+body.v2-on :is(.db-tiles,.kpis,.stats) > :first-child .bar{background:rgba(255,255,255,.22)!important}body.v2-on :is(.db-tiles,.kpis,.stats) > :first-child .bar i{background:#fff!important}
 /* rows, avatars, tables */
 body.v2-on .row{transition:background-color .15s}
 body.v2-on .row.click:hover{background:var(--g-F7FAF8,#F7FAF8)}
@@ -1596,6 +1608,7 @@ body.v2-on :is(.db-tile b,.kpi b,.stat b,.hm-facts dd,.hm-big b,.hm-k .v,[data-c
   body.v2-on .hm-k::before,body.v2-on .hm-k::after,body.v2-on .hm-k .db-go,body.v2-on .hm-k .db-tf{display:none!important}
   body.v2-on .hm-k{padding:16px!important;min-height:0!important}
   body.v2-on .hm-kpis{gap:12px!important}
+  body.v2-on .hm-kpis > .hm-k:first-child{background:linear-gradient(140deg,var(--brand) 0%,color-mix(in srgb,var(--brand) 62%,var(--accent2,var(--signal))) 100%)!important;border-color:transparent!important}
   body.v2-on .hm-rowh{font-size:18px;font-weight:700}
   /* tabs inside a page wrap into chips; nothing scrolls sideways */
   body.v2-on :is(.op-tabs,.hr-seg,.v2-seg,.cp-seg){display:flex!important;flex-wrap:wrap!important;overflow:visible!important;gap:8px;padding:0;margin:0 0 12px;background:none;border:0}
