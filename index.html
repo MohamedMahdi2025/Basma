@@ -1382,11 +1382,20 @@ body.v2-on :is(.db-tile b,.kpi b,.stat b,.hm-facts dd,.hm-big b,.hm-k .v,[data-c
 @keyframes bwPulse{0%{opacity:.85;transform:scale(1)}100%{opacity:0;transform:scale(1.09)}}
 .bw .bw-orbit{transform-origin:100px 100px}
 .gb-dial .gt-dial.bw2{z-index:2}
+/* scroll bars everywhere (2026-11-06): thin, rounded, quiet until hovered, in the company colour */
+html,body *{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--brand,#2F5D8C) 38%,transparent) transparent}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track,::-webkit-scrollbar-corner{background:transparent}
+::-webkit-scrollbar-thumb{background-color:color-mix(in srgb,var(--brand,#2F5D8C) 32%,transparent);border-radius:999px;border:3px solid transparent;background-clip:padding-box}
+::-webkit-scrollbar-thumb:hover{background-color:color-mix(in srgb,var(--brand,#2F5D8C) 62%,transparent)}
+:is(.gate,.plx,.wl,.splash),:is(.gate,.plx,.wl,.splash) *{scrollbar-color:rgba(255,255,255,.24) transparent}
+:is(.gate,.plx,.wl,.splash) ::-webkit-scrollbar-thumb{background-color:rgba(255,255,255,.22)}
 .gate-legal{margin:6px 0 0;font-size:12.5px;opacity:.78}.gate-legal a{color:inherit;text-decoration:underline;text-underline-offset:3px}
 /* clear space between the watch and the logo: the ring sits at 0.95 of the medallion's size away, never touching it */
 .gb-dial .gt-dial.bw2,.gate:has(.pinpad) .gb-dial .gt-dial.bw2{width:calc(var(--d) * 1.95)}
 .gate .gb-dial.has-watch{margin-block:calc(var(--d) * .5 + 6px) 0}
-.gate .gb-dial.has-watch .brand3d .wordmark,.gate:has(.pinpad) .gb-dial.has-watch .brand3d .wordmark{margin-top:calc(var(--d) * .5 + 34px)}
+.gate .gb-dial.has-watch .b3d{margin-bottom:calc(var(--d) * .475 + 26px)}
+.gate .gb-dial.has-watch .brand3d .wordmark,.gate:has(.pinpad) .gb-dial.has-watch .brand3d .wordmark{margin-top:0}
 @media (min-width:1024px){.gate{--d:clamp(140px,min(16vw,22vh),240px)}}
 @media (prefers-reduced-motion:no-preference){
   .bw .bw-orbit{animation:bwOrbit 120s linear infinite}
@@ -1430,7 +1439,7 @@ body.v2-on :is(.db-tile b,.kpi b,.stat b,.hm-facts dd,.hm-big b,.hm-k .v,[data-c
 .gate .gb-dial .b3d{width:var(--d)}
 .gb-dial .brand3d{position:relative;z-index:1}
 /* the name sits below the watch, never under its hands or ticks (2026-11-04) */
-.gate .gb-dial.has-watch .brand3d .wordmark{margin-top:calc(var(--d) * .34 + 14px)}
+
 .gate .gb-dial.has-watch + .gate-tag{margin-top:10px}
 .gt-dial{position:absolute;left:50%;top:calc(var(--d) / 2);width:calc(var(--d) * 1.62);aspect-ratio:1;transform:translate(-50%,-50%);z-index:0;pointer-events:none;overflow:visible}
 .gt-dial .trk{fill:none;stroke:rgba(242,238,228,.1);stroke-width:1.6;stroke-dasharray:376.99 502.65}
@@ -4106,7 +4115,7 @@ function moveOffer(){
   return true;
 }
 function moveDrawer(){
-  var d = drawer('<div class="mv-card"><img src="' + platformMark() + '" alt="" width="72" height="72"><h3>' + t('mvTitle') + '</h3><p>' + t('mvLead') + '</p><p class="mv-url" dir="ltr">' + esc(NEW_HOME.replace('https://', '')) + '</p>' +
+  var d = drawer('<div class="mv-card"><img src="' + platformMark() + '" alt="" width="72" height="72"><h3>' + t('mvTitle') + '</h3><p>' + t('mvLead') + '</p>' +
     '<div class="btnrow"><button class="btn btn-dark" id="mvGo">' + ph('arrow-square-out') + t('mvGo') + '</button><button class="btn btn-line" id="mvLater">' + t('mvLater') + '</button></div><p class="hr-bad" id="mvE" role="alert"></p></div>');
   $('#mvLater', d).onclick = function(){ d.remove(); };
   $('#mvGo', d).onclick = function(){ var b = this; b.disabled = true;
