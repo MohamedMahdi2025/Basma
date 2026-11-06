@@ -267,7 +267,50 @@ function calSection(body){
     $('#w6CC', box).onclick = function(){ try { navigator.clipboard.writeText(url).then(function(){ toast(t('w6Copied')); }); } catch (e) {} }; }); };
 }
 
-var css = '.w6-celeb{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}' +
+// ============================================================ GOSI work queue
+Object.assign(T.ar, {
+  gsTitle:'التأمينات الاجتماعية', gsLead:'ما يجب عمله في التأمينات من واقع بيانات بصمة: تسجيل المعيّنين الجدد (خلال 15 يوما من التعيين)، وتحديث الأجر الخاضع عند تغيّر الأساسي والسكن، واستبعاد المغادرين. نفّذ كل بند في بوابة التأمينات ثم سجّل رقمها المرجعي هنا.',
+  gsRegister:'تسجيل', gsUpdate:'تحديث الأجر', gsTerminate:'استبعاد', gsOverdue:'متأخرة', gsIssues:'بيانات ناقصة', gsDone:'تم في التأمينات', gsRef:'الرقم المرجعي من التأمينات', gsNumber:'رقم المشترك في التأمينات (اختياري)',
+  gsDate:'تاريخ التنفيذ', gsDue:'الموعد', gsWage:'الأجر الخاضع', gsFrom:'من', gsNothing:'لا يوجد ما يلزم عمله في التأمينات الآن.', gsLog:'آخر ما سُجّل', gsDirect:'الربط المباشر مع التأمينات',
+  gsDirectOff:'غير مفعّل. يتطلب بيانات ربط خاصة بمنشأتكم من بوابة التأمينات (رقم التسجيل، ومعرّف العميل، والسر) تُحفظ في إعدادات الخادم. حتى ذلك الحين تُنفذ البنود يدويا في البوابة.', gsDirectOn:'بيانات الربط محفوظة.',
+  gsSaudi:'سعودي', gsNonSaudi:'غير سعودي', gsOpen:'فتح بوابة التأمينات',
+  gosi_no_id:'رقم الهوية أو الإقامة مفقود', gosi_bad_id:'رقم الهوية غير صحيح (10 أرقام تبدأ بـ 1 أو 2)', gosi_id_nationality:'رقم الهوية لا يطابق الجنسية', gosi_no_birth:'تاريخ الميلاد مفقود', gosi_no_hire:'تاريخ التعيين مفقود', gosi_no_wage:'لا توجد باقة راتب', gosi_no_cohort:'فئة التأمينات مفقودة (قديم أو جديد)',
+  e_ref_required:'اكتب الرقم المرجعي من التأمينات.', e_nothing_to_do:'لا يوجد بند مستحق لهذا الموظف.', e_gosi_data_incomplete:'أكمل بيانات الموظف أولا:', e_cannot_change_self:'لا يسجّل أحد تغييرات تخصه.'
+});
+Object.assign(T.en, {
+  gsTitle:'GOSI', gsLead:'What has to be done in GOSI from BASMA\'s own data: register new joiners (within 15 days of hire), update the insured wage when basic + housing changes, and terminate leavers. Do each item in the GOSI portal, then record GOSI\'s reference here.',
+  gsRegister:'Register', gsUpdate:'Update wage', gsTerminate:'Terminate', gsOverdue:'Overdue', gsIssues:'Data missing', gsDone:'Done in GOSI', gsRef:'GOSI reference', gsNumber:'GOSI subscriber number (optional)',
+  gsDate:'Done on', gsDue:'Due', gsWage:'Insured wage', gsFrom:'from', gsNothing:'Nothing to do in GOSI right now.', gsLog:'Recently recorded', gsDirect:'Direct GOSI connection',
+  gsDirectOff:'Off. It needs your establishment\'s own connection details from the GOSI portal (registration number, client ID and secret), kept in the server settings. Until then each item is done in the portal.', gsDirectOn:'Connection details are saved.',
+  gsSaudi:'Saudi', gsNonSaudi:'Non-Saudi', gsOpen:'Open the GOSI portal',
+  gosi_no_id:'ID or iqama number missing', gosi_bad_id:'ID number not valid (10 digits starting 1 or 2)', gosi_id_nationality:'ID number does not match the nationality', gosi_no_birth:'Birth date missing', gosi_no_hire:'Hire date missing', gosi_no_wage:'No salary package', gosi_no_cohort:'GOSI cohort missing (legacy or new)',
+  e_ref_required:'Write GOSI\'s reference.', e_nothing_to_do:'Nothing is due for this person.', e_gosi_data_incomplete:'Complete the employee\'s data first:', e_cannot_change_self:'Nobody records their own changes.'
+});
+function gosiSection(body){
+  var box = K.head(body, 'gsTitle', 'gsLead');
+  function load(){ K.busy(box); api('gosiQueue', {}, true).then(function(r){
+    if (!box.isConnected) return; if (!r.ok) return box.innerHTML = K.bad(r.error);
+    var lbl = { register: 'gsRegister', update_wage: 'gsUpdate', terminate: 'gsTerminate' }, ic = { register: 'user-plus', update_wage: 'arrows-down-up', terminate: 'user-minus' }, C = r.counts;
+    box.innerHTML = K.tiles([[t('gsRegister'), K.n(C.register)], [t('gsUpdate'), K.n(C.update_wage)], [t('gsTerminate'), K.n(C.terminate)], [t('gsOverdue'), K.n(C.overdue)], [t('gsIssues'), K.n(C.issues)]]) +
+      '<div class="db-card w6-gsc"><span class="w6-ci">' + ph(r.connector.configured ? 'plugs-connected' : 'plug', 'duotone') + '</span><div><b>' + t('gsDirect') + '</b><small>' + t(r.connector.configured ? 'gsDirectOn' : 'gsDirectOff') + '</small></div>' +
+        '<a class="btn btn-line btn-sm" href="https://www.gosi.gov.sa" target="_blank" rel="noopener">' + ph('arrow-square-out') + t('gsOpen') + '</a></div>' +
+      (r.items.length ? '<div class="list">' + r.items.map(function(x){
+        return '<div class="row"><div class="av w6-gk ' + x.kind + '">' + ph(ic[x.kind]) + '</div><div class="main"><b>' + K.empLine(x.emp) + '</b><small>' + t(lbl[x.kind]) + K.sep() + t(x.saudi ? 'gsSaudi' : 'gsNonSaudi') +
+          (x.wage ? K.sep() + t('gsWage') + ' ' + K.money(x.wage) + (x.from ? ' (' + t('gsFrom') + ' ' + K.money(x.from) + ')' : '') : '') + (x.due ? K.sep() + t('gsDue') + ' ' + dt(x.due) : '') + (x.gosiNumber ? K.sep() + '<bdi class="num">' + esc(x.gosiNumber) + '</bdi>' : '') + '</small>' +
+          (x.issues.length ? '<small class="w6-iss">' + ph('warning') + ' ' + x.issues.map(function(i){ return t(i); }).join('، ') + '</small>' : '') + '</div>' +
+          (x.overdue ? K.chip(t('gsOverdue'), 'absent') : '') + '<button type="button" class="btn btn-dark btn-sm" data-gs="' + esc(x.emp.id) + '|' + x.kind + '">' + ph('check') + t('gsDone') + '</button></div>'; }).join('') + '</div>' : K.empty('shield-check', t('gsNothing'))) +
+      (r.log.length ? '<h3 class="w5-h">' + t('gsLog') + '</h3><div class="list">' + r.log.map(function(s){ return '<div class="row"><div class="main"><b>' + K.empLine(s.emp) + '</b><small>' + t(lbl[s.kind]) + K.sep() + '<bdi class="num">' + esc(s.ref) + '</bdi>' + K.sep() + dt(s.date) + (s.by ? K.sep() + esc(s.by) : '') + '</small></div></div>'; }).join('') + '</div>' : '');
+    K.wire(box);
+    bind(box, '[data-gs]', function(b){ var p = b.dataset.gs.split('|');
+      var d = K.formDrawer(t('gsDone'), t(lbl[p[1]]), K.fld(t('gsRef'), '<input name="ref" required maxlength="40" dir="ltr">') + (p[1] === 'register' ? K.fld(t('gsNumber'), '<input name="gosiNumber" maxlength="20" dir="ltr">') : '') + K.fld(t('gsDate'), '<input type="date" name="date">'),
+        function(v){ return api('gosiMark', { empId: p[0], kind: p[1], ref: v.ref, gosiNumber: v.gosiNumber, date: v.date }).then(function(x){ if (!x.ok && x.detail) x.detail = String(x.detail).split(', ').map(function(k){ return t(k); }).join('، '); return x; }); }, load); });
+  }); }
+  load();
+}
+
+var css = '.w6-gsc{display:flex;align-items:center;gap:14px;padding:16px 18px;margin:0 0 14px}.w6-gsc > div{flex:1;min-width:0}.w6-gsc b{display:block}.w6-gsc small{color:var(--ink-3);line-height:1.6}' +
+  '.w6-gk{color:#fff!important}.w6-gk.register{background:#2E7D4F!important}.w6-gk.update_wage{background:#2a78d6!important}.w6-gk.terminate{background:#B54708!important}.w6-iss{color:var(--bad)!important;display:block;margin-top:2px}' +
+  '.w6-celeb{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}' +
   '.w6-cc{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:18px;background:var(--card);border:1px solid var(--line);box-shadow:var(--e1);animation:moRise .5s cubic-bezier(.2,.8,.2,1) backwards;animation-delay:calc(var(--i) * 50ms)}' +
   '.w6-cc > div{flex:1;min-width:0}.w6-cc b{display:block}.w6-cc small{color:var(--ink-3)}' +
   '.w6-ci{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-size:24px;flex:none;background:color-mix(in srgb,var(--brand) 12%,transparent);color:var(--brand)}' +
@@ -282,5 +325,5 @@ var css = '.w6-celeb{display:grid;grid-template-columns:repeat(auto-fill,minmax(
   '.w6-link{display:flex;gap:8px;margin-top:12px}.w6-link input{flex:1;min-width:0;font-size:13px}';
 var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 
-window.Wave6 = { celebrations: celebSection, actions: svaSection, mentoring: mentorSection, skills: skillSection, quizzes: quizSection, alumni: alumniSection, mass: massSection, letters: lettersSection, calendar: calSection };
+window.Wave6 = { gosi: gosiSection, celebrations: celebSection, actions: svaSection, mentoring: mentorSection, skills: skillSection, quizzes: quizSection, alumni: alumniSection, mass: massSection, letters: lettersSection, calendar: calSection };
 })();

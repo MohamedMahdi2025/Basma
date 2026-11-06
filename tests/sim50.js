@@ -1426,7 +1426,7 @@ const ALLW = { all: COLS, hrOnly: ['hr'], hrA: ['hr', 'admin'], adm: ['admin'], 
   mgrX: ['manager', 'hr', 'executive', 'admin'], money: ['hr', 'payroll', 'executive'], hrExec: ['hr', 'executive'], hrExecA: ['hr', 'executive', 'admin'], mgrPay: ['manager', 'hr', 'payroll', 'admin'], mgrAll: ['manager', 'hr', 'payroll', 'executive', 'admin'] };
 const EXPECT = {
   // Wave 6 (Wave6.gs): HR-only screens; survey actions raised by HR or executives; skill gap for managers and HR
-  alumniList: 'hrA', alumniSave: 'hrA', rehireCheck: 'hrA', skillSave: 'hrA', posSkillSave: 'hrA', massChange: 'hrA', letterTplSave: 'hrA', quizSave: 'hrA', svActSave: 'hrExecA',
+  gosiQueue: 'pay', gosiMark: 'pay', alumniList: 'hrA', alumniSave: 'hrA', rehireCheck: 'hrA', skillSave: 'hrA', posSkillSave: 'hrA', massChange: 'hrA', letterTplSave: 'hrA', quizSave: 'hrA', svActSave: 'hrExecA',
   hrCompList: 'pay', hrCompPropose: 'pay', hrCompDecide: 'pay', leaveTeam: 'mgr', payrollList: 'pay', payrollGet: 'pay', payrollVariance: 'pay', payrollCreate: 'pay', payrollRecalc: 'pay', payrollApprove: 'payOnly',
   payrollDelete: 'pay', payrollAdjSave: 'pay', payrollAdjDelete: 'pay', payrollExport: 'pay', payrollEmail: 'pay', eosQuote: 'pay', dashboard: 'dash', reportLog: 'hrPay', reportReview: 'hrPay',
   reportVerify: 'dash', surveyResults: 'dash', wpsFile: 'pay', wpsStep: 'pay', reconUpload: 'pay', reconList: 'pay', reconResolve: 'pay', complianceCalendar: 'hrPay', shiftList: 'mgr',

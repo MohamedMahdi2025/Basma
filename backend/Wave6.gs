@@ -402,3 +402,77 @@ function api_quizSubmit(req, me) {
     return { ok: true, score: score, passed: passed, passMark: Number(q.passMark), right: right, of: qs.length, certNo: row.certNo, wrong: qs.map(function (x, i) { return answers[i] === x.correct ? null : i; }).filter(function (x) { return x !== null; }) };
   });
 }
+
+// ======================================================================= 10. GOSI work queue (2026-11-06)
+// What has to be done in GOSI, worked out from BASMA's own data: register new joiners (due 15 days after the hire date),
+// update the insured wage when basic + housing changed (or the wage HR recorded), and terminate leavers. HR or payroll do
+// each item in the GOSI portal and record GOSI's reference here; a readiness check lists the data GOSI will ask for that is
+// missing or wrong. A direct connection stays off until the organisation's own GOSI credentials are in Script properties
+// (GOSI_REG_NO, GOSI_CLIENT_ID, GOSI_CLIENT_SECRET): no call is made without them, and none is invented here.
+var GOSI_KINDS = ['register', 'update_wage', 'terminate'];
+function gosiInsured_(e, priv, comp) {
+  // the wage GOSI should hold now: basic + housing from the current package; the wage already registered (priv.gosiWage)
+  // is what it is compared with, and is used only when there is no package
+  var w = comp ? Number(comp.basic) + Number(comp.housing || 0) : Number(priv.gosiWage) || 0;
+  if (!w) return 0;
+  return Math.min(GOSI_MAX, Math.max(bool_(e.isSaudi) ? GOSI_MIN : 0, Math.round(w * 100) / 100));
+}
+function gosiReady_(e, priv, comp) {
+  var issues = [], id = String(priv.nationalId || '').trim();
+  if (!/^[12]\d{9}$/.test(id)) issues.push(id ? 'gosi_bad_id' : 'gosi_no_id');
+  else if (bool_(e.isSaudi) !== (id[0] === '1')) issues.push('gosi_id_nationality');
+  if (!w6Date_(priv.birthDate)) issues.push('gosi_no_birth');
+  if (!w6Date_(e.hireDate)) issues.push('gosi_no_hire');
+  if (!comp && !Number(priv.gosiWage)) issues.push('gosi_no_wage');
+  if (bool_(e.isSaudi) && !priv.gosiCohort) issues.push('gosi_no_cohort');
+  return issues;
+}
+function gosiQueue_(ctx) {
+  var t = today_(), privs = {}, comps = currentCompMap_(t), done = {};
+  readAll_(SHEETS.PRIV).forEach(function (p) { privs[p.empId] = p; });
+  readAll_(SHEETS.GOSIS).forEach(function (s) { (done[s.empId] = done[s.empId] || []).push(s); });
+  var items = [];
+  Object.keys(ctx.emps).forEach(function (k) {
+    var e = ctx.emps[k], p = privs[e.id] || {}, c = comps[e.id] || null, hist = (done[e.id] || []).slice().sort(function (a, b) { return String(a.doneAt).localeCompare(String(b.doneAt)); });
+    var reg = !!(String(p.gosiNumber || '').trim() || hist.some(function (s) { return s.kind === 'register'; }));
+    var lastDay = w6Date_(e.lastWorkingDay), gone = e.status !== 'active' || (lastDay && lastDay <= t), hire = w6Date_(e.hireDate);
+    var ready = gosiReady_(e, p, c), insured = gosiInsured_(e, p, c);
+    var base = { emp: w6Card_(e), saudi: bool_(e.isSaudi), gosiNumber: String(p.gosiNumber || ''), issues: ready, wage: insured };
+    if (!gone && !reg && hire) items.push(Object.assign({ kind: 'register', due: addDays_(hire, 15), overdue: addDays_(hire, 15) < t, since: hire }, base));
+    else if (gone && reg && !hist.some(function (s) { return s.kind === 'terminate'; })) items.push(Object.assign({ kind: 'terminate', due: lastDay ? addDays_(lastDay, 15) : '', overdue: !!lastDay && addDays_(lastDay, 15) < t, since: lastDay }, base));
+    else if (!gone && reg) {
+      var synced = hist.filter(function (s) { return s.kind !== 'terminate' && Number(s.wage); }).pop(), was = synced ? Number(synced.wage) : Number(p.gosiWage) || 0;
+      if (was && insured && Math.abs(was - insured) >= 1) items.push(Object.assign({ kind: 'update_wage', due: '', overdue: false, from: was }, base));
+    }
+  });
+  var rank = { register: 0, terminate: 1, update_wage: 2 };
+  return items.sort(function (a, b) { return (b.overdue - a.overdue) || rank[a.kind] - rank[b.kind] || String(a.due).localeCompare(String(b.due)); });
+}
+function api_gosiQueue(req, me) {
+  if (!canPayroll_(me)) fail_('forbidden');
+  var ctx = orgCtx_(), items = gosiQueue_(ctx), p = PropertiesService.getScriptProperties();
+  var configured = ['GOSI_REG_NO', 'GOSI_CLIENT_ID', 'GOSI_CLIENT_SECRET'].every(function (k) { return !!p.getProperty(orgKey_(k)); });
+  var log = readAll_(SHEETS.GOSIS).slice(-60).reverse().map(function (s) { return { kind: s.kind, emp: w6Card_(ctx.emps[s.empId]), ref: s.ref, wage: Number(s.wage) || null, date: w6Date_(s.date), by: ctx.emps[s.doneBy] ? ctx.emps[s.doneBy].name : '' }; });
+  return { ok: true, items: items, log: log, connector: { configured: configured },
+    counts: { register: items.filter(function (x) { return x.kind === 'register'; }).length, update_wage: items.filter(function (x) { return x.kind === 'update_wage'; }).length,
+      terminate: items.filter(function (x) { return x.kind === 'terminate'; }).length, overdue: items.filter(function (x) { return x.overdue; }).length, issues: items.filter(function (x) { return x.issues.length; }).length } };
+}
+function api_gosiMark(req, me) {
+  if (!canPayroll_(me)) fail_('forbidden');
+  if (GOSI_KINDS.indexOf(req.kind) < 0) fail_('bad_kind');
+  var ref = str_(req.ref, 40), date = w6Date_(req.date) || today_();
+  if (!ref) fail_('ref_required'); if (date > today_()) fail_('future_date');
+  return withLock_(function () {
+    var ctx = orgCtx_(), e = ctx.emps[req.empId]; if (!e) fail_('not_found');
+    if (e.id === me.id) fail_('cannot_change_self');
+    var item = gosiQueue_(ctx).filter(function (x) { return x.emp.id === e.id && x.kind === req.kind; })[0];
+    if (!item) fail_('nothing_to_do');
+    if (req.kind === 'register' && item.issues.length) return { ok: false, error: 'gosi_data_incomplete', detail: item.issues.join(', ') };
+    var now = new Date().toISOString(), wage = req.kind === 'terminate' ? '' : item.wage;
+    append_(SHEETS.GOSIS, { id: newId_('GS'), empId: e.id, kind: req.kind, wage: wage, ref: ref, date: date, doneBy: me.id, doneAt: now });
+    var p = findBy_(SHEETS.PRIV, 'empId', e.id), num = str_(req.gosiNumber, 20);
+    if (p && (req.kind !== 'terminate')) { if (num) p.gosiNumber = num; if (wage) p.gosiWage = wage; p.updatedAt = now; update_(SHEETS.PRIV, p); }
+    audit_(me.id, 'gosi_' + req.kind, e.id, { ref: ref, wage: wage || undefined });
+    return { ok: true };
+  });
+}
