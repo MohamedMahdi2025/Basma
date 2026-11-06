@@ -467,7 +467,7 @@ function eosHtml(q){
 function printEos(q, name){
   var en = S.lang === 'en';
   var html = '<!doctype html><html lang="' + (en ? 'en' : 'ar') + '" dir="' + (en ? 'ltr' : 'rtl') + '"><head><meta charset="utf-8"><title>EOS</title>' +
-    '<link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;600&display=swap" rel="stylesheet"><style>@page{size:A4;margin:16mm}body{font-family:"Readex Pro",Tahoma,sans-serif;color:var(--g-17221A,#17221A);font-size:13px}' +
+    '<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;600&display=swap" rel="stylesheet"><style>@page{size:A4;margin:16mm}body{font-family:"IBM Plex Sans Arabic",Tahoma,sans-serif;color:var(--g-17221A,#17221A);font-size:13px}' +
     'header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid var(--brand);padding-bottom:12px}header img{height:54px}h1{font-size:20px;margin:14px 0 4px}' +
     '.pr-slip h4{margin:14px 0 4px;font-size:13px;color:var(--g-4A5A4D,#4A5A4D)}.pr-slip dl{display:grid;grid-template-columns:1fr auto;margin:0}.pr-slip dt,.pr-slip dd{padding:4px 0;border-bottom:1px solid #E5E1D6;margin:0}' +
     '.pr-slip dd{text-align:end;font-variant-numeric:tabular-nums}.pr-slip dt small{color:#6B786D;margin-inline-start:8px}.tot dt,.tot dd{font-weight:600;font-size:16px;border:0}.hr-hint{color:var(--g-4A5A4D,#4A5A4D)}' +

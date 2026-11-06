@@ -21,9 +21,7 @@
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" integrity="sha384-6p9AefaqUhEVheRlj1mpAkbngHXy9mbYMrIdcIt4Jlc9lOLIablJq3bBsLOjGwZ7" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" integrity="sha384-pPVoXE8ft+zxKtxIDDI7SfTK6y95NHm4qa+hKEg/hs8VkjW5IP+9/dGOPCbDpUPl" crossorigin="anonymous">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/duotone/style.css" integrity="sha384-UVFvhZP7fWAENUPOoq61rJg5ef6QZW0k5vpAn71041/QS4STvUcJQCGNhStZLGx9" crossorigin="anonymous">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@500;600;700;800&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght,HEXP@160..700,0..100&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500..700&family=Noto+Naskh+Arabic:wght@500..700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
   /* REA token study 2026-10-22 (docs/research/2026-10-22-design-system-rea.md): four elevation levels, one type, radius and 4 px spacing scale */
@@ -35,7 +33,7 @@
   --signal:var(--g-9FE0AE,#9FE0AE); --amber:#E0A043; --red:#C4513A; --card:#FFFFFF;
   --r-s:10px; --r-m:16px; --r-l:28px;
   --ease:cubic-bezier(.2,.8,.2,1);
-  --font:'Readex Pro', system-ui, -apple-system, 'Segoe UI', Tahoma, sans-serif;
+  --font:'IBM Plex Sans Arabic', 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Tahoma, sans-serif;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%}
@@ -65,8 +63,8 @@ html[lang="en"] .plx{font-family:'IBM Plex Sans','IBM Plex Sans Arabic',system-u
 .plx .langsw{position:absolute;inset-inline-end:16px;top:16px;z-index:2;background:transparent;color:var(--px-ice);border:1px solid rgba(220,230,242,.28)}
 .plx.open .langsw{color:#fff}
 .plx-lockwrap{min-height:100dvh;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(320px,440px);align-items:center;gap:clamp(24px,6vw,96px);max-width:1120px;margin:0 auto;padding:72px 24px 40px}
-.plx-vault h1{font-family:'Noto Kufi Arabic','Manrope',system-ui,sans-serif;font-size:clamp(32px,4.6vw,48px);line-height:1.15;font-weight:700;color:#fff;margin:28px 0 12px;letter-spacing:-.01em}
-html[lang="en"] .plx-vault h1{font-family:'Manrope','Noto Kufi Arabic',sans-serif}
+.plx-vault h1{font-family:'IBM Plex Sans Arabic','Manrope',system-ui,sans-serif;font-size:clamp(32px,4.6vw,48px);line-height:1.15;font-weight:700;color:#fff;margin:28px 0 12px;letter-spacing:-.01em}
+html[lang="en"] .plx-vault h1{font-family:'Manrope','IBM Plex Sans Arabic',sans-serif}
 .plx-vault>p{font-size:18px;line-height:1.7;color:var(--px-ice-2);max-width:34em;margin:0 0 28px}
 .plx-facts{list-style:none;margin:0;padding:0;display:grid;gap:14px;max-width:32em}
 .plx-facts li{display:flex;gap:12px;align-items:flex-start;font-size:16px;line-height:1.6;color:var(--px-ice)}
@@ -77,8 +75,8 @@ html[lang="en"] .plx-vault h1{font-family:'Manrope','Noto Kufi Arabic',sans-seri
 @keyframes plxScan{0%{opacity:0;transform:translateY(-38%)}20%{opacity:1}80%{opacity:1}100%{opacity:0;transform:translateY(38%)}}
 @media (prefers-reduced-motion:reduce){.plx-ring::after{animation:none}}
 .plx-lock{background:#F7F9FC;color:#14202F;border-radius:24px;padding:32px 28px;box-shadow:0 24px 60px rgba(5,12,24,.45)}
-.plx-lock h2{font-family:'Noto Kufi Arabic','Manrope',system-ui,sans-serif;font-size:24px;margin:0 0 6px;color:#14202F}
-html[lang="en"] .plx-lock h2{font-family:'Manrope','Noto Kufi Arabic',sans-serif}
+.plx-lock h2{font-family:'IBM Plex Sans Arabic','Manrope',system-ui,sans-serif;font-size:24px;margin:0 0 6px;color:#14202F}
+html[lang="en"] .plx-lock h2{font-family:'Manrope','IBM Plex Sans Arabic',sans-serif}
 .plx-lock>p{margin:0 0 22px;color:#4A5B70;font-size:15px;line-height:1.6}
 .plx-lock label{display:block;font-weight:600;font-size:14px;margin:0 0 8px;color:#22324A}
 .plx-key{position:relative}
@@ -100,8 +98,8 @@ html[lang="en"] .plx-lock h2{font-family:'Manrope','Noto Kufi Arabic',sans-serif
 .plx #plL:empty{display:none}
 @media (max-width:820px){.plx-lockwrap{grid-template-columns:1fr;padding:64px 16px 32px;gap:28px;align-items:start}.plx-ring{width:96px;height:96px}.plx-ring img,.plx-ring svg{width:82px;height:82px}.plx-vault h1{margin-top:18px}.plx-vault>p{font-size:16px;margin-bottom:18px}.plx-lock{padding:24px 18px}.plx-bar small{display:none}}
 .plx-top{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:4px 0 18px}
-.plx-top h2{font-family:'Noto Kufi Arabic','Manrope',system-ui,sans-serif;font-size:28px;margin:0;color:#14202F}
-html[lang="en"] .plx-top h2{font-family:'Manrope','Noto Kufi Arabic',sans-serif}
+.plx-top h2{font-family:'IBM Plex Sans Arabic','Manrope',system-ui,sans-serif;font-size:28px;margin:0;color:#14202F}
+html[lang="en"] .plx-top h2{font-family:'Manrope','IBM Plex Sans Arabic',sans-serif}
 .plx-top p{margin:4px 0 0;color:#4A5B70;font-size:15px}
 .plx-new{height:46px;border:0;border-radius:12px;background:#142236;color:#fff;padding:0 20px;display:flex;align-items:center;gap:8px;font:600 16px/1 inherit;cursor:pointer}
 .plx-new:hover{background:#2F5D8C}.plx-new:focus-visible{outline:3px solid #7FB2E5;outline-offset:2px}
@@ -933,10 +931,10 @@ body.v2-on{
   --r-s:10px; --r-m:16px; --r-l:20px;
   --sh-card:0 1px 2px rgba(var(--gr-15-28-20,15,28,20),.05),0 8px 24px -14px rgba(var(--gr-15-28-20,15,28,20),.18);
   --sh-lift:0 2px 4px rgba(var(--gr-15-28-20,15,28,20),.06),0 18px 36px -18px rgba(var(--gr-15-28-20,15,28,20),.32);
-  --f-head:'Noto Kufi Arabic','Manrope',system-ui,sans-serif; --f-body:'IBM Plex Sans Arabic','Manrope',system-ui,sans-serif; --f-num:'Manrope','IBM Plex Sans Arabic',sans-serif;
+  --f-head:'IBM Plex Sans Arabic','Manrope',system-ui,sans-serif; --f-body:'IBM Plex Sans Arabic','IBM Plex Sans',system-ui,sans-serif; --f-num:'Manrope','IBM Plex Sans Arabic',sans-serif;
   font-family:var(--f-body);background:var(--paper)
 }
-html[lang="en"] body.v2-on{--f-head:'Manrope','Noto Kufi Arabic',sans-serif;--f-body:'IBM Plex Sans','IBM Plex Sans Arabic',sans-serif}
+html[lang="en"] body.v2-on{--f-head:'Manrope','IBM Plex Sans Arabic',sans-serif;--f-body:'IBM Plex Sans','IBM Plex Sans Arabic',sans-serif}
 body.v2-on :is(h1,h2,h3,.v2-ph h1,.hm-ph h1,.drawer h3){font-family:var(--f-head)}
 body.v2-on :is(.num,.db-tile b,.kpi b,.stat b,.hm-facts dd,.hm-big b,.kpi .v){font-family:var(--f-num)}
 .app.v2{background:var(--paper)}
@@ -1063,9 +1061,9 @@ body.v2-on .drawer .panel{border-radius:24px 24px 0 0}
 body.v2-on{
   --ink:#141413;
   --sh-card:0 0 0 1px var(--line);
-  --f-head:'Noto Naskh Arabic','Newsreader',Georgia,serif;
+  --f-head:'IBM Plex Sans Arabic','Manrope',system-ui,sans-serif;
 }
-html[lang="en"] body.v2-on{--f-head:'Newsreader','Noto Naskh Arabic',Georgia,serif}
+html[lang="en"] body.v2-on{--f-head:'Manrope','IBM Plex Sans Arabic',system-ui,sans-serif}
 body.v2-on :is(h1,h2,h3,.v2-ph h1,.hm-ph h1,.drawer h3){font-weight:700;letter-spacing:-.005em;font-variation-settings:normal}
 body.v2-on :is(.btn-dark,.btn-brand){border-radius:4px 4px var(--r-s) var(--r-s)}
 body.v2-on :is(.btn,input,select,textarea,.v2-ib,.v2-search):focus-visible{outline:2px solid var(--brand);outline-offset:2px}
@@ -1530,6 +1528,31 @@ body.v2-on :is(.db-tile b,.kpi b,.stat b,.hm-facts dd,.hm-big b,.hm-k .v,[data-c
   .gate-form:has(.pinpad) .linkish{justify-self:center;align-self:center}
   .gate h1{font-size:32px}
   .gate .linkish{align-self:flex-start}
+}
+/* desktop sign-in, second pass (2026-11-06) */
+@media (min-width:1024px){
+  .gate{--d:clamp(170px,min(20vw,29vh),300px);min-height:100dvh;height:100dvh;padding:28px clamp(40px,6vw,110px);grid-template-columns:minmax(0,1fr) minmax(440px,500px);column-gap:clamp(40px,6vw,110px);align-items:center;overflow:hidden}
+  .gate-brand{min-height:0;gap:clamp(16px,3vh,32px);justify-content:center}
+  .gate-brand .wm-ar{font-size:clamp(32px,4.4vh,44px)}
+  .gate-form{max-height:calc(100dvh - 56px);overflow:auto;padding:clamp(26px,4vh,40px) clamp(28px,2.6vw,40px) clamp(20px,3vh,28px);gap:12px;border-radius:28px;scrollbar-width:thin}
+  .gate-form .field{margin:0}
+  .gate-form .field label{margin-bottom:6px;font-size:13px}
+  .gate-form input:not([type=checkbox]){height:48px}
+  .gate-form h1{margin:4px 0 2px}
+  .gate-form > p,.gate-form form > p{margin:0 0 6px;line-height:1.6}
+  .gate-form .btn-primary{height:52px;margin-top:6px}
+  .gate .si-seg{margin-bottom:6px}
+  body:has(.gate) .langsw{position:fixed;top:22px;inset-inline-start:auto;inset-inline-end:28px;left:auto;right:auto;z-index:5}
+  :root[dir="rtl"] body:has(.gate) .langsw{right:28px}:root[dir="ltr"] body:has(.gate) .langsw{left:28px}
+  /* fields in pairs: organisation | number, PIN | repeat PIN; everything else full width */
+  .gate-form form{display:grid;grid-template-columns:1fr 1fr;column-gap:14px;row-gap:12px}
+  .gate-form form > *{grid-column:1 / -1}
+  .gate-form form > .field:nth-of-type(1),.gate-form form > .field:nth-of-type(2),.gate-form form > .field:nth-of-type(4),.gate-form form > .field:nth-of-type(5){grid-column:auto}
+  .gate .pinpad{gap:12px}
+}
+@media (min-width:1024px) and (max-height:760px){
+  .gate-tag{display:none}
+  .gate-form .pinpad button{width:62px;height:62px}
 }
 @media (prefers-reduced-motion:reduce){
   .gt-dial .val{animation:none;stroke-dashoffset:0}.gt-dial .mk{animation:none;transform:rotate(337.5deg)}.gt-dial .ticks{animation:none;opacity:1}
@@ -2375,7 +2398,7 @@ var T = {
     e_outside_zone:'أنت خارج نطاق المقر', e_accuracy_too_low:'دقة الموقع ضعيفة جداً، حاول مجدداً', e_no_location:'تعذّر تحديد موقعك', e_no_zone:'لا يوجد نطاق عمل محدد لك',
     e_too_soon:'سُجّلت حركتك للتو', e_state_changed:'تغيّرت حالتك، حدّث الشاشة', e_bad_activation:'الرقم الوظيفي أو رمز التفعيل غير صحيح', e_activation_expired:'انتهت صلاحية رمز التفعيل، اطلب رمزاً جديداً',
     e_activation_locked:'تم إيقاف الرمز بعد محاولات خاطئة، اطلب رمزاً جديداً', e_too_many_attempts:'محاولات كثيرة، انتظر قليلاً', e_no_device:'لا يوجد جهاز مفعّل لهذا الرقم', e_unknown_employee:'الرقم الوظيفي غير معروف',
-    e_device_not_recognised:'هذا الجهاز غير مربوط بحسابك', e_device_taken:'هذا الجهاز مسجّل باسم موظف آخر. لا يُسمح بتسجيل الحضور لغيرك؛ تفكّه الموارد البشرية عند الحاجة.', e_device_mismatch:'هذا المفتاح لا يعمل إلا على الجهاز الذي فُعّل عليه.', e_bad_signature:'تعذّر التحقق من البصمة', e_challenge_expired:'انتهت المهلة، حاول مجدداً', e_session_expired:'انتهت الجلسة', e_network:'تعذّر الاتصال بالخادم',
+    e_already_paired:'بينكما برنامج إرشاد قائم بالفعل.', e_answer_all:'أجب عن كل الأسئلة.', e_bad_owner:'اختر مسؤولا نشطا.', e_bad_questions:'من 2 إلى 30 سؤالا، لكل سؤال من 2 إلى 6 خيارات وإجابة صحيحة واحدة.', e_body_required:'اكتب نص الخطاب (20 حرفا على الأقل).', e_goal_required:'اكتب هدف الإرشاد.', e_mentor_full:'اكتمل عدد المسترشدين لدى هذا المرشد.', e_name_required:'اكتب الاسم.', e_not_a_mentor:'هذا الموظف لا يقدّم الإرشاد حاليا.', e_reason_required:'اكتب السبب.', e_same_person:'لا يكون المرشد والمسترشد الشخص نفسه.', e_title_required:'اكتب العنوان.', e_unknown_placeholder:'في النص حقل غير معروف:', e_device_not_recognised:'هذا الجهاز غير مربوط بحسابك', e_device_taken:'هذا الجهاز مسجّل باسم موظف آخر. لا يُسمح بتسجيل الحضور لغيرك؛ تفكّه الموارد البشرية عند الحاجة.', e_device_mismatch:'هذا المفتاح لا يعمل إلا على الجهاز الذي فُعّل عليه.', e_bad_signature:'تعذّر التحقق من البصمة', e_challenge_expired:'انتهت المهلة، حاول مجدداً', e_session_expired:'انتهت الجلسة', e_network:'تعذّر الاتصال بالخادم',
     e_bad_setup_key:'مفتاح التهيئة غير صحيح', e_duplicate_emp_no:'الرقم الوظيفي مستخدم', e_forbidden:'ليست لديك صلاحية', e_no_user_verification:'يلزم Face ID أو البصمة',
     e_cancelled:'أُلغيت عملية التحقق', e_no_passkey:'هذا المتصفح لا يدعم Face ID / البصمة. استخدم Safari أو Chrome حديثاً.', e_cannot_correct_self:'لا يمكنك تصحيح حضورك بنفسك', e_cannot_review_self:'لا يمكنك مراجعة حركتك بنفسك',
     e_future_time:'لا يمكن التسجيل في وقت لاحق', e_bad_zone:'بيانات النطاق غير صحيحة', e_bad_radius:'نصف القطر بين 20 و 5000 م', e_missing_fields:'أكمل الحقول المطلوبة', plTitle2:'الدخول بالرمز السري', plLead2:'أدخل رقمك الوظيفي ورمزك السري من 6 أرقام. يعمل من أي جهاز.', plPin2:'الرمز السري (6 أرقام)', plFirst2:'أول مرة؟ لدي رمز تفعيل', e_bad_pin_login:'الرقم الوظيفي أو الرمز السري غير صحيح.', e_pin_locked:'أخطأت 5 مرات: الدخول بالرمز السري موقوف 15 دقيقة. اطلب رمز تفعيل جديد إن نسيت الرمز.', siPin:'الرمز السري', siPw:'كلمة المرور', siPinFirst:'أول مرة على هذا الجهاز: أدخل رمز التفعيل من الموارد البشرية واختر رمزك السري من 6 أرقام. بعدها تدخل بالرمز السري فقط.', mvTitle:'بصمة انتقلت إلى رابط جديد', mvLead:'انتقل الآن بضغطة واحدة: يفتح الرابط الجديد ورمز التفعيل جاهز، ثم تختار رمزك السري. لا تحتاج رمزا من الموارد البشرية.', mvGo:'انتقل الآن', mvLater:'لاحقا', mvIn:'مرحبا في الرابط الجديد لبصمة. اختر رمزك السري لإكمال الانتقال.', empNoAuto:'يولد تلقائيا', empNoBySystem:'يصدر النظام الرقم الوظيفي تلقائيا عند الحفظ، حسب إعدادات أرقام الموظفين.', empNoNextIs:'الرقم التالي: {n}', e_needs_owner_authorization:'يحتاج النظام موافقة مالك الحساب على صلاحية الاتصال الخارجي مرة واحدة (من محرر Apps Script).', setEmpNo:'أرقام الموظفين', setEmpNoLead:'يولد النظام رقم كل موظف جديد تلقائيا: البادئة ثم رقم متسلسل. يمكن للموظف الدخول بالرقم وحده دون البادئة.', setEmpNoPrefix:'البادئة (حروف إنجليزية أو أرقام، اختيارية)', setEmpNoDigits:'عدد الخانات', setEmpNoStart:'أول رقم', setEmpNoEx:'مثال: {n}', e_bad_unn:'الرقم الوطني الموحد 10 أرقام ويبدأ بالرقم 7', e_unn_exists:'توجد منشأة بهذا الرقم الوطني الموحد', e_server_error:'خطأ في الخادم', e_generic:'حدث خطأ'
@@ -2436,7 +2459,7 @@ var T = {
     e_outside_zone:'You are outside the HQ zone', e_accuracy_too_low:'Location is too imprecise, try again', e_no_location:'Could not get your location', e_no_zone:'No work zone is set for you',
     e_too_soon:'You just punched', e_state_changed:'Your status changed, refresh', e_bad_activation:'Employee number or activation code is wrong', e_activation_expired:'The activation code expired, ask for a new one',
     e_activation_locked:'The code was locked after wrong attempts, ask for a new one', e_too_many_attempts:'Too many attempts, wait a little', e_no_device:'No device is activated for this number', e_unknown_employee:'Unknown employee number',
-    e_device_not_recognised:'This device is not linked to your account', e_device_taken:'This device is registered to another employee. Nobody may check in for someone else; HR can release it if needed.', e_device_mismatch:'This key only works on the device it was activated on.', e_bad_signature:'Biometric check could not be verified', e_challenge_expired:'Timed out, try again', e_session_expired:'Session ended', e_network:'Cannot reach the server',
+    e_already_paired:'You two already have a mentorship.', e_answer_all:'Answer every question.', e_bad_owner:'Pick an active owner.', e_bad_questions:'2 to 30 questions, each with 2 to 6 choices and one correct answer.', e_body_required:'Write the letter text (at least 20 characters).', e_goal_required:'Write the mentoring goal.', e_mentor_full:'This mentor has no room for another mentee.', e_name_required:'Write the name.', e_not_a_mentor:'This person does not offer mentoring now.', e_reason_required:'Write the reason.', e_same_person:'Mentor and mentee cannot be the same person.', e_title_required:'Write the title.', e_unknown_placeholder:'Unknown field in the text:', e_device_not_recognised:'This device is not linked to your account', e_device_taken:'This device is registered to another employee. Nobody may check in for someone else; HR can release it if needed.', e_device_mismatch:'This key only works on the device it was activated on.', e_bad_signature:'Biometric check could not be verified', e_challenge_expired:'Timed out, try again', e_session_expired:'Session ended', e_network:'Cannot reach the server',
     e_bad_setup_key:'Setup key is wrong', e_duplicate_emp_no:'Employee number already used', e_forbidden:'You do not have access', e_no_user_verification:'Face ID or fingerprint is required',
     e_cancelled:'Verification was cancelled', e_no_passkey:'This browser cannot use Face ID / fingerprint. Use an up-to-date Safari or Chrome.', e_cannot_correct_self:'You cannot correct your own attendance', e_cannot_review_self:'You cannot review your own punch',
     e_future_time:'That time is in the future', e_bad_zone:'Zone details are invalid', e_bad_radius:'Radius must be 20 to 5000 m', e_missing_fields:'Fill in the required fields', plTitle2:'Sign in with your PIN', plLead2:'Enter your employee number and your 6-digit PIN. Works from any device.', plPin2:'PIN (6 digits)', plFirst2:'First time? I have an activation code', e_bad_pin_login:'Employee number or PIN is wrong.', e_pin_locked:'5 wrong tries: PIN sign-in is paused for 15 minutes. Ask for a new activation code if you forgot your PIN.', siPin:'PIN', siPw:'Password', siPinFirst:'First time on this device: enter the activation code from HR and choose your 6-digit PIN. After that you sign in with the PIN only.', mvTitle:'BASMA has a new link', mvLead:'Move now with one tap: the new link opens with your activation code filled in, then you choose your PIN. No code from HR is needed.', mvGo:'Move now', mvLater:'Later', mvIn:'Welcome to BASMA\'s new link. Choose your PIN to finish the move.', empNoAuto:'Generated automatically', empNoBySystem:'The system issues the employee number when you save, following the employee number settings.', empNoNextIs:'Next number: {n}', e_needs_owner_authorization:'The system needs the account owner to approve the external-request permission once (in the Apps Script editor).', setEmpNo:'Employee numbers', setEmpNoLead:'The system gives every new employee the next number: the prefix, then a running number. People can sign in with the number alone, without the prefix.', setEmpNoPrefix:'Prefix (English letters or digits, optional)', setEmpNoDigits:'Digits', setEmpNoStart:'First number', setEmpNoEx:'Example: {n}', e_bad_unn:'The unified national number is 10 digits starting with 7', e_unn_exists:'An organisation with this unified national number already exists', e_server_error:'Server error', e_generic:'Something went wrong'
