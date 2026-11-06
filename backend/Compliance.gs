@@ -162,6 +162,71 @@ function api_wpsStep(req, me) {
   });
 }
 
+// ---------------- wage protection compliance (what Mudad scores) ----------------
+
+/**
+ * Per month, for every person on the payroll that month: were they paid through an approved run, was the run's WPS file
+ * uploaded, and was the basic + housing paid at least the wage registered in GOSI (pro rata for a part month)? Mudad
+ * reports an establishment's compliance on these points, so this is the same picture before Mudad shows it. The
+ * registered wage is priv.gosiWage (kept by the GOSI queue); without it, the package's basic + housing is used and
+ * marked as such. A person not yet due (the month's file is not due and no run is approved) is left out of the rate.
+ */
+function wpsMonth_(m, ctx) {
+  var first = m + '-01', last = monthLast_(m), due = wpsDue_(m, ctx.s), t = today_();
+  if (!ctx.start || m < ctx.start) return { month: m, due: due, counted: 0, compliant: 0, pct: null, counts: {}, files: [], late: false, people: [], before: true }; // before payroll ran in BASMA: no data, not a breach
+  var runs = ctx.runs.filter(function (r) { return String(r.month) === m; }), locked = runs.filter(function (r) { return r.status === 'locked'; });
+  var wpsOf = {}; ctx.wps.forEach(function (w) { wpsOf[w.runId] = w; });
+  var slipOf = {}; ctx.slips.forEach(function (s) { if (String(s.month) === m && locked.some(function (r) { return r.id === s.runId; }) && Number(s.net) > 0) slipOf[s.empId] = s; });
+  var comps = currentCompMap_(last > t ? t : last), counts = { ok: 0, partial: 0, below: 0, not_paid: 0, not_uploaded: 0, pending: 0 }, people = [];
+  Object.keys(ctx.emps).forEach(function (k) {
+    var e = ctx.emps[k], hire = isoDate_(e.hireDate), lastDay = isoDate_(e.lastWorkingDay);
+    if (hire && hire > last) return;                               // joined after the month
+    if (lastDay && lastDay < first) return;                        // left before it
+    if (!lastDay && e.status !== 'active') return;                 // inactive without a last day: not on the payroll
+    if (!payGroupAccess_(ctx.me, String(e.payGroupId || ''), ctx.groups)) return; // a closed pay group: its own payroll staff only
+    var p = ctx.privs[e.id] || {}, c = comps[e.id], sl = slipOf[e.id], w = sl ? wpsOf[sl.runId] : null;
+    var reg = Number(p.gosiWage) || 0, source = reg ? 'gosi' : 'package';
+    if (!c && !reg && !String(p.gosiNumber || '').trim()) return;  // no package and not insured: not on the payroll (e.g. a system account)
+    if (!reg && c) reg = r2_(Math.min(GOSI_MAX, Number(c.basic) + Number(c.housing || 0)));
+    var status, paid = 0, days = 0, expect = 0;
+    if (!sl) status = !locked.length && t <= due ? 'pending' : 'not_paid';
+    else {
+      var ls = lines_(sl); days = Number(sl.paidDays) || 30;
+      paid = r2_(ls.filter(function (l) { return l.kind === 'earning' && (l.code === 'basic' || l.code === 'housing'); }).reduce(function (a, l) { return a + Number(l.amount || 0); }, 0));
+      expect = r2_(Math.min(reg, GOSI_MAX) * Math.min(30, days) / 30);
+      if (!w || w.status === 'generated') status = t <= due ? 'pending' : 'not_uploaded';
+      else if (reg && paid < expect - 1) status = 'below';
+      else status = days < 30 ? 'partial' : 'ok';
+    }
+    counts[status]++;
+    if (status !== 'ok') people.push({ emp: empCard_(e), status: status, registered: reg, source: source, paid: paid, expected: expect, paidDays: days, payslip: sl ? sl.ref : '' });
+  });
+  var counted = counts.ok + counts.partial + counts.below + counts.not_paid + counts.not_uploaded, good = counts.ok + counts.partial;
+  var files = locked.map(function (r) {
+    var w = wpsOf[r.id], up = w && w.uploadedAt ? String(w.uploadedAt).slice(0, 10) : '';
+    return { ref: r.ref, status: w ? w.status : 'none', uploadedAt: up, bankRef: w ? w.bankRef : '', late: up ? up > due : t > due };
+  });
+  var rank = { not_paid: 0, below: 1, not_uploaded: 2, pending: 3, partial: 4 };
+  people.sort(function (a, b) { return rank[a.status] - rank[b.status] || String(a.emp.empNo).localeCompare(String(b.emp.empNo)); });
+  return { month: m, due: due, counted: counted, compliant: good, pct: counted ? Math.round(good * 1000 / counted) / 10 : null, counts: counts, files: files,
+    late: files.some(function (f) { return f.late; }), people: people };
+}
+function api_wpsCompliance(req, me) {
+  if (!canPayroll_(me)) fail_('forbidden'); // wages: the hr role or payroll, never an administrator alone
+  var n = Math.max(1, Math.min(12, Number(req.months) || 6)), t = today_(), ctx = { me: me, s: settings_(), emps: {}, privs: {}, groups: payGroups_() };
+  readAll_(SHEETS.EMP).forEach(function (e) { ctx.emps[e.id] = e; });
+  readAll_(SHEETS.PRIV).forEach(function (p) { ctx.privs[p.empId] = p; });
+  ctx.runs = readAll_(SHEETS.RUN).filter(function (r) { return r.status !== 'cancelled' && !isDemoRun_(r) && runAccess_(me, r, ctx.groups); });
+  ctx.start = ctx.runs.map(function (r) { return String(r.month); }).sort()[0] || '';
+  ctx.wps = readAll_(SHEETS.WPS); ctx.slips = readAll_(SHEETS.SLIP).filter(function (s) { return s.status !== 'void'; });
+  var months = [];
+  for (var i = n - 1; i >= 0; i--) months.push(new Date(Date.UTC(+t.slice(0, 4), +t.slice(5, 7) - 1 - i, 1)).toISOString().slice(0, 7));
+  var rows = months.map(function (m) { return wpsMonth_(m, ctx); });
+  var pick = /^\d{4}-\d{2}$/.test(req.month || '') && months.indexOf(req.month) >= 0 ? req.month : (rows.filter(function (r) { return r.counted; }).pop() || rows[rows.length - 1]).month;
+  var sel = rows.filter(function (r) { return r.month === pick; })[0];
+  return { ok: true, month: pick, detail: sel, months: rows.map(function (r) { return { month: r.month, due: r.due, counted: r.counted, compliant: r.compliant, pct: r.pct, counts: r.counts, files: r.files, late: r.late, before: !!r.before }; }) };
+}
+
 // ---------------- salary reconciliation (GOSI / Qiwa exports) ----------------
 
 /**

@@ -4,6 +4,12 @@
 'use strict';
 
 Object.assign(T.ar, {
+  cpMudad:'الامتثال في مدد', mdLead:'ما يحاسب عليه مدد كل شهر: أن يصرف أجر كل موظف مسجل عبر مسير معتمد، وأن يرفع ملف حماية الأجور في موعده، وألا يقل الأساسي والسكن المصروفان عن الأجر المسجل في التأمينات. هذه الصورة نفسها قبل أن يظهرها مدد.',
+  mdRate:'نسبة الالتزام', mdIssues:'يحتاجون تصحيحا', mdFile:'ملف الشهر', mdTrend:'الالتزام آخر ستة أشهر', mdPeople:'من سيظهر في مدد',
+  mdNoData:'قبل أول مسير في بصمة', mdNotDue:'لم يحن موعده', mdLateUp:'رفع متأخر', mdOnTime:'في الموعد', mdNoFile:'لا يوجد مسير معتمد',
+  md_not_paid:'لم يصرف له أجر', md_below:'أقل من الأجر المسجل في التأمينات', md_not_uploaded:'صرف ولم يرفع الملف', md_pending:'لم يحن الموعد', md_partial:'شهر جزئي (مقبول)',
+  mdPaid:'صرف', mdReg:'المسجل', mdRegPkg:'من الباقة، غير مسجل في التأمينات بعد', mdDays:'يوما', mdAllGood:'كل من استحق صرف له أجره كاملا وفي الموعد.',
+  mdFix:'يصحح الأجر المسجل من شاشة التأمينات الاجتماعية، والملف من تبويب ملف حماية الأجور.', mdOpen:'فتح بوابة مدد', mdVerify:'تحقق من قواعد مدد ونسبة الالتزام المطلوبة في بوابة مدد قبل الاعتماد عليها.',
   cpTitle:'الامتثال', cpCal:'التقويم النظامي', cpWps:'ملف حماية الأجور (مدد)', cpRecon:'مطابقة الأجور', cpDash:'الامتثال في لمحة',
   cpOverdue:'متأخرة', cpSoon:'خلال 14 يوما', cpLater:'لاحقا', cpOpenRecon:'فروقات أجور مفتوحة', cpAllClear:'لا توجد التزامات متأخرة أو قريبة.', cpDue:'الموعد', cpLeft:'متبقي', cpLate:'متأخر',
   ck_gosi_register:'تسجيل الموظف في التأمينات الاجتماعية (خلال 15 يوما من المباشرة)', ck_qiwa_contract:'توثيق العقد في منصة قوى', ck_iqama:'انتهاء الإقامة', ck_passport:'انتهاء جواز السفر',
@@ -29,6 +35,12 @@ Object.assign(T.ar, {
   e_run_not_locked:'يصدر الملف بعد اعتماد المسير.', e_demo_run:'هذا مسير تجريبي: لا يصدر له ملف بنك ولا قيد محاسبي.', e_wps_errors:'في الملف أخطاء. صحح بيانات الموظفين أولا.', e_bad_state:'هذه الخطوة غير متاحة الآن.', e_note_required:'اكتب ملاحظة.'
 });
 Object.assign(T.en, {
+  cpMudad:'Mudad compliance', mdLead:'What Mudad holds the company to each month: every insured employee paid through an approved run, the WPS file uploaded on time, and basic + housing paid at no less than the wage registered in GOSI. This is the same picture before Mudad shows it.',
+  mdRate:'Compliance rate', mdIssues:'Need a correction', mdFile:'Month file', mdTrend:'Compliance, last six months', mdPeople:'Who Mudad will flag',
+  mdNoData:'Before the first run in BASMA', mdNotDue:'Not due yet', mdLateUp:'Uploaded late', mdOnTime:'On time', mdNoFile:'No approved run',
+  md_not_paid:'Not paid', md_below:'Below the wage registered in GOSI', md_not_uploaded:'Paid, file not uploaded', md_pending:'Not due yet', md_partial:'Part month (accepted)',
+  mdPaid:'Paid', mdReg:'Registered', mdRegPkg:'from the package, not registered in GOSI yet', mdDays:'days', mdAllGood:'Everyone due was paid in full and on time.',
+  mdFix:'Correct the registered wage on the GOSI page, and the file on the WPS file tab.', mdOpen:'Open the Mudad portal', mdVerify:'Check Mudad\'s rules and the required compliance rate in the Mudad portal before relying on them.',
   cpTitle:'Compliance', cpCal:'Legal calendar', cpWps:'WPS salary file (Mudad)', cpRecon:'Wage reconciliation', cpDash:'Compliance at a glance',
   cpOverdue:'Overdue', cpSoon:'Within 14 days', cpLater:'Later', cpOpenRecon:'Open wage mismatches', cpAllClear:'Nothing overdue or due soon.', cpDue:'Due', cpLeft:'left', cpLate:'late',
   ck_gosi_register:'Register with GOSI (within 15 days of joining)', ck_qiwa_contract:'Document the contract in Qiwa', ck_iqama:'Iqama expiry', ck_passport:'Passport expiry',
@@ -65,6 +77,9 @@ var css = '' +
 '.cp-step b{display:flex;align-items:center;gap:8px;font-size:14px;margin-bottom:4px}.cp-step.done{border-color:var(--g-9CC7A6,#9CC7A6);background:var(--g-F1F8F2,#F1F8F2)}.cp-step.done b i{color:#2E7D4F}.cp-step small{color:var(--ink-2)}' +
 '.cp-box{background:var(--card);border-radius:16px;padding:16px;box-shadow:var(--e3);margin-bottom:14px}' +
 '.cp-note{font-size:13px;color:var(--ink-2);display:flex;gap:8px;align-items:flex-start;margin:6px 0 12px}' +
+'.md-pick{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}.md-pick button{height:32px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-size:13px;color:var(--ink-2)}' +
+'.md-pick button[aria-pressed="true"]{background:var(--pine);color:var(--cream);border-color:var(--pine)}.md-pick button b{font-weight:500;margin-inline-start:6px}' +
+'.md-st{display:inline-flex;align-items:center;gap:4px;font-size:12px;padding:2px 8px;border-radius:999px;white-space:nowrap}.md-st.not_paid,.md-st.below{background:#FDECEA;color:#B3261E}.md-st.not_uploaded{background:#FFF4E0;color:#8A5A00}.md-st.pending,.md-st.partial{background:var(--line);color:var(--ink-2)}' +
 '@media (max-width:640px){.cp-steps{grid-template-columns:1fr}}';
 var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 
@@ -77,12 +92,13 @@ function xlsxLib(){ if (window.XLSX) return Promise.resolve(); if (xp) return xp
 
 function section(body){
   var v = S.cpView || 'cal';
-  body.innerHTML = '<div class="hr-h"><h2>' + t('cpTitle') + '</h2></div><div class="cp-seg" role="group">' + [['cal', 'calendar-check', 'cpCal'], ['wps', 'bank', 'cpWps'], ['recon', 'scales', 'cpRecon']].map(function(x){
+  body.innerHTML = '<div class="hr-h"><h2>' + t('cpTitle') + '</h2></div><div class="cp-seg" role="group">' + [['cal', 'calendar-check', 'cpCal'], ['wps', 'bank', 'cpWps'], ['mudad', 'shield-check', 'cpMudad'], ['recon', 'scales', 'cpRecon']].map(function(x){
     return '<button type="button" data-v="' + x[0] + '" aria-pressed="' + (v === x[0]) + '">' + ph(x[1]) + t(x[2]) + '</button>'; }).join('') + '</div><div id="cpB"></div>';
   $$('[data-v]', body).forEach(function(b){ b.onclick = function(){ S.cpView = b.dataset.v; section(body); }; });
   var el = $('#cpB', body);
   if (v === 'wps') return wpsView(el);
   if (v === 'recon') return reconView(el);
+  if (v === 'mudad') return mudadView(el);
   calendar(el);
 }
 
@@ -150,6 +166,34 @@ function wpsView(el){
     });
   });
 }
+// ---------------- Mudad compliance ----------------
+function mudadView(el){
+  busy(el);
+  api('wpsCompliance', { month: S.mdMonth || '' }, true).then(function(r){
+    if (!el.isConnected) return;
+    if (!r.ok) return el.innerHTML = '<p class="hr-bad">' + errText(r.error) + '</p>';
+    var V = window.Viz, d = r.detail, pct = function(m){ return m.pct == null ? '-' : (V ? V.n1(m.pct, 1) : m.pct) + '%'; };
+    var issues = d.people.filter(function(p){ return p.status !== 'partial' && p.status !== 'pending'; }).length;
+    var file = !d.files.length ? t(d.before ? 'mdNoData' : 'mdNoFile') : d.files.map(function(f){ return t(f.status === 'none' ? 'wpNone' : 'wps_' + f.status); }).join('، ');
+    var h = '<p class="cp-note">' + ph('info') + t('mdLead') + '</p>';
+    h += '<div class="md-pick" role="group">' + r.months.map(function(m){ return '<button type="button" data-m="' + m.month + '" aria-pressed="' + (m.month === r.month) + '">' + esc(monthName(m.month)) + (m.before || m.pct == null ? '' : '<b>' + pct(m) + '</b>') + '</button>'; }).join('') + '</div>';
+    if (V) h += '<div class="db-tiles">' + V.tile(t('mdRate'), d.before ? '-' : pct(d), d.before ? t('mdNoData') : d.counted ? d.compliant + ' / ' + d.counted : t('mdNotDue'), null, true, true) +
+      V.tile(t('mdIssues'), '<span class="db-status">' + (issues ? ph('warning-circle') + ' ' : '') + issues + '</span>', '') +
+      V.tile(t('mdFile'), esc(file), d.files.length ? (d.late ? t('mdLateUp') : t('mdOnTime')) : '') + V.tile(t('cpDue'), fmt(d.due), '') + '</div>';
+    var trend = r.months.filter(function(m){ return !m.before; }).map(function(m){ return { label: monthName(m.month).split(' ')[0], value: m.pct || 0, alt: m.pct != null && m.pct < 100, tip: monthName(m.month) + ': ' + pct(m) }; });
+    if (V && trend.length) h += '<div class="db-grid">' + V.card('mdT', t('mdTrend'), '', V.cols(trend, { labels: true, suffix: '%', max: 100 }), '') + '</div>';
+    h += '<h3 class="hr-sub">' + t('mdPeople') + '</h3>';
+    h += d.people.length ? '<div class="list">' + d.people.map(function(p){
+      var reg = p.registered ? t('mdReg') + ' ' + money(p.registered) + (p.source === 'package' ? ' (' + t('mdRegPkg') + ')' : '') : '';
+      var sub = [p.paid ? t('mdPaid') + ' ' + money(p.paid) + (p.paidDays && p.paidDays < 30 ? ' / ' + p.paidDays + ' ' + t('mdDays') : '') : '', reg, p.payslip ? '<bdi>' + esc(p.payslip) + '</bdi>' : ''].filter(Boolean).join(' · ');
+      return '<div class="row"><div class="main"><b>' + esc(p.emp.name) + ' <bdi class="num">' + esc(p.emp.empNo) + '</bdi></b><small>' + sub + '</small></div><span class="md-st ' + p.status + '">' + t('md_' + p.status) + '</span></div>';
+    }).join('') + '</div><p class="cp-note">' + ph('lightbulb') + t('mdFix') + '</p>' : '<div class="empty">' + ph('seal-check') + '<b>' + t(d.counted ? 'mdAllGood' : d.before ? 'mdNoData' : 'mdNotDue') + '</b></div>';
+    h += '<div class="btnrow" style="margin:6px 0"><a class="btn btn-line btn-sm" href="https://mudad.com.sa" target="_blank" rel="noopener">' + ph('arrow-square-out') + t('mdOpen') + '</a></div><p class="cp-note">' + ph('info') + t('mdVerify') + '</p>';
+    el.innerHTML = h; if (V) V.wire(el);
+    $$('[data-m]', el).forEach(function(b){ b.onclick = function(){ S.mdMonth = b.dataset.m; mudadView(el); }; });
+  });
+}
+
 function wpsXlsx(r){
   var X = window.XLSX, head = ['Employee Name', 'Employee Name (Arabic)', 'ID / Iqama Number', 'Nationality', 'Bank Code', 'Bank', 'IBAN', 'Basic Salary', 'Housing Allowance', 'Other Earnings', 'Deductions', 'Net Salary', 'Employee No.', 'Payslip'];
   var aoa = [head].concat(r.rows.map(function(x){ return [x.name, x.nameAr, x.idNumber, x.nationality, x.bankCode, x.bank, x.iban, x.basic, x.housing, x.other, x.deductions, x.net, x.empNo, x.payslip]; }));
