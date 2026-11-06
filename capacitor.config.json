@@ -3,9 +3,10 @@
   "appName": "بصمة",
   "webDir": "www",
   "server": {
-    "url": "https://besgasksa.github.io/basma/",
+    "url": "https://mohamedmahdi2025.github.io/",
     "cleartext": false,
     "allowNavigation": [
+      "mohamedmahdi2025.github.io",
       "besgasksa.github.io",
       "script.google.com",
       "script.googleusercontent.com"

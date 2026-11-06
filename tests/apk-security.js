@@ -54,7 +54,7 @@ const leaks = [/AKIA[0-9A-Z]{16}/, /AIza[0-9A-Za-z_\-]{35}/, /sk-ant-[A-Za-z0-9_
 ok(!leaks.length, 'no API keys, private keys or signing passwords in the code', leaks.join(', '));
 const pwd = readSigningPasswords();
 ok(!pwd.length || !pwd.some(p => p.length >= 6 && text.indexOf(p) >= 0), 'the actual signing passwords do not appear anywhere in the APK');
-ok(/https:\/\/besgasksa\.github\.io\/BG-attendance\//.test(text), 'the app loads only the official HTTPS site');
+ok(/https:\/\/mohamedmahdi2025\.github\.io\//.test(text), 'the app loads only the official HTTPS site');
 ok(!/http:\/\/(?!schemas\.android\.com|www\.w3\.org|localhost|ns\.adobe\.com)[a-z0-9.\-]+\.[a-z]{2,}/i.test(entries.filter(e => /capacitor\.config\.json$/.test(e.name)).map(e => e.data.toString()).join('')), 'no plain-HTTP address in the app config');
 const conf = entries.find(e => /capacitor\.config\.json$/.test(e.name));
 const cfg = conf ? JSON.parse(conf.data.toString()) : {};

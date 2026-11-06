@@ -14,6 +14,8 @@ import android.os.Bundle;
 import android.os.Debug;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.Settings;
+import android.util.Base64;
 import android.view.WindowManager;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -33,11 +35,12 @@ import java.util.Locale;
 public class MainActivity extends BridgeActivity {
     /** SHA-256 of the release signing certificate (signing/attendance-release.jks). A re-signed copy of the app fails this. */
     private static final String RELEASE_CERT = "ed7cdbd0769c2cf6bbfe69cf90eb2317f483bb5472e0399d3a2a7f49e52e9935";
-    private static final String ORIGIN = "https://besgasksa.github.io";
-    private static final String APP_VERSION = "1.2.0";
+    private static final String ORIGIN = "https://mohamedmahdi2025.github.io";
+    private static final String APP_VERSION = "1.4.0";
 
     private final Handler ui = new Handler(Looper.getMainLooper());
     private volatile boolean rooted, emulator, hooked, sigOk = true;
+    private String devId = "";
     private volatile long mockAt = 0;       // device time of the last fake-location reading seen
     private volatile boolean checked = false;
     private LocationManager lm;
@@ -60,6 +63,7 @@ public class MainActivity extends BridgeActivity {
         boolean release = (getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE) == 0;
         if (release && (Debug.isDebuggerConnected() || Debug.waitingForDebugger())) { block(); return; }
         sigOk = signatureOk();
+        devId = deviceId();
         if (release && !sigOk) { block(); return; }
 
         WebView wv = bridge != null ? bridge.getWebView() : null;
@@ -97,7 +101,21 @@ public class MainActivity extends BridgeActivity {
     private String script() {
         return "window.BGIntegrity=Object.freeze({v:1,platform:'android',app:'" + APP_VERSION + "',checked:" + checked
             + ",rooted:" + rooted + ",emulator:" + emulator + ",hooked:" + hooked + ",signature:" + sigOk
-            + ",mockAt:" + mockAt + ",at:" + System.currentTimeMillis() + "});";
+            + ",devId:'" + devId + "'" + ",mockAt:" + mockAt + ",at:" + System.currentTimeMillis() + "});";
+    }
+
+    /** One device, one employee: a stable id for this phone. ANDROID_ID is per app signing key and survives reinstalls;
+     *  it is hashed with the package name, so the raw value never leaves the phone. */
+    // Google allows ANDROID_ID for fraud prevention (developer.android.com/identity/user-data-ids): it is scoped to this
+    // app's signing key and the user, and only its salted hash is sent, never the raw value.
+    @android.annotation.SuppressLint("HardwareIds")
+    private String deviceId() {
+        try {
+            String a = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
+            if (a == null || a.isEmpty()) return "";
+            byte[] d = MessageDigest.getInstance("SHA-256").digest((getPackageName() + ":" + a).getBytes("UTF-8"));
+            return Base64.encodeToString(d, Base64.URL_SAFE | Base64.NO_PADDING | Base64.NO_WRAP).substring(0, 32);
+        } catch (Exception e) { return ""; }
     }
 
     private void push() {
