@@ -306,6 +306,7 @@ function api_settingsSave(req, me) {
   if (d.allowDesktop !== undefined) next.allowDesktop = !!d.allowDesktop;
   if (d.allowPasswordPunch !== undefined) next.allowPasswordPunch = !!d.allowPasswordPunch;
   if (d.maxAccuracyDesktop !== undefined) next.maxAccuracyDesktop = Math.max(20, Math.min(1000, Math.round(Number(d.maxAccuracyDesktop) || 150)));
+  if (d.maxDevices !== undefined) next.maxDevices = Math.max(1, Math.min(5, Math.round(Number(d.maxDevices) || 3)));
   if (d.empNoPrefix !== undefined) { var px = String(d.empNoPrefix == null ? '' : d.empNoPrefix).trim(); if (!/^[A-Za-z0-9-]{0,10}$/.test(px)) return { ok: false, error: 'bad_setting', key: 'empNoPrefix' }; next.empNoPrefix = px; }
   if (d.empNoDigits !== undefined) { var dg = Math.round(Number(d.empNoDigits)); if (!(dg >= 1 && dg <= 8)) return { ok: false, error: 'bad_setting', key: 'empNoDigits' }; next.empNoDigits = dg; }
   if (d.empNoStart !== undefined) { var st = Math.round(Number(d.empNoStart)); if (!(st >= 1 && st <= 99999999)) return { ok: false, error: 'bad_setting', key: 'empNoStart' }; next.empNoStart = st; }
