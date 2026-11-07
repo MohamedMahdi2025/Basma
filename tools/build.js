@@ -13,6 +13,20 @@ const crypto = require('crypto');
 const SRC = path.join(__dirname, '..');
 const OUT = path.join(SRC, '..', 'app');
 
+// Minify before encoding (2026-11-06): comments, whitespace and local names go, so decoding the XOR layer yields compact
+// code, not the readable source. Terser lives outside both repos (../buildtools); the build refuses to run without it.
+// Global names stay (toplevel: false): modules call each other and index.html through them.
+const TERSER = path.join(SRC, '..', 'buildtools', 'node_modules', 'terser');
+let terser;
+try { terser = require(TERSER); } catch (e) { console.error('refusing: Terser missing. Run: npm install terser@5.39.0 --prefix ../buildtools'); process.exit(1); }
+const MIN_OPTS = { ecma: 2017, compress: { passes: 2, drop_debugger: true, keep_fargs: true }, mangle: { toplevel: false }, format: { comments: false } };
+async function minify(code, name) {
+  try { const r = await terser.minify(code, MIN_OPTS); if (!r.code) throw new Error('empty output'); return r.code; }
+  catch (e) { console.error('refusing: could not minify ' + name + ': ' + (e.message || e) + (e.line ? ' line ' + e.line : '')); process.exit(1); }
+}
+
+(async function main() {
+
 function stripComments(html) {
   // Remove HTML comments and whole-line // comments inside scripts. Line-start
   // only, so URLs like https:// and regexes in code are never touched.
@@ -21,11 +35,19 @@ function stripComments(html) {
 
 // Every build gets its own stamp: the app compares it with version.json to know a new release is out.
 const STAMP = new Date().toISOString().replace(/[-:]/g, '').slice(0, 15).replace('T', '.');
-const page = stripComments(fs.readFileSync(path.join(SRC, 'index.html'), 'utf8'))
+let page = stripComments(fs.readFileSync(path.join(SRC, 'index.html'), 'utf8'))
   .replace(/var BUILD = '[^']*';/, "var BUILD = '" + STAMP + "';");
 if (!page.includes("var BUILD = '" + STAMP + "';")) { console.error('refusing: BUILD line not found in index.html'); process.exit(1); }
+{ // the page's own inline script(s): minified in place
+  const parts = page.split(/(<script>)([\s\S]*?)(<\/script>)/);
+  for (let i = 0; i < parts.length; i++) if (parts[i] === '<script>' && parts[i + 2] === '</script>') parts[i + 1] = await minify(parts[i + 1], 'index.html');
+  page = parts.join('');
+  if (!page.includes("BUILD=\"" + STAMP + "\"") && !page.includes("BUILD='" + STAMP + "'") && !page.includes('"' + STAMP + '"')) { console.error('refusing: BUILD stamp lost in minifying'); process.exit(1); }
+}
 const key = crypto.randomBytes(48);
-const data = Buffer.from(page, 'utf8');
+// The loader's <head> carries the CSP and it stays in force after document.write; a second copy inside the written
+// page is ignored by browsers ("outside the document's head") and only logs an error, so the encoded page drops it.
+const data = Buffer.from(page.replace(/<meta http-equiv="Content-Security-Policy"[^>]*>\n?/, ''), 'utf8');
 const enc = Buffer.alloc(data.length);
 for (let i = 0; i < data.length; i++) enc[i] = data[i] ^ key[i % key.length];
 const lines = s => s.match(/.{1,38}/g).map(x => '"' + x + '"').join(',\n');
@@ -70,7 +92,7 @@ if (fs.existsSync(JS_IN)) {
   fs.mkdirSync(JS_OUT, { recursive: true });
   for (const f of fs.readdirSync(JS_OUT)) if (!fs.existsSync(path.join(JS_IN, f))) fs.unlinkSync(path.join(JS_OUT, f));
   for (const f of fs.readdirSync(JS_IN).filter(x => x.endsWith('.js'))) {
-    const src = fs.readFileSync(path.join(JS_IN, f), 'utf8').split('\n').filter(l => !/^\s*\/\/(?!\/)/.test(l)).join('\n');
+    const src = await minify(fs.readFileSync(path.join(JS_IN, f), 'utf8'), 'js/' + f);
     const k = crypto.randomBytes(48), d = Buffer.from(src, 'utf8'), e = Buffer.alloc(d.length);
     for (let i = 0; i < d.length; i++) e[i] = d[i] ^ k[i % k.length];
     const out = '(function(){\nvar k=[\n' + lines(k.toString('base64')) + '\n].join(""),p=[\n' + lines(e.toString('base64')) + '\n].join("");\n' +
@@ -85,3 +107,4 @@ if (jsLong) { console.error('refusing: a js line holds a 40+ character run (GitH
 const long = loader.split('\n').filter(l => /[A-Za-z0-9+/]{40,}/.test(l)).length;
 console.log('built ' + STAMP + ' app/index.html', Math.round(loader.length / 1024) + ' KB', 'source', Math.round(page.length / 1024) + ' KB', 'long runs:', long);
 if (long) { console.error('refusing: a line holds a 40+ character run (GitHub push protection)'); process.exit(1); }
+})();

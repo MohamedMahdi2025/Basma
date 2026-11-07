@@ -6156,7 +6156,8 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.se
 // Each build is auto-loaded once per tab (?u=<build> misses the Pages cache); if the page still comes back old, only the bar stays.
 var updateShown = false, updatePending = '', lastTypedAt = 0, typedOnPage = false;
 document.addEventListener('input', function(){ lastTypedAt = Date.now(); typedOnPage = true; }, true);
-window.addEventListener('hashchange', function(){ typedOnPage = false; });
+var BOOT_HUB = isHubUrl(); // the platform console and the company app are two different pages: switching between them by address reloads
+window.addEventListener('hashchange', function(){ typedOnPage = false; if (isHubUrl() !== BOOT_HUB) location.reload(); });
 function updateSafeNow(){
   var a = document.activeElement, tag = a && a.tagName;
   return !S.busy && !typedOnPage && !document.querySelector('.drawer, .dp-page') && tag !== 'INPUT' && tag !== 'TEXTAREA' && tag !== 'SELECT' && Date.now() - lastTypedAt > 60000;
