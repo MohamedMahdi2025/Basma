@@ -10,7 +10,7 @@ Object.assign(T.ar, {
   dbVsPrev:'عن الفترة السابقة', dbMinutes:'دقيقة', dbHours:'ساعة', dbTrend:'الحضور يوما بيوم', dbTrendLead:'نسبة من حضر من المتوقع حضورهم كل يوم عمل.',
   dbWeekday:'التأخير حسب يوم الأسبوع', dbWeekdayLead:'نسبة المتأخرين من المتوقع حضورهم.', dbCheckin:'أوقات تسجيل الحضور', dbCheckinLead:'عدد البصمات كل ربع ساعة. الأعمدة البرتقالية بعد بداية الدوام ومهلة التأخير.', dbPts:'نقطة',
   dbDepts:'الإدارات', dbDeptLead:'نسبة الحضور لكل إدارة، والانضباط بجانبها.', dbTopLate:'الأكثر تأخيرا', dbTopAbsent:'الأكثر غيابا', dbDays:'أيام', dbTimes:'مرات',
-  dbWorkforce:'القوى العاملة', dbHeadcount:'الموظفون النشطون', dbSaudization:'التوطين المرجح (نطاقات)', dbTarget:'المستهدف', dbNoTarget:'حدد النسبة المستهدفة في الإعدادات (saudizationTarget) لإظهار الفجوة.',
+  dbWorkforce:'القوى العاملة', dbHeadcount:'الموظفون النشطون', dbSaudization:'التوطين المرجح (نطاقات)', dbTarget:'المستهدف', dbNoTarget:'حدد نسبة التوطين المستهدفة في الإدارة ← الإعدادات لإظهار الفجوة.',
   dbMix:'السعوديون وغير السعوديين حسب الإدارة', dbSaudi:'سعودي', dbNonSaudi:'غير سعودي', dbSaudisK:'السعوديون', dbTenure:'سنوات الخدمة', dbMovement:'المنضمون والمغادرون (12 شهرا)',
   dbJoiners:'انضموا', dbLeavers:'غادروا', dbExpiring:'وثائق تنتهي خلال 60 يوما', dbExpired:'وثائق منتهية', dbLeaveType:'الإجازات حسب النوع',
   dbPending:'طلبات تنتظر', dbOldest:'أقدم طلب مفتوح', dbSlow:'مفتوحة منذ أكثر من 3 أيام', dbSpeed:'متوسط وقت البت في الطلبات', dbPerf:'الأداء',
@@ -28,7 +28,7 @@ Object.assign(T.en, {
   dbVsPrev:'vs previous period', dbMinutes:'min', dbHours:'h', dbTrend:'Attendance day by day', dbTrendLead:'Share of expected people who checked in, each working day.',
   dbWeekday:'Lateness by weekday', dbWeekdayLead:'Share of expected people who arrived late.', dbCheckin:'Check-in times', dbCheckinLead:'Check-ins per quarter hour. Amber columns are after the shift start and grace.', dbPts:'pts',
   dbDepts:'Departments', dbDeptLead:'Attendance rate per department, with on-time share beside it.', dbTopLate:'Late most often', dbTopAbsent:'Absent most often', dbDays:'days', dbTimes:'times',
-  dbWorkforce:'Workforce', dbHeadcount:'Active employees', dbSaudization:'Weighted Saudization (Nitaqat)', dbTarget:'Target', dbNoTarget:'Set the target % in settings (saudizationTarget) to show the gap.',
+  dbWorkforce:'Workforce', dbHeadcount:'Active employees', dbSaudization:'Weighted Saudization (Nitaqat)', dbTarget:'Target', dbNoTarget:'Set the Saudization target in Admin → Settings to show the gap.',
   dbMix:'Saudi and non-Saudi by department', dbSaudi:'Saudi', dbNonSaudi:'Non-Saudi', dbSaudisK:'Saudis', dbTenure:'Years of service', dbMovement:'Joiners and leavers (12 months)',
   dbJoiners:'Joined', dbLeavers:'Left', dbExpiring:'Documents expiring within 60 days', dbExpired:'Expired documents', dbLeaveType:'Leave by type',
   dbPending:'Requests waiting', dbOldest:'Oldest open request', dbSlow:'Open more than 3 days', dbSpeed:'Average time to decide a request', dbPerf:'Performance',
@@ -206,7 +206,7 @@ function showTip(ev, html){
 }
 function hideTip(){ if (tip) tip.style.display = 'none'; }
 function n1(v, d){ return v == null ? '-' : Number(v).toLocaleString(LOCALE(), { maximumFractionDigits: d == null ? 1 : d }); }
-function sar(v){ return v == null ? '-' : Number(v).toLocaleString(LOCALE(), { maximumFractionDigits: 0 }) + ' ' + t('mfSar'); }
+function sar(v){ return v == null ? '-' : acctFmt(v) + ' ' + t('mfSar'); }
 function shortDate(d){ return new Date(d + 'T12:00:00Z').toLocaleDateString(LOCALE(), { day: 'numeric', month: 'short', timeZone: 'UTC' }); }
 function monthShort(m){ return new Date(Date.UTC(+m.slice(0, 4), +m.slice(5, 7) - 1, 15)).toLocaleDateString(LOCALE(), { month: 'short', year: '2-digit' }); }
 function hm(min){ return String(Math.floor(min / 60)).padStart(2, '0') + ':' + String(min % 60).padStart(2, '0'); }

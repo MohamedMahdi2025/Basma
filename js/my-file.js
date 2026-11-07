@@ -162,7 +162,7 @@ var st = document.createElement('style'); st.textContent = css; document.head.ap
 var shown = false;
 
 function fmtDate(d){ if (!d) return ''; return new Date(String(d).slice(0, 10) + 'T12:00:00Z').toLocaleDateString(LOCALE(), { day:'numeric', month:'short', year:'numeric', timeZone:'UTC' }); }
-function money(n){ return Number(n || 0).toLocaleString(LOCALE(), { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + ' ' + t('mfSar'); }
+function money(n){ return acctFmt(n) + ' ' + t('mfSar'); }
 function lang(ar, en){ return S.lang === 'en' && en ? en : ar; }
 function daysLeft(d){ return Math.round((Date.parse(String(d).slice(0, 10) + 'T00:00:00Z') - Date.parse(riyadhToday() + 'T00:00:00Z')) / 86400000); }
 function expiryChip(d){

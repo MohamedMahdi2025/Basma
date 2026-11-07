@@ -239,7 +239,7 @@ function addDays(d, n){ return new Date(Date.parse(d + 'T00:00:00Z') + n * 864e5
 function daysBetween(a, b){ return Math.round((Date.parse(b + 'T00:00:00Z') - Date.parse(a + 'T00:00:00Z')) / 864e5); }
 function hmMin(s){ var m = /^(\d{1,2}):(\d{2})/.exec(String(s || '')); return m ? +m[1] * 60 + +m[2] : 0; }
 function sar(){ var v = t('mfSar'); return v === 'mfSar' ? (S.lang === 'en' ? 'SAR' : 'ر.س') : v; }
-function money(n){ return '<span class="num">' + Number(n || 0).toLocaleString(LOCALE(), { maximumFractionDigits: 2 }) + '</span> ' + sar(); }
+function money(n){ return '<span class="num">' + acctFmt(n) + '</span> ' + sar(); }
 function moneyTxt(n){ return Number(n || 0).toLocaleString(LOCALE(), { maximumFractionDigits: 2 }) + ' ' + sar(); }
 function comma(){ return S.lang === 'en' ? ', ' : '، '; }
 /** 8 -> "8 ساعات", 2 -> "ساعتان", 12 -> "12 ساعة", 7.5 -> "7.5 ساعة"; "8 h" in English. */

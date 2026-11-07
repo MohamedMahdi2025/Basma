@@ -7,6 +7,9 @@
 (function(){
 'use strict';
 var V = window.Viz;
+// labels home needs before the profile and payroll modules load (they showed as raw keys: mfSar, pw_no_package)
+Object.assign(T.ar, { mfSar: T.ar.mfSar || 'ر.س', hmNoPkg:'{n} بلا راتب معتمد' });
+Object.assign(T.en, { mfSar: T.en.mfSar || 'SAR', hmNoPkg:'{n} without an approved salary' });
 Object.assign(T.ar, { dyTitle:'تفاصيل يوم {d}', dyStatus:'الحالة', dyIn:'الحضور', dyOut:'الانصراف', dyLate:'التأخير', dyWorked:'ساعات العمل', dyShift:'الدوام', dyLeave:'الإجازة', dyHoliday:'العطلة', dyFix:'طلب تصحيح لهذا اليوم', dyNone:'-', dyMin:'{n} دقيقة', dyLog:'سجل الشهر كاملا' });
 Object.assign(T.en, { dyTitle:'Details for {d}', dyStatus:'Status', dyIn:'Check-in', dyOut:'Check-out', dyLate:'Late', dyWorked:'Hours worked', dyShift:'Shift', dyLeave:'Leave', dyHoliday:'Holiday', dyFix:'Ask to correct this day', dyNone:'-', dyMin:'{n} min', dyLog:'Whole month log' });
 Object.assign(T.ar, { tiTitle:'لمحات فريقك', tiLead:'ما يحتاج انتباهك في فريقك اليوم، من بيانات الحضور والطلبات.', tiNone:'فريقك بخير اليوم: لا تأخير ولا غياب ولا طلبات متأخرة.',
@@ -369,10 +372,10 @@ function rowsHtml(kinds, r, r14){
       if (on && (!r.money || !C || C.error)) return '';
       var tr = C.trend || [], last = tr[tr.length - 1] || {}, prev = tr[tr.length - 2], sp = function(k){ return tr.length > 1 ? V.spark(tr.map(function(m){ return m[k]; }), { label: t('hmLastRun') }) : ''; };
       return row('hmRowPay', 'wallet', t('hmRowPay'), [
-        kTile({ k: 'g', icon: 'wallet', label: t('hmWageBill'), value: on ? V.n1(C.monthlyPackage || 0, 0) : null, unit: t('mfSar'), sub: C.noPackage ? t('pw_no_package') + ' ' + C.noPackage : '', go: ['pay:runs'] }),
-        kTile({ k: 'b', icon: 'money', label: t('hmLastRun'), value: on ? (last.cost != null ? V.n1(last.cost, 0) : '-') : null, unit: last.cost != null ? t('mfSar') : '', sub: C.lastMonth ? V.monthShort(C.lastMonth) : t('dbNoRuns'),
+        kTile({ k: 'g', icon: 'wallet', label: t('hmWageBill'), value: on ? acctFmt(C.monthlyPackage || 0) : null, unit: t('mfSar'), sub: C.noPackage ? t('hmNoPkg').replace('{n}', C.noPackage) : '', go: ['pay:runs'] }),
+        kTile({ k: 'b', icon: 'money', label: t('hmLastRun'), value: on ? (last.cost != null ? acctFmt(last.cost) : '-') : null, unit: last.cost != null ? t('mfSar') : '', sub: C.lastMonth ? V.monthShort(C.lastMonth) : t('dbNoRuns'),
           delta: prev ? V.delta(dif(last.cost, prev.cost), null, t('mfSar'), t('hmVsRun')) : '', spark: sp('cost'), go: ['pay:runs'] }),
-        kTile({ k: 'y', icon: 'bank', label: t('hmGosi'), value: on ? (last.gosiEmployer != null ? V.n1(last.gosiEmployer, 0) : '-') : null, unit: last.gosiEmployer != null ? t('mfSar') : '',
+        kTile({ k: 'y', icon: 'bank', label: t('hmGosi'), value: on ? (last.gosiEmployer != null ? acctFmt(last.gosiEmployer) : '-') : null, unit: last.gosiEmployer != null ? t('mfSar') : '',
           delta: prev ? V.delta(dif(last.gosiEmployer, prev.gosiEmployer), null, t('mfSar'), t('hmVsRun')) : '', spark: sp('gosiEmployer'), go: ['pay:compliance', 'pay:runs'] }),
         kTile({ k: 'r', icon: 'hourglass-medium', label: t('hmAtPayroll'), value: on ? V.n1(pend.payroll || 0, 0) : null, sub: Rq.openOver3Days ? Rq.openOver3Days + ' ' + t('hmOver3') : '', go: ['pay:approvals', 'requests:inbox', 'insights:dashboard'] })].join(''), t('hmBasisRun'));
     },
@@ -546,7 +549,7 @@ function insights(D){
   if (an && an.available >= 15) add(6, 'b', 'airplane-tilt', t('inLeave').replace('{n}', plural(Math.floor(an.available), 'days')), V.goOk('requests:new:leave'), t('inLeaveGo'));
   // 6. a payslip from this month or last
   var s0 = D.slips && D.slips.rows && D.slips.rows[0];
-  if (s0 && (s0.month === today.slice(0, 7) || s0.month === prevMonth(today.slice(0, 7)))) add(5, 'g', 'receipt', t('inSlip').replace('{m}', V.monthShort(s0.month)).replace('{v}', V.n1(s0.net, 0) + ' ' + t('mfSar')), V.goOk('pay:slips'), t('inSlipGo'));
+  if (s0 && (s0.month === today.slice(0, 7) || s0.month === prevMonth(today.slice(0, 7)))) add(5, 'g', 'receipt', t('inSlip').replace('{m}', V.monthShort(s0.month)).replace('{v}', acctFmt(s0.net) + ' ' + t('mfSar')), V.goOk('pay:slips'), t('inSlipGo'));
   return out.sort(function(a, b){ return a.pri - b.pri; }).slice(0, 5);
 }
 function insightsHtml(D, list, none){
@@ -621,7 +624,7 @@ function mineRow(D){
     kTile({ k: 'b', icon: 'airplane-tilt', label: t('hmLeave'), value: D.leave ? (a ? plural(Math.round((a.available || 0) * 10) / 10, 'days') : '-') : null,
       sub: a ? t('hmUsed') + ' ' + V.n1(a.used || 0) + ' / ' + (a.perYear || 21) + ' ' + t('hmPerYear') : '',
       spark: a ? V.ring(Math.min(100, (a.available || 0) / Math.max(1, a.perYear || 21) * 100), V.n1(Math.round((a.available || 0) * 10) / 10), t('hmLeave'), { size: 46 }) : '', go: ['requests:mine'] }),
-    kTile({ k: 'r', icon: 'receipt', label: t('hmNetPay'), value: D.slips ? (s0 ? V.n1(s0.net, 0) : '-') : null, unit: s0 ? t('mfSar') : '', sub: s0 ? V.monthShort(s0.month) : (D.slips ? t('hmNoSlip') : ''),
+    kTile({ k: 'r', icon: 'receipt', label: t('hmNetPay'), value: D.slips ? (s0 ? acctFmt(s0.net) : '-') : null, unit: s0 ? t('mfSar') : '', sub: s0 ? V.monthShort(s0.month) : (D.slips ? t('hmNoSlip') : ''),
       delta: s0 && s1 ? V.delta(dif(s0.net, s1.net), true, t('mfSar'), t('hmVsSlip')) : '',
       spark: slips && slips.length > 1 ? V.spark(slips.slice(0, 6).reverse().map(function(s){ return s.net; }), { label: t('hmNetPay') }) : '', go: ['pay:slips'] })];
   return row('hmRowMine', 'user', t('hmRowMine'), tiles.join(''), t('hmBasisSame'));

@@ -289,7 +289,7 @@ var H = { dir: null, sat: null, depts: null, pos: null, pending: 0 };
 // ---------------- small helpers ----------------
 function lang(ar, en){ return S.lang === 'en' && en ? en : ar; }
 function fmtDate(d){ if (!d) return ''; return new Date(String(d).slice(0, 10) + 'T12:00:00Z').toLocaleDateString(LOCALE(), { day:'numeric', month:'short', year:'numeric', timeZone:'UTC' }); }
-function money(n){ return Number(n || 0).toLocaleString(LOCALE(), { minimumFractionDigits: 0, maximumFractionDigits: 2 }); }
+function money(n){ return acctFmt(n); }
 function opt(v, label, cur){ return '<option value="' + esc(v) + '"' + (String(cur == null ? '' : cur) === String(v) ? ' selected' : '') + '>' + esc(label) + '</option>'; }
 function sel(name, list, cur, none){ return '<select name="' + name + '">' + (none !== false ? opt('', none || t('fChoose'), cur) : '') + list.map(function(x){ return opt(x[0], x[1], cur); }).join('') + '</select>'; }
 function inp(name, label, val, extra){ return '<div class="field"><label>' + label + '</label><input name="' + name + '" value="' + esc(val == null ? '' : val) + '"' + (extra || '') + '></div>'; }

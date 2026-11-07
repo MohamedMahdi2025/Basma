@@ -150,7 +150,7 @@ function day(iso){ var ms = Date.parse(iso); return isNaN(ms) ? String(iso || ''
 function when(iso){ var ms = Date.parse(iso); if (isNaN(ms)) return fmt(iso); var l = new Date(ms + 180 * 60000).toISOString(); return fmt(l.slice(0, 10)) + ' <bdi class="num">' + l.slice(11, 16) + '</bdi>'; }
 function monthName(m){ return m ? new Date(Date.UTC(+m.slice(0, 4), +m.slice(5, 7) - 1, 15)).toLocaleDateString(LOCALE(), { month: 'long', year: 'numeric', timeZone: 'UTC' }) : ''; }
 function sar(){ var v = t('mfSar'); return v === 'mfSar' ? (S.lang === 'en' ? 'SAR' : 'ر.س') : v; }
-function money(n){ return '<span class="num">' + Number(n || 0).toLocaleString(LOCALE(), { maximumFractionDigits: 2 }) + '</span> ' + sar(); }
+function money(n){ return '<span class="num">' + acctFmt(n) + '</span> ' + sar(); }
 function num(n, d){ return Number(n || 0).toLocaleString(LOCALE(), { maximumFractionDigits: d == null ? 1 : d }); }
 function sep(){ return S.lang === 'en' ? ' · ' : ' · '; }
 function busy(el){ el.innerHTML = '<div class="list">' + [0, 1, 2].map(function(){ return '<div class="row"><div class="main"><span class="sk" style="width:45%"></span><span class="sk" style="width:70%;margin-top:6px"></span></div></div>'; }).join('') + '</div>'; }

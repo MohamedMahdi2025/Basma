@@ -84,7 +84,7 @@ var css = '' +
 var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 
 function fmt(d){ return d ? new Date(String(d).slice(0, 10) + 'T12:00:00Z').toLocaleDateString(LOCALE(), { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }) : ''; }
-function money(n){ return Number(n || 0).toLocaleString(LOCALE(), { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function money(n){ return acctFmt(n); }
 function monthName(m){ return new Date(Date.UTC(+m.slice(0, 4), +m.slice(5, 7) - 1, 15)).toLocaleDateString(LOCALE(), { month: 'long', year: 'numeric' }); }
 function busy(el){ el.innerHTML = '<span class="sk" style="width:40%"></span><span class="sk"></span>'; }
 var XLSX_URL = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js', xp = null;

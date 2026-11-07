@@ -1815,6 +1815,108 @@ html body.v2-on :is(.field input,.field select,.field textarea):focus{box-shadow
 html body.v2-on .chip{border-radius:999px}
 @media (prefers-reduced-motion:reduce){html body.v2-on :is(.btn-dark,.btn-brand)::after{display:none}html body.v2-on .v2-nav a:hover{transform:none}}
 </style>
+<style id="dsv5">
+/* Design system v5 "Pine calm" (2026-11-07). Chosen from three directions benchmarked on HiBob, Rippling, Personio and Jisr
+   (Firecrawl branding extraction): one 4px spacing grid, one accent (the company colour), one corner family, flat surfaces,
+   one easing curve and three durations. This block loads last (themeLast, before brandTheme) and is the single source for
+   spacing, corners and motion inside the app; the sign-in screen (.gate) keeps its own styles. */
+html body.v2-on{--s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:20px;--s6:24px;--s8:32px;--s10:40px;
+  --r-ctl:10px;--r-card:12px;--r-sheet:16px;--d1:140ms;--d2:220ms;--d3:320ms;--ease:cubic-bezier(.2,.7,.2,1);--ease-out:cubic-bezier(.16,1,.3,1);
+  --ring:0 0 0 3px color-mix(in srgb,var(--brand) 22%,transparent);--lift:0 1px 2px rgba(30,36,32,.06),0 1px 1px rgba(30,36,32,.03)}
+/* surfaces: a calm warm page, no glows */
+html:not([data-theme="dark"]) body.v2-on #main{background:#F7F5EF!important}
+html body.v2-on #main{background-image:none!important}
+/* page header: flat icon chip, no float, no glow */
+html body.v2-on .v3-hero{margin-bottom:var(--s6)!important;padding:0!important}
+html body.v2-on .v3-hero h1{font-size:clamp(22px,2.2vw,28px)!important;font-weight:700;letter-spacing:-.01em;line-height:1.25}
+html body.v2-on .v3-hero-ic{width:48px!important;height:48px!important;border-radius:var(--r-card)!important;background:var(--brand)!important;box-shadow:none!important;animation:none!important}
+html body.v2-on .hr-h{margin:0 0 var(--s6)!important;gap:var(--s3)}
+html body.v2-on .hr-h h2{font-size:22px;font-weight:700;letter-spacing:-.01em;margin:0}
+html body.v2-on :is(#main,.drawer) .hr-sub{margin:var(--s8) 0 var(--s3)!important;font-size:16px;font-weight:600;letter-spacing:0}
+html body.v2-on :is(#main,.drawer) .hr-sub:first-child{margin-top:0!important}
+/* navigation: a tinted current item, no gradient pill, no sliding */
+html body.v2-on .v2-nav a,html body.v2-on .v2-nav button{border-radius:var(--r-ctl)!important;transition:background var(--d1) var(--ease),color var(--d1) var(--ease)!important}
+html body.v2-on .v2-nav a:hover{transform:none!important;background:color-mix(in srgb,var(--brand) 6%,transparent)}
+html body.v2-on .v2-nav a[aria-current="page"]{background:color-mix(in srgb,var(--brand) 12%,var(--card))!important;color:var(--brand)!important;box-shadow:none!important;font-weight:600}
+html body.v2-on .v2-nav a[aria-current="page"] i{color:var(--brand)!important}
+html body.v2-on .v2-nav a[aria-current="page"] .cnt{background:var(--brand)!important;color:#fff!important}
+/* tabs */
+html body.v2-on .v2-views{border-radius:var(--r-card)!important;padding:var(--s1)!important;gap:var(--s1)!important;box-shadow:none!important}
+html body.v2-on .v2-views button{border-radius:8px!important;height:36px!important}
+html body.v2-on .v2-views button[aria-selected="true"]{background:var(--brand)!important;color:#fff!important;box-shadow:none!important}
+/* cards: one radius, one gentle lift, one padding */
+html body.v2-on :is(.db-card,.mf-card,.v2-card,.set-card,.list,.tblwrap,.db-panel,.rp-grp,.cp-box,.op-box,.fp-card,.hm-card){border-radius:var(--r-card)!important;box-shadow:var(--lift)!important;border:1px solid color-mix(in srgb,var(--line) 55%,transparent)!important}
+html body.v2-on :is(.cp-box,.op-box,.fp-card,.set-card,.mf-card){padding:var(--s6)!important}
+html body.v2-on :is(.db-card,.mf-card,.v2-card):hover{box-shadow:var(--lift)!important;transform:none!important}
+html body.v2-on :is(.db-tiles,.db-grid){gap:var(--s4)!important}
+html body.v2-on .db-tiles{margin-bottom:var(--s6)}
+html body.v2-on .db-tile{border-radius:var(--r-card)!important;padding:var(--s5)!important}
+html body.v2-on .db-tile.is-go{transition:box-shadow var(--d2) var(--ease),transform var(--d2) var(--ease)}
+html body.v2-on .db-tile.is-go:hover{transform:translateY(-1px);box-shadow:0 4px 14px -6px rgba(30,36,32,.18)}
+/* lists and tables */
+html body.v2-on .list .row{padding:var(--s3) var(--s4)!important;gap:var(--s3)!important;transition:background var(--d1) var(--ease)}
+html body.v2-on .list .row + .row{border-top:1px solid color-mix(in srgb,var(--line) 60%,transparent)}
+html body.v2-on .tbl th{font-size:12px!important;font-weight:600;letter-spacing:.01em;padding:var(--s3) var(--s4)!important}
+html body.v2-on .tbl td{padding:var(--s3) var(--s4)!important}
+html body.v2-on .num,html body.v2-on .tbl td{font-variant-numeric:tabular-nums}
+/* forms: the spacing the user asked for. 20px between fields, 8px label to control, 16px between paired columns */
+html body.v2-on :is(#main,.drawer) .form{gap:var(--s5)!important}
+html body.v2-on :is(#main,.drawer) .two{gap:var(--s4)!important}
+html body.v2-on :is(#main,.drawer) .field{margin:0!important}
+html body.v2-on :is(#main,.drawer) :not(.form):not(.two) > .field + .field{margin-top:var(--s5)!important}
+html body.v2-on :is(#main,.drawer) .field > label{margin:0 0 var(--s2)!important;font-size:13px!important;font-weight:500!important;color:var(--ink-2)!important;line-height:1.4}
+html body.v2-on :is(#main,.drawer) .field .hr-hint{display:block;margin-top:6px;font-size:12px;line-height:1.5}
+html body.v2-on :is(#main,.drawer) :is(.field,.form) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),select){min-height:44px;border-radius:var(--r-ctl)!important;padding-inline:var(--s3)}
+html body.v2-on :is(#main,.drawer) :is(.field,.form) textarea{border-radius:var(--r-ctl)!important;padding:var(--s3)!important;line-height:1.6}
+html body.v2-on :is(#main,.drawer) :is(input,select,textarea){transition:border-color var(--d1) var(--ease),box-shadow var(--d1) var(--ease)}
+html body.v2-on :is(#main,.drawer) :is(input,select,textarea):focus{border-color:var(--brand)!important;box-shadow:var(--ring)!important;outline:0}
+html body.v2-on :is(#main,.drawer) .btnrow{gap:var(--s2)!important;margin-top:var(--s2)}
+html body.v2-on :is(#main,.drawer) .toolbar{gap:var(--s3)!important;margin-bottom:var(--s4)}
+/* buttons: flat, one radius, a press you can feel */
+html body.v2-on .btn{border-radius:var(--r-ctl)!important;transition:background-color var(--d1) var(--ease),border-color var(--d1) var(--ease),color var(--d1) var(--ease),transform var(--d1) var(--ease)!important}
+html body.v2-on .btn:active{transform:scale(.98)!important}
+html body.v2-on .btn-sm{border-radius:8px!important}
+html body.v2-on :is(.btn-dark,.btn-brand,.btn-primary){background:var(--brand)!important;color:#fff!important;box-shadow:none!important;border:0!important}
+html body.v2-on :is(.btn-dark,.btn-brand,.btn-primary):hover{background:color-mix(in srgb,var(--brand) 88%,#000)!important;transform:none}
+html body.v2-on :is(.btn-dark,.btn-brand,.btn-primary)::after{display:none!important}
+html body.v2-on .btn-line{background:var(--card)!important;border:1px solid var(--line)!important;color:var(--ink)!important}
+html body.v2-on .btn-line:hover{border-color:color-mix(in srgb,var(--brand) 45%,var(--line))!important;background:color-mix(in srgb,var(--brand) 4%,var(--card))!important}
+html body.v2-on .btn:focus-visible{outline:0;box-shadow:var(--ring)!important}
+/* drawers: one sheet radius, roomy body */
+html body.v2-on .drawer > *:not(script){border-radius:var(--r-sheet) var(--r-sheet) 0 0}
+@media (min-width:900px){html body.v2-on .drawer > *:not(script){border-radius:var(--r-sheet)}}
+/* chips */
+html body.v2-on .chip{border-radius:999px;font-weight:500}
+/* motion: one entrance, staggered, never more than 6 steps; removed for reduced motion */
+@media (prefers-reduced-motion:no-preference){
+  html body.v2-on :is(#main,.drawer) :is(.db-tile,.db-card,.cp-box,.op-box,.fp-card,.list,.tblwrap,.mf-card,.set-card,.hm-card){animation:v5In var(--d3) var(--ease-out) both}
+  html body.v2-on .db-tiles > :nth-child(2),html body.v2-on .db-grid > :nth-child(2){animation-delay:40ms}
+  html body.v2-on .db-tiles > :nth-child(3),html body.v2-on .db-grid > :nth-child(3){animation-delay:80ms}
+  html body.v2-on .db-tiles > :nth-child(4),html body.v2-on .db-grid > :nth-child(4){animation-delay:120ms}
+  html body.v2-on .db-tiles > :nth-child(n+5),html body.v2-on .db-grid > :nth-child(n+5){animation-delay:160ms}
+}
+@keyframes v5In{from{opacity:0;transform:translateY(6px)}}
+/* shadows: one soft family for every card, menu, drawer and popover (light mode; dark keeps its own) */
+html:not([data-theme="dark"]) body.v2-on{--e1:0 1px 2px rgba(30,36,32,.06),0 1px 1px rgba(30,36,32,.03);--e2:0 1px 2px rgba(30,36,32,.05),0 4px 12px -4px rgba(30,36,32,.10);--e3:0 2px 4px rgba(30,36,32,.05),0 12px 28px -10px rgba(30,36,32,.16);--e4:0 4px 8px rgba(30,36,32,.06),0 24px 56px -18px rgba(30,36,32,.26)}
+/* buttons: two heights, one weight, every state */
+html body.v2-on .btn{min-height:44px;padding-inline:18px;gap:var(--s2);font-weight:600;display:inline-flex;align-items:center;justify-content:center}
+html body.v2-on .btn.btn-sm{min-height:36px;padding-inline:14px;font-size:13px}
+html body.v2-on .btn-danger{background:var(--bad)!important;color:#fff!important;border:0!important;box-shadow:none!important}
+html body.v2-on .btn-danger:hover{background:color-mix(in srgb,var(--bad) 88%,#000)!important}
+html body.v2-on .btn-ghost{background:transparent!important;border:0!important;color:var(--ink-2)!important}
+html body.v2-on .btn-ghost:hover{background:color-mix(in srgb,var(--brand) 7%,transparent)!important;color:var(--ink)!important}
+html body.v2-on .btn:disabled,html body.v2-on .btn[aria-disabled="true"]{opacity:.5;cursor:not-allowed;transform:none!important}
+/* fields you type in: every state */
+html body.v2-on :is(#main,.drawer) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]),select,textarea){background:var(--card);color:var(--ink);border:1px solid color-mix(in srgb,var(--ink) 16%,transparent);font-size:14px}
+html body.v2-on :is(#main,.drawer) :is(input,textarea)::placeholder{color:var(--ink-3);opacity:1}
+html body.v2-on :is(#main,.drawer) :is(input,select,textarea):hover:not(:focus):not([readonly]):not(:disabled){border-color:color-mix(in srgb,var(--ink) 30%,transparent)}
+html body.v2-on :is(#main,.drawer) :is(input,textarea)[readonly]{background:color-mix(in srgb,var(--ink) 4%,var(--card))!important;color:var(--ink-2);cursor:default}
+html body.v2-on :is(#main,.drawer) :is(input,textarea)[readonly]:focus{box-shadow:none!important;border-color:color-mix(in srgb,var(--ink) 16%,transparent)!important}
+html body.v2-on :is(#main,.drawer) :is(input,select,textarea):disabled{opacity:.55;cursor:not-allowed}
+html body.v2-on :is(#main,.drawer) :is(input,select,textarea)[aria-invalid="true"]{border-color:var(--bad)!important;box-shadow:0 0 0 3px color-mix(in srgb,var(--bad) 16%,transparent)!important}
+html body.v2-on :is(#main,.drawer) textarea{min-height:96px;resize:vertical}
+@media (prefers-reduced-motion:reduce){html body.v2-on *{animation-duration:1ms!important;animation-iteration-count:1!important;transition-duration:1ms!important}}
+</style>
 </head>
 <body>
 <div id="root"></div>
@@ -2620,6 +2722,9 @@ function $(sel, el){ return (el || document).querySelector(sel); }
 function $$(sel, el){ return Array.prototype.slice.call((el || document).querySelectorAll(sel)); }
 function applyLang(){ document.documentElement.lang = S.lang; document.documentElement.dir = S.lang === 'ar' ? 'rtl' : 'ltr'; document.title = S.gate ? (S.lang === 'en' ? CO_PLATFORM.nameEn : CO_PLATFORM.nameAr) : t('appName'); }
 var LOCALE = function(){ return S.lang === 'ar' ? 'ar-SA-u-nu-latn-ca-gregory' : 'en-GB'; };
+/** Accounting format for every amount (2026-11-07): thousands commas (en-US, so Arabic shows a comma too), always two decimals,
+ *  negatives in brackets. Every module's money()/sar() goes through this. */
+function acctFmt(n){ var v = Math.round(Number(n || 0) * 100) / 100, s = Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); return v < 0 ? '(' + s + ')' : s; }
 function fmtTime(iso){ if (!iso) return '--:--'; return new Date(iso).toLocaleTimeString(LOCALE(), { hour:'2-digit', minute:'2-digit', timeZone:'Asia/Riyadh' }); }
 function fmtDur(min){ min = Math.max(0, Math.round(min || 0)); var h = Math.floor(min / 60), m = min % 60; if (!h) return m + ' ' + t('min'); return h + ' ' + t('h') + ' ' + m + ' ' + t('min'); }
 function fmtDist(m){ if (m == null) return '--'; return m >= 1000 ? (m / 1000).toFixed(m >= 10000 ? 0 : 1) + '<small>' + t('km') + '</small>' : Math.round(m) + '<small>' + t('m') + '</small>'; }
@@ -4463,7 +4568,7 @@ function areaLead(a){ var k = 'al' + a.id.charAt(0).toUpperCase() + a.id.slice(1
 /** Where the page body goes: the area body in the shell, #main before the shell exists. */
 function view(){ return $('#v2Body') || $('#main'); }
 /** The v2 block must come after every module's own <style>, so equal selectors resolve to v2. */
-function themeLast(){ ['dsv2', 'dsv3', 'dsed', 'dsfp', 'dspg', 'dsdark', 'dsmo', 'dsgate', 'dsfb', 'dsfbx', 'dsv4', 'brandTheme'].forEach(function(id){ var s = document.getElementById(id); if (s) document.head.appendChild(s); }); }
+function themeLast(){ ['dsv2', 'dsv3', 'dsed', 'dsfp', 'dspg', 'dsdark', 'dsmo', 'dsgate', 'dsfb', 'dsfbx', 'dsv4', 'dsv5', 'brandTheme'].forEach(function(id){ var s = document.getElementById(id); if (s) document.head.appendChild(s); }); }
 function loadAll(files){ return files.reduce(function(p, f){ return p.then(function(){ return loadScript(f); }); }, Promise.resolve()); }
 
 /** Where a task from the bell opens. HR sections map to their area; personal items to growth or the profile. */
@@ -6140,10 +6245,21 @@ function admSettings(){
 
 // ---------- audit ----------
 function admAudit(){
+/** An audit event code (salary_view, emp_create) as words. Exact wording for the common ones, else word by word. */
+var AUDIT_WORDS = { ar: { salary:'الراتب', view:'عرض', emp:'موظف', employee:'موظف', create:'إنشاء', save:'حفظ', update:'تحديث', delete:'حذف', device:'جهاز', enrolled:'تسجيل', login:'دخول', password:'كلمة المرور', reset:'إعادة تعيين', pin:'الرمز السري', failed:'فشل', request:'طلب', decide:'قرار', approve:'اعتماد', reject:'رفض', payroll:'الرواتب', settings:'الإعدادات', policy:'سياسة', zone:'موقع', disable:'تعطيل', wps:'حماية الأجور', file:'ملف', training:'تدريب', survey:'استبيان', open:'فتح', close:'إغلاق', dashboard:'لوحة الإدارة', ins:'التأمين', register:'السجل', report:'تقرير', export:'تصدير', activation:'رمز التفعيل', issued:'إصدار', punch:'بصمة', manual:'يدوية', review:'مراجعة', leave:'إجازة', cycle:'دورة', gosi:'التأمينات', mark:'تسجيل', recon:'مطابقة', upload:'رفع', delegation:'تفويض', revoke:'إلغاء', api:'واجهة', key:'مفتاح', org:'منشأة', brand:'هوية', logo:'شعار', data:'بيانات', change:'تغيير', applied:'تطبيق', role:'دور', roles:'أدوار', disc:'جزاء', objection:'تظلم', injury:'إصابة', asset:'عهدة', loan:'سلفة', expense:'مصروف', journal:'قيد', bank:'بنك', setup:'إعداد', calendar:'التقويم', link:'رابط', move:'نقل', code:'رمز', admin:'المدير', recovery:'استعادة', adjustment:'تعديل', offer:'عرض', recruit:'توظيف', hire:'تعيين', welcome:'ترحيب', timesheet:'سجل ساعات', ticket:'تذكرة', use:'استخدام', test:'اختبار', whatsapp:'واتساب', workforce:'القوى العاملة', plan:'خطة', mentorship:'إرشاد', platform:'المنصة', system:'النظام' },
+  exact: { ar: { salary_view:'عرض راتب', dashboard_view:'عرض لوحة الإدارة', emp_create:'إضافة موظف', emp_update:'تعديل موظف', device_enrolled:'ربط جهاز', login_password:'دخول بكلمة المرور', login_pin_any_device:'دخول بالرمز السري', password_reset:'إعادة تعيين كلمة المرور', activation_issued:'إصدار رمز تفعيل', ins_register_view:'عرض سجل التأمين', settings_save:'حفظ الإعدادات', request_create:'طلب جديد', pin_login_failed:'رمز سري خاطئ', password_failed:'كلمة مرور خاطئة' },
+           en: { salary_view:'Salary viewed', dashboard_view:'Dashboard viewed', emp_create:'Employee added', emp_update:'Employee edited', device_enrolled:'Device linked', ins_register_view:'Insurance register viewed' } } };
+function auditLabel(code){
+  code = String(code || ''); var L = S.lang === 'en' ? 'en' : 'ar', ex = AUDIT_WORDS.exact[L][code];
+  if (ex) return ex;
+  var parts = code.split('_').filter(Boolean);
+  if (L === 'en') { var w = parts.join(' '); return w.charAt(0).toUpperCase() + w.slice(1); }
+  return parts.map(function(p){ return AUDIT_WORDS.ar[p] || p; }).join(' ');
+}
   api('auditList').then(function(r){
     if (!r.ok) return;
     $('#admBody').innerHTML = '<div class="tblwrap"><table class="tbl"><thead><tr><th>' + t('date') + '</th><th>' + t('employee') + '</th><th>' + t('type') + '</th><th></th></tr></thead><tbody>' +
-      r.rows.map(function(a){ return '<tr><td class="num">' + new Date(a.ts).toLocaleString(LOCALE(), { timeZone:'Asia/Riyadh', dateStyle:'short', timeStyle:'short' }) + '</td><td>' + esc(a.actor) + '</td><td>' + esc(a.action) + '</td><td>' + esc(a.target || '') + '</td></tr>'; }).join('') + '</tbody></table></div>';
+      r.rows.map(function(a){ return '<tr><td class="num">' + new Date(a.ts).toLocaleString(LOCALE(), { timeZone:'Asia/Riyadh', dateStyle:'short', timeStyle:'short' }) + '</td><td>' + esc(a.actor) + '</td><td>' + esc(auditLabel(a.action)) + '</td><td>' + esc(a.target || '') + '</td></tr>'; }).join('') + '</tbody></table></div>';
   });
 }
 

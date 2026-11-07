@@ -50,7 +50,7 @@ var uid = 0;
 function fmt(d){ return d ? new Date(String(d).slice(0, 10) + 'T12:00:00Z').toLocaleDateString(LOCALE(), { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }) : ''; }
 function monthName(m){ return m ? new Date(Date.UTC(+m.slice(0, 4), +m.slice(5, 7) - 1, 15)).toLocaleDateString(LOCALE(), { month: 'long', year: 'numeric', timeZone: 'UTC' }) : ''; }
 function sar(){ var v = t('mfSar'); return v === 'mfSar' ? (S.lang === 'en' ? 'SAR' : 'ر.س') : v; }
-function n2(n){ return Number(n || 0).toLocaleString(LOCALE(), { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function n2(n){ return acctFmt(n); }
 function money(n){ return '<span class="num">' + n2(n) + '</span> ' + sar(); }
 function sep(){ return ' · '; }
 function busy(el){ el.innerHTML = '<span class="sk" style="width:40%"></span><span class="sk"></span><span class="sk" style="width:70%"></span>'; }

@@ -51,7 +51,7 @@ function words(amount, lang){
 
 // ---------------- helpers ----------------
 function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
-function money(n, lang){ return Number(n || 0).toLocaleString(lang === 'en' ? 'en-GB' : 'ar-SA-u-nu-latn', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function money(n, lang){ return acctFmt(n); }
 function dates(d, lang){
   d = d instanceof Date ? d : new Date(d || Date.now());
   var g = d.toLocaleDateString((lang === 'en' ? 'en-GB' : 'ar-SA') + '-u-ca-gregory-nu-latn', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Riyadh' });

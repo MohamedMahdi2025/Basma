@@ -61,7 +61,7 @@ function lang(ar, en){ return S.lang === 'en' && en ? en : ar; }
 function fmt(d){ return d ? new Date(String(d).slice(0, 10) + 'T12:00:00Z').toLocaleDateString(LOCALE(), { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }) : ''; }
 function day(iso){ var ms = Date.parse(iso); return isNaN(ms) ? String(iso || '').slice(0, 10) : new Date(ms + 180 * 60000).toISOString().slice(0, 10); }
 function sar(){ var v = t('mfSar'); return v === 'mfSar' ? (S.lang === 'en' ? 'SAR' : 'ر.س') : v; }
-function money(n){ return n == null ? '-' : '<span class="num">' + Number(n || 0).toLocaleString(LOCALE(), { maximumFractionDigits: 2 }) + '</span> ' + sar(); }
+function money(n){ return n == null ? '-' : '<span class="num">' + acctFmt(n) + '</span> ' + sar(); }
 function sep(){ return ' · '; }
 function busy(el){ el.innerHTML = '<div class="list">' + [0, 1, 2].map(function(){ return '<div class="row"><div class="main"><span class="sk" style="width:45%"></span><span class="sk" style="width:70%;margin-top:6px"></span></div></div>'; }).join('') + '</div>'; }
 function bad(code){ return '<p class="hr-bad" role="alert">' + esc(errText(code)) + '</p>'; }

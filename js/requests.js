@@ -109,7 +109,7 @@ var DATA_KEYS = [['phone', 'phone', 'tel'], ['personalEmail', 'fPEmail', 'email'
 var DOC_LEAVES = { sick: 1, maternity: 1, exam: 1, iddah: 1 };
 
 function fmtDate(d){ if (!d) return ''; return new Date(String(d).slice(0, 10) + 'T12:00:00Z').toLocaleDateString(LOCALE(), { day:'numeric', month:'short', year:'numeric', timeZone:'UTC' }); }
-function money(n){ return Number(n || 0).toLocaleString(LOCALE(), { maximumFractionDigits: 2 }) + ' ' + t('mfSar'); }
+function money(n){ return acctFmt(n) + ' ' + t('mfSar'); }
 function num1(n){ return Number(n || 0).toLocaleString(LOCALE(), { maximumFractionDigits: 1 }); }
 function typeLabel(o){ return o.type === 'leave' ? t('rt_leave') + ' ' + t('lt_' + o.subtype) : o.type === 'letter' ? t('ls_' + o.subtype) : t('rt_' + o.type); }
 function statusChip(o){
