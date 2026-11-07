@@ -1861,7 +1861,9 @@ html body.v2-on .tbl td{padding:var(--s3) var(--s4)!important}
 html body.v2-on .num,html body.v2-on .tbl td{font-variant-numeric:tabular-nums}
 /* forms: the spacing the user asked for. 20px between fields, 8px label to control, 16px between paired columns */
 html body.v2-on :is(#main,.drawer) .form{gap:var(--s5)!important}
-html body.v2-on :is(#main,.drawer) .two{gap:var(--s4)!important}
+html body.v2-on :is(#main,.drawer) .two{column-gap:var(--s4)!important;row-gap:var(--s5)!important}
+/* stacked rows and fields outside a gapped .form: the same 20px (two-column rows used to touch each other) */
+html body.v2-on :is(#main,.drawer) :not(.form) > :is(.two,.field,.fp-rows,.btnrow) + :is(.two,.field,.fp-rows){margin-top:var(--s5)!important}
 html body.v2-on :is(#main,.drawer) .field{margin:0!important}
 html body.v2-on :is(#main,.drawer) :not(.form):not(.two) > .field + .field{margin-top:var(--s5)!important}
 html body.v2-on :is(#main,.drawer) .field > label{margin:0 0 var(--s2)!important;font-size:13px!important;font-weight:500!important;color:var(--ink-2)!important;line-height:1.4}
