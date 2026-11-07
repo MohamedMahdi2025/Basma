@@ -20,7 +20,7 @@ const forget = () => { B.ctx.setOrg_(B.ctx.orgRec_(org.orgId)); Object.keys(B.ct
 
 const first = http({ action: 'myTasks' });
 const reads1 = first.n.filter(x => /^get \/values\/'/.test(x)).length;
-ok(first.out.ok && reads1 > 10, 'first time: the bell reads its tabs one by one (' + reads1 + ' calls)', first.n.length);
+ok(first.out.ok && reads1 <= 3 && first.n.length <= 6, 'first time: the bell fetches its tabs in batches, not one by one (' + first.n.length + ' calls, was about 49)', first.n);
 forget();
 const second = http({ action: 'myTasks' });
 const one = second.n.filter(x => /values:batchGet/.test(x)).length, single = second.n.filter(x => /^get \/values\/'/.test(x)).length;

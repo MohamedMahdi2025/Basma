@@ -1425,6 +1425,8 @@ const ALLW = { all: COLS, hrOnly: ['hr'], hrA: ['hr', 'admin'], adm: ['admin'], 
   mgr: ['manager', 'hr', 'admin'], none: [], fileView: ['manager', 'hr', 'payroll', 'admin'],
   mgrX: ['manager', 'hr', 'executive', 'admin'], money: ['hr', 'payroll', 'executive'], hrExec: ['hr', 'executive'], hrExecA: ['hr', 'executive', 'admin'], mgrPay: ['manager', 'hr', 'payroll', 'admin'], mgrAll: ['manager', 'hr', 'payroll', 'executive', 'admin'] };
 const EXPECT = {
+  // Wave 7 (Wave7.gs): budgets edited by pay people, read with executives; Nitaqat simulator for the same; signatures sent and rules written by HR
+  budgetSave: 'pay', budgetView: 'money', nitaqatSim: 'money', signRequest: 'hrA', signCancel: 'hrA', autoRuleSave: 'hrA', autoRunNow: 'hrA',
   // Wave 6 (Wave6.gs): HR-only screens; survey actions raised by HR or executives; skill gap for managers and HR
   wpsCompliance: 'pay', gosiQueue: 'pay', gosiMark: 'pay', alumniList: 'hrA', alumniSave: 'hrA', rehireCheck: 'hrA', skillSave: 'hrA', posSkillSave: 'hrA', massChange: 'hrA', letterTplSave: 'hrA', quizSave: 'hrA', svActSave: 'hrExecA',
   hrCompList: 'pay', hrCompPropose: 'pay', hrCompDecide: 'pay', leaveTeam: 'mgr', payrollList: 'pay', payrollGet: 'pay', payrollVariance: 'pay', payrollCreate: 'pay', payrollRecalc: 'pay', payrollApprove: 'payOnly',

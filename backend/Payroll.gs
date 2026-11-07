@@ -580,7 +580,10 @@ function api_payrollEmail(req, me) {
 }
 function mailConfig_() {
   var p = PropertiesService.getScriptProperties();
-  var c = { tenant: p.getProperty('M365_TENANT'), id: p.getProperty('M365_CLIENT_ID'), secret: p.getProperty('M365_CLIENT_SECRET'), sender: p.getProperty('M365_SENDER') };
+  // Each organisation sends from its own mailbox (o<id>:M365_*). Only the home organisation uses the unprefixed keys: another
+  // company's payslips must never leave from the home company's sender.
+  var g = function (k) { return p.getProperty(orgKey_(k)); };
+  var c = { tenant: g('M365_TENANT'), id: g('M365_CLIENT_ID'), secret: g('M365_CLIENT_SECRET'), sender: g('M365_SENDER') };
   return c.tenant && c.id && c.secret && c.sender ? c : null;
 }
 function graphToken_(c) {
@@ -1008,8 +1011,9 @@ function api_myTotalRewards(req, me) {
 // number of items waiting. Nothing else leaves the system. Needs script properties WA_PHONE_ID, WA_TOKEN, WA_TEMPLATE
 // (template name) and optionally WA_LANG (default 'ar'), plus the admin setting whatsappDigest. The token is never in code.
 function waConfig_() {
-  var p = PropertiesService.getScriptProperties(), c = { phoneId: p.getProperty(orgKey_('WA_PHONE_ID')) || p.getProperty('WA_PHONE_ID'), token: p.getProperty(orgKey_('WA_TOKEN')) || p.getProperty('WA_TOKEN'),
-    template: p.getProperty(orgKey_('WA_TEMPLATE')) || p.getProperty('WA_TEMPLATE'), lang: p.getProperty(orgKey_('WA_LANG')) || p.getProperty('WA_LANG') || 'ar' };
+  // Each organisation's own WhatsApp number (o<id>:WA_*); the unprefixed keys belong to the home organisation only.
+  var p = PropertiesService.getScriptProperties(), c = { phoneId: p.getProperty(orgKey_('WA_PHONE_ID')), token: p.getProperty(orgKey_('WA_TOKEN')),
+    template: p.getProperty(orgKey_('WA_TEMPLATE')), lang: p.getProperty(orgKey_('WA_LANG')) || 'ar' };
   return c.phoneId && c.token && c.template ? c : null;
 }
 /** A Saudi mobile in international form without +: 05XXXXXXXX, 5XXXXXXXX, 9665XXXXXXXX, +966 5X... all give 9665XXXXXXXX; anything else ''. */

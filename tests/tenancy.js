@@ -104,5 +104,23 @@ console.log('No leakage through API keys or calendar links (2026-11-07)');
   ok(!/VEVENT|UID:/.test(feed('1001')) && feed('1001').length < 120, 'the same link against organisation 1001 gives an empty calendar', feed('1001'));
 }
 
+console.log('Outbound channels and in-memory copies (2026-11-08 audit)');
+{
+  Object.assign(B.props, { M365_TENANT: 't', M365_CLIENT_ID: 'i', M365_CLIENT_SECRET: 's', M365_SENDER: 'hr@home.example', WA_PHONE_ID: 'p', WA_TOKEN: 'w', WA_TEMPLATE: 'x' });
+  B.ctx.setOrg_(B.ctx.orgRec_('1001'));
+  ok(B.ctx.mailConfig_() && B.ctx.mailConfig_().sender === 'hr@home.example' && B.ctx.waConfig_(), 'the home organisation sends from its own mailbox and WhatsApp number');
+  B.ctx.setOrg_(B.ctx.orgRec_('1002'));
+  ok(B.ctx.mailConfig_() === null && B.ctx.waConfig_() === null, 'another organisation never sends from the home company\'s mailbox or WhatsApp number');
+  Object.assign(B.props, { 'o1002:M365_TENANT': 't2', 'o1002:M365_CLIENT_ID': 'i2', 'o1002:M365_CLIENT_SECRET': 's2', 'o1002:M365_SENDER': 'hr@elite.example' });
+  ok(B.ctx.mailConfig_().sender === 'hr@elite.example', 'with its own keys it uses its own sender');
+  // an organisation switch inside one request drops every copy read for the previous one
+  B.ctx.setOrg_(B.ctx.orgRec_('1001')); B.ctx.USE_TAB_CACHE_ = true; B.ctx.readAll_('employees'); B.ctx.prefetchTabs_();
+  B.ctx.setOrg_(B.ctx.orgRec_('1002'));
+  ok(B.ctx.TAB_PREFETCH_ === null && Object.keys(B.ctx.READ_MEMO_).length === 0, 'switching organisation clears the memo and the prefetched copies');
+  const names = B.ctx.readAll_('employees').map(e => e.name);
+  ok(names.includes('موظف النخبة') && !names.includes('مدير المنزل'), 'and the next read is the new organisation\'s own book', names);
+  B.ctx.USE_TAB_CACHE_ = false;
+}
+
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);

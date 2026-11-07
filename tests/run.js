@@ -464,7 +464,7 @@ console.log('Sign-in copy of the employees tab stays live');
   B.ctx.withLock_(() => { B.ctx.forget_('employees'); const e = B.ctx.findBy_('employees', 'empNo', '4001'); e.status = 'active'; B.ctx.update_('employees', e); });
   let threw = false;
   B.ctx.USE_TAB_CACHE_ = true; B.ctx.READ_MEMO_ = {}; B.ctx.TAB_PREFETCH_ = null;
-  B.ctx.readAll_('employees'); B.ctx.READ_MEMO_ = {}; B.ctx.TAB_PREFETCH_ = null;
+  B.ctx.readAll_('employees'); B.ctx.flushStore_(); B.ctx.READ_MEMO_ = {}; B.ctx.TAB_PREFETCH_ = null;
   const cachedRow = B.ctx.readAll_('employees')[0];
   try { B.ctx.update_('employees', cachedRow); } catch (e) { threw = /cached copy/.test(e.message); }
   B.ctx.USE_TAB_CACHE_ = false; B.ctx.READ_MEMO_ = {};

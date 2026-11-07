@@ -23,7 +23,7 @@ var CONFIG = {
   ACTIVATION_MAX_TRIES: 5
 };
 
-var SHEETS = { GOSIS: 'gosiSync', CELEB: 'celebPrefs', ALUM: 'alumni', SVA: 'surveyActions', MPROF: 'mentorProfiles', MSHIP: 'mentorships', MSESS: 'mentorSessions', SKILL: 'skills', ESKILL: 'empSkills', PSKILL: 'positionSkills', CALF: 'calendarFeeds', LTPL: 'letterTemplates', QUIZ: 'quizzes', QATT: 'quizAttempts', CWINV: 'agencyInvoices', CWH: 'contractorHours', CWAG: 'agencies', CW: 'contractors', RETRO: 'retroLog', GRADE: 'salaryGrades', PUSH: 'pushSubs', PPE: 'ppeIssues', HSEA: 'hseActions', HSE: 'hseReports', PNOTE: 'presenceNotes', BRAND: 'branding', WHOUT: 'webhookOutbox', HOOK: 'webhooks', APIKEY: 'apiKeys', PGRP: 'payGroups', SNAP: 'snapshots', RSUB: 'reportSubs', KIOSK: 'kiosks', NLOG: 'notifyLog', PERK: 'perks', CPATH: 'careerPaths', SUCC: 'successionPlans', POT: 'potentialRatings', KB: 'kbArticles', GOAL: 'goals', OOO: 'oneOnOnes', WFP: 'workforcePlans', CPOST: 'careerPosts', OSH: 'shiftOffers', EMP: 'employees', CRED: 'credentials', ZONES: 'zones', PUNCH: 'punches', AUDIT: 'audit', SET: 'settings',
+var SHEETS = { BUDGET: 'payBudgets', SIGN: 'signRequests', AUTO: 'autoRules', AUTOT: 'autoTasks', GOSIS: 'gosiSync', CELEB: 'celebPrefs', ALUM: 'alumni', SVA: 'surveyActions', MPROF: 'mentorProfiles', MSHIP: 'mentorships', MSESS: 'mentorSessions', SKILL: 'skills', ESKILL: 'empSkills', PSKILL: 'positionSkills', CALF: 'calendarFeeds', LTPL: 'letterTemplates', QUIZ: 'quizzes', QATT: 'quizAttempts', CWINV: 'agencyInvoices', CWH: 'contractorHours', CWAG: 'agencies', CW: 'contractors', RETRO: 'retroLog', GRADE: 'salaryGrades', PUSH: 'pushSubs', PPE: 'ppeIssues', HSEA: 'hseActions', HSE: 'hseReports', PNOTE: 'presenceNotes', BRAND: 'branding', WHOUT: 'webhookOutbox', HOOK: 'webhooks', APIKEY: 'apiKeys', PGRP: 'payGroups', SNAP: 'snapshots', RSUB: 'reportSubs', KIOSK: 'kiosks', NLOG: 'notifyLog', PERK: 'perks', CPATH: 'careerPaths', SUCC: 'successionPlans', POT: 'potentialRatings', KB: 'kbArticles', GOAL: 'goals', OOO: 'oneOnOnes', WFP: 'workforcePlans', CPOST: 'careerPosts', OSH: 'shiftOffers', EMP: 'employees', CRED: 'credentials', ZONES: 'zones', PUNCH: 'punches', AUDIT: 'audit', SET: 'settings',
   DEPT: 'departments', POS: 'positions', PRIV: 'empPrivate', COMP: 'compensation', JOBH: 'jobHistory', DOCS: 'documents',
   REQ: 'requests', HOL: 'holidays', RUN: 'payrollRuns', SLIP: 'payslips', ADJ: 'adjustments',
   CYC: 'perfCycles', KPI: 'kpis', REV: 'reviews', FB: 'feedback360', RLOG: 'reportLog',
@@ -64,6 +64,10 @@ var HEADERS = {
   quizzes: ['id', 'ref', 'title', 'courseId', 'passMark', 'questionsJson', 'status', 'createdBy', 'updatedAt'],
   quizAttempts: ['id', 'quizId', 'empId', 'score', 'passed', 'answersJson', 'at', 'certNo'],
   gosiSync: ['id', 'empId', 'kind', 'wage', 'ref', 'date', 'doneBy', 'doneAt'],
+  payBudgets: ['id', 'month', 'departmentId', 'amount', 'note', 'updatedBy', 'updatedAt'],
+  signRequests: ['id', 'ref', 'kind', 'title', 'body', 'docHash', 'empId', 'status', 'requestedBy', 'requestedAt', 'dueDate', 'signedName', 'signedAt', 'seal', 'declineNote', 'declinedAt'],
+  autoRules: ['id', 'ref', 'name', 'trigger', 'days', 'audience', 'message', 'status', 'createdBy', 'createdAt', 'updatedAt'],
+  autoTasks: ['id', 'ruleId', 'empId', 'assigneeId', 'audience', 'key', 'title', 'eventDate', 'dueDate', 'status', 'doneBy', 'doneAt', 'createdAt'],
   hseReports: ['id', 'ref', 'kind', 'severity', 'occurredAt', 'place', 'zoneId', 'description', 'immediateAction', 'anonymous', 'reportedBy', 'status', 'investigatorId', 'rootCause', 'rootCategory', 'injuryId', 'closedNote', 'createdAt', 'updatedAt'],
   presenceNotes: ['id', 'empId', 'text', 'until', 'updatedAt'],
   branding: ['key', 'value', 'updatedAt', 'updatedBy'],
@@ -262,8 +266,11 @@ function sheet_(name) {
 /** New columns added in code get their header written once, the first time the tab is touched. */
 function ensureHeader_(name, sh, width) {
   if (HEADER_OK_[name]) return;
+  var hk = 'hdr:v1:' + name, len = String(HEADERS[name].length);
+  if (width === undefined) { try { if (cache_().get(hk) === len) { HEADER_OK_[name] = true; return; } } catch (e) {} }
   if ((width === undefined ? sh.getLastColumn() : width) < HEADERS[name].length) sh.getRange(1, 1, 1, HEADERS[name].length).setValues([HEADERS[name]]);
   HEADER_OK_[name] = true;
+  try { cache_().put(hk, len, 21600); } catch (e) {}
 }
 
 // Each sheet is read once per request. Apps Script sheet reads cost 100-600 ms each,
@@ -287,7 +294,7 @@ function memoAppend_(name, obj) {
  * be written back (update_ refuses), so the copy cannot overwrite the Sheet.
  */
 // Every small tab can be served from the copy; punches and audit grow without end and are always read.
-var CACHED_TABS_ = { celebPrefs: 1, alumni: 1, surveyActions: 1, mentorProfiles: 1, mentorships: 1, mentorSessions: 1, skills: 1, empSkills: 1, positionSkills: 1, letterTemplates: 1, quizzes: 1, agencyInvoices: 1, contractorHours: 1, agencies: 1, contractors: 1, retroLog: 1, salaryGrades: 1, pushSubs: 1, ppeIssues: 1, hseActions: 1, hseReports: 1, presenceNotes: 1, branding: 1, webhookOutbox: 1, webhooks: 1, apiKeys: 1, payGroups: 1, snapshots: 1, reportSubs: 1, kiosks: 1, notifyLog: 1, perks: 1, careerPaths: 1, successionPlans: 1, potentialRatings: 1, kbArticles: 1, goals: 1, oneOnOnes: 1, workforcePlans: 1, careerPosts: 1, shiftOffers: 1, employees: 1, zones: 1, credentials: 1, departments: 1, positions: 1, empPrivate: 1, compensation: 1,
+var CACHED_TABS_ = { payBudgets: 1, autoRules: 1, celebPrefs: 1, alumni: 1, surveyActions: 1, mentorProfiles: 1, mentorships: 1, mentorSessions: 1, skills: 1, empSkills: 1, positionSkills: 1, letterTemplates: 1, quizzes: 1, agencyInvoices: 1, contractorHours: 1, agencies: 1, contractors: 1, retroLog: 1, salaryGrades: 1, pushSubs: 1, ppeIssues: 1, hseActions: 1, hseReports: 1, presenceNotes: 1, branding: 1, webhookOutbox: 1, webhooks: 1, apiKeys: 1, payGroups: 1, snapshots: 1, reportSubs: 1, kiosks: 1, notifyLog: 1, perks: 1, careerPaths: 1, successionPlans: 1, potentialRatings: 1, kbArticles: 1, goals: 1, oneOnOnes: 1, workforcePlans: 1, careerPosts: 1, shiftOffers: 1, employees: 1, zones: 1, credentials: 1, departments: 1, positions: 1, empPrivate: 1, compensation: 1,
   jobHistory: 1, documents: 1, requests: 1, holidays: 1, payrollRuns: 1, adjustments: 1, perfCycles: 1, kpis: 1, reviews: 1, feedback360: 1,
   onboarding: 1, surveys: 1, policies: 1, policyAcks: 1, devPlans: 1, delegations: 1, wpsLog: 1, salaryRecon: 1, shifts: 1, roster: 1, discCodes: 1, discCases: 1, injuries: 1, assets: 1, custody: 1, clearance: 1,
   govVisas: 1, iqamaRenewals: 1, govFees: 1, ticketRights: 1, ticketUses: 1, expenseClaims: 1, journalLog: 1,
@@ -349,8 +356,15 @@ function storeTab_(name, ver, rows) {
       for (var i = 0; i < n; i++) put[k + ':' + i] = json.slice(i * TAB_PART_, (i + 1) * TAB_PART_);
       put[k] = JSON.stringify({ ver: ver, n: n });
     }
-    cache_().putAll(put, TAB_CACHE_SECONDS_);
+    // gathered: one putAll for every tab copied in this request (was one per tab, ~40 ms each)
+    if (!STORE_Q_) STORE_Q_ = {};
+    Object.keys(put).forEach(function (x) { STORE_Q_[x] = put[x]; });
   } catch (e) {}
+}
+var STORE_Q_ = null;
+function flushStore_() {
+  var q = STORE_Q_; STORE_Q_ = null; if (!q) return;
+  try { var ks = Object.keys(q); for (var i = 0; i < ks.length; i += 200) { var part = {}; ks.slice(i, i + 200).forEach(function (k) { part[k] = q[k]; }); cache_().putAll(part, TAB_CACHE_SECONDS_); } } catch (e) {}
 }
 
 /** Simple trigger: a hand edit in the Sheet makes the app read that tab fresh on the next request. */
@@ -622,6 +636,8 @@ function randomBytes_(n) {
  * and are only ever taken inside withLock_, so two requests can never get the same number.
  */
 var REF_DEFAULTS = {
+  esign: 'ESG',
+  autoRule: 'AUT',
   surveyAction: 'SVA',
   mentorship: 'MNT',
   skill: 'SKL',
@@ -646,7 +662,7 @@ var REF_DEFAULTS = {
   requisition: 'RQ', candidate: 'CND', interview: 'INT', offer: 'OFR', loan: 'LN', course: 'CRS', training: 'TRS', certificate: 'CRT',
   ins_policy: 'INP', insurance: 'INS', announcement: 'ANN', helpdesk: 'HD', exit_survey: 'EXS', settlement: 'FS', comp_cycle: 'CR'
 };
-var REF_YEARLY = { skill: false, quiz: false, payGroup: false, reportSub: false, kiosk: false, kb: false, department: false, position: false, shift: false, asset: false, flow: false, course: false, ins_policy: false };
+var REF_YEARLY = { autoRule: false, skill: false, quiz: false, payGroup: false, reportSub: false, kiosk: false, kb: false, department: false, position: false, shift: false, asset: false, flow: false, course: false, ins_policy: false };
 
 function refPrefix_(kind) {
   var custom = {};
@@ -785,7 +801,12 @@ function orgRec_(id) {
 }
 /** Switches the request to one organisation: its spreadsheet, its cache and counters. Everything per request is reset. */
 function setOrg_(o) {
+  // Every per-request copy is dropped, so nothing read for one organisation can ever answer for another (orgOverview and
+  // the platform actions switch organisation inside one request).
+  var same = ORG_ && o && ORG_.id === o.id;
+  if (typeof flushStore_ === 'function' && ORG_) flushStore_(); // copies made so far belong to the organisation they were read for
   ORG_ = o; ORG_SS_ = null; SHEET_CACHE_ = {}; HEADER_OK_ = {}; READ_MEMO_ = {}; READ_LEN_ = {};
+  if (!same) { TAB_PREFETCH_ = null; READ_SHEET_ = []; }
   if (typeof SETTINGS_MEMO_ !== 'undefined') SETTINGS_MEMO_ = null;
 }
 function orgId_() { return ORG_ ? ORG_.id : homeOrgId_(); }
@@ -926,7 +947,14 @@ function restSheet_(bookId, props, pre, hooks) {
     getLastColumn: function () { return width(); },
     getDataRange: function () { return range(1, 1, Math.max(1, read().length), Math.max(1, width())); },
     getRange: range,
-    appendRow: function (v) { range(read().length + 1, 1, 1, v.length).setValues([v]); },
+    appendRow: function (v) {
+      if (vals) { range(vals.length + 1, 1, 1, v.length).setValues([v]); return; } // already read this request: the row is known
+      // not read: let Google place the row after the last one (values:append), so a growing tab (audit, punches) is never
+      // downloaded just to write one line
+      var go = function () { sheetsFetch_('post', url("'" + String(title).replace(/'/g, "''") + "'!A1:" + colA1_(Math.max(1, v.length)) + '1', ':append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS'), { majorDimension: 'ROWS', values: [v] }); };
+      try { go(); } catch (e) { if (!refresh()) throw e; go(); }
+      vals = null;
+    },
     setFrozenRows: function () {}
   };
 }
@@ -1103,7 +1131,7 @@ var PUBLIC_ACTIONS = { orgActivation: 1, orgRenumber: 1, orgBrandSet: 1, orgImpo
   ping: 1, bootstrapStatus: 1, bootstrap: 1, enrollBegin: 1, enrollFinish: 1,
   pinLogin: 1, authBegin: 1, authFinish: 1, punchBegin: 1, punchFinish: 1, adminRecover: 1, pwLogin: 1, pinChange: 1, diag: 1, demoData: 1
 };
-var EMP_ACTIONS = { wpsCompliance: 1, gosiQueue: 1, gosiMark: 1, celebrations: 1, celebOptSave: 1, svActList: 1, svActStep: 1, mentorHub: 1, mentorProfileSave: 1, mentorRequest: 1, mentorStep: 1, skillHub: 1, mySkillSave: 1, skillVerify: 1, skillGap: 1, calFeedLink: 1, letterTplList: 1, quizList: 1, quizTake: 1, quizSubmit: 1, svActSave: 1, payrollVariance: 1, moveCode: 1, cwList: 1, cwSave: 1, cwEnd: 1, cwAgencySave: 1, cwHoursSave: 1, cwHoursDecide: 1, cwInvoiceSave: 1, cwInvoiceDecide: 1, cwInvoices: 1, retroScan: 1, retroApply: 1, retroCancel: 1, retroLog: 1, gradeList: 1, gradeSave: 1, gradeDelete: 1, bandReport: 1, pushKey: 1, pushSubscribe: 1, pushUnsubscribe: 1, pushTest: 1, hseReport: 1, hseList: 1, hseUpdate: 1, hseActionSave: 1, hseActionStep: 1, ppeIssue: 1, ppeStep: 1, ppeList: 1, hseStats: 1, aiStatus: 1, aiAsk: 1, officeMap: 1, presenceSet: 1, myTotalRewards: 1, brandSave: 1, logoSave: 1, apiKeyList: 1, apiKeySave: 1, webhookSave: 1, webhookDeliveries: 1, payGroupList: 1, payGroupSave: 1, payGroupAssign: 1, snapshotList: 1, snapshotView: 1, snapshotPeople: 1, snapshotTake: 1, reportSubList: 1, reportSubSave: 1, reportSubSend: 1, kioskList: 1, kioskSave: 1, docUpload: 1, docFile: 1, notifyStatus: 1, notifyTest: 1, perkList: 1, perkView: 1, welcome: 1, dataExport: 1, internalJobs: 1, internalApply: 1, careerPathList: 1, nineBox: 1, potentialSave: 1, successionList: 1, successionSave: 1, kbSearch: 1, kbList: 1, kbGet: 1, kbFeedback: 1, oneOnOneList: 1, oneOnOneSave: 1, oneOnOneUpdate: 1, goalList: 1, goalSave: 1, goalCheckIn: 1, workforcePlan: 1, workforcePlanSave: 1, pinEnrollBegin: 1, pinEnrollFinish: 1, shiftOfferList: 1, openShiftPost: 1, openShiftClaim: 1, shiftSwapAsk: 1, shiftSwapAnswer: 1, shiftOfferDecide: 1, shiftOfferCancel: 1, me: 1, myHistory: 1, passwordSet: 1, punchPw: 1, searchAll: 1, customFieldList: 1, customFieldSave: 1, customValuesGet: 1, customValuesSave: 1, customValuesAll: 1, timesheetList: 1, timesheetApprove: 1, compCycleSave: 1, compCycleList: 1, compPropose: 1, compCycleClose: 1, finalSettlementCreate: 1, finalSettlementDecide: 1, finalSettlementPaid: 1, finalSettlementList: 1, myFinalSettlement: 1, myExitSurvey: 1, exitSurveySubmit: 1, kudosSend: 1, kudosFeed: 1, exitSurveyResults: 1, kudosStats: 1,
+var EMP_ACTIONS = { budgetSave: 1, budgetView: 1, nitaqatSim: 1, signRequest: 1, signList: 1, signDoc: 1, signDecline: 1, signCancel: 1, signVerify: 1, autoRuleSave: 1, autoRunNow: 1, autoHub: 1, autoTaskStep: 1, wpsCompliance: 1, gosiQueue: 1, gosiMark: 1, celebrations: 1, celebOptSave: 1, svActList: 1, svActStep: 1, mentorHub: 1, mentorProfileSave: 1, mentorRequest: 1, mentorStep: 1, skillHub: 1, mySkillSave: 1, skillVerify: 1, skillGap: 1, calFeedLink: 1, letterTplList: 1, quizList: 1, quizTake: 1, quizSubmit: 1, svActSave: 1, payrollVariance: 1, moveCode: 1, cwList: 1, cwSave: 1, cwEnd: 1, cwAgencySave: 1, cwHoursSave: 1, cwHoursDecide: 1, cwInvoiceSave: 1, cwInvoiceDecide: 1, cwInvoices: 1, retroScan: 1, retroApply: 1, retroCancel: 1, retroLog: 1, gradeList: 1, gradeSave: 1, gradeDelete: 1, bandReport: 1, pushKey: 1, pushSubscribe: 1, pushUnsubscribe: 1, pushTest: 1, hseReport: 1, hseList: 1, hseUpdate: 1, hseActionSave: 1, hseActionStep: 1, ppeIssue: 1, ppeStep: 1, ppeList: 1, hseStats: 1, aiStatus: 1, aiAsk: 1, officeMap: 1, presenceSet: 1, myTotalRewards: 1, brandSave: 1, logoSave: 1, apiKeyList: 1, apiKeySave: 1, webhookSave: 1, webhookDeliveries: 1, payGroupList: 1, payGroupSave: 1, payGroupAssign: 1, snapshotList: 1, snapshotView: 1, snapshotPeople: 1, snapshotTake: 1, reportSubList: 1, reportSubSave: 1, reportSubSend: 1, kioskList: 1, kioskSave: 1, docUpload: 1, docFile: 1, notifyStatus: 1, notifyTest: 1, perkList: 1, perkView: 1, welcome: 1, dataExport: 1, internalJobs: 1, internalApply: 1, careerPathList: 1, nineBox: 1, potentialSave: 1, successionList: 1, successionSave: 1, kbSearch: 1, kbList: 1, kbGet: 1, kbFeedback: 1, oneOnOneList: 1, oneOnOneSave: 1, oneOnOneUpdate: 1, goalList: 1, goalSave: 1, goalCheckIn: 1, workforcePlan: 1, workforcePlanSave: 1, pinEnrollBegin: 1, pinEnrollFinish: 1, shiftOfferList: 1, openShiftPost: 1, openShiftClaim: 1, shiftSwapAsk: 1, shiftSwapAnswer: 1, shiftOfferDecide: 1, shiftOfferCancel: 1, me: 1, myHistory: 1, passwordSet: 1, punchPw: 1, searchAll: 1, customFieldList: 1, customFieldSave: 1, customValuesGet: 1, customValuesSave: 1, customValuesAll: 1, timesheetList: 1, timesheetApprove: 1, compCycleSave: 1, compCycleList: 1, compPropose: 1, compCycleClose: 1, finalSettlementCreate: 1, finalSettlementDecide: 1, finalSettlementPaid: 1, finalSettlementList: 1, myFinalSettlement: 1, myExitSurvey: 1, exitSurveySubmit: 1, kudosSend: 1, kudosFeed: 1, exitSurveyResults: 1, kudosStats: 1,
   myFile: 1, hrEmpFile: 1, hrTeam: 1, hrCompList: 1, hrCompPropose: 1, hrCompDecide: 1,
   myRequests: 1, requestQuote: 1, requestCreate: 1, requestCancel: 1, reqInbox: 1, reqDecide: 1, holidayList: 1, leaveTeam: 1,
   mySlips: 1, payrollList: 1, payrollGet: 1, payrollCreate: 1, payrollRecalc: 1, payrollApprove: 1, payrollDelete: 1, payrollAdjSave: 1,
@@ -1135,7 +1163,7 @@ var HR_ACTIONS = { alumniList: 1, alumniSave: 1, rehireCheck: 1, skillSave: 1, p
  * Actions that only read (plus the audit line of a salary view). They may use the cached tab copies;
  * update_ refuses a cached row, so a mistake here fails loudly instead of overwriting the Sheet.
  */
-var READ_ONLY_ACTIONS = { wpsCompliance: 1, gosiQueue: 1, celebrations: 1, svActList: 1, mentorHub: 1, skillHub: 1, skillGap: 1, letterTplList: 1, quizList: 1, quizTake: 1, alumniList: 1, rehireCheck: 1, cwList: 1, cwInvoices: 1, retroScan: 1, retroLog: 1, gradeList: 1, bandReport: 1, pushKey: 1, hseList: 1, ppeList: 1, hseStats: 1, aiStatus: 1, flowPreview: 1, officeMap: 1, myTotalRewards: 1, apiKeyList: 1, webhookDeliveries: 1, payGroupList: 1, snapshotList: 1, snapshotView: 1, reportSubList: 1, kioskList: 1, notifyStatus: 1, perkList: 1, welcome: 1, internalJobs: 1, careerPathList: 1, rolesOverview: 1, nineBox: 1, successionList: 1, kbSearch: 1, kbList: 1, oneOnOneList: 1, goalList: 1, workforcePlan: 1, careersList: 1, careerPostList: 1, shiftOfferList: 1, searchAll: 1, customFieldList: 1, customValuesGet: 1, customValuesAll: 1, myFinalSettlement: 1, myExitSurvey: 1, kudosFeed: 1, exitSurveyResults: 1, kudosStats: 1, me: 1, myHistory: 1, myFile: 1, hrEmpFile: 1, hrTeam: 1, hrCompList: 1, hrDirectory: 1, hrDeptList: 1,
+var READ_ONLY_ACTIONS = { budgetView: 1, nitaqatSim: 1, signList: 1, signVerify: 1, autoHub: 1, wpsCompliance: 1, gosiQueue: 1, celebrations: 1, svActList: 1, mentorHub: 1, skillHub: 1, skillGap: 1, letterTplList: 1, quizList: 1, quizTake: 1, alumniList: 1, rehireCheck: 1, cwList: 1, cwInvoices: 1, retroScan: 1, retroLog: 1, gradeList: 1, bandReport: 1, pushKey: 1, hseList: 1, ppeList: 1, hseStats: 1, aiStatus: 1, flowPreview: 1, officeMap: 1, myTotalRewards: 1, apiKeyList: 1, webhookDeliveries: 1, payGroupList: 1, snapshotList: 1, snapshotView: 1, reportSubList: 1, kioskList: 1, notifyStatus: 1, perkList: 1, welcome: 1, internalJobs: 1, careerPathList: 1, rolesOverview: 1, nineBox: 1, successionList: 1, kbSearch: 1, kbList: 1, oneOnOneList: 1, goalList: 1, workforcePlan: 1, careersList: 1, careerPostList: 1, shiftOfferList: 1, searchAll: 1, customFieldList: 1, customValuesGet: 1, customValuesAll: 1, myFinalSettlement: 1, myExitSurvey: 1, kudosFeed: 1, exitSurveyResults: 1, kudosStats: 1, me: 1, myHistory: 1, myFile: 1, hrEmpFile: 1, hrTeam: 1, hrCompList: 1, hrDirectory: 1, hrDeptList: 1,
   hrPositionList: 1, hrDocList: 1, hrExpiring: 1, hrBootstrap: 1, hrImportValidate: 1, board: 1, empList: 1, zoneList: 1, report: 1,
   reviewList: 1, auditList: 1, settingsGet: 1, myRequests: 1, requestQuote: 1, reqInbox: 1, holidayList: 1, leaveTeam: 1, leaveBalances: 1,
   dashboard: 1, mySlips: 1, payrollList: 1, payrollGet: 1, eosQuote: 1, myPerformance: 1, perfTeam: 1, perfEmp: 1, feedbackResults: 1, perfCycleList: 1, perfOverview: 1,
@@ -1151,8 +1179,9 @@ function preloadFor_(action) {
   try {
     var book = ss_(); if (!book || typeof book.preload !== 'function') return;
     var list = JSON.parse(cache_().get('acttabs:v1:' + orgKey_('') + action) || '[]');
+    if (!list.length) list = Object.keys(CACHED_TABS_); // first time for this action: every small tab, two batches at most
     var need = list.filter(function (n) { if (READ_MEMO_[n]) return false; if (!CACHED_TABS_[n]) return true; var c = cachedRows_(n); return !(c && c.rows); });
-    if (need.length > 1) book.preload(need);
+    for (var i = 0; i < need.length && i < 160; i += 80) if (need.length > 1) book.preload(need.slice(i, i + 80));
   } catch (e) { /* only a speed-up: reading tab by tab still works */ }
 }
 function learnTabs_(action) {
@@ -1171,7 +1200,7 @@ function handle_(req) {
   REQ_HOST_ = req && typeof req.host === 'string' ? req.host.toLowerCase().slice(0, 80) : '';
   REQ_DEV_ = req && typeof req.devId === 'string' && /^[aw]:[A-Za-z0-9_-]{16,64}$/.test(req.devId) ? req.devId : '';
   USE_TAB_CACHE_ = false;
-  TAB_PREFETCH_ = null;
+  TAB_PREFETCH_ = null; STORE_Q_ = null;
   var action = req && req.action;
   if (READ_ONLY_ACTIONS[action]) USE_TAB_CACHE_ = true;
   try {
@@ -1188,7 +1217,7 @@ function handle_(req) {
     var level = ROLES[me.role] || 0;
     if (!READ_ONLY_ACTIONS[action] && typeof resignationDeemedSweep_ === 'function') resignationDeemedSweep_(); // Leave.gs, at most hourly
     var allowed = (EMP_ACTIONS[action] && level >= 1) || (HR_ACTIONS[action] && level >= ROLES.hr) || (ADMIN_ACTIONS[action] && level >= ROLES.admin);
-    if (allowed) { var res = fn(req, me); if (READ_ONLY_ACTIONS[action]) learnTabs_(action); if (!READ_ONLY_ACTIONS[action]) { if (typeof notifySweep_ === 'function') notifySweep_(); if (typeof reportSubsSweep_ === 'function') reportSubsSweep_(); if (typeof snapSweep_ === 'function') snapSweep_(); if (typeof whSweep_ === 'function') whSweep_(); if (typeof pushSweep_ === 'function') pushSweep_(); } return res; } // the daily digest, lazily (off by default)
+    if (allowed) { var res = fn(req, me); if (READ_ONLY_ACTIONS[action]) learnTabs_(action); if (!READ_ONLY_ACTIONS[action]) { if (typeof notifySweep_ === 'function') notifySweep_(); if (typeof reportSubsSweep_ === 'function') reportSubsSweep_(); if (typeof snapSweep_ === 'function') snapSweep_(); if (typeof whSweep_ === 'function') whSweep_(); if (typeof pushSweep_ === 'function') pushSweep_(); if (typeof autoSweep_ === 'function') autoSweep_(); } return res; } // the daily digest, lazily (off by default)
     return { ok: false, error: 'forbidden' };
   } catch (err) {
     var msg = String(err && err.message || err);
@@ -1196,6 +1225,8 @@ function handle_(req) {
     console.error(action + ': ' + msg + '\n' + (err && err.stack));
     if (/UrlFetchApp|script\.external_request/.test(msg)) return PLATFORM_OK_ ? { ok: false, error: 'needs_owner_authorization', detail: msg.slice(0, 300) } : { ok: false, error: 'server_error' };
     return PLATFORM_OK_ ? { ok: false, error: 'server_error', detail: msg.slice(0, 300) } : { ok: false, error: 'server_error' };
+  } finally {
+    flushStore_(); // the tab copies read in this request, saved in one call whichever way it ended (sign-in returns early)
   }
 }
 

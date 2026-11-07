@@ -72,6 +72,8 @@ function load(opts = {}) {
       const tabRows = n => { const sh = b.tabs[n]; if (!sh) return []; const rows = sh._rows.map(r => { const x = (r || []).map(v => v instanceof Date ? v.toISOString() : v); while (x.length && (x[x.length - 1] === '' || x[x.length - 1] == null)) x.pop(); return x; }); while (rows.length && !rows[rows.length - 1].length) rows.pop(); return rows; };
       return res(200, { valueRanges: u.searchParams.getAll('ranges').map(rg => { const rows = tabRows(A1(rg).tab); return rows.length ? { range: rg, values: rows } : { range: rg }; }) });
     }
+    const ap = /^\/values\/(.+?):append$/.exec(rest);
+    if (ap && method === 'post') { const t = b.tabs[A1(ap[1].replace(/!.*$/, '')).tab]; if (!t) return res(400, { error: 'no tab' }); body.values.forEach(v => t.appendRow(v)); return res(200, { updates: { updatedRows: body.values.length } }); }
     const vm2 = /^\/values\/(.+?)(:clear)?$/.exec(rest); if (!vm2) return res(400, { error: 'unsupported ' + rest });
     const a = A1(vm2[1]), sh = b.tabs[a.tab], grid = b.props[a.tab] && b.props[a.tab].gridProperties; if (!sh) return res(400, { error: 'no tab ' + a.tab });
     if (vm2[2]) { sh.getRange(a.r, a.c, a.r2 - a.r + 1, a.c2 - a.c + 1).clearContent(); return res(200, {}); }
@@ -139,7 +141,7 @@ function load(opts = {}) {
   ctx.globalThis = ctx;
   vm.createContext(ctx);
   const dir = path.join(__dirname, '..', 'backend');
-  for (const f of ['Code.gs', 'WebAuthn.gs', 'Attendance.gs', 'Admin.gs', 'Hr.gs', 'Leave.gs', 'Payroll.gs', 'Performance.gs', 'Dashboard.gs', 'Reports.gs', 'Engage.gs', 'Compliance.gs', 'Shifts.gs', 'Relations.gs', 'Custody.gs', 'Demo.gs', 'GovServices.gs', 'Expenses.gs', 'Journal.gs', 'Flows.gs', 'Recruitment.gs', 'Loans.gs', 'Training.gs', 'Insurance.gs', 'Announce.gs', 'HelpDesk.gs', 'Wave5.gs', 'Wave6.gs']) vm.runInContext(fs.readFileSync(path.join(dir, f), 'utf8'), ctx, { filename: f });
+  for (const f of ['Code.gs', 'WebAuthn.gs', 'Attendance.gs', 'Admin.gs', 'Hr.gs', 'Leave.gs', 'Payroll.gs', 'Performance.gs', 'Dashboard.gs', 'Reports.gs', 'Engage.gs', 'Compliance.gs', 'Shifts.gs', 'Relations.gs', 'Custody.gs', 'Demo.gs', 'GovServices.gs', 'Expenses.gs', 'Journal.gs', 'Flows.gs', 'Recruitment.gs', 'Loans.gs', 'Training.gs', 'Insurance.gs', 'Announce.gs', 'HelpDesk.gs', 'Wave5.gs', 'Wave6.gs', 'Wave7.gs']) vm.runInContext(fs.readFileSync(path.join(dir, f), 'utf8'), ctx, { filename: f });
   if (opts.setupKeyHash) vm.runInContext(`var SETUP_KEY_HASH = ${JSON.stringify(opts.setupKeyHash)};`, ctx);
   const self = {
     ctx, sheets, books, props, cache,
