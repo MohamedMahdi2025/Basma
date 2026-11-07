@@ -3528,8 +3528,8 @@ var HUB_PROMPT = null;
 function isHubUrl(){ return /^#platform/.test(location.hash) || /[?&]app=hub/.test(location.search); }
 function hubHead(){
   var set = function(sel, attr, v){ Array.prototype.forEach.call(document.querySelectorAll(sel), function(el){ el.setAttribute(attr, v); }); }; /* every copy: the loader's head and the page's both carry these links */
-  set('link[rel="manifest"]', 'href', 'hub.webmanifest?v=2'); set('link[rel="apple-touch-icon"]', 'href', 'hub-apple.png?v=2');
-  Array.prototype.forEach.call(document.querySelectorAll('link[rel~="icon"]'), function(l){ l.href = 'hub-192.png?v=2'; });
+  set('link[rel="manifest"]', 'href', 'hub.webmanifest?v=3'); set('link[rel="apple-touch-icon"]', 'href', 'hub-apple.png?v=3');
+  Array.prototype.forEach.call(document.querySelectorAll('link[rel~="icon"]'), function(l){ l.href = 'hub-192.png?v=3'; });
   set('meta[name="theme-color"]', 'content', '#D9730F');
   var ap = document.querySelector('meta[name="apple-mobile-web-app-title"]'); if (ap) ap.setAttribute('content', 'BASMA Hub');
 }

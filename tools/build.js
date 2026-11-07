@@ -80,6 +80,24 @@ document.open();document.write(h);document.close();
 `;
 
 fs.writeFileSync(path.join(OUT, 'index.html'), loader);
+// The platform console has its own address (2026-11-08): platform.html. Browsers keep a tab icon per URL, so #platform on the
+// app's own address kept showing the app icon. This page is the same app with the platform's amber icon, manifest, colour
+// and title fixed in its head, before and after the page is decoded. Opening /#platform on the app moves here.
+const HUB = s => s.replace('manifest.webmanifest?v=basma2', 'hub.webmanifest?v=3').replace(/(favicon-48|icon-192)\.png\?v=basma2/g, 'hub-192.png?v=3')
+  .replace('apple-touch-icon.png?v=basma2', 'hub-apple.png?v=3').replace('content="#142236"', 'content="#D9730F"').replace(/<title>[^<]*<\/title>/, '<title>مركز بصمة · BASMA Hub</title>');
+const START = '(function(){\nvar k=[';
+// the same head swap, run in the page after decoding (the decoded page writes its own head)
+const SWAP = "h=h.replace('manifest.webmanifest?v=basma2','hub.webmanifest?v=3').replace(/(favicon-48|icon-192)\\.png\\?v=basma2/g,'hub-192.png?v=3')" +
+  ".replace('apple-touch-icon.png?v=basma2','hub-apple.png?v=3').replace('content=\"#142236\"','content=\"#D9730F\"').replace(/<title>[^<]*<\\/title>/,'<title>مركز بصمة · BASMA Hub</title>');";
+const platLoader = HUB(loader)
+  .replace(START, "(function(){\nif(location.hash&&location.hash!=='#platform'){location.replace('./'+location.hash);return;}if(!location.hash)history.replaceState(null,'',location.pathname+location.search+'#platform');\nvar k=[")
+  .replace('var h=new TextDecoder().decode(o);', 'var h=new TextDecoder().decode(o);' + SWAP);
+if (platLoader === loader || platLoader.indexOf("location.replace('./'+location.hash)") < 0 || platLoader.indexOf('h=h.replace(') < 0 || platLoader.indexOf('hub-192.png?v=3') < 0) { console.error('refusing: platform loader not built'); process.exit(1); }
+fs.writeFileSync(path.join(OUT, 'platform.html'), platLoader);
+// and the app's own address sends #platform to it, before decoding anything
+const appLoader = loader.replace(START, "(function(){\nif(location.hash==='#platform'){location.replace('platform.html#platform');return;}\nvar k=[");
+if (appLoader === loader) { console.error('refusing: app loader redirect not added'); process.exit(1); }
+fs.writeFileSync(path.join(OUT, 'index.html'), appLoader);
 fs.writeFileSync(path.join(OUT, 'version.json'), JSON.stringify({ build: STAMP }) + '\n');
 fs.writeFileSync(path.join(OUT, 'sw.js'), fs.readFileSync(path.join(SRC, 'sw.js'), 'utf8').replace(/var CACHE = '[^']*';/, "var CACHE = 'bgatt-" + STAMP + "';"));
 for (const f of ['manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png', 'favicon-48.png', 'hub.webmanifest', 'hub-192.png', 'hub-512.png', 'hub-apple.png', 'privacy.html', 'delete-account.html']) {
