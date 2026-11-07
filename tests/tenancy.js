@@ -90,5 +90,19 @@ const o1 = ov.rows && ov.rows.find(x => x.id === '1001'), o2 = ov.rows && ov.row
 ok(ov.ok && o1 && o2 && o1.group === 'Holding' && o2.group === 'Holding' && o2.employees === 4 && o1.employees >= 1 && o2.nameAr === 'شركة النخبة', 'each company is counted inside its own book, listed under its group', ov.rows);
 ok(!/basic|"net|iban|salary|empNo|"name"/.test(JSON.stringify(ov.rows)), 'counts only: no salary, no person, no personal data leaves a company', ov.rows);
 
+console.log('No leakage through API keys or calendar links (2026-11-07)');
+{
+  const ak = B.raw({ action: 'apiKeySave', token: E.token, label: 'BI', scopes: ['employees'] });
+  const mine = B.raw({ action: 'apiQuery', orgId: '1002', apiKey: ak.key, resource: 'employees' });
+  ok(ak.ok && mine.ok && (mine.rows || []).some(x => String(x.empNo) === '2001'), 'an API key of organisation 1002 reads 1002', mine.error);
+  const theirs = B.raw({ action: 'apiQuery', orgId: '1001', apiKey: ak.key, resource: 'employees' });
+  ok(!theirs.ok && theirs.error === 'bad_api_key', 'the same key presented to organisation 1001 is unknown there', theirs);
+  B.ctx.ContentService.MimeType.ICAL = 'ics';
+  const link = B.raw({ action: 'calFeedLink', token: E.token });
+  const feed = org => String(B.ctx.doGet({ parameter: { ical: link.token, org } }));
+  ok(link.ok && link.org === '1002' && /BEGIN:VCALENDAR/.test(feed('1002')), 'a calendar link answers in its own organisation');
+  ok(!/VEVENT|UID:/.test(feed('1001')) && feed('1001').length < 120, 'the same link against organisation 1001 gives an empty calendar', feed('1001'));
+}
+
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);

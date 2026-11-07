@@ -231,6 +231,8 @@ function api_hrEmpSave(req, me) {
     var ctx = orgCtx_(), emp = ctx.emps[d.id];
     if (!emp) fail_('not_found');
     guardEdit_(me, emp);
+    // job and pay fields (hire date, leave days, Saudi status) on your own record go through a data-change request
+    if (emp.id === me.id && me.role !== 'admin') fail_('cannot_edit_self');
     var before = { departmentId: emp.departmentId, positionId: emp.positionId, managerId: emp.managerId };
     if ('departmentId' in d && d.departmentId && !ctx.depts[d.departmentId]) fail_('not_found');
     var pos = null;

@@ -311,6 +311,10 @@ function quote_(emp, d, excludeId) {
  * submission counts as accepted; the employer may defer acceptance up to 60 days in writing for a work need.
  * Returns the day the 30 days run out (day of submission + 30).
  */
+/** Keys only the server writes into a request (HR deferral, leave extensions). Dropped from what the employee sends, or a
+ *  back-dated deferUntil would make the system deem a resignation accepted at once, and extensionOf would change routing. */
+var SERVER_PAYLOAD_KEYS_ = { deferUntil: 1, deferReason: 1, deferBy: 1, deferAt: 1, extensionOf: 1, requestedBy: 1 };
+function clientPayload_(p) { var o = {}; if (p && typeof p === 'object' && !Array.isArray(p)) Object.keys(p).forEach(function (k) { if (!SERVER_PAYLOAD_KEYS_[k]) o[k] = p[k]; }); return o; }
 function resignationAcceptBy_(r) {
   var d = parsePayload_(r).deferUntil;
   return d && /^\d{4}-\d{2}-\d{2}$/.test(String(d)) ? String(d) : addDays_(String(r.createdAt || '').slice(0, 10), 30);
@@ -420,7 +424,7 @@ function api_requestCreate(req, me) {
     var kind = q.type === 'leave' ? 'leave' : q.type;
     var row = { id: newId_('R'), ref: nextRef_(kind, refsOf_(SHEETS.REQ)), empId: emp.id, type: q.type, subtype: q.subtype || '', fromDate: q.fromDate || '',
       toDate: q.toDate || '', days: q.days == null ? '' : q.days, amount: q.amount == null ? '' : q.amount, months: q.months || '',
-      payloadJson: JSON.stringify(Object.assign({}, d.payload || {}, q.payload || {})), reason: str_(d.reason, 500), docNo: str_(d.docNo, 60),
+      payloadJson: JSON.stringify(Object.assign({}, clientPayload_(d.payload), q.payload || {})), reason: str_(d.reason, 500), docNo: str_(d.docNo, 60),
       status: 'pending', step: steps[0], stepsJson: '[]',
       effectJson: JSON.stringify({ warnings: q.warnings, sick: q.sick || null, holidays: q.holidays || [], calendarDays: q.calendarDays || null }),
       createdAt: now, updatedAt: now, decidedAt: '', flowJson: plan ? JSON.stringify(plan) : '' };

@@ -108,12 +108,15 @@ function api_empSave(req, me) {
   });
 }
 
+/** Anyone above a plain employee, or holding an extra role (payroll, executive): only an administrator resets their sign-in. */
+function privileged_(e) { return e.role !== 'employee' || hasRole_(e, 'payroll') || hasRole_(e, 'executive'); }
+
 /** New activation code. Enrolling with it replaces the current device. */
 function api_empActivation(req, me) {
   return withLock_(function () {
     var emp = findBy_(SHEETS.EMP, 'id', req.id);
     if (!emp) fail_('not_found');
-    if (me.role !== 'admin' && emp.role !== 'employee') fail_('forbidden');
+    if (me.role !== 'admin' && privileged_(emp)) fail_('forbidden'); // HR must not take over a payroll or executive holder's sign-in
     var code = setActivation_(emp, me.id);
     emp.updatedAt = new Date().toISOString();
     update_(SHEETS.EMP, emp);
@@ -138,7 +141,7 @@ function api_empPasswordReset(req, me) {
     var emp = findBy_(SHEETS.EMP, 'id', req.id);
     if (!emp) fail_('not_found');
     if (emp.id === me.id) fail_('cannot_reset_own_password');
-    if (me.role !== 'admin' && emp.role !== 'employee') fail_('forbidden');
+    if (me.role !== 'admin' && privileged_(emp)) fail_('forbidden'); // HR must not take over a payroll or executive holder's sign-in
     var pw = tempPassword_();
     emp.pwSalt = bytesToB64u_(randomBytes_(16));
     emp.pwHash = pwHash_(pw, emp.pwSalt);

@@ -99,7 +99,7 @@ var HEADERS = {
     // pay groups (2026-10-21): '' = the general group
     'payGroupId'],
   credentials: ['credId', 'empId', 'x', 'y', 'signCount', 'label', 'status', 'createdAt', 'lastUsedAt', 'aaguid', 'kind',
-    'platform', 'pinHash', 'pinSalt', 'pinTries', 'pinLockUntil', 'devId'],
+    'platform', 'pinHash', 'pinSalt', 'pinTries', 'pinLockUntil', 'devId', 'pinLoginTries'],
   zones: ['id', 'name', 'nameEn', 'lat', 'lng', 'radius', 'status', 'createdAt', 'updatedAt'],
   punches: ['id', 'empId', 'type', 'ts', 'date', 'lat', 'lng', 'acc', 'zoneId', 'distance', 'status', 'risk', 'flags',
     'source', 'note', 'reviewBy', 'reviewAt', 'credId', 'ua', 'createdAt'],
@@ -1090,7 +1090,7 @@ function doGet(e) {
 
 function apiCsv_(rows) {
   var keys = []; rows.forEach(function (r) { Object.keys(r).forEach(function (k) { if (keys.indexOf(k) < 0) keys.push(k); }); });
-  var q = function (v) { var s = v == null ? '' : String(v); if (/^[=+@]/.test(s) || /^-(?![0-9.])/.test(s)) s = "'" + s; return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+  var q = function (v) { var s = v == null ? '' : String(v); if (/^[=+@\t\r]/.test(s) || (/^-/.test(s) && !/^-\d+(\.\d+)?$/.test(s))) s = "'" + s; /* only a plain negative number stays bare: "-1+2" would run as a formula */ return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
   return '\uFEFF' + [keys.join(',')].concat(rows.map(function (r) { return keys.map(function (k) { return q(r[k]); }).join(','); })).join('\r\n');
 }
 function doPost(e) {

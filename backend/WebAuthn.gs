@@ -70,21 +70,26 @@ function bytesToBig_(b) { var h = '0x0'; for (var i = 0; i < b.length; i++) h +=
 
 function cborDecode_(b) { return cborItem_(b, 0).v; }
 
-function cborItem_(b, o) {
+// Bounded: this runs on data from unauthenticated requests. Reading past the end, a length longer than what is left,
+// or nesting deeper than any authenticator uses is refused at once, so a forged count cannot loop for minutes.
+function cborItem_(b, o, depth) {
+  depth = depth || 0;
+  if (depth > 8 || o >= b.length) throw new Error('E:cbor_bad');
   var ib = b[o++], mt = ib >> 5, ai = ib & 31, len;
   if (ai < 24) len = ai;
   else if (ai === 24) len = b[o++];
   else if (ai === 25) { len = b[o] * 256 + b[o + 1]; o += 2; }
   else if (ai === 26) { len = ((b[o] * 256 + b[o + 1]) * 256 + b[o + 2]) * 256 + b[o + 3]; o += 4; }
   else throw new Error('E:cbor_unsupported');
+  if (o > b.length || ((mt === 2 || mt === 3) && o + len > b.length) || ((mt === 4 || mt === 5) && len > b.length - o)) throw new Error('E:cbor_bad');
   var i, r, v;
   switch (mt) {
     case 0: return { v: len, o: o };
     case 1: return { v: -1 - len, o: o };
     case 2: return { v: b.slice(o, o + len), o: o + len };
     case 3: return { v: bytesToUtf8_(b.slice(o, o + len)), o: o + len };
-    case 4: v = []; for (i = 0; i < len; i++) { r = cborItem_(b, o); v.push(r.v); o = r.o; } return { v: v, o: o };
-    case 5: v = {}; for (i = 0; i < len; i++) { var k = cborItem_(b, o); r = cborItem_(b, k.o); v[k.v] = r.v; o = r.o; } return { v: v, o: o };
+    case 4: v = []; for (i = 0; i < len; i++) { r = cborItem_(b, o, depth + 1); v.push(r.v); o = r.o; } return { v: v, o: o };
+    case 5: v = {}; for (i = 0; i < len; i++) { var k = cborItem_(b, o, depth + 1); r = cborItem_(b, k.o, depth + 1); v[k.v] = r.v; o = r.o; } return { v: v, o: o };
     case 7: return { v: ai === 20 ? false : ai === 21 ? true : null, o: o };
     default: throw new Error('E:cbor_unsupported');
   }

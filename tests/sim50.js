@@ -256,7 +256,7 @@ ok(Object.values(PID).every(Boolean) && grades.size === 10, 'positions cover eve
 // job data and contracts
 let jobOk = 0;
 NOS.forEach(n => {
-  const e = EMP[n], who = n === '1045' ? '1045' : '1011';
+  const e = EMP[n], who = n === '1045' || n === '1011' ? '1045' : '1011'; // HR's own job record: entered by the administrator (security fix 2026-11-07)
   const job = { id: ids[n], departmentId: DID[e.dept], positionId: PID[e.pos], managerId: e.mgr ? ids[e.mgr] : '', hireDate: e.hire, contractType: e.contract,
     nationality: e.nat, gender: e.gender, workLocation: 'الرياض', contractNo: n === '1050' ? '' : 'Q-' + n, occupationCode: '9' + n, employmentType: 'full_time',
     workDaysPerWeek: 5, dailyHours: 8, annualLeaveDays: ['G8', 'G9', 'G10'].includes(e.grade) ? 30 : '', noticeDays: 30, reason: 'بيانات التأسيس' };

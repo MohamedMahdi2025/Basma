@@ -30,7 +30,8 @@ function api_adminRecover(req) {
   var expected = (typeof SETUP_KEY_HASH === 'string') ? SETUP_KEY_HASH : '';
   if (!expected || !safeEqual_(sha256Hex_(String(req.setupKey || '').trim()), expected)) {
     // Only wrong keys are counted, so junk requests cannot lock the owner out of recovery.
-    if (!rateLimit_('recoverFail:' + String(req.empNo || ''), 10, 3600)) fail_('too_many_attempts');
+    // Counted per number AND for the whole organisation: a fresh employee number per guess must not reset the limit.
+    if (!rateLimit_('recoverFail:' + String(req.empNo || ''), 10, 3600) | !rateLimit_('recoverFailAll', 30, 3600)) fail_('too_many_attempts');
     fail_('bad_setup_key');
   }
   return withLock_(function () {
@@ -203,6 +204,9 @@ function api_enrollFinish(req) {
 // ---------------- password sign-in (any device) ----------------
 
 var PW_ROUNDS = 1200, PW_MAX_TRIES = 5, PW_LOCK_MINUTES = 15;
+/** Each lockout in a row doubles (15, 30, 60 ... minutes, at most a day); the count clears only on a successful sign-in,
+ *  so waiting out a lock no longer buys a fresh set of guesses (about 150 a month instead of about 480 a day). */
+function lockMinutes_(tries) { var n = Math.floor(tries / PW_MAX_TRIES); return Math.min(24 * 60, PW_LOCK_MINUTES * Math.pow(2, Math.max(0, n - 1))); }
 
 function pwHash_(pw, salt) {
   var h = utf8Bytes_(salt + '|' + pw), s = utf8Bytes_(salt);
@@ -254,14 +258,15 @@ function api_pinLogin(req) {
     }
     if (cred.pinLockUntil && new Date(cred.pinLockUntil).getTime() > Date.now()) fail_('pin_locked');
     if (!safeEqual_(pinHash_(pin, cred.pinSalt), cred.pinHash)) {
-      cred.pinTries = Number(cred.pinTries || 0) + 1;
-      var locked = cred.pinTries >= PW_MAX_TRIES;
-      if (locked) { cred.pinLockUntil = new Date(Date.now() + PW_LOCK_MINUTES * 60000).toISOString(); cred.pinTries = 0; }
+      // its own counter: the device-key PIN check (pinTries) locks the key for good, and guesses here must not feed it
+      cred.pinLoginTries = Number(cred.pinLoginTries || 0) + 1;
+      var locked = cred.pinLoginTries % PW_MAX_TRIES === 0;
+      if (locked) cred.pinLockUntil = new Date(Date.now() + lockMinutes_(cred.pinLoginTries) * 60000).toISOString();
       update_(SHEETS.CRED, cred);
       audit_(emp.id, 'pin_login_failed', emp.id, { locked: locked });
       fail_(locked ? 'pin_locked' : 'bad_pin_login');
     }
-    if (Number(cred.pinTries || 0) || cred.pinLockUntil) { cred.pinTries = 0; cred.pinLockUntil = ''; update_(SHEETS.CRED, cred); }
+    if (Number(cred.pinLoginTries || 0) || cred.pinLockUntil) { cred.pinLoginTries = 0; cred.pinLockUntil = ''; update_(SHEETS.CRED, cred); }
     audit_(emp.id, 'login_pin_any_device', emp.id, null);
     return { ok: true, token: issueToken_(emp), me: publicEmp_(emp), home: homePayload_(emp, false), pinLogin: true };
   });
@@ -281,8 +286,8 @@ function api_pwLogin(req) {
     if (emp.pwLockUntil && new Date(emp.pwLockUntil).getTime() > Date.now()) fail_('password_locked');
     if (!safeEqual_(pwHash_(String(req.password || ''), emp.pwSalt), emp.pwHash)) {
       emp.pwTries = Number(emp.pwTries || 0) + 1;
-      var locked = emp.pwTries >= PW_MAX_TRIES;
-      if (locked) { emp.pwLockUntil = new Date(Date.now() + PW_LOCK_MINUTES * 60000).toISOString(); emp.pwTries = 0; }
+      var locked = emp.pwTries % PW_MAX_TRIES === 0;
+      if (locked) emp.pwLockUntil = new Date(Date.now() + lockMinutes_(emp.pwTries) * 60000).toISOString();
       update_(SHEETS.EMP, emp);
       audit_(emp.id, 'password_failed', emp.id, { locked: locked });
       fail_(locked ? 'password_locked' : 'bad_login');

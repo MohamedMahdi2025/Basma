@@ -260,6 +260,7 @@ function api_discObjectionDecide(req, me) {
   return withLock_(function () {
     var x = findBy_(SHEETS.DCASE, 'id', req.id), ctx = orgCtx_();
     if (!x || x.status !== 'objected') fail_('not_found');
+    if (x.empId === me.id) fail_('forbidden'); // nobody rules on the objection to their own penalty (it can delete the deduction)
     if (x.decidedBy === me.id) fail_('second_approver_required'); // someone other than the one who decided
     var res = req.result === 'cancelled' ? 'cancelled' : 'upheld', note = str_(req.note, 1000); if (!note) fail_('note_required');
     if (x.amount && me.role !== 'hr') fail_('forbidden'); // ruling on a penalty with a deduction is pay: the hr role
