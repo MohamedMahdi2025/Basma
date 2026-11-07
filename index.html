@@ -5879,7 +5879,7 @@ function empDrawer(e){
   form.onsubmit = function(ev){
     ev.preventDefault(); if (sending) return;
     var f = form, er = $('#eerr', d); er.textContent = '';
-    var bad = ['empNo', 'name'].filter(function(k){ var x = f.elements[k]; x.removeAttribute('aria-invalid'); return !x.value.trim(); });
+    var bad = ['name'].filter(function(k){ /* the number is read-only: blank on a new employee, the server gives the next one */ var x = f.elements[k]; x.removeAttribute('aria-invalid'); return !x.value.trim(); });
     if (bad.length) { bad.forEach(function(k){ f.elements[k].setAttribute('aria-invalid', 'true'); }); f.elements[bad[0]].focus(); er.textContent = t('neFill'); return; }
     var emp = { id: e ? e.id : '', empNo: e ? e.empNo : '', name: f.name.value, nameEn: f.nameEn.value, department: f.department.value, title: f.title.value,
       phone: f.phone.value, email: f.email.value, role: f.role.value, shiftStart: f.shiftStart.value, shiftEnd: f.shiftEnd.value,
