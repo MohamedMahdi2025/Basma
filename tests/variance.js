@@ -35,5 +35,15 @@ ok(v.departments.length === 2 && v.lines.some(l => l.code === 'e:bonus' && l.m0 
 const v2 = B.ctx.api_payrollVariance({ id: oct.id, pct: 50, min: 2000 }, { id: 'X', role: 'hr', extraRoles: 'payroll' });
 ok(v2.people.find(p => p.name === 'سارة').flags.indexOf('net_down') < 0, 'a higher threshold quiets smaller changes', v2.threshold);
 
+console.log('Deeper analysis (2026-11-07)');
+const D = v.drivers, sumD = Object.keys(D).reduce((t, k) => t + D[k], 0);
+ok(Math.abs(sumD - br.stayers) < 0.01, 'the drivers add up exactly to the change for people paid in both months', { D, stayers: br.stayers });
+ok(D.pay > 0 && D.oneoff === 500 && D.absence < 0 && D.advances === -300, 'pay rise up, bonus +500, absence down, advance -300', D);
+const VR = v.volumeRate;
+ok(Math.abs(VR.headcountEffect + VR.rateEffect - (br.to - br.from)) < 0.01, 'headcount effect + rate effect = the whole change', VR);
+ok(v.trend.length === 12 && v.trend[11].month === '2026-10' && v.trend[11].headcount === 3 && v.trend[9].month === '2026-08' && !v.trend[9].none && v.trend[0].none, 'twelve months of trend, months without a run marked', v.trend.slice(9));
+ok(a.reasons && a.reasons[0].line === 'e:basic' && a.reasons[0].from === 4000 && a.reasons[0].to === 4500, 'each person gets their biggest reasons, largest first', a.reasons);
+ok(v.expected && typeof v.expected.package === 'number', 'expected (contract package) vs actual is reported', v.expected);
+
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exitCode = failed ? 1 : 0;

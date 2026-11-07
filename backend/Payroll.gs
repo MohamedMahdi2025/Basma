@@ -1219,8 +1219,56 @@ function api_payrollVariance(req, me) {
   // what explains the change in net: joiners and leavers, then people who stayed (by line)
   var bridge = { from: totals.net.m1, joiners: 0, leavers: 0, stayers: 0, to: totals.net.m0 };
   people.forEach(function (x) { var a = x.m0 ? x.m0.net : 0, b = x.m1 ? x.m1.net : 0; if (x.m0 && !x.m1) bridge.joiners = r2_(bridge.joiners + a); else if (!x.m0 && x.m1) bridge.leavers = r2_(bridge.leavers - b); else bridge.stayers = r2_(bridge.stayers + a - b); });
+  // ---- deeper analysis (2026-11-07) ----
+  // drivers: what moved the net of people paid in both months, by kind of line; the parts add up to bridge.stayers exactly
+  var drivers = {}; VAR_DRIVERS_.forEach(function (k) { drivers[k] = 0; });
+  people.forEach(function (x) {
+    if (!x.m0 || !x.m1) return;
+    var p = per[x.empId], L0 = p.m0.lines, L1 = p.m1.lines, keysL = {}; Object.keys(L0).concat(Object.keys(L1)).forEach(function (k) { keysL[k] = 1; });
+    var reasons = [];
+    Object.keys(keysL).forEach(function (k) {
+      var d = r2_((L0[k] || 0) - (L1[k] || 0)); if (!d) return;
+      var effect = k.indexOf('d:') === 0 ? -d : d; // a bigger deduction lowers net
+      drivers[varDriver_(k)] = r2_(drivers[varDriver_(k)] + effect);
+      reasons.push({ line: k, from: r2_(L1[k] || 0), to: r2_(L0[k] || 0), effect: effect });
+    });
+    reasons.sort(function (u, v) { return Math.abs(v.effect) - Math.abs(u.effect); });
+    x.reasons = reasons.slice(0, 3);
+  });
+  var explained = VAR_DRIVERS_.reduce(function (t, k) { return r2_(t + drivers[k]); }, 0);
+  drivers.other = r2_(drivers.other + r2_(bridge.stayers - explained)); // rounding and net-only adjustments: shown, never hidden
+  // volume vs rate: headcount effect at last month's average net, rate effect at this month's headcount; they sum to the change
+  var h0 = tot.m0.headcount || 0, h1 = tot.m1.headcount || 0, a0 = h0 ? (tot.m0.net || 0) / h0 : 0, a1 = h1 ? (tot.m1.net || 0) / h1 : 0;
+  var volumeRate = { headcountEffect: r2_((h0 - h1) * a1), rateEffect: r2_((a0 - a1) * h0), avgNow: r2_(a0), avgBefore: r2_(a1) };
+  // twelve months: one point per month with a run (locked preferred), all pay groups added
+  var trend = [];
+  for (var i = 11; i >= 0; i--) {
+    var mm = addMonths_(m0, -i), rid = i === 0 ? [run.id] : pick(mm); if (!rid.length) { trend.push({ month: mm, none: true }); continue; }
+    var pt = { month: mm, headcount: 0, gross: 0, net: 0, companyCost: 0 }, seen = {};
+    slips.forEach(function (x) { if (rid.indexOf(x.runId) < 0) return; if (!seen[x.empId]) { seen[x.empId] = 1; pt.headcount++; } pt.gross = r2_(pt.gross + (Number(x.gross) || 0)); pt.net = r2_(pt.net + (Number(x.net) || 0)); pt.companyCost = r2_(pt.companyCost + (Number(x.companyCost) || ((Number(x.gross) || 0) + (Number(x.gosiEmployer) || 0)))); });
+    trend.push(pt);
+  }
+  // expected (contract package for the month) vs actual gross, per person paid this month
+  var comps = currentCompMap_(monthLast_(m0) > today_() ? today_() : monthLast_(m0)), expTotal = 0, actTotal = 0;
+  people.forEach(function (x) {
+    if (!x.m0) return; var c = comps[x.empId]; if (!c) return;
+    var pkg = r2_((Number(c.basic) || 0) + (Number(c.housing) || 0) + (Number(c.transport) || 0) + Object.keys(c.other || {}).reduce(function (t, k) { return t + (Number(c.other[k]) || 0); }, 0));
+    x.expected = pkg; x.vsPackage = chg(x.m0.gross, pkg); expTotal = r2_(expTotal + pkg); actTotal = r2_(actTotal + x.m0.gross);
+  });
   audit_(me.id, 'salary_view', run.id, { variance: run.ref });
   return { ok: true, run: { id: run.id, ref: run.ref, month: m0, status: run.status }, months: { m0: m0, m1: m1, m2: m2, have1: ids.m1.length > 0, have2: ids.m2.length > 0 },
-    threshold: { pct: pct, min: minAmt }, totals: totals, bridge: bridge, departments: dl, lines: ll, people: people, counts: count };
+    threshold: { pct: pct, min: minAmt }, totals: totals, bridge: bridge, departments: dl, lines: ll, people: people, counts: count,
+    drivers: drivers, volumeRate: volumeRate, trend: trend, expected: { package: expTotal, actual: actTotal, diff: chg(actTotal, expTotal) } };
+}
+/** The driver a pay line belongs to (variance waterfall). Deductions are signed by the caller. */
+var VAR_DRIVERS_ = ['pay', 'overtime', 'oneoff', 'absence', 'gosi', 'advances', 'fines', 'otherDeductions', 'other'];
+function varDriver_(k) {
+  var code = String(k).split(':')[1] || '';
+  if (k.indexOf('e:') === 0) return ['basic', 'housing', 'transport', 'allowance'].indexOf(code) >= 0 ? 'pay' : code === 'overtime' ? 'overtime' : ['bonus', 'other_earning', 'reimbursement', 'commission'].indexOf(code) >= 0 ? 'oneoff' : 'other';
+  if (['absence', 'unpaid_leave', 'sick_75', 'sick_unpaid', 'late'].indexOf(code) >= 0) return 'absence';
+  if (code === 'gosi') return 'gosi';
+  if (code === 'advance' || code === 'loan') return 'advances';
+  if (code === 'fine') return 'fines';
+  return 'otherDeductions';
 }
 function addMonths_(ym, n) { var y = Number(ym.slice(0, 4)), m = Number(ym.slice(5, 7)) - 1 + n; y += Math.floor(m / 12); m = ((m % 12) + 12) % 12; return y + '-' + String(m + 1).padStart(2, '0'); }
