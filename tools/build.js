@@ -9,6 +9,7 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const zlib = require('zlib');
 
 const SRC = path.join(__dirname, '..');
 const OUT = path.join(SRC, '..', 'app');
@@ -44,12 +45,24 @@ if (!page.includes("var BUILD = '" + STAMP + "';")) { console.error('refusing: B
   page = parts.join('');
   if (!page.includes("BUILD=\"" + STAMP + "\"") && !page.includes("BUILD='" + STAMP + "'") && !page.includes('"' + STAMP + '"')) { console.error('refusing: BUILD stamp lost in minifying'); process.exit(1); }
 }
+// Compression (2026-11-09): the XOR layer makes bytes look random, so a server's gzip/Brotli cannot shrink them. The page and each module
+// are deflated BEFORE they are encoded and inflated by this small synchronous decoder (tiny-inflate) inside the loader.
+const TINF = require('./vendor/tiny-inflate.js');
+const BGZ = await minify('window.__bgz||(window.__bgz=(function(){var module={exports:{}};' + fs.readFileSync(path.join(__dirname, 'vendor', 'tiny-inflate.js'), 'utf8') + ';var f=module.exports;return function(s,n){return f(s,new Uint8Array(n));};})());', 'inflate');
+const squeeze = (buf, what) => { // deflate, and prove the browser decoder gives the original back byte for byte
+  const z = zlib.deflateRawSync(buf, { level: 9 });
+  if (!Buffer.from(TINF(z, new Uint8Array(buf.length))).equals(buf)) { console.error('refusing: the decoder does not reproduce ' + what); process.exit(1); }
+  return z;
+};
 const key = crypto.randomBytes(48);
 // The loader's <head> carries the CSP and it stays in force after document.write; a second copy inside the written
 // page is ignored by browsers ("outside the document's head") and only logs an error, so the encoded page drops it.
 const data = Buffer.from(page.replace(/<meta http-equiv="Content-Security-Policy"[^>]*>\n?/, ''), 'utf8');
-const enc = Buffer.alloc(data.length);
-for (let i = 0; i < data.length; i++) enc[i] = data[i] ^ key[i % key.length];
+const zdata = squeeze(data, 'index.html');
+console.log('compression: page ' + Math.round(data.length / 1024) + ' KB -> ' + Math.round(zdata.length / 1024) + ' KB before encoding');
+const enc = Buffer.alloc(zdata.length);
+for (let i = 0; i < zdata.length; i++) enc[i] = zdata[i] ^ key[i % key.length];
+const DEC = 'var h=new TextDecoder().decode(__bgz(o,' + data.length + '));';
 const lines = s => s.match(/.{1,38}/g).map(x => '"' + x + '"').join(',\n');
 
 const head = page.match(/<head>([\s\S]*?)<script/)[1]
@@ -63,6 +76,7 @@ ${head}
 </head>
 <body>
 <script>
+${BGZ}
 (function(){
 var k=[
 ${lines(key.toString('base64'))}
@@ -71,7 +85,7 @@ ${lines(enc.toString('base64'))}
 ].join("");
 var kb=atob(k),pb=atob(p),o=new Uint8Array(pb.length);
 for(var i=0;i<pb.length;i++)o[i]=pb.charCodeAt(i)^kb.charCodeAt(i%kb.length);
-var h=new TextDecoder().decode(o);
+${DEC}
 document.open();document.write(h);document.close();
 })();
 </script>
@@ -91,7 +105,7 @@ const SWAP = "h=h.replace('manifest.webmanifest?v=basma2','hub.webmanifest?v=3')
   ".replace('apple-touch-icon.png?v=basma2','hub-apple.png?v=3').replace('content=\"#142236\"','content=\"#D9730F\"').replace(/<title>[^<]*<\\/title>/,'<title>مركز بصمة · BASMA Hub</title>');";
 const platLoader = HUB(loader)
   .replace(START, "(function(){\nif(location.hash&&location.hash!=='#platform'){location.replace('./'+location.hash);return;}if(!location.hash)history.replaceState(null,'',location.pathname+location.search+'#platform');\nvar k=[")
-  .replace('var h=new TextDecoder().decode(o);', 'var h=new TextDecoder().decode(o);' + SWAP);
+  .replace(DEC, DEC + SWAP);
 if (platLoader === loader || platLoader.indexOf("location.replace('./'+location.hash)") < 0 || platLoader.indexOf('h=h.replace(') < 0 || platLoader.indexOf('hub-192.png?v=3') < 0) { console.error('refusing: platform loader not built'); process.exit(1); }
 // The platform console holds the owner's setup key in memory, so this page gets a script policy: only the loader's own script, the
 // page's own inline script(s) (by SHA-256 of their exact text), this site's files and the two spreadsheet/QR libraries on cdnjs run.
@@ -117,17 +131,18 @@ for (const f of ['manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-
 }
 // Lazily loaded screens (js/*.js) get the same treatment: a fresh key each, decoded and run in page scope.
 const JS_IN = path.join(SRC, 'js'), JS_OUT = path.join(OUT, 'js');
-let jsLong = 0;
+let jsLong = 0, jsRaw = 0, jsZ = 0;
 if (fs.existsSync(JS_IN)) {
   fs.mkdirSync(JS_OUT, { recursive: true });
   for (const f of fs.readdirSync(JS_OUT)) if (!fs.existsSync(path.join(JS_IN, f))) fs.unlinkSync(path.join(JS_OUT, f));
   for (const f of fs.readdirSync(JS_IN).filter(x => x.endsWith('.js'))) {
     const src = await minify(fs.readFileSync(path.join(JS_IN, f), 'utf8'), 'js/' + f);
-    const k = crypto.randomBytes(48), d = Buffer.from(src, 'utf8'), e = Buffer.alloc(d.length);
-    for (let i = 0; i < d.length; i++) e[i] = d[i] ^ k[i % k.length];
-    const out = '(function(){\nvar k=[\n' + lines(k.toString('base64')) + '\n].join(""),p=[\n' + lines(e.toString('base64')) + '\n].join("");\n' +
+    const k = crypto.randomBytes(48), d = Buffer.from(src, 'utf8'), z = squeeze(d, 'js/' + f), e = Buffer.alloc(z.length);
+    for (let i = 0; i < z.length; i++) e[i] = z[i] ^ k[i % k.length];
+    jsRaw += d.length; jsZ += z.length;
+    const out = BGZ + '\n(function(){\nvar k=[\n' + lines(k.toString('base64')) + '\n].join(""),p=[\n' + lines(e.toString('base64')) + '\n].join("");\n' +
       'var kb=atob(k),pb=atob(p),o=new Uint8Array(pb.length);\nfor(var i=0;i<pb.length;i++)o[i]=pb.charCodeAt(i)^kb.charCodeAt(i%kb.length);\n' +
-      '(0,eval)(new TextDecoder().decode(o));\n})();\n';
+      '(0,eval)(new TextDecoder().decode(__bgz(o,' + d.length + ')));\n})();\n';
     fs.writeFileSync(path.join(JS_OUT, f), out);
     jsLong += out.split('\n').filter(l => /[A-Za-z0-9+/]{40,}/.test(l)).length;
     console.log('built js/' + f, Math.round(out.length / 1024) + ' KB');
