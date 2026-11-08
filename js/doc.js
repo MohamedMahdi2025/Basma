@@ -107,7 +107,7 @@ function open(o){
   var lang = o.lang === 'en' ? 'en' : 'ar', co = window.coName ? coName(lang) : '', meta = window.coMeta ? coMeta(lang) : '', logo = window.logoInk ? logoInk() : '';
   var sig = (o.signatures || []).length ? '<div class="sign" style="grid-template-columns:repeat(' + o.signatures.length + ',minmax(0,1fr))">' + o.signatures.map(function(x){ return '<div>' + x + '</div>'; }).join('') + '</div>' : '';
   var html = '<!doctype html><html lang="' + lang + '" dir="' + (lang === 'en' ? 'ltr' : 'rtl') + '"><head><meta charset="utf-8"><title>' + esc((o.ref ? o.ref + ' ' : '') + (o.title || '')) + '</title>' +
-    '<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">' +
+    '<link href="' + FONTS_CSS + '" rel="stylesheet">' +
     '<style>' + CSS + (o.extraCss || '') + '</style></head><body>' +
     (logo ? '<div class="wm"><img src="' + logo + '" alt=""></div>' : '') +
     '<div class="sheet"><table class="pgt" role="presentation"><thead><tr><td><div class="pg-sp-t"></div></td></tr></thead><tfoot><tr><td><div class="pg-sp-b"></div></td></tr></tfoot><tbody><tr><td><header class="lh">' + (logo ? '<img src="' + logo + '" alt="">' : '<span></span>') + '<div class="co"><b>' + esc(co) + '</b>' + (meta ? '<small>' + meta + '</small>' : '') + '</div>' +

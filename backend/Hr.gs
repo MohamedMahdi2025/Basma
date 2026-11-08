@@ -281,15 +281,17 @@ function api_hrEmpSave(req, me) {
 /** Admin grants the payroll role. Kept apart from HR so the person who edits people is not the one who pays them. */
 function api_hrRolesSave(req, me) {
   var roles = trimList_(req.extraRoles).filter(function (r) { return r === 'payroll' || r === 'executive' || r === 'hse'; });
-  if (String(req.id) === String(me.id)) fail_('cannot_change_own_roles'); // nobody grants or removes their own rights
+  if (String(req.id) === String(me.id)) { secEvent_('own_role_change', me.id, ''); fail_('cannot_change_own_roles'); }
+  if (!rateLimit_('rolesave:' + me.id, 20, 3600)) fail_('rate_limited'); // nobody grants or removes their own rights
   return withLock_(function () {
     var emp = findBy_(SHEETS.EMP, 'id', req.id);
     if (!emp) fail_('not_found');
+    var rolesBefore = emp.extraRoles || '';
     emp.extraRoles = roles.join(',');
     emp.tokenVer = Number(emp.tokenVer || 0) + 1; // new rights take effect on the next sign-in, old sessions end
     emp.updatedAt = new Date().toISOString();
     update_(SHEETS.EMP, emp);
-    audit_(me.id, 'roles_update', emp.id, { extraRoles: emp.extraRoles });
+    audit_(me.id, 'roles_update', emp.id, { before: rolesBefore, extraRoles: emp.extraRoles });
     return { ok: true };
   });
 }
@@ -983,6 +985,16 @@ function api_searchAll(req, me) {
  */
 var ATTACH_TYPES_ = { 'application/pdf': 'pdf', 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
 var ATTACH_MAX_ = 5 * 1024 * 1024;
+/** The first bytes must really be what the declared type says (a script renamed .pdf or .png is refused). Bytes may be signed in Apps Script. */
+function fileMagicOk_(mime, bytes) {
+  var b = []; for (var i = 0; i < 12 && i < bytes.length; i++) b.push(bytes[i] & 255);
+  var is = function (sig, off) { off = off || 0; for (var j = 0; j < sig.length; j++) if (b[off + j] !== sig[j]) return false; return true; };
+  if (mime === 'application/pdf') return is([0x25, 0x50, 0x44, 0x46]);
+  if (mime === 'image/png') return is([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]);
+  if (mime === 'image/jpeg') return is([0xFF, 0xD8, 0xFF]);
+  if (mime === 'image/webp') return is([0x52, 0x49, 0x46, 0x46]) && is([0x57, 0x45, 0x42, 0x50], 8);
+  return false;
+}
 function attachOn_() { var s = settings_(); return s.attachmentsEnabled === true || String(s.attachmentsEnabled) === 'true'; }
 function driveCall_(method, url, opts) {
   var r;
@@ -1007,9 +1019,11 @@ function api_docUpload(req, me) {
   if (!attachOn_()) fail_('attachments_off');
   var mime = String(req.mime || ''), ext = ATTACH_TYPES_[mime];
   if (!ext) fail_('bad_file_type');
+  if (String(req.data || '').length > Math.ceil(ATTACH_MAX_ * 4 / 3) + 8) fail_('file_too_big'); // before decoding
   var bytes;
   try { bytes = Utilities.base64Decode(String(req.data || '')); } catch (e) { fail_('bad_value'); }
   if (!bytes.length || bytes.length > ATTACH_MAX_) fail_('file_too_big');
+  if (!fileMagicOk_(mime, bytes)) { secEvent_('bad_upload', me.id, mime); fail_('bad_file_type'); }
   return withLock_(function () {
     var row = findBy_(SHEETS.DOCS, 'id', req.docId);
     if (!row || row.status === 'deleted') fail_('not_found');

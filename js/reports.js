@@ -888,7 +888,7 @@ function toPdf(r, meta){
   var checks = meta.checks.length ? '<ul class="ck">' + meta.checks.map(function(c){ return '<li class="' + c.level + '">' + esc(checkText(c)) + '</li>'; }).join('') + '</ul>' : '';
   var legend = r.legend ? '<p class="lg">' + r.legend.map(function(k){ return '<b class="dc-' + k + '">' + k + '</b> ' + L(DAYCODE[k]); }).join(' &nbsp; ') + '</p>' : '';
   var html = '<!doctype html><html lang="' + (en ? 'en' : 'ar') + '" dir="' + (en ? 'ltr' : 'rtl') + '"><head><meta charset="utf-8"><title>' + esc(meta.ref + ' ' + meta.name) + '</title>' +
-    '<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;600&display=swap" rel="stylesheet"><style>' +
+    '<link href="' + FONTS_CSS + '" rel="stylesheet"><style>' +
     '@page{size:A4 ' + (land ? 'landscape' : 'portrait') + ';margin:14mm 10mm 16mm;@bottom-center{content:"' + meta.ref + '  ·  ' + meta.hash.slice(0, 16) + '  ·  ' + (en ? 'Page ' : 'صفحة ') + '" counter(page) " / " counter(pages);font-size:8pt;color:#6B786D;font-family:Arial}}' +
     'body{font-family:"IBM Plex Sans Arabic",Tahoma,Arial,sans-serif;color:var(--g-17221A,#17221A);font-size:' + (cols.length > 16 ? '7.5' : cols.length > 10 ? '8.5' : '10') + 'pt;margin:0}' +
     '.wm{position:fixed;inset:0;background-image:url("data:image/svg+xml;utf8,' + encodeURIComponent(svg) + '");background-repeat:repeat;z-index:0;pointer-events:none}' +

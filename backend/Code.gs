@@ -537,6 +537,24 @@ function audit_(actorId, action, targetId, detail) {
   } catch (e) { /* audit must never break the request */ }
 }
 
+/**
+ * Suspicious-activity log. One audit line (action 'sec_<kind>') for things an honest user does not do: calling an action the
+ * role may not use, hitting a rate limit, calling an action that does not exist. Written at most once per kind, person (or
+ * device) and detail every 10 minutes, so an attack cannot flood the sheet. Never records tokens, codes or request bodies:
+ * only the kind, the action name and the device kind. HR and admin read it in the audit list and api_securityEvents.
+ */
+function secEvent_(kind, actorId, detail) {
+  try {
+    var who = String(actorId || REQ_DEV_ || 'anon'), d = String(detail || '').slice(0, 60);
+    var k = 'secd:v1:' + kind + ':' + who + ':' + d, c = cache_();
+    var n = Number(c.get(k) || 0);
+    c.put(k, String(n + 1), 600);
+    if (n > 0) return; // already logged in this window
+    append_(SHEETS.AUDIT, { ts: new Date().toISOString(), actorId: actorId || '', action: 'sec_' + kind, targetId: '',
+      detail: JSON.stringify({ what: d, device: REQ_DEV_ ? REQ_DEV_.slice(0, 2) + '..' + REQ_DEV_.slice(-4) : '' }) });
+  } catch (e) { /* logging must never break the request */ }
+}
+
 // ---------------- settings ----------------
 
 var DEFAULT_SETTINGS = {
@@ -802,7 +820,7 @@ function rateLimit_(key, max, seconds) {
   var c = cache_();
   var k = 'rl:' + key;
   var n = Number(c.get(k) || 0);
-  if (n >= max) return false;
+  if (n >= max) { if (!/^sec/.test(String(key))) secEvent_('rate_limited', '', String(key).split(':')[0]); return false; }
   c.put(k, String(n + 1), seconds);
   return true;
 }
@@ -1194,14 +1212,14 @@ var EMP_ACTIONS = { budgetSave: 1, budgetView: 1, nitaqatSim: 1, signRequest: 1,
 var HR_ACTIONS = { alumniList: 1, alumniSave: 1, rehireCheck: 1, skillSave: 1, posSkillSave: 1, massChange: 1, letterTplSave: 1, quizSave: 1, leaveOpeningImport: 1, empNoNext: 1, flowPreview: 1, perkSave: 1, welcomeSave: 1, careerPathSave: 1, rolesOverview: 1, kbSave: 1, kbSeed: 1, careerPostList: 1, careerPostSave: 1, resignationDefer: 1, recruitReqClose: 1, recruitCandSave: 1, recruitCandStage: 1, recruitInterviewSave: 1, recruitOfferSave: 1, recruitOfferSend: 1, recruitOfferRespond: 1,
   recruitOfferLetter: 1, recruitHire: 1, courseSave: 1, trainSessionSave: 1, trainMark: 1, certRecord: 1, insPolicySave: 1, insPolicyList: 1, insMemberAdd: 1,
   insMemberDelete: 1, insMoveStep: 1, annSave: 1, annPublish: 1, annArchive: 1, annList: 1, flowList: 1, flowSave: 1, flowSettingsSave: 1, leaveCycleOpen: 1, discNotice: 1, govVisaIssue: 1, govVisaCancel: 1, govFinalExit: 1, ticketSave: 1, ticketUse: 1, assetSave: 1, assetAssign: 1, assetReturn: 1, clearanceStart: 1, discCodesSave: 1, discHearing: 1, discDecide: 1, discObjectionDecide: 1, injuryUpdate: 1, shiftSave: 1, rosterSave: 1, rosterDelete: 1, onboardStart: 1, surveySave: 1, surveyClose: 1, policySave: 1, planClose: 1, perfCycleSave: 1, perfCycleList: 1, perfCycleStage: 1, perfOverview: 1, perfCalibrate: 1, feedbackLaunch: 1, hrBootstrap: 1, holidaySave: 1, holidayDelete: 1, leaveBalances: 1, leaveOpeningSave: 1, hrDirectory: 1, hrDeptList: 1, hrDeptSave: 1, hrPositionList: 1, hrPositionSave: 1, hrEmpSave: 1,
-  hrPrivateSave: 1, hrImportValidate: 1, hrImportCommit: 1, hrDocList: 1, hrDocSave: 1, hrExpiring: 1, empPasswordReset: 1, board: 1, empList: 1, zoneList: 1, report: 1, reviewList: 1, reviewDecide: 1, manualPunch: 1, auditList: 1, settingsGet: 1, empSave: 1, empActivation: 1 };
+  hrPrivateSave: 1, hrImportValidate: 1, hrImportCommit: 1, hrDocList: 1, hrDocSave: 1, hrExpiring: 1, empPasswordReset: 1, board: 1, empList: 1, zoneList: 1, report: 1, reviewList: 1, reviewDecide: 1, manualPunch: 1, auditList: 1, securityEvents: 1, settingsGet: 1, empSave: 1, empActivation: 1 };
 /**
  * Actions that only read (plus the audit line of a salary view). They may use the cached tab copies;
  * update_ refuses a cached row, so a mistake here fails loudly instead of overwriting the Sheet.
  */
 var READ_ONLY_ACTIONS = { budgetView: 1, nitaqatSim: 1, signList: 1, signVerify: 1, autoHub: 1, wpsCompliance: 1, gosiQueue: 1, celebrations: 1, svActList: 1, mentorHub: 1, skillHub: 1, skillGap: 1, letterTplList: 1, quizList: 1, quizTake: 1, alumniList: 1, rehireCheck: 1, cwList: 1, cwInvoices: 1, retroScan: 1, retroLog: 1, gradeList: 1, bandReport: 1, pushKey: 1, hseList: 1, ppeList: 1, hseStats: 1, aiStatus: 1, flowPreview: 1, officeMap: 1, myTotalRewards: 1, apiKeyList: 1, webhookDeliveries: 1, payGroupList: 1, snapshotList: 1, snapshotView: 1, reportSubList: 1, kioskList: 1, notifyStatus: 1, perkList: 1, welcome: 1, internalJobs: 1, careerPathList: 1, rolesOverview: 1, nineBox: 1, successionList: 1, kbSearch: 1, kbList: 1, oneOnOneList: 1, goalList: 1, workforcePlan: 1, careersList: 1, careerPostList: 1, shiftOfferList: 1, searchAll: 1, customFieldList: 1, customValuesGet: 1, customValuesAll: 1, myFinalSettlement: 1, myExitSurvey: 1, kudosFeed: 1, exitSurveyResults: 1, kudosStats: 1, me: 1, myHistory: 1, myFile: 1, hrEmpFile: 1, hrTeam: 1, hrCompList: 1, hrDirectory: 1, hrDeptList: 1,
   hrPositionList: 1, hrDocList: 1, hrExpiring: 1, hrBootstrap: 1, hrImportValidate: 1, board: 1, empList: 1, zoneList: 1, report: 1,
-  reviewList: 1, auditList: 1, settingsGet: 1, myRequests: 1, requestQuote: 1, reqInbox: 1, holidayList: 1, leaveTeam: 1, leaveBalances: 1,
+  reviewList: 1, auditList: 1, securityEvents: 1, settingsGet: 1, myRequests: 1, requestQuote: 1, reqInbox: 1, holidayList: 1, leaveTeam: 1, leaveBalances: 1,
   dashboard: 1, mySlips: 1, payrollList: 1, payrollGet: 1, eosQuote: 1, myPerformance: 1, perfTeam: 1, perfEmp: 1, feedbackResults: 1, perfCycleList: 1, perfOverview: 1,
   reportCatalog: 1, reportRun: 1, reportLog: 1, onboardList: 1, mySurveys: 1, surveyResults: 1, policyList: 1, planList: 1, myTasks: 1, delegationList: 1, reconList: 1, complianceCalendar: 1, wpsFile: 1, shiftList: 1, rosterList: 1, discCodes: 1, discList: 1, injuryList: 1, assetList: 1, clearanceList: 1,
   myGov: 1, govOverview: 1, myExpenses: 1, expenseCheck: 1, expenseInbox: 1, expenseReport: 1, journalList: 1, journalBuild: 1, journalMapGet: 1,
@@ -1242,7 +1260,7 @@ function handle_(req) {
   if (READ_ONLY_ACTIONS[action]) USE_TAB_CACHE_ = true;
   try {
     var fn = /^[a-zA-Z]+$/.test(String(action)) ? globalThis['api_' + action] : null;
-    if (typeof fn !== 'function') return { ok: false, error: 'unknown_action' };
+    if (typeof fn !== 'function') { secEvent_('unknown_action', '', String(action).replace(/[^A-Za-z0-9_]/g, '').slice(0, 40)); return { ok: false, error: 'unknown_action' }; }
     setOrg_(PLATFORM_ACTIONS_[action] ? orgRec_(homeOrgId_()) : resolveOrg_(req, action));
     if (READ_ONLY_ACTIONS[action]) { USE_TAB_CACHE_ = true; preloadFor_(action); }
     if (PUBLIC_ACTIONS[action]) return fn(req, null);
@@ -1255,6 +1273,7 @@ function handle_(req) {
     if (!READ_ONLY_ACTIONS[action] && typeof resignationDeemedSweep_ === 'function') resignationDeemedSweep_(); // Leave.gs, at most hourly
     var allowed = (EMP_ACTIONS[action] && level >= 1) || (HR_ACTIONS[action] && level >= ROLES.hr) || (ADMIN_ACTIONS[action] && level >= ROLES.admin);
     if (allowed) { var res = fn(req, me); if (READ_ONLY_ACTIONS[action]) learnTabs_(action); if (!READ_ONLY_ACTIONS[action]) { if (typeof notifySweep_ === 'function') notifySweep_(); if (typeof reportSubsSweep_ === 'function') reportSubsSweep_(); if (typeof snapSweep_ === 'function') snapSweep_(); if (typeof whSweep_ === 'function') whSweep_(); if (typeof pushSweep_ === 'function') pushSweep_(); if (typeof autoSweep_ === 'function') autoSweep_(); } return res; } // the daily digest, lazily (off by default)
+    secEvent_('forbidden_action', me.id, String(action));
     return { ok: false, error: 'forbidden' };
   } catch (err) {
     var msg = String(err && err.message || err);

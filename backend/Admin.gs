@@ -296,7 +296,8 @@ function api_settingsGet() { return { ok: true, settings: settings_() }; }
 
 function api_settingsSave(req, me) {
   var d = req.settings || {};
-  var next = settings_();
+  if (!rateLimit_('setsave:' + me.id, 200, 3600)) fail_('rate_limited');
+  var next = settings_(), before = JSON.parse(JSON.stringify(next));
   if (d.shiftStart !== undefined) { if (!isHm_(d.shiftStart)) fail_('bad_time'); next.shiftStart = d.shiftStart; }
   if (d.shiftEnd !== undefined) { if (!isHm_(d.shiftEnd)) fail_('bad_time'); next.shiftEnd = d.shiftEnd; }
   if (d.graceMin !== undefined) next.graceMin = Math.max(0, Math.min(120, Math.round(Number(d.graceMin) || 0)));
@@ -324,6 +325,10 @@ function api_settingsSave(req, me) {
     forget_(SHEETS.SET);
     try { settingsForget_(); } catch (e) {}
     audit_(me.id, 'settings_save', '', next);
+    // Settings that widen who can do what are written again on their own, with the old and new value, so a quiet loosening shows up.
+    var SECK = ['compSelfApprove', 'adminSeesPay', 'sharedDevices', 'maxDevices', 'allowDeviceKey', 'allowPasswordPunch', 'allowDesktop', 'allowCheckoutOutside', 'reviewRiskThreshold', 'maxAccuracy'], ch = {};
+    SECK.forEach(function (k) { if (String(before[k]) !== String(next[k])) ch[k] = [before[k], next[k]]; });
+    if (Object.keys(ch).length) audit_(me.id, 'settings_security', '', ch);
     return { ok: true, settings: next };
   });
 }
@@ -440,6 +445,17 @@ function hrSettings_(d, next) {
     next.refPrefixes = Object.keys(clean).length ? JSON.stringify(clean) : '';
   }
   return '';
+}
+
+/** Suspicious-activity summary (HR and admin): counts by kind over the newest audit lines, and the latest 60 events. */
+function api_securityEvents(req, me) {
+  if (!isHr_(me)) fail_('forbidden');
+  var emps = {}; readAll_(SHEETS.EMP).forEach(function (e) { emps[e.id] = e; });
+  var rows = (readTail_(SHEETS.AUDIT, 3000) || readAll_(SHEETS.AUDIT)).filter(function (a) { return String(a.action).indexOf('sec_') === 0 || a.action === 'settings_security' || a.action === 'roles_update' || a.action === 'password_reset' || a.action === 'device_reset'; });
+  var counts = {};
+  rows.forEach(function (a) { counts[a.action] = (counts[a.action] || 0) + 1; });
+  var latest = rows.slice(-60).reverse().map(function (a) { var e = emps[a.actorId]; return { ts: a.ts, kind: a.action, actor: e ? e.name : (a.actorId || ''), actorNo: e ? String(e.empNo) : '', detail: String(a.detail || '').slice(0, 300) }; });
+  return { ok: true, counts: counts, latest: latest };
 }
 
 function api_auditList(req, me) {
@@ -739,6 +755,8 @@ function whSweep_() {
 // PNG, JPEG or WebP only (no SVG: no script can ride in), at most 48,000 characters as a data URL (a Sheets cell holds 50,000);
 // the app resizes the upload to 512 px before sending.
 var LOGO_MAX_ = 48000;
+/** The logo bytes must be the image type the data URL claims (see fileMagicOk_). */
+function logoMagicOk_(logo) { var m = /^data:(image\/(?:png|jpeg|webp));base64,(.*)$/.exec(String(logo)); if (!m) return false; try { return fileMagicOk_(m[1], Utilities.base64Decode(m[2])); } catch (e) { return false; } }
 function brandRow_(key) { return readAll_(SHEETS.BRAND).filter(function (x) { return x.key === key; })[0] || null; }
 function logoVer_() { var c = cache_(), v = c.get('logo:ver'); if (v !== null && v !== undefined) return v; var r = brandRow_('logoVer'); v = r ? String(r.value) : ''; c.put('logo:ver', v, 21600); return v; }
 /** Public: the organisation's logo (the sign-in screen needs it before anyone signs in). */
@@ -760,7 +778,7 @@ function brandSet_(pairs, by) {
 function brandFromReq_(req) {
   var logo = String(req.logo || ''), color = String(req.color || '').toUpperCase(), accent = String(req.accent || '').toUpperCase();
   if (!logo) fail_('logo_required');
-  if (!/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+\/=]+$/.test(logo) || logo.length > LOGO_MAX_) fail_('bad_logo');
+  if (!/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+\/=]+$/.test(logo) || logo.length > LOGO_MAX_ || !logoMagicOk_(logo)) fail_('bad_logo');
   if (color && !/^#[0-9A-F]{6}$/.test(color)) fail_('bad_value');
   if (accent && !/^#[0-9A-F]{6}$/.test(accent)) fail_('bad_value');
   return [['logo', logo], ['logoVer', sha256Hex_(logo).slice(0, 12)], ['color', color], ['accent', color ? accent : '']];
@@ -816,7 +834,7 @@ function api_orgBrandSet(req) {
 function api_logoSave(req, me) {
   if (me.role !== 'admin') fail_('forbidden');
   var logo = String(req.logo || '');
-  if (logo && (!/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+\/=]+$/.test(logo) || logo.length > LOGO_MAX_)) fail_('bad_logo');
+  if (logo && (!/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+\/=]+$/.test(logo) || logo.length > LOGO_MAX_ || !logoMagicOk_(logo))) fail_('bad_logo');
   return withLock_(function () {
     var now = new Date().toISOString(), ver = logo ? sha256Hex_(logo).slice(0, 12) : '';
     [['logo', logo], ['logoVer', ver]].forEach(function (kv) {

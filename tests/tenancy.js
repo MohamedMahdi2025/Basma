@@ -59,7 +59,7 @@ delete B.books.book1.tabs.perks; delete B.books.book1.props.perks;
 const pk = B.raw({ action: 'perkList', token: E.token });
 ok(pk.ok && B.books.book1.tabs.perks && B.books.book1.tabs.perks._rows.length === 1, 'a tab added in a later release is created in the organisation book on first use', pk);
 console.log('Each company its own logo and names');
-const png = 'data:image/png;base64,' + Buffer.from('fake-png-bytes-for-org-1002').toString('base64');
+const png = 'data:image/png;base64,' + Buffer.concat([Buffer.from([0x89,0x50,0x4E,0x47,0x0D,0x0A,0x1A,0x0A]), Buffer.from('bytes-for-org-1002')]).toString('base64');
 ok(B.raw({ action: 'logoSave', token: E.token, logo: 'data:image/svg+xml;base64,PHN2Zz4=' }).error === 'bad_logo', 'SVG is refused (nothing executable rides in a logo)');
 ok(B.raw({ action: 'logoSave', token: E.token, logo: 'data:image/png;base64,' + 'A'.repeat(50000) }).error === 'bad_logo', 'and so is a logo too big for one cell');
 const ls = B.raw({ action: 'logoSave', token: E.token, logo: png });

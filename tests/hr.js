@@ -402,7 +402,7 @@ console.log('Document attachments (2026-10-20; off until the owner approves Goog
   ok(r.ok && Buffer.from(r.data, 'base64').toString().startsWith('%PDF') && r.mime === 'application/pdf', 'HR gets the file content back');
   const views = direct(() => B.ctx.readAll_('audit')).filter(a => a.action === 'doc_view').length;
   ok(views === 2, 'every view is in the audit trail', views);
-  r = call('3001', 'docUpload', { docId: doc.id, mime: 'image/jpeg', data: Buffer.from('jpeg').toString('base64') });
+  r = call('3001', 'docUpload', { docId: doc.id, mime: 'image/jpeg', data: Buffer.concat([Buffer.from([0xFF,0xD8,0xFF]), Buffer.from('jpeg')]).toString('base64') });
   ok(r.ok && deleted.indexOf('D1') >= 0, 'replacing a scan removes the old file from Drive', deleted);
   setS('attachmentsEnabled', 'false'); B.ctx.CacheService.getScriptCache().remove('settings:v1');
 }

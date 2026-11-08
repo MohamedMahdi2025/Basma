@@ -66,7 +66,7 @@ const DEC = 'var h=new TextDecoder().decode(__bgz(o,' + data.length + '));';
 const lines = s => s.match(/.{1,38}/g).map(x => '"' + x + '"').join(',\n');
 
 const head = page.match(/<head>([\s\S]*?)<script/)[1]
-  .split('\n').filter(l => /<meta|<link rel="(manifest|icon|apple-touch-icon)"|<title>/.test(l)).join('\n');
+  .split('\n').filter(l => /<meta|<link rel="(manifest|icon|apple-touch-icon|preload)"|<title>/.test(l)).join('\n');
 
 const loader = `<!doctype html>
 <html lang="ar" dir="rtl">
@@ -126,6 +126,20 @@ if (appLoader === loader) { console.error('refusing: app loader redirect not add
 fs.writeFileSync(path.join(OUT, 'index.html'), appLoader);
 fs.writeFileSync(path.join(OUT, 'version.json'), JSON.stringify({ build: STAMP }) + '\n');
 fs.writeFileSync(path.join(OUT, 'sw.js'), fs.readFileSync(path.join(SRC, 'sw.js'), 'utf8').replace(/var CACHE = '[^']*';/, "var CACHE = 'bgatt-" + STAMP + "';"));
+// Icon fonts (subset by tools/icons.js): publish the three .woff2 files. The build refuses when a ph('name') in the source has no glyph,
+// because that icon would show as an empty square: run  node tools/icons.js  after adding an icon.
+{
+  const man = JSON.parse(fs.readFileSync(path.join(SRC, 'icons', 'manifest.json'), 'utf8')), have = new Set(man.weights.regular.names);
+  const code = [fs.readFileSync(path.join(SRC, 'index.html'), 'utf8')].concat(fs.readdirSync(path.join(SRC, 'js')).filter(f => f.endsWith('.js')).map(f => fs.readFileSync(path.join(SRC, 'js', f), 'utf8'))).join('\n');
+  const miss = new Set(); let mm; const re = /\bph\('([a-z0-9-]+)'/g; while ((mm = re.exec(code))) if (!have.has(mm[1])) miss.add(mm[1]);
+  if (miss.size) { console.error('refusing: icons without a glyph in icons/: ' + Array.from(miss).join(', ') + ' (run: node tools/icons.js)'); process.exit(1); }
+  fs.mkdirSync(path.join(OUT, 'icons'), { recursive: true });
+  for (const f of fs.readdirSync(path.join(SRC, 'icons'))) if (/^phosphor-.*\.woff2$/.test(f)) fs.copyFileSync(path.join(SRC, 'icons', f), path.join(OUT, 'icons', f));
+}
+// self-hosted fonts (only the .woff2 files and fonts.css; the generator's by-products stay private)
+fs.mkdirSync(path.join(OUT, 'fonts'), { recursive: true });
+for (const f of fs.readdirSync(path.join(SRC, 'fonts'))) if (/\.woff2$|^fonts\.css$/.test(f)) fs.copyFileSync(path.join(SRC, 'fonts', f), path.join(OUT, 'fonts', f));
+for (const f of fs.readdirSync(path.join(OUT, 'fonts'))) if (!fs.existsSync(path.join(SRC, 'fonts', f))) fs.unlinkSync(path.join(OUT, 'fonts', f));
 for (const f of ['manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png', 'favicon-48.png', 'hub.webmanifest', 'hub-192.png', 'hub-512.png', 'hub-apple.png', 'privacy.html', 'delete-account.html']) {
   fs.copyFileSync(path.join(SRC, f), path.join(OUT, f));
 }

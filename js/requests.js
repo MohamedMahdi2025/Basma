@@ -242,7 +242,7 @@ function printLetter(o, file, win){
   var title = (tpl && tpl.title) ? esc(tpl.title) : en ? { salary_certificate: 'Salary Certificate', employment_certificate: 'Employment Certificate', experience: 'Experience Certificate' }[o.subtype]
     : { salary_certificate: 'شهادة تعريف بالراتب', employment_certificate: 'شهادة تعريف', experience: 'شهادة خبرة' }[o.subtype];
   var html = '<!doctype html><html lang="' + (en ? 'en' : 'ar') + '" dir="' + (en ? 'ltr' : 'rtl') + '"><head><meta charset="utf-8"><title>' + esc(o.ref) + '</title>' +
-    '<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;600&display=swap" rel="stylesheet">' +
+    '<link href="' + FONTS_CSS + '" rel="stylesheet">' +
     '<style>@page{size:A4;margin:22mm 20mm}body{font-family:"IBM Plex Sans Arabic",Tahoma,sans-serif;color:var(--g-17221A,#17221A);font-size:16px;line-height:2}' +
     'header{display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--brand);padding-bottom:12px;margin-bottom:26px}header img{height:64px}' +
     'header div{text-align:end;font-size:12px;color:var(--g-4A5A4D,#4A5A4D);line-height:1.6}h1{text-align:center;font-size:20px;margin:10px 0 26px;color:var(--pine)}' +
