@@ -58,5 +58,6 @@ ACTIONS.forEach(a => { try { F2.raw(Object.assign({}, huge, { action: a, orgId: 
 const tabs = Object.keys(F2.ctx.HEADERS || ctx.HEADERS || {});
 tabs.forEach(t => { let rows = []; try { rows = F2.ctx.readAll_(t); } catch (e) {} rows.forEach(r => Object.keys(r).forEach(k => { if (typeof r[k] === 'string' && r[k].length > 20000 && !FAT_OK.has(k)) oversize.push(t + '.' + k + ' ' + r[k].length); })); });
 ok(oversize.length === 0, 'no 100,000-character value was stored in a field that should be short', Array.from(new Set(oversize)).slice(0, 15));
+ok(tabs.length > 100 && ACTIONS.length > 300, 'the fuzz covers every tab and every action (it cannot go quietly empty)', { tabs: tabs.length, actions: ACTIONS.length });
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);
