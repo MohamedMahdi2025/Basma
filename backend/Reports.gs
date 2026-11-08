@@ -188,9 +188,51 @@ function runReport_(id, p, me, ctx) {
   }
   var fn = REPORT_FNS[id];
   if (!fn) fail_('not_found');
+  reportNarrowCheck_(REPORTS[id], p, me, ctx, scope);
   var r = fn(p, me, ctx, scope, s);
   r.checks = r.checks || [];
+  reportFoldSmall_(REPORTS[id], r, me);
   return r;
+}
+
+// ---------------- small groups (cost reports for anyone without payroll access) ----------------
+// A cost report is a set of totals. For an executive (no payroll access) a group of fewer than 5 people is one or two people's pay,
+// whether it appears as a row ("department: 1 person, gross 70,123") or because a filter narrowed the report to it. Two rules:
+//  1. a filter (departments, people, nationality) that leaves fewer than 5 people is refused (group_too_small);
+//  2. department rows with fewer than 5 people are folded together, and into the smallest large row if still under 5, so the
+//     company total minus the rows shown can never isolate them. Additive columns (sum: true) are added; ratios are blanked.
+// The hr role and payroll, who see individuals anyway, get every row unchanged.
+var MIN_REPORT_GROUP_ = 5;
+function reportCostRestricted_(def, me) { return !!def && def.access === 'cost' && !canPayroll_(me); }
+function reportNarrowCheck_(def, p, me, ctx, scope) {
+  if (!reportCostRestricted_(def, me)) return;
+  if ((p.depts && p.depts.length) || (p.emps && p.emps.length) || p.nationality) {
+    var everyone = Object.assign({}, p, { status: 'all' });
+    if (reportEmps_(everyone, ctx, scope, true).length < MIN_REPORT_GROUP_) fail_('group_too_small');
+  }
+}
+function foldSmallRows_(rows, sumKeys, labelKey, countKey, min, other) {
+  var big = [], small = [];
+  rows.forEach(function (r) { (Number(r[countKey]) >= min ? big : small).push(r); });
+  if (!small.length) return rows;
+  var merge = function (a, b, label) { var o = {}; Object.keys(a).forEach(function (k) { o[k] = sumKeys[k] ? r2_(Number(a[k] || 0) + Number(b[k] || 0)) : null; }); o[labelKey] = label; return o; };
+  var pool = null; small.forEach(function (r) { pool = pool ? merge(pool, r, other) : merge(r, { }, other); });
+  if (pool && Number(pool[countKey]) >= min) return big.concat([pool]);
+  if (!big.length) return []; // the whole company is under the minimum: nothing to show
+  big.sort(function (a, b) { return Number(a[countKey]) - Number(b[countKey]); });
+  big[0] = merge(big[0], pool, String(big[0][labelKey] == null ? '' : big[0][labelKey]) + ' + ' + other);
+  return big;
+}
+function reportFoldSmall_(def, res, me) {
+  if (!reportCostRestricted_(def, me) || !res || !res.rows || !res.columns) return;
+  var hasDept = res.columns.some(function (c) { return c.key === 'department'; }), hasCount = res.columns.some(function (c) { return c.key === 'headcount'; });
+  if (!hasDept || !hasCount) return;
+  var sumKeys = {}; res.columns.forEach(function (c) { if (c.sum) sumKeys[c.key] = 1; });
+  sumKeys.headcount = 1;
+  var hadMonth = res.columns.some(function (c) { return c.key === 'month'; });
+  if (hadMonth) return; // month x department rows are produced by reports that report one department at a time; the filter rule covers them
+  res.rows = foldSmallRows_(res.rows, sumKeys, 'department', 'headcount', MIN_REPORT_GROUP_, 'Other departments');
+  res.folded = true;
 }
 
 /** Day summaries for the covered people over a range: one read of punches, leave and holidays. */

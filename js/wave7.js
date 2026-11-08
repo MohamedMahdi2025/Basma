@@ -26,7 +26,7 @@ Object.assign(T.ar, {
   au_hr:'الموارد البشرية', au_manager:'المدير المباشر', au_employee:'الموظف نفسه', ar_active:'تعمل', ar_paused:'موقفة', w7DaysUnit:'يوم',
   vwBudget:'الميزانية مقابل الفعلي', vwNitaqat:'محاكي نطاقات', vwSign:'التوقيع الإلكتروني', vwAuto:'المهام التلقائية',
   tk_sign_pending:'مستندات تنتظر توقيعك', tk_auto_task:'مهام تلقائية لك',
-  e_hr_only_trigger:'قواعد الهوية والمستندات تُرسل للموارد البشرية فقط.', e_name_mismatch:'الاسم لا يطابق الاسم في ملفك.', e_doc_changed:'تغيّر نص المستند. أعد فتحه.', e_cannot_sign_own_request:'لا يمكن توقيع مستند طلبته بنفسك.', e_agree_required:'أكّد أنك قرأت المستند.', e_already_done:'تم اتخاذ إجراء على هذا من قبل.',
+  e_hr_only_trigger:'قواعد الهوية والمستندات تُرسل للموارد البشرية فقط.', e_group_too_small:'المجموعة أقل من 5 أشخاص، فلا تُعرض أرقامها حماية لخصوصية الأفراد.', e_name_mismatch:'الاسم لا يطابق الاسم في ملفك.', e_doc_changed:'تغيّر نص المستند. أعد فتحه.', e_cannot_sign_own_request:'لا يمكن توقيع مستند طلبته بنفسك.', e_agree_required:'أكّد أنك قرأت المستند.', e_already_done:'تم اتخاذ إجراء على هذا من قبل.',
   e_bad_trigger:'اختر متى تعمل القاعدة.', e_bad_audience:'اختر من ينفذ المهمة.', e_date_past:'التاريخ في الماضي.', e_bad_days:'الأيام من 0 إلى 365.', e_message_required:'اكتب نص المهمة.', e_body_required:'اكتب نص المستند (20 حرفا على الأقل).', e_people_required:'اختر شخصا واحدا على الأقل.', e_bad_months:'أدخل الأشهر الاثني عشر.'
 });
 Object.assign(T.en, {
@@ -52,7 +52,7 @@ Object.assign(T.en, {
   au_hr:'HR', au_manager:'Line manager', au_employee:'The employee', ar_active:'Active', ar_paused:'Paused', w7DaysUnit:'days',
   vwBudget:'Budget vs actual', vwNitaqat:'Nitaqat simulator', vwSign:'E-signature', vwAuto:'Automated tasks',
   tk_sign_pending:'Documents waiting for your signature', tk_auto_task:'Automated tasks for you',
-  e_hr_only_trigger:'ID and document rules go to HR only.', e_name_mismatch:'The name does not match your file.', e_doc_changed:'The document changed. Open it again.', e_cannot_sign_own_request:'You cannot sign a document you requested.', e_agree_required:'Confirm you read the document.', e_already_done:'This was already acted on.',
+  e_hr_only_trigger:'ID and document rules go to HR only.', e_group_too_small:'This group has fewer than 5 people, so its figures are not shown, to protect individuals.', e_name_mismatch:'The name does not match your file.', e_doc_changed:'The document changed. Open it again.', e_cannot_sign_own_request:'You cannot sign a document you requested.', e_agree_required:'Confirm you read the document.', e_already_done:'This was already acted on.',
   e_bad_trigger:'Choose when the rule runs.', e_bad_audience:'Choose who acts.', e_date_past:'The date is in the past.', e_bad_days:'Days from 0 to 365.', e_message_required:'Write the task text.', e_body_required:'Write the document text (20 characters at least).', e_people_required:'Choose at least one person.', e_bad_months:'Enter all twelve months.'
 });
 function dt(d){ return d ? K.fmt(d) : '-'; }

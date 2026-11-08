@@ -138,8 +138,9 @@ ok(r.rows.find(x => x.empNo === '5002').manager === 'مشرف المبيعات',
 r = run('3001', 'hr_expiry', { days: 3650 });
 ok(r.ok && r.rows.some(x => x.empNo === '5004' && x.kind === 'contract_end'), 'expiry lists the fixed-term contract end');
 r = run('3005', 'hr_saudization');
-const sd = r.rows.find(x => x.department === 'المبيعات');
-ok(r.ok && sd.headcount === 2 && sd.saudis === 2, 'Saudization by department for the executive', r.rows);
+ok(r.ok && r.rows.every(x => x.headcount >= 5), 'Saudization by department for the executive: departments of fewer than 5 people are folded together', r.rows);
+const sd = run('3001', 'hr_saudization').rows.find(x => x.department === 'المبيعات');
+ok(sd && sd.headcount === 2 && sd.saudis === 2, 'Saudization by department for HR: every department, as before', sd);
 
 console.log('Payroll reports');
 ok(call('3002', 'payrollCreate', { month: '2026-10' }).ok, 'October payroll drafted');
@@ -153,7 +154,8 @@ ok(ct && near(ct.value, r.rows.reduce((t, x) => t + x.net, 0), 0.01), 'control t
 r = run('3002', 'pay_gosi');
 ok(r.ok && r.rows.find(x => x.empNo === '5002').cohort === 'legacy' && r.checks.some(c => c.code === 'gosi_cohort_missing'), 'GOSI report with cohort check', r.checks);
 r = run('3005', 'pay_cost');
-ok(r.ok && r.rows.length === 3 && !JSON.stringify(r.rows).includes('SA03'), 'executive: department cost, no individual lines', r.rows.map(x => x.department));
+ok(r.ok && r.rows.every(x => x.headcount >= 5) && !JSON.stringify(r.rows).includes('SA03'), 'executive: department cost in groups of 5 or more people, no individual lines', r.rows.map(x => [x.department, x.headcount]));
+ok(run('3002', 'pay_cost').rows.length === 3, 'payroll (who sees individuals anyway): every department row');
 r = run('3002', 'pay_eos', { asOf: '2026-10-31' });
 const eo = r.rows.find(x => x.empNo === '5002');
 const yrs = (Date.parse('2026-10-31') - Date.parse('2019-01-01')) / 864e5 + 1;
@@ -428,8 +430,8 @@ ok(rowOf(run('3005', 'pay_ot_trend', { from: '2026-09-01', to: '2026-10-31' }), 
 r = run('3005', 'pay_cost_per_head', { from: '2026-09-01', to: '2026-10-31' });
 x = rowOf(r, y => y.month === '2026-10');
 ok(x.headcount === 3 && x.companyCost === 33700.01 && x.perHead === 11233.34 && x.prev === 11808.89 && x.changePct === -4.9 && x.eosAccrual === 1743.75, 'cost per head: 33,700.01 / 3 = 11,233.34 against 35,426.68 / 3 in September (-4.9%), shown to the executive', x);
-x = rowOf(run('3005', 'pay_cost', {}), y => y.department === 'المبيعات');
-ok(x.companyCost === 14484.38 && x.eosAccrual === 1012.5 && x.prev === 15984.38 && x.change === -1500, 'cost by department now adds the end-of-service provision, company cost and the change from the last locked run', x);
+x = rowOf(run('3002', 'pay_cost', {}), y => y.department === 'المبيعات');
+ok(x.companyCost === 14484.38 && x.eosAccrual === 1012.5 && x.prev === 15984.38 && x.change === -1500, 'cost by department now adds the end-of-service provision, company cost and the change from the last locked run (as payroll sees it)', x);
 
 x = rowOf(RES.wf_snapshot, y => y.department === 'المبيعات');
 ok(x.headcount === 2 && x.men === 2 && x.saudiShare === 100 && x.prev === 2 && rowOf(RES.wf_snapshot, y => y.department === 'مبيعات الرياض').women === 1, 'headcount snapshot: Sales 2 men, both Saudi, at 31 October', x);
@@ -500,10 +502,10 @@ ok(rowOf(r, y => y.month === '2026-09').wpsStatus === 'none' && rowOf(r, y => y.
   rowOf(r, y => y.month === '2026-10').gosiMismatches === 1 && r.checks.some(c => c.code === 'wps_overdue'), 'WPS: September locked but not uploaded, 25 days after the 10 October due date; October GOSI upload open', r.rows);
 
 B.ctx.DEFAULT_SETTINGS.saudizationTarget = '80'; delete B.cache[B.ctx.SETTINGS_CACHE_KEY];
-r = run('3005', 'hr_saudization', {});
+r = run('3001', 'hr_saudization', {});
 x = rowOf(r, y => y.department === 'المبيعات');
 ok(x.pct === 50 && x.saudiTarget === 80 && x.needed === 1 && x.prevPct === 50 && x.changePts === 0 && r.checks.some(c => c.code === 'saudi_vs_target' && c.count === 6 && c.value === 20),
-  'Saudization against an 80% target: Sales 1 of 2 weighted (50%), one full-weight Saudi short; company 20%, 6 short', { x, checks: r.checks });
+  'Saudization against an 80% target: Sales 1 of 2 weighted (50%), one full-weight Saudi short; company 20%, 6 short (as HR sees it)', { x, checks: r.checks });
 B.ctx.DEFAULT_SETTINGS.saudizationTarget = ''; delete B.cache[B.ctx.SETTINGS_CACHE_KEY];
 r = call('3001', 'reportExport', { reportId: 'pay_company_cost', format: 'xlsx', params: {} });
 ok(r.ok && /^RPT-/.test(r.export.ref) && call('3005', 'reportVerify', { ref: r.export.ref, hash: r.export.hash }).ok, 'a new report exports numbered and fingerprinted like the others');

@@ -26,7 +26,7 @@ function api_dashboard(req, me) {
   out.leave = dashSafe_(function () { return dashLeave_(emps, ctx, reqs, from, to, s, t); });
   out.requests = dashSafe_(function () { return dashRequests_(reqs, ctx, t); });
   out.performance = dashSafe_(function () { return dashPerformance_(ctx); });
-  if (money) out.cost = dashSafe_(function () { return dashCost_(emps, ctx, reqs, t, s); });
+  if (money) out.cost = dashSafe_(function () { return dashCost_(emps, ctx, reqs, t, s, me); });
   if (money) out.govFees = dashSafe_(function () { return dashGovFees_(t); }); // government fees (GovServices.gs), same money rule
   // Workforce analytics only when asked (the dashboard section asks; the home screen calls this action too and must stay fast).
   var wantA = req.analytics === true || req.analytics === 1 || req.analytics === '1' || req.analytics === 'true', names = wantA && waNames_(me);
@@ -174,7 +174,7 @@ function dashPerformance_(ctx) {
 
 // ---------------- cost and liabilities (money roles only) ----------------
 
-function dashCost_(emps, ctx, reqs, t, s) {
+function dashCost_(emps, ctx, reqs, t, s, me) {
   var byMonth = {}; runsRealFirst_(readAll_(SHEETS.RUN)).filter(function (r) { return r.status === 'locked'; }).forEach(function (r) { (byMonth[r.month] = byMonth[r.month] || []).push(r); }); // pay groups: every run of a month
   var runs = Object.keys(byMonth).sort().slice(-12).map(function (m) { return { id: 'M:' + m, month: m, ids: byMonth[m].map(function (r) { return r.id; }) }; }); // one run a month: the real one when it exists
   var slips = readAll_(SHEETS.SLIP), byRun = {};
@@ -209,7 +209,10 @@ function dashCost_(emps, ctx, reqs, t, s) {
   slips.forEach(function (sl) { if (sl.status === 'locked') lines_(sl).forEach(function (l) { if (l.code === 'advance' && l.ref) advDone[l.ref] = (advDone[l.ref] || 0) + l.amount; }); });
   var advances = 0;
   reqs.forEach(function (r) { if (r.type === 'advance' && r.status === 'approved') advances += Math.max(0, Number(r.amount) - (advDone[r.ref] || 0)); });
-  return { trend: trend, lastMonth: last ? last.month : null, byDepartment: Object.keys(byDept).map(function (k) { return byDept[k]; }).sort(function (a, b) { return b.cost - a.cost; }),
+  var deptRows = Object.keys(byDept).map(function (k) { return byDept[k]; });
+  // an executive (no payroll access) sees departments of 5 or more people only; smaller ones are folded together (see foldSmallRows_)
+  if (me && !canPayroll_(me)) deptRows = foldSmallRows_(deptRows, { cost: 1, headcount: 1 }, 'department', 'headcount', MIN_REPORT_GROUP_, 'Other departments');
+  return { trend: trend, lastMonth: last ? last.month : null, byDepartment: deptRows.sort(function (a, b) { return b.cost - a.cost; }),
     monthlyPackage: r2_(monthly), leaveLiability: r2_(leaveLiab), eosLiability: r2_(eosLiab), advancesOutstanding: r2_(advances), noPackage: noPackage };
 }
 

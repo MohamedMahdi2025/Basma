@@ -38,7 +38,7 @@ direct(() => {
   ctx.append_('compensation', { id: 'CV1', empId: V, effectiveFrom: '2026-01-01', basic: 77777.77, housing: 1000, transport: 0, status: 'approved', otherJson: '{}' });
   ctx.append_('documents', { id: 'DV1', empId: V, type: 'residence', number: CAN.doc, expiryDate: '2027-01-01', status: 'active', ref: 'DOC-1' });
   ctx.append_('payrollRuns', { id: 'RV', ref: 'PR-V', month: '2026-10', status: 'locked' });
-  ctx.append_('payslips', { id: 'SV', ref: 'PS-V', runId: 'RV', month: '2026-10', empId: V, status: 'locked', gross: 70000, net: 66666.66, gosiEmployer: 0, companyCost: 70000, linesJson: '[]' });
+  ctx.append_('payslips', { id: 'SV', ref: 'PS-V', runId: 'RV', month: '2026-10', empId: V, status: 'locked', gross: 70123.45, net: 66666.66, gosiEmployer: 0, companyCost: 70123.45, linesJson: '[]' });
   // the rest of the company is on the same run, so company totals are not one person's pay
   ['5001', '5003', '5004', '4001', '3001', '3002', '3003'].forEach((no, i) => ctx.append_('payslips', { id: 'SX' + i, ref: 'PS-X' + i, runId: 'RV', month: '2026-10', empId: ids[no], status: 'locked', gross: 9000 + i, net: 8000 + i, gosiEmployer: 500, companyCost: 9500 + i, linesJson: '[]' }));
 });
@@ -67,8 +67,8 @@ hrCall('hrEmpSave', { emp: { id: V, departmentId: dId } });
 const bv = exec('budgetView', { year: 2026, departmentId: dId });
 const bvAll = exec('budgetView', { year: 2026 });
 const dRow = (bvAll.departments || []).find(d => d.id === dId);
-ok(bv.ok && bv.months.every(m => m.actual === null || m.actual === 0 || bv.small === true) && !(dRow && dRow.actual === 70000), 'executive: a one-person department shows no pay total (groups under 5 are hidden)', { dRow, small: bv.small, oct: bv.months && bv.months[9] });
-ok(asHr('budgetView', { year: 2026, departmentId: dId }).months[9].actual === 70000, 'HR still sees the real department figure');
+ok(bv.ok && bv.months.every(m => m.actual === null || m.actual === 0 || bv.small === true) && !(dRow && dRow.actual === 70123.45), 'executive: a one-person department shows no pay total (groups under 5 are hidden)', { dRow, small: bv.small, oct: bv.months && bv.months[9] });
+ok(asHr('budgetView', { year: 2026, departmentId: dId }).months[9].actual === 70123.45, 'HR still sees the real department figure');
 // 1c. e-signature: nothing about the document may change after signing without verification noticing
 const mine = B.raw({ action: 'signList', orgId: '1001', token: toks['5002'] }).mine[0];
 const sgn = B.raw({ action: 'signDoc', orgId: '1001', token: toks['5002'], id: mine.id, agree: true, docHash: mine.docHash, name: 'الضحية' });
@@ -96,7 +96,7 @@ ok(forge.error === 'not_found', 'an employee cannot sign (or probe) someone else
 
 // ------------------------------------------------------------------ 2. the canary fuzzer
 console.log('2. Canary fuzzer: every action, every low role, every known id');
-const canaryRe = new RegExp(Object.values(CAN).concat(['ORG2ADMINSECRET', 'ORG2EMPLOYEESECRET', '77777\\.77', '66666\\.66']).map(s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'));
+const canaryRe = new RegExp(Object.values(CAN).concat(['ORG2ADMINSECRET', 'ORG2EMPLOYEESECRET', '77777\\.77', '66666\\.66', '70123']).map(s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'));
 const maps = { EMP: 'EMP_ACTIONS', HR: 'HR_ACTIONS', ADMIN: 'ADMIN_ACTIONS', PUBLIC: 'PUBLIC_ACTIONS' };
 const code = require('fs').readFileSync(require('path').join(__dirname, '..', 'backend', 'Code.gs'), 'utf8');
 const names = m => (code.match(new RegExp('var ' + m + ' = \\{([^}]*)\\}')) || [, ''])[1].match(/[a-zA-Z]+(?=:)/g) || [];
@@ -220,14 +220,14 @@ console.log('6b. Findings from the independent review, each proven fixed');
 {
   // budgetView: the small department's TOTALS, run rate and headcount, not just its months, are hidden from an executive
   const sm = exec('budgetView', { year: 2026, departmentId: dId });
-  ok(sm.ok && sm.small === true && sm.totals.actual === null && sm.totals.landing === null && sm.totals.usedPct === null && sm.runRate === null && sm.activeHeadcount === null && !/70000|66666|69999/.test(JSON.stringify(sm)),
+  ok(sm.ok && sm.small === true && sm.totals.actual === null && sm.totals.landing === null && sm.totals.usedPct === null && sm.runRate === null && sm.activeHeadcount === null && !/70123|66666|69999/.test(JSON.stringify(sm)),
     'executive on a one-person department: totals, run rate, headcount and landing are all hidden', sm.totals);
   // company view: small departments are folded in, so company total minus the rows shown cannot isolate one
   const co = exec('budgetView', { year: 2026 });
   const shown = (co.departments || []).reduce((s, d) => s + (d.actual || 0), 0);
-  ok(co.ok && Math.abs(co.totals.actual - shown) < 0.01 && !(co.departments || []).some(d => d.actual === 70000 || d.actual === 66666.66), 'company view: the rows shown add up to the company total, so no hidden remainder points at one department', { total: co.totals.actual, shown, rows: (co.departments || []).map(d => [d.name, d.actual]) });
+  ok(co.ok && Math.abs(co.totals.actual - shown) < 0.01 && !(co.departments || []).some(d => d.actual === 70123.45 || d.actual === 66666.66), 'company view: the rows shown add up to the company total, so no hidden remainder points at one department', { total: co.totals.actual, shown, rows: (co.departments || []).map(d => [d.name, d.actual]) });
   const hrCo = asHr('budgetView', { year: 2026 });
-  ok((hrCo.departments || []).some(d => d.actual === 70000), 'HR still sees the one-person department on its own row');
+  ok((hrCo.departments || []).some(d => d.actual === 70123.45), 'HR still sees the one-person department on its own row');
   // nitaqatSim: an executive of a company with fewer than 5 Saudis gets no figure that points at them
   const ns = exec('nitaqatSim', {});
   ok(ns.masked === true && ns.quickWins.count === null && ns.quickWins.monthlyCost === null && ns.base.weighted === undefined, 'executive: Nitaqat figures are masked while fewer than 5 Saudis would be exposed', ns);
@@ -271,6 +271,40 @@ console.log('6c. Client-side rules (static checks on the shipped source)');
   ok(/const PLAT_CSP = "script-src 'self' 'unsafe-eval' "/.test(bld) && !/PLAT_CSP[^\n]*unsafe-inline/.test(bld) && /sha256-/.test(bld), 'the platform console page ships with a hash-based script policy and never allows unsafe-inline');
   const inline = ['index.html'].concat(fsx.readdirSync(px + '/js').map(f => 'js/' + f)).filter(f => /\bon(click|error|load|change|input|submit)\s*=\s*["']/.test(fsx.readFileSync(px + '/' + f, 'utf8').replace(/<script>window\.onload=[^<]*<\\\/script>/g, '')));
   ok(inline.length === 0, 'no inline event-handler attributes remain in the page or its modules', inline);
+}
+
+console.log('6d. The same leak class on every other screen an executive can open');
+{
+  const hits = [], ran = [];
+  const rngFor = rep => { const ps = rep.params || [], days = ps.indexOf('range31') >= 0 ? 30 : ps.indexOf('range365') >= 0 ? 300 : 60, to = '2026-11-08'; return { from: new Date(Date.parse(to) - days * 86400000).toISOString().slice(0, 10), to }; };
+  const range = rngFor({ params: [] });
+  let okRuns = 0, blocked = 0;
+  const cat = exec('reportCatalog');
+  (cat.reports || []).forEach(rep => {
+    [{}, { depts: [dId] }, { depts: [dId], subDepts: false }, { nationality: 'saudi' }, { nationality: 'saudi', depts: [dId] }, { emps: [V] }, { depts: [dId], run: 'RV', month: '2026-10' }].forEach((pr, i) => {
+      const r = exec('reportRun', { reportId: rep.id, params: Object.assign({ run: 'RV', month: '2026-10' }, rngFor(rep), pr) });
+      ran.push(rep.id); if (r.ok) okRuns++; else if (r.error === 'group_too_small') blocked++;
+      const s = JSON.stringify(r);
+      if (/70123|66666\.66|77777|SA0380000000608010167519|1099887766/.test(s)) hits.push(rep.access + ' ' + rep.id + ' #' + i);
+    });
+  });
+  ok(hits.length === 0, 'an executive running ' + (cat.reports || []).length + ' reports with department, nationality and employee filters never receives the victim\'s pay (' + ran.length + ' runs)', hits.slice(0, 12));
+  ok(okRuns >= 150 && blocked >= 3, 'the probe really ran: ' + okRuns + ' of ' + ran.length + ' report runs returned data and ' + blocked + ' filters on a small group were refused', { okRuns, blocked, of: ran.length });
+  const dash = exec('dashboard', Object.assign({ analytics: 1 }, range)), ds = JSON.stringify(dash);
+  ok(dash.ok && !/70123|66666\.66|77777/.test(ds), 'the executive dashboard (cost, Saudization, analytics) never carries the victim\'s pay', { ok: dash.ok, error: dash.error, keys: Object.keys(dash).slice(0, 12), hit: Array.from(ds.matchAll(/.{0,140}(70123|66666\.66|77777).{0,40}/g)).map(m => m[0]).slice(0, 3) });
+  // small-group differencing: the executive's department rows must each cover 5 or more people
+  const sa = exec('reportRun', { reportId: 'hr_saudization', params: {} });
+  ok(sa.ok === true && (sa.rows || []).every(r => r.headcount === null || r.headcount >= 5), 'hr_saudization for an executive: every department row covers 5 or more people (small ones are folded)', (sa.rows || []).map(r => [r.department, r.headcount]));
+  const pcE = exec('reportRun', { reportId: 'pay_cost', params: { run: 'RV' } }), pcH = asHr('reportRun', { reportId: 'pay_cost', params: { run: 'RV' } });
+  ok(pcE.ok && pcE.rows.every(r => r.headcount >= 5) && pcE.rows.reduce((s, r) => s + r.gross, 0) === pcH.rows.reduce((s, r) => s + r.gross, 0), 'pay_cost for an executive: rows of 5 or more people that still add up to the same company total', { exec: pcE.rows.map(r => [r.department, r.headcount, r.gross]), hr: pcH.rows.map(r => [r.department, r.headcount, r.gross]) });
+  ok(pcH.rows.some(r => r.headcount === 1 && r.gross === 70123.45), 'HR (payroll access) still sees the department of one person on its own row');
+  ok(exec('reportRun', { reportId: 'pay_ot_trend', params: Object.assign({ depts: [dId] }, rngFor({ params: ['range365'] })) }).error === 'group_too_small', 'an executive filtering a cost report that takes a department filter to the one-person department is refused');
+  ok(asHr('reportRun', { reportId: 'pay_cost', params: { run: 'RV', depts: [dId] } }).ok === true, 'HR can still filter to a single department');
+  const exp = exec('reportExport', { reportId: 'pay_cost', params: { run: 'RV', depts: [dId] }, columns: [] }), exp2 = exec('reportExport', { reportId: 'pay_ot_trend', params: Object.assign({ depts: [dId] }, rngFor({ params: ['range365'] })), columns: [] });
+  ok(!/70123|66666.66/.test(JSON.stringify(exp)) && exp2.ok !== true, 'exports obey the same rule: no small-group pay in an export, and a narrowed export is refused', { exp: exp.error, exp2: exp2.error });
+  const dd = exec('dashboard', Object.assign({ analytics: 1 }, range)), dbd = ((dd.cost || {}).byDepartment || []);
+  ok(dd.ok && dbd.length > 0 && dbd.every(r => r.headcount >= 5), 'dashboard cost by department for an executive: every row covers 5 or more people', dbd);
+  ok(((asHr('dashboard', Object.assign({ analytics: 1 }, range)).cost || {}).byDepartment || []).some(r => r.headcount === 1), 'the dashboard for HR still lists the one-person department');
 }
 
 console.log('7. Webhooks cannot be aimed at the inside');
