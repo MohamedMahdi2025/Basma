@@ -2802,27 +2802,41 @@ var Progress = (function(){
 })();
 /** A centred ring for a screen that is still loading; label says what is loading. Returns a stop function. */
 function progressCard(el, label){
-  el.innerHTML = '<div class="pg-wrap"><div class="pg-card" role="status" aria-live="polite"><div class="pg-ring"><svg viewBox="0 0 120 120"><defs><linearGradient id="pgGrad" x1="0" x2="1"><stop offset="0" stop-color="var(--brand,#2F5D8C)"/><stop offset="1" stop-color="var(--accent2,var(--signal,#5FB8FF))"/></linearGradient></defs>' +
-    '<circle class="tr" cx="60" cy="60" r="52"/><circle class="fl" cx="60" cy="60" r="52" stroke-dasharray="326.7" stroke-dashoffset="326.7"/></svg><b>0<small>%</small></b></div>' +
-    '<p>' + esc(label || t('loadingNow')) + '</p><div class="pg-steps"><i></i><i></i><i></i><i></i><i></i></div></div></div>';
-  var fl = el.querySelector('.fl'), num = el.querySelector('.pg-ring b'), steps = el.querySelectorAll('.pg-steps i');
-  return Progress.on(function(pc){
-    if (!fl.isConnected) return;
-    fl.setAttribute('stroke-dashoffset', (326.7 * (1 - pc / 100)).toFixed(1));
-    num.innerHTML = pc + '<small>%</small>';
-    for (var i = 0; i < steps.length; i++) steps[i].classList.toggle('on', pc >= (i + 1) * 20);
-  });
+  // a skeleton shaped like a page (title, three tiles, a list) instead of a ring: the screen looks half-drawn at once and fills in
+  var row = '<div style="display:flex;gap:12px;align-items:center;padding:12px 0"><i class="sk" style="width:36px;height:36px;border-radius:50%;flex:none"></i><div style="flex:1"><i class="sk" style="width:55%"></i><i class="sk" style="width:35%;height:10px;margin-top:8px"></i></div></div>';
+  var tile = '<div style="flex:1;min-width:90px;padding:14px;border-radius:12px;background:var(--card,#fff);border:1px solid var(--line-2,#ECE9E0)"><i class="sk" style="width:50%;height:10px"></i><i class="sk" style="width:70%;height:22px;margin-top:10px"></i></div>';
+  el.innerHTML = '<div class="pg-wrap" role="status" aria-live="polite" aria-busy="true" style="display:block;padding:8px 4px"><span class="sr-only" style="position:absolute;left:-9999px">' + esc(label || t('loadingNow')) + '</span>' +
+    '<i class="sk" style="width:38%;height:20px;margin:6px 0 16px"></i><div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px">' + tile + tile + tile + '</div>' + row + row + row + row + '</div>';
+  return function(){};
 }
 
 // ---------------- API ----------------
+/** Two screens asking for the same read at the same moment share ONE request (single-use challenges are never shared). */
+var API_INFLIGHT = {}, NO_SHARE = { authBegin: 1, punchBegin: 1, ping: 1 };
 function api(action, payload, quiet){
+  var shareKey = CLIENT_READS[action] && !NO_SHARE[action] ? action + ':' + JSON.stringify(payload || {}) + ':' + (S.token || '') + ':' + (S.orgId || '') : '';
+  if (shareKey && API_INFLIGHT[shareKey]) return API_INFLIGHT[shareKey];
+  var p = apiSend(action, payload, quiet);
+  if (shareKey) { API_INFLIGHT[shareKey] = p; var clear = function(){ delete API_INFLIGHT[shareKey]; }; p.then(clear, clear); }
+  return p;
+}
+/** One request. Reads time out after 60 s and are tried once more after a network failure; writes get 120 s and are NEVER repeated
+ *  (a slow save that did go through must not be saved twice). A timeout answers like any network failure. */
+function apiSend(action, payload, quiet){
   payload = payload || {}; payload.action = action; if (S.token) payload.token = S.token;
   payload.host = location.hostname; // passkeys belong to a domain: the server makes and checks them for this one
   payload.devId = deviceId(); // one device, one employee: the server binds each key to the device it was made on
   if (S.orgId && payload.orgId === undefined) payload.orgId = S.orgId; // SaaS tenancy (2026-10-22): one Org ID, one set of books
   var pid = quiet ? 0 : Progress.start(action);
-  return fetch(API_URL, { method:'POST', headers:{ 'Content-Type':'text/plain;charset=utf-8' }, body: JSON.stringify(payload) })
-    .then(function(r){ return r.json(); })
+  var isRead = !!CLIENT_READS[action] && !NO_SHARE[action], body = JSON.stringify(payload);
+  var once = function(){
+    var ac = window.AbortController ? new AbortController() : null, timer = ac ? setTimeout(function(){ ac.abort(); }, isRead ? 60000 : 120000) : 0;
+    return fetch(API_URL, { method:'POST', headers:{ 'Content-Type':'text/plain;charset=utf-8' }, body: body, signal: ac ? ac.signal : undefined })
+      .then(function(r){ return r.json(); })
+      .then(function(x){ clearTimeout(timer); return x; }, function(e){ clearTimeout(timer); throw e; });
+  };
+  return once()
+    .catch(function(){ return isRead ? new Promise(function(r){ setTimeout(r, 800); }).then(once) : Promise.reject(); })
     .catch(function(){ return { ok:false, error:'network' }; })
     .then(function(res){
       if (pid) Progress.done(pid, !!(res && res.ok !== undefined));
@@ -2855,6 +2869,16 @@ function apiFresh(action, payload, onData, quiet){
     return r;
   });
 }
+
+/** debounce(fn, ms): runs fn once, ms after the last call (search boxes and pickers: one request per pause, not per key). */
+function debounce(fn, ms){ var t = 0; var d = function(){ var a = arguments, me = this; clearTimeout(t); t = setTimeout(function(){ fn.apply(me, a); }, ms == null ? 250 : ms); }; d.cancel = function(){ clearTimeout(t); }; return d; }
+/** Every picture the app draws loads lazily and decodes off the main thread, unless it is marked data-eager (logo on the first screen). */
+(function(){
+  function fix(img){ if (img.tagName !== 'IMG' || img.hasAttribute('data-eager')) return; if (!img.hasAttribute('loading')) img.setAttribute('loading', 'lazy'); if (!img.hasAttribute('decoding')) img.setAttribute('decoding', 'async'); }
+  function scan(n){ if (!n || n.nodeType !== 1) return; fix(n); if (n.querySelectorAll) { var l = n.querySelectorAll('img'); for (var i = 0; i < l.length; i++) fix(l[i]); } }
+  try { new MutationObserver(function(ms){ for (var i = 0; i < ms.length; i++) for (var j = 0; j < ms[i].addedNodes.length; j++) scan(ms[i].addedNodes[j]); }).observe(document.documentElement, { childList: true, subtree: true }); } catch (e) {}
+  scan(document.documentElement);
+})();
 
 // ---------------- WebAuthn ----------------
 function b64uToBuf(s){ s = s.replace(/-/g,'+').replace(/_/g,'/'); while (s.length % 4) s += '='; var b = atob(s), u = new Uint8Array(b.length); for (var i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u.buffer; }
