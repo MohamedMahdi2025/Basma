@@ -285,23 +285,33 @@ console.log('7. Webhooks cannot be aimed at the inside');
   ok(F.raw({ action: 'webhookSave', orgId: '1001', token: toks['3001'], url: 'https://hooks.example.com/x', events: ['employee.created'] }).error === 'forbidden', 'only an administrator can add a webhook (HR cannot)');
 }
 
-console.log('8. PIN sign-in (known design question, reported not failed: needs the owner\'s decision)');
+console.log('8. PIN sign-in: a stranger cannot lock the real phone');
 {
   const { DeviceKey } = require('./harness');
-  const F = B.fork(), info = (name, extra) => console.log('  INFO ' + name + (extra !== undefined ? '  -> ' + JSON.stringify(extra) : ''));
+  const F = B.fork(), DEV = 'a:' + 'p'.repeat(24);
   const a = F.raw({ action: 'empSave', orgId: '1001', token: toks['1000'], emp: { empNo: '6001', name: 'موظف بالرمز', role: 'employee' } });
   const dk = new DeviceKey(); dk.pin = '739251';
-  let b2 = F.raw({ action: 'enrollBegin', orgId: '1001', empNo: '6001', code: a.activationCode });
-  F.raw({ action: 'enrollFinish', orgId: '1001', deviceKey: dk.create(b2.options), pin: dk.pin, label: 'Phone' });
-  const guess = p => F.raw({ action: 'pinLogin', orgId: '1001', empNo: '6001', pin: p });
-  ok(guess('739251').ok, 'the real owner signs in with employee number + PIN (no device proof needed: by design, any phone)');
+  const b2 = F.raw({ action: 'enrollBegin', orgId: '1001', empNo: '6001', code: a.activationCode, devId: DEV });
+  F.raw({ action: 'enrollFinish', orgId: '1001', deviceKey: dk.create(b2.options), pin: dk.pin, label: 'Phone', devId: DEV });
+  const guess = (p, dev) => F.raw(Object.assign({ action: 'pinLogin', orgId: '1001', empNo: '6001', pin: p }, dev ? { devId: dev } : {}));
+  ok(guess('739251').ok, 'the real owner can still sign in with employee number + PIN on any phone (unchanged)');
   let r; for (let i = 0; i < 5; i++) r = guess('111222');
-  const lockedOut = guess('739251').error === 'pin_locked';
-  info('an outsider who only knows the Org ID and the (sequential) employee number can lock that person out of PIN sign-in', { afterFiveWrongGuesses: r.error, ownerWithRightPinNow: lockedOut ? 'pin_locked' : 'ok' });
+  ok(r.error === 'pin_locked', 'a stranger\'s five wrong guesses lock the stranger bucket', r.error);
+  ok(guess('739251').error === 'pin_locked', 'a stranger who then learns the PIN is still held by the lock (no free guesses)');
+  const own = guess('739251', DEV);
+  ok(own.ok === true, 'but the owner on their OWN enrolled phone signs in at once: the strangers\' lock does not touch it', own.error);
+  const imposter = guess('739251', 'a:' + 'z'.repeat(24));
+  ok(imposter.error === 'pin_locked', 'a made-up device id gets no private budget: it shares the stranger lock', imposter.error);
+  // the real device is itself protected: five wrong PINs on it lock that device, and nothing else
+  let r2; for (let i = 0; i < 5; i++) r2 = guess('000111', DEV);
+  ok(r2.error === 'pin_locked' && guess('739251', DEV).error === 'pin_locked', 'five wrong PINs typed on the real phone lock that phone (its own budget)');
+  // each lock in a row doubles up to a day, and the strangers' count is remembered (not forgotten after a few hours)
   const nRounds = []; let now = F.now();
   for (let round = 2; round <= 8; round++) { F.setNow(now + 25 * 3600000 * round); for (let i = 0; i < 5; i++) guess('111222'); const c = F.ctx.readAll_('credentials').find(x => x.pinHash); nRounds.push(Math.round((Date.parse(c.pinLockUntil) - F.now()) / 60000)); now = F.now(); }
-  info('each repeated round doubles the lock (minutes) up to the 24-hour cap', nRounds);
-  info('mitigation options for the owner: (a) keep as is (people can always use their own phone key or password), (b) count wrong guesses per device (the app already sends a device id) so a stranger cannot lock the real phone, (c) require a registered device id for PIN sign-in on a known phone');
+  ok(nRounds[0] === 30 && nRounds.every((x, i) => i === 0 || x >= nRounds[i - 1]) && nRounds[nRounds.length - 1] === 1440, 'a stranger\'s locks keep doubling and stop at 24 hours, so guessing stays expensive (' + nRounds.join(', ') + ' minutes)', nRounds);
+  // the challenge budget for sign-in and check-in is per device too (section 6b); the audit says which kind of device guessed
+  const aud = F.ctx.readAll_('audit').filter(x => x.action === 'pin_login_failed').map(x => x.detail).join('|');
+  ok(/"device":"own"/.test(aud) && /"device":"other"/.test(aud), 'the audit records whether wrong guesses came from the real device or another');
 }
 
 console.log('\n' + passed + ' passed, ' + failed + ' failed');

@@ -548,5 +548,12 @@ Trap: never use the class `.me` (or `.bot`) inside a module: index.html styles `
   numbers are throttled org-wide (`scanGuard_`, 60 per 10 min). `whUrlOk_` accepts only a public DNS name on 443/8443 (no userinfo,
   no IP form, no wildcard-DNS service). **Open decision for the owner:** `pinLogin` needs only Org ID + employee number + PIN, so a
   stranger can lock anyone out of PIN sign-in (section 8 of the red team prints the doubling to 24 h).
+- **Platform page policy:** `platform.html` has a hash-based script policy (`PLAT_CSP` in build.js: only the loader's and the page's
+  inline scripts by SHA-256, same-origin files, cdnjs; `'unsafe-eval'` stays because modules run through eval; no `'unsafe-inline'`),
+  so injected `<script>`, `onerror=` and `javascript:` do nothing there. The company app keeps the weaker policy on purpose: its print
+  windows (doc.js, reports.js QR, payroll/ops/requests print-on-load) use inline scripts and the Android/iOS wrappers cannot be tested
+  from here. Never add an inline `on*=` handler: use `data-act` (one listener in index.html). **Trap:** tests/preview-server.js now
+  rewrites the API address for `/platform.html` too; before that fix the page called the LIVE Apps Script, so never type a setup key
+  into a preview page without first checking `API_URL` is `/api`.
 - **Platform address:** build.js writes `platform.html` (same app, hub icon/manifest/colour/title in the head before and after
   decoding); index.html's loader sends `#platform` there. Hub assets are `?v=3`.

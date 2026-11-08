@@ -245,29 +245,48 @@ function api_passwordSet(req, me) {
  *  newest device is checked; 5 wrong tries lock PIN sign-in for 15 minutes (counted on that device record, unknown numbers
  *  lock too). The session is a device session: the app then gives this phone its own key with the same PIN, and every
  *  check-in still needs that key. */
+/**
+ * PIN sign-in on any phone: Org ID + employee number + the 6-digit PIN. Wrong guesses are counted and locked per DEVICE.
+ * A request from one of the employee's own enrolled devices (the device id the app sends with every request) has a budget of its
+ * own, kept in the cache; every other request shares the "stranger" budget kept on the employee's newest credential row, exactly
+ * as before: each lock in a row doubles (15, 30, 60 ... minutes, at most a day) and the count clears only on a successful sign-in,
+ * so guessing stays as expensive as it was. So a stranger's wrong guesses lock strangers out and never the real phone. (The real
+ * phone is also protected by the device-key PIN lock, which locks the key itself.) A device enrolled before device ids existed has
+ * no id and simply uses the stranger budget, as everyone did before.
+ */
 function api_pinLogin(req) {
   var empNo = String(req.empNo || '').trim(), pin = String(req.pin || '');
-  if (!rateLimit_('pinl:' + empNo, 12, 900)) fail_('too_many_attempts');
+  if (!rateLimit_('pinl:' + empNo + ':' + (REQ_DEV_ || 'anon'), 12, 900)) fail_('too_many_attempts');
   if (!/^\d{6}$/.test(pin)) fail_('bad_pin_format');
   return withLock_(function () {
-    var emp = empByNo_(empNo), cred = null;
-    if (emp && emp.status === 'active') readAll_(SHEETS.CRED).forEach(function (c) { if (c.empId === emp.id && c.status === 'active' && c.pinHash && (!cred || String(c.createdAt) > String(cred.createdAt))) cred = c; });
+    var emp = empByNo_(empNo), newest = null, own = null;
+    if (emp && emp.status === 'active') readAll_(SHEETS.CRED).forEach(function (c) {
+      if (c.empId !== emp.id || c.status !== 'active' || !c.pinHash) return;
+      if (REQ_DEV_ && c.devId === REQ_DEV_) own = c;
+      if (!newest || String(c.createdAt) > String(newest.createdAt)) newest = c;
+    });
+    var cred = own || newest;
     if (!cred) { // one answer for unknown number, no PIN yet and wrong PIN
-      var ch = cache_(), k = 'pinghost:' + empNo, n = Number(ch.get(k) || 0) + 1; ch.put(k, String(n), PW_LOCK_MINUTES * 60);
-      fail_(n >= PW_MAX_TRIES ? 'pin_locked' : 'bad_pin_login');
+      var ch0 = cache_(), k0 = 'pinghost:' + empNo, n0 = Number(ch0.get(k0) || 0) + 1; ch0.put(k0, String(n0), PW_LOCK_MINUTES * 60);
+      fail_(n0 >= PW_MAX_TRIES ? 'pin_locked' : 'bad_pin_login');
     }
-    if (cred.pinLockUntil && new Date(cred.pinLockUntil).getTime() > Date.now()) fail_('pin_locked');
+    var ch = cache_(), kT = 'pinx:t:' + cred.id + ':' + (own ? 'own' : 'x'), kU = 'pinx:u:' + cred.id + ':' + (own ? 'own' : 'x');
+    // the budget in use: the real device's (cache) or the strangers' (the newest credential row)
+    var tries = own ? Number(ch.get(kT) || 0) : Number(newest.pinLoginTries || 0);
+    var until = own ? Number(ch.get(kU) || 0) : (newest.pinLockUntil ? new Date(newest.pinLockUntil).getTime() : 0);
+    if (until > Date.now()) fail_('pin_locked');
     if (!safeEqual_(pinHash_(pin, cred.pinSalt), cred.pinHash)) {
       // its own counter: the device-key PIN check (pinTries) locks the key for good, and guesses here must not feed it
-      cred.pinLoginTries = Number(cred.pinLoginTries || 0) + 1;
-      var locked = cred.pinLoginTries % PW_MAX_TRIES === 0;
-      if (locked) cred.pinLockUntil = new Date(Date.now() + lockMinutes_(cred.pinLoginTries) * 60000).toISOString();
-      update_(SHEETS.CRED, cred);
-      audit_(emp.id, 'pin_login_failed', emp.id, { locked: locked });
+      tries += 1;
+      var locked = tries % PW_MAX_TRIES === 0, mins = lockMinutes_(tries);
+      if (own) { ch.put(kT, String(tries), 21600); if (locked) ch.put(kU, String(Date.now() + Math.min(mins, 360) * 60000), 21600); }
+      else { newest.pinLoginTries = tries; if (locked) newest.pinLockUntil = new Date(Date.now() + mins * 60000).toISOString(); update_(SHEETS.CRED, newest); }
+      audit_(emp.id, 'pin_login_failed', emp.id, { locked: locked, device: own ? 'own' : 'other' });
       fail_(locked ? 'pin_locked' : 'bad_pin_login');
     }
-    if (Number(cred.pinLoginTries || 0) || cred.pinLockUntil) { cred.pinLoginTries = 0; cred.pinLockUntil = ''; update_(SHEETS.CRED, cred); }
-    audit_(emp.id, 'login_pin_any_device', emp.id, null);
+    if (own) { ch.remove(kT); ch.remove(kU); }
+    else if (Number(newest.pinLoginTries || 0) || newest.pinLockUntil) { newest.pinLoginTries = 0; newest.pinLockUntil = ''; update_(SHEETS.CRED, newest); }
+    audit_(emp.id, 'login_pin_any_device', emp.id, { device: own ? 'own' : 'other' });
     return { ok: true, token: issueToken_(emp), me: publicEmp_(emp), home: homePayload_(emp, false), pinLogin: true };
   });
 }

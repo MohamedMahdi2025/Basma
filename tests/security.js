@@ -40,8 +40,9 @@ r = B.call({ action: 'pinLogin', empNo: '1000', pin: '739251' });
 ok(r.ok, 'after the 30 minutes the right PIN signs in', r.error);
 B.setNow(T0 + 16 * 60000 + 32 * 60000);
 for (let i = 0; i < 5; i++) r = wrong();
-const c2 = B.ctx.readAll_('credentials').find(c => c.pinHash);
-ok(r.error === 'pin_locked' && Date.parse(c2.pinLockUntil) - B.now() <= 15 * 60000 + 1000, 'a success starts the doubling again from 15 minutes', c2.pinLockUntil);
+ok(r.error === 'pin_locked', 'five wrong PINs after a success lock again', r);
+B.setNow(T0 + 16 * 60000 + 32 * 60000 + 16 * 60000);
+ok(B.call({ action: 'pinLogin', empNo: '1000', pin: '739251' }).ok, 'a success starts the doubling again from 15 minutes (a 30-minute lock would still hold after 16)');
 B.setNow(T0 + 3 * 3600000);
 
 console.log('Passkey data from unauthenticated requests is bounded');
