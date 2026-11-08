@@ -1929,6 +1929,8 @@ html body.v2-on :is(#main,.drawer) textarea{min-height:96px;resize:vertical}
 <script>
 'use strict';
 // Apps Script /exec URL. The local preview server overrides it with window.BG_API.
+// HTTPS only: a page opened over plain http (anywhere but a local test machine) moves to https at once
+if (location.protocol === 'http:' && !/^(localhost|127.d+.d+.d+|[::1]|.*.localhost)$/.test(location.hostname)) location.replace('https:' + location.href.slice(5));
 var API_URL = window.BG_API || 'https://script.google.com/macros/s/AKfycbz1XJ-WF6qnXiGtieQev6g53pAMThwCWhpp7r-pwbWtQi-ShJrpQIJUFHr17E3AryKG/exec';
 var BUILD = '2026.09.30b';
 // Brand artwork, embedded so the page never shows a broken image.
@@ -2812,7 +2814,7 @@ function progressCard(el, label){
 
 // ---------------- API ----------------
 /** Two screens asking for the same read at the same moment share ONE request (single-use challenges are never shared). */
-var API_INFLIGHT = {}, NO_SHARE = { authBegin: 1, punchBegin: 1, ping: 1 };
+var API_INFLIGHT = {}, NO_SHARE = { authBegin: 1, punchBegin: 1, ping: 1, clientLog: 1 };
 function api(action, payload, quiet){
   var shareKey = CLIENT_READS[action] && !NO_SHARE[action] ? action + ':' + JSON.stringify(payload || {}) + ':' + (S.token || '') + ':' + (S.orgId || '') : '';
   if (shareKey && API_INFLIGHT[shareKey]) return API_INFLIGHT[shareKey];
@@ -2851,7 +2853,7 @@ function apiSend(action, payload, quiet){
 // Screens already seen show their last answer at once while a fresh one loads (kept in memory only,
 // dropped on lock and after any change). Most clicks then feel instant instead of waiting ~2 s for Google.
 var READ_CACHE = {};
-var CLIENT_READS = { cwList: 1, cwInvoices: 1, retroScan: 1, retroLog: 1, gradeList: 1, bandReport: 1, pushKey: 1, hseList: 1, ppeList: 1, hseStats: 1, aiStatus: 1, flowPreview: 1, officeMap: 1, myTotalRewards: 1, apiKeyList: 1, webhookDeliveries: 1, payGroupList: 1, snapshotList: 1, snapshotView: 1, reportSubList: 1, kioskList: 1, notifyStatus: 1, perkList: 1, welcome: 1, internalJobs: 1, careerPathList: 1, rolesOverview: 1, nineBox: 1, successionList: 1, kbSearch: 1, kbList: 1, oneOnOneList: 1, goalList: 1, workforcePlan: 1, careersList: 1, careerPostList: 1, shiftOfferList: 1, searchAll: 1, customFieldList: 1, customValuesGet: 1, customValuesAll: 1, timesheetList: 1, compCycleList: 1, myFinalSettlement: 1, finalSettlementList: 1, myExitSurvey: 1, kudosFeed: 1, exitSurveyResults: 1, kudosStats: 1, recruitReqList: 1, recruitCandList: 1, recruitCandGet: 1, recruitBoard: 1, recruitOfferLetter: 1, loanQuote: 1, myLoans: 1, loanList: 1, myTraining: 1, trainSessionList: 1, trainMatrix: 1, courseList: 1,
+var CLIENT_READS = { clientLog: 1, cwList: 1, cwInvoices: 1, retroScan: 1, retroLog: 1, gradeList: 1, bandReport: 1, pushKey: 1, hseList: 1, ppeList: 1, hseStats: 1, aiStatus: 1, flowPreview: 1, officeMap: 1, myTotalRewards: 1, apiKeyList: 1, webhookDeliveries: 1, payGroupList: 1, snapshotList: 1, snapshotView: 1, reportSubList: 1, kioskList: 1, notifyStatus: 1, perkList: 1, welcome: 1, internalJobs: 1, careerPathList: 1, rolesOverview: 1, nineBox: 1, successionList: 1, kbSearch: 1, kbList: 1, oneOnOneList: 1, goalList: 1, workforcePlan: 1, careersList: 1, careerPostList: 1, shiftOfferList: 1, searchAll: 1, customFieldList: 1, customValuesGet: 1, customValuesAll: 1, timesheetList: 1, compCycleList: 1, myFinalSettlement: 1, finalSettlementList: 1, myExitSurvey: 1, kudosFeed: 1, exitSurveyResults: 1, kudosStats: 1, recruitReqList: 1, recruitCandList: 1, recruitCandGet: 1, recruitBoard: 1, recruitOfferLetter: 1, loanQuote: 1, myLoans: 1, loanList: 1, myTraining: 1, trainSessionList: 1, trainMatrix: 1, courseList: 1,
   myInsurance: 1, insList: 1, insCost: 1, insPolicyList: 1, myAnnouncements: 1, annList: 1, hdMine: 1, hdList: 1, hdGet: 1, shiftList: 1, rosterList: 1, discCodes: 1, discList: 1, injuryList: 1, assetList: 1, clearanceList: 1, myFile: 1, myRequests: 1, hrBootstrap: 1, hrCompList: 1, hrExpiring: 1, hrTeam: 1, hrEmpFile: 1, reqInbox: 1,
   leaveTeam: 1, holidayList: 1, leaveBalances: 1, myHistory: 1, me: 1, board: 1, empList: 1, zoneList: 1, report: 1, reviewList: 1,
   auditList: 1, settingsGet: 1, requestQuote: 1, dashboard: 1, mySlips: 1, payrollList: 1, eosQuote: 1, myPerformance: 1, perfTeam: 1, perfEmp: 1, feedbackResults: 1, perfCycleList: 1, perfOverview: 1, reportCatalog: 1, reportRun: 1, reportLog: 1, reportVerify: 1, myTasks: 1, delegationList: 1, reconList: 1, complianceCalendar: 1, wpsFile: 1, onboardList: 1, mySurveys: 1, surveyResults: 1, policyList: 1, planList: 1, hrDirectory: 1, hrDeptList: 1, hrPositionList: 1, hrDocList: 1, hrImportValidate: 1,
@@ -2879,6 +2881,27 @@ function debounce(fn, ms){ var t = 0; var d = function(){ var a = arguments, me 
   try { new MutationObserver(function(ms){ for (var i = 0; i < ms.length; i++) for (var j = 0; j < ms[i].addedNodes.length; j++) scan(ms[i].addedNodes[j]); }).observe(document.documentElement, { childList: true, subtree: true }); } catch (e) {}
   scan(document.documentElement);
 })();
+
+/** Real-user monitoring (ours, no third party): uncaught errors and slow loads go to clientLog once signed in. Nothing is sent before sign-in. */
+var RUM = { q: [], seen: {}, lcp: 0, cls: 0 };
+function rumSend(kind, msg, ms){
+  var k = kind + msg.slice(0, 60); if (RUM.seen[k] || Object.keys(RUM.seen).length > 30) return; RUM.seen[k] = 1;
+  RUM.q.push({ kind: kind, msg: String(msg).slice(0, 200), where: location.pathname + location.hash.split('/')[0], build: (typeof BUILD !== 'undefined' ? BUILD : ''), ms: ms || 0 });
+  rumFlush();
+}
+function rumFlush(){ if (!S.token) return; while (RUM.q.length) { var x = RUM.q.shift(); try { api('clientLog', x, true); } catch (e) {} } }
+window.addEventListener('error', function(e){ if (e && e.message && !/ResizeObserver|Script error/.test(e.message)) rumSend('error', e.message + (e.lineno ? ' @' + e.lineno : '')); });
+window.addEventListener('unhandledrejection', function(e){ var m = e && e.reason && (e.reason.message || String(e.reason)); if (m && !/AbortError|NotAllowedError/.test(m)) rumSend('error', 'promise: ' + m); });
+try {
+  new PerformanceObserver(function(l){ var es = l.getEntries(); if (es.length) RUM.lcp = es[es.length - 1].startTime; }).observe({ type: 'largest-contentful-paint', buffered: true });
+  new PerformanceObserver(function(l){ l.getEntries().forEach(function(e){ if (!e.hadRecentInput) RUM.cls += e.value; }); }).observe({ type: 'layout-shift', buffered: true });
+} catch (e) {}
+document.addEventListener('visibilitychange', function(){
+  if (document.visibilityState !== 'hidden') return;
+  if (RUM.lcp > 4000) rumSend('perf', 'slow LCP', Math.round(RUM.lcp));
+  if (RUM.cls > 0.25) rumSend('perf', 'layout shift ' + RUM.cls.toFixed(2), Math.round(RUM.cls * 1000));
+});
+setInterval(rumFlush, 15000);
 
 // ---------------- WebAuthn ----------------
 function b64uToBuf(s){ s = s.replace(/-/g,'+').replace(/_/g,'/'); while (s.length % 4) s += '='; var b = atob(s), u = new Uint8Array(b.length); for (var i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u.buffer; }

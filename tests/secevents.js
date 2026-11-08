@@ -45,5 +45,17 @@ ok(r.ok, 'the admin changes a security setting', r);
 const audit = B.call({ action: 'auditList', token: T }).rows || [];
 ok(audit.some(a => a.action === 'settings_security' && /maxDevices/.test(a.detail)), 'the widening or narrowing is audited with old and new value');
 
+console.log('Real-user monitoring');
+r = B.call({ action: 'clientLog', token: E, kind: 'error', msg: 'TypeError: x is undefined @120', where: '/index.html?empNo=2001#hr/x', build: '20261109', ms: 0 });
+ok(r.ok, 'a signed-in page reports its own error', r);
+B.call({ action: 'clientLog', token: E, kind: 'error', msg: 'TypeError: x is undefined @120' });
+let al = (B.call({ action: 'auditList', token: T }).rows || []).filter(a => a.action === 'client_error');
+ok(al.length === 1, 'the same message is logged once, not twice', al.length);
+ok(al[0] && !/empNo|2001#/.test(al[0].detail), 'the address is stored without its query or hash (no personal data)', al[0] && al[0].detail);
+for (let i = 0; i < 40; i++) B.call({ action: 'clientLog', token: E, kind: 'error', msg: 'flood ' + i });
+al = (B.call({ action: 'auditList', token: T }).rows || []).filter(a => a.action === 'client_error');
+ok(al.length <= 21, 'a flood is capped at 20 reports per person per 10 minutes', al.length);
+ok(!B.raw({ action: 'clientLog', msg: 'x' }).ok, 'nothing is accepted without a session');
+
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);

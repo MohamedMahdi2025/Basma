@@ -458,6 +458,22 @@ function api_securityEvents(req, me) {
   return { ok: true, counts: counts, latest: latest };
 }
 
+/**
+ * Real-user monitoring without a third party: the signed-in page reports its own errors and slow loads here.
+ * Fields are cut short, no URL query, no names, no request bodies. At most 20 reports per person per 10 minutes, the same
+ * message once per 10 minutes. Read by HR and admin in the audit list (client_error, client_perf) and api_securityEvents.
+ */
+function api_clientLog(req, me) {
+  var kind = req.kind === 'perf' ? 'perf' : 'error';
+  if (!rateLimit_('clog:' + me.id, 20, 600)) return { ok: true };
+  var msg = String(req.msg == null ? '' : req.msg).replace(/[\r\n]+/g, ' ').slice(0, 200), where = String(req.where == null ? '' : req.where).split(/[?#]/)[0].slice(0, 80);
+  var k = 'clogd:v1:' + me.id + ':' + kind + ':' + msg.slice(0, 60), c = cache_();
+  if (c.get(k)) return { ok: true };
+  c.put(k, '1', 600);
+  audit_(me.id, 'client_' + kind, '', { msg: msg, where: where, build: str_(req.build, 20), ms: Math.max(0, Math.min(600000, Math.round(Number(req.ms) || 0))) });
+  return { ok: true };
+}
+
 function api_auditList(req, me) {
   var emps = {};
   readAll_(SHEETS.EMP).forEach(function (e) { emps[e.id] = e.name; });
