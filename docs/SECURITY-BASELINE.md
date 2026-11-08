@@ -23,3 +23,6 @@ Adapt the mechanism to the stack; never drop the line (say "not applicable" and 
 18. **Exposed files**: published folder holds only the site (no maps, env, keys, backups, backend, tests). Gate: `tests/secrets.js` section 2.
 19. **Backups and data location**: owner decision on region (PDPL); Sheets sharing owner-only.
 20. **Review**: a full review (red team + this list + a fresh-context reviewer) before each release; findings fixed or recorded with a reason.
+
+Standing gates, all run by tools/deploy.sh: tests/secrets.js (secrets, exposed files, client/server rules), tests/redteam.js (isolation, roles, mass assignment, forged tokens),
+tests/secevents.js (suspicious-activity log, locked admin rules), tests/fuzzforms.js (every action x 12 hostile input shapes: no crash, no oversize value stored).
