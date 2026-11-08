@@ -27,7 +27,7 @@ cd "$SRC/../app"
 git add -A
 git -c core.autocrlf=false commit -q -m "$MSG
 
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>" || echo "site: nothing new to commit"
+Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>" || echo "site: nothing new to commit"
 git push -q home main   # BASMA's home: https://mohamedmahdi2025.github.io/ (repo MohamedMahdi2025/mohamedmahdi2025.github.io)
 git push -q origin main # the old link (BesGasKSA/BG-attendance), kept while people move with the one-tap move
 echo "site: pushed (live in about a minute)"

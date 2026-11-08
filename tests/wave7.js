@@ -61,7 +61,7 @@ ok(r.scenario.pct >= 40 && r.scenario.need === 0, 'hiring that many reaches the 
 r = call('3001', 'nitaqatSim', { raises: [{ empId: ids['5002'], wage: 4000 }], leavers: [ids['5001']] });
 ok(r.scenario.weighted === 1 && r.scenario.headcount === H - 1 && r.scenario.monthlyCost === 800, 'Ahmed leaves, Sara\'s raise: weight 1, cost 800', r.scenario);
 r = call('3003', 'nitaqatSim', {});
-ok(r.ok && r.quickWins.rows.length === 0 && r.quickWins.count === 1 && r.scenario.monthlyCost === null, 'an executive sees totals, no names or wages', r.quickWins);
+ok(r.ok && r.masked === true && r.quickWins.rows.length === 0 && r.quickWins.count === null && r.base.weighted === undefined, 'an executive with fewer than 5 Saudis in the company gets no figures that point at one or two people', r);
 ok(call('5001', 'nitaqatSim', {}).error === 'forbidden', 'an employee cannot run it');
 
 console.log('3. E-signature');

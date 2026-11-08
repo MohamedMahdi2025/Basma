@@ -72,6 +72,13 @@ function load(opts = {}) {
       const tabRows = n => { const sh = b.tabs[n]; if (!sh) return []; const rows = sh._rows.map(r => { const x = (r || []).map(v => v instanceof Date ? v.toISOString() : v); while (x.length && (x[x.length - 1] === '' || x[x.length - 1] == null)) x.pop(); return x; }); while (rows.length && !rows[rows.length - 1].length) rows.pop(); return rows; };
       return res(200, { valueRanges: u.searchParams.getAll('ranges').map(rg => { const rows = tabRows(A1(rg).tab); return rows.length ? { range: rg, values: rows } : { range: rg }; }) });
     }
+    const op = /^\/values\/'((?:[^']|'')*)'!A(\d+):([A-Z]+)$/.exec(rest); // open-ended: from a row to the last row with data
+    if (op && method === 'get') {
+      const sh = b.tabs[op[1].replace(/''/g, "'")]; if (!sh) return res(400, { error: 'no tab' });
+      const rows = sh._rows.map(r => { const x = (r || []).map(v => v instanceof Date ? v.toISOString() : v); while (x.length && (x[x.length - 1] === '' || x[x.length - 1] == null)) x.pop(); return x; });
+      while (rows.length && !rows[rows.length - 1].length) rows.pop();
+      const part = rows.slice(+op[2] - 1); return res(200, part.length ? { values: part } : {});
+    }
     const ap = /^\/values\/(.+?):append$/.exec(rest);
     if (ap && method === 'post') { const t = b.tabs[A1(ap[1].replace(/!.*$/, '')).tab]; if (!t) return res(400, { error: 'no tab' }); body.values.forEach(v => t.appendRow(v)); return res(200, { updates: { updatedRows: body.values.length } }); }
     const vm2 = /^\/values\/(.+?)(:clear)?$/.exec(rest); if (!vm2) return res(400, { error: 'unsupported ' + rest });

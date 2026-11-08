@@ -119,6 +119,13 @@ http.createServer((req, res) => {
     const shim = fs.readFileSync(path.join(__dirname, 'preview-shims.js'), 'utf8');
     data = Buffer.from(String(data).replace('<script>', '<script>window.BG_API="/api";</script><script>' + shim + '</script><script>'));
   }
+  // The platform console page (platform.html) must ALSO talk to this local backend: without it the page calls the live Apps Script
+  // address, and a test setup key would be sent to the live platform endpoint. Its script policy allows inline scripts by hash only,
+  // so the one injected line is added to that policy as a hash (preview only: the shipped page is untouched).
+  if (p === '/platform.html') {
+    const inj = 'window.BG_API="/api";', hash = "'sha256-" + require('crypto').createHash('sha256').update(inj, 'utf8').digest('base64') + "'";
+    data = Buffer.from(String(data).replace('<script>', '<script>' + inj + '</script><script>').replace("script-src 'self'", "script-src 'self' " + hash));
+  }
   res.writeHead(200, { 'Content-Type': TYPES[path.extname(file)] || 'application/octet-stream', 'Cache-Control': 'no-store' });
   res.end(data);
 }).listen(PORT, () => console.log('Preview on ' + ORIGIN + '  (setup key: ' + SETUP + ', demo codes: DEMO-<empNo>)'));

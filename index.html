@@ -2719,6 +2719,8 @@ var S = {
 };
 function t(k){ var v = T[S.lang][k]; return v === undefined ? k : v; }
 function errText(code){ var k = 'e_' + code; return T[S.lang][k] || t('e_generic'); }
+/** For any CSV/Excel export: a cell that starts with = + - @ tab or CR would run as a formula when the file is opened. */
+function csvText(s){ s = String(s == null ? '' : s); return /^[=+\-@\t\r]/.test(s) && !/^-?\d+(\.\d+)?$/.test(s) ? "'" + s : s; }
 function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 function $(sel, el){ return (el || document).querySelector(sel); }
 function $$(sel, el){ return Array.prototype.slice.call((el || document).querySelectorAll(sel)); }
@@ -3129,7 +3131,14 @@ var Brand3D = (function(){
 })();
 
 // ---------------- gate screens ----------------
-function langBtn(){ return '<button class="langsw" type="button" onclick="toggleLang()">' + t('langBtn') + '</button>'; }
+function langBtn(){ return '<button class="langsw" type="button" data-act="lang">' + t('langBtn') + '</button>'; }
+/* No inline event handlers anywhere (a script policy without 'unsafe-inline' blocks them): buttons carry data-act and this one
+   listener runs the action. */
+document.addEventListener('click', function(e){
+  var b = e.target && e.target.closest ? e.target.closest('[data-act]') : null; if (!b) return;
+  var a = b.getAttribute('data-act');
+  if (a === 'lang') toggleLang(); else if (a === 'lock') renderLock();
+});
 function toggleLang(){ S.lang = S.lang === 'ar' ? 'en' : 'ar'; store('lang', S.lang); applyLang(); rerender(); }
 var rerender = function(){};
 function root(html){
@@ -5833,7 +5842,7 @@ function renderMe(){
       '<div class="err" id="pinerr" style="color:var(--red)"></div><div class="btnrow"><button class="btn btn-dark btn-sm">' + t('pinSave') + '</button></div></form>' : '') +
     '<div id="pushBox"></div>' +
     '<p class="lead" style="margin-top:16px">' + t('installHint') + '</p>' +
-    '<div class="btnrow"><button class="btn btn-dark btn-sm" onclick="renderLock()">' + t('signOut') + '</button><button class="btn btn-danger btn-sm" id="fg">' + t('forgetDevice') + '</button></div>' +
+    '<div class="btnrow"><button class="btn btn-dark btn-sm" data-act="lock">' + t('signOut') + '</button><button class="btn btn-danger btn-sm" id="fg">' + t('forgetDevice') + '</button></div>' +
     '<p class="lead" style="margin-top:20px;font-size:12px">v' + BUILD + '</p></section>';
   $('#fg').onclick = function(){ forget(); };
   pushCard($('#pushBox'));

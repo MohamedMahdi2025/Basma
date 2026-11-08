@@ -124,7 +124,7 @@ function entry(box, runId, again){
 function analytic(code){ if (!code) return ''; var o = {}; o[code] = 100; return JSON.stringify(o); }
 /** The Odoo journal-entry import: header fields on the first row, one row per line (UTF-8 with BOM). */
 function csv(e){
-  var q = function(v){ v = String(v == null ? '' : v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+  var q = function(v){ v = csvText(String(v == null ? '' : v)); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
   var rows = [['journal_id', 'date', 'ref', 'line_ids/account_id', 'line_ids/partner_id', 'line_ids/name', 'line_ids/debit', 'line_ids/credit', 'line_ids/analytic_distribution']];
   e.lines.forEach(function(l, i){ rows.push([i ? '' : e.journal, i ? '' : e.date, i ? '' : e.ref, l.account, l.partner, lineLabel(l), l.debit ? l.debit.toFixed(2) : '0.00', l.credit ? l.credit.toFixed(2) : '0.00', analytic(l.analytic)]); });
   var blob = new Blob(['﻿' + rows.map(function(r){ return r.map(q).join(','); }).join('\r\n')], { type: 'text/csv;charset=utf-8' });
@@ -191,7 +191,7 @@ function bank(el){
 }
 /** A bank or Mudad layout from wpsFile as CSV: header rows, column titles, records, trailer (compliance.js uses it). */
 function bankFile(layout){
-  var q = function(v){ v = String(v == null ? '' : v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+  var q = function(v){ v = csvText(String(v == null ? '' : v)); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
   var rows = [].concat(layout.header || [], [layout.columns || []], layout.records || [], layout.trailer || []);
   var blob = new Blob(['﻿' + rows.map(function(r){ return r.map(q).join(','); }).join('\r\n')], { type: 'text/csv;charset=utf-8' });
   var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = (layout.fileName || 'SALARY') + '.csv'; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 2000);

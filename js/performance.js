@@ -199,7 +199,7 @@ function teamTable(rows, cycle, calib){
   return '<div class="tblwrap"><table class="tbl"><thead><tr><th>' + t('pfEmp') + '</th><th>' + t('pfStatus') + '</th><th class="hr-amt">' + t('pfOverall') + '</th><th class="hr-amt">' + t('pfFinal') + '</th>' + (calib ? '<th></th>' : '') + '</tr></thead><tbody>' +
     rows.map(function(x){ return '<tr class="click" data-emp="' + x.emp.id + '"><td><b style="font-weight:500">' + esc(x.emp.name) + '</b> <small style="color:var(--ink-2)">' + esc(x.emp.department || '') + '</small></td><td>' + statusCell(x) + '</td>' +
       '<td class="hr-amt">' + num(x.overall) + '</td><td class="hr-amt">' + (x.finalRating ? '<b>' + x.finalRating + '</b>' + (x.adjusted ? ' <span class="chip late">' + t('pfAdjusted') + '</span>' : '') : '-') + '</td>' +
-      (calib ? '<td onclick="event.stopPropagation()">' + (x.reviewId && x.mgrDone ? '<div class="toolbar" style="margin:0;flex-wrap:nowrap"><select data-cal="' + x.reviewId + '">' + [1, 2, 3, 4, 5].map(function(n){ return '<option value="' + n + '"' + ((x.finalRating || Math.round(x.overall)) === n ? ' selected' : '') + '>' + n + '</option>'; }).join('') + '</select>' +
+      (calib ? '<td data-stop="1">' + (x.reviewId && x.mgrDone ? '<div class="toolbar" style="margin:0;flex-wrap:nowrap"><select data-cal="' + x.reviewId + '">' + [1, 2, 3, 4, 5].map(function(n){ return '<option value="' + n + '"' + ((x.finalRating || Math.round(x.overall)) === n ? ' selected' : '') + '>' + n + '</option>'; }).join('') + '</select>' +
         '<input data-note="' + x.reviewId + '" placeholder="' + t('pfNote') + '" style="min-width:140px"><button type="button" class="btn btn-line btn-sm" data-calok="' + x.reviewId + '">' + t('pfCalibrate') + '</button></div>' : '') + '</td>' : '') + '</tr>'; }).join('') +
     '</tbody></table></div>';
 }
@@ -229,6 +229,7 @@ function overview(body, id){
     if (window.Viz) Viz.wire(el);
     $$('[data-st]', el).forEach(function(b){ b.onclick = function(){ b.disabled = true; api('perfCycleStage', { id: c.id, status: b.dataset.st }).then(function(x){ if (!x.ok) { b.disabled = false; return toast(errText(x.error)); } overview(body, id); }); }; });
     var lb = $('#pfL', el); if (lb) lb.onclick = function(){ lb.disabled = true; api('feedbackLaunch', { cycleId: c.id }).then(function(x){ lb.disabled = false; if (!x.ok) return toast(errText(x.error)); toast(t('pfLaunched') + ': ' + x.invitations); overview(body, id); }); };
+    $$('[data-stop]', el).forEach(function(c){ c.addEventListener('click', function(ev){ ev.stopPropagation(); }); }); // keeps a click inside the calibration cell from opening the row
     $$('[data-calok]', el).forEach(function(b){ b.onclick = function(){ var rid = b.dataset.calok; b.disabled = true;
       api('perfCalibrate', { reviewId: rid, finalRating: el.querySelector('[data-cal="' + rid + '"]').value, note: el.querySelector('[data-note="' + rid + '"]').value }).then(function(x){ b.disabled = false; if (!x.ok) return toast(errText(x.error)); toast(t('saved')); overview(body, id); }); }; });
     $$('[data-emp]', el).forEach(function(x){ x.onclick = function(){ empDrawer(x.dataset.emp, c.id, function(){ overview(body, id); }); }; });

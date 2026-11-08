@@ -93,7 +93,7 @@ function postForm(r, again){
     function(v){ return api('openShiftPost', v); }, again);
 }
 function askForm(r, again){
-  K.formDrawer(t('osAsk'), r.myShift ? t('osMyShift') + ': ' + K.lang(r.myShift.nameAr, r.myShift.nameEn) + ' ' + r.myShift.start + '–' + r.myShift.end : '',
+  K.formDrawer(t('osAsk'), r.myShift ? t('osMyShift') + ': ' + esc(K.lang(r.myShift.nameAr, r.myShift.nameEn)) + ' ' + esc(r.myShift.start) + '–' + esc(r.myShift.end) : '',
     K.two(K.fld(t('w2Date'), '<input type="date" name="date" required>'), K.fld(t('osWith'), '<select name="peerId" required>' + K.opts(r.mates.map(function(m){ return [m.id, K.lang(m.name, m.nameEn) + ' (' + m.empNo + ')']; }), '', t('w2Pick')) + '</select>')) +
     K.fld(t('w2Note'), '<input name="note" maxlength="200">'),
     function(v){ return api('shiftSwapAsk', v); }, again);
@@ -863,7 +863,7 @@ function platformSection(body){
       $$('[data-rn]', el).forEach(function(b){ K.confirmTap(b, function(){ var o = rows[b.dataset.rn];
         api('orgRenumber', { setupKey: key, id: o.id }).then(function(r){
           if (!r.ok) return toast(errText(r.error));
-          var csv = '\ufeff' + [t('rnName'), t('rnDept'), t('rnFrom'), t('rnTo')].join(',') + '\n' + r.map.map(function(x){ return [x.name, x.department, x.from, x.to].map(function(v){ return '"' + String(v).replace(/"/g, '""') + '"'; }).join(','); }).join('\n');
+          var csv = '\ufeff' + [t('rnName'), t('rnDept'), t('rnFrom'), t('rnTo')].join(',') + '\n' + r.map.map(function(x){ return [x.name, x.department, x.from, x.to].map(function(v){ return '"' + csvText(String(v)).replace(/"/g, '""') + '"'; }).join(','); }).join('\n');
           var url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
           drawer('<h3>' + t('rnDone').replace('{n}', r.renumbered) + ' · ' + esc(o.nameAr || o.id) + '</h3>' + (r.kept.length ? '<p class="hr-hint">' + t('rnKept') + ' ' + r.kept.map(function(k){ return esc(k.name) + ' <bdi dir="ltr">' + esc(k.empNo) + '</bdi>'; }).join('، ') + '</p>' : '') +
             (window.Viz ? Viz.tbl([t('rnName'), t('rnDept'), t('rnFrom'), t('rnTo')], r.map.map(function(x){ return [esc(x.name), esc(x.department), '<bdi dir="ltr">' + esc(x.from) + '</bdi>', '<b dir="ltr">' + esc(x.to) + '</b>']; })) : '') +

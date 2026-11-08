@@ -93,7 +93,19 @@ const platLoader = HUB(loader)
   .replace(START, "(function(){\nif(location.hash&&location.hash!=='#platform'){location.replace('./'+location.hash);return;}if(!location.hash)history.replaceState(null,'',location.pathname+location.search+'#platform');\nvar k=[")
   .replace('var h=new TextDecoder().decode(o);', 'var h=new TextDecoder().decode(o);' + SWAP);
 if (platLoader === loader || platLoader.indexOf("location.replace('./'+location.hash)") < 0 || platLoader.indexOf('h=h.replace(') < 0 || platLoader.indexOf('hub-192.png?v=3') < 0) { console.error('refusing: platform loader not built'); process.exit(1); }
-fs.writeFileSync(path.join(OUT, 'platform.html'), platLoader);
+// The platform console holds the owner's setup key in memory, so this page gets a script policy: only the loader's own script, the
+// page's own inline script(s) (by SHA-256 of their exact text), this site's files and the two spreadsheet/QR libraries on cdnjs run.
+// An injected <script>, an inline event handler (onerror=...) or a javascript: URL does not. 'unsafe-eval' stays because the encoded
+// modules run through eval. (The company app keeps its current policy: its print windows use inline scripts and the phone wrappers
+// cannot be tested from here.)
+const sha256b64 = s => "'sha256-" + crypto.createHash('sha256').update(s, 'utf8').digest('base64') + "'";
+const inlineScripts = html => { const out = [], re = /<script>([\s\S]*?)<\/script>/g; let m; while ((m = re.exec(html))) out.push(m[1]); return out; };
+const hashes = inlineScripts(platLoader).concat(inlineScripts(page)).map(sha256b64);
+if (hashes.length < 2) { console.error('refusing: no inline script hashes for the platform policy'); process.exit(1); }
+const PLAT_CSP = "script-src 'self' 'unsafe-eval' " + hashes.join(' ') + " https://cdnjs.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests";
+const platCsp = platLoader.replace(/<meta http-equiv="Content-Security-Policy" content="[^"]*">/, '<meta http-equiv="Content-Security-Policy" content="' + PLAT_CSP + '">');
+if (platCsp === platLoader || platCsp.indexOf("script-src 'self'") < 0) { console.error('refusing: platform CSP not applied'); process.exit(1); }
+fs.writeFileSync(path.join(OUT, 'platform.html'), platCsp);
 // and the app's own address sends #platform to it, before decoding anything
 const appLoader = loader.replace(START, "(function(){\nif(location.hash==='#platform'){location.replace('platform.html#platform');return;}\nvar k=[");
 if (appLoader === loader) { console.error('refusing: app loader redirect not added'); process.exit(1); }

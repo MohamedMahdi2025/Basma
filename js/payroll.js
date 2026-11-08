@@ -582,7 +582,7 @@ function varianceView(run, pct, min){
     $$('[data-f]', B).forEach(function(btn){ btn.onclick = function(){ filt = btn.dataset.f; $$('[data-f]', B).forEach(function(x){ x.setAttribute('aria-pressed', String(x === btn)); }); $('#vaPpl', B).innerHTML = peopleTbl(); wirePeople(); }; });
     $('#vaGo', B).onclick = function(){ d.remove(); varianceView(run, Number($('#vaP', B).value), Number($('#vaM', B).value)); };
     $('#vaCsv', B).onclick = function(){
-      var q = function(v){ return '"' + String(v === null || v === undefined ? '' : v).replace(/"/g, '""') + '"'; };
+      var q = function(v){ return '"' + csvText(String(v === null || v === undefined ? '' : v)).replace(/"/g, '""') + '"'; };
       var rows = [[t('vaScore'), t('hrName'), 'No', t('vaDepts'), t('vaNow'), t('vaM1'), t('vaM2'), t('vaChange'), '%', t('vaWhy')].map(q).join(',')];
       r.people.forEach(function(x){ rows.push([x.score, x.name, x.empNo, x.department, x.m0 && x.m0.net, x.m1 && x.m1.net, x.m2 && x.m2.net, x.netVsM1 && x.netVsM1.diff, x.netVsM1 && x.netVsM1.pct, x.flags.map(flagTxt).join(' | ').replace(/<[^>]+>/g, '')].map(q).join(',')); });
       var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['\ufeff' + rows.join('\n')], { type: 'text/csv;charset=utf-8' })); a.download = 'variance-' + run.month + '.csv'; document.body.appendChild(a); a.click(); a.remove();

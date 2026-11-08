@@ -65,7 +65,7 @@ var HEADERS = {
   quizAttempts: ['id', 'quizId', 'empId', 'score', 'passed', 'answersJson', 'at', 'certNo'],
   gosiSync: ['id', 'empId', 'kind', 'wage', 'ref', 'date', 'doneBy', 'doneAt'],
   payBudgets: ['id', 'month', 'departmentId', 'amount', 'note', 'updatedBy', 'updatedAt'],
-  signRequests: ['id', 'ref', 'kind', 'title', 'body', 'docHash', 'empId', 'status', 'requestedBy', 'requestedAt', 'dueDate', 'signedName', 'signedAt', 'seal', 'declineNote', 'declinedAt'],
+  signRequests: ['id', 'ref', 'kind', 'title', 'body', 'docHash', 'empId', 'status', 'requestedBy', 'requestedAt', 'dueDate', 'signedName', 'signedAt', 'seal', 'declineNote', 'declinedAt', 'v'],
   autoRules: ['id', 'ref', 'name', 'trigger', 'days', 'audience', 'message', 'status', 'createdBy', 'createdAt', 'updatedAt'],
   autoTasks: ['id', 'ruleId', 'empId', 'assigneeId', 'audience', 'key', 'title', 'eventDate', 'dueDate', 'status', 'doneBy', 'doneAt', 'createdAt'],
   hseReports: ['id', 'ref', 'kind', 'severity', 'occurredAt', 'place', 'zoneId', 'description', 'immediateAction', 'anonymous', 'reportedBy', 'status', 'investigatorId', 'rootCause', 'rootCategory', 'injuryId', 'closedNote', 'createdAt', 'updatedAt'],
@@ -276,7 +276,7 @@ function ensureHeader_(name, sh, width) {
 // Each sheet is read once per request. Apps Script sheet reads cost 100-600 ms each,
 // and one request used to read the same tab three or four times.
 var READ_MEMO_ = {}, READ_LEN_ = {}; // READ_LEN_: rows in the sheet when it was read (header included), so an append knows its row number
-function forget_(name) { delete READ_MEMO_[name]; delete READ_LEN_[name]; }
+function forget_(name) { delete READ_MEMO_[name]; delete READ_LEN_[name]; if (typeof TAIL_MEMO_ !== 'undefined') delete TAIL_MEMO_[name]; }
 /** After appendRow: the memo gets the new row instead of being dropped, so the same request does not read the tab again. */
 function memoAppend_(name, obj) {
   var m = READ_MEMO_[name];
@@ -376,6 +376,40 @@ function onEdit(e) {
   } catch (err) {}
 }
 
+/** Sheet values to row objects: vals[from..] are sheet rows firstRow, firstRow + 1, ... (blank rows skipped). */
+function rowsOf_(cols, vals, from, firstRow) {
+  var out = [];
+  for (var i = from; i < vals.length; i++) {
+    var o = { _row: firstRow + i - from }, blank = true;
+    for (var c = 0; c < cols.length; c++) {
+      var v = vals[i][c];
+      if (v === undefined) v = '';
+      if (v !== '') blank = false;
+      o[cols[c]] = (v && typeof v === 'object' && typeof v.getTime === 'function') ? cellDate_(v) : v;
+    }
+    if (!blank) out.push(o);
+  }
+  return out;
+}
+
+/*
+ * The newest rows of a tab that only grows at the bottom (punches): the last row number seen is kept in the organisation's
+ * cache, and the read starts n rows above it and runs open-ended to the last row with data, so rows appended since are
+ * always included. Answers { rows, start } or null when the tab is small (a full read is as cheap) or the size is unknown.
+ * The rows carry their real _row, so they can be updated like any other.
+ */
+var TAIL_MEMO_ = {}, SINCE_MEMO_ = {};
+function readTail_(name, n) {
+  var last = 0; try { last = Number(cache_().get('lastrow:v1:' + name)) || 0; } catch (e) {}
+  if (!last || last <= n + 1) return null;
+  var sh = sheet_(name), cols = HEADERS[name], start = Math.max(2, last - n + 1), vals;
+  if (typeof sh.tail === 'function') vals = sh.tail(start, cols.length); // REST book: one open-ended range
+  else { var lr = sh.getLastRow(); if (lr < start) return null; vals = sh.getRange(start, 1, lr - start + 1, cols.length).getValues(); }
+  try { cache_().put('lastrow:v1:' + name, String(start + vals.length - 1), 21600); } catch (e) {}
+  READ_SHEET_.push(name);
+  return { rows: rowsOf_(cols, vals, 0, start), start: start };
+}
+
 function readAll_(name) {
   if (READ_MEMO_[name]) return READ_MEMO_[name];
   var tag = null;
@@ -391,19 +425,10 @@ function readAll_(name) {
   var vals = sh.getDataRange().getValues();
   ensureHeader_(name, sh, vals.length ? vals[0].length : 0);
   READ_LEN_[name] = vals.length;
-  var out = [];
-  for (var i = 1; i < vals.length; i++) {
-    var o = { _row: i + 1 }, blank = true;
-    for (var c = 0; c < cols.length; c++) {
-      var v = vals[i][c];
-      if (v === undefined) v = '';
-      if (v !== '') blank = false;
-      o[cols[c]] = (v && typeof v === 'object' && typeof v.getTime === 'function') ? cellDate_(v) : v;
-    }
-    if (!blank) out.push(o);
-  }
+  var out = rowsOf_(cols, vals, 1, 2);
   if (tag !== null) storeTab_(name, tag, out);
   READ_MEMO_[name] = out;
+  try { cache_().put('lastrow:v1:' + name, String(vals.length), 21600); } catch (e) {}
   return out;
 }
 
@@ -460,7 +485,10 @@ function append_(name, obj) {
   var sh = sheet_(name);
   ensureHeader_(name, sh);
   sh.appendRow(toRow_(name, obj));
+  bumpTab_(name); // again AFTER the write: a copy read between the first bump and the write is stale and must not be trusted
   memoAppend_(name, obj);
+  SINCE_MEMO_ = {}; // a row written now belongs in any window read afterwards
+  if (TAIL_MEMO_[name]) { var to = {}; HEADERS[name].forEach(function (k) { to[k] = obj[k] == null ? '' : obj[k]; }); TAIL_MEMO_[name].rows.push(to); }
   if (typeof whTap_ === 'function') whTap_(name, obj, true); // webhooks (Admin.gs)
 }
 
@@ -472,6 +500,7 @@ function appendMany_(name, objs) {
   var sh = sheet_(name);
   ensureHeader_(name, sh);
   sh.getRange(sh.getLastRow() + 1, 1, objs.length, HEADERS[name].length).setValues(objs.map(function (o) { return toRow_(name, o); }));
+  bumpTab_(name);
   if (typeof whTap_ === 'function') objs.forEach(function (o) { whTap_(name, o, true); });
 }
 
@@ -485,6 +514,7 @@ function update_(name, obj) {
   var sh = sheet_(name);
   ensureHeader_(name, sh);
   sh.getRange(obj._row, 1, 1, HEADERS[name].length).setValues([toRow_(name, obj)]);
+  bumpTab_(name); // again AFTER the write (see append_): no stale copy may outlive this change, e.g. a revoked session
   if (typeof whTap_ === 'function') whTap_(name, obj, false);
 }
 
@@ -805,7 +835,7 @@ function setOrg_(o) {
   // the platform actions switch organisation inside one request).
   var same = ORG_ && o && ORG_.id === o.id;
   if (typeof flushStore_ === 'function' && ORG_) flushStore_(); // copies made so far belong to the organisation they were read for
-  ORG_ = o; ORG_SS_ = null; SHEET_CACHE_ = {}; HEADER_OK_ = {}; READ_MEMO_ = {}; READ_LEN_ = {};
+  ORG_ = o; ORG_SS_ = null; SHEET_CACHE_ = {}; HEADER_OK_ = {}; READ_MEMO_ = {}; READ_LEN_ = {}; TAIL_MEMO_ = {}; SINCE_MEMO_ = {};
   if (!same) { TAB_PREFETCH_ = null; READ_SHEET_ = []; }
   if (typeof SETTINGS_MEMO_ !== 'undefined') SETTINGS_MEMO_ = null;
 }
@@ -943,6 +973,12 @@ function restSheet_(bookId, props, pre, hooks) {
   };
   return {
     getName: function () { return title; },
+    /** Rows from 'start' to the last row with data, one call (the range has no end row). */
+    tail: function (start, ncols) {
+      var get = function () { return sheetsFetch_('get', url("'" + String(title).replace(/'/g, "''") + "'!A" + start + ':' + colA1_(ncols), '?valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=FORMATTED_STRING')); };
+      var r; try { r = get(); } catch (e) { if (!refresh()) throw e; r = get(); }
+      return r.values || [];
+    },
     getLastRow: function () { return read().length; },
     getLastColumn: function () { return width(); },
     getDataRange: function () { return range(1, 1, Math.max(1, read().length), Math.max(1, width())); },
@@ -1175,12 +1211,13 @@ var READ_ONLY_ACTIONS = { budgetView: 1, nitaqatSim: 1, signList: 1, signVerify:
   myAnnouncements: 1, annList: 1, hdMine: 1, hdList: 1, hdGet: 1 };
 
 /** Organisations on their own book: fetch together every tab this screen read from the sheet last time and the cache lacks. */
+var GROWING_TABS_ = { punches: 1, audit: 1 }; // never downloaded whole by the batch preload; punches go through readTail_
 function preloadFor_(action) {
   try {
     var book = ss_(); if (!book || typeof book.preload !== 'function') return;
     var list = JSON.parse(cache_().get('acttabs:v1:' + orgKey_('') + action) || '[]');
     if (!list.length) list = Object.keys(CACHED_TABS_); // first time for this action: every small tab, two batches at most
-    var need = list.filter(function (n) { if (READ_MEMO_[n]) return false; if (!CACHED_TABS_[n]) return true; var c = cachedRows_(n); return !(c && c.rows); });
+    var need = list.filter(function (n) { if (GROWING_TABS_[n]) return false; if (READ_MEMO_[n]) return false; if (!CACHED_TABS_[n]) return true; var c = cachedRows_(n); return !(c && c.rows); });
     for (var i = 0; i < need.length && i < 160; i += 80) if (need.length > 1) book.preload(need.slice(i, i + 80));
   } catch (e) { /* only a speed-up: reading tab by tab still works */ }
 }
@@ -1196,7 +1233,7 @@ var REQ_DEV_ = ''; // the device sending this request (see bindDevice_)
 var ADMIN_ACTIONS = { waTest: 1, hrRolesSave: 1, empResetDevice: 1, zoneSave: 1, zoneDelete: 1, settingsSave: 1 };
 
 function handle_(req) {
-  READ_MEMO_ = {}; READ_LEN_ = {}; SETTINGS_MEMO_ = null; READ_SHEET_ = [];
+  READ_MEMO_ = {}; READ_LEN_ = {}; SETTINGS_MEMO_ = null; READ_SHEET_ = []; TAIL_MEMO_ = {}; SINCE_MEMO_ = {};
   REQ_HOST_ = req && typeof req.host === 'string' ? req.host.toLowerCase().slice(0, 80) : '';
   REQ_DEV_ = req && typeof req.devId === 'string' && /^[aw]:[A-Za-z0-9_-]{16,64}$/.test(req.devId) ? req.devId : '';
   USE_TAB_CACHE_ = false;

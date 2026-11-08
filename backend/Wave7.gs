@@ -52,6 +52,7 @@ function budgetActuals_(year) {
 function api_budgetView(req, me) {
   if (!w7Exec_(me)) fail_('forbidden');
   var y = w7Year_(req.year), ctx = orgCtx_(), dep = str_(req.departmentId, 40), t = today_();
+  var hide = !w7Money_(me), depSize = function (d) { return Object.keys(ctx.emps).filter(function (id) { var e = ctx.emps[id]; return e.departmentId === d && e.status === 'active'; }).length; };
   var act = budgetActuals_(y), prevAct = budgetActuals_(y - 1);
   var bud = {}; readAll_(SHEETS.BUDGET).forEach(function (b) { if (String(b.month).slice(0, 4) === String(y) && String(b.departmentId || '') === dep) bud[b.month] = Number(b.amount) || 0; });
   // run rate: the last three months with a run (this year, then last year), cost per head
@@ -78,6 +79,16 @@ function api_budgetView(req, me) {
     tot.budget = r2_(tot.budget + b); tot.forecast = r2_(tot.forecast + f);
     if (a !== null) { tot.actual = r2_(tot.actual + a); tot.budgetToDate = r2_(tot.budgetToDate + b); }
   }
+  // Who sees what: hr and payroll see every group. Anyone else (an executive) sees groups of 5 or more people only: a smaller
+  // group's cost is one or two people's pay. Small departments are folded together, and into the next group if still under 5, so
+  // the company total minus the rows shown can never isolate one of them. (hide and depSize are declared BEFORE use.)
+  var deptList = Object.keys(ctx.depts).map(function (d) { return { id: d, name: ctx.depts[d].nameAr, nameEn: ctx.depts[d].nameEn || ctx.depts[d].nameAr }; });
+  if (hide && dep && depSize(dep) < MIN_GROUP_) {
+    var bm = [], btot = 0;
+    for (var q = 1; q <= 12; q++) { var mq = y + '-' + String(q).padStart(2, '0'), bq = r2_(bud[mq] || 0); btot = r2_(btot + bq); bm.push({ month: mq, budget: bq, actual: null, forecast: null, locked: false, variance: null, variancePct: null, lastYear: null }); }
+    return { ok: true, year: y, departmentId: dep, small: true, months: bm, totals: { budget: btot, actual: null, budgetToDate: null, landing: null, gap: null, usedPct: null, ytdVariance: null },
+      runRate: null, basis: 'hidden', activeHeadcount: null, status: 'hidden', departments: [], canEdit: false, deptList: deptList };
+  }
   var landing = tot.forecast, gap = tot.budget ? r2_(landing - tot.budget) : null;
   var status = !tot.budget ? 'no_budget' : landing > tot.budget * 1.02 ? 'over' : landing > tot.budget * 0.98 ? 'on_track' : 'under';
   // by department (company view only): this year's actual to date against each department's own budget
@@ -85,15 +96,24 @@ function api_budgetView(req, me) {
   if (!dep) {
     var dBud = {}; readAll_(SHEETS.BUDGET).forEach(function (b) { if (String(b.month).slice(0, 4) === String(y) && b.departmentId) dBud[b.departmentId] = r2_((dBud[b.departmentId] || 0) + (Number(b.amount) || 0)); });
     var dAct = {}; Object.keys(act).forEach(function (m) { Object.keys(act[m].dept).forEach(function (d) { dAct[d] = r2_((dAct[d] || 0) + act[m].dept[d]); }); });
-    Object.keys(dAct).concat(Object.keys(dBud)).filter(function (d, i, a) { return a.indexOf(d) === i; }).forEach(function (d) {
-      var dd = ctx.depts[d]; depts.push({ id: d, name: dd ? dd.nameAr : '', nameEn: dd ? (dd.nameEn || dd.nameAr) : '', actual: dAct[d] || 0, budget: dBud[d] || 0 });
+    var rowsD = Object.keys(dAct).concat(Object.keys(dBud)).filter(function (d, i, a) { return a.indexOf(d) === i; }).map(function (d) {
+      var dd = ctx.depts[d]; return { id: d, name: dd ? dd.nameAr : '', nameEn: dd ? (dd.nameEn || dd.nameAr) : '', actual: dAct[d] || 0, budget: dBud[d] || 0, n: depSize(d), hidden: false };
     });
+    depts = hide ? foldSmallGroups_(rowsD, MIN_GROUP_) : rowsD;
     depts.sort(function (u, v) { return v.actual - u.actual; });
   }
-  return { ok: true, year: y, departmentId: dep, months: months, totals: { budget: tot.budget, actual: tot.actual, budgetToDate: tot.budgetToDate, landing: landing, gap: gap,
+  return { ok: true, year: y, departmentId: dep, small: false, months: months, totals: { budget: tot.budget, actual: tot.actual, budgetToDate: tot.budgetToDate, landing: landing, gap: gap,
     usedPct: tot.budget ? Math.round(tot.actual / tot.budget * 1000) / 10 : null, ytdVariance: tot.budgetToDate ? r2_(tot.actual - tot.budgetToDate) : null },
-    runRate: rate, basis: basis, activeHeadcount: active, status: status, departments: depts, canEdit: w7Money_(me),
-    deptList: Object.keys(ctx.depts).map(function (d) { return { id: d, name: ctx.depts[d].nameAr, nameEn: ctx.depts[d].nameEn || ctx.depts[d].nameAr }; }) };
+    runRate: rate, basis: basis, activeHeadcount: active, status: status, departments: depts, canEdit: w7Money_(me), deptList: deptList };
+}
+var MIN_GROUP_ = 5;
+/** Merge groups smaller than min with the next smallest until each has at least min people; a company under min shows no rows. */
+function foldSmallGroups_(rows, min) {
+  var asc = rows.slice().sort(function (a, b) { return a.n - b.n; }), out = [], cur = null;
+  var merge = function (a, b) { return { id: '', name: [a.name, b.name].filter(Boolean).join(' + '), nameEn: [a.nameEn, b.nameEn].filter(Boolean).join(' + '), actual: r2_(a.actual + b.actual), budget: r2_(a.budget + b.budget), n: a.n + b.n, hidden: false, merged: true }; };
+  asc.forEach(function (r) { cur = cur ? merge(cur, r) : Object.assign({}, r); if (cur.n >= min) { out.push(cur); cur = null; } });
+  if (cur) { if (!out.length) return []; out[out.length - 1] = merge(out[out.length - 1], cur); }
+  return out;
 }
 
 // ======================================================================= 2. Nitaqat what-if simulator
@@ -112,8 +132,13 @@ function api_nitaqatSim(req, me) {
     if (w < 1) { var wage = c ? (Number(c.basic) || 0) + (Number(c.housing) || 0) : 0, need = r2_(Math.max(0, 4000 - wage)); wins.push({ emp: money ? empCard_(e) : null, weight: w, wage: money ? wage : null, monthlyCost: need, gain: r2_(1 - w) }); }
   });
   var pct = function (w, h) { return h ? Math.round(w / h * 1000) / 10 : 0; };
+  // With fewer than 5 Saudis the weighted figure, the count of people below full weight and their wage gap each point at one or
+  // two named people. An executive then gets no figures at all (the hr role and payroll, who see individuals, still do).
+  if (!money && base.saudis < MIN_GROUP_) return { ok: true, masked: true, target: target, canNames: false, base: { headcount: base.headcount }, scenario: {}, quickWins: { count: null, gain: null, monthlyCost: null, pctIfAll: null, rows: [] } };
   base.pct = pct(base.weighted, base.headcount);
-  var hires = Array.isArray(req.hires) ? req.hires.slice(0, 20) : [], leavers = Array.isArray(req.leavers) ? req.leavers.slice(0, 200) : [], raises = Array.isArray(req.raises) ? req.raises.slice(0, 200) : [];
+  // Modelling one named person (leaves, raise) shows through the weighted figure whether they are Saudi and which wage band they
+  // are in, so only people who already see individuals may do it. An executive models hires and reads totals.
+  var hires = Array.isArray(req.hires) ? req.hires.slice(0, 20) : [], leavers = money && Array.isArray(req.leavers) ? req.leavers.slice(0, 200) : [], raises = money && Array.isArray(req.raises) ? req.raises.slice(0, 200) : [];
   var sc = { headcount: base.headcount, weighted: base.weighted, cost: 0 };
   hires.forEach(function (h) {
     var n = Math.max(0, Math.min(500, Math.round(Number(h.count) || 0))), wage = Math.max(0, Number(h.wage) || 0);
@@ -134,7 +159,8 @@ function api_nitaqatSim(req, me) {
   var winsCost = wins.reduce(function (s, w) { return r2_(s + w.monthlyCost); }, 0), winsGain = wins.reduce(function (s, w) { return s + w.gain; }, 0);
   return { ok: true, target: target, base: { headcount: base.headcount, saudis: base.saudis, weighted: Math.round(base.weighted * 10) / 10, pct: base.pct, need: needFor(base.weighted, base.headcount) },
     scenario: { headcount: sc.headcount, weighted: sc.weighted, pct: sc.pct, change: Math.round((sc.pct - base.pct) * 10) / 10, need: needFor(sc.weighted, sc.headcount), monthlyCost: money ? sc.cost : null },
-    quickWins: { count: wins.length, gain: Math.round(winsGain * 10) / 10, monthlyCost: winsCost, pctIfAll: pct(base.weighted + winsGain, base.headcount), rows: money ? wins.slice(0, 50) : [] },
+    quickWins: money || wins.length >= MIN_GROUP_ ? { count: wins.length, gain: Math.round(winsGain * 10) / 10, monthlyCost: winsCost, pctIfAll: pct(base.weighted + winsGain, base.headcount), rows: money ? wins.slice(0, 50) : [] }
+      : { count: null, gain: null, monthlyCost: null, pctIfAll: null, rows: [] },
     canNames: money };
 }
 
@@ -144,6 +170,7 @@ function api_nitaqatSim(req, me) {
 // the organisation's signing secret (HMAC). Verifying recomputes both, so any edit to the text or the record shows.
 // Nobody signs a document they requested. Signed and declined records are final.
 function signNorm_(s) { return String(s || '').replace(/[ً-ْـ]/g, '').replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي').replace(/\s+/g, ' ').trim().toLowerCase(); }
+function signDigest_(r) { return r.v === '2' ? sha256Hex_('v2\n' + String(r.kind) + '\n' + String(r.title) + '\n' + String(r.body)) : sha256Hex_(String(r.body)); }
 function signSeal_(r) { return hmac_('esign|' + r.id + '|' + r.docHash + '|' + r.empId + '|' + r.signedAt + '|' + signNorm_(r.signedName)); }
 function signView_(r, ctx, withBody) {
   var o = { id: r.id, ref: r.ref, title: r.title, kind: r.kind || 'other', status: r.status, emp: empCard_(ctx.emps[r.empId]), requestedBy: empCard_(ctx.emps[r.requestedBy]), requestedAt: r.requestedAt,
@@ -162,8 +189,8 @@ function api_signRequest(req, me) {
   var ctx = orgCtx_(), clean = [];
   ids.forEach(function (id) { var e = ctx.emps[id]; if (!e || e.status !== 'active') fail_('not_found'); if (id === me.id) fail_('cannot_sign_own_request'); if (clean.indexOf(id) < 0) clean.push(id); });
   return withLock_(function () {
-    var now = new Date().toISOString(), hash = sha256Hex_(body), refs = nextRefs_('esign', clean.length, refsOf_(SHEETS.SIGN));
-    var rows = clean.map(function (id, i) { return { id: newId_('SG'), ref: refs[i], kind: kind, title: title, body: body, docHash: hash, empId: id, status: 'pending', requestedBy: me.id, requestedAt: now, dueDate: due,
+    var now = new Date().toISOString(), hash = signDigest_({ v: '2', kind: kind, title: title, body: body }), refs = nextRefs_('esign', clean.length, refsOf_(SHEETS.SIGN));
+    var rows = clean.map(function (id, i) { return { id: newId_('SG'), ref: refs[i], kind: kind, title: title, body: body, docHash: hash, v: '2', empId: id, status: 'pending', requestedBy: me.id, requestedAt: now, dueDate: due,
       signedName: '', signedAt: '', seal: '', declineNote: '', declinedAt: '' }; });
     if (typeof appendMany_ === 'function') appendMany_(SHEETS.SIGN, rows); else rows.forEach(function (r) { append_(SHEETS.SIGN, r); });
     return { ok: true, count: rows.length, refs: refs, docHash: hash };
@@ -184,7 +211,7 @@ function api_signDoc(req, me) {
     if (r.status !== 'pending') fail_('already_done');
     if (r.requestedBy === me.id) fail_('cannot_sign_own_request');
     if (req.agree !== true) fail_('agree_required');
-    if (String(req.docHash || '') !== r.docHash || sha256Hex_(r.body) !== r.docHash) fail_('doc_changed');
+    if (String(req.docHash || '') !== r.docHash || signDigest_(r) !== r.docHash) fail_('doc_changed');
     var typed = signNorm_(req.name), names = [me.name, me.nameEn].filter(Boolean).map(signNorm_);
     if (!typed || names.indexOf(typed) < 0) fail_('name_mismatch');
     r.signedName = str_(req.name, 120); r.signedAt = new Date().toISOString(); r.status = 'signed'; r.seal = signSeal_(r);
@@ -205,6 +232,7 @@ function api_signCancel(req, me) {
   if (!isHr_(me)) fail_('forbidden');
   return withLock_(function () {
     var r = findBy_(SHEETS.SIGN, 'id', req.id); if (!r) fail_('not_found'); if (r.status !== 'pending') fail_('already_done');
+    if (r.empId === me.id) fail_('cannot_sign_own_request'); // an undertaking addressed to you is not yours to withdraw
     r.status = 'cancelled'; r.declinedAt = new Date().toISOString(); r.declineNote = 'cancelled by ' + (me.empNo || me.id); update_(SHEETS.SIGN, r);
     return { ok: true };
   });
@@ -212,7 +240,7 @@ function api_signCancel(req, me) {
 function api_signVerify(req, me) {
   var ref = str_(req.ref, 40), r = readAll_(SHEETS.SIGN).filter(function (x) { return x.ref === ref || x.id === req.id; })[0];
   if (!r || (!isHr_(me) && r.empId !== me.id)) fail_('not_found');
-  var textOk = sha256Hex_(r.body) === r.docHash, sealOk = r.status === 'signed' && !!r.seal && signSeal_(r) === r.seal;
+  var textOk = signDigest_(r) === r.docHash, sealOk = r.status === 'signed' && !!r.seal && signSeal_(r) === r.seal;
   var given = str_(req.seal, 200), sealMatch = given ? given === r.seal : null;
   return { ok: true, ref: r.ref, status: r.status, textIntact: textOk, sealValid: sealOk, sealMatches: sealMatch, valid: textOk && sealOk && sealMatch !== false, signedAt: r.signedAt || '', signer: empCard_(orgCtx_().emps[r.empId]) };
 }
@@ -228,11 +256,13 @@ hrisHook_('tasks', function (me, ctx, add) {
 // list with years of history. HR can run the sweep at once.
 var AUTO_TRIGGERS_ = { after_hire: 'after', probation_end: 'before', contract_end: 'before', id_expiry: 'before', doc_expiry: 'before', anniversary: 'before', after_resignation: 'after' };
 var AUTO_WHO_ = ['hr', 'manager', 'employee'];
+var AUTO_PRIVATE_ = { id_expiry: 1, doc_expiry: 1 };
 var AUTO_WINDOW_ = 14;
 function autoClean_(d) {
   var name = str_(d.name, 120), trig = String(d.trigger || ''), days = Math.round(Number(d.days)), who = String(d.audience || ''), msg = str_(d.message, 300);
   if (!name) fail_('name_required'); if (!AUTO_TRIGGERS_[trig]) fail_('bad_trigger'); if (!isFinite(days) || days < 0 || days > 365) fail_('bad_days');
   if (AUTO_WHO_.indexOf(who) < 0) fail_('bad_audience'); if (!msg) fail_('message_required');
+  if (AUTO_PRIVATE_[trig] && who !== 'hr') fail_('hr_only_trigger'); // the private file is HR's: its dates and document types go to HR only
   return { name: name, trigger: trig, days: days, audience: who, message: msg };
 }
 function api_autoRuleSave(req, me) {
@@ -276,8 +306,9 @@ function autoRun_(ctx) {
   rules.forEach(function (r) {
     autoEvents_(r, ctx, priv, docs).forEach(function (ev) {
       var key = r.id + '|' + ev.emp.id + '|' + ev.eventDate + '|' + ev.extra; if (have[key]) return; have[key] = 1;
-      var who = r.audience === 'employee' ? ev.emp.id : r.audience === 'manager' && ev.emp.managerId && ctx.emps[ev.emp.managerId] && ctx.emps[ev.emp.managerId].status === 'active' ? ev.emp.managerId : '';
-      add.push({ id: newId_('AT'), ruleId: r.id, empId: ev.emp.id, assigneeId: who, audience: who ? r.audience : 'hr', key: key, title: autoText_(r.message, ev.emp, ev), eventDate: ev.eventDate, dueDate: ev.eventDate > ev.fire ? ev.eventDate : addDays_(ev.fire, 7),
+      var aud = AUTO_PRIVATE_[r.trigger] ? 'hr' : r.audience; // a rule saved by hand on the sheet cannot widen this
+      var who = aud === 'employee' ? ev.emp.id : aud === 'manager' && ev.emp.managerId && ctx.emps[ev.emp.managerId] && ctx.emps[ev.emp.managerId].status === 'active' ? ev.emp.managerId : '';
+      add.push({ id: newId_('AT'), ruleId: r.id, empId: ev.emp.id, assigneeId: who, audience: who ? aud : 'hr', key: key, title: autoText_(r.message, ev.emp, ev), eventDate: ev.eventDate, dueDate: ev.eventDate > ev.fire ? ev.eventDate : addDays_(ev.fire, 7),
         status: 'open', doneBy: '', doneAt: '', createdAt: now });
     });
   });

@@ -362,10 +362,13 @@ function assertionOptions_(emp, purpose, extra) {
   };
 }
 
+/** Employee numbers are sequential, so "unknown number" must not be a free oracle: an outsider scanning numbers is stopped after
+ *  60 misses an hour-tenth (10 minutes) across the whole organisation. Real people mistype a handful of times at most. */
+function scanGuard_() { if (!rateLimit_('scan:unknown', 60, 600)) fail_('too_many_attempts'); }
 function beginFor_(req, purpose, extra) {
   var emp = empByNo_(req.empNo);
-  if (!rateLimit_('auth:' + String(req.empNo || ''), 30, 600)) fail_('too_many_attempts');
-  if (!emp || emp.status !== 'active') fail_('unknown_employee');
+  if (!rateLimit_('auth:' + String(req.empNo || '') + ':' + (REQ_DEV_ || 'anon'), 30, 600)) fail_('too_many_attempts'); // per employee AND device: a stranger cannot use up a real phone's budget
+  if (!emp || emp.status !== 'active') { scanGuard_(); fail_('unknown_employee'); }
   return { emp: emp, options: assertionOptions_(emp, purpose, extra) };
 }
 
@@ -477,8 +480,8 @@ function api_diag(req) {
 
 function api_punchBegin(req) {
   var emp = empByNo_(req.empNo);
-  if (!rateLimit_('auth:' + String(req.empNo || ''), 30, 600)) fail_('too_many_attempts');
-  if (!emp || emp.status !== 'active') fail_('unknown_employee');
+  if (!rateLimit_('auth:' + String(req.empNo || '') + ':' + (REQ_DEV_ || 'anon'), 30, 600)) fail_('too_many_attempts'); // per employee AND device: a stranger cannot use up a real phone's budget
+  if (!emp || emp.status !== 'active') { scanGuard_(); fail_('unknown_employee'); }
   var expected = nextPunchType_(emp.id);
   if (req.type && req.type !== expected) fail_('state_changed');
   return { ok: true, type: expected, options: assertionOptions_(emp, 'punch', { type: expected }) };
@@ -678,12 +681,40 @@ function integrityFlags_(g, deviceTime, flags) {
 
 function isCounted_(p) { return p.status === 'ok' || p.status === 'review' || p.status === 'manual' || p.status === 'approved'; }
 
-function punchesOf_(empId) {
-  return readAll_(SHEETS.PUNCH).filter(function (p) { return p.empId === empId && isCounted_(p); })
+/**
+ * Every punch row dated 'since' or later, without reading the whole (ever growing) punches tab when it can be avoided: the
+ * newest rows are read in growing steps and the answer is trusted only when the oldest row read was written more than a
+ * day before 'since' (a punch is never dated after the moment its row is written, so nothing from the window can lie above
+ * it). Anything unproven falls back to the full read, so the answer is always complete. One answer per request.
+ */
+function punchesSince_(since) {
+  if (SINCE_MEMO_.org !== orgId_()) SINCE_MEMO_ = { org: orgId_() };
+  if (READ_MEMO_[SHEETS.PUNCH]) return READ_MEMO_[SHEETS.PUNCH].filter(function (p) { return String(p.date).slice(0, 10) >= since; });
+  var key = 'k' + since + '|' + (TAIL_MEMO_[SHEETS.PUNCH] ? TAIL_MEMO_[SHEETS.PUNCH].rows.length : 0);
+  if (SINCE_MEMO_[key]) return SINCE_MEMO_[key];
+  var proof = addDays_(since, -1) + 'T00:00:00', sizes = [400, 2000, 8000], out = null;
+  var covers = function (t) { var first = t.rows.length ? t.rows[0] : null; return t.start <= 2 || !!(first && first.createdAt && String(first.createdAt) < proof); };
+  if (TAIL_MEMO_[SHEETS.PUNCH] && covers(TAIL_MEMO_[SHEETS.PUNCH])) out = TAIL_MEMO_[SHEETS.PUNCH].rows; // already read this request (sign-in asks twice)
+  for (var i = 0; i < sizes.length && !out; i++) {
+    var t = readTail_(SHEETS.PUNCH, sizes[i]);
+    if (!t) break; // small tab or size unknown: the full read is as cheap
+    TAIL_MEMO_[SHEETS.PUNCH] = t;
+    if (covers(t)) out = t.rows;
+  }
+  if (!out) { delete TAIL_MEMO_[SHEETS.PUNCH]; out = readAll_(SHEETS.PUNCH); }
+  out = out.filter(function (p) { return String(p.date).slice(0, 10) >= since; });
+  return (SINCE_MEMO_[key] = out);
+}
+/** One person's counted punches, oldest first. With 'since' (a date) only that window is read: enough for today and yesterday. */
+function punchesOf_(empId, since) {
+  var rows = since ? punchesSince_(since) : readAll_(SHEETS.PUNCH);
+  return rows.filter(function (p) { return p.empId === empId && isCounted_(p); })
     .sort(function (a, b) { return a.ts < b.ts ? -1 : 1; });
 }
 
-function lastPunch_(empId) { var p = punchesOf_(empId); return p.length ? p[p.length - 1] : null; }
+/** The latest counted punch. Only the last two days are read: an older "out" means "in" next, and an "in" left open from an
+ *  earlier day does not demand an "out" today either (nextPunchType_), and the minimum gap between punches is minutes. */
+function lastPunch_(empId) { var p = punchesOf_(empId, addDays_(localParts_(new Date()).date, -2)); return p.length ? p[p.length - 1] : null; }
 
 /** In after out. An "in" left open from an earlier day does not demand an "out" today. */
 function nextPunchType_(empId) {
@@ -779,7 +810,7 @@ function remoteGeo_(geo) {
 }
 function todayFor_(emp, s) {
   var now = new Date(), date = workDate_(emp, now, s);
-  var ps = punchesOf_(emp.id).filter(function (p) { return p.date === date; });
+  var ps = punchesOf_(emp.id, date).filter(function (p) { return p.date === date; });
   var sum = summarizeDay_(emp, date, ps, s, now);
   sum.list = ps.map(publicPunch_);
   sum.next = nextPunchType_(emp.id);
@@ -1028,7 +1059,7 @@ function api_officeMap(req, me) {
   var zones = {}, zoneList = [];
   readAll_(SHEETS.ZONES).forEach(function (z) { zones[z.id] = z.name; zoneList.push({ id: z.id, name: z.name }); });
   var today = {};
-  readAll_(SHEETS.PUNCH).forEach(function (p) { if (p.date === date && isCounted_(p)) (today[p.empId] = today[p.empId] || []).push(p); });
+  punchesSince_(date).forEach(function (p) { if (p.date === date && isCounted_(p)) (today[p.empId] = today[p.empId] || []).push(p); });
   var trips = {};
   readAll_(SHEETS.REQ).forEach(function (r) { if (r.type === 'travel' && r.status === 'approved' && String(r.fromDate).slice(0, 10) <= date && String(r.toDate).slice(0, 10) >= date) trips[r.empId] = 1; });
   var notes = {};

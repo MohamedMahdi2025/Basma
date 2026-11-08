@@ -518,3 +518,35 @@ Trap: never use the class `.me` (or `.bot`) inside a module: index.html styles `
   activation filled in. That enrolment retires the old device. Tests: tests/move.js.
 - **When everyone has moved:** replace the old repo with the redirect page prepared in `../app-redirect`.
 - **Android 1.3.0:** loads the new home; allowNavigation covers both domains.
+
+## Wave 7, tenancy audit, platform address (2026-11-08)
+
+- **Wave 7** (`backend/Wave7.gs`, `js/wave7.js`, `tests/wave7.js`): payroll budget vs actual with a year-end forecast
+  (`payBudgets`, page pay:budget), Nitaqat simulator (insights:nitaqat; names and wages only for hr/payroll), e-signature
+  (`signRequests`, requests:signatures; SHA-256 of the text + HMAC seal, typed full name, nobody signs what they requested),
+  automation rules (`autoRules`/`autoTasks`, requests:autotasks; `autoSweep_` after writes, hourly; a 'before' rule stays due
+  until the event, an 'after' rule only within 14 days). Trap again: never look up a field by an id written inside `fld()`.
+- **Separation rules:** `setOrg_` clears the memo, prefetched copies and the learned tab list when the organisation changes.
+  Outbound mail (`mailConfig_`) and WhatsApp (`waConfig_`) read only `o<id>:` keys for other organisations; the unprefixed
+  keys are the home organisation's. tests/tenancy.js covers both.
+- **Speed:** REST appends use `values:append` (no read of audit/punches to write a line); header width is remembered
+  (`hdr:v1:` cache key); a read-only action with no learned tab list preloads every small tab in ≤ 2 batchGets; tab copies
+  are queued and saved in one putAll in `handle_`'s finally (`flushStore_`). Punches: sign-in, check-in and the today views
+  read only the newest rows (`readTail_`, `punchesSince_` in Attendance.gs): the answer is trusted only when the oldest row read
+  was written (createdAt) more than a day before the window starts, the window grows 400 / 2000 / 8000 rows, and anything
+  unproven falls back to the full read. The batch preload never fetches `GROWING_TABS_` (punches, audit). Tests: tests/punchtail.js.
+  **Trap:** `TZ=Asia/Riyadh date` in Git Bash prints UTC. Use `node -e "new Date().toLocaleString('en-GB',{timeZone:'Asia/Riyadh'})"`.
+  The basma-deploy-guard hook refuses any Bash command containing "deploy" inside 07:30-08:30 and 16:30-17:30 Riyadh, even a grep.
+- **Red team (tests/redteam.js, runs on every deploy in under 2 s):** plants canary values (another person's IBAN, national ID,
+  salary, payslip, signed-document text, a second organisation's data), then calls EVERY action as an employee, a manager and an
+  executive with every known id and searches every answer for a canary; replays all writes in a fork and fails if a row was
+  created for the victim or already approved, or any role / manager / contact / device field changed (mass assignment); presents
+  each organisation's session to the other for every action; calls everything with no token; forges and tampers tokens; throws
+  81 hostile webhook URLs at `whUrlOk_`. Rules it enforces: executives cannot model one named person in `nitaqatSim`; groups under 5
+  people hide their pay in `budgetView` from non-HR; e-signature digest v2 covers kind + title + body (`signDigest_`, column `v`;
+  older rows keep the body-only digest); id_expiry / doc_expiry automation rules go to HR only (`AUTO_PRIVATE_`); unknown employee
+  numbers are throttled org-wide (`scanGuard_`, 60 per 10 min). `whUrlOk_` accepts only a public DNS name on 443/8443 (no userinfo,
+  no IP form, no wildcard-DNS service). **Open decision for the owner:** `pinLogin` needs only Org ID + employee number + PIN, so a
+  stranger can lock anyone out of PIN sign-in (section 8 of the red team prints the doubling to 24 h).
+- **Platform address:** build.js writes `platform.html` (same app, hub icon/manifest/colour/title in the head before and after
+  decoding); index.html's loader sends `#platform` there. Hub assets are `?v=3`.

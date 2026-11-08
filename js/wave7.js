@@ -7,7 +7,7 @@ Object.assign(T.ar, {
   w7Budget:'الميزانية مقابل الفعلي', w7BudgetLead:'ميزانية تكلفة الرواتب لكل شهر مقابل ما صُرف فعلا، وتوقّع أين ستنتهي السنة بناء على تكلفة الفرد في آخر ثلاثة أشهر وعدد الموظفين اليوم.',
   w7Year:'السنة', w7Dept:'الإدارة', w7Company:'الشركة كلها', w7Edit:'تعديل الميزانية', w7Annual:'ميزانية السنة', w7Actual:'المصروف حتى الآن', w7Landing:'التوقع لنهاية السنة', w7Gap:'الفرق عن الميزانية',
   w7Month:'الشهر', w7Bud:'الميزانية', w7Act:'الفعلي', w7Fc:'متوقع', w7Var:'الفرق', w7LastYear:'العام الماضي', w7RunRate:'المعدل الشهري المتوقع', w7Fill:'نفس المبلغ لكل الأشهر',
-  bs_over:'تتجه لتجاوز الميزانية', bs_on_track:'ضمن الميزانية', bs_under:'أقل من الميزانية', bs_no_budget:'لا توجد ميزانية لهذه السنة', w7ByDept:'حسب الإدارة', w7Used:'المستهلك',
+  bs_hidden:'مجموعة صغيرة: تظهر الميزانية فقط (أقل من 5 أشخاص)', w7Masked:'عدد السعوديين قليل (أقل من 5)، فلا تُعرض أرقام النسبة حماية لخصوصية الأفراد. تظهر الأرقام لمن يملك صلاحية الرواتب.', bs_over:'تتجه لتجاوز الميزانية', bs_on_track:'ضمن الميزانية', bs_under:'أقل من الميزانية', bs_no_budget:'لا توجد ميزانية لهذه السنة', w7ByDept:'حسب الإدارة', w7Used:'المستهلك',
   bb_per_head:'التوقع = تكلفة الفرد × {n} موظفا نشطا', bb_average:'التوقع = متوسط آخر ثلاثة أشهر', bb_none:'لا رواتب مسجلة بعد للتوقع',
   w7Nit:'محاكي نطاقات', w7NitLead:'جرّب قبل أن تقرر: ماذا يحدث لنسبة التوطين الموزونة إذا وظفت أو غادر أحد أو رفعت أجرا. السعودي يُحسب 1 عند أجر أساسي وسكن 4,000 فأكثر، و0.5 من 3,000 إلى 3,999.',
   w7NitNote:'دليل للتخطيط: منصة قوى لها قواعد أخرى (الطلاب، ذوو الإعاقة، الدوام الجزئي، نطاقات النشاط)، وحاسبتها هي المرجع الرسمي.',
@@ -26,14 +26,14 @@ Object.assign(T.ar, {
   au_hr:'الموارد البشرية', au_manager:'المدير المباشر', au_employee:'الموظف نفسه', ar_active:'تعمل', ar_paused:'موقفة', w7DaysUnit:'يوم',
   vwBudget:'الميزانية مقابل الفعلي', vwNitaqat:'محاكي نطاقات', vwSign:'التوقيع الإلكتروني', vwAuto:'المهام التلقائية',
   tk_sign_pending:'مستندات تنتظر توقيعك', tk_auto_task:'مهام تلقائية لك',
-  e_name_mismatch:'الاسم لا يطابق الاسم في ملفك.', e_doc_changed:'تغيّر نص المستند. أعد فتحه.', e_cannot_sign_own_request:'لا يمكن توقيع مستند طلبته بنفسك.', e_agree_required:'أكّد أنك قرأت المستند.', e_already_done:'تم اتخاذ إجراء على هذا من قبل.',
+  e_hr_only_trigger:'قواعد الهوية والمستندات تُرسل للموارد البشرية فقط.', e_name_mismatch:'الاسم لا يطابق الاسم في ملفك.', e_doc_changed:'تغيّر نص المستند. أعد فتحه.', e_cannot_sign_own_request:'لا يمكن توقيع مستند طلبته بنفسك.', e_agree_required:'أكّد أنك قرأت المستند.', e_already_done:'تم اتخاذ إجراء على هذا من قبل.',
   e_bad_trigger:'اختر متى تعمل القاعدة.', e_bad_audience:'اختر من ينفذ المهمة.', e_date_past:'التاريخ في الماضي.', e_bad_days:'الأيام من 0 إلى 365.', e_message_required:'اكتب نص المهمة.', e_body_required:'اكتب نص المستند (20 حرفا على الأقل).', e_people_required:'اختر شخصا واحدا على الأقل.', e_bad_months:'أدخل الأشهر الاثني عشر.'
 });
 Object.assign(T.en, {
   w7Budget:'Budget vs actual', w7BudgetLead:'Monthly payroll cost budget against what was actually paid, and where the year will land, from the cost per head of the last three months times today\'s headcount.',
   w7Year:'Year', w7Dept:'Department', w7Company:'Whole company', w7Edit:'Edit budget', w7Annual:'Annual budget', w7Actual:'Spent so far', w7Landing:'Year-end forecast', w7Gap:'Against budget',
   w7Month:'Month', w7Bud:'Budget', w7Act:'Actual', w7Fc:'Forecast', w7Var:'Variance', w7LastYear:'Last year', w7RunRate:'Forecast per month', w7Fill:'Same amount every month',
-  bs_over:'Heading over budget', bs_on_track:'On budget', bs_under:'Under budget', bs_no_budget:'No budget for this year', w7ByDept:'By department', w7Used:'Used',
+  bs_hidden:'Small group: only the budget is shown (under 5 people)', w7Masked:'Too few Saudis (under 5): the rate is not shown, to protect individuals. People with payroll access see the figures.', bs_over:'Heading over budget', bs_on_track:'On budget', bs_under:'Under budget', bs_no_budget:'No budget for this year', w7ByDept:'By department', w7Used:'Used',
   bb_per_head:'Forecast = cost per head x {n} active people', bb_average:'Forecast = average of the last three months', bb_none:'No payroll yet to forecast from',
   w7Nit:'Nitaqat simulator', w7NitLead:'Try it before you decide: what hiring, a departure or a raise does to the weighted Saudization rate. A Saudi counts 1 at basic + housing of 4,000 or more, 0.5 from 3,000 to 3,999.',
   w7NitNote:'A planning guide: Qiwa has more rules (students, people with disabilities, part-time, activity bands), and its calculator is the official figure.',
@@ -52,7 +52,7 @@ Object.assign(T.en, {
   au_hr:'HR', au_manager:'Line manager', au_employee:'The employee', ar_active:'Active', ar_paused:'Paused', w7DaysUnit:'days',
   vwBudget:'Budget vs actual', vwNitaqat:'Nitaqat simulator', vwSign:'E-signature', vwAuto:'Automated tasks',
   tk_sign_pending:'Documents waiting for your signature', tk_auto_task:'Automated tasks for you',
-  e_name_mismatch:'The name does not match your file.', e_doc_changed:'The document changed. Open it again.', e_cannot_sign_own_request:'You cannot sign a document you requested.', e_agree_required:'Confirm you read the document.', e_already_done:'This was already acted on.',
+  e_hr_only_trigger:'ID and document rules go to HR only.', e_name_mismatch:'The name does not match your file.', e_doc_changed:'The document changed. Open it again.', e_cannot_sign_own_request:'You cannot sign a document you requested.', e_agree_required:'Confirm you read the document.', e_already_done:'This was already acted on.',
   e_bad_trigger:'Choose when the rule runs.', e_bad_audience:'Choose who acts.', e_date_past:'The date is in the past.', e_bad_days:'Days from 0 to 365.', e_message_required:'Write the task text.', e_body_required:'Write the document text (20 characters at least).', e_people_required:'Choose at least one person.', e_bad_months:'Enter all twelve months.'
 });
 function dt(d){ return d ? K.fmt(d) : '-'; }
@@ -101,6 +101,7 @@ function nitaqatSection(body){
       (tg != null ? '<line x1="60" y1="4" x2="60" y2="18" class="tg" transform="rotate(' + (tg * 3.6) + ' 60 60)"/>' : '') + '</svg><div><b class="num">' + p + '%</b><small>' + label + '</small></div></div>'; }
   function run(){ K.busy(box); api('nitaqatSim', sc, true).then(function(r){
     if (!box.isConnected) return; if (!r.ok) return box.innerHTML = K.bad(r.error);
+    if (r.masked) { box.innerHTML = '<p class="hr-hint">' + ph('shield-check') + ' ' + t('w7Masked') + '</p>'; return; }
     var b = r.base, s = r.scenario, any = sc.hires.length || sc.leavers.length || sc.raises.length;
     box.innerHTML = '<section class="db-card w7-nit"><div class="w7-rings">' + pctRing(b.pct, r.target, t('w7Now')) + (any ? '<span class="w7-arrow">' + ph(S.lang === 'en' ? 'arrow-right' : 'arrow-left') + '</span>' + pctRing(s.pct, r.target, t('w7After')) : '') + '</div>' +
       '<div class="w7-facts"><div><span>' + t('w7Target') + '</span><b>' + (r.target != null ? r.target + '%' : t('w7NoTarget')) + '</b></div>' +
@@ -113,7 +114,7 @@ function nitaqatSection(body){
         (sc.hires.length + sc.leavers.length + sc.raises.length ? '<div class="list">' + sc.hires.map(function(h, i){ return '<div class="row"><div class="main"><b>' + h.count + ' × ' + (h.saudi ? t('w7Saudi') : t('w7NonSaudi')) + '</b><small>' + t('w7Wage') + ' ' + amt(h.wage) + '</small></div><button type="button" class="btn btn-line btn-sm" data-rm="hires|' + i + '">' + ph('x') + '</button></div>'; }).join('') +
           sc.leavers.map(function(id, i){ return '<div class="row"><div class="main"><b>' + ph('user-minus') + ' ' + esc(sc.names[id] || id) + '</b></div><button type="button" class="btn btn-line btn-sm" data-rm="leavers|' + i + '">' + ph('x') + '</button></div>'; }).join('') +
           sc.raises.map(function(x, i){ return '<div class="row"><div class="main"><b>' + ph('trend-up') + ' ' + esc(sc.names[x.empId] || '') + '</b><small>' + t('w7Wage') + ' → ' + amt(x.wage) + '</small></div><button type="button" class="btn btn-line btn-sm" data-rm="raises|' + i + '">' + ph('x') + '</button></div>'; }).join('') + '</div>' : '') + '</section>' +
-      (r.quickWins.count ? '<section class="db-card" style="padding:18px;margin-top:14px"><h3 class="w5-h" style="margin-top:0">' + ph('lightning') + ' ' + t('w7Wins') + '</h3><p class="hr-hint">' + t('w7WinsLead') + ' ' +
+      (r.quickWins.count != null && r.quickWins.count ? '<section class="db-card" style="padding:18px;margin-top:14px"><h3 class="w5-h" style="margin-top:0">' + ph('lightning') + ' ' + t('w7Wins') + '</h3><p class="hr-hint">' + t('w7WinsLead') + ' ' +
         t('w7WinsAll').replace('{p}', r.quickWins.pctIfAll).replace('{c}', acctFmt(r.quickWins.monthlyCost)) + '</p>' +
         (r.quickWins.rows.length ? '<div class="list">' + r.quickWins.rows.map(function(w){ var on = sc.raises.some(function(x){ return x.empId === w.emp.id; });
           return '<div class="row"><div class="main"><b>' + K.empLine(w.emp) + '</b><small>' + t('w7Weight') + ' ' + w.weight + K.sep() + t('w7Wage') + ' ' + amt(w.wage) + K.sep() + t('w7Lift') + ' ' + amt(w.monthlyCost) + '</small></div>' +
@@ -182,11 +183,12 @@ var TRIGS = ['after_hire', 'probation_end', 'contract_end', 'id_expiry', 'doc_ex
 function autoSection(body){
   var box = K.head(body, 'w7Auto', 'w7AutoLead');
   function ruleForm(r0, after){ r0 = r0 || {};
-    K.formDrawer(r0.id ? r0.name : t('w7NewRule'), '', K.fld(t('w7RName'), '<input name="name" required maxlength="120" value="' + esc(r0.name || '') + '">') +
+    var dr = K.formDrawer(r0.id ? esc(r0.name) : t('w7NewRule'), '', K.fld(t('w7RName'), '<input name="name" required maxlength="120" value="' + esc(r0.name || '') + '">') +
       K.two(K.fld(t('w7Trig'), '<select name="trigger" required>' + K.opts(TRIGS.map(function(k){ return [k, t('tr_' + k)]; }), r0.trigger || 'after_hire') + '</select>'), K.fld(t('w7Days'), '<input name="days" type="number" min="0" max="365" required value="' + (r0.days != null ? r0.days : 3) + '">')) +
       K.fld(t('w7Who'), '<select name="audience">' + K.opts(['hr', 'manager', 'employee'].map(function(k){ return [k, t('au_' + k)]; }), r0.audience || 'hr') + '</select>') +
       K.fld(t('w7Msg'), '<input name="message" required maxlength="300" value="' + esc(r0.message || '') + '">'),
-      function(v){ return api('autoRuleSave', { rule: Object.assign({ id: r0.id, status: r0.status }, v) }); }, after); }
+      function(v){ return api('autoRuleSave', { rule: Object.assign({ id: r0.id, status: r0.status }, v) }); }, after);
+    var pf = $('#w2F', dr), pv = function(){ var priv = pf.trigger.value === 'id_expiry' || pf.trigger.value === 'doc_expiry'; if (priv) pf.audience.value = 'hr'; Array.prototype.forEach.call(pf.audience.options, function(o){ o.disabled = priv && o.value !== 'hr'; }); }; pf.trigger.onchange = pv; pv(); }
   function load(){ K.busy(box); api('autoHub', {}, true).then(function(r){
     if (!box.isConnected) return; if (!r.ok) return box.innerHTML = K.bad(r.error);
     var task = function(x){ return '<div class="row"><div class="main"><b>' + esc(x.title) + '</b><small>' + esc(x.rule) + K.sep() + K.empLine(x.emp) + K.sep() + t('w7Event') + ' ' + dt(x.eventDate) + K.sep() + t('w7Due') + ' ' + dt(x.dueDate) + '</small></div>' +

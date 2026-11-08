@@ -80,6 +80,7 @@ function updateMany_(name, objs) {
   var sh = sheet_(name);
   ensureHeader_(name, sh);
   sh.getRange(lo, 1, block.length, width).setValues(block);
+  bumpTab_(name); // again after the write: no copy read in between may outlive it
 }
 
 // ---------------- departments ----------------

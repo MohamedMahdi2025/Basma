@@ -873,7 +873,7 @@ function toXlsx(r, meta){
   }).catch(function(){ toast(t('e_network')); });
 }
 function toCsv(r, meta){
-  var q = function(s){ s = String(s == null ? '' : s); return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+  var q = function(s){ s = csvText(String(s == null ? '' : s)); return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
   var raw = function(c, v){ if (v == null) return ''; if (c.type === 'code' || c.type === 'status') return codeText(c.key, v); if (c.type === 'datetime') return riyadhDT(v); return v; };
   var lines = [r.columns.map(function(c){ return q(colLabel(c)); }).join(',')].concat(r.rows.map(function(row){ return r.columns.map(function(c){ return q(raw(c, row[c.key])); }).join(','); }));
   download(new Blob(['﻿' + lines.join('\r\n') + '\r\n'], { type: 'text/csv;charset=utf-8' }), fileBase(meta) + '.csv');

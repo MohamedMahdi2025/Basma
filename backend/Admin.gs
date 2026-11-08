@@ -610,12 +610,19 @@ function whSecret_(h) { return 'whsec_' + hmac_('webhook|' + orgId_() + '|' + h.
 function publicHook_(h) { return { id: h.id, url: h.url, events: parseJson_(h.eventsJson, []), status: h.status, createdAt: h.createdAt, lastStatus: h.lastStatus || '', lastAt: h.lastAt || '', fails: Number(h.fails) || 0 }; }
 /** https only, and never an address inside a network (SSRF). */
 function whUrlOk_(u) {
-  var m = /^https:\/\/([^\/:?#]+)(:\d+)?(\/[^\s]*)?$/i.exec(String(u || ''));
+  u = String(u == null ? '' : u).trim();
+  // No userinfo ("https://good.com@127.0.0.1/" reaches 127.0.0.1), no spaces, backslashes or control characters.
+  if (!u || u.length > 300 || /[\s\\@\u0000-\u001f\u007f]/.test(u)) return false;
+  // A real DNS name only: letters, digits and hyphens in dot-separated labels, and the last label is letters. That refuses every
+  // IP form (dotted, decimal 2130706433, hex 0x7f.1, octal, IPv6) and bare names such as "intranet".
+  var m = /^https:\/\/([a-z0-9-]+(?:\.[a-z0-9-]+)+)(?::(\d{1,5}))?([\/?#][^\s]*)?$/i.exec(u);
   if (!m) return false;
   var host = m[1].toLowerCase();
-  if (/^(localhost|.*\.local|.*\.internal|metadata\.google\.internal)$/.test(host)) return false;
-  if (/^\d+\.\d+\.\d+\.\d+$/.test(host) && /^(10\.|127\.|0\.|169\.254\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\.)/.test(host)) return false;
-  if (/^\[/.test(host) || /:/.test(host)) return false;
+  if (!/\.[a-z]{2,}$/.test(host) || /(^|\.)-|-(\.|$)/.test(host) || host.split('.').some(function (l) { return !l || l.length > 63; })) return false;
+  if (m[2] && m[2] !== '443' && m[2] !== '8443') return false; // https on its usual ports only: not a port scanner for the platform's network
+  // names that always point at private addresses, and DNS services that turn any name into an address
+  if (/(^|\.)(localhost|local|internal|intranet|lan|corp|home|private|home\.arpa|localdomain|metadata\.google\.internal)$/.test(host)) return false;
+  if (/(^|\.)(nip\.io|sslip\.io|xip\.io|localtest\.me|lvh\.me|vcap\.me|traefik\.me|lacolhost\.com|127-0-0-1\.org\.uk)$/.test(host)) return false;
   return true;
 }
 /** Administrator: add a webhook (its secret shown once), change its events, rotate its secret, pause, delete, or send a test. */

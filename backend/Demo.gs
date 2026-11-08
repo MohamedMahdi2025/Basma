@@ -180,6 +180,7 @@ function demoPurge_() {
     if (keep.length) sh.getRange(2, 1, keep.length, width).setValues(keep.map(function (row) {
       return row.map(function (v) { return typeof v === 'string' && v !== '' ? "'" + v : v; });
     }));
+    bumpTab_(tab);
   });
   var led = sheet_(SHEETS.DEMO);
   if (led.getLastRow() > 1) led.getRange(2, 1, led.getLastRow() - 1, Math.max(led.getLastColumn(), 1)).clearContent();

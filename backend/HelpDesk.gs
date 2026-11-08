@@ -264,7 +264,7 @@ function api_kbSeed(req, me) {
 // Off until BOTH: script property ANTHROPIC_API_KEY (or the per-organisation 'o<id>:ANTHROPIC_API_KEY') and the admin
 // setting aiAssistant. 20 questions per person per day. The question and answer are not stored; the audit keeps a count.
 var AI_MODEL_ = 'claude-opus-5-5', AI_PER_DAY_ = 20, AI_DOC_MAX_ = 8000;
-function aiKey_() { var p = PropertiesService.getScriptProperties(); return p.getProperty(orgKey_('ANTHROPIC_API_KEY')) || p.getProperty('ANTHROPIC_API_KEY') || ''; }
+function aiKey_() { var p = PropertiesService.getScriptProperties(); return p.getProperty(orgKey_('ANTHROPIC_API_KEY')) || ''; /* o<id>:ANTHROPIC_API_KEY per organisation; the unprefixed key is the home organisation's */ }
 function aiOn_() { var s = settings_(); return !!aiKey_() && (s.aiAssistant === true || String(s.aiAssistant) === 'true'); }
 function api_aiStatus(req, me) { return { ok: true, enabled: aiOn_(), keySet: !!aiKey_(), perDay: AI_PER_DAY_ }; }
 /** The organisation's knowledge: the latest version of each policy and every published article. Same for everyone, so it is cached by the API. */
