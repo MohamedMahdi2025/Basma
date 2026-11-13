@@ -1430,7 +1430,7 @@ const EXPECT = {
   // Wave 6 (Wave6.gs): HR-only screens; survey actions raised by HR or executives; skill gap for managers and HR
   wpsCompliance: 'pay', gosiQueue: 'pay', gosiMark: 'pay', alumniList: 'hrA', alumniSave: 'hrA', rehireCheck: 'hrA', skillSave: 'hrA', posSkillSave: 'hrA', massChange: 'hrA', letterTplSave: 'hrA', quizSave: 'hrA', svActSave: 'hrExecA',
   hrCompList: 'pay', hrCompPropose: 'pay', hrCompDecide: 'pay', leaveTeam: 'mgr', payrollList: 'pay', payrollGet: 'pay', payrollVariance: 'pay', payrollCreate: 'pay', payrollRecalc: 'pay', payrollApprove: 'payOnly',
-  payrollDelete: 'pay', payrollAdjSave: 'pay', payrollAdjDelete: 'pay', payrollExport: 'pay', payrollEmail: 'pay', eosQuote: 'pay', dashboard: 'dash', reportLog: 'hrPay', reportReview: 'hrPay',
+  payrollDelete: 'pay', payrollAdjSave: 'pay', payrollAdjDelete: 'pay', payrollExport: 'pay', payrollEmail: 'pay', jobRun: 'hrPay', eosQuote: 'pay', dashboard: 'dash', reportLog: 'hrPay', reportReview: 'hrPay',
   reportVerify: 'dash', surveyResults: 'dash', wpsFile: 'pay', wpsStep: 'pay', reconUpload: 'pay', reconList: 'pay', reconResolve: 'pay', complianceCalendar: 'hrPay', shiftList: 'mgr',
   rosterList: 'mgr', discCodes: 'mgr', assetCharge: 'payOnly', punchPw: 'none', hrEmpFile: 'fileView', perfEmp: 'mgr', planSave: 'mgr', delegationSave: 'mgr', discOpen: 'mgr', injuryReport: 'mgr',
   // government services, expenses, journal (GovServices.gs, Expenses.gs, Journal.gs)

@@ -563,19 +563,18 @@ function api_payrollEmail(req, me) {
     var run = findBy_(SHEETS.RUN, 'id', req.id); if (run && !runAccess_(me, run)) fail_('forbidden'); // a closed pay group: its own payroll staff only
     if (!run || run.status !== 'locked') fail_('not_found');
     var emps = {}; readAll_(SHEETS.EMP).forEach(function (e) { emps[e.id] = e; });
-    var token = graphToken_(cfg), sent = 0, skipped = [], now = new Date().toISOString(), upd = [];
+    var skipped = [], now = new Date().toISOString(), slipIds = [];
     var only = (req.empIds || []).length ? req.empIds : null;
     readAll_(SHEETS.SLIP).filter(function (s) { return s.runId === run.id && s.status === 'locked' && (!only || only.indexOf(s.empId) >= 0); }).forEach(function (s) {
       var e = emps[s.empId];
       if (!e || !e.email) { skipped.push(e ? String(e.empNo) : s.empId); return; }
-      var sl = publicSlip_(s, emps);
-      graphSend_(cfg, token, e.email, 'قسيمة الراتب ' + run.month + ' | Payslip ' + run.month, payslipEmailHtml_(sl));
-      s.emailedAt = now; upd.push(s); sent++;
+      slipIds.push(s.id);
     });
-    updateMany_(SHEETS.SLIP, upd);
-    run.emailedAt = now; update_(SHEETS.RUN, run);
-    audit_(me.id, 'payroll_email', run.id, { ref: run.ref, sent: sent, skipped: skipped.length });
-    return { ok: true, sent: sent, skipped: skipped };
+    // The mails are sent by the job queue in batches of 10 (see jobSweep_): the request answers at once.
+    var jobs = 0;
+    for (var i = 0; i < slipIds.length; i += 10) { enqueue_('payslipEmail', { runId: run.id, slipIds: slipIds.slice(i, i + 10), at: now }, me.id); jobs++; }
+    audit_(me.id, 'payroll_email', run.id, { ref: run.ref, queued: slipIds.length, skipped: skipped.length });
+    return { ok: true, queued: slipIds.length, jobs: jobs, skipped: skipped };
   });
 }
 function mailConfig_() {

@@ -206,7 +206,10 @@ const sent = [];
 B.ctx.UrlFetchApp = { fetch: (url, o) => { sent.push({ url, o }); return url.includes('/token') ? { getContentText: () => '{"access_token":"t"}', getResponseCode: () => 200 } : { getContentText: () => '', getResponseCode: () => 202 }; } };
 ['M365_TENANT', 'M365_CLIENT_ID', 'M365_CLIENT_SECRET', 'M365_SENDER'].forEach(k => B.ctx.PropertiesService.getScriptProperties().setProperty(k, k === 'M365_SENDER' ? 'm.mahdi@bestgas.sa' : 'x'));
 r = call('3002', 'payrollEmail', { id: runId });
+ok(r.ok && r.queued === 8 && sent.filter(x => x.url.includes('/sendMail')).length === 0, 'the request only queues the mails and answers at once (nothing is sent inside it)', r);
+let q = call('3002', 'jobRun', {}); for (let i = 0; i < 5 && q.left > 0; i++) q = call('3002', 'jobRun', {});
 const mails = sent.filter(x => x.url.includes('/sendMail'));
+r.sent = mails.length;
 ok(r.ok && r.sent === 8 && r.skipped.length === 1 && r.skipped[0] === '1000' && mails.length === 8 && mails[0].url.includes('m.mahdi%40bestgas.sa') && JSON.parse(mails[0].o.payload).message.body.content.includes('صافي الراتب'),
   'once configured: one Graph sendMail per employee from m.mahdi@bestgas.sa; the one without an email is listed, not guessed', { sent: r.sent, n: mails.length });
 

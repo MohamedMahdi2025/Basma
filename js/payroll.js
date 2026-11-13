@@ -347,7 +347,11 @@ function runView(body, id){
     if ($('#prRe', el)) $('#prRe', el).onclick = act('payrollRecalc', function(){ toast(t('prRecalcDone')); runView(body, id); });
     if ($('#prOk', el)) $('#prOk', el).onclick = act('payrollApprove', function(){ toast(t('prApproved')); runView(body, id); });
     if ($('#prDel', el)) $('#prDel', el).onclick = act('payrollDelete', function(){ S.prRun = null; section(body); });
-    if ($('#prMail', el)) $('#prMail', el).onclick = act('payrollEmail', function(x){ toast(t('prEmailed') + ': ' + x.sent); });
+    if ($('#prMail', el)) $('#prMail', el).onclick = act('payrollEmail', function(x){
+      toast(t('prEmailed') + ': ' + x.queued);
+      var pump = function(n){ api('jobRun', {}, true).then(function(r){ if (r && r.ok && r.left > 0 && n < 60) setTimeout(function(){ pump(n + 1); }, 3000); else if (r && r.ok && r.dead > 0) toast(errText('email_send_failed')); }); };
+      if (x.queued) pump(0);
+    });
     $('#prXls', el).onclick = function(){ exportXls(run); };
     adjBox($('#prAdj', el), r, draft, function(){ api('payrollRecalc', { id: run.id }).then(function(){ runView(body, id); }); });
   });

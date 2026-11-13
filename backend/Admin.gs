@@ -989,3 +989,78 @@ function api_devicePunch(req) {
     out.ok = true; return out;
   });
 }
+
+// ---------------- background job queue (2026-11-09) ----------------
+// Slow work (many outbound mails) no longer runs inside the request that asked for it. The request writes jobs into tab `jobs` and
+// answers at once; jobs run in small batches from jobSweep_ (after other write requests, at most every 5 s, only while jobs exist)
+// and from api_jobRun (the page asks again every few seconds until nothing is left). Needs no trigger and no new Google permission.
+// A job that throws is tried again after 1, 5, 30, 120, 360 minutes, then marked dead and written to the audit trail. A job left
+// 'running' for more than 10 minutes (the script was cut off) is taken again, so a handler must be safe to repeat.
+var JOB_BACKOFF_MIN_ = [1, 5, 30, 120, 360], JOB_MAX_TRIES_ = 5, JOB_LEASE_MS_ = 600000, JOB_BATCH_ = 8, JOB_QUIET_ = false;
+
+function enqueue_(kind, payload, byId) {
+  var now = new Date().toISOString();
+  var row = { id: newId_('job'), kind: kind, payloadJson: JSON.stringify(payload || {}), status: 'queued', tries: 0, nextAt: now, lastError: '', createdBy: byId || '', createdAt: now, updatedAt: now };
+  append_(SHEETS.JOB, row);
+  try { cache_().put('job:any', '1', 21600); } catch (e) {}
+  JOB_QUIET_ = true; // this request answers first; the queue runs on the next call
+  return row.id;
+}
+
+function jobHandler_(kind) { return kind === 'payslipEmail' ? jobPayslipEmail_ : null; }
+
+/** Runs due jobs; returns counts only. force = the page asked (always reads the tab); otherwise only while the 'jobs exist' flag is set. */
+function jobSweep_(force, budgetMs) {
+  var out = { done: 0, failed: 0, left: 0, dead: 0 };
+  try {
+    if (!force) {
+      if (JOB_QUIET_) return out;
+      var flag = cache_().get('job:any');
+      if (!flag && !rateLimit_('job:scan', 1, 3600)) return out; // no flag: look once an hour in case the flag was evicted
+      if (flag && !rateLimit_('job:run', 1, 5)) return out;
+    }
+    var t0 = Date.now(), budget = budgetMs || 15000, rows = readAll_(SHEETS.JOB), nowIso = new Date().toISOString();
+    var lease = new Date(Date.now() - JOB_LEASE_MS_).toISOString();
+    var due = rows.filter(function (j) { return (j.status === 'queued' && String(j.nextAt) <= nowIso) || (j.status === 'running' && String(j.updatedAt) < lease); }).slice(0, JOB_BATCH_);
+    for (var i = 0; i < due.length && Date.now() - t0 < budget; i++) {
+      var j = due[i], fn = jobHandler_(j.kind);
+      j.status = 'running'; j.updatedAt = new Date().toISOString(); update_(SHEETS.JOB, j);
+      try {
+        if (!fn) throw new Error('E:unknown_job');
+        fn(parseJson_(j.payloadJson, {}), j);
+        j.status = 'done'; j.lastError = ''; out.done++;
+      } catch (e) {
+        j.tries = Number(j.tries || 0) + 1; j.lastError = String(e && e.message || e).replace(/^E:/, '').slice(0, 200); out.failed++;
+        if (j.tries >= JOB_MAX_TRIES_ || j.lastError === 'unknown_job') { j.status = 'dead'; audit_(j.createdBy, 'job_dead', j.id, { kind: j.kind, error: j.lastError, tries: j.tries }); }
+        else { j.status = 'queued'; j.nextAt = new Date(Date.now() + JOB_BACKOFF_MIN_[Math.min(j.tries - 1, JOB_BACKOFF_MIN_.length - 1)] * 60000).toISOString(); }
+      }
+      j.updatedAt = new Date().toISOString(); update_(SHEETS.JOB, j);
+    }
+    rows.forEach(function (j) { if (j.status === 'queued' || j.status === 'running') out.left++; if (j.status === 'dead') out.dead++; });
+    if (out.left) cache_().put('job:any', '1', 21600); else cache_().remove('job:any');
+  } catch (e) { /* the queue must never break the request that happened to trigger it */ }
+  return out;
+}
+
+/** The page asks again every few seconds until nothing is left. Counts only: no payload, no recipient. */
+function api_jobRun(req, me) {
+  if (!(canPayroll_(me) || isHr_(me))) fail_('forbidden');
+  var r = jobSweep_(true, 20000); r.ok = true;
+  return r;
+}
+
+/** Job: mail a batch of locked payslips. Safe to repeat: a slip already mailed after the job was queued is skipped. */
+function jobPayslipEmail_(p) {
+  var cfg = mailConfig_(); if (!cfg) throw new Error('E:email_not_configured');
+  var run = findBy_(SHEETS.RUN, 'id', p.runId); if (!run) return;
+  var emps = {}; readAll_(SHEETS.EMP).forEach(function (e) { emps[e.id] = e; });
+  var ids = {}; (p.slipIds || []).forEach(function (id) { ids[id] = 1; });
+  var token = graphToken_(cfg), now = new Date().toISOString(), upd = [], failed = 0;
+  readAll_(SHEETS.SLIP).filter(function (s) { return ids[s.id] && s.status === 'locked' && !(s.emailedAt && String(s.emailedAt) >= String(p.at)); }).forEach(function (s) {
+    var e = emps[s.empId]; if (!e || !e.email) return;
+    try { graphSend_(cfg, token, e.email, 'قسيمة الراتب ' + run.month + ' | Payslip ' + run.month, payslipEmailHtml_(publicSlip_(s, emps))); s.emailedAt = now; upd.push(s); } catch (x) { failed++; }
+  });
+  if (upd.length) updateMany_(SHEETS.SLIP, upd);
+  run.emailedAt = now; update_(SHEETS.RUN, run);
+  if (failed) throw new Error('E:email_send_failed');
+}
