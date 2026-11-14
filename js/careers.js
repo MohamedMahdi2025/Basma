@@ -35,7 +35,7 @@ function shell(inner){
 function list(){
   rerender = list;
   var rows = (DATA && DATA.rows) || [];
-  shell('<h1>' + t('crTitle') + '</h1><p class="cr-lead">' + t('crLead') + '</p>' + (rows.length ? '<div class="cr-list">' + rows.map(function(p, i){
+  shell('<div class="cr-hero"><div><h1>' + t('crTitle') + '</h1><p class="cr-lead">' + t('crLead') + '</p></div><img src="img/welcome-door.webp" alt="" width="200" height="211" data-eager></div>' + (rows.length ? '<div class="cr-list">' + rows.map(function(p, i){
     return '<button type="button" class="cr-card" data-i="' + i + '"><b>' + esc(L(p.titleAr, p.titleEn)) + '</b><span>' + [L(p.deptAr, p.deptEn), p.city].filter(String).map(esc).join(' · ') + '</span>' +
       (p.closesOn ? '<small>' + t('crCloses') + ': ' + day(p.closesOn) + '</small>' : '') + ph(S.lang === 'en' ? 'caret-right' : 'caret-left') + '</button>';
   }).join('') + '</div>' : '<p class="cr-empty">' + ph('briefcase') + t('crNone') + '</p>'));

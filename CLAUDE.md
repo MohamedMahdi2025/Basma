@@ -562,3 +562,25 @@ Trap: never use the class `.me` (or `.bot`) inside a module: index.html styles `
   into a preview page without first checking `API_URL` is `/api`.
 - **Platform address:** build.js writes `platform.html` (same app, hub icon/manifest/colour/title in the head before and after
   decoding); index.html's loader sends `#platform` there. Hub assets are `?v=3`.
+
+## Design system v6 "Quiet luxury" (2026-11-14)
+
+`<style id="dsv6">` in index.html (after dsv5; `themeLast` loads it last, before `brandTheme`) is now the look of the whole product:
+one warm paper (`--paper`), ink type, the company colour only on the current page mark, tab underline, focus ring and the deep-brand
+primary button; everything else derives from `--ink`/`--paper` through `color-mix` (`--q-hair`, `--q-tray`, `--q-sh…`), so every
+organisation's palette and the dark appearance fall out of the same rules. Rules worth knowing:
+- Tiles sit in a **tray** (`.db-tiles/.kpis/.stats/.hm-kpis` get padding and a hairline; the tiles inside a smaller radius) and the first
+  tile of each group is ink with paper text. Icon coins inside tiles are mono (tray + ink); no rainbow tints, no gradients, no glows.
+- Controls are pills; the primary is `--q-brand-ink` (brand mixed 78% with ink); a trailing icon in a primary button sits in its own coin.
+- Tabs (`.v2-views`) are underline tabs. Fields are wells (ink 2.5% over the card) with a brand ring on focus. Drawers float off the
+  edge on desktop (12px margin, 24px radius) under a blurred ink scrim.
+- A fixed `body.v2-on::after` grain (SVG noise, 4.5%) gives the paper feel; it is pointer-events none and off in print.
+- **Sign-in** (`.gate`) is warm charcoal with brass instruments (the watch and the x-ray mark recoloured through `.bw`/`.xr-*`
+  overrides) and the form on a paper sheet; the welcome `.wl` and the platform console `.plx` share the charcoal (#14120F) and gold.
+  The loader and `theme-color` are #14120F too (build.js).
+- **Artwork** in `img/` (published by build.js, WebP, transparent): `empty-desk.webp` behind every `.empty`/`.db-empty`/`.cr-empty`
+  (the icon is hidden), `welcome-door.webp` on the pre-boarding `.wl-card` and the public careers landing. Generated 2026-11-13; the
+  Gamma account was used because Higgsfield had no credits. Keep new artwork in the same cream/pine/amber flat style.
+- Phones (≤900px) reuse the same material: `--m-sep/--m-tint` map to the hairline and tray; the bottom bar's centre button is ink.
+- Trap: the older layers (dsv3 tints, dsv4 gradients, dsv5 pills) are still in the file and win on specificity wherever dsv6 is
+  silent, so a new component should be styled in dsv6 with the `html body.v2-on` prefix (and `!important` where dsv5 used it).

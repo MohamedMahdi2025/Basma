@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>بصمة · BASMA</title>
 <meta name="description" content="Attendance and HR for every company: check in at your workplace with your fingerprint, PIN or password">
-<meta name="theme-color" content="#142236">
+<meta name="theme-color" content="#14120F">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -2162,6 +2162,56 @@ html[data-theme="dark"] body.v2-on .toast{background:var(--ink);color:var(--pape
 html[data-theme="dark"] .v2-nav .cnt{background:var(--q-tray-2);color:var(--ink-2)}
 /* ---- reduced motion ---- */
 @media (prefers-reduced-motion:reduce){html body.v2-on *{transition-duration:1ms!important}html body.v2-on :is(.db-tile,.kpi,.stat,.hm-q):hover{transform:none!important}}
+
+/* ---- artwork (img/, generated 2026-11-13, cream/pine/amber flat illustrations): "nothing here" gets the tidy desk, the first week gets the open door ---- */
+html body.v2-on .empty{display:grid;justify-items:center;gap:6px;padding:48px 16px 52px}
+html body.v2-on .empty::before{content:"";display:block;width:min(220px,60vw);aspect-ratio:484/473;background:url(img/empty-desk.webp) center/contain no-repeat;margin:0 auto 10px;opacity:.95}
+html body.v2-on .empty > i{display:none!important}
+html body.v2-on .empty > b{font-size:16px;font-weight:600;color:var(--ink)}
+html body.v2-on .empty > p,html body.v2-on .empty > span{color:var(--ink-3);font-size:14px;max-width:38ch;text-wrap:balance}
+html[data-theme="dark"] body.v2-on .empty::before{opacity:.9;filter:saturate(.9) brightness(1.05)}
+html body.v2-on .db-empty{display:grid;justify-items:center;gap:6px;padding:28px 12px;color:var(--ink-3);font-size:13px}
+html body.v2-on .db-empty::before{content:"";display:block;width:120px;aspect-ratio:484/473;background:url(img/empty-desk.webp) center/contain no-repeat;opacity:.9}
+html body.v2-on .db-empty > i{display:none!important}
+html body.v2-on .wl-card{position:relative;overflow:hidden;padding-inline-end:clamp(140px,22%,240px)!important;min-height:220px;background:var(--card) url(img/welcome-door.webp) no-repeat;background-position:calc(100% - 20px) calc(100% + 6px);background-size:auto min(200px,70%)}
+[dir="ltr"] html body.v2-on .wl-card{background-position:calc(100% - 20px) calc(100% + 6px)}
+[dir="rtl"] html body.v2-on .wl-card{background-position:20px calc(100% + 6px)}
+@media (max-width:700px){html body.v2-on .wl-card{padding-inline-end:20px!important;padding-bottom:150px!important;background-position:calc(100% - 16px) calc(100% + 4px);background-size:auto 140px}[dir="rtl"] html body.v2-on .wl-card{background-position:16px calc(100% + 4px)}}
+@media print{html body.v2-on .empty::before,html body.v2-on .wl-card{background-image:none}}
+/* ---- the public careers page: the same paper and ink, an ink top bar, the door on the landing ---- */
+html .cr-page{background:#F6F3EC;color:#1B1A17;font-family:var(--f-body,var(--font))}
+html .cr-top{background:#14120F;color:#F3EEE3;border-bottom:1px solid rgba(243,238,227,.08);padding:12px 20px;padding-top:calc(10px + env(safe-area-inset-top))}
+html .cr-top b{font-weight:600;letter-spacing:0}html .cr-mark{background:#F3EEE3}
+html .cr-in{color:#F3EEE3;text-decoration:none;border:1px solid rgba(243,238,227,.25);border-radius:999px;padding:6px 14px;font-size:13px}
+html .cr-in:hover{background:rgba(243,238,227,.1)}
+html .cr-top .langsw{background:transparent;border:1px solid rgba(243,238,227,.25);color:#F3EEE3;border-radius:999px}
+html .cr-main{max-width:820px;padding:36px 20px 72px}
+html .cr-main h1{font-size:clamp(30px,4.4vw,44px);line-height:1.15;font-weight:600;letter-spacing:0;margin:0 0 10px;text-wrap:balance}
+html[lang="en"] .cr-main h1{font-weight:800;letter-spacing:-.025em}
+html .cr-main h2{font-size:18px;font-weight:600;margin:28px 0 8px}
+html .cr-lead,html .cr-meta{color:#56534B;font-size:16px;line-height:1.65;max-width:56ch}
+html .cr-hero{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:24px;align-items:end;margin:0 0 26px}
+html .cr-hero img{width:clamp(120px,22vw,200px);height:auto;display:block}
+@media (max-width:600px){html .cr-hero{grid-template-columns:1fr}html .cr-hero img{width:140px;justify-self:end}}
+html .cr-list{gap:10px;margin-top:20px}
+html .cr-card{border:1px solid rgba(27,26,23,.09);border-radius:20px;background:#FDFCFA;padding:18px 48px 18px 20px;box-shadow:0 1px 0 rgba(27,26,23,.03),0 14px 36px -22px rgba(27,26,23,.3);transition:transform .28s cubic-bezier(.32,.72,0,1),box-shadow .28s cubic-bezier(.32,.72,0,1),border-color .2s}
+[dir=rtl] html .cr-card{padding:18px 20px 18px 48px}
+html .cr-card:hover{transform:translateY(-2px);box-shadow:0 1px 0 rgba(27,26,23,.04),0 24px 56px -28px rgba(27,26,23,.38);border-color:rgba(27,26,23,.14)}
+html .cr-card b{font-size:17px;font-weight:600}html .cr-card span,html .cr-card small{color:#8A867B}
+html .cr-card .ph{width:30px;height:30px;border-radius:50%;background:#F1EDE4;color:#1B1A17;display:grid;place-items:center;font-size:16px;inset-inline-end:14px}
+html .cr-empty{display:grid;justify-items:center;gap:8px;padding:40px 20px;border-radius:24px;background:#FDFCFA;border:1px solid rgba(27,26,23,.09);color:#56534B;text-align:center}
+html .cr-empty::before{content:"";display:block;width:180px;aspect-ratio:484/473;background:url(img/empty-desk.webp) center/contain no-repeat}
+html .cr-empty .ph{display:none}
+html .cr-back{color:#56534B;font-weight:500}html .cr-back:hover{color:#1B1A17}
+html .cr-note{background:#F1EDE4;border-radius:14px;color:#56534B}
+html .cr-form{margin-top:12px;display:grid;gap:16px;padding:24px;border-radius:24px;background:#FDFCFA;border:1px solid rgba(27,26,23,.09)}
+html .cr-form .field label{font-size:12.5px;font-weight:600;color:#56534B;margin-bottom:6px;display:block}
+html .cr-form :is(input,textarea,select){width:100%;min-height:46px;border:1px solid rgba(27,26,23,.1);border-radius:12px;background:#F7F4EC;color:#1B1A17;padding:10px 14px;font:inherit;font-size:15px;box-sizing:border-box}
+html .cr-form :is(input,textarea,select):focus{outline:0;border-color:#1B1A17;background:#fff;box-shadow:0 0 0 3px rgba(27,26,23,.1)}
+html .cr-form .btn-primary{height:50px;border-radius:999px;background:#1B1A17;color:#F7F4EC;font-size:15px;font-weight:600;box-shadow:0 14px 30px -14px rgba(27,26,23,.7)}
+html .cr-form .btn-primary:hover{background:#2A2824}
+html .cr-consent{color:#56534B}
+html .cr-done{padding:48px 8px}html .cr-done .ph{width:76px;height:76px;border-radius:50%;background:#FDFCFA;border:1px solid rgba(27,26,23,.09);display:grid;place-items:center;margin:0 auto 14px;font-size:36px;color:#1B1A17}
 
 /* ============ Sign-in (.gate): warm charcoal, brass instruments, the form on paper ============ */
 html body .gate,html:root[dir="rtl"] body .gate,html:root[dir="ltr"] body .gate{

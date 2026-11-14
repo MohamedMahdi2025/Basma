@@ -72,7 +72,7 @@ const loader = `<!doctype html>
 <html lang="ar" dir="rtl">
 <head>
 ${head}
-<style>html,body{margin:0;height:100%;background:#142236}</style>
+<style>html,body{margin:0;height:100%;background:#14120F}</style>
 </head>
 <body>
 <script>
@@ -98,11 +98,11 @@ fs.writeFileSync(path.join(OUT, 'index.html'), loader);
 // app's own address kept showing the app icon. This page is the same app with the platform's amber icon, manifest, colour
 // and title fixed in its head, before and after the page is decoded. Opening /#platform on the app moves here.
 const HUB = s => s.replace('manifest.webmanifest?v=basma2', 'hub.webmanifest?v=3').replace(/(favicon-48|icon-192)\.png\?v=basma2/g, 'hub-192.png?v=3')
-  .replace('apple-touch-icon.png?v=basma2', 'hub-apple.png?v=3').replace('content="#142236"', 'content="#D9730F"').replace(/<title>[^<]*<\/title>/, '<title>مركز بصمة · BASMA Hub</title>');
+  .replace('apple-touch-icon.png?v=basma2', 'hub-apple.png?v=3').replace('content="#14120F"', 'content="#D9730F"').replace(/<title>[^<]*<\/title>/, '<title>مركز بصمة · BASMA Hub</title>');
 const START = '(function(){\nvar k=[';
 // the same head swap, run in the page after decoding (the decoded page writes its own head)
 const SWAP = "h=h.replace('manifest.webmanifest?v=basma2','hub.webmanifest?v=3').replace(/(favicon-48|icon-192)\\.png\\?v=basma2/g,'hub-192.png?v=3')" +
-  ".replace('apple-touch-icon.png?v=basma2','hub-apple.png?v=3').replace('content=\"#142236\"','content=\"#D9730F\"').replace(/<title>[^<]*<\\/title>/,'<title>مركز بصمة · BASMA Hub</title>');";
+  ".replace('apple-touch-icon.png?v=basma2','hub-apple.png?v=3').replace('content=\"#14120F\"','content=\"#D9730F\"').replace(/<title>[^<]*<\\/title>/,'<title>مركز بصمة · BASMA Hub</title>');";
 const platLoader = HUB(loader)
   .replace(START, "(function(){\nif(location.hash&&location.hash!=='#platform'){location.replace('./'+location.hash);return;}if(!location.hash)history.replaceState(null,'',location.pathname+location.search+'#platform');\nvar k=[")
   .replace(DEC, DEC + SWAP);
