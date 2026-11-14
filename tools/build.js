@@ -140,6 +140,9 @@ fs.writeFileSync(path.join(OUT, 'sw.js'), fs.readFileSync(path.join(SRC, 'sw.js'
 fs.mkdirSync(path.join(OUT, 'fonts'), { recursive: true });
 for (const f of fs.readdirSync(path.join(SRC, 'fonts'))) if (/\.woff2$|^fonts\.css$/.test(f)) fs.copyFileSync(path.join(SRC, 'fonts', f), path.join(OUT, 'fonts', f));
 for (const f of fs.readdirSync(path.join(OUT, 'fonts'))) if (!fs.existsSync(path.join(SRC, 'fonts', f))) fs.unlinkSync(path.join(OUT, 'fonts', f));
+// artwork (img/): small WebP files referenced by the page and the modules
+fs.mkdirSync(path.join(OUT, 'img'), { recursive: true });
+for (const f of fs.readdirSync(path.join(SRC, 'img'))) if (/.(webp|png|svg)$/.test(f)) fs.copyFileSync(path.join(SRC, 'img', f), path.join(OUT, 'img', f));
 for (const f of ['manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png', 'favicon-48.png', 'hub.webmanifest', 'hub-192.png', 'hub-512.png', 'hub-apple.png', 'privacy.html', 'delete-account.html']) {
   fs.copyFileSync(path.join(SRC, f), path.join(OUT, f));
 }

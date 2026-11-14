@@ -4,8 +4,21 @@
     {
       "name": "attendance-preview",
       "runtimeExecutable": "node",
-      "runtimeArgs": ["tests/preview-server.js", "8765"],
+      "runtimeArgs": [
+        "tests/preview-server.js",
+        "8765"
+      ],
       "port": 8765
+    },
+    {
+      "name": "attendance-built",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "tests/preview-server.js",
+        "8767",
+        "built"
+      ],
+      "port": 8767
     }
   ]
 }
