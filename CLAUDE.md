@@ -584,3 +584,8 @@ organisation's palette and the dark appearance fall out of the same rules. Rules
 - Phones (≤900px) reuse the same material: `--m-sep/--m-tint` map to the hairline and tray; the bottom bar's centre button is ink.
 - Trap: the older layers (dsv3 tints, dsv4 gradients, dsv5 pills) are still in the file and win on specificity wherever dsv6 is
   silent, so a new component should be styled in dsv6 with the `html body.v2-on` prefix (and `!important` where dsv5 used it).
+- **Location with a deadline (2026-11-15):** `geoOnce()` (index.html, location section) is the one way to ask for a single position outside
+  the check-in watch: GPS for 12 s, then a network/Wi-Fi answer for 8 s, a refusal stops at once. "Use my location" on the zones map uses it,
+  shows "Finding your location…" meanwhile, falls back to the check-in screen's reading when one is under two minutes old, and names the
+  reason on failure (blocked / timed out / unavailable). Before this it asked for GPS with no timeout and could wait forever in silence.
+  Map tiles (`img.leaflet-tile`) are excluded from the lazy-image observer. Tests: tests/geo-once.js.
