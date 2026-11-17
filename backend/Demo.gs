@@ -83,6 +83,7 @@ function api_demoData(req) {
   if (mode === 'people') return resetPeople_();
   if (mode === 'reset') return withLock_(function () { return resetKeepOne_(req); });
   if (mode === 'sheetImport') return withLock_(function () { return sheetImport_(req); });
+  if (mode === 'packageSet') return withLock_(function () { return packageSet_(req); });
   fail_('bad_request');
 }
 
@@ -224,6 +225,38 @@ function sheetImport_(req) {
   appendMany_(SHEETS.COMP, comps); appendMany_(SHEETS.RUN, runs); appendMany_(SHEETS.SLIP, slips); appendMany_(SHEETS.WPS, wps);
   audit_('import', 'sheet_import', '', { employees: newEmps.length, packages: comps.length, runs: runs.length, payslips: slips.length, months: keys });
   return out;
+}
+
+/**
+ * Owner-approved package changes in one batch (owner only, home organisation; 2026-11-17): the owner's decision that a
+ * person's package is what they are actually paid, while GOSI keeps the wage registered there (empPrivate.gosiWage, so
+ * every payslip carries the visible 'gosi_wage_differs' warning instead of hiding the gap).
+ *   { rows: [{ empNo, effectiveFrom, basic, housing, transport, gosiWage, reason }], dryRun }
+ * Each row adds an approved package (approvedBy 'owner') from effectiveFrom; nothing is overwritten (packages are
+ * effective-dated and append-only). gosiWage 0 leaves the registered wage as it is. One audit line for the batch.
+ */
+function packageSet_(req) {
+  resetHomeOnly_();
+  var rows = Array.isArray(req.rows) ? req.rows : [], dry = req.dryRun !== false;
+  if (!rows.length || rows.length > 500) fail_('bad_request');
+  [SHEETS.EMP, SHEETS.PRIV, SHEETS.COMP].forEach(forget_);
+  var byNo = {}, privOf = {}, now = new Date().toISOString(), comps = [], privUpd = [], plan = [];
+  readAll_(SHEETS.EMP).forEach(function (e) { byNo[String(e.empNo)] = e; });
+  readAll_(SHEETS.PRIV).forEach(function (p) { privOf[p.empId] = p; });
+  rows.forEach(function (r) {
+    var e = byNo[String(r.empNo || '').trim()]; if (!e) fail_('not_found');
+    var c = compRowFrom_({ empId: e.id, effectiveFrom: r.effectiveFrom, basic: r.basic, housing: r.housing || 0, transport: r.transport || 0,
+      reason: str_(r.reason, 200) || 'قرار المالك: الراتب كما يصرف فعلا' }, 'owner');
+    c.status = 'approved'; c.approvedBy = 'owner'; c.approvedAt = now; comps.push(c);
+    var gw = Number(r.gosiWage) || 0, p = privOf[e.id];
+    if (gw > 0) { if (!p) fail_('not_found'); p.gosiWage = gw; p.updatedAt = now; privUpd.push(p); }
+    plan.push({ empNo: e.empNo, from: c.effectiveFrom, package: c.basic + c.housing + c.transport, gosiWage: gw || null });
+  });
+  if (dry) return { ok: true, dryRun: true, packages: comps.length, gosiWages: privUpd.length, rows: plan };
+  var refs = nextRefs_('salary', comps.length, codesOf_(readAll_(SHEETS.COMP), 'ref')); comps.forEach(function (c, i) { c.ref = refs[i]; });
+  appendMany_(SHEETS.COMP, comps); privUpd.forEach(function (p) { update_(SHEETS.PRIV, p); });
+  audit_('owner', 'package_set', '', { packages: comps.length, gosiWages: privUpd.length, empNos: plan.map(function (x) { return x.empNo; }) });
+  return { ok: true, dryRun: false, packages: comps.length, gosiWages: privUpd.length, rows: plan };
 }
 
 /**

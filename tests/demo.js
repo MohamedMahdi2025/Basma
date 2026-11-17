@@ -272,6 +272,19 @@ console.log('Sheet import');
   ok(cal.ok && !cal.items.some(i => (i.kind === 'wps_upload' || i.kind === 'payroll_not_locked') && (i.month === '2026-08' || i.month === '2026-09')), 'imported months raise no WPS or payroll duty', cal.items && cal.items.map(i => i.kind + ':' + i.month));
   x = I({ dryRun: false });
   ok(!x.ok && x.error === 'not_empty', 'a second import is refused (rollback is the reset)', x);
+  // owner package decision: the package is what is paid, GOSI keeps the registered wage
+  const S = extra => C.call(Object.assign({ action: 'demoData', setupKey: 'k', mode: 'packageSet' }, extra));
+  const rows = [{ empNo: '1001', effectiveFrom: '2026-10-01', basic: 1390, gosiWage: 4000 }];
+  x = S({ rows });
+  ok(x.ok && x.dryRun && x.packages === 1 && x.rows[0].package === 1390, 'package change: dry run by default', x);
+  fresh2(); ok(C.ctx.readAll_('compensation').length === comps.length, 'a dry run adds no package');
+  ok(!S({ rows: [{ empNo: '9999', effectiveFrom: '2026-10-01', basic: 1 }], dryRun: false }).ok, 'an unknown employee number is refused');
+  x = S({ rows, dryRun: false });
+  fresh2();
+  const nc = C.ctx.readAll_('compensation').filter(c => c.empId === byNo['1001'].id && c.effectiveFrom === '2026-10-01')[0];
+  const np = C.ctx.readAll_('empPrivate').filter(p => p.empId === byNo['1001'].id)[0];
+  ok(x.ok && nc && nc.status === 'approved' && Number(nc.basic) === 1390 && Number(np.gosiWage) === 4000, 'the new package is approved from its month and the registered GOSI wage is kept', { nc, np });
+  ok(C.ctx.readAll_('compensation').filter(c => c.empId === byNo['1001'].id).length === 3, 'earlier packages stay (append-only history)');
   x = C.call({ action: 'me', token: tk });
   ok(x.ok, 'the owner is still signed in after the import', x);
 }
