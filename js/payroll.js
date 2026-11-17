@@ -39,7 +39,9 @@ Object.assign(T.ar, {
   pw_deductions_capped:'خفضت الخصومات إلى نصف الأجر', pw_gosi_housing_zero:'لا بدل سكن نقدي: إن كان السكن عينيا يحسب للتأمينات بأجر شهرين أساسي سنويا', pw_gosi_gcc_national:'مواطن خليجي: تطبق نسب بلده (مد الحماية التأمينية)', pw_eos_basis_below_actual:'المكافأة حسبت على الأجر الفعلي (المادة 84)؛ إعداد الأساسي والسكن أقل من النظام', pw_net_negative:'الصافي سالب', e_run_exists:'يوجد مسير لهذا الشهر.', e_future_month:'لا يمكن إعداد مسير لشهر لم يأت.',
   e_month_locked:'مسير هذا الشهر معتمد ومقفل. أضف البند في الشهر التالي.', e_email_not_configured:'البريد غير مفعل بعد.', e_missing_hire_date:'تاريخ المباشرة غير مسجل.',
   prRecalcDone:'أعيد الحساب', prApproved:'اعتمد المسير وأقفل', prGosiNote:'حصة الشركة في التأمينات',
-  prSureLock:'اضغط مرة أخرى للاعتماد والقفل، ولا يمكن التراجع', prSureDel:'اضغط مرة أخرى لحذف المسودة'
+  prSureLock:'اضغط مرة أخرى للاعتماد والقفل، ولا يمكن التراجع', prSureDel:'اضغط مرة أخرى لحذف المسودة',
+  prTitlePrep:'إعداد رواتب جديدة', prLeadPrep:'المسيرات قيد الإعداد فقط (مسودات). بعد الاعتماد والقفل ينتقل المسير إلى صفحة المسيرات المعتمدة.', prEmptyPrep:'لا يوجد مسير قيد الإعداد. اختر الشهر ثم أنشئ المسير.',
+  prTitleDone:'المسيرات المعتمدة', prLeadDone:'كل مسير اعتُمد وأُقفل، ومنها المستوردة من الكشوف المعتمدة. للعرض والتنزيل فقط؛ لا تتغير بعد القفل.', prEmptyDone:'لا توجد مسيرات معتمدة بعد.'
 });
 Object.assign(T.en, {
   pdTitle:'Payroll at a glance', pdLastNet:'Last run net', pdDrafts:'Runs awaiting approval', pdDraftsNote:'approved by someone other than the preparer', pdTrend:'Net pay month by month',
@@ -69,7 +71,9 @@ Object.assign(T.en, {
   pw_deductions_capped:'Deductions cut to half the wage', pw_gosi_housing_zero:'No cash housing: housing in kind counts as two months basic a year for GOSI', pw_gosi_gcc_national:'GCC national: home-country GOSI rates apply (GCC extension)', pw_eos_basis_below_actual:'Award on the actual wage (Art. 84); the basic + housing setting is below the law', pw_net_negative:'Net below zero', e_run_exists:'This month already has a run.', e_future_month:'That month has not come yet.',
   e_month_locked:'This month is approved and locked. Add the line next month.', e_email_not_configured:'Email is not switched on yet.', e_missing_hire_date:'No start date on file.',
   prRecalcDone:'Recalculated', prApproved:'Payroll approved and locked', prGosiNote:'Employer GOSI share',
-  prSureLock:'Tap again to approve and lock. This cannot be undone', prSureDel:'Tap again to discard the draft'
+  prSureLock:'Tap again to approve and lock. This cannot be undone', prSureDel:'Tap again to discard the draft',
+  prTitlePrep:'Prepare new payroll', prLeadPrep:'Runs being prepared only (drafts). Once approved and locked, a run moves to Approved payroll.', prEmptyPrep:'No payroll in preparation. Choose the month and create the run.',
+  prTitleDone:'Approved payroll', prLeadDone:'Every approved and locked run, including those imported from the approved sheets. View and download only; they never change once locked.', prEmptyDone:'No approved payroll yet.'
 });
 
 var css = '' +
@@ -271,10 +275,11 @@ function xlsx(){ if (window.XLSX) return Promise.resolve(); if (xlsxP) return xl
 function section(body){
   if (S.prRun) return runView(body, S.prRun);
   var last = (function(){ var d = new Date(riyadhToday() + 'T00:00:00Z'); d.setUTCDate(1); d.setUTCMonth(d.getUTCMonth() - 1); return d.toISOString().slice(0, 7); })();
-  body.innerHTML = '<div class="hr-h"><h2>' + t('prTitle') + '</h2></div>' +
-    '<form class="toolbar" id="prNewF"><label class="hr-hint" style="margin:0">' + t('prMonth') + '</label><input type="month" name="month" value="' + last + '" max="' + riyadhToday().slice(0, 7) + '" required><select name="group" id="prGrp" hidden aria-label="' + t('pgGroup') + '"></select>' +
+  var done = S.prMode === 'approved'; // 2026-11-17: preparing new payroll and the approved runs are separate pages
+  body.innerHTML = '<div class="hr-h"><h2>' + t(done ? 'prTitleDone' : 'prTitlePrep') + '</h2></div><p class="hr-hint" style="margin:-4px 0 12px">' + t(done ? 'prLeadDone' : 'prLeadPrep') + '</p>' +
+    '<form class="toolbar" id="prNewF"' + (done ? ' hidden' : '') + '><label class="hr-hint" style="margin:0">' + t('prMonth') + '</label><input type="month" name="month" value="' + last + '" max="' + riyadhToday().slice(0, 7) + '" required><select name="group" id="prGrp" hidden aria-label="' + t('pgGroup') + '"></select>' +
     '<button class="btn btn-dark btn-sm">' + ph('calculator') + t('prCreate') + '</button><span class="err" id="prErr" style="color:var(--red)"></span></form><div id="prList"></div>' +
-    '<section class="v2-card"><h3 class="hr-sub">' + ph('calculator') + t('prEos') + '</h3><div id="prEos"></div></section>';
+    (done ? '' : '<section class="v2-card"><h3 class="hr-sub">' + ph('calculator') + t('prEos') + '</h3><div id="prEos"></div></section>');
   $('#prNewF', body).onsubmit = function(ev){
     ev.preventDefault(); var b = this.querySelector('button'); b.disabled = true;
     api('payrollCreate', { month: this.elements.month.value, payGroupId: this.elements.group.value || '' }).then(function(r){ b.disabled = false; if (!r.ok) { $('#prErr', body).textContent = errText(r.error); return; } S.prRun = r.run.id; section(body); });
@@ -284,14 +289,15 @@ function section(body){
     if (!r.ok) return el.innerHTML = '<p class="hr-bad">' + errText(r.error) + '</p>';
     var gs = $('#prGrp', body); // pay groups (2026-10-21): pick which group's run to prepare
     if (gs && r.groups && r.groups.length > 1) { var keep = gs.value; gs.innerHTML = r.groups.map(function(g){ return '<option value="' + esc(g.id) + '">' + esc((S.lang === 'en' ? g.nameEn : g.nameAr) || g.nameAr) + '</option>'; }).join(''); gs.value = keep || ''; gs.hidden = false; }
-    el.innerHTML = (window.Viz && r.rows.length ? listDash(r.rows) : '') + (r.rows.length ? '<div class="list">' + r.rows.map(function(x){
+    var rows = r.rows.filter(function(x){ return done ? x.status === 'locked' : x.status !== 'locked'; });
+    el.innerHTML = (done && window.Viz && rows.length ? listDash(rows) : '') + (rows.length ? '<div class="list">' + rows.map(function(x){
       return '<div class="row click" data-run="' + x.id + '" tabindex="0"><div class="av">' + ph('money') + '</div><div class="main"><b>' + esc(monthName(x.month)) + (x.payGroupName ? ' · ' + esc((S.lang === 'en' ? x.payGroupNameEn : x.payGroupName) || x.payGroupName) : '') + '</b><small><bdi>' + esc(x.ref) + '</bdi>، ' + plural(x.totals.headcount || 0, 'people') + '</small></div>' +
         '<div class="end"><b class="num">' + money(x.totals.net) + '</b><small><span class="chip ' + (x.status === 'locked' ? 'in' : 'late') + '">' + t('pr_' + x.status) + '</span></small></div></div>';
-    }).join('') + '</div>' : '<div class="empty">' + ph('money') + '<b>' + t('prEmpty') + '</b></div>');
+    }).join('') + '</div>' : '<div class="empty">' + ph('money') + '<b>' + t(done ? 'prEmptyDone' : 'prEmptyPrep') + '</b></div>');
     if (window.Viz) Viz.wire(el);
     $$('[data-run]', el).forEach(function(x){ x.onclick = function(){ S.prRun = x.dataset.run; section(body); }; });
   });
-  eosBox($('#prEos', body));
+  if (!done) eosBox($('#prEos', body));
 }
 
 /** The payroll over time: net and headcount per run, and what changed since the previous one. */
