@@ -13,9 +13,9 @@ Object.assign(T.ar, {
   vsBySponsor:'ملخص الشهر حسب الجهة (بعد الفلاتر)', vsSheet:'تفاصيل الكشف', vsShown:'{n} من {t}', vsEmpNo:'الرقم', vsName:'الاسم', vsId:'الهوية/الإقامة', vsDays:'أيام العمل',
   vsNone:'لا توجد مسيرات بعد.', vsSaudiY:'سعودي', vsSaudiN:'غير سعودي', lvExec:'إدارة عليا', lvMgr:'مدير', lvSup:'مشرف', lvStaff:'موظف',
   vaTitle2:'تحليل الفروقات', vaLead2:'الشهر مقابل أساس تختاره، لكل الجهات معا: من تغير ولماذا، حسب الموظف والإدارة والموقع والمدينة والجهة وغيرها. اضغط أي صف لتصفية القائمة.',
-  vaCmp:'مقارنة مع', vaM1:'الشهر السابق', vaM2:'قبل شهرين', vaAvg3:'متوسط 3 أشهر', vaYoy:'نفس الشهر العام الماضي', vaPct:'نسبة التغير %', vaMin:'أقل مبلغ', vaChanged:'المتغيرون فقط',
+  vaCmp:'مقارنة مع', vaM1:'الشهر السابق', vaM2:'قبل شهرين', vaAvg3:'متوسط 3 أشهر', vaAvg6:'متوسط 6 أشهر', vaAvg12:'متوسط 12 شهراً', vaPick:'أشهر أختارها…', vaPickLead:'اختر أي أشهر سابقة؛ يقارن الشهر بمتوسطها.', vaPickGo:'قارن', vaAvgWord:'متوسط', vaPickAll:'الكل', vaPickNone:'لا شيء', vaBaseIs:'الشهر المختار يُقارن بـ', vaYoy:'نفس الشهر العام الماضي', vaPct:'نسبة التغير %', vaMin:'أقل مبلغ', vaChanged:'المتغيرون فقط',
   vaBridge:'من صافي الأساس إلى صافي الشهر', vaFrom:'الأساس', vaJoin:'منضمون', vaLeave:'مغادرون', vaTo:'هذا الشهر', vaBy:'التفصيل حسب', vaPeople:'الموظفون مرتبون حسب الأهمية',
-  vaLines:'بنود الرواتب', vaNow:'الآن', vaBase:'الأساس', vaChg:'التغير', vaFlags:'الملاحظات', vaCities:'مدن المواقع', vaCityHint:'المدن المظللة مفترضة (الرياض) لأن اسم الموقع لا يدل عليها. صححها هنا.', vaSave:'حفظ',
+  vaLines:'بنود الرواتب', vaNow:'الآن', vaBase:'الأساس', vaChg:'الفرق', vaAvgOf:'متوسط {n} أشهر', vaNowLead:'الشهر المختار', vaBaseLead:'شهر/أشهر المقارنة', vaFlags:'الملاحظات', vaCities:'مدن المواقع', vaCityHint:'المدن المظللة مفترضة (الرياض) لأن اسم الموقع لا يدل عليها. صححها هنا.', vaSave:'حفظ',
   dv_pay:'الراتب الثابت', dv_overtime:'إضافي', dv_oneoff:'مكافآت لمرة', dv_absence:'غياب وإجازات', dv_gosi:'التأمينات', dv_advances:'سلف وقروض', dv_fines:'جزاءات', dv_otherDeductions:'خصومات أخرى', dv_other:'أخرى', dv_joiners:'منضمون', dv_leavers:'مغادرون',
   fl_joiner:'منضم', fl_returner:'عائد', fl_leaver:'مغادر', fl_net_up:'صافي أعلى', fl_net_down:'صافي أقل', fl_deductions_spike:'قفزة خصومات', fl_package_change:'تغير الراتب', fl_new_line:'بند جديد', fl_gone_line:'بند اختفى', fl_net_zero:'صافي صفر', fl_one_off:'مكافأة', fl_absence:'غياب', fl_off_package:'يختلف عن العقد', fl_paid_inactive:'مدفوع وهو موقوف'
 });
@@ -29,9 +29,9 @@ Object.assign(T.en, {
   vsBySponsor:'This month by sponsor (after filters)', vsSheet:'Sheet detail', vsShown:'{n} of {t}', vsEmpNo:'No.', vsName:'Name', vsId:'ID / iqama', vsDays:'Days worked',
   vsNone:'No payroll runs yet.', vsSaudiY:'Saudi', vsSaudiN:'Non-Saudi', lvExec:'Executive', lvMgr:'Manager', lvSup:'Supervisor', lvStaff:'Staff',
   vaTitle2:'Variance analysis', vaLead2:'The month against a base you choose, all sponsors together: who changed and why, by employee, department, location, city, sponsor and more. Tap any row to filter the list.',
-  vaCmp:'Compare with', vaM1:'Previous month', vaM2:'Two months ago', vaAvg3:'3-month average', vaYoy:'Same month last year', vaPct:'Change %', vaMin:'Minimum amount', vaChanged:'Changed only',
+  vaCmp:'Compare with', vaM1:'Previous month', vaM2:'Two months ago', vaAvg3:'3-month average', vaAvg6:'6-month average', vaAvg12:'12-month average', vaPick:'Months I choose…', vaPickLead:'Pick any earlier months; the month is compared with their average.', vaPickGo:'Compare', vaAvgWord:'average', vaPickAll:'All', vaPickNone:'None', vaBaseIs:'Compared with', vaYoy:'Same month last year', vaPct:'Change %', vaMin:'Minimum amount', vaChanged:'Changed only',
   vaBridge:'From base net to this month', vaFrom:'Base', vaJoin:'Joiners', vaLeave:'Leavers', vaTo:'This month', vaBy:'Breakdown by', vaPeople:'People, most important first',
-  vaLines:'Pay lines', vaNow:'Now', vaBase:'Base', vaChg:'Change', vaFlags:'Notes', vaCities:'Location cities', vaCityHint:'Shaded cities are assumed (Riyadh) because the location name does not say. Correct them here.', vaSave:'Save',
+  vaLines:'Pay lines', vaNow:'Now', vaBase:'Base', vaChg:'Difference', vaAvgOf:'Average of {n} months', vaNowLead:'Selected month', vaBaseLead:'Compared with', vaFlags:'Notes', vaCities:'Location cities', vaCityHint:'Shaded cities are assumed (Riyadh) because the location name does not say. Correct them here.', vaSave:'Save',
   dv_pay:'Fixed pay', dv_overtime:'Overtime', dv_oneoff:'One-off', dv_absence:'Absence and leave', dv_gosi:'GOSI', dv_advances:'Advances and loans', dv_fines:'Fines', dv_otherDeductions:'Other deductions', dv_other:'Other', dv_joiners:'Joiners', dv_leavers:'Leavers',
   fl_joiner:'Joiner', fl_returner:'Returner', fl_leaver:'Leaver', fl_net_up:'Net up', fl_net_down:'Net down', fl_deductions_spike:'Deductions spike', fl_package_change:'Package change', fl_new_line:'New line', fl_gone_line:'Line gone', fl_net_zero:'Net zero', fl_one_off:'One-off', fl_absence:'Absence', fl_off_package:'Off contract', fl_paid_inactive:'Paid while disabled'
 });
@@ -45,6 +45,7 @@ function orderLines(keys){ return keys.slice().sort(function(a, b){ return lineR
 function payCols(keys, days){ var k = orderLines(keys), e = k.filter(function(x){ return x.indexOf('d:') !== 0; }), d = k.filter(function(x){ return x.indexOf('d:') === 0; });
   var b = e[0] === 'e:basic' ? [e.shift()] : [], L = function(x){ return 'l:' + x; };
   return b.map(L).concat(days ? ['days'] : []).concat(e.map(L)).concat(['gross']).concat(d.map(L)).concat(['deductions', 'net']); }
+function vaL(k){ var r = VA.r; if (!r) return t(k === 'now' ? 'vaNowLead' : 'vaBaseLead'); if (k === 'now') return mon(r.month); var b = r.baseMonths || []; return b.length === 1 ? mon(b[0]) : t('vaAvgOf').replace('{n}', b.length); }
 function lineName(k){ var p = String(k).split(':'), en = S.lang === 'en'; if (p[2] && !en) return p[2]; var n = (LN[en ? 'en' : 'ar'][p[1]] || p[1]); return p[2] && en ? n + ' (' + p[2] + ')' : n; }
 function amt(n){ return n == null ? '-' : '<span class="num">' + acctFmt(n) + '</span>'; }
 function mon(m){ return new Date(Date.UTC(+m.slice(0, 4), +m.slice(5, 7) - 1, 15)).toLocaleDateString(S.lang === 'en' ? 'en-GB' : 'ar-SA-u-ca-gregory-nu-latn', { month: 'short', year: 'numeric', timeZone: 'UTC' }); }
@@ -63,7 +64,7 @@ function xlName(s){ return String(s).replace(/[\\\/\?\*\[\]:]/g, ' ').slice(0, 3
   '.vs-tbl td.n,.vs-tbl th.n{text-align:end;font-variant-numeric:tabular-nums}.vs-tbl tfoot td{font-weight:700;border-top:2px solid var(--ink,#14202F)}.vs-tbl tr.go{cursor:pointer}.vs-tbl tr.go:hover td{background:color-mix(in srgb,var(--ink,#14202F) 4%,transparent)}' +
   '.vs-wrap{overflow:auto;max-height:70vh;border:1px solid var(--q-hair,#E4DFD3);border-radius:12px;margin:8px 0 20px}.vs-chg.up{color:#1E6B3F}.vs-chg.dn{color:#B42318}.vs-h{margin:20px 0 4px;font-size:16px}' +
   '.vs-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.vs-tabs button{border:1px solid var(--q-hair,#E4DFD3);background:none;border-radius:999px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}.vs-tabs button[aria-pressed=true]{background:var(--ink,#14202F);color:var(--paper,#fff)}' +
-  '.vs-flag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;background:color-mix(in srgb,var(--ink,#14202F) 7%,transparent);margin:1px 2px}.vs-bar{display:grid;grid-template-columns:160px 1fr 120px;gap:8px;align-items:center;font-size:13px;margin:4px 0}' +
+  '.vs-pick{margin:8px 0 12px;padding:12px 16px;border-radius:16px;background:var(--q-tray,#F4F2EC);border:1px solid var(--q-hair,#E4DFD3)}.vs-pick p{margin:0 0 8px;font-size:13px;color:var(--ink-2)}.vs-pick-m{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}.vs-pick-m label{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:var(--card,#fff);border:1px solid var(--q-hair,#E4DFD3);font-size:13px;cursor:pointer}.vs-pick-m label:has(input:checked){border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}.vs-base{margin:4px 0 12px;font-size:13px;color:var(--ink-2)}.vs-base b{color:var(--ink)}' + '.vs-flag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;background:color-mix(in srgb,var(--ink,#14202F) 7%,transparent);margin:1px 2px}.vs-bar{display:grid;grid-template-columns:160px 1fr 120px;gap:8px;align-items:center;font-size:13px;margin:4px 0}' +
   '.vs-bar i{display:block;height:14px;border-radius:4px;background:#2a78d6}.vs-bar i.neg{background:#B42318}.vs-bar i.pos{background:#2E7D4F}.vs-assumed td:first-child{background:color-mix(in srgb,#C98500 14%,transparent)}';
   document.head.appendChild(st); })();
 
@@ -179,7 +180,7 @@ function varianceSection(body){
     var filters = {}; Object.keys(VA.f).forEach(function(k){ var v = VA.f[k]; if (v === '' || v == null) return; filters[k] = k === 'q' || k === 'changed' ? v : [v]; });
     api('payrollVarianceMonth', { month: VA.month || undefined, compare: VA.compare, pct: VA.pct, min: VA.min, filters: filters }, true).then(function(r){
       if (!el.isConnected) return; if (!r.ok) return el.innerHTML = K.bad(r.error); if (r.empty) return el.innerHTML = K.empty('chart-line-up', t('vsNone'));
-      R = r; VA.month = r.month; draw();
+      R = r; VA.r = r; VA.month = r.month; draw();
     });
   }
   function draw(){
@@ -189,8 +190,8 @@ function varianceSection(body){
     var dimRows = r.dims[VA.dim] || [];
     el.innerHTML = '<div class="toolbar vs-fl">' +
       '<label class="vs-f"><span>' + t('vsMonth') + '</span><select id="vaM">' + r.months.map(function(m){ return '<option value="' + m + '"' + (m === r.month ? ' selected' : '') + '>' + esc(mon(m)) + '</option>'; }).join('') + '</select></label>' +
-      '<label class="vs-f"><span>' + t('vaCmp') + '</span><select id="vaC">' + [['m1', t('vaM1')], ['m2', t('vaM2')], ['avg3', t('vaAvg3')], ['yoy', t('vaYoy')]].concat(r.months.filter(function(m){ return m !== r.month; }).map(function(m){ return [m, mon(m)]; }))
-        .map(function(o){ return '<option value="' + o[0] + '"' + (o[0] === r.compare ? ' selected' : '') + '>' + esc(o[1]) + '</option>'; }).join('') + '</select></label>' +
+      '<label class="vs-f"><span>' + t('vaCmp') + '</span><select id="vaC">' + [['m1', t('vaM1')], ['m2', t('vaM2')], ['avg3', t('vaAvg3')], ['avg6', t('vaAvg6')], ['avg12', t('vaAvg12')], ['yoy', t('vaYoy')], ['pick', t('vaPick')]].concat(r.months.filter(function(m){ return m !== r.month; }).map(function(m){ return [m, mon(m)]; }))
+        .map(function(o){ return '<option value="' + o[0] + '"' + (o[0] === r.compare || (o[0] === 'pick' && String(r.compare).indexOf('pick:') === 0) ? ' selected' : '') + '>' + esc(o[1]) + '</option>'; }).join('') + '</select></label>' +
       '<label class="vs-f vs-n"><span>' + t('vaPct') + '</span><input id="vaP" type="number" dir="ltr" value="' + r.threshold.pct + '"></label><label class="vs-f vs-n"><span>' + t('vaMin') + '</span><input id="vaN" type="number" dir="ltr" value="' + r.threshold.min + '"></label>' +
       '<label class="vs-f vs-q"><span>' + t('vsSearch') + '</span><input id="vaQ" type="search" value="' + esc(VA.f.q || '') + '"></label>' +
       DIMS.map(function(d){ return sel(d[0], d[1], (r.options[d[0]] || []).map(function(o){ return [o.value, dimVal(d[0], o.value) + ' (' + o.count + ')']; }), VA.f[d[0]]); }).join('') +
@@ -198,23 +199,32 @@ function varianceSection(body){
       '<label class="vs-f" style="flex-direction:row;align-items:center;gap:6px;max-width:none"><input id="vaCh" type="checkbox"' + (VA.f.changed ? ' checked' : '') + '><span>' + t('vaChanged') + '</span></label>' +
       '<button type="button" class="btn btn-line btn-sm" id="vaClr">' + t('vsClear') + '</button><button type="button" class="btn btn-line btn-sm" id="vaCity">' + ph('map-pin') + t('vaCities') + '</button>' +
       '<button type="button" class="btn btn-dark btn-sm" id="vaX">' + ph('microsoft-excel-logo') + 'Excel</button></div>' +
+      (function(){ var picked = String(r.compare).indexOf('pick:') === 0 ? r.baseMonths : [], open = VA.picking || picked.length;
+        var earlier = r.months.filter(function(m){ return m < r.month; });
+        return (open ? '<div class="vs-pick" id="vaPk"><p>' + t('vaPickLead') + '</p><div class="vs-pick-m">' + earlier.map(function(m){ return '<label><input type="checkbox" value="' + m + '"' + (picked.indexOf(m) >= 0 ? ' checked' : '') + '><span>' + esc(mon(m)) + '</span></label>'; }).join('') + '</div>' +
+          '<div class="btnrow"><button type="button" class="btn btn-line btn-sm" data-pk="all">' + t('vaPickAll') + '</button><button type="button" class="btn btn-line btn-sm" data-pk="none">' + t('vaPickNone') + '</button><button type="button" class="btn btn-dark btn-sm" id="vaPkGo">' + t('vaPickGo') + '</button></div></div>' : '') +
+          '<p class="vs-base">' + t('vaBaseIs') + ': <b>' + (r.baseMonths || []).map(function(m){ return esc(mon(m)); }).join('، ') + '</b>' + ((r.baseMonths || []).length > 1 ? ' (' + t('vaAvgWord') + ')' : '') + '</p>'; })() +
       K.tiles([[t('vsHead'), String(T0.headcount.cur), chg(T0.headcount.change), true], [t('vsGross'), amt(T0.gross.cur), chg(T0.gross.change)], [t('vsDed'), amt(T0.deductions.cur), chg(T0.deductions.change)],
         [t('vsNet'), amt(T0.net.cur), chg(T0.net.change)], [t('vsCost'), amt(T0.companyCost.cur), chg(T0.companyCost.change)]]) +
       '<h3 class="vs-h">' + t('vaBridge') + '</h3>' + steps.map(function(s){ var w = Math.round(Math.abs(s[1]) / mx * 100); return '<div class="vs-bar"><span>' + t(s[0]) + '</span><span><i class="' + (s[2] ? '' : s[1] < 0 ? 'neg' : 'pos') + '" style="width:' + Math.max(1, w) + '%"></i></span><b class="num" dir="ltr">' + (s[2] ? '' : s[1] > 0 ? '+' : '') + acctFmt(s[1]) + '</b></div>'; }).join('') +
       '<h3 class="vs-h">' + t('vaBy') + '</h3><div class="vs-tabs">' + DIMS.map(function(d){ return '<button type="button" data-dim="' + d[0] + '" aria-pressed="' + (VA.dim === d[0]) + '">' + t(d[1]) + '</button>'; }).join('') + '</div>' +
-      '<div class="vs-wrap"><table class="vs-tbl"><thead><tr><th>' + t(DIMS.filter(function(d){ return d[0] === VA.dim; })[0][1]) + '</th><th class="n">' + t('vaBase') + ' · ' + t('vsHead') + '</th><th class="n">' + t('vaNow') + ' · ' + t('vsHead') + '</th><th class="n">' + t('vaJoin') + '</th><th class="n">' + t('vaLeave') + '</th>' +
-        '<th class="n">' + t('vaBase') + ' · ' + t('vsNet') + '</th><th class="n">' + t('vaNow') + ' · ' + t('vsNet') + '</th><th class="n">' + t('vaChg') + '</th><th>' + t('vaFlags') + '</th></tr></thead><tbody>' +
+      '<div class="vs-wrap"><table class="vs-tbl"><thead><tr><th>' + t(DIMS.filter(function(d){ return d[0] === VA.dim; })[0][1]) + '</th><th class="n">' + vaL('base') + ' · ' + t('vsHead') + '</th><th class="n">' + vaL('now') + ' · ' + t('vsHead') + '</th><th class="n">' + t('vaJoin') + '</th><th class="n">' + t('vaLeave') + '</th>' +
+        '<th class="n">' + vaL('base') + ' · ' + t('vsNet') + '</th><th class="n">' + vaL('now') + ' · ' + t('vsNet') + '</th><th class="n">' + t('vaChg') + '</th><th>' + t('vaFlags') + '</th></tr></thead><tbody>' +
         dimRows.map(function(d){ return '<tr class="go' + (VA.dim === 'city' && d.assumed ? ' vs-assumed' : '') + '" data-dv="' + esc(d.key) + '"><td>' + esc(dimVal(VA.dim, d.key)) + '</td><td class="n">' + d.headBase + '</td><td class="n">' + d.headCur + '</td><td class="n">' + d.joiners + '</td><td class="n">' + d.leavers + '</td>' +
           '<td class="n">' + amt(d.netBase) + '</td><td class="n">' + amt(d.netCur) + '</td><td class="n">' + chg(d.net) + '</td><td>' + (d.topDriver ? '<span class="vs-flag">' + t('dv_' + d.topDriver.key) + ' ' + acctFmt(d.topDriver.amount) + '</span>' : '') + (d.flagged ? ' <small>' + d.flagged + '</small>' : '') + '</td></tr>'; }).join('') + '</tbody></table></div>' +
-      '<h3 class="vs-h">' + t('vaLines') + '</h3><div class="vs-wrap"><table class="vs-tbl"><thead><tr><th>' + t('vaLines') + '</th><th class="n">' + t('vaBase') + '</th><th class="n">' + t('vaNow') + '</th><th class="n">' + t('vaChg') + '</th></tr></thead><tbody>' +
+      '<h3 class="vs-h">' + t('vaLines') + '</h3><div class="vs-wrap"><table class="vs-tbl"><thead><tr><th>' + t('vaLines') + '</th><th class="n">' + vaL('base') + '</th><th class="n">' + vaL('now') + '</th><th class="n">' + t('vaChg') + '</th></tr></thead><tbody>' +
         r.lines.slice().sort(function(a, b){ return lineRank(a.code) - lineRank(b.code); }).map(function(l){ return '<tr><td>' + esc(lineName(l.code)) + (l.code.indexOf('d:') === 0 ? ' <small>(-)</small>' : '') + '</td><td class="n">' + amt(l.base) + '</td><td class="n">' + amt(l.cur) + '</td><td class="n">' + chg(l.change) + '</td></tr>'; }).join('') + '</tbody></table></div>' +
       '<h3 class="vs-h">' + t('vaPeople') + ' · ' + t('vsShown').replace('{n}', r.shown).replace('{t}', r.all) + '</h3><div class="vs-wrap"><table class="vs-tbl"><thead><tr><th>' + t('vsEmpNo') + '</th><th>' + t('vsName') + '</th><th>' + t('vsSponsor') + '</th><th>' + t('vsDept') + '</th><th>' + t('vsLoc') + '</th>' +
-        '<th class="n">' + t('vaBase') + '</th><th class="n">' + t('vaNow') + '</th><th class="n">' + t('vaChg') + '</th><th>' + t('vaFlags') + '</th></tr></thead><tbody>' +
+        '<th class="n">' + vaL('base') + '</th><th class="n">' + vaL('now') + '</th><th class="n">' + t('vaChg') + '</th><th>' + t('vaFlags') + '</th></tr></thead><tbody>' +
         r.people.slice(0, 400).map(function(p, i){ return '<tr class="go" data-pi="' + i + '"><td dir="ltr">' + esc(p.empNo) + '</td><td>' + esc(p.name) + '</td><td>' + esc(p.dims.payGroup) + '</td><td>' + esc(p.dims.department) + '</td><td>' + esc(p.dims.location) + '</td>' +
           '<td class="n">' + amt(p.base ? p.base.net : null) + '</td><td class="n">' + amt(p.cur ? p.cur.net : null) + '</td><td class="n">' + chg(p.net) + '</td><td>' + p.flags.map(function(f){ return '<span class="vs-flag">' + t('fl_' + f) + '</span>'; }).join('') + '</td></tr>'; }).join('') + '</tbody></table></div>';
     var re = function(){ load(); };
     $('#vaM', el).onchange = function(){ VA.month = this.value; re(); };
-    $('#vaC', el).onchange = function(){ VA.compare = this.value; re(); };
+    $('#vaC', el).onchange = function(){ if (this.value === 'pick') { VA.picking = true; draw(); return; } VA.picking = false; VA.compare = this.value; re(); };
+    if ($('#vaPk', el)) {
+      $$('[data-pk]', el).forEach(function(b){ b.onclick = function(){ $$('#vaPk input', el).forEach(function(c){ c.checked = b.dataset.pk === 'all'; }); }; });
+      $('#vaPkGo', el).onclick = function(){ var ms = $$('#vaPk input', el).filter(function(c){ return c.checked; }).map(function(c){ return c.value; }); if (!ms.length) return toast(t('vaPickLead')); VA.compare = 'pick:' + ms.join(','); VA.picking = false; re(); };
+    }
     $('#vaP', el).onchange = function(){ VA.pct = +this.value || 10; re(); };
     $('#vaN', el).onchange = function(){ VA.min = this.value === '' ? 100 : +this.value; re(); };
     var tm; $('#vaQ', el).oninput = function(){ var v = this.value; clearTimeout(tm); tm = setTimeout(function(){ VA.f.q = v; re(); }, 400); };
@@ -231,7 +241,7 @@ function varianceSection(body){
     var keys = orderLines(Object.keys(p.lines));
     drawer('<h3>' + esc(p.name) + ' <small dir="ltr">' + esc(p.empNo) + '</small></h3><p class="hr-hint">' + esc([p.dims.payGroup, p.dims.department, p.dims.title, p.dims.location, p.dims.city].join(' · ')) + '</p>' +
       '<p>' + p.flags.map(function(f){ return '<span class="vs-flag">' + t('fl_' + f) + '</span>'; }).join('') + '</p>' +
-      '<div class="vs-wrap"><table class="vs-tbl"><thead><tr><th>' + t('vaLines') + '</th><th class="n">' + t('vaBase') + '</th><th class="n">' + t('vaNow') + '</th><th class="n">' + t('vaChg') + '</th></tr></thead><tbody>' +
+      '<div class="vs-wrap"><table class="vs-tbl"><thead><tr><th>' + t('vaLines') + '</th><th class="n">' + vaL('base') + '</th><th class="n">' + vaL('now') + '</th><th class="n">' + t('vaChg') + '</th></tr></thead><tbody>' +
       keys.map(function(k){ var v = p.lines[k]; return '<tr><td>' + esc(lineName(k)) + (k.indexOf('d:') === 0 ? ' (-)' : '') + '</td><td class="n">' + amt(v[1]) + '</td><td class="n">' + amt(v[0]) + '</td><td class="n">' + chg({ diff: Math.round((v[0] - v[1]) * 100) / 100, pct: null }) + '</td></tr>'; }).join('') +
       '<tr><td><b>' + t('vsNet') + '</b></td><td class="n">' + amt(p.base ? p.base.net : null) + '</td><td class="n"><b>' + amt(p.cur ? p.cur.net : null) + '</b></td><td class="n">' + chg(p.net) + '</td></tr></tbody></table></div>' +
       (p.package != null ? '<p class="hr-hint">' + t('fl_off_package') + ': ' + acctFmt(p.package) + '</p>' : '') +
@@ -250,16 +260,16 @@ function varianceSection(body){
   function exportVar(r){
     var en = S.lang === 'en', title = t('vaTitle2') + ' ' + r.month + ' / ' + r.baseMonths.join('+');
     var pc = [{ key: 'empNo', label: t('vsEmpNo'), type: 'text' }, { key: 'name', label: t('vsName'), type: 'text' }].concat(DIMS.map(function(d){ return { key: d[0], label: t(d[1]), type: 'text' }; }))
-      .concat([{ key: 'baseNet', label: t('vaBase') + ' ' + t('vsNet'), type: 'money', sum: true }, { key: 'curNet', label: t('vaNow') + ' ' + t('vsNet'), type: 'money', sum: true }, { key: 'diff', label: t('vaChg'), type: 'money', sum: true },
-        { key: 'baseGross', label: t('vaBase') + ' ' + t('vsGross'), type: 'money', sum: true }, { key: 'curGross', label: t('vaNow') + ' ' + t('vsGross'), type: 'money', sum: true }, { key: 'flags', label: t('vaFlags'), type: 'text' }, { key: 'score', label: 'Score', type: 'int' }]);
+      .concat([{ key: 'baseNet', label: vaL('base') + ' ' + t('vsNet'), type: 'money', sum: true }, { key: 'curNet', label: vaL('now') + ' ' + t('vsNet'), type: 'money', sum: true }, { key: 'diff', label: t('vaChg'), type: 'money', sum: true },
+        { key: 'baseGross', label: vaL('base') + ' ' + t('vsGross'), type: 'money', sum: true }, { key: 'curGross', label: vaL('now') + ' ' + t('vsGross'), type: 'money', sum: true }, { key: 'flags', label: t('vaFlags'), type: 'text' }, { key: 'score', label: 'Score', type: 'int' }]);
     var prow = r.people.map(function(p){ var o = { empNo: p.empNo, name: p.name, baseNet: p.base ? p.base.net : 0, curNet: p.cur ? p.cur.net : 0, diff: p.net.diff, baseGross: p.base ? p.base.gross : 0, curGross: p.cur ? p.cur.gross : 0,
       flags: p.flags.map(function(f){ return t('fl_' + f); }).join(', '), score: p.score }; DIMS.forEach(function(d){ o[d[0]] = dimVal(d[0], p.dims[d[0]]); }); return o; });
-    var dc = [{ key: 'key', label: t('vaBy'), type: 'text' }, { key: 'headBase', label: t('vaBase') + ' ' + t('vsHead'), type: 'int', sum: true }, { key: 'headCur', label: t('vaNow') + ' ' + t('vsHead'), type: 'int', sum: true },
-      { key: 'joiners', label: t('vaJoin'), type: 'int', sum: true }, { key: 'leavers', label: t('vaLeave'), type: 'int', sum: true }, { key: 'netBase', label: t('vaBase') + ' ' + t('vsNet'), type: 'money', sum: true },
-      { key: 'netCur', label: t('vaNow') + ' ' + t('vsNet'), type: 'money', sum: true }, { key: 'diff', label: t('vaChg'), type: 'money', sum: true }];
+    var dc = [{ key: 'key', label: t('vaBy'), type: 'text' }, { key: 'headBase', label: vaL('base') + ' ' + t('vsHead'), type: 'int', sum: true }, { key: 'headCur', label: vaL('now') + ' ' + t('vsHead'), type: 'int', sum: true },
+      { key: 'joiners', label: t('vaJoin'), type: 'int', sum: true }, { key: 'leavers', label: t('vaLeave'), type: 'int', sum: true }, { key: 'netBase', label: vaL('base') + ' ' + t('vsNet'), type: 'money', sum: true },
+      { key: 'netCur', label: vaL('now') + ' ' + t('vsNet'), type: 'money', sum: true }, { key: 'diff', label: t('vaChg'), type: 'money', sum: true }];
     var sheets = [{ name: xlName(t('vaPeople')), title: title, columns: pc, rows: prow }].concat(DIMS.map(function(d){ return { name: xlName(t(d[1])), title: title + ' · ' + t(d[1]), columns: dc,
       rows: r.dims[d[0]].map(function(x){ return { key: dimVal(d[0], x.key), headBase: x.headBase, headCur: x.headCur, joiners: x.joiners, leavers: x.leavers, netBase: x.netBase, netCur: x.netCur, diff: x.net.diff }; }) }; }))
-      .concat([{ name: xlName(t('vaLines')), title: title, columns: [{ key: 'l', label: t('vaLines'), type: 'text' }, { key: 'b', label: t('vaBase'), type: 'money', sum: true }, { key: 'c', label: t('vaNow'), type: 'money', sum: true }, { key: 'd', label: t('vaChg'), type: 'money', sum: true }],
+      .concat([{ name: xlName(t('vaLines')), title: title, columns: [{ key: 'l', label: t('vaLines'), type: 'text' }, { key: 'b', label: vaL('base'), type: 'money', sum: true }, { key: 'c', label: vaL('now'), type: 'money', sum: true }, { key: 'd', label: t('vaChg'), type: 'money', sum: true }],
         rows: r.lines.slice().sort(function(a, b){ return lineRank(a.code) - lineRank(b.code); }).map(function(l){ return { l: lineName(l.code), b: l.base, c: l.cur, d: l.change.diff }; }) }]);
     loadScript('js/xl.js').then(function(){ return XL.download({ fileName: 'VARIANCE_' + r.month, title: title, lang: en ? 'en' : 'ar', company: coName(), by: S.me.name, logo: logoInk(), sheets: sheets }); })
       .then(function(){ toast(t('v2Exported')); }, function(){ toast(errText('network')); });

@@ -1334,6 +1334,11 @@ function api_payrollVarianceMonth(req, me) {
   if (cmp === 'm2') baseMonths = [addMonths_(month, -2)];
   else if (cmp === 'avg3') baseMonths = [addMonths_(month, -1), addMonths_(month, -2), addMonths_(month, -3)];
   else if (cmp === 'yoy') baseMonths = [addMonths_(month, -12)];
+  else if (/^avg([1-9]|1\d|2[0-4])$/.test(cmp)) { baseMonths = []; for (var bi = 1; bi <= Number(cmp.slice(3)); bi++) baseMonths.push(addMonths_(month, -bi)); } // average of the last N months
+  else if (/^pick:/.test(cmp)) { // any set of earlier months (2026-11-18): their average is the base
+    baseMonths = cmp.slice(5).split(',').filter(function (m, i, a) { return /^\d{4}-(0[1-9]|1[0-2])$/.test(m) && m !== month && a.indexOf(m) === i; }).slice(0, 36);
+    if (!baseMonths.length) { cmp = 'm1'; baseMonths = [addMonths_(month, -1)]; }
+  }
   else if (/^\d{4}-(0[1-9]|1[0-2])$/.test(cmp) && cmp !== month) baseMonths = [cmp];
   else { cmp = 'm1'; baseMonths = [addMonths_(month, -1)]; }
   // runs of a month: per pay group, locked ones when there are any, else drafts
