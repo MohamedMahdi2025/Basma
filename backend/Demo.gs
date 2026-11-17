@@ -242,12 +242,15 @@ function sheetImport_(req) {
  * - each month and pay group becomes one locked run (scope 'import'), payslips line for line as the sheet, with a confirmed
  *   WPS line. A net-only month (netOnly: true) gets one line, "approved net" (label), and the transfer details in the
  *   payslip info. A line matched by name instead of ID carries matchedByName in its info.
- *   { people, months: { 'YYYY-MM': [lines] }, netOnly: ['YYYY-MM'], depts, ownerNo, dryRun }
+ * - A sheet row with no ID comes as a person { noId: true, nid: 'NOID-...' }: a new, disabled record with no ID stored; notes:
+ *   { 'YYYY-MM': text } is added to the note of every run of that month (to say which rows had no ID).
+ *   { people, months: { 'YYYY-MM': [lines] }, netOnly: ['YYYY-MM'], notes, depts, ownerNo, dryRun }
  */
 function sheetYear_(req) {
   resetHomeOnly_();
   var people = Array.isArray(req.people) ? req.people : [], months = req.months || {}, depAr = req.depts || {}, dry = req.dryRun !== false;
   var netOnly = {}; (Array.isArray(req.netOnly) ? req.netOnly : []).forEach(function (m) { netOnly[String(m)] = 1; });
+  var notes = {}; Object.keys(req.notes || {}).forEach(function (m) { notes[m] = str_(req.notes[m], 900); });
   var keys = Object.keys(months).sort(), fullKeys = keys.filter(function (m) { return !netOnly[m]; });
   if (!people.length || people.length > 3000 || !keys.length || keys.some(function (m) { return !/^\d{4}-(0[1-9]|1[0-2])$/.test(m); })) fail_('bad_request');
   [SHEETS.EMP, SHEETS.PRIV, SHEETS.DEPT, SHEETS.PGRP, SHEETS.RUN, SHEETS.SLIP, SHEETS.COMP, SHEETS.WPS].forEach(forget_);
@@ -269,9 +272,11 @@ function sheetYear_(req) {
   // people
   var lastFull = fullKeys[fullKeys.length - 1], newEmps = [], updEmps = [], newPrivs = [], updPrivs = [], seenNo = {}, P = {};
   people.forEach(function (p) {
-    var nid = String(p.nid || '').trim(); if (!/^\d{10}$/.test(nid) || !str_(p.name, 120)) fail_('missing_fields');
+    var nid = String(p.nid || '').trim(), noId = !!p.noId && /^NOID-[A-Za-z0-9-]{1,30}$/.test(nid); // a sheet row with no ID: its own record, no ID stored
+    if ((!noId && !/^\d{10}$/.test(nid)) || !str_(p.name, 120)) fail_('missing_fields');
     if (P[nid]) fail_('duplicate_emp_no'); P[nid] = p;
-    var e = byNid[nid], isNew = !e;
+    // a no-ID person loaded before keeps their record: same employee number and still no ID on file
+    var e = noId ? (function () { var x = byNo[String(p.empNo || '').trim()], xp = x && privOf[x.id]; return x && !(xp && (xp.nationalId || xp.borderNo)) ? x : null; })() : byNid[nid], isNew = !e;
     if (isNew) {
       var no = String(p.empNo || '').trim(); if (!/^[A-Z0-9-]{1,12}$/.test(no) || byNo[no] || seenNo[no]) fail_('duplicate_emp_no'); seenNo[no] = 1;
       e = { id: newId_('E'), empNo: no, email: '', phone: '', role: 'employee', zoneIds: '', shiftStart: '', shiftEnd: '', workdays: '', tokenVer: 0, actHash: '', actExp: '', actTries: 0, createdAt: now };
@@ -290,6 +295,7 @@ function sheetYear_(req) {
     e.updatedAt = now;
     (isNew ? newEmps : updEmps).push(e); p.emp = e;
     var pv = privOf[e.id], fresh = !pv; if (fresh) pv = { empId: e.id };
+    if (noId) { if (fresh) { pv.updatedAt = now; newPrivs.push(pv); } return; }
     if (/^[12]\d{9}$/.test(nid)) pv.nationalId = nid; else pv.borderNo = nid;
     if (p.ibanOk && !p.payToOther) { pv.iban = String(p.iban); pv.bankName = str_(p.bank, 60); }
     pv.updatedAt = now; (fresh ? newPrivs : updPrivs).push(pv);
@@ -313,7 +319,7 @@ function sheetYear_(req) {
     });
   });
   // runs
-  var LINES = IMPORT_LINES_.concat([['deduction', 'fine', 'traffic', 'مخالفات مرورية']]);
+  var LINES = IMPORT_LINES_.concat([['deduction', 'fine', 'traffic', 'مخالفات مرورية'], ['earning', 'other_earning', 'grossDiff', 'فرق الإجمالي عن بنوده في الكشف']]);
   var runs = [], slips = [], wps = [], totals = {}, mismatch = [];
   keys.forEach(function (m) {
     var byGroup = {};
@@ -326,7 +332,8 @@ function sheetYear_(req) {
     Object.keys(byGroup).forEach(function (gid) {
       var run = { id: newId_('P'), ref: '', month: m, status: 'locked', preparedBy: 'import', preparedAt: now, approvedBy: 'import', approvedAt: now, totalsJson: '',
         note: (netOnly[m] ? 'صافي معتمد من تقرير الصرف والتسوية بلا تفصيل البنود / approved net from the disbursement report, no breakdown' :
-          'مستورد من كشف الرواتب المعتمد كما هو، بلا حصة صاحب العمل في التأمينات / imported from the approved payroll sheet as is'),
+          'مستورد من كشف الرواتب المعتمد كما هو، بلا حصة صاحب العمل في التأمينات / imported from the approved payroll sheet as is') +
+          (notes[m] ? ' | ' + notes[m] : ''),
         emailedAt: '', createdAt: now, updatedAt: now, scope: 'import', payGroupId: gid };
       var rs = [];
       byGroup[gid].forEach(function (it) {

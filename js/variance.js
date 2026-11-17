@@ -8,9 +8,9 @@ Object.assign(T.ar, {
   vsMonth:'الشهر', vsMonths:'أشهر الجدول', vsSearch:'بحث: الاسم أو الرقم الوظيفي أو الهوية/الإقامة', vsAll:'الكل', vsClear:'مسح الفلاتر', vsExcel:'تنزيل التقرير الكامل (Excel)',
   vsSponsor:'الجهة', vsDept:'الإدارة', vsPos:'المسمى', vsLoc:'الموقع', vsCity:'المدينة', vsNat:'الجنسية', vsSaudi:'سعودي/غير سعودي', vsCat:'الفئة', vsLevel:'المستوى الإداري', vsStatus:'الحالة',
   vsGrossFrom:'الإجمالي من', vsGrossTo:'إلى', vsNetFrom:'الصافي من', vsNetTo:'إلى',
-  vsHead:'عدد الموظفين', vsGross:'الإجمالي', vsDed:'الخصومات', vsNet:'الصافي', vsGosiE:'تأمينات الموظف', vsGosiR:'تأمينات صاحب العمل', vsCost:'تكلفة الشركة',
+  vsHead:'عدد الموظفين', vsGross:'إجمالي الاستحقاقات', vsDed:'إجمالي الخصومات', vsNet:'الصافي', vsGosiE:'تأمينات الموظف', vsGosiR:'تأمينات صاحب العمل', vsCost:'تكلفة الشركة',
   vsPivot:'الرواتب الشهرية حسب الجهة', vsPivotLead:'الأشهر في الصفوف والجهات في الأعمدة. الجدول لكل الموظفين (فلاتر الجهة فقط تنطبق عليه).', vsMetric:'القيمة', vsTotal:'الإجمالي',
-  vsBySponsor:'ملخص الشهر حسب الجهة (بعد الفلاتر)', vsSheet:'تفاصيل الكشف', vsShown:'{n} من {t}', vsEmpNo:'الرقم', vsName:'الاسم', vsId:'الهوية/الإقامة', vsDays:'الأيام',
+  vsBySponsor:'ملخص الشهر حسب الجهة (بعد الفلاتر)', vsSheet:'تفاصيل الكشف', vsShown:'{n} من {t}', vsEmpNo:'الرقم', vsName:'الاسم', vsId:'الهوية/الإقامة', vsDays:'أيام العمل',
   vsNone:'لا توجد مسيرات بعد.', vsSaudiY:'سعودي', vsSaudiN:'غير سعودي', lvExec:'إدارة عليا', lvMgr:'مدير', lvSup:'مشرف', lvStaff:'موظف',
   vaTitle2:'تحليل الفروقات', vaLead2:'الشهر مقابل أساس تختاره، لكل الجهات معا: من تغير ولماذا، حسب الموظف والإدارة والموقع والمدينة والجهة وغيرها. اضغط أي صف لتصفية القائمة.',
   vaCmp:'مقارنة مع', vaM1:'الشهر السابق', vaM2:'قبل شهرين', vaAvg3:'متوسط 3 أشهر', vaYoy:'نفس الشهر العام الماضي', vaPct:'نسبة التغير %', vaMin:'أقل مبلغ', vaChanged:'المتغيرون فقط',
@@ -24,9 +24,9 @@ Object.assign(T.en, {
   vsMonth:'Month', vsMonths:'Months in the table', vsSearch:'Search: name, employee no. or ID / iqama', vsAll:'All', vsClear:'Clear filters', vsExcel:'Download full report (Excel)',
   vsSponsor:'Sponsor', vsDept:'Department', vsPos:'Position', vsLoc:'Location', vsCity:'City', vsNat:'Nationality', vsSaudi:'Saudi / non-Saudi', vsCat:'Category', vsLevel:'Management level', vsStatus:'Status',
   vsGrossFrom:'Gross from', vsGrossTo:'to', vsNetFrom:'Net from', vsNetTo:'to',
-  vsHead:'Headcount', vsGross:'Gross', vsDed:'Deductions', vsNet:'Net', vsGosiE:'GOSI employee', vsGosiR:'GOSI employer', vsCost:'Company cost',
+  vsHead:'Headcount', vsGross:'Total additions', vsDed:'Total deductions', vsNet:'Net', vsGosiE:'GOSI employee', vsGosiR:'GOSI employer', vsCost:'Company cost',
   vsPivot:'Monthly payroll by sponsor', vsPivotLead:'Months in rows, sponsors in columns. Covers everyone (only the sponsor filter applies here).', vsMetric:'Value', vsTotal:'Total',
-  vsBySponsor:'This month by sponsor (after filters)', vsSheet:'Sheet detail', vsShown:'{n} of {t}', vsEmpNo:'No.', vsName:'Name', vsId:'ID / iqama', vsDays:'Days',
+  vsBySponsor:'This month by sponsor (after filters)', vsSheet:'Sheet detail', vsShown:'{n} of {t}', vsEmpNo:'No.', vsName:'Name', vsId:'ID / iqama', vsDays:'Days worked',
   vsNone:'No payroll runs yet.', vsSaudiY:'Saudi', vsSaudiN:'Non-Saudi', lvExec:'Executive', lvMgr:'Manager', lvSup:'Supervisor', lvStaff:'Staff',
   vaTitle2:'Variance analysis', vaLead2:'The month against a base you choose, all sponsors together: who changed and why, by employee, department, location, city, sponsor and more. Tap any row to filter the list.',
   vaCmp:'Compare with', vaM1:'Previous month', vaM2:'Two months ago', vaAvg3:'3-month average', vaYoy:'Same month last year', vaPct:'Change %', vaMin:'Minimum amount', vaChanged:'Changed only',
@@ -37,6 +37,14 @@ Object.assign(T.en, {
 });
 var LN = { ar: { basic:'الأساسي', housing:'السكن', transport:'النقل', allowance:'بدلات', bonus:'مكافأة', overtime:'إضافي', gosi:'تأمينات', fine:'جزاءات', advance:'سلف/قروض', loan:'قرض', unpaid_leave:'إجازة', absence:'غياب', other_deduction:'خصومات أخرى', other_earning:'استحقاق آخر' },
   en: { basic:'Basic', housing:'Housing', transport:'Transport', allowance:'Allowances', bonus:'Bonus', overtime:'Overtime', gosi:'GOSI', fine:'Fines', advance:'Advances/loans', loan:'Loan', unpaid_leave:'Leave', absence:'Absence', other_deduction:'Other deductions', other_earning:'Other earning' } };
+// Pay columns follow the payslip: basic, days worked, every other addition, total additions, deductions, total deductions, net.
+var LORD = ['basic', 'housing', 'transport', 'allowance', 'other_allowance', 'bonus', 'commission', 'incentive', 'overtime', 'other_earning',
+  'gosi', 'absence', 'late', 'unpaid_leave', 'sick_75', 'sick_unpaid', 'fine', 'advance', 'loan', 'other_deduction'];
+function lineRank(k){ var p = String(k).split(':'), i = LORD.indexOf(p[1]); return (p[0] === 'd' ? 1000 : 0) + (i < 0 ? 500 : i); }
+function orderLines(keys){ return keys.slice().sort(function(a, b){ return lineRank(a) - lineRank(b) || String(a).localeCompare(String(b)); }); }
+function payCols(keys, days){ var k = orderLines(keys), e = k.filter(function(x){ return x.indexOf('d:') !== 0; }), d = k.filter(function(x){ return x.indexOf('d:') === 0; });
+  var b = e[0] === 'e:basic' ? [e.shift()] : [], L = function(x){ return 'l:' + x; };
+  return b.map(L).concat(days ? ['days'] : []).concat(e.map(L)).concat(['gross']).concat(d.map(L)).concat(['deductions', 'net']); }
 function lineName(k){ var p = String(k).split(':'), en = S.lang === 'en'; if (p[2] && !en) return p[2]; var n = (LN[en ? 'en' : 'ar'][p[1]] || p[1]); return p[2] && en ? n + ' (' + p[2] + ')' : n; }
 function amt(n){ return n == null ? '-' : '<span class="num">' + acctFmt(n) + '</span>'; }
 function mon(m){ return new Date(Date.UTC(+m.slice(0, 4), +m.slice(5, 7) - 1, 15)).toLocaleDateString(S.lang === 'en' ? 'en-GB' : 'ar-SA-u-ca-gregory-nu-latn', { month: 'short', year: 'numeric', timeZone: 'UTC' }); }
@@ -88,7 +96,12 @@ function sheetSection(body){
   }
   function draw(){
     var r = PS.pv, f = PS.f, rows = filtered(), all = r.rows;
-    var lineKeys = r.lineKeys.filter(function(k){ return rows.some(function(x){ return x.lines[k]; }); });
+    var lineKeys = orderLines(r.lineKeys.filter(function(k){ return rows.some(function(x){ return x.lines[k]; }); }));
+    var spCols = payCols(lineKeys, false), rowCols = payCols(lineKeys, true);
+    var colLabel = function(c){ return c.indexOf('l:') === 0 ? esc(lineName(c.slice(2))) : t({ days: 'vsDays', gross: 'vsGross', deductions: 'vsDed', net: 'vsNet' }[c]); };
+    var colVal = function(x, c){ return c.indexOf('l:') === 0 ? (x.lines[c.slice(2)] || 0) : (x[c] || 0); };
+    var colCell = function(x, c){ return c === 'days' ? '<td class="n">' + (x.days == null ? '' : x.days) + '</td>' : '<td class="n">' + (c === 'net' ? '<b>' + amt(colVal(x, c)) + '</b>' : amt(colVal(x, c))) + '</td>'; };
+    var colFoot = function(list, c){ return c === 'days' ? '<td></td>' : '<td class="n">' + amt(list.reduce(function(a, x){ return a + colVal(x, c); }, 0)) + '</td>'; };
     if (PS.sort) rows.sort(function(a, b){ var u = PS.sort.indexOf('l:') === 0 ? (a.lines[PS.sort.slice(2)] || 0) : a[PS.sort], v = PS.sort.indexOf('l:') === 0 ? (b.lines[PS.sort.slice(2)] || 0) : b[PS.sort]; return (typeof u === 'number' ? u - v : String(u).localeCompare(String(v))) * PS.dir; });
     var bySp = {}; rows.forEach(function(x){ var s = bySp[x.sponsor] = bySp[x.sponsor] || { sponsor: x.sponsor, head: 0, gross: 0, deductions: 0, net: 0, gosiEmployer: 0, lines: {} }; s.head++; ['gross', 'deductions', 'net', 'gosiEmployer'].forEach(function(k){ s[k] += x[k]; }); Object.keys(x.lines).forEach(function(k){ s.lines[k] = (s.lines[k] || 0) + x.lines[k]; }); });
     var cell = function(m, s){ for (var i = 0; i < r.cells.length; i++) if (r.cells[i].month === m && r.cells[i].sponsor === s) return r.cells[i]; return null; };
@@ -113,16 +126,15 @@ function sheetSection(body){
         r.months.map(function(m){ var tot = 0; return '<tr><td>' + esc(mon(m)) + '</td>' + sps.map(function(s){ var c = cell(m, s), v = c ? c[M] || 0 : 0; tot += v; return '<td class="n">' + (M === 'headcount' ? v : amt(v)) + '</td>'; }).join('') + '<td class="n"><b>' + (M === 'headcount' ? tot : amt(tot)) + '</b></td></tr>'; }).join('') +
         '</tbody><tfoot><tr><td>' + t('vsTotal') + '</td>' + sps.map(function(s){ var v = r.months.reduce(function(a, m){ var c = cell(m, s); return a + (c ? c[M] || 0 : 0); }, 0); return '<td class="n">' + (M === 'headcount' ? v : amt(v)) + '</td>'; }).join('') +
         '<td class="n">' + (function(){ var v = r.months.reduce(function(a, m){ return a + sps.reduce(function(b, s){ var c = cell(m, s); return b + (c ? c[M] || 0 : 0); }, 0); }, 0); return M === 'headcount' ? v : amt(v); })() + '</td></tr></tfoot></table></div>' +
-      '<h3 class="vs-h">' + t('vsBySponsor') + ' · ' + esc(mon(PS.month)) + '</h3><div class="vs-wrap"><table class="vs-tbl"><thead><tr><th>' + t('vsSponsor') + '</th><th class="n">' + t('vsHead') + '</th>' + lineKeys.map(function(k){ return '<th class="n">' + esc(lineName(k)) + '</th>'; }).join('') +
-        '<th class="n">' + t('vsGross') + '</th><th class="n">' + t('vsDed') + '</th><th class="n">' + t('vsNet') + '</th></tr></thead><tbody>' +
-        Object.keys(bySp).map(function(k){ var s = bySp[k]; return '<tr class="go" data-sp="' + esc(k) + '"><td>' + esc(k) + '</td><td class="n">' + s.head + '</td>' + lineKeys.map(function(l){ return '<td class="n">' + amt(s.lines[l] || 0) + '</td>'; }).join('') + '<td class="n">' + amt(s.gross) + '</td><td class="n">' + amt(s.deductions) + '</td><td class="n"><b>' + amt(s.net) + '</b></td></tr>'; }).join('') +
-        '</tbody><tfoot><tr><td>' + t('vsTotal') + '</td><td class="n">' + rows.length + '</td>' + lineKeys.map(function(l){ return '<td class="n">' + amt(rows.reduce(function(a, x){ return a + (x.lines[l] || 0); }, 0)) + '</td>'; }).join('') + '<td class="n">' + amt(sum(rows, 'gross')) + '</td><td class="n">' + amt(sum(rows, 'deductions')) + '</td><td class="n">' + amt(sum(rows, 'net')) + '</td></tr></tfoot></table></div>' +
+      '<h3 class="vs-h">' + t('vsBySponsor') + ' · ' + esc(mon(PS.month)) + '</h3><div class="vs-wrap"><table class="vs-tbl"><thead><tr><th>' + t('vsSponsor') + '</th><th class="n">' + t('vsHead') + '</th>' + spCols.map(function(c){ return '<th class="n">' + colLabel(c) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+        Object.keys(bySp).map(function(k){ var s = bySp[k]; return '<tr class="go" data-sp="' + esc(k) + '"><td>' + esc(k) + '</td><td class="n">' + s.head + '</td>' + spCols.map(function(c){ return colCell(s, c); }).join('') + '</tr>'; }).join('') +
+        '</tbody><tfoot><tr><td>' + t('vsTotal') + '</td><td class="n">' + rows.length + '</td>' + spCols.map(function(c){ return colFoot(rows, c); }).join('') + '</tr></tfoot></table></div>' +
       '<h3 class="vs-h">' + t('vsSheet') + ' · ' + t('vsShown').replace('{n}', rows.length).replace('{t}', all.length) + '</h3><div class="vs-wrap"><table class="vs-tbl"><thead><tr>' + th('sponsor', t('vsSponsor')) + th('empNo', t('vsEmpNo')) + th('name', t('vsName')) + th('idNo', t('vsId')) +
-        th('department', t('vsDept')) + th('title', t('vsPos')) + th('location', t('vsLoc')) + th('city', t('vsCity')) + th('nationality', t('vsNat')) + th('days', t('vsDays'), 'n') +
-        lineKeys.map(function(k){ return th('l:' + k, esc(lineName(k)), 'n'); }).join('') + th('gross', t('vsGross'), 'n') + th('deductions', t('vsDed'), 'n') + th('net', t('vsNet'), 'n') + '</tr></thead><tbody>' +
-        rows.map(function(x){ return '<tr><td>' + esc(x.sponsor) + '</td><td dir="ltr">' + esc(x.empNo) + '</td><td>' + esc(x.name) + '</td><td dir="ltr">' + esc(x.idNo) + '</td><td>' + esc(x.department) + '</td><td>' + esc(x.title) + '</td><td>' + esc(x.location) + '</td><td>' + esc(x.city) + '</td><td>' + esc(x.nationality) + '</td><td class="n">' + x.days + '</td>' +
-          lineKeys.map(function(k){ return '<td class="n">' + amt(x.lines[k] || 0) + '</td>'; }).join('') + '<td class="n">' + amt(x.gross) + '</td><td class="n">' + amt(x.deductions) + '</td><td class="n"><b>' + amt(x.net) + '</b></td></tr>'; }).join('') +
-        '</tbody><tfoot><tr><td colspan="10">' + t('vsTotal') + '</td>' + lineKeys.map(function(l){ return '<td class="n">' + amt(rows.reduce(function(a, x){ return a + (x.lines[l] || 0); }, 0)) + '</td>'; }).join('') + '<td class="n">' + amt(sum(rows, 'gross')) + '</td><td class="n">' + amt(sum(rows, 'deductions')) + '</td><td class="n">' + amt(sum(rows, 'net')) + '</td></tr></tfoot></table></div>';
+        th('department', t('vsDept')) + th('title', t('vsPos')) + th('location', t('vsLoc')) + th('city', t('vsCity')) + th('nationality', t('vsNat')) +
+        rowCols.map(function(c){ return th(c, colLabel(c), 'n'); }).join('') + '</tr></thead><tbody>' +
+        rows.map(function(x){ return '<tr><td>' + esc(x.sponsor) + '</td><td dir="ltr">' + esc(x.empNo) + '</td><td>' + esc(x.name) + '</td><td dir="ltr">' + esc(x.idNo) + '</td><td>' + esc(x.department) + '</td><td>' + esc(x.title) + '</td><td>' + esc(x.location) + '</td><td>' + esc(x.city) + '</td><td>' + esc(x.nationality) + '</td>' +
+          rowCols.map(function(c){ return colCell(x, c); }).join('') + '</tr>'; }).join('') +
+        '</tbody><tfoot><tr><td colspan="9">' + t('vsTotal') + '</td>' + rowCols.map(function(c){ return colFoot(rows, c); }).join('') + '</tr></tfoot></table></div>';
     $('#vsM', el).onchange = function(){ PS.month = this.value; load(); };
     $('#vsN', el).onchange = function(){ PS.n = +this.value; load(); };
     $('#vsMet', el).onchange = function(){ PS.metric = this.value; draw(); };
@@ -137,9 +149,10 @@ function sheetSection(body){
     var r = PS.pv, en = S.lang === 'en', title = t('vsTitle') + ' ' + PS.month;
     var cols = [{ key: 'sponsor', label: t('vsSponsor'), type: 'text' }, { key: 'empNo', label: t('vsEmpNo'), type: 'text' }, { key: 'name', label: t('vsName'), type: 'text' }, { key: 'idNo', label: t('vsId'), type: 'text' },
       { key: 'department', label: t('vsDept'), type: 'text' }, { key: 'title', label: t('vsPos'), type: 'text' }, { key: 'level', label: t('vsLevel'), type: 'text' }, { key: 'employmentType', label: t('vsCat'), type: 'text' },
-      { key: 'location', label: t('vsLoc'), type: 'text' }, { key: 'city', label: t('vsCity'), type: 'text' }, { key: 'nationality', label: t('vsNat'), type: 'text' }, { key: 'status', label: t('vsStatus'), type: 'text' }, { key: 'days', label: t('vsDays'), type: 'num' }]
-      .concat(lineKeys.map(function(k){ return { key: 'L' + k, label: lineName(k), type: 'money', sum: true }; }))
-      .concat([{ key: 'gross', label: t('vsGross'), type: 'money', sum: true }, { key: 'deductions', label: t('vsDed'), type: 'money', sum: true }, { key: 'net', label: t('vsNet'), type: 'money', sum: true }, { key: 'gosiEmployer', label: t('vsGosiR'), type: 'money', sum: true }]);
+      { key: 'location', label: t('vsLoc'), type: 'text' }, { key: 'city', label: t('vsCity'), type: 'text' }, { key: 'nationality', label: t('vsNat'), type: 'text' }, { key: 'status', label: t('vsStatus'), type: 'text' }]
+      .concat(payCols(lineKeys, true).map(function(c){ return c === 'days' ? { key: 'days', label: t('vsDays'), type: 'num' } : c.indexOf('l:') === 0 ? { key: 'L' + c.slice(2), label: lineName(c.slice(2)), type: 'money', sum: true }
+        : { key: c, label: t({ gross: 'vsGross', deductions: 'vsDed', net: 'vsNet' }[c]), type: 'money', sum: true }; }))
+      .concat([{ key: 'gosiEmployer', label: t('vsGosiR'), type: 'money', sum: true }]);
     var flat = function(list){ return list.map(function(x){ var o = Object.assign({}, x, { level: t(level(x.title)) }); lineKeys.forEach(function(k){ o['L' + k] = x.lines[k] || 0; }); delete o.lines; return o; }); };
     var pivotCols = [{ key: 'month', label: t('vsMonth'), type: 'text' }].concat(sps.map(function(s, i){ return { key: 's' + i, label: s, type: 'money', sum: true }; })).concat([{ key: 'total', label: t('vsTotal'), type: 'money', sum: true }]);
     var pivot = function(metric){ return r.months.map(function(m){ var o = { month: m }, tt = 0; sps.forEach(function(s, i){ var c = cell(m, s), v = c ? c[metric] || 0 : 0; o['s' + i] = v; tt += v; }); o.total = tt; return o; }); };
@@ -194,7 +207,7 @@ function varianceSection(body){
         dimRows.map(function(d){ return '<tr class="go' + (VA.dim === 'city' && d.assumed ? ' vs-assumed' : '') + '" data-dv="' + esc(d.key) + '"><td>' + esc(dimVal(VA.dim, d.key)) + '</td><td class="n">' + d.headBase + '</td><td class="n">' + d.headCur + '</td><td class="n">' + d.joiners + '</td><td class="n">' + d.leavers + '</td>' +
           '<td class="n">' + amt(d.netBase) + '</td><td class="n">' + amt(d.netCur) + '</td><td class="n">' + chg(d.net) + '</td><td>' + (d.topDriver ? '<span class="vs-flag">' + t('dv_' + d.topDriver.key) + ' ' + acctFmt(d.topDriver.amount) + '</span>' : '') + (d.flagged ? ' <small>' + d.flagged + '</small>' : '') + '</td></tr>'; }).join('') + '</tbody></table></div>' +
       '<h3 class="vs-h">' + t('vaLines') + '</h3><div class="vs-wrap"><table class="vs-tbl"><thead><tr><th>' + t('vaLines') + '</th><th class="n">' + t('vaBase') + '</th><th class="n">' + t('vaNow') + '</th><th class="n">' + t('vaChg') + '</th></tr></thead><tbody>' +
-        r.lines.map(function(l){ return '<tr><td>' + esc(lineName(l.code)) + (l.code.indexOf('d:') === 0 ? ' <small>(-)</small>' : '') + '</td><td class="n">' + amt(l.base) + '</td><td class="n">' + amt(l.cur) + '</td><td class="n">' + chg(l.change) + '</td></tr>'; }).join('') + '</tbody></table></div>' +
+        r.lines.slice().sort(function(a, b){ return lineRank(a.code) - lineRank(b.code); }).map(function(l){ return '<tr><td>' + esc(lineName(l.code)) + (l.code.indexOf('d:') === 0 ? ' <small>(-)</small>' : '') + '</td><td class="n">' + amt(l.base) + '</td><td class="n">' + amt(l.cur) + '</td><td class="n">' + chg(l.change) + '</td></tr>'; }).join('') + '</tbody></table></div>' +
       '<h3 class="vs-h">' + t('vaPeople') + ' · ' + t('vsShown').replace('{n}', r.shown).replace('{t}', r.all) + '</h3><div class="vs-wrap"><table class="vs-tbl"><thead><tr><th>' + t('vsEmpNo') + '</th><th>' + t('vsName') + '</th><th>' + t('vsSponsor') + '</th><th>' + t('vsDept') + '</th><th>' + t('vsLoc') + '</th>' +
         '<th class="n">' + t('vaBase') + '</th><th class="n">' + t('vaNow') + '</th><th class="n">' + t('vaChg') + '</th><th>' + t('vaFlags') + '</th></tr></thead><tbody>' +
         r.people.slice(0, 400).map(function(p, i){ return '<tr class="go" data-pi="' + i + '"><td dir="ltr">' + esc(p.empNo) + '</td><td>' + esc(p.name) + '</td><td>' + esc(p.dims.payGroup) + '</td><td>' + esc(p.dims.department) + '</td><td>' + esc(p.dims.location) + '</td>' +
@@ -215,7 +228,7 @@ function varianceSection(body){
     $('#vaX', el).onclick = function(){ exportVar(r); };
   }
   function person(p){
-    var keys = Object.keys(p.lines);
+    var keys = orderLines(Object.keys(p.lines));
     drawer('<h3>' + esc(p.name) + ' <small dir="ltr">' + esc(p.empNo) + '</small></h3><p class="hr-hint">' + esc([p.dims.payGroup, p.dims.department, p.dims.title, p.dims.location, p.dims.city].join(' · ')) + '</p>' +
       '<p>' + p.flags.map(function(f){ return '<span class="vs-flag">' + t('fl_' + f) + '</span>'; }).join('') + '</p>' +
       '<div class="vs-wrap"><table class="vs-tbl"><thead><tr><th>' + t('vaLines') + '</th><th class="n">' + t('vaBase') + '</th><th class="n">' + t('vaNow') + '</th><th class="n">' + t('vaChg') + '</th></tr></thead><tbody>' +
@@ -247,7 +260,7 @@ function varianceSection(body){
     var sheets = [{ name: xlName(t('vaPeople')), title: title, columns: pc, rows: prow }].concat(DIMS.map(function(d){ return { name: xlName(t(d[1])), title: title + ' · ' + t(d[1]), columns: dc,
       rows: r.dims[d[0]].map(function(x){ return { key: dimVal(d[0], x.key), headBase: x.headBase, headCur: x.headCur, joiners: x.joiners, leavers: x.leavers, netBase: x.netBase, netCur: x.netCur, diff: x.net.diff }; }) }; }))
       .concat([{ name: xlName(t('vaLines')), title: title, columns: [{ key: 'l', label: t('vaLines'), type: 'text' }, { key: 'b', label: t('vaBase'), type: 'money', sum: true }, { key: 'c', label: t('vaNow'), type: 'money', sum: true }, { key: 'd', label: t('vaChg'), type: 'money', sum: true }],
-        rows: r.lines.map(function(l){ return { l: lineName(l.code), b: l.base, c: l.cur, d: l.change.diff }; }) }]);
+        rows: r.lines.slice().sort(function(a, b){ return lineRank(a.code) - lineRank(b.code); }).map(function(l){ return { l: lineName(l.code), b: l.base, c: l.cur, d: l.change.diff }; }) }]);
     loadScript('js/xl.js').then(function(){ return XL.download({ fileName: 'VARIANCE_' + r.month, title: title, lang: en ? 'en' : 'ar', company: coName(), by: S.me.name, logo: logoInk(), sheets: sheets }); })
       .then(function(){ toast(t('v2Exported')); }, function(){ toast(errText('network')); });
   }

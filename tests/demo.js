@@ -290,18 +290,20 @@ console.log('Sheet import');
   // full-period reload over the import (sheetYear)
   const Y = extra => C.call(Object.assign({ action: 'demoData', setupKey: 'k', mode: 'sheetYear', ownerNo: '1000', depts: {} }, extra));
   const yPeople = people.map(p => Object.assign({}, p, { months: p.nid === '2000000003' ? ['2026-07', '2026-08'] : ['2026-07', '2026-08', '2026-09'] }))
-    .concat([P({ nid: '2000000009', empNo: '1009', name: 'Early Leaver', months: ['2026-07'] })]);
-  const yMonths = { '2026-07': [L('2000000009', { basic: 1000, gross: 1000, net: 1000 }), L('1000000001', { basic: 4000, gross: 4000, net: 4000 })],
+    .concat([P({ nid: '2000000009', empNo: '1009', name: 'Early Leaver', months: ['2026-07'] }), P({ nid: 'NOID-2026-07-R5', noId: true, empNo: '1010', name: 'بلا هوية', months: ['2026-07'] })]);
+  const yMonths = { '2026-07': [L('NOID-2026-07-R5', { basic: 500, gross: 500, net: 500 }), L('2000000009', { basic: 1000, gross: 1000, net: 1000 }), L('1000000001', { basic: 4000, gross: 4000, net: 4000 })],
     '2026-08': months['2026-08'], '2026-09': months['2026-09'], '2026-10': [L('1000000001', { net: 3900, transferred: 4000, advanceSelf: 100 })] };
   x = Y({ people: yPeople, months: yMonths, netOnly: ['2026-10'] });
-  ok(x.ok && x.dryRun && x.removed.runs === 6 && x.newEmployees === 1 && x.newDisabled === 1, 'reload dry run: removes the old import, adds the early leaver', x);
+  ok(x.ok && x.dryRun && x.removed.runs === 6 && x.newEmployees === 2 && x.newDisabled === 2, 'reload dry run: removes the old import, adds the early leaver', x);
   fresh2(); ok(C.ctx.readAll_('payrollRuns').length === 6, 'a reload dry run changes nothing');
   ok(!Y({ people: yPeople.map(p => p.nid === '2000000009' ? Object.assign({}, p, { empNo: '1001' }) : p), months: yMonths, netOnly: ['2026-10'], dryRun: false }).ok, 'a taken employee number is refused');
-  x = Y({ people: yPeople, months: yMonths, netOnly: ['2026-10'], dryRun: false });
+  x = Y({ people: yPeople, months: yMonths, netOnly: ['2026-10'], notes: { '2026-07': 'NOTE-JUL' }, dryRun: false });
   fresh2();
   const e2 = Object.fromEntries(C.ctx.readAll_('employees').map(e => [String(e.empNo), e]));
   ok(x.ok && e2['1009'] && e2['1009'].status === 'disabled' && e2['1009'].lastWorkingDay === '2026-07-31' && e2['1000'].role === 'admin', 'new early leaver numbered and disabled; owner kept', x);
   const runs2 = C.ctx.readAll_('payrollRuns');
+  ok(e2['1010'] && e2['1010'].status === 'disabled' && !C.ctx.readAll_('empPrivate').some(p => p.empId === e2['1010'].id && (p.nationalId || p.borderNo)), 'a sheet row with no ID gets its own record and no ID');
+  ok(runs2.filter(r => r.month === '2026-07').every(r => r.note.indexOf('NOTE-JUL') >= 0) && runs2.filter(r => r.month === '2026-08').every(r => r.note.indexOf('NOTE-JUL') < 0), 'the month note is on that month runs only');
   ok(runs2.every(r => r.status === 'locked' && r.scope === 'import') && runs2.some(r => r.month === '2026-10'), 'every month is a locked imported run, October included', runs2.map(r => r.month));
   const oct = C.ctx.readAll_('payslips').find(s => s.month === '2026-10');
   ok(oct && Number(oct.net) === 3900 && JSON.parse(oct.infoJson).info.advanceSelf === 100, 'net-only month: one approved-net line, transfer details kept', oct && oct.infoJson);

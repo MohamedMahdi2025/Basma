@@ -479,7 +479,7 @@ var REPORT_FNS = {
         gosiEmployer: Number(sl.gosiEmployer), iban: iban ? iban.slice(0, 4) + '••••' + iban.slice(-4) : '' }));
     });
     var m = function (k) { return col_(k, 'money', { sum: true }); };
-    return { columns: EMP_COLS.concat([col_('payslip', 'id'), col_('days', 'int'), m('basic'), m('housing'), m('transport'), m('allowances'), m('overtime'), m('otherEarnings'), m('gross'),
+    return { columns: EMP_COLS.concat([col_('payslip', 'id'), m('basic'), col_('days', 'int'), m('housing'), m('transport'), m('allowances'), m('overtime'), m('otherEarnings'), m('gross'),
       m('gosi'), m('advances'), m('leaveDeductions'), m('otherDeductions'), m('deductions'), m('net'), m('gosiEmployer'), col_('iban', 'id')]), rows: rows, run: publicRun_(run),
       checks: [noIban ? { level: 'error', code: 'no_iban', count: noIban } : null, neg ? { level: 'error', code: 'net_negative', count: neg } : null, warn ? { level: 'warn', code: 'slip_warnings', count: warn } : null,
         { level: 'info', code: 'control_total', count: rows.length, value: r2_(rows.reduce(function (t, r) { return t + r.net; }, 0)) }].filter(Boolean), wide: true };

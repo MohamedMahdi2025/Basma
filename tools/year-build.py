@@ -66,7 +66,14 @@ for i, r in enumerate(ws.iter_rows(min_row=5, max_row=400, values_only=True), 5)
         line['nid'] = hits.pop(); line['matchedByName'] = True; months['2026-01'].append(line); jan_ids.add(line['nid']); matched.append((i, line['name'] or line['nameEn'], rid, line['nid'], line['net']))
     else:
         unmatched.append((i, line['name'] or line['nameEn'], rid, line['net'], len(hits)))
+        line['nid'] = 'NOID-2026-01-R%d' % i; line['noId'] = True; line['idOnSheet'] = rid; months['2026-01'].append(line)
 
+# one spelling per sponsor
+ALIAS = {'out source': 'Outsource', 'outsource': 'Outsource', 'شركة الشعلة السريعة': 'مؤسسة الشعلة السريعة'}
+for m in months:
+    for x in months[m]:
+        k = (x.get('sponsor') or '').strip().lower()
+        if k in ALIAS: x['sponsor'] = ALIAS[k]
 # people
 full = [m for m in sorted(months) if m not in NET_ONLY]
 people = {}
@@ -80,6 +87,9 @@ for m in sorted(months):
         for k in ('name', 'nameEn', 'nationality', 'department', 'position', 'sponsor', 'costCenter', 'reliability', 'payMethod', 'bank', 'iban'):
             if x.get(k): p[k] = x[k]
         if x.get('joined'): p['joined'] = x['joined']
+for m in sorted(months):
+    for x in months[m]:
+        if x.get('noId'): people[x['nid']]['noId'] = True
 for p in people.values():
     p['isSaudi'] = p.get('nationality') == 'سعودي' or p.get('reliability') == 'Saudi' or str(p['nid']).startswith('1')
     p['ibanOk'] = bool(re.fullmatch(r'SA\d{22}', p.get('iban') or ''))
@@ -91,7 +101,12 @@ for p in people.values():
 for p in new:
     p['empNo'] = str(nxt); nxt += 1
 missing_old = [n for n in numbers if n not in people]
-payload = {'people': list(people.values()), 'months': months, 'netOnly': NET_ONLY}
+jan_note = 'موظفون في الكشف بلا رقم هوية صالح، أضيفوا بسجل بلا هوية: ' + '، '.join('%s (صف %d، %s ر.س%s)' % (u[1], u[0], ('%.2f' % u[3]).rstrip('0').rstrip('.'), ('، الرقم في الكشف ' + u[2]) if u[2] and u[2] != 'None' else '') for u in unmatched) if unmatched else ''
+for m in months:
+    for x in months[m]:
+        if 'grossParts' in x and abs(x['grossParts'] - x['gross']) > 0.01: x['grossDiff'] = round(x['gross'] - x['grossParts'], 2); print('gross differs from its parts:', m, x['nid'], x['gross'], x['grossParts'])
+payload = {'people': list(people.values()), 'months': months, 'netOnly': NET_ONLY, 'notes': {'2026-01': jan_note} if jan_note else {}}
+print('January note:', jan_note)
 json.dump(payload, open(os.path.join(folder, '_import/year-payload.json'), 'w', encoding='utf-8'), ensure_ascii=False)
 with open(os.path.join(folder, '_import/numbers-year.csv'), 'w', encoding='utf-8-sig') as fh:
     fh.write('empNo,nationalId,name,joined,sponsor,new\n')
