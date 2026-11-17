@@ -163,5 +163,53 @@ const { payrollMonths } = require('../tools/demo-load');
 ok(JSON.stringify(payrollMonths(['2026-07', '2026-09'])) === '["2026-07","2026-08","2026-09"]' && JSON.stringify(payrollMonths(['2026-12', '2027-01'])) === '["2026-12","2027-01"]',
   'the loader runs every month of the range, across a year end', payrollMonths(['2026-07', '2026-09']));
 
+// ---------------- clean start: keep one employee, remove everyone else and the payroll books ----------------
+console.log('Reset (keep one)');
+{
+  const C = load({ setupKeyHash: sha('k'), now: Date.parse('2026-10-05T06:00:00Z') });
+  const bt = C.call({ action: 'bootstrap', setupKey: 'k', name: 'المالك', empNo: '1' });
+  const dv = new Authenticator();
+  const e1 = C.call({ action: 'enrollBegin', empNo: '1', code: bt.activationCode });
+  const tk = C.call({ action: 'enrollFinish', credential: dv.create(e1.options) }).token;
+  const owner = C.ctx.readAll_('employees')[0];
+  C.call({ action: 'empSave', token: tk, emp: { empNo: '2', name: 'موظف أ', managerId: owner.id } });
+  C.call({ action: 'empSave', token: tk, emp: { empNo: '3', name: 'موظف ب' } });
+  C.ctx.READ_MEMO_ = {};
+  const others = C.ctx.readAll_('employees').filter(e => e.id !== owner.id);
+  // the owner reports to a removed person, a department is headed by one, and rows about each person
+  C.ctx.update_('employees', Object.assign({}, C.ctx.readAll_('employees').filter(e => e.id === owner.id)[0], { managerId: others[0].id }));
+  C.ctx.appendMany_('departments', [{ id: 'D1', code: 'D1', nameAr: 'قسم', headEmpId: others[0].id, status: 'active' }]);
+  C.ctx.appendMany_('empPrivate', [{ empId: others[0].id, iban: 'SA0380000000608010167519' }, { empId: owner.id, iban: 'SA0380000000608010167519' }]);
+  C.ctx.appendMany_('punches', [{ id: 'PX1', empId: others[1].id, date: '2026-10-01', type: 'in', status: 'ok' }, { id: 'PX2', empId: owner.id, date: '2026-10-01', type: 'in', status: 'ok' }]);
+  C.ctx.appendMany_('payrollRuns', [{ id: 'RX', month: '2026-09', status: 'locked' }]);
+  C.ctx.appendMany_('payslips', [{ id: 'SX1', runId: 'RX', month: '2026-09', empId: owner.id }, { id: 'SX2', runId: 'RX', month: '2026-09', empId: others[0].id }]);
+  C.ctx.appendMany_('snapshots', [{ id: 'NX', snapId: '2026-09' }]);
+  const R = extra => C.call(Object.assign({ action: 'demoData', setupKey: 'k' }, extra));
+  let x = R({ mode: 'people' });
+  ok(x.ok && x.people.length === 3 && x.people.every(p => !('iban' in p) && !('phone' in p)), 'people lists everyone, nothing private', x);
+  x = C.call({ action: 'demoData', setupKey: 'wrong', mode: 'people' });
+  ok(!x.ok && x.error === 'bad_setup_key', 'people needs the setup key', x);
+  x = R({ mode: 'reset', keepEmpNo: '1' });
+  ok(!x.ok && x.error === 'bad_request', 'reset needs confirm RESET', x);
+  x = R({ mode: 'reset', keepEmpNo: '99', confirm: 'RESET' });
+  ok(!x.ok && x.error === 'not_found', 'reset refuses an unknown number (nothing deleted)', x);
+  C.ctx.READ_MEMO_ = {};
+  ok(C.ctx.readAll_('employees').length === 3, 'a refused reset changes nothing');
+  const auditBefore = C.ctx.readAll_('audit').length;
+  x = R({ mode: 'reset', keepEmpNo: '1', confirm: 'RESET' });
+  ok(x.ok && x.kept.id === owner.id && x.removed.employees === 2, 'reset keeps the one employee', x);
+  C.ctx.READ_MEMO_ = {};
+  const emps = C.ctx.readAll_('employees');
+  ok(emps.length === 1 && emps[0].id === owner.id && emps[0].managerId === '', 'only the owner stays, the link to a removed manager is blanked', emps);
+  ok(C.ctx.readAll_('departments')[0].headEmpId === '', 'a department headed by a removed person loses the head, not the department');
+  ok(C.ctx.readAll_('empPrivate').map(p => p.empId).join() === owner.id, 'private rows of removed people are gone, the owner keeps theirs');
+  ok(C.ctx.readAll_('punches').map(p => p.id).join() === 'PX2', 'punches of removed people are gone, the owner keeps theirs');
+  ok(C.ctx.readAll_('credentials').every(c => c.empId === owner.id) && C.ctx.readAll_('credentials').length >= 1, 'the owner keeps their device');
+  ok(!C.ctx.readAll_('payrollRuns').length && !C.ctx.readAll_('payslips').length && !C.ctx.readAll_('snapshots').length, 'the payroll books are empty');
+  ok(C.ctx.readAll_('audit').length >= auditBefore, 'the audit trail stays');
+  x = C.call({ action: 'me', token: tk });
+  ok(x.ok, 'the owner is still signed in after the reset', x);
+}
+
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);

@@ -5,6 +5,8 @@
 //   node tools/demo-load.js payroll 2026-07 2026-09   (a locked demo payroll for each month in the range, demo people only;
 //                                                      months that already have a demo run are skipped)
 //   node tools/demo-load.js purge                (deletes every row the load added, nothing else)
+//   node tools/demo-load.js people               (every employee: id, number, name, role, status)
+//   node tools/demo-load.js reset <empNo>        (keeps that employee; deletes all others and the payroll books)
 // The setup key is read from ../apps-script/SETUP-KEY.txt and never printed.
 'use strict';
 const fs = require('fs'), path = require('path');
@@ -97,6 +99,9 @@ if (require.main === module) (async () => {
   const [mode, file] = process.argv.slice(2);
   if (mode === 'status') return console.log(JSON.stringify(await api({ mode: 'status' }), null, 1));
   if (mode === 'purge') return console.log(JSON.stringify(await api({ mode: 'purge' }), null, 1));
+  if (mode === 'people') return console.log(JSON.stringify(await api({ mode: 'people' }), null, 1));
+  // reset <empNo>: keeps that one employee, deletes everyone else and every row about them, empties the payroll books
+  if (mode === 'reset') return console.log(JSON.stringify(await api({ mode: 'reset', keepEmpNo: process.argv[3], confirm: 'RESET' }), null, 1));
   if (mode === 'payroll') {
     const months = payrollMonths(process.argv.slice(3));
     if (!months.length) throw new Error('usage: payroll <YYYY-MM> [YYYY-MM]   (every month from the first to the last)');

@@ -80,7 +80,85 @@ function api_demoData(req) {
   if (mode === 'import') return withLock_(function () { return demoImport_(req); });
   if (mode === 'purge') return withLock_(function () { return demoPurge_(); });
   if (mode === 'payroll') return withLock_(function () { return demoPayroll_(req); });
+  if (mode === 'people') return resetPeople_();
+  if (mode === 'reset') return withLock_(function () { return resetKeepOne_(req); });
   fail_('bad_request');
+}
+
+/**
+ * Clean start for the home organisation (owner only, same setup key; modes of demoData, so no new public action):
+ *   people  every employee: id, number, name, role, status (nothing private)
+ *   reset   { keepEmpNo, confirm: 'RESET' }: keeps that one employee, deletes every other employee and every row about
+ *           them (any tab with a person column: sign-in devices, private file, packages, punches, requests ...), and
+ *           empties the payroll books (runs, payslips, adjustments, snapshots, WPS, reconciliation, retro pay) so real
+ *           salary history can be loaded. The audit trail and settings stay. Links from what stays to a removed person
+ *           (manager, department head) are blanked.
+ */
+var RESET_PERSON_COLS_ = ['empId', 'subjectId', 'menteeId', 'mentorId', 'incumbentEmpId', 'fromEmpId', 'toEmpId', 'raterId', 'peerId'];
+var RESET_LINK_COLS_ = ['managerId', 'headEmpId'];
+var RESET_PAY_TABS_ = ['payrollRuns', 'payslips', 'adjustments', 'snapshots', 'wpsLog', 'salaryRecon', 'retroLog'];
+var RESET_SKIP_TABS_ = { settings: 1, audit: 1, demoLedger: 1 };
+
+function resetHomeOnly_() { if (ORG_ && !ORG_.home) fail_('bad_request'); }
+
+function resetPeople_() {
+  resetHomeOnly_();
+  forget_(SHEETS.EMP);
+  return { ok: true, people: readAll_(SHEETS.EMP).map(function (e) {
+    return { id: String(e.id), empNo: String(e.empNo), name: String(e.name || ''), role: String(e.role || ''), status: String(e.status || '') };
+  }) };
+}
+
+/** Rewrites one tab: drops rows `drop(o)` says, blanks link columns that point at a removed person. Returns rows removed. */
+function resetRewrite_(tab, drop, gone) {
+  var sh = sheet_(tab), last = sh.getLastRow();
+  if (last < 2) return 0;
+  var width = Math.max(sh.getLastColumn(), HEADERS[tab].length);
+  var head = sh.getRange(1, 1, 1, width).getValues()[0].map(String);
+  var vals = sh.getRange(2, 1, last - 1, width).getValues(), changed = false;
+  var keep = vals.filter(function (row) {
+    var o = {};
+    head.forEach(function (k, i) { if (k) o[k] = row[i] instanceof Date ? cellDate_(row[i]) : row[i]; });
+    return !drop(o);
+  });
+  keep.forEach(function (row) {
+    head.forEach(function (k, i) { if (RESET_LINK_COLS_.indexOf(k) >= 0 && gone[String(row[i])]) { row[i] = ''; changed = true; } });
+  });
+  var removed = vals.length - keep.length;
+  if (!removed && !changed) return 0;
+  forget_(tab); bumpTab_(tab);
+  sh.getRange(2, 1, last - 1, width).clearContent();
+  if (keep.length) sh.getRange(2, 1, keep.length, width).setValues(keep.map(function (row) {
+    return row.map(function (v) { return typeof v === 'string' && v !== '' ? "'" + v : v; });
+  }));
+  bumpTab_(tab);
+  return removed;
+}
+
+function resetKeepOne_(req) {
+  resetHomeOnly_();
+  if (String(req.confirm || '') !== 'RESET') fail_('bad_request');
+  var no = String(req.keepEmpNo || '').trim();
+  forget_(SHEETS.EMP);
+  var emps = readAll_(SHEETS.EMP), me = emps.filter(function (e) { return String(e.empNo) === no; });
+  if (!no || me.length !== 1) fail_('not_found');
+  var keepId = String(me[0].id), gone = {};
+  emps.forEach(function (e) { if (String(e.id) !== keepId) gone[String(e.id)] = 1; });
+  var removed = {};
+  Object.keys(HEADERS).forEach(function (tab) {
+    if (RESET_SKIP_TABS_[tab]) return;
+    var h = HEADERS[tab], pay = RESET_PAY_TABS_.indexOf(tab) >= 0;
+    var cols = RESET_PERSON_COLS_.filter(function (c) { return h.indexOf(c) >= 0; });
+    var isEmp = tab === SHEETS.EMP;
+    if (!pay && !isEmp && !cols.length && !h.some(function (c) { return RESET_LINK_COLS_.indexOf(c) >= 0; })) return;
+    var n = resetRewrite_(tab, function (o) {
+      if (pay) return true;
+      if (isEmp) return String(o.id) !== keepId;
+      return cols.some(function (c) { return gone[String(o[c])]; });
+    }, gone);
+    if (n) removed[tab] = n;
+  });
+  return { ok: true, kept: { id: keepId, empNo: no, name: String(me[0].name || '') }, removed: removed };
 }
 
 function demoStatus_() {
