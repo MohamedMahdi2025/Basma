@@ -254,7 +254,8 @@ Tabs delegations (DLG), wpsLog (WPS), salaryRecon (REC). Setting `wpsDueDay` (10
 
 ## The v2 shell (design system v2, built 2026-10-01; docs/research/2026-09-30-hr-ui-design-study.md)
 
-index.html `renderShell` draws a cream sidebar with seven areas plus a top bar. The top bar holds the Ctrl K search,
+index.html `renderShell` draws a cream sidebar with the areas in `AREAS` (seven at first; 14 since the 2026-10-20
+lifecycle menu: 12 in the sidebar, profile and account in its foot) plus a top bar. The top bar holds the Ctrl K search,
 an attendance chip, the bell, the language switch and an avatar menu. On phones the sidebar becomes a drawer and a
 bottom bar appears, with check-in in the centre. `AREAS` lists each area's sub-pages, and each sub-page has an `ok()`
 role predicate: `R()` gives the file roles, plus `isHr`, `isAdmin` and `salaryOk`. An admin alone sees no pay pages,
@@ -518,6 +519,22 @@ Trap: never use the class `.me` (or `.bot`) inside a module: index.html styles `
   activation filled in. That enrolment retires the old device. Tests: tests/move.js.
 - **When everyone has moved:** replace the old repo with the redirect page prepared in `../app-redirect`.
 - **Android 1.3.0:** loads the new home; allowNavigation covers both domains.
+
+## Owner clean start and redesign study (2026-11-17)
+
+- **Demo purge done on org 1001:** 7,631 ledgered rows removed.
+- **Clean start** (Demo.gs, owner setup key, home organisation only):
+  - `node tools/demo-load.js people` lists the employees.
+  - `node tools/demo-load.js reset <empNo>` keeps that employee, deletes every other one and every row that names
+    them in a person column (`RESET_PERSON_COLS_`), and blanks manager and department-head links. It also empties
+    the payroll books (`RESET_PAY_TABS_`). Audit and settings stay.
+  - Run on 2026-11-17, keeping 1000.
+- **Next salary load:** with one employee left, the two-person payroll rules (second approver, never your own salary)
+  need a second HR or payroll person before the history can be loaded and approved.
+- **clasp on this PC:** installed, but not logged in. v174 went live through the Apps Script editor, so `deploy.sh`
+  stops at `clasp push` until `clasp login` succeeds.
+- **Redesign study:** docs/research/2026-11-17-system-redesign-rea.md, with evidence files beside it. It proposes
+  6 spaces plus one Inbox and Search, keeping the lifecycle order inside People. Phase 0 fixes are listed there.
 
 ## Wave 7, tenancy audit, platform address (2026-11-08)
 

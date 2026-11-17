@@ -6,7 +6,7 @@ systems in the world."
 **Verdict:** BASMA no longer has a feature problem; it has an **experience** problem. The 2026-10-25 gap check already
 put modules at parity with Workday, SAP, Rippling, HiBob and the Saudi players. What separates BASMA from the best now
 is how much a person must know to get a job done:
-- **88 destinations** for HR across 14 areas;
+- **92 destinations** for HR across 14 areas (88 tabs plus 4 full pages);
 - 9 of 14 areas behind "More" on phones;
 - three approval screens;
 - **14 stacked style layers** carrying 474 `!important` declarations.
@@ -194,6 +194,12 @@ The spaces are organised by who is acting, not by lifecycle stage:
 | **Inbox** (top bar, everyone) | | Every approval and task in one list, filters, decide in place, bulk approve, plus "tap again" or confirm for irreversible acts. Replaces `requests:inbox`, `requests:centre`, `pay:approvals` and the bell list |
 | **Search** (`/` or Ctrl K, everyone) | | People for everyone (name, job, department, work contact; private fields stay role-gated on the server), pages, records, help |
 
+**The owner's 2026-10-20 lifecycle order is kept, not reversed** (`2026-10-20-lifecycle-menu-rea.md`). Inside People,
+the sub-pages run hire → onboard → employees → relations → offboard in the same order. Time, leave, pay and growth
+move out because employees use them for themselves every day, which is what pulled employees into 25 lifecycle
+destinations. HR still walks the cycle in one space, and the 20-step hire-to-exit journey must still show at most one
+jump back (re-measured in Phase 1).
+
 **Targets** (measured with the same counting scripts after each phase):
 
 | Role | Today | Target |
@@ -209,7 +215,9 @@ daily may sit behind "More".
 ### 5.3 Role homes ("Today")
 
 - **Employee:**
-  1. The check-in card: state, the shift, a slide-to-check-in gesture, and the last punch's receipt.
+  1. The check-in card: state, the shift, a slide-to-check-in gesture, and the last punch's receipt. The gesture must
+     end on `pointerup` and call `credentials.get` straight from it, with no `await` before it; that is the Safari
+     Face ID trap in CLAUDE.md.
   2. My requests and anything needing me.
   3. Balance and next payslip tiles.
   4. Up to 3 nudges.
@@ -291,7 +299,12 @@ Phases 1–5 can run in this order without waiting on the owner. Phase 6 needs a
 
 ## 8. Sources
 
-The full per-claim reference lists (about 100 URLs) are kept with the research passes. Key sources:
+The full reports, with every per-claim reference (about 100 URLs), are saved beside this study:
+- `2026-11-17-rea-evidence-global.md` (pass A);
+- `2026-11-17-rea-evidence-ksa.md` (pass B);
+- `2026-11-17-rea-evidence-basma-audit.md` (pass C).
+
+Key sources:
 
 - **Workday** navigation: erp.umd.edu/newsroom/new-homepage-design-coming-workday-july-6-2026; Sana:
   blog.workday.com/en-us/rising-product-announcements.html
