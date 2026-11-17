@@ -84,6 +84,7 @@ function api_demoData(req) {
   if (mode === 'reset') return withLock_(function () { return resetKeepOne_(req); });
   if (mode === 'sheetImport') return withLock_(function () { return sheetImport_(req); });
   if (mode === 'packageSet') return withLock_(function () { return packageSet_(req); });
+  if (mode === 'sheetYear') return withLock_(function () { return sheetYear_(req); });
   fail_('bad_request');
 }
 
@@ -224,6 +225,148 @@ function sheetImport_(req) {
   privUpd.forEach(function (x) { update_(SHEETS.PRIV, x); }); appendMany_(SHEETS.PRIV, privs);
   appendMany_(SHEETS.COMP, comps); appendMany_(SHEETS.RUN, runs); appendMany_(SHEETS.SLIP, slips); appendMany_(SHEETS.WPS, wps);
   audit_('import', 'sheet_import', '', { employees: newEmps.length, packages: comps.length, runs: runs.length, payslips: slips.length, months: keys });
+  return out;
+}
+
+/**
+ * The approved payroll sheets for a whole period, loaded again over an earlier import (owner only, home organisation;
+ * 2026-11-18). Unlike sheetImport_ it runs on an organisation that already has people:
+ * - every run with scope 'import' (and its payslips and WPS lines) and every package entered by 'import' is removed first;
+ *   runs made in BASMA itself and packages approved by the owner (packageSet) are never touched;
+ * - people are matched by national ID / border number (empPrivate); a match keeps its employee number, role, devices and
+ *   sign-in; its job fields follow the latest full month it appears in. Unknown IDs become new employees with the number
+ *   the caller sends (refused if that number is taken); one not paid in the latest full month is disabled with the last
+ *   day of the last month they were paid;
+ * - packages are rebuilt from the full months (basic, housing, transport, other allowances), a new approved row from each
+ *   month the amounts change, none dated at or after the first month of an owner package for that person;
+ * - each month and pay group becomes one locked run (scope 'import'), payslips line for line as the sheet, with a confirmed
+ *   WPS line. A net-only month (netOnly: true) gets one line, "approved net" (label), and the transfer details in the
+ *   payslip info. A line matched by name instead of ID carries matchedByName in its info.
+ *   { people, months: { 'YYYY-MM': [lines] }, netOnly: ['YYYY-MM'], depts, ownerNo, dryRun }
+ */
+function sheetYear_(req) {
+  resetHomeOnly_();
+  var people = Array.isArray(req.people) ? req.people : [], months = req.months || {}, depAr = req.depts || {}, dry = req.dryRun !== false;
+  var netOnly = {}; (Array.isArray(req.netOnly) ? req.netOnly : []).forEach(function (m) { netOnly[String(m)] = 1; });
+  var keys = Object.keys(months).sort(), fullKeys = keys.filter(function (m) { return !netOnly[m]; });
+  if (!people.length || people.length > 3000 || !keys.length || keys.some(function (m) { return !/^\d{4}-(0[1-9]|1[0-2])$/.test(m); })) fail_('bad_request');
+  [SHEETS.EMP, SHEETS.PRIV, SHEETS.DEPT, SHEETS.PGRP, SHEETS.RUN, SHEETS.SLIP, SHEETS.COMP, SHEETS.WPS].forEach(forget_);
+  var now = new Date().toISOString(), num = function (v) { var x = Number(v); return isFinite(x) ? Math.round(x * 100) / 100 : 0; };
+  var emps = readAll_(SHEETS.EMP), empById = {}, byNo = {}, privOf = {}, byNid = {};
+  emps.forEach(function (e) { empById[e.id] = e; byNo[String(e.empNo)] = e; });
+  readAll_(SHEETS.PRIV).forEach(function (p) { privOf[p.empId] = p; var n = String(p.nationalId || p.borderNo || ''); if (n && empById[p.empId]) byNid[n] = empById[p.empId]; });
+  // departments and pay groups by name (new ones added)
+  var depts = readAll_(SHEETS.DEPT), dByName = {}, newDepts = [];
+  depts.forEach(function (d) { dByName[normName_(d.nameEn || '')] = d; dByName[normName_(d.nameAr || '')] = d; });
+  var groups = readAll_(SHEETS.PGRP), gByName = {}, newGroups = [];
+  groups.forEach(function (g) { if (g.status !== 'deleted') gByName[normName_(g.nameAr || '')] = g; });
+  var dOf = function (n) { n = str_(n, 80); if (!n) return null; var d = dByName[normName_(n)]; if (d) return d;
+    d = { id: newId_('D'), code: '', nameAr: str_(depAr[n], 80) || n, nameEn: n, parentId: '', headEmpId: '', costCenter: '', status: 'active', createdAt: now, updatedAt: now };
+    dByName[normName_(n)] = d; newDepts.push(d); return d; };
+  var gOf = function (n) { n = str_(n, 120); if (!n) return null; var g = gByName[normName_(n)]; if (g) return g;
+    g = { id: newId_('G'), code: '', nameAr: n, nameEn: '', payDay: 0, cutoffDay: 0, costCenter: '', wpsEstablishment: n, managersJson: '[]', status: 'active', createdBy: 'import', createdAt: now, updatedAt: now };
+    gByName[normName_(n)] = g; newGroups.push(g); return g; };
+  // people
+  var lastFull = fullKeys[fullKeys.length - 1], newEmps = [], updEmps = [], newPrivs = [], updPrivs = [], seenNo = {}, P = {};
+  people.forEach(function (p) {
+    var nid = String(p.nid || '').trim(); if (!/^\d{10}$/.test(nid) || !str_(p.name, 120)) fail_('missing_fields');
+    if (P[nid]) fail_('duplicate_emp_no'); P[nid] = p;
+    var e = byNid[nid], isNew = !e;
+    if (isNew) {
+      var no = String(p.empNo || '').trim(); if (!/^[A-Z0-9-]{1,12}$/.test(no) || byNo[no] || seenNo[no]) fail_('duplicate_emp_no'); seenNo[no] = 1;
+      e = { id: newId_('E'), empNo: no, email: '', phone: '', role: 'employee', zoneIds: '', shiftStart: '', shiftEnd: '', workdays: '', tokenVer: 0, actHash: '', actExp: '', actTries: 0, createdAt: now };
+    }
+    var d = dOf(p.department), g = gOf(p.sponsor), inLast = (p.months || []).indexOf(lastFull) >= 0 || (p.months || []).some(function (m) { return m > lastFull; });
+    if (p.name) e.name = str_(p.name, 120);
+    if (isNew) e.nameEn = str_(p.nameEn, 120) || (/[A-Za-z]/.test(e.name) && !/[؀-ۿ]/.test(e.name) ? e.name : '');
+    if (d) { e.department = d.nameAr; e.departmentId = d.id; }
+    if (p.position) e.title = str_(p.position, 80);
+    if (isoDate_(p.joined)) e.hireDate = isoDate_(p.joined);
+    if (p.nationality) { e.nationality = str_(p.nationality, 40); e.isSaudi = !!p.isSaudi; }
+    if (p.costCenter) e.workLocation = str_(p.costCenter, 80);
+    if (p.sponsor) e.employmentType = String(p.sponsor) === 'Outsource' ? 'outsourced' : (str_(p.reliability, 40) || e.employmentType || '');
+    if (g) e.payGroupId = g.id;
+    if (isNew) { var lastM = (p.months || []).slice().sort().pop() || lastFull, lwd = inLast ? '' : monthLast_(lastM); e.lastWorkingDay = lwd; e.status = lwd && lwd <= today_() ? 'disabled' : 'active'; }
+    e.updatedAt = now;
+    (isNew ? newEmps : updEmps).push(e); p.emp = e;
+    var pv = privOf[e.id], fresh = !pv; if (fresh) pv = { empId: e.id };
+    if (/^[12]\d{9}$/.test(nid)) pv.nationalId = nid; else pv.borderNo = nid;
+    if (p.ibanOk && !p.payToOther) { pv.iban = String(p.iban); pv.bankName = str_(p.bank, 60); }
+    pv.updatedAt = now; (fresh ? newPrivs : updPrivs).push(pv);
+  });
+  // what goes: earlier imported runs, their payslips and WPS lines, imported packages
+  var oldRuns = {}; readAll_(SHEETS.RUN).forEach(function (r) { if (String(r.scope) === 'import') oldRuns[r.id] = 1; });
+  var ownerFrom = {}; readAll_(SHEETS.COMP).forEach(function (c) { if (c.enteredBy === 'owner' && c.status === 'approved') { var f = String(c.effectiveFrom).slice(0, 7); if (!ownerFrom[c.empId] || f < ownerFrom[c.empId]) ownerFrom[c.empId] = f; } });
+  var removed = { runs: Object.keys(oldRuns).length, payslips: readAll_(SHEETS.SLIP).filter(function (s) { return oldRuns[s.runId]; }).length,
+    packages: readAll_(SHEETS.COMP).filter(function (c) { return c.enteredBy === 'import'; }).length };
+  // packages from the full months
+  var comps = [];
+  people.forEach(function (p) {
+    var prev = '';
+    fullKeys.forEach(function (m) {
+      var x = (months[m] || []).filter(function (l) { return String(l.nid) === String(p.nid); })[0];
+      if (!x || !(num(x.basic) > 0) || (ownerFrom[p.emp.id] && m >= ownerFrom[p.emp.id])) return;
+      var sig = [num(x.basic), num(x.housing), num(x.transport), num(x.otherAllow)].join('|'); if (sig === prev) return; prev = sig;
+      var c = compRowFrom_({ empId: p.emp.id, effectiveFrom: m + '-01', basic: num(x.basic), housing: num(x.housing), transport: num(x.transport),
+        other: num(x.otherAllow) ? { other: num(x.otherAllow) } : {}, reason: 'كشف الرواتب المعتمد ' + m }, 'import');
+      c.status = 'approved'; c.approvedBy = 'import'; c.approvedAt = now; comps.push(c);
+    });
+  });
+  // runs
+  var LINES = IMPORT_LINES_.concat([['deduction', 'fine', 'traffic', 'مخالفات مرورية']]);
+  var runs = [], slips = [], wps = [], totals = {}, mismatch = [];
+  keys.forEach(function (m) {
+    var byGroup = {};
+    (months[m] || []).forEach(function (x) {
+      var p = P[String(x.nid)]; if (!p) fail_('missing_fields');
+      if (!num(x.gross) && !num(x.totalDed) && !num(x.net)) return;
+      var gid = p.emp.payGroupId || ''; (byGroup[gid] = byGroup[gid] || []).push({ x: x, p: p });
+    });
+    var mt = { people: 0, gross: 0, deductions: 0, net: 0 };
+    Object.keys(byGroup).forEach(function (gid) {
+      var run = { id: newId_('P'), ref: '', month: m, status: 'locked', preparedBy: 'import', preparedAt: now, approvedBy: 'import', approvedAt: now, totalsJson: '',
+        note: (netOnly[m] ? 'صافي معتمد من تقرير الصرف والتسوية بلا تفصيل البنود / approved net from the disbursement report, no breakdown' :
+          'مستورد من كشف الرواتب المعتمد كما هو، بلا حصة صاحب العمل في التأمينات / imported from the approved payroll sheet as is'),
+        emailedAt: '', createdAt: now, updatedAt: now, scope: 'import', payGroupId: gid };
+      var rs = [];
+      byGroup[gid].forEach(function (it) {
+        var x = it.x, lines = [], info = { imported: true, payMethod: str_(x.payMethod, 80), sheetRow: x.row || '' };
+        if (x.matchedByName) info.matchedByName = true;
+        if (netOnly[m]) {
+          if (num(x.net)) lines.push({ kind: 'earning', code: 'other_earning', label: 'صافي الراتب المعتمد', amount: num(x.net) });
+          info.transferred = num(x.transferred); info.advanceSelf = num(x.advanceSelf); info.advanceOther = num(x.advanceOther); info.action = str_(x.action, 300); info.route = str_(x.route, 40);
+        } else LINES.forEach(function (d) { var a = num(x[d[2]]); if (a) { var l = { kind: d[0], code: d[1], amount: a }; if (d[3]) l.label = d[3]; lines.push(l); } });
+        var calc = finish_({ lines: lines, warnings: [], info: info });
+        if (Math.abs(calc.net - num(x.net)) > 0.01) mismatch.push({ month: m, nid: String(x.nid), sheet: num(x.net), net: calc.net });
+        rs.push(slipRow_(it.p.emp, run, calc, null));
+      });
+      run.totalsJson = JSON.stringify(totals_(rs));
+      wps.push({ id: newId_('W'), ref: '', runId: run.id, month: m, status: 'confirmed', rows: rs.length, total: totals_(rs).net, generatedBy: 'import', generatedAt: now,
+        uploadedBy: 'import', uploadedAt: now, bankRef: '', confirmedBy: 'import', confirmedAt: now, note: 'دفع خارج بصمة قبل الاستيراد / paid outside BASMA before the import' });
+      runs.push(run); slips = slips.concat(rs);
+      rs.forEach(function (s) { mt.people++; mt.gross += s.gross; mt.deductions += s.deductions; mt.net += s.net; });
+    });
+    ['gross', 'deductions', 'net'].forEach(function (k) { mt[k] = r2_(mt[k]); }); totals[m] = mt;
+  });
+  if (mismatch.length) return { ok: false, error: 'net_mismatch', mismatch: mismatch.slice(0, 50) };
+  var out = { ok: true, dryRun: dry, removed: removed, newDepartments: newDepts.length, newPayGroups: newGroups.map(function (g) { return g.nameAr; }),
+    newEmployees: newEmps.length, newDisabled: newEmps.filter(function (e) { return e.status === 'disabled'; }).length, updatedEmployees: updEmps.length,
+    packages: comps.length, runs: runs.length, payslips: slips.length, months: totals };
+  if (dry) return out;
+  var dropRun = function (o) { return !!oldRuns[o.runId]; };
+  resetRewrite_(SHEETS.SLIP, dropRun, {}); resetRewrite_(SHEETS.WPS, dropRun, {});
+  resetRewrite_(SHEETS.RUN, function (o) { return String(o.scope) === 'import'; }, {});
+  resetRewrite_(SHEETS.COMP, function (o) { return o.enteredBy === 'import'; }, {});
+  [SHEETS.SLIP, SHEETS.WPS, SHEETS.RUN, SHEETS.COMP].forEach(forget_);
+  [['department', newDepts, SHEETS.DEPT, 'code'], ['payGroup', newGroups, SHEETS.PGRP, 'code'], ['salary', comps, SHEETS.COMP, 'ref'], ['payroll', runs, SHEETS.RUN, 'ref'],
+   ['payslip', slips, SHEETS.SLIP, 'ref'], ['wps', wps, SHEETS.WPS, 'ref']].forEach(function (k) {
+    var refs = nextRefs_(k[0], k[1].length, codesOf_(readAll_(k[2]), k[3])); k[1].forEach(function (row, i) { row[k[3]] = refs[i]; });
+  });
+  appendMany_(SHEETS.DEPT, newDepts); appendMany_(SHEETS.PGRP, newGroups);
+  if (updEmps.length) updateMany_(SHEETS.EMP, updEmps); appendMany_(SHEETS.EMP, newEmps);
+  updPrivs.forEach(function (x) { update_(SHEETS.PRIV, x); }); appendMany_(SHEETS.PRIV, newPrivs);
+  appendMany_(SHEETS.COMP, comps); appendMany_(SHEETS.RUN, runs); appendMany_(SHEETS.SLIP, slips); appendMany_(SHEETS.WPS, wps);
+  audit_('import', 'sheet_year', '', { months: keys, removed: removed, newEmployees: newEmps.length, packages: comps.length, runs: runs.length, payslips: slips.length });
   return out;
 }
 
