@@ -217,6 +217,7 @@ function goOk(dest){
   if (!dest) return null;
   if (Array.isArray(dest)) { for (var i = 0; i < dest.length; i++) if (goOk(dest[i])) return dest[i]; return null; }
   if (typeof areaOf !== 'function' || typeof subsOf !== 'function') return null;
+  if (typeof MOVED === 'object' && MOVED[String(dest)]) dest = MOVED[String(dest)]; // pages moved by the lifecycle menu (2026-10-20)
   var p = String(dest).split(':'), a = areaOf(p[0]); if (!a) return null;
   var subs = subsOf(a); if (!subs.length) return null;
   return !p[1] || subs.some(function(s){ return s.id === p[1]; }) ? dest : null;

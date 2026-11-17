@@ -38,7 +38,8 @@ Object.assign(T.ar, {
   pw_no_iban:'لا يوجد آيبان', pw_no_package:'لا يوجد راتب معتمد', pw_gosi_cohort_missing:'فئة التأمينات غير محددة', pw_fine_capped:'الجزاء خفض إلى 5 أيام', pw_advance_deferred:'أجل جزء من السلفة (50%)',
   pw_deductions_capped:'خفضت الخصومات إلى نصف الأجر', pw_gosi_housing_zero:'لا بدل سكن نقدي: إن كان السكن عينيا يحسب للتأمينات بأجر شهرين أساسي سنويا', pw_gosi_gcc_national:'مواطن خليجي: تطبق نسب بلده (مد الحماية التأمينية)', pw_eos_basis_below_actual:'المكافأة حسبت على الأجر الفعلي (المادة 84)؛ إعداد الأساسي والسكن أقل من النظام', pw_net_negative:'الصافي سالب', e_run_exists:'يوجد مسير لهذا الشهر.', e_future_month:'لا يمكن إعداد مسير لشهر لم يأت.',
   e_month_locked:'مسير هذا الشهر معتمد ومقفل. أضف البند في الشهر التالي.', e_email_not_configured:'البريد غير مفعل بعد.', e_missing_hire_date:'تاريخ المباشرة غير مسجل.',
-  prRecalcDone:'أعيد الحساب', prApproved:'اعتمد المسير وأقفل', prGosiNote:'حصة الشركة في التأمينات'
+  prRecalcDone:'أعيد الحساب', prApproved:'اعتمد المسير وأقفل', prGosiNote:'حصة الشركة في التأمينات',
+  prSureLock:'اضغط مرة أخرى للاعتماد والقفل، ولا يمكن التراجع', prSureDel:'اضغط مرة أخرى لحذف المسودة'
 });
 Object.assign(T.en, {
   pdTitle:'Payroll at a glance', pdLastNet:'Last run net', pdDrafts:'Runs awaiting approval', pdDraftsNote:'approved by someone other than the preparer', pdTrend:'Net pay month by month',
@@ -67,7 +68,8 @@ Object.assign(T.en, {
   pw_no_iban:'No IBAN', pw_no_package:'No approved salary', pw_gosi_cohort_missing:'GOSI group not set', pw_fine_capped:'Fine cut to 5 days', pw_advance_deferred:'Part of the advance deferred (50%)',
   pw_deductions_capped:'Deductions cut to half the wage', pw_gosi_housing_zero:'No cash housing: housing in kind counts as two months basic a year for GOSI', pw_gosi_gcc_national:'GCC national: home-country GOSI rates apply (GCC extension)', pw_eos_basis_below_actual:'Award on the actual wage (Art. 84); the basic + housing setting is below the law', pw_net_negative:'Net below zero', e_run_exists:'This month already has a run.', e_future_month:'That month has not come yet.',
   e_month_locked:'This month is approved and locked. Add the line next month.', e_email_not_configured:'Email is not switched on yet.', e_missing_hire_date:'No start date on file.',
-  prRecalcDone:'Recalculated', prApproved:'Payroll approved and locked', prGosiNote:'Employer GOSI share'
+  prRecalcDone:'Recalculated', prApproved:'Payroll approved and locked', prGosiNote:'Employer GOSI share',
+  prSureLock:'Tap again to approve and lock. This cannot be undone', prSureDel:'Tap again to discard the draft'
 });
 
 var css = '' +
@@ -345,8 +347,15 @@ function runView(body, id){
     slipTable($('#ptBox', el), r, run);
     var msg = $('#prMsg', el), act = function(action, done){ return function(){ this.disabled = true; var b = this; api(action, { id: run.id }).then(function(x){ b.disabled = false; if (!x.ok) { msg.textContent = errText(x.error); if (x.error === 'email_not_configured') msg.textContent = t('prEmailNo'); return; } done(x); }); }; };
     if ($('#prRe', el)) $('#prRe', el).onclick = act('payrollRecalc', function(){ toast(t('prRecalcDone')); runView(body, id); });
-    if ($('#prOk', el)) $('#prOk', el).onclick = act('payrollApprove', function(){ toast(t('prApproved')); runView(body, id); });
-    if ($('#prDel', el)) $('#prDel', el).onclick = act('payrollDelete', function(){ S.prRun = null; section(body); });
+    // Locking is final and deleting loses the draft: both need a second tap within 4 s (the button says what will happen).
+    var twice = function(key, handler){ return function(){
+      var b = this;
+      if (b.dataset.armed) { delete b.dataset.armed; b.innerHTML = b.dataset.old; return handler.call(b); }
+      b.dataset.old = b.innerHTML; b.dataset.armed = '1'; b.textContent = t(key);
+      setTimeout(function(){ if (b.isConnected && b.dataset.armed && !b.disabled) { delete b.dataset.armed; b.innerHTML = b.dataset.old; } }, 4000);
+    }; };
+    if ($('#prOk', el)) $('#prOk', el).onclick = twice('prSureLock', act('payrollApprove', function(){ toast(t('prApproved')); runView(body, id); }));
+    if ($('#prDel', el)) $('#prDel', el).onclick = twice('prSureDel', act('payrollDelete', function(){ S.prRun = null; section(body); }));
     if ($('#prMail', el)) $('#prMail', el).onclick = act('payrollEmail', function(x){
       toast(t('prEmailed') + ': ' + x.queued);
       var pump = function(n){ api('jobRun', {}, true).then(function(r){ if (r && r.ok && r.left > 0 && n < 60) setTimeout(function(){ pump(n + 1); }, 3000); else if (r && r.ok && r.dead > 0) toast(errText('email_send_failed')); }); };

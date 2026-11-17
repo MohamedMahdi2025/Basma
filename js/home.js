@@ -8,8 +8,8 @@
 'use strict';
 var V = window.Viz;
 // labels home needs before the profile and payroll modules load (they showed as raw keys: mfSar, pw_no_package)
-Object.assign(T.ar, { mfSar: T.ar.mfSar || 'ر.س', hmNoPkg:'{n} بلا راتب معتمد' });
-Object.assign(T.en, { mfSar: T.en.mfSar || 'SAR', hmNoPkg:'{n} without an approved salary' });
+Object.assign(T.ar, { mfSar: T.ar.mfSar || 'ر.س', hmNoPkg:'{n} بلا راتب معتمد', hmMiss:'تعذر تحميل بعض البطاقات. تحقق من الاتصال ثم أعد المحاولة.' });
+Object.assign(T.en, { mfSar: T.en.mfSar || 'SAR', hmNoPkg:'{n} without an approved salary', hmMiss:'Some cards could not load. Check the connection and try again.' });
 Object.assign(T.ar, { dyTitle:'تفاصيل يوم {d}', dyStatus:'الحالة', dyIn:'الحضور', dyOut:'الانصراف', dyLate:'التأخير', dyWorked:'ساعات العمل', dyShift:'الدوام', dyLeave:'الإجازة', dyHoliday:'العطلة', dyFix:'طلب تصحيح لهذا اليوم', dyNone:'-', dyMin:'{n} دقيقة', dyLog:'سجل الشهر كاملا' });
 Object.assign(T.en, { dyTitle:'Details for {d}', dyStatus:'Status', dyIn:'Check-in', dyOut:'Check-out', dyLate:'Late', dyWorked:'Hours worked', dyShift:'Shift', dyLeave:'Leave', dyHoliday:'Holiday', dyFix:'Ask to correct this day', dyNone:'-', dyMin:'{n} min', dyLog:'Whole month log' });
 Object.assign(T.ar, { tiTitle:'لمحات فريقك', tiLead:'ما يحتاج انتباهك في فريقك اليوم، من بيانات الحضور والطلبات.', tiNone:'فريقك بخير اليوم: لا تأخير ولا غياب ولا طلبات متأخرة.',
@@ -321,6 +321,7 @@ function dailyHtml(){ return '<section class="hm-daily" aria-label="' + esc(t('h
   '.hm-otd p{margin:0;font-size:15px;line-height:1.65;color:var(--ink,#14202F)}' +
   '.hm-otd a{display:inline-flex;align-items:center;gap:6px;margin-top:6px;font-size:13px;font-weight:600;color:var(--brand,#2F5D8C);text-decoration:none}.hm-otd a:hover{text-decoration:underline}' +
   '.hm-daily [hidden]{display:none!important}' +
+  '.hm-miss{display:flex;align-items:center;gap:12px;margin:0 0 16px;padding:12px 16px;border-radius:12px;background:color-mix(in srgb,var(--red,#B3261E) 8%,transparent);color:var(--ink,#14202F);font-size:14px}.hm-miss span{flex:1}' +
   '@media (max-width:760px){.hm-daily{grid-template-columns:1fr}.hm-wis blockquote{font-size:17px}}';
   document.head.appendChild(st); })();
 function render(main){
@@ -341,6 +342,15 @@ function render(main){
   var body = $('#hmBody', main);
   if (scope === 'company') companyHome(body); else myHome(body);
   if (window.welcomeCard) welcomeCard(main);
+}
+
+/** A card's data did not arrive: one notice above the cards with a retry, instead of skeletons that never fill (2026-11-17). */
+function miss(el){
+  var host = el && el.parentNode; if (!host || $('#hmMiss', host)) return;
+  var d = document.createElement('div'); d.id = 'hmMiss'; d.className = 'hm-miss'; d.setAttribute('role', 'status');
+  d.innerHTML = ph('wifi-slash') + '<span>' + esc(t('hmMiss')) + '</span><button type="button" class="btn btn-line btn-sm">' + esc(t('retry')) + '</button>';
+  host.insertBefore(d, el);
+  d.querySelector('button').onclick = function(){ goArea('home'); };
 }
 
 // ---------------- company ----------------
@@ -410,7 +420,7 @@ function companyHome(el){
   function paintIns(){ if (R0 && R14 && calDone && live()) insPaint($('#hmCoIns .hm-ins-list', el), companyInsights(R0, R14, CAL), 'ciNone'); }
   function paintRows(){ paintIns(); var box = $('#hmRows', el); if (box && R0) { var again = !!box.dataset.p; box.dataset.p = '1'; box.innerHTML = rowsHtml(kinds, R0, R14); if (again) still(box); V.wire(box); } }
   apiFresh('dashboard', { from: today, to: today }, function(r){
-    if (!live() || !r.ok) return;
+    if (!live()) return; if (!r || !r.ok) return miss(el);
     R0 = r; paintRows();
     var A = r.attendance || {}, T0 = A.totals || {}, W = r.workforce || {}, Rq = r.requests || {}, C = r.cost || {};
     var rate = T0.attendanceRate, pend = Rq.pending || {}, open = (pend.manager || 0) + (pend.hr || 0) + (pend.payroll || 0);
@@ -434,11 +444,11 @@ function companyHome(el){
     V.wire(el);
   }, true);
   // the last 14 days feed the sparklines; one more read after the page is drawn, never before it
-  apiFresh('dashboard', { from: addDays(today, -13), to: today }, function(r){ if (!live() || !r.ok) return; R14 = r; paintRows(); }, true);
+  apiFresh('dashboard', { from: addDays(today, -13), to: today }, function(r){ if (!live()) return; if (!r || !r.ok) return miss(el); R14 = r; paintRows(); }, true);
   tasksInto($('#hmDecide .hm-rows', el), true);
   if (canCal) apiFresh('complianceCalendar', {}, function(r){
     if (r && r.ok) CAL = r; calDone = true; paintIns();
-    var box = $('#hmCal .hm-rows', el); if (!live() || !box || !r.ok) return;
+    var box = $('#hmCal .hm-rows', el); if (!live() || !box) return; if (!r || !r.ok) return miss(el);
     var items = r.items.filter(function(x){ return x.level !== 'info'; }).slice(0, 5);
     box.innerHTML = items.length ? items.map(function(x){
       var who = x.emp ? esc(x.emp.name) : x.month ? esc(x.month) : '';
@@ -473,18 +483,18 @@ function myHome(el){
     [['#hmMineRow', mineRow], ['#hmTeamRow', teamRow]].forEach(function(x){ var box = $(x[0], el); if (!box) return; var again = !!box.dataset.p; box.dataset.p = '1'; box.innerHTML = x[1](D); if (again) still(box); V.wire(box); });
   }); }
   var month = riyadhToday().slice(0, 7);
-  apiFresh('myTasks', {}, function(r){ if (!live() || !r.ok) return; D.tasks = r; tasksPaint($('#hmTasks .hm-rows', el), r, false); paint(); }, true);
-  apiFresh('myHistory', {}, function(r){ if (!live() || !r.ok) return; D.hist = r; paint(); monthStrip($('#hmMonth', el), r); }, true);
-  apiFresh('myHistory', { month: prevMonth(month) }, function(r){ if (!live() || !r.ok) return; D.prev = r; paint(); }, true);
-  apiFresh('myRequests', {}, function(r){ if (!live() || !r.ok) return; D.leave = r; paint(); }, true);
-  apiFresh('mySlips', {}, function(r){ if (!live() || !r.ok) return; D.slips = r; paint(); }, true);
-  apiFresh('holidayList', {}, function(r){ if (!live() || !r.ok) return; D.hol = r; paint(); }, true);
+  apiFresh('myTasks', {}, function(r){ if (!live()) return; if (!r || !r.ok) return miss(el); D.tasks = r; tasksPaint($('#hmTasks .hm-rows', el), r, false); paint(); }, true);
+  apiFresh('myHistory', {}, function(r){ if (!live()) return; if (!r || !r.ok) return miss(el); D.hist = r; paint(); monthStrip($('#hmMonth', el), r); }, true);
+  apiFresh('myHistory', { month: prevMonth(month) }, function(r){ if (!live()) return; if (!r || !r.ok) return miss(el); D.prev = r; paint(); }, true);
+  apiFresh('myRequests', {}, function(r){ if (!live()) return; if (!r || !r.ok) return miss(el); D.leave = r; paint(); }, true);
+  apiFresh('mySlips', {}, function(r){ if (!live()) return; if (!r || !r.ok) return miss(el); D.slips = r; paint(); }, true);
+  apiFresh('holidayList', {}, function(r){ if (!live()) return; if (!r || !r.ok) return miss(el); D.hol = r; paint(); }, true);
   if (mgr) {
-    apiFresh('hrTeam', {}, function(r){ if (!live() || !r.ok) return; D.team = r; paint(); }, true);
-    apiFresh('leaveTeam', {}, function(r){ if (!live() || !r.ok) return; D.teamLeave = r; paint(); }, true);
-    apiFresh('officeMap', {}, function(r){ if (!live() || !r.ok) return; D.office = r; paint(); }, true);
+    apiFresh('hrTeam', {}, function(r){ if (!live()) return; if (!r || !r.ok) return miss(el); D.team = r; paint(); }, true);
+    apiFresh('leaveTeam', {}, function(r){ if (!live()) return; if (!r || !r.ok) return miss(el); D.teamLeave = r; paint(); }, true);
+    apiFresh('officeMap', {}, function(r){ if (!live()) return; if (!r || !r.ok) return miss(el); D.office = r; paint(); }, true);
     var nm = addDays(riyadhToday().slice(0, 7) + '-28', 7).slice(0, 7); // next month too, for leave in the coming two weeks
-    apiFresh('leaveTeam', { month: nm }, function(r){ if (!live() || !r.ok) return; D.teamLeave2 = r; paint(); }, true);
+    apiFresh('leaveTeam', { month: nm }, function(r){ if (!live()) return; if (!r || !r.ok) return miss(el); D.teamLeave2 = r; paint(); }, true);
   }
 }
 function hmOf(min){ min = Math.max(0, Math.round(min || 0)); return t('inHm').replace('{h}', Math.floor(min / 60)).replace('{m}', ('0' + (min % 60)).slice(-2)); }
