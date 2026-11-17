@@ -89,6 +89,22 @@ B.ctx.UrlFetchApp.fetch = (url, o) => {
   B.ctx.append_('documents', { id: 'F2', empId: 'E2001', type: 'medical_insurance', number: 'MI-22019', issueDate: '2026-01-01', expiryDate: '2026-12-31', note: '', status: 'active', createdAt: now, updatedAt: now });
 })();
 
+// Pay demo (fictional, preview only): 2002 (hr) and 2004 get the payroll role; two locked months and one draft.
+// The page is opened signed in as 2002 with ?pv=1 (see the /pvtoken route below), so the pay screens can be checked.
+const PV = {};
+(function payDemo() {
+  ['E2002', 'E2004'].forEach(id => { const e = B.ctx.readAll_('employees').find(x => x.id === id); e.extraRoles = 'payroll'; B.ctx.update_('employees', e); });
+  const emp = id => B.ctx.readAll_('employees').find(x => x.id === id);
+  const tok = id => B.ctx.issueToken_(emp(id), 'pw');
+  const go = (id, action, extra) => B.call(Object.assign({ action, token: tok(id) }, extra || {}));
+  ['2026-08', '2026-09', '2026-10'].forEach((m, i) => {
+    const r = go('E2002', 'payrollCreate', { month: m });
+    if (!r.ok) return console.log('pay demo', m, r.error);
+    if (i < 2) { const a = go('E2004', 'payrollApprove', { id: r.run.id }); if (!a.ok) console.log('pay demo approve', m, a.error); }
+  });
+  PV.token = tok('E2002');
+})();
+
 const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.png': 'image/png', '.webmanifest': 'application/manifest+json', '.json': 'application/json' };
 
 http.createServer((req, res) => {
@@ -99,6 +115,7 @@ http.createServer((req, res) => {
     res.end(typeof out === 'string' ? out : JSON.stringify(out));
     return;
   }
+  if (req.method === 'GET' && req.url === '/pvtoken') { res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ token: PV.token || '' })); return; }
   if (req.method === 'POST' && req.url === '/api') {
     let body = '';
     req.on('data', c => (body += c));
