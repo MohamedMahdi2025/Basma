@@ -211,5 +211,70 @@ console.log('Reset (keep one)');
   ok(x.ok, 'the owner is still signed in after the reset', x);
 }
 
+// ---------------- approved payroll sheets into a clean organisation ----------------
+console.log('Sheet import');
+{
+  const C = load({ setupKeyHash: sha('k'), now: Date.parse('2026-10-05T06:00:00Z') });
+  const bt = C.call({ action: 'bootstrap', setupKey: 'k', name: 'المالك', empNo: '1000' });
+  const dv = new Authenticator();
+  const e1 = C.call({ action: 'enrollBegin', empNo: '1000', code: bt.activationCode });
+  const tk = C.call({ action: 'enrollFinish', credential: dv.create(e1.options) }).token;
+  const fresh2 = () => { C.ctx.READ_MEMO_ = {}; C.ctx.USE_TAB_CACHE_ = false; C.ctx.TAB_PREFETCH_ = null; };
+  const P = (o) => Object.assign({ nationality: 'باكستاني', department: 'Operations', position: 'Driver', sponsor: 'شركة أ', costCenter: 'HQ', reliability: 'Sponsored',
+    joined: '2024-01-01', lastDay: '', status: 'Active', months: ['2026-08', '2026-09'], isSaudi: false, iban: '', ibanOk: false, payToOther: false, bank: '' }, o);
+  const people = [
+    P({ nid: '3630000001', empNo: '1000', name: 'المالك من الكشف', department: 'Finance', position: 'Finance lead', payToOther: true, iban: 'SA0380000000608010167519', ibanOk: true }),
+    P({ nid: '1000000001', empNo: '1001', name: 'سعود', nationality: 'سعودي', isSaudi: true, reliability: 'Saudi', iban: 'SA0380000000608010167519', ibanOk: true, bank: 'Al Rajhi', sponsor: 'شركة ب' }),
+    P({ nid: '2000000002', empNo: '1002', name: 'Imran Khan', sponsor: 'Outsource' }),
+    P({ nid: '2000000003', empNo: '1003', name: 'Left Early', months: ['2026-08'] }),
+    P({ nid: '2000000004', empNo: '1004', name: 'Not Paid', months: ['2026-08', '2026-09'] }),
+  ];
+  const L = (nid, o) => Object.assign({ nid, row: 2, payMethod: 'WPS', basic: 0, housing: 0, transport: 0, otherAllow: 0, bonus: 0, gross: 0, gosi: 0, penalties: 0, loan: 0, leave: 0, newJoiner: 0, otherDed: 0, totalDed: 0, net: 0 }, o);
+  const months = {
+    '2026-08': [L('3630000001', { basic: 8250, housing: 3300, transport: 4950, gross: 16500, otherDed: 11000, totalDed: 11000, net: 5500 }),
+      L('1000000001', { basic: 4000, gross: 4000, gosi: 390, totalDed: 390, net: 3610 }), L('2000000002', { basic: 2000, housing: 500, transport: 500, gross: 3000, net: 3000 }),
+      L('2000000003', { basic: 2000, gross: 2000, net: 2000 }), L('2000000004', {})],
+    '2026-09': [L('3630000001', { basic: 8250, housing: 3300, transport: 4950, gross: 16500, net: 16500 }),
+      L('1000000001', { basic: 4500, gross: 4800, bonus: 300, gosi: 438.75, loan: 100, totalDed: 538.75, net: 4261.25 }),
+      L('2000000002', { basic: 2000, housing: 500, transport: 500, otherAllow: 200, gross: 3200, penalties: 50, leave: 100, newJoiner: 10, totalDed: 160, net: 3040 }), L('2000000004', {})],
+  };
+  const I = extra => C.call(Object.assign({ action: 'demoData', setupKey: 'k', mode: 'sheetImport', ownerNo: '1000', depts: { Operations: 'العمليات', Finance: 'المالية' }, people, months }, extra));
+  let x = C.call({ action: 'demoData', setupKey: 'wrong', mode: 'sheetImport', ownerNo: '1000', people, months });
+  ok(!x.ok && x.error === 'bad_setup_key', 'the sheet import needs the setup key', x);
+  const before = { emps: C.ctx.readAll_('employees').length, runs: C.ctx.readAll_('payrollRuns').length };
+  x = I({});
+  ok(x.ok && x.dryRun === true && x.employees === 4 && x.runs === 6 && x.payslips === 7, 'a dry run is the default and reports what it would do', x);
+  ok(x.months && x.months['2026-08'].net === 14110 && x.months['2026-09'].net === 23801.25, 'month totals are the sheet\'s nets', x.months);
+  fresh2();
+  ok(C.ctx.readAll_('employees').length === before.emps && C.ctx.readAll_('payrollRuns').length === before.runs && !C.ctx.readAll_('departments').length, 'a dry run writes nothing');
+  x = I({ months: Object.assign({}, months, { '2026-09': months['2026-09'].map(l => l.nid === '2000000002' ? Object.assign({}, l, { net: 3041 }) : l) }) });
+  ok(!x.ok && x.error === 'net_mismatch' && x.mismatch[0].empNo === '1002', 'a line whose parts do not give its net is refused', x);
+  x = I({ dryRun: false });
+  ok(x.ok && x.dryRun === false && x.employees === 4 && x.payGroups.length === 3, 'the import writes: people, three pay groups (one per sponsor)', x);
+  fresh2();
+  const emps = C.ctx.readAll_('employees'), byNo = Object.fromEntries(emps.map(e => [String(e.empNo), e]));
+  ok(emps.length === 5 && byNo['1000'].role === 'admin' && byNo['1000'].title === 'Finance lead' && byNo['1000'].department === 'المالية', 'the owner is updated in place and keeps the admin role', byNo['1000']);
+  ok(byNo['1003'].status === 'disabled' && byNo['1003'].lastWorkingDay === '2026-08-31' && byNo['1001'].status === 'active', 'someone missing from the latest sheet is disabled with a last working day');
+  ok(byNo['1002'].employmentType === 'outsourced' && byNo['1002'].nameEn === 'Imran Khan' && byNo['1001'].isSaudi === true, 'outsourced, English name and Saudi flags are kept');
+  const priv = Object.fromEntries(C.ctx.readAll_('empPrivate').map(p => [p.empId, p]));
+  ok(String(priv[byNo['1000'].id].borderNo) === '3630000001' && !priv[byNo['1000'].id].nationalId, 'an ID that does not start with 1 or 2 is kept as the border number');
+  ok(!priv[byNo['1000'].id].iban && priv[byNo['1001'].id].iban === 'SA0380000000608010167519', 'an IBAN paid to someone else is not stored; the person\'s own is');
+  const comps = C.ctx.readAll_('compensation');
+  ok(comps.filter(c => c.empId === byNo['1001'].id).length === 2 && comps.every(c => c.status === 'approved'), 'packages are approved and a new one starts when the amounts change');
+  ok(!comps.some(c => c.empId === byNo['1004'].id), 'nobody gets a package from a zero line');
+  const runs = C.ctx.readAll_('payrollRuns'), slips = C.ctx.readAll_('payslips');
+  ok(runs.length === 6 && runs.every(r => r.status === 'locked' && r.scope === 'import' && /^PR-/.test(r.ref)), 'one locked imported run per month and pay group, numbered', runs.map(r => r.ref));
+  ok(slips.length === 7 && !slips.some(s => s.empId === byNo['1004'].id), 'no payslip for a line with nothing paid');
+  const s9 = slips.filter(s => s.empId === byNo['1002'].id && s.month === '2026-09')[0], l9 = JSON.parse(s9.linesJson);
+  ok(Number(s9.net) === 3040 && l9.some(l => l.code === 'unpaid_leave' && l.amount === 100) && l9.some(l => l.label === 'انضمام جديد'), 'payslip lines follow the sheet columns', l9);
+  ok(C.ctx.readAll_('wpsLog').length === 6 && C.ctx.readAll_('wpsLog').every(w => w.status === 'confirmed'), 'each imported run carries a confirmed WPS line');
+  const cal = C.call({ action: 'complianceCalendar', token: tk });
+  ok(cal.ok && !cal.items.some(i => (i.kind === 'wps_upload' || i.kind === 'payroll_not_locked') && (i.month === '2026-08' || i.month === '2026-09')), 'imported months raise no WPS or payroll duty', cal.items && cal.items.map(i => i.kind + ':' + i.month));
+  x = I({ dryRun: false });
+  ok(!x.ok && x.error === 'not_empty', 'a second import is refused (rollback is the reset)', x);
+  x = C.call({ action: 'me', token: tk });
+  ok(x.ok, 'the owner is still signed in after the import', x);
+}
+
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);
