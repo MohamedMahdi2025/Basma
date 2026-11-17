@@ -1275,3 +1275,277 @@ function varDriver_(k) {
   return 'otherDeductions';
 }
 function addMonths_(ym, n) { var y = Number(ym.slice(0, 4)), m = Number(ym.slice(5, 7)) - 1 + n; y += Math.floor(m / 12); m = ((m % 12) + 12) % 12; return y + '-' + String(m + 1).padStart(2, '0'); }
+
+
+// ======================================================================= payroll variance, whole month (2026-11-17)
+/**
+ * The deep variance engine: one month against a base (last month, two months ago, the average of the three before, the
+ * same month last year, or any month), every establishment's run of each month added (pay groups), seen only through the
+ * runs this viewer may open (runAccess_). Breakdowns by employee, department, location (work location / branch), city,
+ * establishment (pay group), nationality, Saudi / non-Saudi, employment type and position, plus pay lines, a bridge from
+ * base to current net (joiners, leavers, and the stayers split by driver), volume vs rate and a 12-month trend.
+ * Filters (any dimension, flags, free text, "changed only") are applied to people first and every table is rebuilt from
+ * the filtered people, so all numbers on the screen always agree with each other.
+ * City: script property map location -> city (varianceCities), else rules on the location's name, else Riyadh marked
+ * 'assumed' so the screen can say which cities are guesses.
+ * Read only; audited as salary_view.
+ */
+var VARM_DIMS_ = ['department', 'location', 'city', 'payGroup', 'nationality', 'saudi', 'employmentType', 'title'];
+var VARM_FIELDS_ = ['gross', 'deductions', 'net', 'gosiEmployee', 'gosiEmployer', 'companyCost'];
+var CITY_RULES_ = [[/عرعر|arar|المساعدية|العزيزية|اشبيلية/i, 'عرعر'], [/جد[هة]|jedd?ah|jaddah/i, 'جدة'], [/حائل|hail/i, 'حائل'],
+  [/qassim|القصيم|بريد[هة]|عنيز[هة]/i, 'القصيم'], [/أملج|املج|amluj|umluj/i, 'أملج'], [/حفر|hafr/i, 'حفر الباطن'], [/مك[هة]|makk?ah|mecca/i, 'مكة المكرمة'],
+  [/المدين[هة]|madinah|medina/i, 'المدينة المنورة'], [/الدمام|dammam|الخبر|khobar|الظهران|dhahran/i, 'المنطقة الشرقية'], [/تبوك|tabuk/i, 'تبوك'], [/ابها|أبها|abha|خميس|khamis/i, 'عسير']];
+function varCityMap_() { return parseJson_(PropertiesService.getScriptProperties().getProperty(orgKey_('varCities')), {}) || {}; }
+function cityOf_(loc, map) {
+  loc = String(loc || '').trim();
+  if (!loc) return { city: '-', source: 'none' };
+  if (map && map[loc]) return { city: String(map[loc]), source: 'set' };
+  for (var i = 0; i < CITY_RULES_.length; i++) if (CITY_RULES_[i][0].test(loc)) return { city: CITY_RULES_[i][1], source: 'rule' };
+  return { city: 'الرياض', source: 'assumed' };
+}
+/** Locations and their cities; mode 'save' stores { map: { location: city } } (hr or payroll). */
+function api_varianceCities(req, me) {
+  if (!canPayroll_(me)) fail_('forbidden');
+  var map = varCityMap_();
+  if (String(req.mode || '') === 'save') {
+    var next = {}, src = req.map || {}, keys = Object.keys(src);
+    if (keys.length > 500) fail_('bad_request');
+    keys.forEach(function (k) { var l = str_(k, 80), c = str_(src[k], 40); if (l && c) next[l] = c; });
+    PropertiesService.getScriptProperties().setProperty(orgKey_('varCities'), JSON.stringify(next));
+    audit_(me.id, 'variance_cities', '', { count: Object.keys(next).length });
+    map = next;
+  }
+  var count = {};
+  readAll_(SHEETS.EMP).forEach(function (e) { var l = String(e.workLocation || '').trim(); if (l) count[l] = (count[l] || 0) + 1; });
+  return { ok: true, locations: Object.keys(count).sort().map(function (l) { var c = cityOf_(l, map); return { location: l, city: c.city, source: c.source, people: count[l] }; }) };
+}
+function api_payrollVarianceMonth(req, me) {
+  if (!canPayroll_(me)) fail_('forbidden');
+  var groups = payGroups_(), gName = {};
+  readAll_(SHEETS.PGRP).forEach(function (g) { gName[g.id] = g.nameAr || g.code || g.id; });
+  var runs = readAll_(SHEETS.RUN).filter(function (r) { return r.status !== 'cancelled' && !isDemoRun_(r) && runAccess_(me, r, groups); });
+  var months = {}; runs.forEach(function (r) { months[r.month] = 1; }); months = Object.keys(months).sort().reverse();
+  var month = String(req.month || '') || months[0] || '';
+  if (!month) return { ok: true, empty: true, months: [] };
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) fail_('bad_date');
+  var pct = Math.max(1, Math.min(100, Number(req.pct) || VAR_PCT_));
+  var minAmt = req.min === '' || req.min == null || !(Number(req.min) >= 0) ? VAR_MIN_ : Number(req.min);
+  var cmp = String(req.compare || 'm1'), baseMonths;
+  if (cmp === 'm2') baseMonths = [addMonths_(month, -2)];
+  else if (cmp === 'avg3') baseMonths = [addMonths_(month, -1), addMonths_(month, -2), addMonths_(month, -3)];
+  else if (cmp === 'yoy') baseMonths = [addMonths_(month, -12)];
+  else if (/^\d{4}-(0[1-9]|1[0-2])$/.test(cmp) && cmp !== month) baseMonths = [cmp];
+  else { cmp = 'm1'; baseMonths = [addMonths_(month, -1)]; }
+  // runs of a month: per pay group, locked ones when there are any, else drafts
+  var runIds = function (m) {
+    var by = {}; runs.forEach(function (r) { if (r.month !== m) return; var g = String(r.payGroupId || ''); (by[g] = by[g] || []).push(r); });
+    var out = []; Object.keys(by).forEach(function (g) { var rs = by[g], lk = rs.filter(function (r) { return r.status === 'locked'; }); (lk.length ? lk : rs).forEach(function (r) { out.push(r.id); }); });
+    return out;
+  };
+  var slipsByRun = {}; readAll_(SHEETS.SLIP).forEach(function (x) { if (x.status !== 'void') (slipsByRun[x.runId] = slipsByRun[x.runId] || []).push(x); });
+  var monthCache = {};
+  var perMonth = function (m) {
+    if (monthCache[m]) return monthCache[m];
+    var out = {};
+    runIds(m).forEach(function (rid) {
+      (slipsByRun[rid] || []).forEach(function (x) {
+        var c = out[x.empId] = out[x.empId] || { gross: 0, deductions: 0, net: 0, gosiEmployee: 0, gosiEmployer: 0, companyCost: 0, paidDays: 0, absentDays: 0, lines: {} };
+        c.gross += Number(x.gross) || 0; c.deductions += Number(x.deductions) || 0; c.net += Number(x.net) || 0;
+        c.gosiEmployee += Number(x.gosiEmployee) || 0; c.gosiEmployer += Number(x.gosiEmployer) || 0;
+        c.companyCost += Number(x.companyCost) || ((Number(x.gross) || 0) + (Number(x.gosiEmployer) || 0));
+        c.paidDays += Number(x.paidDays) || 0; c.absentDays += Number(x.absentDays) || 0;
+        lines_(x).forEach(function (l) { var k = (l.kind === 'deduction' ? 'd:' : 'e:') + l.code + (l.label && l.code !== 'basic' ? ':' + l.label : ''); c.lines[k] = r2_((c.lines[k] || 0) + (Number(l.amount) || 0)); });
+      });
+    });
+    return (monthCache[m] = out);
+  };
+  var cur = perMonth(month), bases = baseMonths.map(perMonth), haveBase = baseMonths.filter(function (m) { return runIds(m).length; });
+  // a person's base: the average of the base months they were paid in (one month: that month)
+  var baseOf = function (id) {
+    var got = bases.filter(function (b) { return b[id]; }).map(function (b) { return b[id]; }); if (!got.length) return null;
+    var n = got.length, o = { gross: 0, deductions: 0, net: 0, gosiEmployee: 0, gosiEmployer: 0, companyCost: 0, paidDays: 0, absentDays: 0, lines: {} };
+    got.forEach(function (g) { ['gross', 'deductions', 'net', 'gosiEmployee', 'gosiEmployer', 'companyCost', 'paidDays', 'absentDays'].forEach(function (k) { o[k] += g[k] / n; }); Object.keys(g.lines).forEach(function (k) { o.lines[k] = (o.lines[k] || 0) + g.lines[k] / n; }); });
+    Object.keys(o).forEach(function (k) { if (k !== 'lines') o[k] = r2_(o[k]); }); Object.keys(o.lines).forEach(function (k) { o.lines[k] = r2_(o.lines[k]); });
+    return o;
+  };
+  var trendMonths = []; for (var i = 11; i >= 0; i--) trendMonths.push(addMonths_(month, -i));
+  var emps = {}; readAll_(SHEETS.EMP).forEach(function (e) { emps[e.id] = e; });
+  var depts = {}; readAll_(SHEETS.DEPT).forEach(function (d) { depts[d.id] = d; });
+  var cityMap = varCityMap_(), comps = currentCompMap_(monthLast_(month) > today_() ? today_() : monthLast_(month));
+  var dimsOf = function (e) {
+    var d = depts[e.departmentId], c = cityOf_(e.workLocation, cityMap);
+    return { department: (d && (d.nameAr || d.nameEn)) || e.department || '-', location: String(e.workLocation || '').trim() || '-', city: c.city, citySource: c.source,
+      payGroup: e.payGroupId && gName[e.payGroupId] ? gName[e.payGroupId] : 'عام', nationality: e.nationality || '-', saudi: bool_(e.isSaudi) ? 'saudi' : 'nonSaudi',
+      employmentType: e.employmentType || '-', title: e.title || '-' };
+  };
+  var chg = function (a, b) { a = Number(a) || 0; b = Number(b) || 0; return { diff: r2_(a - b), pct: b ? r2_((a - b) / Math.abs(b) * 100) : (a ? null : 0) }; };
+  var big = function (a, b) { var c = chg(a, b); return Math.abs(c.diff) >= minAmt && (c.pct === null || Math.abs(c.pct) >= pct); };
+  var ids = {}; Object.keys(cur).forEach(function (k) { ids[k] = 1; }); bases.forEach(function (b) { Object.keys(b).forEach(function (k) { ids[k] = 1; }); });
+  var all = [];
+  Object.keys(ids).forEach(function (id) {
+    var e = emps[id] || { id: id, name: '?', empNo: '' }, c0 = cur[id] || null, b = baseOf(id), flags = [], score = 0, drv = {};
+    VAR_DRIVERS_.forEach(function (k) { drv[k] = 0; });
+    var everBefore = trendMonths.slice(0, 11).some(function (m) { return baseMonths.indexOf(m) < 0 && perMonth(m)[id]; });
+    if (c0 && !b) { if (everBefore) { flags.push('returner'); score += 25; } else { flags.push('joiner'); score += 30; } }
+    if (!c0 && b) { flags.push('leaver'); score += 35; }
+    var reasons = [];
+    if (c0 && b) {
+      var nc = chg(c0.net, b.net);
+      if (big(c0.net, b.net)) { flags.push(nc.diff > 0 ? 'net_up' : 'net_down'); score += Math.min(60, Math.abs(nc.pct || 100) * 0.6); }
+      if (big(c0.deductions, b.deductions) && c0.deductions > b.deductions) { flags.push('deductions_spike'); score += 15; }
+      if (['e:basic', 'e:housing', 'e:transport'].some(function (k) { return Math.abs((c0.lines[k] || 0) - (b.lines[k] || 0)) >= 1 && (b.lines[k] || 0) > 0 && (c0.lines[k] || 0) > 0; })) { flags.push('package_change'); score += 20; }
+      var keysL = {}; Object.keys(c0.lines).concat(Object.keys(b.lines)).forEach(function (k) { keysL[k] = 1; });
+      Object.keys(keysL).forEach(function (k) {
+        var dd = r2_((c0.lines[k] || 0) - (b.lines[k] || 0)); if (!dd) return;
+        var effect = k.indexOf('d:') === 0 ? -dd : dd; drv[varDriver_(k)] = r2_(drv[varDriver_(k)] + effect);
+        reasons.push({ line: k, from: r2_(b.lines[k] || 0), to: r2_(c0.lines[k] || 0), effect: effect });
+        if (!b.lines[k] && c0.lines[k] >= minAmt) { flags.push('new_line'); score += 10; }
+        if (!c0.lines[k] && b.lines[k] >= minAmt) { flags.push('gone_line'); score += 8; }
+      });
+      var expl = VAR_DRIVERS_.reduce(function (t, k) { return r2_(t + drv[k]); }, 0); drv.other = r2_(drv.other + r2_(nc.diff - expl));
+      reasons.sort(function (u, v) { return Math.abs(v.effect) - Math.abs(u.effect); });
+    }
+    if (c0 && c0.net <= 0) { flags.push('net_zero'); score += 40; }
+    if (c0 && (c0.lines['e:bonus'] || c0.lines['e:overtime'] || c0.lines['e:other_earning'])) { flags.push('one_off'); score += 5; }
+    if (c0 && Object.keys(c0.lines).some(function (k) { return /^d:(absence|unpaid_leave|sick_75|sick_unpaid|late)/.test(k); })) { flags.push('absence'); score += 5; }
+    var pk = comps[id], pkg = null;
+    if (c0 && pk) {
+      pkg = r2_((Number(pk.basic) || 0) + (Number(pk.housing) || 0) + (Number(pk.transport) || 0) + Object.keys(pk.other || {}).reduce(function (t, k) { return t + (Number(pk.other[k]) || 0); }, 0));
+      if (big(c0.gross, pkg)) { flags.push('off_package'); score += 12; }
+    }
+    if (c0 && e.status === 'disabled') { flags.push('paid_inactive'); score += 30; }
+    flags = flags.filter(function (fl, i2) { return flags.indexOf(fl) === i2; });
+    var d = dimsOf(e), hist = trendMonths.map(function (m) { var x = perMonth(m)[id]; return x ? r2_(x.net) : null; });
+    var pick = function (x) { return x ? { gross: r2_(x.gross), deductions: r2_(x.deductions), net: r2_(x.net), gosiEmployee: r2_(x.gosiEmployee), gosiEmployer: r2_(x.gosiEmployer), companyCost: r2_(x.companyCost), days: r2_(x.paidDays), absent: r2_(x.absentDays) } : null; };
+    var lines = {}; Object.keys((c0 || {}).lines || {}).concat(Object.keys((b || {}).lines || {})).forEach(function (k) { lines[k] = [r2_(((c0 || {}).lines || {})[k] || 0), r2_(((b || {}).lines || {})[k] || 0)]; });
+    all.push({ empId: id, empNo: String(e.empNo || ''), name: e.name || '', status: e.status || '', hireDate: String(e.hireDate || '').slice(0, 10), dims: d,
+      cur: pick(c0), base: pick(b), net: chg(c0 ? c0.net : 0, b ? b.net : 0), gross: chg(c0 ? c0.gross : 0, b ? b.gross : 0), cost: chg(c0 ? c0.companyCost : 0, b ? b.companyCost : 0),
+      package: pkg, drivers: drv, reasons: reasons.slice(0, 5), lines: lines, flags: flags, score: Math.round(score), hist: hist });
+  });
+  // options: every value of every dimension, counted before filtering
+  var options = {}, flagCount = {};
+  VARM_DIMS_.forEach(function (k) { options[k] = {}; });
+  all.forEach(function (x) { VARM_DIMS_.forEach(function (k) { var v = x.dims[k]; options[k][v] = (options[k][v] || 0) + 1; }); x.flags.forEach(function (fl) { flagCount[fl] = (flagCount[fl] || 0) + 1; }); });
+  // filters
+  var f = req.filters || {}, q = normName_(str_(f.q, 60));
+  var dimPass = function (dd) { for (var i2 = 0; i2 < VARM_DIMS_.length; i2++) { var k = VARM_DIMS_[i2], want = f[k]; if (Array.isArray(want) && want.length && want.indexOf(dd[k]) < 0) return false; } return true; };
+  var keep = all.filter(function (x) {
+    if (!dimPass(x.dims)) return false;
+    if (Array.isArray(f.flags) && f.flags.length && !f.flags.some(function (g) { return x.flags.indexOf(g) >= 0; })) return false;
+    if (f.changed && !x.flags.length) return false;
+    if (q && normName_(x.name).indexOf(q) < 0 && x.empNo.indexOf(q) < 0) return false;
+    return true;
+  });
+  keep.sort(function (a, b) { return b.score - a.score || Math.abs(b.net.diff) - Math.abs(a.net.diff); });
+  // totals, bridge, drivers, volume/rate, lines, dimensions: all from the kept people
+  var T = { cur: { headcount: 0 }, base: { headcount: 0 } }; VARM_FIELDS_.forEach(function (k) { T.cur[k] = 0; T.base[k] = 0; });
+  var bridge = { from: 0, joiners: 0, leavers: 0, stayers: 0, to: 0 }, drivers = {}, lineT = {}, dimT = {};
+  VAR_DRIVERS_.forEach(function (k) { drivers[k] = 0; }); VARM_DIMS_.forEach(function (k) { dimT[k] = {}; });
+  keep.forEach(function (x) {
+    if (x.cur) { T.cur.headcount++; VARM_FIELDS_.forEach(function (k) { T.cur[k] += x.cur[k]; }); }
+    if (x.base) { T.base.headcount++; VARM_FIELDS_.forEach(function (k) { T.base[k] += x.base[k]; }); }
+    var a = x.cur ? x.cur.net : 0, bb = x.base ? x.base.net : 0;
+    if (x.cur && !x.base) bridge.joiners += a; else if (!x.cur && x.base) bridge.leavers -= bb; else { bridge.stayers += a - bb; VAR_DRIVERS_.forEach(function (k) { drivers[k] += x.drivers[k]; }); }
+    Object.keys(x.lines).forEach(function (k) { var l = lineT[k] = lineT[k] || { code: k, cur: 0, base: 0, peopleCur: 0, peopleBase: 0 }; l.cur += x.lines[k][0]; l.base += x.lines[k][1]; if (x.lines[k][0]) l.peopleCur++; if (x.lines[k][1]) l.peopleBase++; });
+    VARM_DIMS_.forEach(function (k) {
+      var v = x.dims[k], r = dimT[k][v] = dimT[k][v] || { key: v, headCur: 0, headBase: 0, joiners: 0, leavers: 0, flagged: 0, grossCur: 0, grossBase: 0, dedCur: 0, dedBase: 0, netCur: 0, netBase: 0, costCur: 0, costBase: 0, drivers: {} };
+      if (x.cur) { r.headCur++; r.grossCur += x.cur.gross; r.dedCur += x.cur.deductions; r.netCur += x.cur.net; r.costCur += x.cur.companyCost; }
+      if (x.base) { r.headBase++; r.grossBase += x.base.gross; r.dedBase += x.base.deductions; r.netBase += x.base.net; r.costBase += x.base.companyCost; }
+      if (x.cur && !x.base) { r.joiners++; r.drivers.joiners = (r.drivers.joiners || 0) + x.cur.net; }
+      if (!x.cur && x.base) { r.leavers++; r.drivers.leavers = (r.drivers.leavers || 0) - x.base.net; }
+      if (x.cur && x.base) VAR_DRIVERS_.forEach(function (dk) { r.drivers[dk] = (r.drivers[dk] || 0) + x.drivers[dk]; });
+      if (x.flags.length) r.flagged++;
+      if (k === 'city') { r.assumed = (r.assumed || 0) + (x.dims.citySource === 'assumed' ? 1 : 0); r.source = r.assumed ? 'assumed' : x.dims.citySource; }
+    });
+  });
+  ['cur', 'base'].forEach(function (s) { VARM_FIELDS_.forEach(function (k) { T[s][k] = r2_(T[s][k]); }); });
+  var totals = {}; ['headcount'].concat(VARM_FIELDS_).forEach(function (k) { totals[k] = { cur: T.cur[k], base: T.base[k], change: chg(T.cur[k], T.base[k]) }; });
+  bridge.from = T.base.net; bridge.to = T.cur.net; bridge.joiners = r2_(bridge.joiners); bridge.leavers = r2_(bridge.leavers); bridge.stayers = r2_(bridge.stayers);
+  VAR_DRIVERS_.forEach(function (k) { drivers[k] = r2_(drivers[k]); });
+  var h0 = T.cur.headcount, h1 = T.base.headcount, a0 = h0 ? T.cur.net / h0 : 0, a1 = h1 ? T.base.net / h1 : 0;
+  var volumeRate = { headcountEffect: r2_((h0 - h1) * a1), rateEffect: r2_((a0 - a1) * h0), avgNow: r2_(a0), avgBefore: r2_(a1) };
+  var lines = Object.keys(lineT).map(function (k) { var l = lineT[k]; l.cur = r2_(l.cur); l.base = r2_(l.base); l.change = chg(l.cur, l.base); l.driver = varDriver_(k); return l; })
+    .sort(function (a, b) { return Math.abs(b.change.diff) - Math.abs(a.change.diff); });
+  var dims = {};
+  VARM_DIMS_.forEach(function (k) {
+    dims[k] = Object.keys(dimT[k]).map(function (v) {
+      var r = dimT[k][v]; ['grossCur', 'grossBase', 'dedCur', 'dedBase', 'netCur', 'netBase', 'costCur', 'costBase'].forEach(function (k2) { r[k2] = r2_(r[k2]); });
+      Object.keys(r.drivers).forEach(function (dk) { r.drivers[dk] = r2_(r.drivers[dk]); });
+      r.net = chg(r.netCur, r.netBase); r.gross = chg(r.grossCur, r.grossBase); r.cost = chg(r.costCur, r.costBase);
+      r.avgCur = r.headCur ? r2_(r.netCur / r.headCur) : 0; r.avgBase = r.headBase ? r2_(r.netBase / r.headBase) : 0;
+      r.shareCur = T.cur.net ? r2_(r.netCur / T.cur.net * 100) : 0;
+      var top = Object.keys(r.drivers).filter(function (dk) { return r.drivers[dk]; }).sort(function (u, w) { return Math.abs(r.drivers[w]) - Math.abs(r.drivers[u]); })[0];
+      r.topDriver = top ? { key: top, amount: r.drivers[top] } : null;
+      return r;
+    }).sort(function (a, b) { return Math.abs(b.net.diff) - Math.abs(a.net.diff) || b.netCur - a.netCur; });
+  });
+  // twelve months for the kept people (dimension filters only: anyone paid in those months who passes them)
+  var keepIds = {}; keep.forEach(function (x) { keepIds[x.empId] = 1; });
+  var narrow = (Array.isArray(f.flags) && f.flags.length) || f.changed || q;
+  var trend = trendMonths.map(function (m) {
+    var pm = perMonth(m), pt = { month: m, headcount: 0, gross: 0, net: 0, companyCost: 0, none: !runIds(m).length };
+    Object.keys(pm).forEach(function (id) { if (narrow ? !keepIds[id] : !(emps[id] && dimPass(dimsOf(emps[id])))) return; pt.headcount++; pt.gross += pm[id].gross; pt.net += pm[id].net; pt.companyCost += pm[id].companyCost; });
+    pt.gross = r2_(pt.gross); pt.net = r2_(pt.net); pt.companyCost = r2_(pt.companyCost); return pt;
+  });
+  var opt = {}; VARM_DIMS_.forEach(function (k) { opt[k] = Object.keys(options[k]).sort().map(function (v) { return { value: v, count: options[k][v] }; }); });
+  audit_(me.id, 'salary_view', '', { variance: month, compare: cmp });
+  return { ok: true, month: month, compare: cmp, baseMonths: baseMonths, haveBase: haveBase, months: months, threshold: { pct: pct, min: minAmt },
+    totals: totals, bridge: bridge, drivers: drivers, volumeRate: volumeRate, lines: lines, dims: dims, people: keep, trend: trend,
+    options: opt, flagCounts: flagCount, shown: keep.length, all: all.length };
+}
+
+
+/**
+ * Monthly payroll aggregated and pivoted by sponsor (pay group = establishment) (2026-11-17). Payroll access only, every
+ * run filtered by runAccess_ (a pay group closed to this viewer never appears). For each month (up to 24, newest last)
+ * and sponsor: headcount, gross, deductions, net, GOSI (employee, employer), company cost and every pay line.
+ * detail: 'YYYY-MM' also returns every payslip of that month (employee, sponsor, department, location, each line) for
+ * the full report. Read only; audited as salary_view.
+ */
+function api_payrollPivot(req, me) {
+  if (!canPayroll_(me)) fail_('forbidden');
+  var groups = payGroups_(), gName = {};
+  readAll_(SHEETS.PGRP).forEach(function (g) { gName[g.id] = g.nameAr || g.code || g.id; });
+  var runs = readAll_(SHEETS.RUN).filter(function (r) { return r.status !== 'cancelled' && !isDemoRun_(r) && runAccess_(me, r, groups); });
+  var chosen = {}, by = {};
+  runs.forEach(function (r) { var k = r.month + '|' + String(r.payGroupId || ''); (by[k] = by[k] || []).push(r); });
+  Object.keys(by).forEach(function (k) { var rs = by[k], lk = rs.filter(function (r) { return r.status === 'locked'; }); (lk.length ? lk : rs).forEach(function (r) { chosen[r.id] = r; }); });
+  var allMonths = {}; Object.keys(chosen).forEach(function (id) { allMonths[chosen[id].month] = 1; });
+  allMonths = Object.keys(allMonths).sort();
+  var n = Math.max(1, Math.min(24, Number(req.months) || 12)), to = /^\d{4}-\d{2}$/.test(String(req.to || '')) ? String(req.to) : allMonths[allMonths.length - 1];
+  var months = allMonths.filter(function (m) { return !to || m <= to; }).slice(-n);
+  var detail = /^\d{4}-\d{2}$/.test(String(req.detail || '')) ? String(req.detail) : '';
+  var emps = {}; readAll_(SHEETS.EMP).forEach(function (e) { emps[e.id] = e; });
+  var depts = {}; readAll_(SHEETS.DEPT).forEach(function (d) { depts[d.id] = d; });
+  var cells = {}, sponsors = {}, lineKeys = {}, rows = [], F = ['gross', 'deductions', 'net', 'gosiEmployee', 'gosiEmployer', 'companyCost'];
+  var cityMap = varCityMap_();
+  var privOf = {}; if (detail) readAll_(SHEETS.PRIV).forEach(function (p) { privOf[p.empId] = p; }); // payroll holders may see IDs (canPayroll_ above)
+  readAll_(SHEETS.SLIP).forEach(function (x) {
+    var run = chosen[x.runId]; if (!run || x.status === 'void' || months.indexOf(run.month) < 0) return;
+    var gid = String(run.payGroupId || ''), sp = gid && gName[gid] ? gName[gid] : 'عام'; sponsors[sp] = 1;
+    var key = run.month + '|' + sp, c = cells[key] = cells[key] || { month: run.month, sponsor: sp, headcount: 0, lines: {} };
+    c.headcount++;
+    F.forEach(function (f) { c[f] = r2_((c[f] || 0) + (f === 'companyCost' ? (Number(x.companyCost) || (Number(x.gross) || 0) + (Number(x.gosiEmployer) || 0)) : Number(x[f]) || 0)); });
+    var ls = lines_(x), mine = {};
+    ls.forEach(function (l) { var k = (l.kind === 'deduction' ? 'd:' : 'e:') + l.code + (l.label && l.code !== 'basic' ? ':' + l.label : ''); lineKeys[k] = 1; c.lines[k] = r2_((c.lines[k] || 0) + (Number(l.amount) || 0)); mine[k] = r2_((mine[k] || 0) + (Number(l.amount) || 0)); });
+    if (run.month === detail) {
+      var e = emps[x.empId] || {}, d = depts[e.departmentId];
+      rows.push({ sponsor: sp, empNo: String(e.empNo || ''), name: e.name || '', department: (d && (d.nameAr || d.nameEn)) || e.department || '', location: e.workLocation || '',
+        title: e.title || '', nationality: e.nationality || '', saudi: bool_(e.isSaudi), status: e.status || '', city: cityOf_(e.workLocation, cityMap).city, employmentType: e.employmentType || '', hireDate: String(e.hireDate || '').slice(0, 10), idNo: String((privOf[x.empId] || {}).nationalId || (privOf[x.empId] || {}).borderNo || ''), run: run.ref, slip: x.ref || '', days: Number(x.paidDays) || 0,
+        gross: r2_(x.gross), deductions: r2_(x.deductions), net: r2_(x.net), gosiEmployee: r2_(x.gosiEmployee), gosiEmployer: r2_(x.gosiEmployer), lines: mine });
+    }
+  });
+  var sp = Object.keys(sponsors).sort(function (a, b) {
+    var ta = months.reduce(function (t, m) { return t + ((cells[m + '|' + a] || {}).net || 0); }, 0), tb = months.reduce(function (t, m) { return t + ((cells[m + '|' + b] || {}).net || 0); }, 0);
+    return tb - ta;
+  });
+  var totals = months.map(function (m) {
+    var t = { month: m, headcount: 0, lines: {} };
+    sp.forEach(function (s) { var c = cells[m + '|' + s]; if (!c) return; t.headcount += c.headcount; F.forEach(function (f) { t[f] = r2_((t[f] || 0) + c[f]); }); Object.keys(c.lines).forEach(function (k) { t.lines[k] = r2_((t.lines[k] || 0) + c.lines[k]); }); });
+    return t;
+  });
+  rows.sort(function (a, b) { return a.sponsor.localeCompare(b.sponsor) || Number(a.empNo) - Number(b.empNo); });
+  audit_(me.id, 'salary_view', '', { pivot: months[0] + '..' + months[months.length - 1], detail: detail || undefined });
+  return { ok: true, months: months, allMonths: allMonths, sponsors: sp, cells: Object.keys(cells).map(function (k) { return cells[k]; }), totals: totals,
+    lineKeys: Object.keys(lineKeys).sort(), detail: detail, rows: rows };
+}
