@@ -85,6 +85,7 @@ function api_demoData(req) {
   if (mode === 'sheetImport') return withLock_(function () { return sheetImport_(req); });
   if (mode === 'packageSet') return withLock_(function () { return packageSet_(req); });
   if (mode === 'sheetYear') return withLock_(function () { return sheetYear_(req); });
+  if (mode === 'bookExport') return bookExport_(req);
   fail_('bad_request');
 }
 
@@ -589,4 +590,27 @@ function demoPurge_() {
   forget_(SHEETS.DEMO);
   bumpTab_(SHEETS.DEMO);
   return { ok: true, removed: removed };
+}
+
+/* ---------------- move to Postgres (2026-11-18, owner's decision) ----------------
+ * bookExport: the whole home book exactly as the sheet holds it, for tools/book-export.js on the owner's PC, which hands it to
+ * platform/scripts/import-book.js. Read-only and owner-only (setup key). Without `tab`: every tab with its row count, plus the
+ * script properties the backend needs to keep working (session, push, HMAC and passkey settings). With `tab`: its header and a
+ * slice of rows (`offset`, at most 2000), each cell typed so a date stays a date: {d: ISO} for dates, everything else as is. */
+function bookExport_(req) {
+  resetHomeOnly_();
+  var ss = ss_();
+  if (!req.tab) {
+    var tabs = [];
+    Object.keys(HEADERS).forEach(function (n) { var sh = ss.getSheetByName(n); if (sh) tabs.push({ name: n, rows: Math.max(sh.getLastRow() - 1, 0), cols: sh.getLastColumn() }); });
+    return { ok: true, tabs: tabs, props: PropertiesService.getScriptProperties().getProperties(), at: new Date().toISOString() };
+  }
+  var tabName = String(req.tab), sh = HEADERS[tabName] ? ss.getSheetByName(tabName) : null; if (!sh) fail_('not_found');
+  var last = sh.getLastRow(), width = sh.getLastColumn(), off = Math.max(0, Number(req.offset) || 0), lim = Math.min(2000, Math.max(1, Number(req.limit) || 2000));
+  if (!width) return { ok: true, tab: tabName, header: [], rows: [], total: 0 };
+  var header = sh.getRange(1, 1, 1, width).getValues()[0];
+  var from = 2 + off, n = Math.max(0, Math.min(lim, last - from + 1));
+  var vals = n ? sh.getRange(from, 1, n, width).getValues() : [];
+  var rows = vals.map(function (r) { return r.map(function (c) { return c instanceof Date ? { d: c.toISOString() } : c; }); });
+  return { ok: true, tab: tabName, header: header, rows: rows, offset: off, total: Math.max(last - 1, 0) };
 }
