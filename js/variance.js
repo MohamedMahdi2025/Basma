@@ -127,26 +127,34 @@ function chipBar(host, cfg){
       '<div class="cf-pop" data-cfp role="dialog" hidden></div>';
     var q = host.querySelector('[data-cfq]'), tm; q.value = cfg.f.q || '';
     q.oninput = function(){ var v = q.value; clearTimeout(tm); tm = setTimeout(function(){ host.__cfg.f.q = v.trim(); host.__cfg.onChange(); }, 400); };
-    var outside = function(e){ if (!host.isConnected) return document.removeEventListener('pointerdown', outside); var p = host.querySelector('[data-cfp]'); if (p && !p.hidden && !host.contains(e.target)) p.hidden = true; };
-    document.addEventListener('pointerdown', outside);
-    host.addEventListener('keydown', function(e){ var p = host.querySelector('[data-cfp]'); if (e.key === 'Escape' && p && !p.hidden) { p.hidden = true; e.stopPropagation(); var a = host.querySelector('[data-cfa]'); if (a) a.focus(); } });
+    // the popover is kept on host.__pop: on a phone it moves to <body> as a bottom sheet (the page scroller would clip a
+    // fixed element and the bottom bar would cover it), and comes back when it closes
+    var P = host.__pop = host.querySelector('[data-cfp]');
+    var close = function(){ if (P.hidden) return; P.hidden = true; P.dataset.m = ''; if (P.parentNode !== host) host.appendChild(P); };
+    host.__close = close;
+    var outside = function(e){ if (!host.isConnected) { close(); document.removeEventListener('pointerdown', outside); window.removeEventListener('hashchange', close); return; } if (!P.hidden && !host.contains(e.target) && !P.contains(e.target)) close(); };
+    document.addEventListener('pointerdown', outside); window.addEventListener('hashchange', close);
+    var esc2 = function(e){ if (e.key === 'Escape' && !P.hidden) { close(); e.stopPropagation(); var a = host.querySelector('[data-cfa]'); if (a) a.focus(); } };
+    host.addEventListener('keydown', esc2); P.addEventListener('keydown', esc2);
   }
-  var f = cfg.f, box = host.querySelector('[data-cfc]'), pop = host.querySelector('[data-cfp]');
+  var f = cfg.f, box = host.querySelector('[data-cfc]'), pop = host.__pop, closePop = host.__close;
+  var show = function(){ if (window.matchMedia && matchMedia('(max-width: 700px)').matches) { pop.classList.add('cf-sheet'); document.body.appendChild(pop); } else { pop.classList.remove('cf-sheet'); if (pop.parentNode !== host) host.appendChild(pop); } pop.hidden = false; };
   var label = function(k){ var d = cfg.dims.filter(function(x){ return x[0] === k; })[0]; return d ? t(d[1]) : k; };
   var active = cfg.dims.filter(function(d){ return Array.isArray(f[d[0]]) && f[d[0]].length; });
-  var on = active.length + (cfg.toggles || []).filter(function(x){ return f[x[0]]; }).length + (f.q ? 1 : 0);
+  var moreN = cfg.more && cfg.more.count ? cfg.more.count() : 0;
+  var on = active.length + (cfg.toggles || []).filter(function(x){ return f[x[0]]; }).length + (f.q ? 1 : 0) + moreN;
   box.innerHTML = active.map(function(d){ var vs = f[d[0]];
       return '<span class="cf-chip"><button type="button" class="cf-ed" data-cfe="' + d[0] + '"><span>' + t(d[1]) + '</span><b>' + (vs.length === 1 ? esc(cfg.val(d[0], vs[0])) : vs.length + ' ' + t('cfSel')) + '</b></button>' +
         '<button type="button" class="cf-x" data-cfx="' + d[0] + '" aria-label="' + esc(t('cfRemove') + ' ' + t(d[1])) + '">' + ph('x') + '</button></span>'; }).join('') +
     (cfg.toggles || []).map(function(x){ return '<button type="button" class="cf-tog" data-cft="' + x[0] + '" aria-pressed="' + !!f[x[0]] + '">' + ph(f[x[0]] ? 'check-circle' : 'circle') + t(x[1]) + '</button>'; }).join('') +
     '<button type="button" class="cf-add" data-cfa aria-haspopup="dialog">' + ph('plus') + t('cfAdd') + '</button>' +
-    (cfg.more ? '<button type="button" class="cf-add" data-cfm aria-haspopup="dialog">' + ph(cfg.more.icon) + t(cfg.more.label) + '</button>' : '') +
+    (cfg.more ? '<button type="button" class="cf-add' + (moreN ? ' cf-on' : '') + '" data-cfm aria-haspopup="dialog">' + ph(cfg.more.icon) + t(cfg.more.label) + (moreN ? ' <b class="cf-n">' + moreN + '</b>' : '') + '</button>' : '') +
     (on ? '<button type="button" class="cf-clr" data-cfclr>' + t('vsClear') + '</button>' : '');
   var focusFirst = function(){ var x = pop.querySelector('input,button'); if (x) x.focus(); };
   var list = function(){
     pop.innerHTML = '<div class="cf-ph"><b>' + t('cfPick') + '</b></div><div class="cf-dl">' + cfg.dims.map(function(d){ var o = cfg.opts(d[0]) || [], n = o.filter(function(x){ return x.count; }).length;
       return '<button type="button" data-cfd="' + d[0] + '"><span>' + t(d[1]) + '</span><small>' + n + '</small>' + ph(S.lang === 'ar' ? 'caret-left' : 'caret-right') + '</button>'; }).join('') + '</div>';
-    pop.hidden = false; focusFirst();
+    show(); focusFirst();
     $$('[data-cfd]', pop).forEach(function(b){ b.onclick = function(){ edit(b.dataset.cfd); }; });
   };
   var edit = function(k){
@@ -155,15 +163,15 @@ function chipBar(host, cfg){
       (o.length > 8 ? '<input type="search" class="cf-s" data-cfs placeholder="' + esc(t('cfFind')) + '" aria-label="' + esc(t('cfFind')) + '">' : '') +
       '<div class="cf-ol">' + o.map(function(x){ return '<label class="' + (x.count ? '' : 'z') + '"><input type="checkbox" value="' + esc(x.value) + '"' + (cur.indexOf(x.value) >= 0 ? ' checked' : '') + '><span>' + esc(cfg.val(k, x.value)) + '</span><small>' + x.count + '</small></label>'; }).join('') + '</div>' +
       '<div class="cf-pf"><button type="button" class="btn btn-line btn-sm" data-cfn>' + t('cfNone') + '</button><span class="sp"></span><button type="button" class="btn btn-dark btn-sm" data-cfok>' + t('cfApply') + '</button></div>';
-    pop.hidden = false; focusFirst();
+    show(); focusFirst();
     $('[data-cfb]', pop).onclick = list;
     var s = $('[data-cfs]', pop); if (s) s.oninput = function(){ var v = s.value.trim().toLowerCase(); $$('.cf-ol label', pop).forEach(function(l){ l.hidden = v && l.textContent.toLowerCase().indexOf(v) < 0; }); };
     $('[data-cfn]', pop).onclick = function(){ $$('.cf-ol input', pop).forEach(function(c){ c.checked = false; }); };
     $('[data-cfok]', pop).onclick = function(){ var vs = $$('.cf-ol input', pop).filter(function(c){ return c.checked; }).map(function(c){ return c.value; });
-      if (vs.length) f[k] = vs; else delete f[k]; pop.hidden = true; cfg.onChange(); };
+      if (vs.length) f[k] = vs; else delete f[k]; closePop(); cfg.onChange(); };
   };
-  $('[data-cfa]', box).onclick = function(){ if (!pop.hidden && pop.querySelector('[data-cfd]')) { pop.hidden = true; return; } list(); };
-  if (cfg.more) $('[data-cfm]', box).onclick = function(){ if (!pop.hidden && pop.dataset.m) { pop.hidden = true; pop.dataset.m = ''; return; } pop.innerHTML = cfg.more.html(); pop.dataset.m = '1'; pop.hidden = false; cfg.more.wire(pop); focusFirst(); };
+  $('[data-cfa]', box).onclick = function(){ if (!pop.hidden && pop.querySelector('[data-cfd]')) { closePop(); return; } list(); };
+  if (cfg.more) $('[data-cfm]', box).onclick = function(){ if (!pop.hidden && pop.dataset.m) { closePop(); return; } pop.innerHTML = cfg.more.html(); show(); pop.dataset.m = '1'; cfg.more.wire(pop); focusFirst(); };
   $$('[data-cfe]', box).forEach(function(b){ b.onclick = function(){ edit(b.dataset.cfe); }; });
   $$('[data-cfx]', box).forEach(function(b){ b.onclick = function(){ delete f[b.dataset.cfx]; cfg.onChange(); }; });
   $$('[data-cft]', box).forEach(function(b){ b.onclick = function(){ f[b.dataset.cft] = !f[b.dataset.cft]; cfg.onChange(); }; });
@@ -182,14 +190,14 @@ function netOnlyNote(ms){ return ms && ms.length ? '<div class="vs-note" role="n
   'html body .cf .cf-q input,html body.v2-on :is(#main,.drawer,.toolbar,.form,.v2-area) .cf.cf .cf-q.cf-q input[type=search][data-cfq][data-cfq],html body.v2-on :is(#main,.drawer) .cf.cf .cf-q.cf-q input[type=search][data-cfq][data-cfq]:is(:hover,:focus){border:0!important;background:transparent!important;outline:0!important;flex:1;min-width:0;width:auto!important;height:38px!important;min-height:0!important;font:inherit;font-size:14px;color:var(--ink);padding:0!important;margin:0!important;box-shadow:none!important;border-radius:0!important}.cf-q:focus-within{outline:2px solid var(--brand);outline-offset:1px}' +
   '.cf-chips{display:contents}.cf-chip{display:inline-flex;align-items:center;height:36px;border-radius:999px;background:var(--ink);color:var(--paper,#fff);overflow:hidden}.cf-chip button{border:0;background:none;color:inherit;font:inherit;cursor:pointer;height:100%}' +
   '.cf-ed{display:inline-flex;gap:6px;align-items:center;padding:0 4px 0 14px;font-size:13px}html[dir=rtl] .cf-ed{padding:0 14px 0 4px}.cf-ed span{opacity:.72}.cf-ed b{font-weight:600;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.cf-x{width:34px;display:grid;place-items:center}.cf-x:hover{background:rgba(255,255,255,.14)}' +
-  '.cf-tog,.cf-add,.cf-clr{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:999px;font:inherit;font-size:13px;cursor:pointer;border:1px solid var(--q-hair-3,#D6D0C2);background:var(--card,#fff);color:var(--ink)}.cf-add{border-style:dashed}.cf-tog[aria-pressed=true]{background:var(--q-tray,#F4F2EC);border-color:var(--ink);font-weight:600}.cf-clr{border:0;background:none;color:var(--ink-2);text-decoration:underline;text-underline-offset:3px}' +
+  '.cf-tog,.cf-add,.cf-clr{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:999px;font:inherit;font-size:13px;cursor:pointer;border:1px solid var(--q-hair-3,#D6D0C2);background:var(--card,#fff);color:var(--ink)}.cf-add{border-style:dashed}.cf-add.cf-on{border-style:solid;border-color:var(--ink);font-weight:600}.cf-n{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--ink);color:var(--paper,#fff);font-size:11px}.cf-tog[aria-pressed=true]{background:var(--q-tray,#F4F2EC);border-color:var(--ink);font-weight:600}.cf-clr{border:0;background:none;color:var(--ink-2);text-decoration:underline;text-underline-offset:3px}' +
   '.cf-pop{position:absolute;z-index:30;top:calc(100% + 8px);inset-inline-start:0;width:min(360px,calc(100vw - 32px));max-height:min(460px,70vh);display:flex;flex-direction:column;background:var(--card,#fff);border:1px solid var(--q-hair,#E4DFD3);border-radius:16px;box-shadow:0 12px 32px rgba(20,18,15,.16);padding:8px}.cf-pop[hidden]{display:none}' +
   '.cf-ph{display:flex;align-items:center;gap:8px;padding:8px 8px 10px;font-size:14px}.cf-back{border:0;background:none;width:32px;height:32px;border-radius:999px;cursor:pointer;color:var(--ink)}.cf-back:hover{background:var(--q-tray,#F4F2EC)}' +
   '.cf-dl{overflow:auto}.cf-dl button{display:flex;align-items:center;gap:8px;width:100%;border:0;background:none;padding:10px 12px;border-radius:10px;font:inherit;font-size:14px;color:var(--ink);cursor:pointer;text-align:start;min-height:44px}.cf-dl button:hover,.cf-dl button:focus-visible{background:var(--q-tray,#F4F2EC)}.cf-dl span{flex:1}.cf-dl small{color:var(--ink-2)}' +
   'html body .cf-s{height:38px;border-radius:999px;border:1px solid var(--q-hair-3,#D6D0C2);padding:0 14px;margin:0 4px 8px;font:inherit;font-size:14px;background:var(--q-tray,#F4F2EC)}' +
   '.cf-ol{overflow:auto;flex:1;padding:0 4px}.cf-ol label{display:flex;align-items:center;gap:10px;padding:8px;border-radius:10px;font-size:14px;cursor:pointer;min-height:40px}.cf-ol label:hover{background:var(--q-tray,#F4F2EC)}.cf-ol label span{flex:1}.cf-ol label small{color:var(--ink-2);font-variant-numeric:tabular-nums}.cf-ol label.z{opacity:.5}.cf-ol input{width:18px;height:18px;accent-color:var(--ink)}' +
   '.cf-pf{display:flex;gap:8px;padding:10px 4px 4px;border-top:1px solid var(--q-hair,#E4DFD3);margin-top:6px}.cf-pf .sp{flex:1}.cf-set{display:grid;gap:12px;padding:4px 8px 8px}.cf-set label{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:600;color:var(--ink-2)}html body .cf-set input{height:40px;border-radius:12px;border:1px solid var(--q-hair-3,#D6D0C2);padding:0 12px;font:inherit;font-size:14px}' +
-  '@media (max-width:700px){.cf-pop{position:fixed;inset:auto 0 0 0;width:auto;max-height:75vh;border-radius:20px 20px 0 0;padding:12px 12px max(12px,env(safe-area-inset-bottom))}.cf-q{max-width:none}}' +
+  '.cf-pop.cf-sheet{position:fixed;z-index:2147483000;inset:auto 0 0 0;top:auto;width:auto;max-height:80vh;border-radius:20px 20px 0 0;padding:12px 12px max(16px,env(safe-area-inset-bottom));box-shadow:0 0 0 100vmax rgba(20,18,15,.38),0 -8px 32px rgba(20,18,15,.2)}@media (max-width:700px){.cf-q{max-width:none}}' +
   // results: money tiles hold up to 13 characters (1,234,567.89), so their figures scale with the width instead of being cut
   'html body.v2-on :is(#vaBox,#moBox,#vsBox) .db-tile b{font-size:clamp(18px,2vw,26px)!important;white-space:nowrap;letter-spacing:-.01em}html body.v2-on :is(#vaBox,#moBox,#vsBox) .db-tiles{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))!important}' +
   '.vs-note{display:flex;gap:10px;align-items:flex-start;padding:12px 16px;border-radius:14px;background:var(--q-tray,#F4F2EC);border:1px solid var(--q-hair,#E4DFD3);margin:0 0 16px;font-size:13px;line-height:1.6}.vs-note p{margin:0}' +
@@ -241,10 +249,14 @@ function sheetSection(body){
     if (n(f.gFrom) != null && !(x.gross >= n(f.gFrom))) return false; if (n(f.gTo) != null && !(x.gross <= n(f.gTo))) return false;
     if (n(f.nFrom) != null && !(x.net >= n(f.nFrom))) return false; if (n(f.nTo) != null && !(x.net <= n(f.nTo))) return false;
     return true; };
-  var asRow = function(p){ var d = p.dims, cur = p.m[PS.month]; return { sponsor: d.payGroup, department: d.department, title: d.title, employmentType: d.employmentType, location: d.location, city: d.city,
-    nationality: d.nationality, saudi: d.saudi === 'saudi', status: p.status, name: p.name, empNo: p.empNo, gross: cur ? cur[0] : null, net: cur ? cur[2] : null }; };
+  // a person in month m, as a row of that month's sheet: the sponsor is the one whose run paid them that month (as in the
+  // sheet below), the amount ranges look at the selected month, and an ID / iqama search matches through the sheet's rows
+  var asRow = function(p, m){ var d = p.dims, cur = p.m[PS.month], v = p.m[m] || []; return { sponsor: v[6] || d.payGroup, department: d.department, title: d.title, employmentType: d.employmentType, location: d.location, city: d.city,
+    nationality: d.nationality, saudi: d.saudi === 'saudi', status: p.status, name: p.name, empNo: p.empNo, idNo: idOf[p.empNo] || '', gross: cur ? cur[0] : null, net: cur ? cur[2] : null }; };
+  var idOf = {};
   function draw(){
     var r = PS.pv, f = PS.f, all = r.rows, rows = all.filter(function(x){ return pass(x); });
+    idOf = {}; all.forEach(function(x){ if (x.idNo) idOf[x.empNo] = x.idNo; });
     var lineKeys = orderLines(r.lineKeys.filter(function(k){ return rows.some(function(x){ return x.lines[k]; }); }));
     var spCols = payCols(lineKeys, false), rowCols = payCols(lineKeys, true);
     var colLabel = function(c){ return c.indexOf('l:') === 0 ? esc(lineName(c.slice(2))) : t({ days: 'vsDays', gross: 'vsGross', deductions: 'vsDed', net: 'vsNet' }[c]); };
@@ -255,7 +267,7 @@ function sheetSection(body){
     var bySp = {}; rows.forEach(function(x){ var s = bySp[x.sponsor] = bySp[x.sponsor] || { sponsor: x.sponsor, head: 0, gross: 0, deductions: 0, net: 0, gosiEmployer: 0, lines: {} }; s.head++; ['gross', 'deductions', 'net', 'gosiEmployer'].forEach(function(k){ s[k] += x[k]; }); Object.keys(x.lines).forEach(function(k){ s.lines[k] = (s.lines[k] || 0) + x.lines[k]; }); });
     // month x sponsor: from the people who pass the filters (falls back to the whole month when the server is older)
     var M = PS.metric, MI = { gross: 0, deductions: 1, net: 2, companyCost: 3, gosiEmployer: 5 }[M], cells = {}, sps = {}, pivMonths = r.months, live = !!PS.mm;
-    if (live) { pivMonths = PS.mm.months; PS.mm.people.forEach(function(p){ if (!pass(asRow(p))) return; pivMonths.forEach(function(m){ var v = p.m[m]; if (!v) return; var k = m + '|' + p.dims.payGroup; sps[p.dims.payGroup] = 1; cells[k] = (cells[k] || 0) + (M === 'headcount' ? 1 : v[MI] || 0); }); }); }
+    if (live) { pivMonths = PS.mm.months; PS.mm.people.forEach(function(p){ pivMonths.forEach(function(m){ var v = p.m[m]; if (!v) return; var x = asRow(p, m); if (!pass(x)) return; var k = m + '|' + x.sponsor; sps[x.sponsor] = 1; cells[k] = (cells[k] || 0) + (M === 'headcount' ? 1 : v[MI] || 0); }); }); }
     else r.cells.forEach(function(c){ if (Array.isArray(f.sponsor) && f.sponsor.length && f.sponsor.indexOf(c.sponsor) < 0) return; sps[c.sponsor] = 1; cells[c.month + '|' + c.sponsor] = c[M] || 0; });
     sps = r.sponsors.filter(function(s){ return sps[s]; }).concat(Object.keys(sps).filter(function(s){ return r.sponsors.indexOf(s) < 0; }));
     var cell = function(m, s){ return cells[m + '|' + s] || 0; }, fmtV = function(v){ return M === 'headcount' ? String(Math.round(v)) : amt(Math.round(v * 100) / 100); };
@@ -264,8 +276,8 @@ function sheetSection(body){
       '<span class="sp"></span><button type="button" class="btn btn-dark btn-sm" id="vsX">' + ph('microsoft-excel-logo') + t('vsExcel') + '</button></div>';
     chipBar(cf, { f: f, dims: PS_DIMS, val: function(k, v){ return k === 'level' ? t(v) : k === 'saudi' ? t(v === 'true' ? 'vsSaudiY' : 'vsSaudiN') : v; }, onChange: draw,
       opts: function(k){ var c = {}; all.forEach(function(x){ var v = rowVal(x, k); if (v === '' || v == null) return; if (!(v in c)) c[v] = 0; if (pass(x, k)) c[v]++; }); return Object.keys(c).sort().map(function(v){ return { value: v, count: c[v] }; }); },
-      more: { icon: 'sliders-horizontal', label: 'cfRanges', html: function(){ return '<div class="cf-ph"><b>' + t('cfRanges') + '</b></div><div class="cf-set">' + [['gFrom', 'vsGrossFrom'], ['gTo', 'vsGrossTo'], ['nFrom', 'vsNetFrom'], ['nTo', 'vsNetTo']].map(function(x){ return '<label>' + t(x[1]) + '<input data-rg="' + x[0] + '" type="number" inputmode="decimal" dir="ltr" value="' + esc(f[x[0]] == null ? '' : f[x[0]]) + '"></label>'; }).join('') + '</div><div class="cf-pf"><span class="sp"></span><button type="button" class="btn btn-dark btn-sm" data-rgok>' + t('cfApply') + '</button></div>'; },
-        wire: function(pop){ $('[data-rgok]', pop).onclick = function(){ $$('[data-rg]', pop).forEach(function(i){ if (i.value === '') delete f[i.dataset.rg]; else f[i.dataset.rg] = i.value; }); pop.hidden = true; draw(); }; } } });
+      more: { icon: 'sliders-horizontal', label: 'cfRanges', count: function(){ return ['gFrom', 'gTo', 'nFrom', 'nTo'].filter(function(k){ return f[k] != null && f[k] !== ''; }).length; }, html: function(){ return '<div class="cf-ph"><b>' + t('cfRanges') + '</b></div><div class="cf-set">' + [['gFrom', 'vsGrossFrom'], ['gTo', 'vsGrossTo'], ['nFrom', 'vsNetFrom'], ['nTo', 'vsNetTo']].map(function(x){ return '<label>' + t(x[1]) + '<input data-rg="' + x[0] + '" type="number" inputmode="decimal" dir="ltr" value="' + esc(f[x[0]] == null ? '' : f[x[0]]) + '"></label>'; }).join('') + '</div><div class="cf-pf"><span class="sp"></span><button type="button" class="btn btn-dark btn-sm" data-rgok>' + t('cfApply') + '</button></div>'; },
+        wire: function(pop){ $('[data-rgok]', pop).onclick = function(){ $$('[data-rg]', pop).forEach(function(i){ if (i.value === '') delete f[i.dataset.rg]; else f[i.dataset.rg] = i.value; }); cf.__close ? cf.__close() : (pop.hidden = true); draw(); }; } } });
     el.innerHTML =
       K.tiles([[t('vsHead'), String(rows.length), t('vsShown').replace('{n}', rows.length).replace('{t}', all.length), true], [t('vsGross'), amt(sum(rows, 'gross'))], [t('vsDed'), amt(sum(rows, 'deductions'))],
         [t('vsNet'), amt(sum(rows, 'net'))], [t('vsGosiR'), amt(sum(rows, 'gosiEmployer'))]]) +
@@ -303,7 +315,7 @@ function sheetSection(body){
     var flat = function(list){ return list.map(function(x){ var o = Object.assign({}, x, { level: t(level(x.title)) }); lineKeys.forEach(function(k){ o['L' + k] = x.lines[k] || 0; }); delete o.lines; return o; }); };
     var pivotCols = [{ key: 'month', label: t('vsMonth'), type: 'text' }].concat(sps.map(function(s, i){ return { key: 's' + i, label: s, type: 'money', sum: true }; })).concat([{ key: 'total', label: t('vsTotal'), type: 'money', sum: true }]);
     var pivot = function(metric){ var MI = { gross: 0, deductions: 1, net: 2, companyCost: 3 }[metric], c = {};
-      if (live) PS.mm.people.forEach(function(p){ if (!pass(asRow(p))) return; pivMonths.forEach(function(m){ var v = p.m[m]; if (v) c[m + '|' + p.dims.payGroup] = (c[m + '|' + p.dims.payGroup] || 0) + (v[MI] || 0); }); });
+      if (live) PS.mm.people.forEach(function(p){ pivMonths.forEach(function(m){ var v = p.m[m]; if (!v) return; var x = asRow(p, m); if (pass(x)) c[m + '|' + x.sponsor] = (c[m + '|' + x.sponsor] || 0) + (v[MI] || 0); }); });
       else PS.pv.cells.forEach(function(x){ c[x.month + '|' + x.sponsor] = x[metric] || 0; });
       return pivMonths.map(function(m){ var o = { month: m }, tt = 0; sps.forEach(function(s, i){ var v = Math.round((c[m + '|' + s] || 0) * 100) / 100; o['s' + i] = v; tt += v; }); o.total = Math.round(tt * 100) / 100; return o; }); };
     var sheets = [{ name: xlName(t('vsSheet')), title: title, columns: cols, rows: flat(rows) },
@@ -348,8 +360,8 @@ function varianceSection(body){
       more: { icon: 'sliders-horizontal', label: 'cfSettings', html: function(){ return '<div class="cf-ph"><b>' + t('cfSettings') + '</b></div><div class="cf-set"><p class="hr-hint" style="margin:0">' + t('cfSetLead') + '</p>' +
           '<label>' + t('vaPct') + '<input id="vaP" type="number" dir="ltr" value="' + r.threshold.pct + '"></label><label>' + t('vaMin') + '<input id="vaN" type="number" dir="ltr" value="' + r.threshold.min + '"></label>' +
           '<button type="button" class="btn btn-line btn-sm" id="vaCity">' + ph('map-pin') + t('vaCities') + '</button></div><div class="cf-pf"><span class="sp"></span><button type="button" class="btn btn-dark btn-sm" id="vaSetOk">' + t('cfApply') + '</button></div>'; },
-        wire: function(pop){ $('#vaCity', pop).onclick = function(){ pop.hidden = true; cities(); };
-          $('#vaSetOk', pop).onclick = function(){ var p = +$('#vaP', pop).value, n = $('#vaN', pop).value; VA.pct = p > 0 ? p : 10; VA.min = n === '' ? 100 : +n; pop.hidden = true; load(); }; } } });
+        wire: function(pop){ $('#vaCity', pop).onclick = function(){ cf.__close(); cities(); };
+          $('#vaSetOk', pop).onclick = function(){ var p = +$('#vaP', pop).value, n = $('#vaN', pop).value; VA.pct = p > 0 ? p : 10; VA.min = n === '' ? 100 : +n; cf.__close(); load(); }; } } });
     // the story in one paragraph: how net moved and why
     var story = '<div class="vs-story"><p class="vs-lead">' + t('vaStory1').replace('{now}', '<b>' + esc(vaL('now')) + '</b>').replace('{net}', '<b class="num">' + acctFmt(T0.net.cur) + '</b>') + ' ' +
       (nc.diff ? t(up ? 'vaStoryUp' : 'vaStoryDown').replace('{d}', '<b class="num">' + acctFmt(Math.abs(nc.diff)) + '</b>').replace('{p}', nc.pct == null ? '' : '(' + Math.abs(Math.round(nc.pct * 10) / 10) + '%)') : t('vaStorySame')) + ' ' + t('vaStoryCmp').replace('{base}', '<b>' + esc(vaL('base')) + '</b>') +
@@ -438,7 +450,8 @@ function varianceSection(body){
     var pc = [{ key: 'empNo', label: t('vsEmpNo'), type: 'text' }, { key: 'name', label: t('vsName'), type: 'text' }].concat(DIMS.map(function(d){ return { key: d[0], label: t(d[1]), type: 'text' }; }))
       .concat([{ key: 'baseNet', label: vaL('base') + ' ' + t('vsNet'), type: 'money', sum: true }, { key: 'curNet', label: vaL('now') + ' ' + t('vsNet'), type: 'money', sum: true }, { key: 'diff', label: t('vaChg'), type: 'money', sum: true },
         { key: 'baseGross', label: vaL('base') + ' ' + t('vsGross'), type: 'money', sum: true }, { key: 'curGross', label: vaL('now') + ' ' + t('vsGross'), type: 'money', sum: true }, { key: 'flags', label: t('vaFlags'), type: 'text' }, { key: 'score', label: 'Score', type: 'int' }]);
-    var prow = r.people.map(function(p){ var o = { empNo: p.empNo, name: p.name, baseNet: p.base ? p.base.net : 0, curNet: p.cur ? p.cur.net : 0, diff: p.net.diff, baseGross: p.base ? p.base.gross : 0, curGross: p.cur ? p.cur.gross : 0,
+    var nOnly = (r.netOnlyMonths || []).length > 0; // a net-only month has no real gross: leave those cells empty
+    var prow = r.people.map(function(p){ var o = { empNo: p.empNo, name: p.name, baseNet: p.base ? p.base.net : 0, curNet: p.cur ? p.cur.net : 0, diff: p.net.diff, baseGross: nOnly ? null : p.base ? p.base.gross : 0, curGross: nOnly ? null : p.cur ? p.cur.gross : 0,
       flags: p.flags.map(function(f){ return t('fl_' + f); }).join(', '), score: p.score }; DIMS.forEach(function(d){ o[d[0]] = dimVal(d[0], p.dims[d[0]]); }); return o; });
     var dc = [{ key: 'key', label: t('vaBy'), type: 'text' }, { key: 'headBase', label: vaL('base') + ' ' + t('vsHead'), type: 'int', sum: true }, { key: 'headCur', label: vaL('now') + ' ' + t('vsHead'), type: 'int', sum: true },
       { key: 'joiners', label: t('vaJoin'), type: 'int', sum: true }, { key: 'leavers', label: t('vaLeave'), type: 'int', sum: true }, { key: 'netBase', label: vaL('base') + ' ' + t('vsNet'), type: 'money', sum: true },

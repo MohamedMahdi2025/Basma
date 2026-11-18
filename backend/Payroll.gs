@@ -1341,6 +1341,7 @@ function payBook_(me) {
     return out;
   };
   var slipsByRun = {}; readAll_(SHEETS.SLIP).forEach(function (x) { if (x.status !== 'void') (slipsByRun[x.runId] = slipsByRun[x.runId] || []).push(x); });
+  var runGroup = {}; runs.forEach(function (r) { var g = String(r.payGroupId || ''); runGroup[r.id] = g && gName[g] ? gName[g] : 'عام'; });
   var cache = {}, netOnly = {};
   var perMonth = function (m) {
     if (cache[m]) return cache[m];
@@ -1349,7 +1350,7 @@ function payBook_(me) {
       (slipsByRun[rid] || []).forEach(function (x) {
         var ls = lines_(x); slips++;
         if (ls.length === 1 && ls[0].code === 'other_earning' && /صافي الراتب المعتمد|approved net/i.test(String(ls[0].label || ''))) bare++;
-        var c = out[x.empId] = out[x.empId] || { gross: 0, deductions: 0, net: 0, gosiEmployee: 0, gosiEmployer: 0, companyCost: 0, paidDays: 0, absentDays: 0, lines: {} };
+        var c = out[x.empId] = out[x.empId] || { gross: 0, deductions: 0, net: 0, gosiEmployee: 0, gosiEmployer: 0, companyCost: 0, paidDays: 0, absentDays: 0, lines: {}, group: runGroup[rid] };
         c.gross += Number(x.gross) || 0; c.deductions += Number(x.deductions) || 0; c.net += Number(x.net) || 0;
         c.gosiEmployee += Number(x.gosiEmployee) || 0; c.gosiEmployer += Number(x.gosiEmployer) || 0;
         c.companyCost += Number(x.companyCost) || ((Number(x.gross) || 0) + (Number(x.gosiEmployer) || 0));
@@ -1407,14 +1408,14 @@ function api_payrollMonthly(req, me) {
     Object.keys(pm).forEach(function (id) {
       var x = all[id];
       if (!x) { var e = book.emps[id] || { id: id, name: '?', empNo: '' }; x = all[id] = { empId: id, empNo: String(e.empNo || ''), name: e.name || '', status: e.status || '', dims: book.dimsOf(e), m: {} }; }
-      var c = pm[id]; x.m[m] = [r2_(c.gross), r2_(c.deductions), r2_(c.net), r2_(c.companyCost), r2_(c.paidDays), r2_(c.gosiEmployer)];
+      var c = pm[id]; x.m[m] = [r2_(c.gross), r2_(c.deductions), r2_(c.net), r2_(c.companyCost), r2_(c.paidDays), r2_(c.gosiEmployer), c.group];
     });
   });
   var list = Object.keys(all).map(function (id) { return all[id]; });
   var keep = list.filter(function (x) { return VF.pass(x); });
   keep.sort(function (a, b) { return a.dims.payGroup.localeCompare(b.dims.payGroup) || (Number(a.empNo) || 0) - (Number(b.empNo) || 0) || a.name.localeCompare(b.name); });
   audit_(me.id, 'salary_view', '', { monthly: want[0] + '..' + want[want.length - 1], n: want.length });
-  return { ok: true, months: want, allMonths: avail, netOnlyMonths: want.filter(function (m) { return book.isNetOnly(m); }), fields: ['gross', 'deductions', 'net', 'companyCost', 'days', 'gosiEmployer'],
+  return { ok: true, months: want, allMonths: avail, netOnlyMonths: want.filter(function (m) { return book.isNetOnly(m); }), fields: ['gross', 'deductions', 'net', 'companyCost', 'days', 'gosiEmployer', 'sponsor'],
     people: keep, options: VF.options(list), shown: keep.length, all: list.length };
 }
 function api_payrollVarianceMonth(req, me) {

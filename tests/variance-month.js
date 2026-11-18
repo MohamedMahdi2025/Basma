@@ -127,6 +127,15 @@ mm = MM({ n: 2 });
 ok(mm.months.join() === '2026-08,2026-09', 'the latest n months');
 let mmRefused = false; try { C.ctx.api_payrollMonthly({}, { id: 'E', role: 'employee', extraRoles: '' }); } catch (e) { mmRefused = /forbidden/.test(String(e.message)); }
 ok(mmRefused, 'an employee is refused the month-by-month sheet');
+// someone moved to another sponsor after being paid: the month x sponsor table still counts each month under the run that paid it
+C.ctx.READ_MEMO_ = {};
+const ali = C.ctx.readAll_('employees').find(e => e.empNo === '1001'), other = C.ctx.readAll_('employees').find(e => e.empNo === '1002');
+const aliGroup = ali.payGroupId; C.ctx.update_('employees', Object.assign({}, ali, { payGroupId: other.payGroupId, _cached: false })); C.ctx.READ_MEMO_ = {};
+const pv2 = C.call({ action: 'payrollPivot', token: tk }), mm3 = MM({});
+const bySp = {}; mm3.people.forEach(p => mm3.months.forEach(m => { const v = p.m[m]; if (v) bySp[m + '|' + v[6]] = (bySp[m + '|' + v[6]] || 0) + v[2]; }));
+ok(pv2.cells.every(c => near(bySp[c.month + '|' + c.sponsor] || 0, c.net)) && Object.keys(bySp).length === pv2.cells.length, 'each person-month carries the sponsor whose run paid it, so the rebuilt table equals the sponsor report', { bySp, cells: pv2.cells.map(c => [c.month, c.sponsor, c.net]) });
+ok(mm3.people.find(p => p.empNo === '1001').dims.payGroup !== mm3.people.find(p => p.empNo === '1001').m['2026-09'][6], 'fixture: the moved person\'s current sponsor differs from the one that paid September');
+C.ctx.update_('employees', Object.assign({}, C.ctx.readAll_('employees').find(e => e.empNo === '1001'), { payGroupId: aliGroup, _cached: false })); C.ctx.READ_MEMO_ = {};
 
 console.log('Net-only month (imported from the disbursement report)');
 const C2 = load({ setupKeyHash: sha('k'), now: Date.parse('2026-11-05T06:00:00Z') });
