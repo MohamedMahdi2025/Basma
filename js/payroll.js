@@ -174,7 +174,7 @@ function printSlip(s, who){
   var tbl = function(ls, totKey, total){ return '<table class="tb"><thead><tr><th>' + bi('psItem') + '</th><th class="n">' + bi('psAmount') + '</th></tr></thead><tbody>' +
     (ls.length ? ls.map(function(l){ return '<tr><td>' + lb(l) + note(l) + '</td><td class="n num">' + money(l.amount) + '</td></tr>'; }).join('') : '<tr><td>-</td><td class="n num">0.00</td></tr>') +
     '</tbody><tfoot><tr><td>' + bi(totKey) + '</td><td class="n num">' + money(total) + '</td></tr></tfoot></table>'; };
-  var ear = s.lines.filter(function(l){ return l.kind === 'earning'; }), ded = s.lines.filter(function(l){ return l.kind === 'deduction'; });
+  var ear = inOrder(s.lines.filter(function(l){ return l.kind === 'earning'; })), ded = inOrder(s.lines.filter(function(l){ return l.kind === 'deduction'; }));
   var cost = companyCostOf(s), period = info.from && info.to ? info.from + ' → ' + info.to : s.month;
   var body =
     '<section class="pnet"><div class="pn-main"><span>' + bi('prNet') + '</span><b class="num">' + money(s.net) + ' <em>' + (lang === 'en' ? 'SAR' : 'ر.س') + '</em></b>' +
@@ -390,21 +390,36 @@ function runView(body, id){
 
 /** The run's people as a payroll register in payslip order: name, number, department, basic, days worked, every other
  *  addition, total additions, each deduction, total deductions, net; then employer GOSI and company cost (2026-11-18). */
-var PORD = ['basic', 'housing', 'transport', 'allowance', 'other_allowance', 'arrears', 'bonus', 'commission', 'incentive', 'overtime', 'per_diem', 'reimbursement', 'other_earning',
-  'gosi', 'absence', 'late', 'unpaid_leave', 'sick_75', 'sick_unpaid', 'fine', 'advance', 'loan', 'other_deduction'];
-function pRank(kind, code){ var i = PORD.indexOf(code); return (kind === 'deduction' ? 1000 : 0) + (i < 0 ? 500 : i); }
-function inOrder(ls){ return ls.slice().sort(function(a, b){ return pRank(a.kind, a.code) - pRank(b.kind, b.code); }); }
+// PAY ORDER (docs/research/2026-11-18-pay-item-order-rea.md). One order for every payroll screen, payslip and export; the same list
+// lives in js/variance.js and tests/payorder.js checks they agree. Earnings: the GOSI wage (basic, housing: the two WPS wage
+// fields), fixed allowances, arrears, variable pay (overtime first: it is set by law), then non-wage payments. Deductions: GOSI
+// (statutory) first, then the company's own sheet order: fines (traffic before other penalties), loan and advance instalments,
+// leave and absence, the new joiner's unworked days ('join'), other deductions.
+var PAY_ORDER = { e: ['basic', 'housing', 'transport', 'allowance', 'other_allowance', 'arrears', 'overtime', 'commission', 'incentive', 'bonus', 'per_diem', 'reimbursement', 'other_earning'],
+  d: ['gosi', 'fine', 'advance', 'loan', 'unpaid_leave', 'sick_75', 'sick_unpaid', 'absence', 'late', 'join', 'other_deduction'] };
+function payRank(kind, code, label){
+  var ded = kind === 'deduction' || kind === 'd', c = code === 'other_deduction' && /انضمام|join/i.test(String(label || '')) ? 'join' : code, i = PAY_ORDER[ded ? 'd' : 'e'].indexOf(c);
+  return (ded ? 1000 : 0) + (i < 0 ? 500 : i * 10) - (code === 'fine' && /مرور|traffic/i.test(String(label || '')) ? 1 : 0);
+}
+function pRank(kind, code, label){ return payRank(kind, code, label); }
+function inOrder(ls){ return ls.slice().sort(function(a, b){ return pRank(a.kind, a.code, a.label) - pRank(b.kind, b.code, b.label) || String(a.label || '').localeCompare(String(b.label || '')); }); }
+// a register column per pay item; lines that share a code but carry their own name (traffic fines vs other penalties, a named
+// allowance, a new joiner's days) get their own column, the same split the variance screens use
+// (a one-off adjustment carries its free-text reason as the label and a ref: those stay in the code's column)
+function regKey(l){ var lb = String(l.label || '').trim(), split = lb && !l.ref && l.code !== 'basic' && l.code !== 'gosi' && l.code !== 'overtime';
+  return (l.kind === 'deduction' ? 'd:' : 'e:') + l.code + (split ? ':' + lb.replace(/:/g, ' ') : ''); }
 function slipTable(box, r, run){
   var st = { q: '', dept: '', k: 'name', up: true };
   var dn = function(s){ return (s.emp && (s.emp.deptName || s.emp.department)) || '-'; };
   var keys = {};
   var rows = r.slips.map(function(s){
     var x = { s: s, no: s.emp ? String(s.emp.empNo) : '', name: s.emp ? s.emp.name : '', dept: dn(s), days: +s.paidDays || 0, gross: +s.gross || 0, ded: +s.deductions || 0, net: +s.net || 0, er: +s.gosiEmployer || 0, cost: +s.companyCost || ((+s.gross || 0) + (+s.gosiEmployer || 0)) };
-    (s.lines || []).forEach(function(l){ var k = (l.kind === 'deduction' ? 'd:' : 'e:') + l.code; keys[k] = 1; x['L' + k] = (x['L' + k] || 0) + (Number(l.amount) || 0); });
+    (s.lines || []).forEach(function(l){ var k = regKey(l); keys[k] = 1; x['L' + k] = (x['L' + k] || 0) + (Number(l.amount) || 0); });
     return x; });
-  var ks = Object.keys(keys).sort(function(a, b){ return pRank(a[0] === 'd' ? 'deduction' : 'earning', a.slice(2)) - pRank(b[0] === 'd' ? 'deduction' : 'earning', b.slice(2)); });
+  var kp = function(k){ var p = k.split(':'); return { kind: p[0] === 'd' ? 'deduction' : 'earning', code: p[1], label: p.slice(2).join(':') }; };
+  var ks = Object.keys(keys).sort(function(a, b){ var A = kp(a), B = kp(b); return pRank(A.kind, A.code, A.label) - pRank(B.kind, B.code, B.label) || A.label.localeCompare(B.label); });
   var ek = ks.filter(function(k){ return k[0] === 'e'; }), dk2 = ks.filter(function(k){ return k[0] === 'd'; });
-  var hasBasic = ek[0] === 'e:basic', lname = function(k){ return lab({ code: k.slice(2), kind: k[0] === 'd' ? 'deduction' : 'earning' }); };
+  var hasBasic = ek[0] === 'e:basic', lname = function(k){ var o = kp(k); return o.label && o.code !== 'allowance' ? lab(o) + ' · ' + o.label : lab(o); };
   // columns: [sort key, label, kind]  kind: t = text, m = money, n = count, g = group total
   var cols = [['name', t('hrName'), 't'], ['no', t('ptNo'), 't'], ['dept', t('ptDept'), 't']]
     .concat(hasBasic ? [['Le:basic', lname('e:basic'), 'm']] : []).concat([['days', t('pvDays'), 'n']])

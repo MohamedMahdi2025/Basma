@@ -97,7 +97,15 @@ const PV = {};
   const emp = id => B.ctx.readAll_('employees').find(x => x.id === id);
   const tok = id => B.ctx.issueToken_(emp(id), 'pw');
   const go = (id, action, extra) => B.call(Object.assign({ action, token: tok(id) }, extra || {}));
+  const comp = (id, empId, from, basic, housing, transport) => B.ctx.append_('compensation', { id, empId, effectiveFrom: from, basic, housing, transport, otherJson: '{}', currency: 'SAR', reason: 'preview', enteredBy: 'E2002', approvedBy: 'E1000', approvedAt: new Date().toISOString(), status: 'approved', createdAt: new Date().toISOString(), batchId: '' });
   ['2026-08', '2026-09', '2026-10'].forEach((m, i) => {
+    // movement for the variance and month-by-month screens: a joiner in September; in October a leaver, a raise and a bonus
+    if (m === '2026-09') comp('CPV1', 'E2006', '2026-09-01', 6000, 1500, 600);
+    if (m === '2026-10') {
+      const e5 = emp('E2005'); e5.status = 'disabled'; B.ctx.update_('employees', e5);
+      comp('CPV2', 'E2001', '2026-10-01', 9800, 2450, 900);
+      const a = go('E2002', 'payrollAdjSave', { adj: { empId: 'E2003', code: 'bonus', amount: 1200, reason: 'مكافأة أداء', month: m } }); if (!a.ok) console.log('pay demo bonus', a.error);
+    }
     const r = go('E2002', 'payrollCreate', { month: m });
     if (!r.ok) return console.log('pay demo', m, r.error);
     if (i < 2) { const a = go('E2004', 'payrollApprove', { id: r.run.id }); if (!a.ok) console.log('pay demo approve', m, a.error); }

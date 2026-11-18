@@ -1170,7 +1170,7 @@ function api_payrollVariance(req, me) {
       cur.gosiEmployee += Number(x.gosiEmployee) || 0; cur.gosiEmployer += Number(x.gosiEmployer) || 0;
       cur.companyCost += Number(x.companyCost) || ((Number(x.gross) || 0) + (Number(x.gosiEmployer) || 0));
       cur.paidDays += Number(x.paidDays) || 0; cur.absentDays += Number(x.absentDays) || 0;
-      lines_(x).forEach(function (l) { var c = (l.kind === 'deduction' ? 'd:' : 'e:') + l.code + (l.label && l.code !== 'basic' ? ':' + l.label : ''); lineCodes[c] = 1; cur.lines[c] = r2_((cur.lines[c] || 0) + (Number(l.amount) || 0)); });
+      lines_(x).forEach(function (l) { var c = lineKey_(l); lineCodes[c] = 1; cur.lines[c] = r2_((cur.lines[c] || 0) + (Number(l.amount) || 0)); });
       p[k] = cur;
     });
   });
@@ -1290,6 +1290,12 @@ function addMonths_(ym, n) { var y = Number(ym.slice(0, 4)), m = Number(ym.slice
  * 'assumed' so the screen can say which cities are guesses.
  * Read only; audited as salary_view.
  */
+/** One key per pay item for the variance and pivot tables: kind, code, and the line's own name when it has one that is not a
+ * one-off adjustment's free-text reason (adjustments carry a ref). Same rule as regKey() in js/payroll.js. */
+function lineKey_(l) {
+  var lb = String(l.label || '').trim(), split = lb && !l.ref && l.code !== 'basic' && l.code !== 'gosi' && l.code !== 'overtime';
+  return (l.kind === 'deduction' ? 'd:' : 'e:') + l.code + (split ? ':' + lb.replace(/:/g, ' ') : '');
+}
 var VARM_DIMS_ = ['department', 'location', 'city', 'payGroup', 'nationality', 'saudi', 'employmentType', 'title'];
 var VARM_FIELDS_ = ['gross', 'deductions', 'net', 'gosiEmployee', 'gosiEmployer', 'companyCost'];
 var CITY_RULES_ = [[/عرعر|arar|المساعدية|العزيزية|اشبيلية/i, 'عرعر'], [/جد[هة]|jedd?ah|jaddah/i, 'جدة'], [/حائل|hail/i, 'حائل'],
@@ -1319,12 +1325,101 @@ function api_varianceCities(req, me) {
   readAll_(SHEETS.EMP).forEach(function (e) { var l = String(e.workLocation || '').trim(); if (l) count[l] = (count[l] || 0) + 1; });
   return { ok: true, locations: Object.keys(count).sort().map(function (l) { var c = cityOf_(l, map); return { location: l, city: c.city, source: c.source, people: count[l] }; }) };
 }
-function api_payrollVarianceMonth(req, me) {
-  if (!canPayroll_(me)) fail_('forbidden');
+/**
+ * The payroll book month by month, shared by the variance engine and the month-by-month sheet (2026-11-18): the runs this
+ * viewer may open (per pay group a month's locked runs when there are any, else its drafts), each person's totals and lines per
+ * month, and which months are net-only (imported from the disbursement report as one "approved net" line, no breakdown).
+ */
+function payBook_(me) {
   var groups = payGroups_(), gName = {};
   readAll_(SHEETS.PGRP).forEach(function (g) { gName[g.id] = g.nameAr || g.code || g.id; });
   var runs = readAll_(SHEETS.RUN).filter(function (r) { return r.status !== 'cancelled' && !isDemoRun_(r) && runAccess_(me, r, groups); });
   var months = {}; runs.forEach(function (r) { months[r.month] = 1; }); months = Object.keys(months).sort().reverse();
+  var runIds = function (m) {
+    var by = {}; runs.forEach(function (r) { if (r.month !== m) return; var g = String(r.payGroupId || ''); (by[g] = by[g] || []).push(r); });
+    var out = []; Object.keys(by).forEach(function (g) { var rs = by[g], lk = rs.filter(function (r) { return r.status === 'locked'; }); (lk.length ? lk : rs).forEach(function (r) { out.push(r.id); }); });
+    return out;
+  };
+  var slipsByRun = {}; readAll_(SHEETS.SLIP).forEach(function (x) { if (x.status !== 'void') (slipsByRun[x.runId] = slipsByRun[x.runId] || []).push(x); });
+  var cache = {}, netOnly = {};
+  var perMonth = function (m) {
+    if (cache[m]) return cache[m];
+    var out = {}, slips = 0, bare = 0;
+    runIds(m).forEach(function (rid) {
+      (slipsByRun[rid] || []).forEach(function (x) {
+        var ls = lines_(x); slips++;
+        if (ls.length === 1 && ls[0].code === 'other_earning' && /صافي الراتب المعتمد|approved net/i.test(String(ls[0].label || ''))) bare++;
+        var c = out[x.empId] = out[x.empId] || { gross: 0, deductions: 0, net: 0, gosiEmployee: 0, gosiEmployer: 0, companyCost: 0, paidDays: 0, absentDays: 0, lines: {} };
+        c.gross += Number(x.gross) || 0; c.deductions += Number(x.deductions) || 0; c.net += Number(x.net) || 0;
+        c.gosiEmployee += Number(x.gosiEmployee) || 0; c.gosiEmployer += Number(x.gosiEmployer) || 0;
+        c.companyCost += Number(x.companyCost) || ((Number(x.gross) || 0) + (Number(x.gosiEmployer) || 0));
+        c.paidDays += Number(x.paidDays) || 0; c.absentDays += Number(x.absentDays) || 0;
+        ls.forEach(function (l) { var k = lineKey_(l); c.lines[k] = r2_((c.lines[k] || 0) + (Number(l.amount) || 0)); });
+      });
+    });
+    if (slips && bare * 2 >= slips) netOnly[m] = true;
+    return (cache[m] = out);
+  };
+  var emps = {}; readAll_(SHEETS.EMP).forEach(function (e) { emps[e.id] = e; });
+  var depts = {}; readAll_(SHEETS.DEPT).forEach(function (d) { depts[d.id] = d; });
+  var cityMap = varCityMap_();
+  var dimsOf = function (e) {
+    var d = depts[e.departmentId], c = cityOf_(e.workLocation, cityMap);
+    return { department: (d && (d.nameAr || d.nameEn)) || e.department || '-', location: String(e.workLocation || '').trim() || '-', city: c.city, citySource: c.source,
+      payGroup: e.payGroupId && gName[e.payGroupId] ? gName[e.payGroupId] : 'عام', nationality: e.nationality || '-', saudi: bool_(e.isSaudi) ? 'saudi' : 'nonSaudi',
+      employmentType: e.employmentType || '-', title: e.title || '-' };
+  };
+  return { months: months, runIds: runIds, perMonth: perMonth, isNetOnly: function (m) { perMonth(m); return !!netOnly[m]; }, emps: emps, dimsOf: dimsOf };
+}
+/** Filters shared by the variance engine and the month-by-month sheet: every dimension (lists), flags, free text, changed only. */
+function varFilter_(f) {
+  f = f || {}; var q = normName_(str_(f.q, 60));
+  var pass = function (x, skip) {
+    for (var i = 0; i < VARM_DIMS_.length; i++) { var k = VARM_DIMS_[i], want = f[k]; if (k !== skip && Array.isArray(want) && want.length && want.indexOf(x.dims[k]) < 0) return false; }
+    if (skip !== 'flags' && x.flags && Array.isArray(f.flags) && f.flags.length && !f.flags.some(function (g) { return x.flags.indexOf(g) >= 0; })) return false;
+    if (f.changed && x.flags && !x.flags.length) return false;
+    if (q && normName_(x.name).indexOf(q) < 0 && String(x.empNo).indexOf(q) < 0) return false;
+    return true;
+  };
+  // option counts per dimension under every OTHER filter, so a count never promises rows the screen will not show
+  var options = function (all) {
+    var o = {}; VARM_DIMS_.forEach(function (k) { var c = {}; all.forEach(function (x) { var v = x.dims[k]; if (!(v in c)) c[v] = 0; if (pass(x, k)) c[v]++; }); o[k] = Object.keys(c).sort().map(function (v) { return { value: v, count: c[v] }; }); });
+    return o;
+  };
+  return { pass: pass, options: options, narrow: (Array.isArray(f.flags) && f.flags.length) || !!f.changed || !!q, f: f };
+}
+/**
+ * Month by month (2026-11-18): any set of months side by side, every person's gross, deductions, net, company cost, employer
+ * GOSI and days in each, filtered by the same filters as the variance engine (option counts follow the other filters). Every
+ * total on the screen is summed from the people returned, so the sheet and its totals always agree. Payroll access only, runs
+ * through runAccess_; read only; audited as salary_view.
+ * req: { months: ['YYYY-MM', ...] (up to 24) | n: 3..24 (the latest n), filters }
+ */
+function api_payrollMonthly(req, me) {
+  if (!canPayroll_(me)) fail_('forbidden');
+  var book = payBook_(me), avail = book.months.slice().sort();
+  if (!avail.length) return { ok: true, empty: true, months: [], allMonths: [] };
+  var want = Array.isArray(req.months) ? req.months.map(String).filter(function (m, i, a) { return /^\d{4}-(0[1-9]|1[0-2])$/.test(m) && a.indexOf(m) === i && avail.indexOf(m) >= 0; }).sort().slice(-24) : [];
+  if (!want.length) want = avail.slice(-Math.max(1, Math.min(24, Number(req.n) || 12)));
+  var VF = varFilter_(req.filters), all = {};
+  want.forEach(function (m) {
+    var pm = book.perMonth(m);
+    Object.keys(pm).forEach(function (id) {
+      var x = all[id];
+      if (!x) { var e = book.emps[id] || { id: id, name: '?', empNo: '' }; x = all[id] = { empId: id, empNo: String(e.empNo || ''), name: e.name || '', status: e.status || '', dims: book.dimsOf(e), m: {} }; }
+      var c = pm[id]; x.m[m] = [r2_(c.gross), r2_(c.deductions), r2_(c.net), r2_(c.companyCost), r2_(c.paidDays), r2_(c.gosiEmployer)];
+    });
+  });
+  var list = Object.keys(all).map(function (id) { return all[id]; });
+  var keep = list.filter(function (x) { return VF.pass(x); });
+  keep.sort(function (a, b) { return a.dims.payGroup.localeCompare(b.dims.payGroup) || (Number(a.empNo) || 0) - (Number(b.empNo) || 0) || a.name.localeCompare(b.name); });
+  audit_(me.id, 'salary_view', '', { monthly: want[0] + '..' + want[want.length - 1], n: want.length });
+  return { ok: true, months: want, allMonths: avail, netOnlyMonths: want.filter(function (m) { return book.isNetOnly(m); }), fields: ['gross', 'deductions', 'net', 'companyCost', 'days', 'gosiEmployer'],
+    people: keep, options: VF.options(list), shown: keep.length, all: list.length };
+}
+function api_payrollVarianceMonth(req, me) {
+  if (!canPayroll_(me)) fail_('forbidden');
+  var book = payBook_(me), months = book.months;
   var month = String(req.month || '') || months[0] || '';
   if (!month) return { ok: true, empty: true, months: [] };
   if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) fail_('bad_date');
@@ -1341,30 +1436,10 @@ function api_payrollVarianceMonth(req, me) {
   }
   else if (/^\d{4}-(0[1-9]|1[0-2])$/.test(cmp) && cmp !== month) baseMonths = [cmp];
   else { cmp = 'm1'; baseMonths = [addMonths_(month, -1)]; }
-  // runs of a month: per pay group, locked ones when there are any, else drafts
-  var runIds = function (m) {
-    var by = {}; runs.forEach(function (r) { if (r.month !== m) return; var g = String(r.payGroupId || ''); (by[g] = by[g] || []).push(r); });
-    var out = []; Object.keys(by).forEach(function (g) { var rs = by[g], lk = rs.filter(function (r) { return r.status === 'locked'; }); (lk.length ? lk : rs).forEach(function (r) { out.push(r.id); }); });
-    return out;
-  };
-  var slipsByRun = {}; readAll_(SHEETS.SLIP).forEach(function (x) { if (x.status !== 'void') (slipsByRun[x.runId] = slipsByRun[x.runId] || []).push(x); });
-  var monthCache = {};
-  var perMonth = function (m) {
-    if (monthCache[m]) return monthCache[m];
-    var out = {};
-    runIds(m).forEach(function (rid) {
-      (slipsByRun[rid] || []).forEach(function (x) {
-        var c = out[x.empId] = out[x.empId] || { gross: 0, deductions: 0, net: 0, gosiEmployee: 0, gosiEmployer: 0, companyCost: 0, paidDays: 0, absentDays: 0, lines: {} };
-        c.gross += Number(x.gross) || 0; c.deductions += Number(x.deductions) || 0; c.net += Number(x.net) || 0;
-        c.gosiEmployee += Number(x.gosiEmployee) || 0; c.gosiEmployer += Number(x.gosiEmployer) || 0;
-        c.companyCost += Number(x.companyCost) || ((Number(x.gross) || 0) + (Number(x.gosiEmployer) || 0));
-        c.paidDays += Number(x.paidDays) || 0; c.absentDays += Number(x.absentDays) || 0;
-        lines_(x).forEach(function (l) { var k = (l.kind === 'deduction' ? 'd:' : 'e:') + l.code + (l.label && l.code !== 'basic' ? ':' + l.label : ''); c.lines[k] = r2_((c.lines[k] || 0) + (Number(l.amount) || 0)); });
-      });
-    });
-    return (monthCache[m] = out);
-  };
+  var runIds = book.runIds, perMonth = book.perMonth;
   var cur = perMonth(month), bases = baseMonths.map(perMonth), haveBase = baseMonths.filter(function (m) { return runIds(m).length; });
+  // a net-only month on either side: only net (and headcount) can be compared; line, gross, deduction and package checks are off
+  var netOnlyMonths = [month].concat(baseMonths).filter(function (m) { return book.isNetOnly(m); }), netCmp = netOnlyMonths.length > 0;
   // a person's base: the average of the base months they were paid in (one month: that month)
   var baseOf = function (id) {
     var got = bases.filter(function (b) { return b[id]; }).map(function (b) { return b[id]; }); if (!got.length) return null;
@@ -1374,15 +1449,7 @@ function api_payrollVarianceMonth(req, me) {
     return o;
   };
   var trendMonths = []; for (var i = 11; i >= 0; i--) trendMonths.push(addMonths_(month, -i));
-  var emps = {}; readAll_(SHEETS.EMP).forEach(function (e) { emps[e.id] = e; });
-  var depts = {}; readAll_(SHEETS.DEPT).forEach(function (d) { depts[d.id] = d; });
-  var cityMap = varCityMap_(), comps = currentCompMap_(monthLast_(month) > today_() ? today_() : monthLast_(month));
-  var dimsOf = function (e) {
-    var d = depts[e.departmentId], c = cityOf_(e.workLocation, cityMap);
-    return { department: (d && (d.nameAr || d.nameEn)) || e.department || '-', location: String(e.workLocation || '').trim() || '-', city: c.city, citySource: c.source,
-      payGroup: e.payGroupId && gName[e.payGroupId] ? gName[e.payGroupId] : 'عام', nationality: e.nationality || '-', saudi: bool_(e.isSaudi) ? 'saudi' : 'nonSaudi',
-      employmentType: e.employmentType || '-', title: e.title || '-' };
-  };
+  var emps = book.emps, dimsOf = book.dimsOf, comps = currentCompMap_(monthLast_(month) > today_() ? today_() : monthLast_(month));
   var chg = function (a, b) { a = Number(a) || 0; b = Number(b) || 0; return { diff: r2_(a - b), pct: b ? r2_((a - b) / Math.abs(b) * 100) : (a ? null : 0) }; };
   var big = function (a, b) { var c = chg(a, b); return Math.abs(c.diff) >= minAmt && (c.pct === null || Math.abs(c.pct) >= pct); };
   var ids = {}; Object.keys(cur).forEach(function (k) { ids[k] = 1; }); bases.forEach(function (b) { Object.keys(b).forEach(function (k) { ids[k] = 1; }); });
@@ -1397,9 +1464,9 @@ function api_payrollVarianceMonth(req, me) {
     if (c0 && b) {
       var nc = chg(c0.net, b.net);
       if (big(c0.net, b.net)) { flags.push(nc.diff > 0 ? 'net_up' : 'net_down'); score += Math.min(60, Math.abs(nc.pct || 100) * 0.6); }
-      if (big(c0.deductions, b.deductions) && c0.deductions > b.deductions) { flags.push('deductions_spike'); score += 15; }
-      if (['e:basic', 'e:housing', 'e:transport'].some(function (k) { return Math.abs((c0.lines[k] || 0) - (b.lines[k] || 0)) >= 1 && (b.lines[k] || 0) > 0 && (c0.lines[k] || 0) > 0; })) { flags.push('package_change'); score += 20; }
-      var keysL = {}; Object.keys(c0.lines).concat(Object.keys(b.lines)).forEach(function (k) { keysL[k] = 1; });
+      if (!netCmp && big(c0.deductions, b.deductions) && c0.deductions > b.deductions) { flags.push('deductions_spike'); score += 15; }
+      if (!netCmp && ['e:basic', 'e:housing', 'e:transport'].some(function (k) { return Math.abs((c0.lines[k] || 0) - (b.lines[k] || 0)) >= 1 && (b.lines[k] || 0) > 0 && (c0.lines[k] || 0) > 0; })) { flags.push('package_change'); score += 20; }
+      var keysL = {}; if (!netCmp) Object.keys(c0.lines).concat(Object.keys(b.lines)).forEach(function (k) { keysL[k] = 1; });
       Object.keys(keysL).forEach(function (k) {
         var dd = r2_((c0.lines[k] || 0) - (b.lines[k] || 0)); if (!dd) return;
         var effect = k.indexOf('d:') === 0 ? -dd : dd; drv[varDriver_(k)] = r2_(drv[varDriver_(k)] + effect);
@@ -1414,7 +1481,7 @@ function api_payrollVarianceMonth(req, me) {
     if (c0 && (c0.lines['e:bonus'] || c0.lines['e:overtime'] || c0.lines['e:other_earning'])) { flags.push('one_off'); score += 5; }
     if (c0 && Object.keys(c0.lines).some(function (k) { return /^d:(absence|unpaid_leave|sick_75|sick_unpaid|late)/.test(k); })) { flags.push('absence'); score += 5; }
     var pk = comps[id], pkg = null;
-    if (c0 && pk) {
+    if (c0 && pk && !book.isNetOnly(month)) {
       pkg = r2_((Number(pk.basic) || 0) + (Number(pk.housing) || 0) + (Number(pk.transport) || 0) + Object.keys(pk.other || {}).reduce(function (t, k) { return t + (Number(pk.other[k]) || 0); }, 0));
       if (big(c0.gross, pkg)) { flags.push('off_package'); score += 12; }
     }
@@ -1427,20 +1494,10 @@ function api_payrollVarianceMonth(req, me) {
       cur: pick(c0), base: pick(b), net: chg(c0 ? c0.net : 0, b ? b.net : 0), gross: chg(c0 ? c0.gross : 0, b ? b.gross : 0), cost: chg(c0 ? c0.companyCost : 0, b ? b.companyCost : 0),
       package: pkg, drivers: drv, reasons: reasons.slice(0, 5), lines: lines, flags: flags, score: Math.round(score), hist: hist });
   });
-  // options: every value of every dimension, counted before filtering
-  var options = {}, flagCount = {};
-  VARM_DIMS_.forEach(function (k) { options[k] = {}; });
-  all.forEach(function (x) { VARM_DIMS_.forEach(function (k) { var v = x.dims[k]; options[k][v] = (options[k][v] || 0) + 1; }); x.flags.forEach(function (fl) { flagCount[fl] = (flagCount[fl] || 0) + 1; }); });
-  // filters
-  var f = req.filters || {}, q = normName_(str_(f.q, 60));
-  var dimPass = function (dd) { for (var i2 = 0; i2 < VARM_DIMS_.length; i2++) { var k = VARM_DIMS_[i2], want = f[k]; if (Array.isArray(want) && want.length && want.indexOf(dd[k]) < 0) return false; } return true; };
-  var keep = all.filter(function (x) {
-    if (!dimPass(x.dims)) return false;
-    if (Array.isArray(f.flags) && f.flags.length && !f.flags.some(function (g) { return x.flags.indexOf(g) >= 0; })) return false;
-    if (f.changed && !x.flags.length) return false;
-    if (q && normName_(x.name).indexOf(q) < 0 && x.empNo.indexOf(q) < 0) return false;
-    return true;
-  });
+  // filters; the counts beside each option follow every other filter (varFilter_)
+  var VF = varFilter_(req.filters), f = VF.f, dimPass = function (dd) { return VF.pass({ dims: dd, name: '', empNo: '' }); };
+  var flagCount = {}; all.forEach(function (x) { if (VF.pass(x, 'flags')) x.flags.forEach(function (fl) { flagCount[fl] = (flagCount[fl] || 0) + 1; }); });
+  var keep = all.filter(function (x) { return VF.pass(x); });
   keep.sort(function (a, b) { return b.score - a.score || Math.abs(b.net.diff) - Math.abs(a.net.diff); });
   // totals, bridge, drivers, volume/rate, lines, dimensions: all from the kept people
   var T = { cur: { headcount: 0 }, base: { headcount: 0 } }; VARM_FIELDS_.forEach(function (k) { T.cur[k] = 0; T.base[k] = 0; });
@@ -1486,16 +1543,16 @@ function api_payrollVarianceMonth(req, me) {
   });
   // twelve months for the kept people (dimension filters only: anyone paid in those months who passes them)
   var keepIds = {}; keep.forEach(function (x) { keepIds[x.empId] = 1; });
-  var narrow = (Array.isArray(f.flags) && f.flags.length) || f.changed || q;
+  var narrow = VF.narrow;
   var trend = trendMonths.map(function (m) {
-    var pm = perMonth(m), pt = { month: m, headcount: 0, gross: 0, net: 0, companyCost: 0, none: !runIds(m).length };
-    Object.keys(pm).forEach(function (id) { if (narrow ? !keepIds[id] : !(emps[id] && dimPass(dimsOf(emps[id])))) return; pt.headcount++; pt.gross += pm[id].gross; pt.net += pm[id].net; pt.companyCost += pm[id].companyCost; });
-    pt.gross = r2_(pt.gross); pt.net = r2_(pt.net); pt.companyCost = r2_(pt.companyCost); return pt;
+    var pm = perMonth(m), pt = { month: m, headcount: 0, gross: 0, deductions: 0, net: 0, companyCost: 0, none: !runIds(m).length, netOnly: book.isNetOnly(m) };
+    Object.keys(pm).forEach(function (id) { if (narrow ? !keepIds[id] : !dimPass(dimsOf(emps[id] || { id: id }))) return; pt.headcount++; pt.gross += pm[id].gross; pt.deductions += pm[id].deductions; pt.net += pm[id].net; pt.companyCost += pm[id].companyCost; });
+    pt.gross = r2_(pt.gross); pt.deductions = r2_(pt.deductions); pt.net = r2_(pt.net); pt.companyCost = r2_(pt.companyCost); return pt;
   });
-  var opt = {}; VARM_DIMS_.forEach(function (k) { opt[k] = Object.keys(options[k]).sort().map(function (v) { return { value: v, count: options[k][v] }; }); });
+  var opt = VF.options(all);
   audit_(me.id, 'salary_view', '', { variance: month, compare: cmp });
   return { ok: true, month: month, compare: cmp, baseMonths: baseMonths, haveBase: haveBase, months: months, threshold: { pct: pct, min: minAmt },
-    totals: totals, bridge: bridge, drivers: drivers, volumeRate: volumeRate, lines: lines, dims: dims, people: keep, trend: trend,
+    totals: totals, bridge: bridge, drivers: drivers, volumeRate: volumeRate, lines: lines, dims: dims, people: keep, trend: trend, netOnlyMonths: netOnlyMonths,
     options: opt, flagCounts: flagCount, shown: keep.length, all: all.length };
 }
 
@@ -1532,7 +1589,7 @@ function api_payrollPivot(req, me) {
     c.headcount++;
     F.forEach(function (f) { c[f] = r2_((c[f] || 0) + (f === 'companyCost' ? (Number(x.companyCost) || (Number(x.gross) || 0) + (Number(x.gosiEmployer) || 0)) : Number(x[f]) || 0)); });
     var ls = lines_(x), mine = {};
-    ls.forEach(function (l) { var k = (l.kind === 'deduction' ? 'd:' : 'e:') + l.code + (l.label && l.code !== 'basic' ? ':' + l.label : ''); lineKeys[k] = 1; c.lines[k] = r2_((c.lines[k] || 0) + (Number(l.amount) || 0)); mine[k] = r2_((mine[k] || 0) + (Number(l.amount) || 0)); });
+    ls.forEach(function (l) { var k = lineKey_(l); lineKeys[k] = 1; c.lines[k] = r2_((c.lines[k] || 0) + (Number(l.amount) || 0)); mine[k] = r2_((mine[k] || 0) + (Number(l.amount) || 0)); });
     if (run.month === detail) {
       var e = emps[x.empId] || {}, d = depts[e.departmentId];
       rows.push({ sponsor: sp, empNo: String(e.empNo || ''), name: e.name || '', department: (d && (d.nameAr || d.nameEn)) || e.department || '', location: e.workLocation || '',

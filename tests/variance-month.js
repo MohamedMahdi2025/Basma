@@ -92,5 +92,61 @@ ok(pv.rows.length === 4 && pv.rows.every(r => r.sponsor && r.lines) && pv.rows.f
 ok(Math.abs(pv.rows.reduce((t, r) => t + r.net, 0) - pv.totals[2].net) < 0.01, 'the detail adds up to the month total');
 let pvRefused = false; try { C.ctx.api_payrollPivot({}, { id: 'E', role: 'employee', extraRoles: '' }); } catch (e) { pvRefused = /forbidden/.test(String(e.message)); }
 ok(pvRefused, 'an employee is refused the sponsor report');
+
+console.log('Every number follows the filters (2026-11-18)');
+const near = (a, b) => Math.abs(a - b) < 0.01;
+[{}, { city: ['عرعر'] }, { payGroup: ['شركة أ'] }, { saudi: ['nonSaudi'], payGroup: ['شركة ب'] }, { flags: ['leaver', 'joiner'] }, { q: 'Ali' }, { changed: true }].forEach(f => {
+  const x = V({ filters: f }), tag = JSON.stringify(f);
+  const sumP = (side, k) => x.people.reduce((t, p) => t + (p[side] ? p[side][k] : 0), 0);
+  ok(near(sumP('cur', 'net'), x.totals.net.cur) && near(sumP('base', 'net'), x.totals.net.base) && near(sumP('cur', 'gross'), x.totals.gross.cur), 'totals = sum of the people shown ' + tag);
+  ok(['department', 'city', 'payGroup', 'location', 'title', 'nationality', 'saudi', 'employmentType'].every(k => near(x.dims[k].reduce((t, r) => t + r.netCur, 0), x.totals.net.cur) && near(x.dims[k].reduce((t, r) => t + r.netBase, 0), x.totals.net.base)), 'every breakdown adds up to the filtered totals ' + tag);
+  ok(near(x.bridge.from + x.bridge.joiners + x.bridge.leavers + x.bridge.stayers, x.bridge.to), 'the bridge adds up ' + tag);
+  ok(x.shown === x.people.length, 'shown = people returned ' + tag);
+});
+v = V({ filters: { city: ['عرعر'] } });
+const optN = (k, val) => (v.options[k].find(o => o.value === val) || {}).count;
+ok(optN('payGroup', 'شركة ب') === 1 && optN('payGroup', 'شركة أ') === 0, 'option counts follow the other filters (Arar: one person in شركة ب, none in شركة أ)', v.options.payGroup);
+ok(optN('city', 'جدة') === 1 && optN('city', 'عرعر') === 1, 'a dimension\'s own options ignore its own filter, so other values stay choosable', v.options.city);
+v = V({ filters: { city: ['عرعر', 'جدة'] } });
+ok(v.people.length === 2 && v.people.every(p => ['عرعر', 'جدة'].includes(p.dims.city)), 'several values of one dimension at once', v.people.map(p => p.dims.city));
+
+console.log('Month by month');
+const MM = extra => C.call(Object.assign({ action: 'payrollMonthly', token: tk }, extra));
+let mm = MM({});
+ok(mm.ok && mm.months.join() === '2026-07,2026-08,2026-09' && mm.people.length === 5, 'every month with runs, every person paid in any of them', mm.ok ? { m: mm.months, n: mm.people.length } : mm);
+const colSum = (r, m, i) => r.people.reduce((t, p) => t + (p.m[m] ? p.m[m][i] : 0), 0);
+ok(mm.months.every(m => near(colSum(mm, m, 2), (pv.totals.find(t => t.month === m) || {}).net)), 'each month column adds up to the payroll total of that month');
+v = V({});
+ok(['2026-07', '2026-08', '2026-09'].every(m => near(colSum(mm, m, 2), v.trend.find(t => t.month === m).net)), 'the month-by-month sheet agrees with the variance trend');
+mm = MM({ months: ['2026-09', '2026-07', 'bad', '2026-07', '2030-01'] });
+ok(mm.months.join() === '2026-07,2026-09', 'any chosen months, oldest first; duplicates, bad and empty months dropped', mm.months);
+mm = MM({ filters: { payGroup: ['شركة ب'] } });
+ok(mm.people.every(p => p.dims.payGroup === 'شركة ب') && near(colSum(mm, '2026-09', 2), 9700), 'filters narrow the sheet and its totals', colSum(mm, '2026-09', 2));
+ok((mm.options.city.find(o => o.value === 'جدة') || {}).count === 0, 'month-by-month option counts follow the other filters too');
+mm = MM({ n: 2 });
+ok(mm.months.join() === '2026-08,2026-09', 'the latest n months');
+let mmRefused = false; try { C.ctx.api_payrollMonthly({}, { id: 'E', role: 'employee', extraRoles: '' }); } catch (e) { mmRefused = /forbidden/.test(String(e.message)); }
+ok(mmRefused, 'an employee is refused the month-by-month sheet');
+
+console.log('Net-only month (imported from the disbursement report)');
+const C2 = load({ setupKeyHash: sha('k'), now: Date.parse('2026-11-05T06:00:00Z') });
+const bt2 = C2.call({ action: 'bootstrap', setupKey: 'k', name: 'المالك', empNo: '1000' });
+const dv2 = new Authenticator();
+const tk2 = C2.call({ action: 'enrollFinish', credential: dv2.create(C2.call({ action: 'enrollBegin', empNo: '1000', code: bt2.activationCode }).options) }).token;
+const ppl2 = [P({ nid: '3630000001', empNo: '1000', name: 'المالك', months: ['2026-09', '2026-10'] }), P({ nid: '2000000001', empNo: '1001', name: 'Ali Riyadh', months: ['2026-09', '2026-10'] })];
+const sep2 = { '2026-09': [pay('3630000001', 8000, { housing: 2000 }), pay('2000000001', 2000, { housing: 500, loan: 200 })] };
+C2.call({ action: 'demoData', setupKey: 'k', mode: 'sheetImport', ownerNo: '1000', depts: { Operations: 'العمليات' }, people: ppl2.map(p => Object.assign({}, p, { months: ['2026-09'] })), months: sep2, dryRun: false });
+C2.ctx.READ_MEMO_ = {};
+const imp2 = C2.call({ action: 'demoData', setupKey: 'k', mode: 'sheetYear', ownerNo: '1000', depts: { Operations: 'العمليات' }, people: ppl2, dryRun: false, netOnly: ['2026-10'],
+  months: { '2026-09': [pay('3630000001', 8000, { housing: 2000 }), pay('2000000001', 2000, { housing: 500, loan: 200 })], '2026-10': [L('3630000001', { net: 10000 }), L('2000000001', { net: 2400 })] } });
+ok(imp2.ok, 'fixture: September in full, October net only', imp2);
+C2.ctx.READ_MEMO_ = {};
+const o2 = C2.ctx.readAll_('employees').find(e => e.empNo === '1000'); C2.ctx.update_('employees', Object.assign({}, o2, { extraRoles: 'payroll' })); C2.ctx.READ_MEMO_ = {};
+const v2 = C2.call({ action: 'payrollVarianceMonth', token: tk2 });
+ok(v2.ok && v2.month === '2026-10' && v2.netOnlyMonths.join() === '2026-10', 'October is reported as a net-only month', v2.ok ? v2.netOnlyMonths : v2);
+ok(v2.people.every(p => !p.flags.some(f => ['new_line', 'gone_line', 'package_change', 'deductions_spike', 'off_package'].includes(f))), 'no line, package or deduction flags against a month without lines', v2.people.map(p => p.flags));
+ok(near(v2.totals.net.change.diff, 12400 - 12300) && v2.people.every(p => near(p.drivers.other, p.net.diff)), 'net still compares; the whole change is "other" (no breakdown to explain it)', v2.totals.net.change);
+const mm2 = C2.call({ action: 'payrollMonthly', token: tk2 });
+ok(mm2.ok && mm2.netOnlyMonths.join() === '2026-10', 'the month-by-month sheet names the net-only month too');
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exitCode = failed ? 1 : 0;

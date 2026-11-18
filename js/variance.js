@@ -35,71 +35,216 @@ Object.assign(T.en, {
   dv_pay:'Fixed pay', dv_overtime:'Overtime', dv_oneoff:'One-off', dv_absence:'Absence and leave', dv_gosi:'GOSI', dv_advances:'Advances and loans', dv_fines:'Fines', dv_otherDeductions:'Other deductions', dv_other:'Other', dv_joiners:'Joiners', dv_leavers:'Leavers',
   fl_joiner:'Joiner', fl_returner:'Returner', fl_leaver:'Leaver', fl_net_up:'Net up', fl_net_down:'Net down', fl_deductions_spike:'Deductions spike', fl_package_change:'Package change', fl_new_line:'New line', fl_gone_line:'Line gone', fl_net_zero:'Net zero', fl_one_off:'One-off', fl_absence:'Absence', fl_off_package:'Off contract', fl_paid_inactive:'Paid while disabled'
 });
+// 2026-11-18: chip filters, charts, month by month, net-only months
+Object.assign(T.ar, {
+  vsPivotLead:'الأشهر في الصفوف والجهات في الأعمدة، لنفس الموظفين الظاهرين بعد الفلاتر.', vsPivotOld:'هذا الجدول يشمل كل الموظفين لأن الخادم لم يُحدَّث بعد؛ ستنطبق عليه الفلاتر بعد التحديث.',
+  cfAdd:'فلتر', cfPick:'تصفية حسب', cfSel:'مختارة', cfRemove:'إزالة', cfBack:'رجوع', cfFind:'ابحث في القائمة', cfNone:'إلغاء الكل', cfApply:'تطبيق', cfSettings:'الإعدادات', cfSetLead:'متى يُعد تغير راتب الموظف كبيرا ويُعلَّم.', cfRanges:'نطاقات المبالغ',
+  cfMore:'زيادة', cfLess:'نقص',
+  vaNetOnly:'{m}: الصافي فقط (من تقرير الصرف والتسوية، بلا تفصيل البنود). الصافي وعدد الموظفين دقيقان؛ الإجمالي والخصومات والبنود وأسباب التغير لا يمكن مقارنتها لهذا الشهر.', vaNetOnlyShort:'صافي فقط', vaNA:'غير متاح',
+  vaStoryFilt:'(بعد الفلاتر: {n} من {t} موظف)', vaTrend:'الصافي شهريا', vaTrendLead:'آخر 12 شهرا لنفس الفلاتر.', vaTrendFew:'لا يكفي عدد الأشهر لرسم الاتجاه.',
+  vaBridgeLead:'من {a} إلى {b}: ما الذي أضاف وما الذي أنقص.', vaStayers:'تغير رواتب المستمرين', vaMix:'الصافي حسب {d}', vaMixLead:'هذا الشهر. اختر التفصيل من الأزرار أسفل الصفحة.', vaOther:'أخرى ({n})',
+  vaMovers:'أكبر الزيادات والانخفاضات', vaMoversLead:'الموظفون المستمرون فقط. اضغط اسما لفتح تفاصيله.', vaRate:'العدد أم الراتب؟', vaRateLead:'كم من التغير سببه تغير عدد الموظفين، وكم سببه تغير متوسط الراتب.',
+  vaRateHead:'أثر عدد الموظفين', vaRatePay:'أثر متوسط الراتب', vaAvgBefore:'متوسط الصافي قبل', vaAvgNow:'متوسط الصافي الآن', vaShare:'الحصة', vaLimit:'يظهر أول {n} من {t}. المجاميع تشمل الجميع.', vaShowAll:'عرض الكل', vaNotPaid:'لم يُصرف له',
+  vwMonthly:'مقارنة شهرية', moTitle:'مقارنة شهرية', moLead:'أي أشهر جنبا إلى جنب في كشف واحد: لكل موظف أو جهة أو إدارة أو موقع، مع الفرق من شهر لآخر. كل الأرقام تتبع الفلاتر.',
+  moMonths:'الأشهر', moAll:'الكل', moPick:'أختار…', moPickLead:'اختر الأشهر التي تريدها في الكشف.', moBy:'الصفوف حسب', moPerson:'الموظف', moShow:'العرض', moAmt:'المبالغ', moChg:'الفرق', moPct:'الفرق %',
+  moSince:'منذ {m}', moAvg:'متوسط الشهر', moPeak:'أعلى شهر', moRows:'الصفوف', moTrend:'{x} شهرا بشهر', moTrendLead:'مجموع الصفوف الظاهرة لكل شهر.', moFirstLast:'من أول شهر لآخر شهر', moShape:'الاتجاه', moNew:'جديد',
+  moStar:'شهر صافي فقط: الإجمالي والخصومات والتكلفة فيه تساوي الصافي لأن تقرير الصرف لا يفصلها.', moServer:'المقارنة الشهرية تحتاج تحديث الخادم (Apps Script). بعد التحديث تعمل هذه الصفحة مباشرة.'
+});
+Object.assign(T.en, {
+  vsPivotLead:'Months in rows, sponsors in columns, for the same people the filters show.', vsPivotOld:'This table still covers everyone because the server has not been updated yet; filters will apply to it after the update.',
+  cfAdd:'Filter', cfPick:'Filter by', cfSel:'selected', cfRemove:'Remove', cfBack:'Back', cfFind:'Search the list', cfNone:'Clear all', cfApply:'Apply', cfSettings:'Settings', cfSetLead:'When a change in someone\'s pay counts as big and gets flagged.', cfRanges:'Amount ranges',
+  cfMore:'Increase', cfLess:'Decrease',
+  vaNetOnly:'{m}: net only (from the disbursement report, no breakdown). Net and headcount are exact; gross, deductions, pay lines and the reasons for changes cannot be compared for this month.', vaNetOnlyShort:'net only', vaNA:'n/a',
+  vaStoryFilt:'(filtered: {n} of {t} people)', vaTrend:'Net by month', vaTrendLead:'The last 12 months for the same filters.', vaTrendFew:'Not enough months to draw a trend.',
+  vaBridgeLead:'From {a} to {b}: what added and what took away.', vaStayers:'Pay changes for continuing staff', vaMix:'Net by {d}', vaMixLead:'This month. Choose the breakdown with the buttons below.', vaOther:'Other ({n})',
+  vaMovers:'Biggest increases and decreases', vaMoversLead:'Continuing staff only. Tap a name for the detail.', vaRate:'Headcount or pay?', vaRateLead:'How much of the change comes from the number of people, and how much from the average pay.',
+  vaRateHead:'Headcount effect', vaRatePay:'Average pay effect', vaAvgBefore:'Average net before', vaAvgNow:'Average net now', vaShare:'Share', vaLimit:'Showing the first {n} of {t}. Totals include everyone.', vaShowAll:'Show all', vaNotPaid:'Not paid',
+  vwMonthly:'Month by month', moTitle:'Month by month', moLead:'Any months side by side in one sheet: by employee, sponsor, department, location and more, with the change from month to month. Every number follows the filters.',
+  moMonths:'Months', moAll:'All', moPick:'Choose…', moPickLead:'Choose the months you want in the sheet.', moBy:'Rows by', moPerson:'Employee', moShow:'Show', moAmt:'Amounts', moChg:'Change', moPct:'Change %',
+  moSince:'since {m}', moAvg:'Monthly average', moPeak:'Highest month', moRows:'Rows', moTrend:'{x} month by month', moTrendLead:'Sum of the rows shown, each month.', moFirstLast:'First to last month', moShape:'Trend', moNew:'new',
+  moStar:'Net-only month: gross, deductions and cost there equal net, because the disbursement report has no breakdown.', moServer:'Month by month needs the server (Apps Script) update. Once it is updated this page works straight away.'
+});
 var LN = { ar: { basic:'الأساسي', housing:'السكن', transport:'النقل', allowance:'بدلات', bonus:'مكافأة', overtime:'إضافي', gosi:'تأمينات', fine:'جزاءات', advance:'سلف/قروض', loan:'قرض', unpaid_leave:'إجازة', absence:'غياب', other_deduction:'خصومات أخرى', other_earning:'استحقاق آخر' },
   en: { basic:'Basic', housing:'Housing', transport:'Transport', allowance:'Allowances', bonus:'Bonus', overtime:'Overtime', gosi:'GOSI', fine:'Fines', advance:'Advances/loans', loan:'Loan', unpaid_leave:'Leave', absence:'Absence', other_deduction:'Other deductions', other_earning:'Other earning' } };
 // Pay columns follow the payslip: basic, days worked, every other addition, total additions, deductions, total deductions, net.
-var LORD = ['basic', 'housing', 'transport', 'allowance', 'other_allowance', 'bonus', 'commission', 'incentive', 'overtime', 'other_earning',
-  'gosi', 'absence', 'late', 'unpaid_leave', 'sick_75', 'sick_unpaid', 'fine', 'advance', 'loan', 'other_deduction'];
-function lineRank(k){ var p = String(k).split(':'), i = LORD.indexOf(p[1]); return (p[0] === 'd' ? 1000 : 0) + (i < 0 ? 500 : i); }
+// PAY ORDER: the same list and rule as js/payroll.js (tests/payorder.js checks they agree); evidence in
+// docs/research/2026-11-18-pay-item-order-rea.md.
+var PAY_ORDER = { e: ['basic', 'housing', 'transport', 'allowance', 'other_allowance', 'arrears', 'overtime', 'commission', 'incentive', 'bonus', 'per_diem', 'reimbursement', 'other_earning'],
+  d: ['gosi', 'fine', 'advance', 'loan', 'unpaid_leave', 'sick_75', 'sick_unpaid', 'absence', 'late', 'join', 'other_deduction'] };
+function payRank(kind, code, label){
+  var ded = kind === 'deduction' || kind === 'd', c = code === 'other_deduction' && /انضمام|join/i.test(String(label || '')) ? 'join' : code, i = PAY_ORDER[ded ? 'd' : 'e'].indexOf(c);
+  return (ded ? 1000 : 0) + (i < 0 ? 500 : i * 10) - (code === 'fine' && /مرور|traffic/i.test(String(label || '')) ? 1 : 0);
+}
+function lineRank(k){ var p = String(k).split(':'); return payRank(p[0], p[1], p.slice(2).join(':')); }
 function orderLines(keys){ return keys.slice().sort(function(a, b){ return lineRank(a) - lineRank(b) || String(a).localeCompare(String(b)); }); }
 function payCols(keys, days){ var k = orderLines(keys), e = k.filter(function(x){ return x.indexOf('d:') !== 0; }), d = k.filter(function(x){ return x.indexOf('d:') === 0; });
   var b = e[0] === 'e:basic' ? [e.shift()] : [], L = function(x){ return 'l:' + x; };
   return b.map(L).concat(days ? ['days'] : []).concat(e.map(L)).concat(['gross']).concat(d.map(L)).concat(['deductions', 'net']); }
-function vaL(k){ var r = VA.r; if (!r) return t(k === 'now' ? 'vaNowLead' : 'vaBaseLead'); if (k === 'now') return mon(r.month); var b = r.baseMonths || []; return b.length === 1 ? mon(b[0]) : t('vaAvgOf').replace('{n}', b.length); }
 function lineName(k){ var p = String(k).split(':'), en = S.lang === 'en'; if (p[2] && !en) return p[2]; var n = (LN[en ? 'en' : 'ar'][p[1]] || p[1]); return p[2] && en ? n + ' (' + p[2] + ')' : n; }
 function amt(n){ return n == null ? '-' : '<span class="num">' + acctFmt(n) + '</span>'; }
 function mon(m){ return new Date(Date.UTC(+m.slice(0, 4), +m.slice(5, 7) - 1, 15)).toLocaleDateString(S.lang === 'en' ? 'en-GB' : 'ar-SA-u-ca-gregory-nu-latn', { month: 'short', year: 'numeric', timeZone: 'UTC' }); }
 function level(title){ var s = String(title || '').toLowerCase(); return /ceo|chief|executive|director|رئيس|مدير عام|تنفيذي/.test(s) ? 'lvExec' : /manager|head|مدير/.test(s) ? 'lvMgr' : /supervisor|lead|مشرف/.test(s) ? 'lvSup' : 'lvStaff'; }
-function chg(c){ if (!c) return '-'; var cls = c.diff > 0 ? 'up' : c.diff < 0 ? 'dn' : ''; return '<span class="vs-chg ' + cls + '">' + (c.diff > 0 ? '+' : '') + acctFmt(c.diff) + (c.pct != null && c.diff ? ' <small>(' + (c.pct > 0 ? '+' : '') + c.pct + '%)</small>' : '') + '</span>'; }
+function vaL(k){ var r = VA.r; if (!r) return t(k === 'now' ? 'vaNowLead' : 'vaBaseLead'); if (k === 'now') return mon(r.month); var b = r.baseMonths || []; return b.length === 1 ? mon(b[0]) : t('vaAvgOf').replace('{n}', b.length); }
+// change: the sign and an arrow carry the direction; the arrow alone is coloured (red = more, blue = less), the number stays ink
+function chg(c){ if (!c) return '-'; var d = Number(c.diff) || 0; if (!d) return '<span class="vs-chg">0</span>'; var up = d > 0;
+  return '<span class="vs-chg"><i class="' + (up ? 'up' : 'dn') + '" aria-hidden="true">' + (up ? '▲' : '▼') + '</i>' + (up ? '+' : '−') + acctFmt(Math.abs(d)) + (c.pct != null ? ' <small>(' + (up ? '+' : '−') + Math.abs(c.pct) + '%)</small>' : '') + '</span>'; }
+function pctChg(p){ p = Math.round((Number(p) || 0) * 10) / 10; if (!p) return '<span class="vs-chg">0%</span>'; var up = p > 0;
+  return '<span class="vs-chg"><i class="' + (up ? 'up' : 'dn') + '" aria-hidden="true">' + (up ? '▲' : '▼') + '</i>' + (up ? '+' : '−') + Math.abs(p) + '%</span>'; }
+function sgn(n){ n = Math.round((Number(n) || 0) * 100) / 100; return (n > 0 ? '+' : n < 0 ? '−' : '') + acctFmt(Math.abs(n)); }
 function sum(rows, f){ return Math.round(rows.reduce(function(t, r){ return t + (Number(r[f]) || 0); }, 0) * 100) / 100; }
-function sel(id, label, list, cur){ return '<label class="vs-f"><span>' + t(label) + '</span><select data-f="' + id + '"><option value="">' + t('vsAll') + '</option>' + list.map(function(v){ var o = Array.isArray(v) ? v : [v, v]; return '<option value="' + esc(o[0]) + '"' + (String(cur || '') === String(o[0]) ? ' selected' : '') + '>' + esc(o[1]) + '</option>'; }).join('') + '</select></label>'; }
-function num(id, label, cur){ return '<label class="vs-f vs-n"><span>' + t(label) + '</span><input data-f="' + id + '" type="number" inputmode="decimal" dir="ltr" value="' + esc(cur == null ? '' : cur) + '"></label>'; }
 function uniq(rows, k){ var o = {}; rows.forEach(function(r){ var v = r[k]; if (v !== '' && v != null) o[v] = 1; }); return Object.keys(o).sort(); }
 function xlName(s){ return String(s).replace(/[\\\/\?\*\[\]:]/g, ' ').slice(0, 30) || '-'; }
+function selBox(id, label, list, cur){ return '<label class="vs-sel"><span>' + t(label) + '</span><select id="' + id + '">' + list.map(function(o){ return '<option value="' + esc(o[0]) + '"' + (String(o[0]) === String(cur) ? ' selected' : '') + '>' + esc(o[1]) + '</option>'; }).join('') + '</select></label>'; }
+function seg(id, list, cur){ return '<span class="vs-seg" role="group" id="' + id + '">' + list.map(function(o){ return '<button type="button" data-v="' + esc(o[0]) + '" aria-pressed="' + (String(o[0]) === String(cur)) + '">' + esc(o[1]) + '</button>'; }).join('') + '</span>'; }
+function V(){ return window.Viz; }
+function wireViz(el){ if (V()) { V().wireTips(el); V().wireLines(el); } }
+function card(id, title, lead, chart, table){ return V() ? V().card(id, title, lead, chart, table) : '<div class="db-card"><h3>' + title + '</h3>' + chart + '</div>'; }
+function vtbl(head, rows){ return V() ? V().tbl(head, rows) : ''; }
+/** Diverging bars around zero: decreases to the left in blue, increases to the right in red, the signed number beside each. */
+function dvBars(items){
+  if (!items.length) return '<p class="hr-hint">-</p>';
+  var mx = Math.max.apply(null, items.map(function(i){ return Math.abs(i.value || 0); }).concat([1]));
+  return '<div class="vs-dvs">' + items.map(function(i){ var w = Math.abs(i.value || 0) / mx * 100, pos = (i.value || 0) > 0; if (!Math.round((i.value || 0) * 100)) w = 0;
+    return '<div class="vs-dv' + (i.go != null ? ' go' : '') + '" tabindex="0"' + (i.go != null ? ' data-go-p="' + i.go + '"' : '') + ' data-tip="' + esc(i.tip || (i.label + ': ' + sgn(i.value))) + '"><span class="nm">' + esc(i.label) + '</span>' +
+      '<span class="tr" dir="ltr"><span class="l">' + (pos ? '' : '<i class="dn" style="width:' + w + '%"></i>') + '</span><span class="r">' + (pos ? '<i class="up" style="width:' + w + '%"></i>' : '') + '</span></span><b class="num" dir="ltr">' + sgn(i.value) + '</b></div>'; }).join('') +
+    '<div class="vs-dvk"><span><i class="dn"></i>' + t('cfLess') + '</span><span><i class="up"></i>' + t('cfMore') + '</span></div></div>';
+}
+
+// ======================================================================= chip filter bar
+/**
+ * One row above the results: a search pill, a chip for each active filter (tap to edit, x to remove), on/off toggles,
+ * "+ Filter" which opens a searchable checklist per dimension with live counts (each count follows every other filter,
+ * so it never promises rows the page will not show), and an optional settings popover. The host stays on the page across
+ * reloads, so typing in the search keeps its focus.
+ * cfg: { f, dims: [[key, labelKey]], opts(key) -> [{value, count}], val(key, value), onChange(), toggles: [[key, labelKey]],
+ *        more: { icon, label, html(), wire(pop) } }
+ */
+function chipBar(host, cfg){
+  host.__cfg = cfg;
+  if (!host.__cf) {
+    host.__cf = 1;
+    host.innerHTML = '<div class="cf" role="search"><label class="cf-q">' + ph('magnifying-glass') + '<input type="search" data-cfq placeholder="' + esc(t('vsSearch')) + '" aria-label="' + esc(t('vsSearch')) + '"></label><div class="cf-chips" data-cfc></div></div>' +
+      '<div class="cf-pop" data-cfp role="dialog" hidden></div>';
+    var q = host.querySelector('[data-cfq]'), tm; q.value = cfg.f.q || '';
+    q.oninput = function(){ var v = q.value; clearTimeout(tm); tm = setTimeout(function(){ host.__cfg.f.q = v.trim(); host.__cfg.onChange(); }, 400); };
+    var outside = function(e){ if (!host.isConnected) return document.removeEventListener('pointerdown', outside); var p = host.querySelector('[data-cfp]'); if (p && !p.hidden && !host.contains(e.target)) p.hidden = true; };
+    document.addEventListener('pointerdown', outside);
+    host.addEventListener('keydown', function(e){ var p = host.querySelector('[data-cfp]'); if (e.key === 'Escape' && p && !p.hidden) { p.hidden = true; e.stopPropagation(); var a = host.querySelector('[data-cfa]'); if (a) a.focus(); } });
+  }
+  var f = cfg.f, box = host.querySelector('[data-cfc]'), pop = host.querySelector('[data-cfp]');
+  var label = function(k){ var d = cfg.dims.filter(function(x){ return x[0] === k; })[0]; return d ? t(d[1]) : k; };
+  var active = cfg.dims.filter(function(d){ return Array.isArray(f[d[0]]) && f[d[0]].length; });
+  var on = active.length + (cfg.toggles || []).filter(function(x){ return f[x[0]]; }).length + (f.q ? 1 : 0);
+  box.innerHTML = active.map(function(d){ var vs = f[d[0]];
+      return '<span class="cf-chip"><button type="button" class="cf-ed" data-cfe="' + d[0] + '"><span>' + t(d[1]) + '</span><b>' + (vs.length === 1 ? esc(cfg.val(d[0], vs[0])) : vs.length + ' ' + t('cfSel')) + '</b></button>' +
+        '<button type="button" class="cf-x" data-cfx="' + d[0] + '" aria-label="' + esc(t('cfRemove') + ' ' + t(d[1])) + '">' + ph('x') + '</button></span>'; }).join('') +
+    (cfg.toggles || []).map(function(x){ return '<button type="button" class="cf-tog" data-cft="' + x[0] + '" aria-pressed="' + !!f[x[0]] + '">' + ph(f[x[0]] ? 'check-circle' : 'circle') + t(x[1]) + '</button>'; }).join('') +
+    '<button type="button" class="cf-add" data-cfa aria-haspopup="dialog">' + ph('plus') + t('cfAdd') + '</button>' +
+    (cfg.more ? '<button type="button" class="cf-add" data-cfm aria-haspopup="dialog">' + ph(cfg.more.icon) + t(cfg.more.label) + '</button>' : '') +
+    (on ? '<button type="button" class="cf-clr" data-cfclr>' + t('vsClear') + '</button>' : '');
+  var focusFirst = function(){ var x = pop.querySelector('input,button'); if (x) x.focus(); };
+  var list = function(){
+    pop.innerHTML = '<div class="cf-ph"><b>' + t('cfPick') + '</b></div><div class="cf-dl">' + cfg.dims.map(function(d){ var o = cfg.opts(d[0]) || [], n = o.filter(function(x){ return x.count; }).length;
+      return '<button type="button" data-cfd="' + d[0] + '"><span>' + t(d[1]) + '</span><small>' + n + '</small>' + ph(S.lang === 'ar' ? 'caret-left' : 'caret-right') + '</button>'; }).join('') + '</div>';
+    pop.hidden = false; focusFirst();
+    $$('[data-cfd]', pop).forEach(function(b){ b.onclick = function(){ edit(b.dataset.cfd); }; });
+  };
+  var edit = function(k){
+    var o = cfg.opts(k) || [], cur = f[k] || [];
+    pop.innerHTML = '<div class="cf-ph"><button type="button" class="cf-back" data-cfb aria-label="' + esc(t('cfBack')) + '">' + ph(S.lang === 'ar' ? 'arrow-right' : 'arrow-left') + '</button><b>' + esc(label(k)) + '</b></div>' +
+      (o.length > 8 ? '<input type="search" class="cf-s" data-cfs placeholder="' + esc(t('cfFind')) + '" aria-label="' + esc(t('cfFind')) + '">' : '') +
+      '<div class="cf-ol">' + o.map(function(x){ return '<label class="' + (x.count ? '' : 'z') + '"><input type="checkbox" value="' + esc(x.value) + '"' + (cur.indexOf(x.value) >= 0 ? ' checked' : '') + '><span>' + esc(cfg.val(k, x.value)) + '</span><small>' + x.count + '</small></label>'; }).join('') + '</div>' +
+      '<div class="cf-pf"><button type="button" class="btn btn-line btn-sm" data-cfn>' + t('cfNone') + '</button><span class="sp"></span><button type="button" class="btn btn-dark btn-sm" data-cfok>' + t('cfApply') + '</button></div>';
+    pop.hidden = false; focusFirst();
+    $('[data-cfb]', pop).onclick = list;
+    var s = $('[data-cfs]', pop); if (s) s.oninput = function(){ var v = s.value.trim().toLowerCase(); $$('.cf-ol label', pop).forEach(function(l){ l.hidden = v && l.textContent.toLowerCase().indexOf(v) < 0; }); };
+    $('[data-cfn]', pop).onclick = function(){ $$('.cf-ol input', pop).forEach(function(c){ c.checked = false; }); };
+    $('[data-cfok]', pop).onclick = function(){ var vs = $$('.cf-ol input', pop).filter(function(c){ return c.checked; }).map(function(c){ return c.value; });
+      if (vs.length) f[k] = vs; else delete f[k]; pop.hidden = true; cfg.onChange(); };
+  };
+  $('[data-cfa]', box).onclick = function(){ if (!pop.hidden && pop.querySelector('[data-cfd]')) { pop.hidden = true; return; } list(); };
+  if (cfg.more) $('[data-cfm]', box).onclick = function(){ if (!pop.hidden && pop.dataset.m) { pop.hidden = true; pop.dataset.m = ''; return; } pop.innerHTML = cfg.more.html(); pop.dataset.m = '1'; pop.hidden = false; cfg.more.wire(pop); focusFirst(); };
+  $$('[data-cfe]', box).forEach(function(b){ b.onclick = function(){ edit(b.dataset.cfe); }; });
+  $$('[data-cfx]', box).forEach(function(b){ b.onclick = function(){ delete f[b.dataset.cfx]; cfg.onChange(); }; });
+  $$('[data-cft]', box).forEach(function(b){ b.onclick = function(){ f[b.dataset.cft] = !f[b.dataset.cft]; cfg.onChange(); }; });
+  var clr = $('[data-cfclr]', box); if (clr) clr.onclick = function(){ Object.keys(f).forEach(function(k){ delete f[k]; }); host.querySelector('[data-cfq]').value = ''; cfg.onChange(); };
+}
+function netOnlyNote(ms){ return ms && ms.length ? '<div class="vs-note" role="note">' + ph('info') + '<p>' + t('vaNetOnly').replace('{m}', ms.map(function(m){ return '<b>' + esc(mon(m)) + '</b>'; }).join('، ')) + '</p></div>' : ''; }
 
 (function css(){ if (document.getElementById('vsCss')) return; var st = document.createElement('style'); st.id = 'vsCss'; st.textContent =
-  '.vs-fl{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:flex-end;margin:8px 0 16px}.vs-f{display:flex;flex-direction:column;gap:4px;font-size:12px;min-width:140px;flex:1 1 140px;max-width:220px}.vs-f span{color:var(--ink-2,#5F6D63)}' +
-  '.vs-f select,.vs-f input{height:36px;border-radius:8px;border:1px solid var(--q-hair,#E4DFD3);padding:0 8px;background:var(--paper,#fff);font:inherit;font-size:13px}.vs-n{max-width:130px;min-width:110px}.vs-q{flex:2 1 260px;max-width:none}' +
-  '.vs-tbl{width:100%;border-collapse:collapse;font-size:13px}.vs-tbl th,.vs-tbl td{padding:8px 10px;border-bottom:1px solid var(--q-hair,#E4DFD3);text-align:start;white-space:nowrap}.vs-tbl th{position:sticky;top:0;background:var(--paper,#fff);font-weight:600;cursor:pointer;z-index:1}' +
-  '.vs-tbl td.n,.vs-tbl th.n{text-align:end;font-variant-numeric:tabular-nums}.vs-tbl tfoot td{font-weight:700;border-top:2px solid var(--ink,#14202F)}.vs-tbl tr.go{cursor:pointer}.vs-tbl tr.go:hover td{background:color-mix(in srgb,var(--ink,#14202F) 4%,transparent)}' +
-  '.vs-wrap{overflow:auto;max-height:70vh;border:1px solid var(--q-hair,#E4DFD3);border-radius:12px;margin:8px 0 20px}.vs-chg.up{color:#1E6B3F}.vs-chg.dn{color:#B42318}.vs-h{margin:20px 0 4px;font-size:16px}' +
-  '.vs-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.vs-tabs button{border:1px solid var(--q-hair,#E4DFD3);background:none;border-radius:999px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}.vs-tabs button[aria-pressed=true]{background:var(--ink,#14202F);color:var(--paper,#fff)}' +
-  "html body .vs-fl{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px 16px;align-items:end;margin:8px 0 12px}html body .vs-fl .vs-f,html body .vs-fl .vs-n,html body .vs-fl .vs-q{max-width:none;min-width:0;flex:none;margin:0}html body .vs-fl .vs-q{grid-column:span 2}html body .vs-fl .vs-f>span{font-size:12px;font-weight:600;color:var(--ink-2);line-height:1.3}html body .vs-fl .vs-f select,html body .vs-fl .vs-f input:not([type=checkbox]){width:100%;box-sizing:border-box;height:40px;min-height:40px;border-radius:12px;border:1px solid var(--q-hair-3,#D6D0C2);background:var(--card,#fff);padding:0 12px;font:inherit;font-size:14px;color:var(--ink)}html body .vs-fl .vs-f select:focus,html body .vs-fl .vs-f input:focus{outline:2px solid var(--brand);outline-offset:1px}html body .vs-fl label.vs-f:has(input[type=checkbox]){flex-direction:row;align-items:center;height:40px;gap:8px;padding:0 12px;border-radius:12px;background:var(--q-tray,#F4F2EC)}html body .vs-fl>.btn{height:40px;width:100%;justify-content:center}html body .vs-fl>.sp{display:none}html body .vs-fl.vs-main{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px}html body .vs-fl.vs-main .vs-f{flex:1 1 200px;max-width:280px}html body .vs-fl.vs-main>.sp{display:block;flex:1}html body .vs-fl.vs-main>.btn{width:auto}@media (max-width:700px){html body .vs-fl{grid-template-columns:1fr 1fr}html body .vs-fl .vs-q{grid-column:1 / -1}html body .vs-fl.vs-main .vs-f{max-width:none}}" + '.vs-main{margin-bottom:8px}.vs-more{margin:0 0 12px;border:1px solid var(--q-hair,#E4DFD3);border-radius:16px;background:var(--card,#fff);padding:0 16px}.vs-more>summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px;min-height:44px;font-weight:600;font-size:14px}.vs-more>summary::-webkit-details-marker{display:none}.vs-more[open]{padding-bottom:12px}.vs-cnt{display:inline-grid;place-items:center;min-width:20px;height:20px;border-radius:999px;background:var(--ink);color:var(--paper,#fff);font-size:11px;padding:0 6px}' +
-  '.vs-story{margin:0 0 16px;padding:16px 20px;border-radius:16px;background:var(--card,#fff);border:1px solid var(--q-hair,#E4DFD3);box-shadow:var(--e1)}.vs-lead{margin:0 0 12px;font-size:18px;line-height:1.7;color:var(--ink)}.vs-up{color:#B4532A}.vs-dn{color:var(--g-2E7D4F,#2E7D4F)}' +
+  'html body{--vs-up:#e34948;--vs-dn:#2a78d6;--vs-mid:#f0efec}html[data-theme="dark"] body{--vs-up:#e66767;--vs-dn:#3987e5;--vs-mid:#383835}' +
+  '.vs-top{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px;margin:4px 0 12px}.vs-top .sp{flex:1}' +
+  '.vs-sel{display:flex;flex-direction:column;gap:4px;min-width:170px}.vs-sel>span{font-size:12px;font-weight:600;color:var(--ink-2)}' +
+  'html body .vs-sel select{height:40px;border-radius:999px;border:1px solid var(--q-hair-3,#D6D0C2);background:var(--card,#fff);padding:0 16px;font:inherit;font-size:14px;color:var(--ink);min-width:170px}' +
+  '.vs-seg{display:inline-flex;padding:4px;gap:4px;border-radius:999px;background:var(--q-tray,#F4F2EC);border:1px solid var(--q-hair,#E4DFD3)}.vs-seg button{border:0;background:none;border-radius:999px;padding:6px 14px;font:inherit;font-size:13px;color:var(--ink-2);cursor:pointer;min-height:32px}.vs-seg button[aria-pressed=true]{background:var(--card,#fff);color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.08)}' +
+  // chip bar
+  '.vs-cfh{position:relative;margin:0 0 16px}.cf{display:flex;flex-wrap:wrap;align-items:center;gap:8px}.cf-q{display:flex;align-items:center;gap:8px;flex:1 1 260px;max-width:420px;height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--q-hair-3,#D6D0C2);background:var(--card,#fff);color:var(--ink-2)}' +
+  'html body .cf .cf-q input,html body.v2-on :is(#main,.drawer,.toolbar,.form,.v2-area) .cf.cf .cf-q.cf-q input[type=search][data-cfq][data-cfq],html body.v2-on :is(#main,.drawer) .cf.cf .cf-q.cf-q input[type=search][data-cfq][data-cfq]:is(:hover,:focus){border:0!important;background:transparent!important;outline:0!important;flex:1;min-width:0;width:auto!important;height:38px!important;min-height:0!important;font:inherit;font-size:14px;color:var(--ink);padding:0!important;margin:0!important;box-shadow:none!important;border-radius:0!important}.cf-q:focus-within{outline:2px solid var(--brand);outline-offset:1px}' +
+  '.cf-chips{display:contents}.cf-chip{display:inline-flex;align-items:center;height:36px;border-radius:999px;background:var(--ink);color:var(--paper,#fff);overflow:hidden}.cf-chip button{border:0;background:none;color:inherit;font:inherit;cursor:pointer;height:100%}' +
+  '.cf-ed{display:inline-flex;gap:6px;align-items:center;padding:0 4px 0 14px;font-size:13px}html[dir=rtl] .cf-ed{padding:0 14px 0 4px}.cf-ed span{opacity:.72}.cf-ed b{font-weight:600;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.cf-x{width:34px;display:grid;place-items:center}.cf-x:hover{background:rgba(255,255,255,.14)}' +
+  '.cf-tog,.cf-add,.cf-clr{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:999px;font:inherit;font-size:13px;cursor:pointer;border:1px solid var(--q-hair-3,#D6D0C2);background:var(--card,#fff);color:var(--ink)}.cf-add{border-style:dashed}.cf-tog[aria-pressed=true]{background:var(--q-tray,#F4F2EC);border-color:var(--ink);font-weight:600}.cf-clr{border:0;background:none;color:var(--ink-2);text-decoration:underline;text-underline-offset:3px}' +
+  '.cf-pop{position:absolute;z-index:30;top:calc(100% + 8px);inset-inline-start:0;width:min(360px,calc(100vw - 32px));max-height:min(460px,70vh);display:flex;flex-direction:column;background:var(--card,#fff);border:1px solid var(--q-hair,#E4DFD3);border-radius:16px;box-shadow:0 12px 32px rgba(20,18,15,.16);padding:8px}.cf-pop[hidden]{display:none}' +
+  '.cf-ph{display:flex;align-items:center;gap:8px;padding:8px 8px 10px;font-size:14px}.cf-back{border:0;background:none;width:32px;height:32px;border-radius:999px;cursor:pointer;color:var(--ink)}.cf-back:hover{background:var(--q-tray,#F4F2EC)}' +
+  '.cf-dl{overflow:auto}.cf-dl button{display:flex;align-items:center;gap:8px;width:100%;border:0;background:none;padding:10px 12px;border-radius:10px;font:inherit;font-size:14px;color:var(--ink);cursor:pointer;text-align:start;min-height:44px}.cf-dl button:hover,.cf-dl button:focus-visible{background:var(--q-tray,#F4F2EC)}.cf-dl span{flex:1}.cf-dl small{color:var(--ink-2)}' +
+  'html body .cf-s{height:38px;border-radius:999px;border:1px solid var(--q-hair-3,#D6D0C2);padding:0 14px;margin:0 4px 8px;font:inherit;font-size:14px;background:var(--q-tray,#F4F2EC)}' +
+  '.cf-ol{overflow:auto;flex:1;padding:0 4px}.cf-ol label{display:flex;align-items:center;gap:10px;padding:8px;border-radius:10px;font-size:14px;cursor:pointer;min-height:40px}.cf-ol label:hover{background:var(--q-tray,#F4F2EC)}.cf-ol label span{flex:1}.cf-ol label small{color:var(--ink-2);font-variant-numeric:tabular-nums}.cf-ol label.z{opacity:.5}.cf-ol input{width:18px;height:18px;accent-color:var(--ink)}' +
+  '.cf-pf{display:flex;gap:8px;padding:10px 4px 4px;border-top:1px solid var(--q-hair,#E4DFD3);margin-top:6px}.cf-pf .sp{flex:1}.cf-set{display:grid;gap:12px;padding:4px 8px 8px}.cf-set label{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:600;color:var(--ink-2)}html body .cf-set input{height:40px;border-radius:12px;border:1px solid var(--q-hair-3,#D6D0C2);padding:0 12px;font:inherit;font-size:14px}' +
+  '@media (max-width:700px){.cf-pop{position:fixed;inset:auto 0 0 0;width:auto;max-height:75vh;border-radius:20px 20px 0 0;padding:12px 12px max(12px,env(safe-area-inset-bottom))}.cf-q{max-width:none}}' +
+  // results: money tiles hold up to 13 characters (1,234,567.89), so their figures scale with the width instead of being cut
+  'html body.v2-on :is(#vaBox,#moBox,#vsBox) .db-tile b{font-size:clamp(18px,2vw,26px)!important;white-space:nowrap;letter-spacing:-.01em}html body.v2-on :is(#vaBox,#moBox,#vsBox) .db-tiles{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))!important}' +
+  '.vs-note{display:flex;gap:10px;align-items:flex-start;padding:12px 16px;border-radius:14px;background:var(--q-tray,#F4F2EC);border:1px solid var(--q-hair,#E4DFD3);margin:0 0 16px;font-size:13px;line-height:1.6}.vs-note p{margin:0}' +
+  '.vs-tbl{width:100%;border-collapse:collapse;font-size:13px}.vs-tbl th,.vs-tbl td{padding:9px 12px;border-bottom:1px solid var(--q-hair,#E4DFD3);text-align:start;white-space:nowrap}.vs-tbl th{position:sticky;top:0;background:var(--card,#fff);font-weight:600;color:var(--ink-2);font-size:12px;z-index:1}.vs-tbl th[data-s]{cursor:pointer}' +
+  '.vs-tbl td.n,.vs-tbl th.n{text-align:end;font-variant-numeric:tabular-nums}.vs-tbl tfoot td{font-weight:700;border-top:2px solid var(--ink);background:var(--card,#fff);position:sticky;bottom:0}.vs-tbl tr.go{cursor:pointer}.vs-tbl tr.go:hover td{background:color-mix(in srgb,var(--ink) 4%,transparent)}.vs-tbl td.na{color:var(--ink-2)}' +
+  '.vs-wrap{overflow:auto;max-height:70vh;border:1px solid var(--q-hair,#E4DFD3);border-radius:14px;margin:8px 0 20px;background:var(--card,#fff)}.vs-h{margin:24px 0 4px;font-size:16px}.vs-sub{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.vs-sub .sp{flex:1}' +
+  '.vs-chg{white-space:nowrap;direction:ltr;unicode-bidi:isolate;display:inline-block}.vs-chg i{font-style:normal;font-size:9px;margin-inline-end:4px;vertical-align:1px}.vs-chg i.up{color:var(--vs-up)}.vs-chg i.dn{color:var(--vs-dn)}' +
+  '.vs-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.vs-tabs button{border:1px solid var(--q-hair,#E4DFD3);background:var(--card,#fff);border-radius:999px;padding:6px 14px;font:inherit;font-size:13px;cursor:pointer;min-height:34px}.vs-tabs button[aria-pressed=true]{background:var(--ink);color:var(--paper,#fff);border-color:var(--ink)}' +
+  '.vs-story{margin:0 0 16px;padding:18px 20px;border-radius:16px;background:var(--card,#fff);border:1px solid var(--q-hair,#E4DFD3)}.vs-lead{margin:0 0 12px;font-size:18px;line-height:1.7;color:var(--ink)}' +
   '.vs-why{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px}.vs-why li{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;border-radius:12px;background:var(--q-tray,#F4F2EC);font-size:13px}.vs-why b{font-size:15px;color:var(--ink);direction:ltr;unicode-bidi:isolate}' +
-  '.vs-pick{margin:8px 0 12px;padding:12px 16px;border-radius:16px;background:var(--q-tray,#F4F2EC);border:1px solid var(--q-hair,#E4DFD3)}.vs-pick p{margin:0 0 8px;font-size:13px;color:var(--ink-2)}.vs-pick-m{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}.vs-pick-m label{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:var(--card,#fff);border:1px solid var(--q-hair,#E4DFD3);font-size:13px;cursor:pointer}.vs-pick-m label:has(input:checked){border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}.vs-base{margin:4px 0 12px;font-size:13px;color:var(--ink-2)}.vs-base b{color:var(--ink)}' + '.vs-flag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;background:color-mix(in srgb,var(--ink,#14202F) 7%,transparent);margin:1px 2px}.vs-bar{display:grid;grid-template-columns:160px 1fr 120px;gap:8px;align-items:center;font-size:13px;margin:4px 0}' +
-  '.vs-bar i{display:block;height:14px;border-radius:4px;background:#2a78d6}.vs-bar i.neg{background:#B42318}.vs-bar i.pos{background:#2E7D4F}.vs-assumed td:first-child{background:color-mix(in srgb,#C98500 14%,transparent)}';
+  '.vs-pick{margin:0 0 12px;padding:12px 16px;border-radius:16px;background:var(--q-tray,#F4F2EC);border:1px solid var(--q-hair,#E4DFD3)}.vs-pick p{margin:0 0 8px;font-size:13px;color:var(--ink-2)}.vs-pick-m{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}.vs-pick-m label{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:var(--card,#fff);border:1px solid var(--q-hair,#E4DFD3);font-size:13px;cursor:pointer}.vs-pick-m label:has(input:checked){border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}.vs-base{margin:0 0 12px;font-size:13px;color:var(--ink-2)}.vs-base b{color:var(--ink)}' +
+  '.vs-flag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;background:color-mix(in srgb,var(--ink) 7%,transparent);margin:1px 2px}.vs-assumed td:first-child{background:color-mix(in srgb,#C98500 14%,transparent)}' +
+  '.vs-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:16px 0}.vs-grid .wide{grid-column:1 / -1}@media (max-width:900px){.vs-grid{grid-template-columns:1fr}}' +
+  '.vs-dvs{display:grid;gap:6px}.vs-dv{display:grid;grid-template-columns:minmax(90px,30%) 1fr 110px;gap:10px;align-items:center;font-size:13px;min-height:28px;border-radius:8px}.vs-dv.go{cursor:pointer}.vs-dv.go:hover{background:var(--q-tray,#F4F2EC)}.vs-dv .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.vs-dv b{text-align:end;font-weight:600}' +
+  '.vs-dv .tr{display:grid;grid-template-columns:1fr 1fr;height:16px}.vs-dv .l{display:flex;justify-content:flex-end;border-inline-end:1px solid var(--axis,#C3C8C4)}.vs-dv .r{display:flex}.vs-dv i{display:block;height:16px}.vs-dv i:not([style*="width:0%"]){min-width:2px}.vs-dv i.up{background:var(--vs-up);border-radius:0 4px 4px 0}.vs-dv i.dn{background:var(--vs-dn);border-radius:4px 0 0 4px}' +
+  '.vs-dvk{display:flex;gap:16px;font-size:12px;color:var(--ink-2);margin-top:6px}.vs-dvk i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:6px;vertical-align:-1px}.vs-dvk i.up{background:var(--vs-up)}.vs-dvk i.dn{background:var(--vs-dn)}' +
+  '.vs-rate{display:grid;grid-template-columns:1fr 1fr;gap:8px}.vs-rate div{padding:12px 14px;border-radius:12px;background:var(--q-tray,#F4F2EC)}.vs-rate span{display:block;font-size:12px;color:var(--ink-2);margin-bottom:4px}.vs-rate b{font-size:17px;direction:ltr;unicode-bidi:isolate}' +
+  '.vs-more-p{display:flex;align-items:center;gap:12px;margin:-12px 0 20px;font-size:13px;color:var(--ink-2)}.vs-mo td.sp-c svg{display:block}.vs-mo th.mo,.vs-mo td.mo{min-width:96px}.vs-mo td.nonly{color:var(--ink-2);font-style:italic}';
   document.head.appendChild(st); })();
 
+var DIMS = [['payGroup', 'vsSponsor'], ['department', 'vsDept'], ['location', 'vsLoc'], ['city', 'vsCity'], ['title', 'vsPos'], ['nationality', 'vsNat'], ['saudi', 'vsSaudi'], ['employmentType', 'vsCat']];
+function dimVal(k, v){ return k === 'saudi' ? t(v === 'saudi' ? 'vsSaudiY' : 'vsSaudiN') : k === 'flags' ? t('fl_' + v) : v; }
+function serverFilters(f){ var o = {}; Object.keys(f).forEach(function(k){ var v = f[k]; if (v === '' || v == null || v === false || (Array.isArray(v) && !v.length)) return; o[k] = v; }); return o; }
+function xlFilters(f){ return Object.keys(f).filter(function(k){ var v = f[k]; return v && (!Array.isArray(v) || v.length); }).map(function(k){ return [k, Array.isArray(f[k]) ? f[k].map(function(v){ return dimVal(k, v); }).join(', ') : String(f[k])]; }); }
+
 // ======================================================================= combined payroll sheet
-var PS = { month: '', n: 12, f: {}, metric: 'net', sort: null, dir: 1, pv: null };
+var PS = { month: '', n: 12, f: {}, metric: 'net', sort: null, dir: 1, pv: null, mm: null };
+var PS_DIMS = [['sponsor', 'vsSponsor'], ['department', 'vsDept'], ['title', 'vsPos'], ['level', 'vsLevel'], ['employmentType', 'vsCat'], ['location', 'vsLoc'], ['city', 'vsCity'], ['nationality', 'vsNat'], ['saudi', 'vsSaudi'], ['status', 'vsStatus']];
 function sheetSection(body){
   var box = K.head(body, 'vsTitle', 'vsLead');
-  box.innerHTML = '<div id="vsBox"></div>'; var el = $('#vsBox', box);
+  box.innerHTML = '<div id="vsTop"></div><div class="vs-cfh" id="vsCf"></div><div id="vsBox"></div>'; var el = $('#vsBox', box), top = $('#vsTop', box), cf = $('#vsCf', box);
   function load(){
     K.busy(el);
     api('payrollPivot', { months: PS.n, detail: PS.month || undefined }, true).then(function(r){
       if (!el.isConnected) return; if (!r.ok) return el.innerHTML = K.bad(r.error);
       if (!r.months.length) return el.innerHTML = K.empty('table', t('vsNone'));
       if (!PS.month || r.detail !== PS.month) { PS.month = r.detail || r.months[r.months.length - 1]; if (r.detail !== PS.month) return load(); }
-      PS.pv = r; draw();
+      PS.pv = r;
+      // the month x sponsor table is rebuilt from each person's months so it follows every filter (payrollMonthly)
+      return api('payrollMonthly', { months: r.months }, true).then(function(m){ PS.mm = m && m.ok ? m : null; draw(); });
     });
   }
-  function filtered(){
-    var f = PS.f, q = String(f.q || '').trim().toLowerCase(), n = function(v){ return v === '' || v == null ? null : Number(v); };
-    return PS.pv.rows.filter(function(x){
-      if (f.sponsor && x.sponsor !== f.sponsor) return false; if (f.department && x.department !== f.department) return false; if (f.title && x.title !== f.title) return false;
-      if (f.location && x.location !== f.location) return false; if (f.city && x.city !== f.city) return false; if (f.nationality && x.nationality !== f.nationality) return false;
-      if (f.saudi && String(x.saudi) !== f.saudi) return false; if (f.employmentType && x.employmentType !== f.employmentType) return false; if (f.level && level(x.title) !== f.level) return false;
-      if (f.status && x.status !== f.status) return false;
-      if (n(f.gFrom) != null && x.gross < n(f.gFrom)) return false; if (n(f.gTo) != null && x.gross > n(f.gTo)) return false;
-      if (n(f.nFrom) != null && x.net < n(f.nFrom)) return false; if (n(f.nTo) != null && x.net > n(f.nTo)) return false;
-      if (q && String(x.name).toLowerCase().indexOf(q) < 0 && x.empNo.indexOf(q) < 0 && x.idNo.indexOf(q) < 0) return false;
-      return true;
-    });
-  }
+  // a row of the month's sheet (or a person of the month-by-month book, as { dims, status, name, empNo }) against the filters
+  var rowVal = function(x, k){ return k === 'level' ? level(x.title) : k === 'saudi' ? String(!!x.saudi) : x[k]; };
+  var pass = function(x, skip){ var f = PS.f, q = String(f.q || '').toLowerCase();
+    for (var i = 0; i < PS_DIMS.length; i++) { var k = PS_DIMS[i][0]; if (k !== skip && Array.isArray(f[k]) && f[k].length && f[k].indexOf(rowVal(x, k)) < 0) return false; }
+    if (q && String(x.name).toLowerCase().indexOf(q) < 0 && String(x.empNo).indexOf(q) < 0 && String(x.idNo || '').indexOf(q) < 0) return false;
+    var n = function(v){ return v === '' || v == null ? null : Number(v); };
+    if (n(f.gFrom) != null && !(x.gross >= n(f.gFrom))) return false; if (n(f.gTo) != null && !(x.gross <= n(f.gTo))) return false;
+    if (n(f.nFrom) != null && !(x.net >= n(f.nFrom))) return false; if (n(f.nTo) != null && !(x.net <= n(f.nTo))) return false;
+    return true; };
+  var asRow = function(p){ var d = p.dims, cur = p.m[PS.month]; return { sponsor: d.payGroup, department: d.department, title: d.title, employmentType: d.employmentType, location: d.location, city: d.city,
+    nationality: d.nationality, saudi: d.saudi === 'saudi', status: p.status, name: p.name, empNo: p.empNo, gross: cur ? cur[0] : null, net: cur ? cur[2] : null }; };
   function draw(){
-    var r = PS.pv, f = PS.f, rows = filtered(), all = r.rows;
+    var r = PS.pv, f = PS.f, all = r.rows, rows = all.filter(function(x){ return pass(x); });
     var lineKeys = orderLines(r.lineKeys.filter(function(k){ return rows.some(function(x){ return x.lines[k]; }); }));
     var spCols = payCols(lineKeys, false), rowCols = payCols(lineKeys, true);
     var colLabel = function(c){ return c.indexOf('l:') === 0 ? esc(lineName(c.slice(2))) : t({ days: 'vsDays', gross: 'vsGross', deductions: 'vsDed', net: 'vsNet' }[c]); };
@@ -108,28 +253,29 @@ function sheetSection(body){
     var colFoot = function(list, c){ return c === 'days' ? '<td></td>' : '<td class="n">' + amt(list.reduce(function(a, x){ return a + colVal(x, c); }, 0)) + '</td>'; };
     if (PS.sort) rows.sort(function(a, b){ var u = PS.sort.indexOf('l:') === 0 ? (a.lines[PS.sort.slice(2)] || 0) : a[PS.sort], v = PS.sort.indexOf('l:') === 0 ? (b.lines[PS.sort.slice(2)] || 0) : b[PS.sort]; return (typeof u === 'number' ? u - v : String(u).localeCompare(String(v))) * PS.dir; });
     var bySp = {}; rows.forEach(function(x){ var s = bySp[x.sponsor] = bySp[x.sponsor] || { sponsor: x.sponsor, head: 0, gross: 0, deductions: 0, net: 0, gosiEmployer: 0, lines: {} }; s.head++; ['gross', 'deductions', 'net', 'gosiEmployer'].forEach(function(k){ s[k] += x[k]; }); Object.keys(x.lines).forEach(function(k){ s.lines[k] = (s.lines[k] || 0) + x.lines[k]; }); });
-    var cell = function(m, s){ for (var i = 0; i < r.cells.length; i++) if (r.cells[i].month === m && r.cells[i].sponsor === s) return r.cells[i]; return null; };
-    var sps = f.sponsor ? [f.sponsor] : r.sponsors, M = PS.metric;
+    // month x sponsor: from the people who pass the filters (falls back to the whole month when the server is older)
+    var M = PS.metric, MI = { gross: 0, deductions: 1, net: 2, companyCost: 3, gosiEmployer: 5 }[M], cells = {}, sps = {}, pivMonths = r.months, live = !!PS.mm;
+    if (live) { pivMonths = PS.mm.months; PS.mm.people.forEach(function(p){ if (!pass(asRow(p))) return; pivMonths.forEach(function(m){ var v = p.m[m]; if (!v) return; var k = m + '|' + p.dims.payGroup; sps[p.dims.payGroup] = 1; cells[k] = (cells[k] || 0) + (M === 'headcount' ? 1 : v[MI] || 0); }); }); }
+    else r.cells.forEach(function(c){ if (Array.isArray(f.sponsor) && f.sponsor.length && f.sponsor.indexOf(c.sponsor) < 0) return; sps[c.sponsor] = 1; cells[c.month + '|' + c.sponsor] = c[M] || 0; });
+    sps = r.sponsors.filter(function(s){ return sps[s]; }).concat(Object.keys(sps).filter(function(s){ return r.sponsors.indexOf(s) < 0; }));
+    var cell = function(m, s){ return cells[m + '|' + s] || 0; }, fmtV = function(v){ return M === 'headcount' ? String(Math.round(v)) : amt(Math.round(v * 100) / 100); };
     var th = function(k, label, cls){ return '<th class="' + (cls || '') + '" data-s="' + k + '">' + label + (PS.sort === k ? (PS.dir > 0 ? ' ▲' : ' ▼') : '') + '</th>'; };
+    top.innerHTML = '<div class="vs-top">' + selBox('vsM', 'vsMonth', r.allMonths.slice().reverse().map(function(m){ return [m, mon(m)]; }), PS.month) +
+      '<span class="sp"></span><button type="button" class="btn btn-dark btn-sm" id="vsX">' + ph('microsoft-excel-logo') + t('vsExcel') + '</button></div>';
+    chipBar(cf, { f: f, dims: PS_DIMS, val: function(k, v){ return k === 'level' ? t(v) : k === 'saudi' ? t(v === 'true' ? 'vsSaudiY' : 'vsSaudiN') : v; }, onChange: draw,
+      opts: function(k){ var c = {}; all.forEach(function(x){ var v = rowVal(x, k); if (v === '' || v == null) return; if (!(v in c)) c[v] = 0; if (pass(x, k)) c[v]++; }); return Object.keys(c).sort().map(function(v){ return { value: v, count: c[v] }; }); },
+      more: { icon: 'sliders-horizontal', label: 'cfRanges', html: function(){ return '<div class="cf-ph"><b>' + t('cfRanges') + '</b></div><div class="cf-set">' + [['gFrom', 'vsGrossFrom'], ['gTo', 'vsGrossTo'], ['nFrom', 'vsNetFrom'], ['nTo', 'vsNetTo']].map(function(x){ return '<label>' + t(x[1]) + '<input data-rg="' + x[0] + '" type="number" inputmode="decimal" dir="ltr" value="' + esc(f[x[0]] == null ? '' : f[x[0]]) + '"></label>'; }).join('') + '</div><div class="cf-pf"><span class="sp"></span><button type="button" class="btn btn-dark btn-sm" data-rgok>' + t('cfApply') + '</button></div>'; },
+        wire: function(pop){ $('[data-rgok]', pop).onclick = function(){ $$('[data-rg]', pop).forEach(function(i){ if (i.value === '') delete f[i.dataset.rg]; else f[i.dataset.rg] = i.value; }); pop.hidden = true; draw(); }; } } });
     el.innerHTML =
-      '<div class="toolbar"><label class="vs-f"><span>' + t('vsMonth') + '</span><select id="vsM">' + r.allMonths.slice().reverse().map(function(m){ return '<option value="' + m + '"' + (m === PS.month ? ' selected' : '') + '>' + esc(mon(m)) + '</option>'; }).join('') + '</select></label>' +
-      '<span class="sp"></span><button type="button" class="btn btn-dark btn-sm" id="vsX">' + ph('microsoft-excel-logo') + t('vsExcel') + '</button></div>' +
-      '<div class="vs-fl"><label class="vs-f vs-q"><span>' + t('vsSearch') + '</span><input data-f="q" type="search" value="' + esc(f.q || '') + '"></label>' +
-      sel('sponsor', 'vsSponsor', uniq(all, 'sponsor'), f.sponsor) + sel('department', 'vsDept', uniq(all, 'department'), f.department) + sel('title', 'vsPos', uniq(all, 'title'), f.title) +
-      sel('level', 'vsLevel', ['lvExec', 'lvMgr', 'lvSup', 'lvStaff'].map(function(k){ return [k, t(k)]; }), f.level) + sel('employmentType', 'vsCat', uniq(all, 'employmentType'), f.employmentType) +
-      sel('location', 'vsLoc', uniq(all, 'location'), f.location) + sel('city', 'vsCity', uniq(all, 'city'), f.city) + sel('nationality', 'vsNat', uniq(all, 'nationality'), f.nationality) +
-      sel('saudi', 'vsSaudi', [['true', t('vsSaudiY')], ['false', t('vsSaudiN')]], f.saudi) + sel('status', 'vsStatus', uniq(all, 'status'), f.status) +
-      num('gFrom', 'vsGrossFrom', f.gFrom) + num('gTo', 'vsGrossTo', f.gTo) + num('nFrom', 'vsNetFrom', f.nFrom) + num('nTo', 'vsNetTo', f.nTo) +
-      '<button type="button" class="btn btn-line btn-sm" id="vsC">' + t('vsClear') + '</button></div>' +
       K.tiles([[t('vsHead'), String(rows.length), t('vsShown').replace('{n}', rows.length).replace('{t}', all.length), true], [t('vsGross'), amt(sum(rows, 'gross'))], [t('vsDed'), amt(sum(rows, 'deductions'))],
         [t('vsNet'), amt(sum(rows, 'net'))], [t('vsGosiR'), amt(sum(rows, 'gosiEmployer'))]]) +
-      '<h3 class="vs-h">' + t('vsPivot') + '</h3><p class="hr-hint">' + t('vsPivotLead') + '</p><div class="toolbar">' +
-      sel('metric', 'vsMetric', [['net', t('vsNet')], ['gross', t('vsGross')], ['deductions', t('vsDed')], ['companyCost', t('vsCost')], ['gosiEmployer', t('vsGosiR')], ['headcount', t('vsHead')]], M).replace('data-f="metric"', 'id="vsMet"') +
-      sel('n', 'vsMonths', [6, 12, 24].map(function(x){ return [x, x]; }), PS.n).replace('data-f="n"', 'id="vsN"') + '</div>' +
+      '<div class="vs-sub"><h3 class="vs-h">' + t('vsPivot') + '</h3><span class="sp"></span>' + selBox('vsMet', 'vsMetric', [['net', t('vsNet')], ['gross', t('vsGross')], ['deductions', t('vsDed')], ['companyCost', t('vsCost')], ['gosiEmployer', t('vsGosiR')], ['headcount', t('vsHead')]], M) +
+        selBox('vsN', 'vsMonths', [6, 12, 24].map(function(x){ return [x, x]; }), PS.n) + '</div>' +
+      '<p class="hr-hint">' + t(live ? 'vsPivotLead' : 'vsPivotOld') + '</p>' + (live ? netOnlyNote(PS.mm.netOnlyMonths) : '') +
       '<div class="vs-wrap"><table class="vs-tbl" id="vsPivot"><thead><tr><th>' + t('vsMonth') + '</th>' + sps.map(function(s){ return '<th class="n">' + esc(s) + '</th>'; }).join('') + '<th class="n">' + t('vsTotal') + '</th></tr></thead><tbody>' +
-        r.months.map(function(m){ var tot = 0; return '<tr><td>' + esc(mon(m)) + '</td>' + sps.map(function(s){ var c = cell(m, s), v = c ? c[M] || 0 : 0; tot += v; return '<td class="n">' + (M === 'headcount' ? v : amt(v)) + '</td>'; }).join('') + '<td class="n"><b>' + (M === 'headcount' ? tot : amt(tot)) + '</b></td></tr>'; }).join('') +
-        '</tbody><tfoot><tr><td>' + t('vsTotal') + '</td>' + sps.map(function(s){ var v = r.months.reduce(function(a, m){ var c = cell(m, s); return a + (c ? c[M] || 0 : 0); }, 0); return '<td class="n">' + (M === 'headcount' ? v : amt(v)) + '</td>'; }).join('') +
-        '<td class="n">' + (function(){ var v = r.months.reduce(function(a, m){ return a + sps.reduce(function(b, s){ var c = cell(m, s); return b + (c ? c[M] || 0 : 0); }, 0); }, 0); return M === 'headcount' ? v : amt(v); })() + '</td></tr></tfoot></table></div>' +
+        pivMonths.map(function(m){ var tot = 0; return '<tr><td>' + esc(mon(m)) + '</td>' + sps.map(function(s){ var v = cell(m, s); tot += v; return '<td class="n">' + fmtV(v) + '</td>'; }).join('') + '<td class="n"><b>' + fmtV(tot) + '</b></td></tr>'; }).join('') +
+        '</tbody>' + (M === 'headcount' ? '' : '<tfoot><tr><td>' + t('vsTotal') + '</td>' + sps.map(function(s){ return '<td class="n">' + fmtV(pivMonths.reduce(function(a, m){ return a + cell(m, s); }, 0)) + '</td>'; }).join('') +
+        '<td class="n">' + fmtV(pivMonths.reduce(function(a, m){ return a + sps.reduce(function(b, s){ return b + cell(m, s); }, 0); }, 0)) + '</td></tr></tfoot>') + '</table></div>' +
       '<h3 class="vs-h">' + t('vsBySponsor') + ' · ' + esc(mon(PS.month)) + '</h3><div class="vs-wrap"><table class="vs-tbl"><thead><tr><th>' + t('vsSponsor') + '</th><th class="n">' + t('vsHead') + '</th>' + spCols.map(function(c){ return '<th class="n">' + colLabel(c) + '</th>'; }).join('') + '</tr></thead><tbody>' +
         Object.keys(bySp).map(function(k){ var s = bySp[k]; return '<tr class="go" data-sp="' + esc(k) + '"><td>' + esc(k) + '</td><td class="n">' + s.head + '</td>' + spCols.map(function(c){ return colCell(s, c); }).join('') + '</tr>'; }).join('') +
         '</tbody><tfoot><tr><td>' + t('vsTotal') + '</td><td class="n">' + rows.length + '</td>' + spCols.map(function(c){ return colFoot(rows, c); }).join('') + '</tr></tfoot></table></div>' +
@@ -139,18 +285,15 @@ function sheetSection(body){
         rows.map(function(x){ return '<tr><td>' + esc(x.sponsor) + '</td><td dir="ltr">' + esc(x.empNo) + '</td><td>' + esc(x.name) + '</td><td dir="ltr">' + esc(x.idNo) + '</td><td>' + esc(x.department) + '</td><td>' + esc(x.title) + '</td><td>' + esc(x.location) + '</td><td>' + esc(x.city) + '</td><td>' + esc(x.nationality) + '</td>' +
           rowCols.map(function(c){ return colCell(x, c); }).join('') + '</tr>'; }).join('') +
         '</tbody><tfoot><tr><td colspan="9">' + t('vsTotal') + '</td>' + rowCols.map(function(c){ return colFoot(rows, c); }).join('') + '</tr></tfoot></table></div>';
-    $('#vsM', el).onchange = function(){ PS.month = this.value; load(); };
+    $('#vsM', top).onchange = function(){ PS.month = this.value; load(); };
     $('#vsN', el).onchange = function(){ PS.n = +this.value; load(); };
     $('#vsMet', el).onchange = function(){ PS.metric = this.value; draw(); };
-    $('#vsC', el).onclick = function(){ PS.f = {}; draw(); };
-    $$('[data-f]', el).forEach(function(c){ var go = function(){ PS.f[c.dataset.f] = c.value; var pos = c.selectionStart; draw(); var n = $('[data-f="' + c.dataset.f + '"]', el); if (n && n.type !== 'select-one') { n.focus(); try { n.setSelectionRange(pos, pos); } catch (e) {} } };
-      if (c.tagName === 'SELECT') c.onchange = go; else { var tm; c.oninput = function(){ clearTimeout(tm); tm = setTimeout(go, 300); }; } });
     $$('[data-s]', el).forEach(function(h){ h.onclick = function(){ if (PS.sort === h.dataset.s) PS.dir = -PS.dir; else { PS.sort = h.dataset.s; PS.dir = 1; } draw(); }; });
-    $$('[data-sp]', el).forEach(function(tr){ tr.onclick = function(){ PS.f.sponsor = tr.dataset.sp; draw(); }; });
-    $('#vsX', el).onclick = function(){ exportSheet(rows, lineKeys, sps, cell); };
+    $$('[data-sp]', el).forEach(function(tr){ tr.onclick = function(){ PS.f.sponsor = [tr.dataset.sp]; draw(); }; });
+    $('#vsX', top).onclick = function(){ exportSheet(rows, lineKeys, sps, pivMonths, cells, live); };
   }
-  function exportSheet(rows, lineKeys, sps, cell){
-    var r = PS.pv, en = S.lang === 'en', title = t('vsTitle') + ' ' + PS.month;
+  function exportSheet(rows, lineKeys, sps, pivMonths, cellsNow, live){
+    var en = S.lang === 'en', title = t('vsTitle') + ' ' + PS.month;
     var cols = [{ key: 'sponsor', label: t('vsSponsor'), type: 'text' }, { key: 'empNo', label: t('vsEmpNo'), type: 'text' }, { key: 'name', label: t('vsName'), type: 'text' }, { key: 'idNo', label: t('vsId'), type: 'text' },
       { key: 'department', label: t('vsDept'), type: 'text' }, { key: 'title', label: t('vsPos'), type: 'text' }, { key: 'level', label: t('vsLevel'), type: 'text' }, { key: 'employmentType', label: t('vsCat'), type: 'text' },
       { key: 'location', label: t('vsLoc'), type: 'text' }, { key: 'city', label: t('vsCity'), type: 'text' }, { key: 'nationality', label: t('vsNat'), type: 'text' }, { key: 'status', label: t('vsStatus'), type: 'text' }]
@@ -159,107 +302,126 @@ function sheetSection(body){
       .concat([{ key: 'gosiEmployer', label: t('vsGosiR'), type: 'money', sum: true }]);
     var flat = function(list){ return list.map(function(x){ var o = Object.assign({}, x, { level: t(level(x.title)) }); lineKeys.forEach(function(k){ o['L' + k] = x.lines[k] || 0; }); delete o.lines; return o; }); };
     var pivotCols = [{ key: 'month', label: t('vsMonth'), type: 'text' }].concat(sps.map(function(s, i){ return { key: 's' + i, label: s, type: 'money', sum: true }; })).concat([{ key: 'total', label: t('vsTotal'), type: 'money', sum: true }]);
-    var pivot = function(metric){ return r.months.map(function(m){ var o = { month: m }, tt = 0; sps.forEach(function(s, i){ var c = cell(m, s), v = c ? c[metric] || 0 : 0; o['s' + i] = v; tt += v; }); o.total = tt; return o; }); };
+    var pivot = function(metric){ var MI = { gross: 0, deductions: 1, net: 2, companyCost: 3 }[metric], c = {};
+      if (live) PS.mm.people.forEach(function(p){ if (!pass(asRow(p))) return; pivMonths.forEach(function(m){ var v = p.m[m]; if (v) c[m + '|' + p.dims.payGroup] = (c[m + '|' + p.dims.payGroup] || 0) + (v[MI] || 0); }); });
+      else PS.pv.cells.forEach(function(x){ c[x.month + '|' + x.sponsor] = x[metric] || 0; });
+      return pivMonths.map(function(m){ var o = { month: m }, tt = 0; sps.forEach(function(s, i){ var v = Math.round((c[m + '|' + s] || 0) * 100) / 100; o['s' + i] = v; tt += v; }); o.total = Math.round(tt * 100) / 100; return o; }); };
     var sheets = [{ name: xlName(t('vsSheet')), title: title, columns: cols, rows: flat(rows) },
       { name: xlName(t('vsPivot') + ' ' + t('vsNet')), title: t('vsPivot') + ' · ' + t('vsNet'), columns: pivotCols, rows: pivot('net') },
       { name: xlName(t('vsPivot') + ' ' + t('vsGross')), title: t('vsPivot') + ' · ' + t('vsGross'), columns: pivotCols, rows: pivot('gross') },
       { name: xlName(t('vsPivot') + ' ' + t('vsCost')), title: t('vsPivot') + ' · ' + t('vsCost'), columns: pivotCols, rows: pivot('companyCost') }];
     var seen = {}; uniq(rows, 'sponsor').forEach(function(s){ var n = xlName(s), i = 2; while (seen[n]) n = xlName(s).slice(0, 27) + ' ' + i++; seen[n] = 1; sheets.push({ name: n, title: s + ' · ' + PS.month, columns: cols, rows: flat(rows.filter(function(x){ return x.sponsor === s; })) }); });
-    var fl = Object.keys(PS.f).filter(function(k){ return PS.f[k]; }).map(function(k){ return [k, String(PS.f[k])]; });
-    loadScript('js/xl.js').then(function(){ return XL.download({ fileName: 'PAYROLL_' + PS.month + '_ALL_SPONSORS', title: title, lang: en ? 'en' : 'ar', company: coName(), by: S.me.name, logo: logoInk(), filters: fl, sheets: sheets }); })
+    loadScript('js/xl.js').then(function(){ return XL.download({ fileName: 'PAYROLL_' + PS.month + '_ALL_SPONSORS', title: title, lang: en ? 'en' : 'ar', company: coName(), by: S.me.name, logo: logoInk(), filters: xlFilters(PS.f), sheets: sheets }); })
       .then(function(){ toast(t('v2Exported')); }, function(){ toast(errText('network')); });
   }
   load();
 }
 
 // ======================================================================= variance analysis
-var VA = { month: '', compare: 'm1', pct: 10, min: 100, f: {}, dim: 'payGroup' };
-var DIMS = [['payGroup', 'vsSponsor'], ['department', 'vsDept'], ['location', 'vsLoc'], ['city', 'vsCity'], ['title', 'vsPos'], ['nationality', 'vsNat'], ['saudi', 'vsSaudi'], ['employmentType', 'vsCat']];
-function dimVal(k, v){ return k === 'saudi' ? t(v === 'saudi' ? 'vsSaudiY' : 'vsSaudiN') : v; }
+var VA = { month: '', compare: 'm1', pct: 10, min: 100, f: {}, dim: 'payGroup', limit: 200 };
+var VA_DIMS = DIMS.concat([['flags', 'vaFlags']]);
 function varianceSection(body){
-  var box = K.head(body, 'vaTitle2', 'vaLead2'); box.innerHTML = '<div id="vaBox"></div>'; var el = $('#vaBox', box), R = null;
+  var box = K.head(body, 'vaTitle2', 'vaLead2');
+  box.innerHTML = '<div id="vaTop"></div><div class="vs-cfh" id="vaCf"></div><div id="vaBox"></div>'; var el = $('#vaBox', box), top = $('#vaTop', box), cf = $('#vaCf', box), R = null;
   function load(){
     K.busy(el);
-    var filters = {}; Object.keys(VA.f).forEach(function(k){ var v = VA.f[k]; if (v === '' || v == null) return; filters[k] = k === 'q' || k === 'changed' ? v : [v]; });
-    api('payrollVarianceMonth', { month: VA.month || undefined, compare: VA.compare, pct: VA.pct, min: VA.min, filters: filters }, true).then(function(r){
+    api('payrollVarianceMonth', { month: VA.month || undefined, compare: VA.compare, pct: VA.pct, min: VA.min, filters: serverFilters(VA.f) }, true).then(function(r){
       if (!el.isConnected) return; if (!r.ok) return el.innerHTML = K.bad(r.error); if (r.empty) return el.innerHTML = K.empty('chart-line-up', t('vsNone'));
       R = r; VA.r = r; VA.month = r.month; draw();
     });
   }
   function draw(){
-    var r = R, T0 = r.totals, b = r.bridge, D = r.drivers;
-    var steps = [['vaFrom', b.from, 'base']].concat([['dv_joiners', b.joiners], ['dv_leavers', b.leavers]]).concat(Object.keys(D).filter(function(k){ return D[k]; }).map(function(k){ return ['dv_' + k, D[k]]; })).concat([['vaTo', b.to, 'base']]);
-    var mx = Math.max.apply(null, steps.map(function(s){ return Math.abs(s[1]); }).concat([1]));
+    var r = R, T0 = r.totals, b = r.bridge, D = r.drivers, netOnly = (r.netOnlyMonths || []).length > 0;
     var dimRows = r.dims[VA.dim] || [];
-    var nF = Object.keys(VA.f).filter(function(k){ return VA.f[k]; }).length;
-    // the story in one paragraph: how net moved and why
     var nc = T0.net.change || {}, up = (nc.diff || 0) >= 0, jn = 0, lv = 0; (r.dims.payGroup || []).forEach(function(d){ jn += d.joiners || 0; lv += d.leavers || 0; });
     var other = Math.round(((nc.diff || 0) - (b.joiners || 0) - (b.leavers || 0)) * 100) / 100;
-    var story = '<div class="vs-story"><p class="vs-lead">' + t('vaStory1').replace('{now}', '<b>' + esc(vaL('now')) + '</b>').replace('{net}', '<b class="num">' + acctFmt(T0.net.cur) + '</b>') + ' ' +
-      (nc.diff ? t(up ? 'vaStoryUp' : 'vaStoryDown').replace('{d}', '<b class="num ' + (up ? 'vs-up' : 'vs-dn') + '">' + acctFmt(Math.abs(nc.diff)) + '</b>').replace('{p}', nc.pct == null ? '' : '(' + Math.abs(Math.round(nc.pct * 10) / 10) + '%)') : t('vaStorySame')) + ' ' + t('vaStoryCmp').replace('{base}', '<b>' + esc(vaL('base')) + '</b>') + '</p>' +
-      '<ul class="vs-why"><li><span>' + t('vaWhyJoin').replace('{n}', jn) + '</span><b class="num">' + (b.joiners > 0 ? '+' : '') + acctFmt(b.joiners || 0) + '</b></li>' +
-      '<li><span>' + t('vaWhyLeave').replace('{n}', lv) + '</span><b class="num">' + acctFmt(b.leavers || 0) + '</b></li>' +
-      '<li><span>' + t('vaWhyPay') + '</span><b class="num">' + (other > 0 ? '+' : '') + acctFmt(other) + '</b></li></ul></div>';
-    el.innerHTML = '<div class="toolbar vs-fl vs-main">' +
-      '<label class="vs-f"><span>' + t('vsMonth') + '</span><select id="vaM">' + r.months.map(function(m){ return '<option value="' + m + '"' + (m === r.month ? ' selected' : '') + '>' + esc(mon(m)) + '</option>'; }).join('') + '</select></label>' +
-      '<label class="vs-f"><span>' + t('vaCmp') + '</span><select id="vaC">' + [['m1', t('vaM1')], ['m2', t('vaM2')], ['avg3', t('vaAvg3')], ['avg6', t('vaAvg6')], ['avg12', t('vaAvg12')], ['yoy', t('vaYoy')], ['pick', t('vaPick')]].concat(r.months.filter(function(m){ return m !== r.month; }).map(function(m){ return [m, mon(m)]; }))
-        .map(function(o){ return '<option value="' + o[0] + '"' + (o[0] === r.compare || (o[0] === 'pick' && String(r.compare).indexOf('pick:') === 0) ? ' selected' : '') + '>' + esc(o[1]) + '</option>'; }).join('') + '</select></label><span class="sp"></span><button type="button" class="btn btn-dark btn-sm" id="vaX">' + ph('microsoft-excel-logo') + 'Excel</button></div>' +
-      '<details class="vs-more"' + (VA.fOpen ? ' open' : '') + '><summary>' + ph('funnel') + t('vaFilt') + (nF ? ' <b class="vs-cnt">' + nF + '</b>' : '') + '</summary><div class="toolbar vs-fl">' +
-      '<label class="vs-f vs-n"><span>' + t('vaPct') + '</span><input id="vaP" type="number" dir="ltr" value="' + r.threshold.pct + '"></label><label class="vs-f vs-n"><span>' + t('vaMin') + '</span><input id="vaN" type="number" dir="ltr" value="' + r.threshold.min + '"></label>' +
-      '<label class="vs-f vs-q"><span>' + t('vsSearch') + '</span><input id="vaQ" type="search" value="' + esc(VA.f.q || '') + '"></label>' +
-      DIMS.map(function(d){ return sel(d[0], d[1], (r.options[d[0]] || []).map(function(o){ return [o.value, dimVal(d[0], o.value) + ' (' + o.count + ')']; }), VA.f[d[0]]); }).join('') +
-      sel('flags', 'vaFlags', Object.keys(r.flagCounts).map(function(k){ return [k, t('fl_' + k) + ' (' + r.flagCounts[k] + ')']; }), VA.f.flags) +
-      '<label class="vs-f" style="flex-direction:row;align-items:center;gap:6px;max-width:none"><input id="vaCh" type="checkbox"' + (VA.f.changed ? ' checked' : '') + '><span>' + t('vaChanged') + '</span></label>' +
-      '<button type="button" class="btn btn-line btn-sm" id="vaClr">' + t('vsClear') + '</button><button type="button" class="btn btn-line btn-sm" id="vaCity">' + ph('map-pin') + t('vaCities') + '</button>' +
-      '</div></details>' +
-      (function(){ var picked = String(r.compare).indexOf('pick:') === 0 ? r.baseMonths : [], open = VA.picking || picked.length;
-        var earlier = r.months.filter(function(m){ return m < r.month; });
+    top.innerHTML = '<div class="vs-top">' + selBox('vaM', 'vsMonth', r.months.map(function(m){ return [m, mon(m)]; }), r.month) +
+      selBox('vaC', 'vaCmp', [['m1', t('vaM1')], ['m2', t('vaM2')], ['avg3', t('vaAvg3')], ['avg6', t('vaAvg6')], ['avg12', t('vaAvg12')], ['yoy', t('vaYoy')], ['pick', t('vaPick')]].concat(r.months.filter(function(m){ return m !== r.month; }).map(function(m){ return [m, mon(m)]; })),
+        String(r.compare).indexOf('pick:') === 0 ? 'pick' : r.compare) +
+      '<span class="sp"></span><button type="button" class="btn btn-dark btn-sm" id="vaX">' + ph('microsoft-excel-logo') + 'Excel</button></div>' +
+      (function(){ var picked = String(r.compare).indexOf('pick:') === 0 ? r.baseMonths : [], open = VA.picking || picked.length, earlier = r.months.filter(function(m){ return m < r.month; });
         return (open ? '<div class="vs-pick" id="vaPk"><p>' + t('vaPickLead') + '</p><div class="vs-pick-m">' + earlier.map(function(m){ return '<label><input type="checkbox" value="' + m + '"' + (picked.indexOf(m) >= 0 ? ' checked' : '') + '><span>' + esc(mon(m)) + '</span></label>'; }).join('') + '</div>' +
           '<div class="btnrow"><button type="button" class="btn btn-line btn-sm" data-pk="all">' + t('vaPickAll') + '</button><button type="button" class="btn btn-line btn-sm" data-pk="none">' + t('vaPickNone') + '</button><button type="button" class="btn btn-dark btn-sm" id="vaPkGo">' + t('vaPickGo') + '</button></div></div>' : '') +
-          '<p class="vs-base">' + t('vaBaseIs') + ': <b>' + (r.baseMonths || []).map(function(m){ return esc(mon(m)); }).join('، ') + '</b>' + ((r.baseMonths || []).length > 1 ? ' (' + t('vaAvgWord') + ')' : '') + '</p>'; })() +
-      story + K.tiles([[t('vsHead'), String(T0.headcount.cur), chg(T0.headcount.change), true], [t('vsGross'), amt(T0.gross.cur), chg(T0.gross.change)], [t('vsDed'), amt(T0.deductions.cur), chg(T0.deductions.change)],
-        [t('vsNet'), amt(T0.net.cur), chg(T0.net.change)], [t('vsCost'), amt(T0.companyCost.cur), chg(T0.companyCost.change)]]) +
-      '<h3 class="vs-h">' + t('vaBridge') + '</h3>' + steps.map(function(s){ var w = Math.round(Math.abs(s[1]) / mx * 100); return '<div class="vs-bar"><span>' + t(s[0]) + '</span><span><i class="' + (s[2] ? '' : s[1] < 0 ? 'neg' : 'pos') + '" style="width:' + Math.max(1, w) + '%"></i></span><b class="num" dir="ltr">' + (s[2] ? '' : s[1] > 0 ? '+' : '') + acctFmt(s[1]) + '</b></div>'; }).join('') +
+          '<p class="vs-base">' + t('vaBaseIs') + ': <b>' + (r.baseMonths || []).map(function(m){ return esc(mon(m)); }).join('، ') + '</b>' + ((r.baseMonths || []).length > 1 ? ' (' + t('vaAvgWord') + ')' : '') + '</p>'; })();
+    chipBar(cf, { f: VA.f, dims: VA_DIMS, val: dimVal, onChange: load, toggles: [['changed', 'vaChanged']],
+      opts: function(k){ return k === 'flags' ? Object.keys(r.flagCounts).sort().map(function(x){ return { value: x, count: r.flagCounts[x] }; }) : (r.options[k] || []); },
+      more: { icon: 'sliders-horizontal', label: 'cfSettings', html: function(){ return '<div class="cf-ph"><b>' + t('cfSettings') + '</b></div><div class="cf-set"><p class="hr-hint" style="margin:0">' + t('cfSetLead') + '</p>' +
+          '<label>' + t('vaPct') + '<input id="vaP" type="number" dir="ltr" value="' + r.threshold.pct + '"></label><label>' + t('vaMin') + '<input id="vaN" type="number" dir="ltr" value="' + r.threshold.min + '"></label>' +
+          '<button type="button" class="btn btn-line btn-sm" id="vaCity">' + ph('map-pin') + t('vaCities') + '</button></div><div class="cf-pf"><span class="sp"></span><button type="button" class="btn btn-dark btn-sm" id="vaSetOk">' + t('cfApply') + '</button></div>'; },
+        wire: function(pop){ $('#vaCity', pop).onclick = function(){ pop.hidden = true; cities(); };
+          $('#vaSetOk', pop).onclick = function(){ var p = +$('#vaP', pop).value, n = $('#vaN', pop).value; VA.pct = p > 0 ? p : 10; VA.min = n === '' ? 100 : +n; pop.hidden = true; load(); }; } } });
+    // the story in one paragraph: how net moved and why
+    var story = '<div class="vs-story"><p class="vs-lead">' + t('vaStory1').replace('{now}', '<b>' + esc(vaL('now')) + '</b>').replace('{net}', '<b class="num">' + acctFmt(T0.net.cur) + '</b>') + ' ' +
+      (nc.diff ? t(up ? 'vaStoryUp' : 'vaStoryDown').replace('{d}', '<b class="num">' + acctFmt(Math.abs(nc.diff)) + '</b>').replace('{p}', nc.pct == null ? '' : '(' + Math.abs(Math.round(nc.pct * 10) / 10) + '%)') : t('vaStorySame')) + ' ' + t('vaStoryCmp').replace('{base}', '<b>' + esc(vaL('base')) + '</b>') +
+      (r.shown < r.all ? ' <small class="hr-hint">' + t('vaStoryFilt').replace('{n}', r.shown).replace('{t}', r.all) + '</small>' : '') + '</p>' +
+      '<ul class="vs-why"><li><span>' + t('vaWhyJoin').replace('{n}', jn) + '</span><b class="num">' + sgn(b.joiners) + '</b></li>' +
+      '<li><span>' + t('vaWhyLeave').replace('{n}', lv) + '</span><b class="num">' + sgn(b.leavers) + '</b></li>' +
+      '<li><span>' + t('vaWhyPay') + '</span><b class="num">' + sgn(other) + '</b></li></ul></div>';
+    var na = function(c){ return netOnly ? '<small>' + t('vaNA') + '</small>' : chg(c); };
+    // charts
+    var tr = (r.trend || []).filter(function(p){ return !p.none; });
+    var trendCard = card('vaTr', t('vaTrend'), t('vaTrendLead'), tr.length > 1 && V() ? V().lineChart(tr.map(function(p){ return { label: mon(p.month), y: p.net, note: t('vsHead') + ' ' + p.headcount + (p.netOnly ? ' · ' + t('vaNetOnlyShort') : '') }; }), { fmt: 'sar', aria: t('vaTrend') }) : '<p class="hr-hint">' + t('vaTrendFew') + '</p>',
+      vtbl([t('vsMonth'), t('vsHead'), t('vsNet'), t('vsGross')], tr.map(function(p){ return [esc(mon(p.month)), p.headcount, acctFmt(p.net), p.netOnly ? '-' : acctFmt(p.gross)]; })));
+    var steps = [['dv_joiners', b.joiners], ['dv_leavers', b.leavers]].concat(netOnly ? [['vaStayers', b.stayers]] : Object.keys(D).filter(function(k){ return D[k]; }).map(function(k){ return ['dv_' + k, D[k]]; }));
+    var bridgeCard = card('vaBr', t('vaBridge'), t('vaBridgeLead').replace('{a}', acctFmt(b.from)).replace('{b}', acctFmt(b.to)), dvBars(steps.map(function(s){ return { label: t(s[0]), value: s[1] }; })),
+      vtbl([t('vaBy'), t('vaChg')], [[t('vaFrom'), acctFmt(b.from)]].concat(steps.map(function(s){ return [t(s[0]), sgn(s[1])]; })).concat([[t('vaTo'), acctFmt(b.to)]])));
+    var dimLabel = t(DIMS.filter(function(d){ return d[0] === VA.dim; })[0][1]);
+    var topDims = dimRows.slice().sort(function(a, c){ return c.netCur - a.netCur; }), shownD = topDims.slice(0, 10), restD = topDims.slice(10);
+    var brItems = shownD.map(function(d){ return { label: dimVal(VA.dim, d.key), value: d.netCur, tip: dimVal(VA.dim, d.key) + ': ' + acctFmt(d.netCur) + ' (' + sgn(d.net.diff) + ')' }; });
+    if (restD.length) brItems.push({ label: t('vaOther').replace('{n}', restD.length), value: restD.reduce(function(a, d){ return a + d.netCur; }, 0), gray: true });
+    var mixCard = card('vaMix', t('vaMix').replace('{d}', dimLabel), t('vaMixLead'), V() ? V().hbars(brItems) : '', vtbl([dimLabel, t('vsNet'), t('vaChg')], topDims.map(function(d){ return [esc(dimVal(VA.dim, d.key)), acctFmt(d.netCur), sgn(d.net.diff)]; })));
+    var stay = r.people.filter(function(p){ return p.cur && p.base && p.net.diff; }).sort(function(a, c){ return c.net.diff - a.net.diff; });
+    var movers = stay.slice(0, 6).concat(stay.length > 6 ? stay.slice(Math.max(6, stay.length - 6)) : []);
+    var moverCard = card('vaMv', t('vaMovers'), t('vaMoversLead'), dvBars(movers.map(function(p){ return { label: p.name, value: p.net.diff, go: r.people.indexOf(p), tip: p.name + ' · ' + acctFmt(p.base.net) + ' → ' + acctFmt(p.cur.net) }; })),
+      vtbl([t('vsName'), vaL('base'), vaL('now'), t('vaChg')], movers.map(function(p){ return [esc(p.name), acctFmt(p.base.net), acctFmt(p.cur.net), sgn(p.net.diff)]; })));
+    var vr = r.volumeRate || {};
+    var rateCard = card('vaRt', t('vaRate'), t('vaRateLead'), '<div class="vs-rate"><div><span>' + t('vaRateHead') + '</span><b>' + sgn(vr.headcountEffect) + '</b></div><div><span>' + t('vaRatePay') + '</span><b>' + sgn(vr.rateEffect) + '</b></div>' +
+      '<div><span>' + t('vaAvgBefore') + '</span><b>' + acctFmt(vr.avgBefore || 0) + '</b></div><div><span>' + t('vaAvgNow') + '</span><b>' + acctFmt(vr.avgNow || 0) + '</b></div></div>');
+    var lim = VA.limit, ppl = lim ? r.people.slice(0, lim) : r.people;
+    el.innerHTML = netOnlyNote(r.netOnlyMonths) + story +
+      K.tiles([[t('vsHead'), String(T0.headcount.cur), chg(T0.headcount.change), true], [t('vsNet'), amt(T0.net.cur), chg(T0.net.change)], [t('vsGross'), amt(T0.gross.cur), na(T0.gross.change)],
+        [t('vsDed'), amt(T0.deductions.cur), na(T0.deductions.change)], [t('vsCost'), amt(T0.companyCost.cur), na(T0.companyCost.change)]]) +
+      '<div class="vs-grid"><div class="wide">' + trendCard + '</div>' + bridgeCard + moverCard + mixCard + rateCard + '</div>' +
       '<h3 class="vs-h">' + t('vaBy') + '</h3><div class="vs-tabs">' + DIMS.map(function(d){ return '<button type="button" data-dim="' + d[0] + '" aria-pressed="' + (VA.dim === d[0]) + '">' + t(d[1]) + '</button>'; }).join('') + '</div>' +
-      '<div class="vs-wrap"><table class="vs-tbl"><thead><tr><th>' + t(DIMS.filter(function(d){ return d[0] === VA.dim; })[0][1]) + '</th><th class="n">' + vaL('base') + ' · ' + t('vsHead') + '</th><th class="n">' + vaL('now') + ' · ' + t('vsHead') + '</th><th class="n">' + t('vaJoin') + '</th><th class="n">' + t('vaLeave') + '</th>' +
-        '<th class="n">' + vaL('base') + ' · ' + t('vsNet') + '</th><th class="n">' + vaL('now') + ' · ' + t('vsNet') + '</th><th class="n">' + t('vaChg') + '</th><th>' + t('vaFlags') + '</th></tr></thead><tbody>' +
+      '<div class="vs-wrap"><table class="vs-tbl"><thead><tr><th>' + dimLabel + '</th><th class="n">' + esc(vaL('base')) + ' · ' + t('vsHead') + '</th><th class="n">' + esc(vaL('now')) + ' · ' + t('vsHead') + '</th><th class="n">' + t('vaJoin') + '</th><th class="n">' + t('vaLeave') + '</th>' +
+        '<th class="n">' + esc(vaL('base')) + ' · ' + t('vsNet') + '</th><th class="n">' + esc(vaL('now')) + ' · ' + t('vsNet') + '</th><th class="n">' + t('vaChg') + '</th><th class="n">' + t('vaShare') + '</th><th>' + t('vaFlags') + '</th></tr></thead><tbody>' +
         dimRows.map(function(d){ return '<tr class="go' + (VA.dim === 'city' && d.assumed ? ' vs-assumed' : '') + '" data-dv="' + esc(d.key) + '"><td>' + esc(dimVal(VA.dim, d.key)) + '</td><td class="n">' + d.headBase + '</td><td class="n">' + d.headCur + '</td><td class="n">' + d.joiners + '</td><td class="n">' + d.leavers + '</td>' +
-          '<td class="n">' + amt(d.netBase) + '</td><td class="n">' + amt(d.netCur) + '</td><td class="n">' + chg(d.net) + '</td><td>' + (d.topDriver ? '<span class="vs-flag">' + t('dv_' + d.topDriver.key) + ' ' + acctFmt(d.topDriver.amount) + '</span>' : '') + (d.flagged ? ' <small>' + d.flagged + '</small>' : '') + '</td></tr>'; }).join('') + '</tbody></table></div>' +
-      '<h3 class="vs-h">' + t('vaLines') + '</h3><div class="vs-wrap"><table class="vs-tbl"><thead><tr><th>' + t('vaLines') + '</th><th class="n">' + vaL('base') + '</th><th class="n">' + vaL('now') + '</th><th class="n">' + t('vaChg') + '</th></tr></thead><tbody>' +
-        r.lines.slice().sort(function(a, b){ return lineRank(a.code) - lineRank(b.code); }).map(function(l){ return '<tr><td>' + esc(lineName(l.code)) + (l.code.indexOf('d:') === 0 ? ' <small>(-)</small>' : '') + '</td><td class="n">' + amt(l.base) + '</td><td class="n">' + amt(l.cur) + '</td><td class="n">' + chg(l.change) + '</td></tr>'; }).join('') + '</tbody></table></div>' +
+          '<td class="n">' + amt(d.netBase) + '</td><td class="n">' + amt(d.netCur) + '</td><td class="n">' + chg(d.net) + '</td><td class="n">' + (d.shareCur || 0) + '%</td><td>' + (d.topDriver && !netOnly ? '<span class="vs-flag">' + t('dv_' + d.topDriver.key) + ' ' + sgn(d.topDriver.amount) + '</span>' : '') + (d.flagged ? ' <small>' + d.flagged + '</small>' : '') + '</td></tr>'; }).join('') +
+        '</tbody><tfoot><tr><td>' + t('vsTotal') + '</td><td class="n">' + T0.headcount.base + '</td><td class="n">' + T0.headcount.cur + '</td><td class="n">' + jn + '</td><td class="n">' + lv + '</td><td class="n">' + amt(T0.net.base) + '</td><td class="n">' + amt(T0.net.cur) + '</td><td class="n">' + chg(T0.net.change) + '</td><td class="n">100%</td><td></td></tr></tfoot></table></div>' +
+      (netOnly ? '' : '<h3 class="vs-h">' + t('vaLines') + '</h3><div class="vs-wrap"><table class="vs-tbl"><thead><tr><th>' + t('vaLines') + '</th><th class="n">' + esc(vaL('base')) + '</th><th class="n">' + esc(vaL('now')) + '</th><th class="n">' + t('vaChg') + '</th></tr></thead><tbody>' +
+        r.lines.slice().sort(function(a, c){ return lineRank(a.code) - lineRank(c.code); }).map(function(l){ return '<tr><td>' + esc(lineName(l.code)) + (l.code.indexOf('d:') === 0 ? ' <small>(-)</small>' : '') + '</td><td class="n">' + amt(l.base) + '</td><td class="n">' + amt(l.cur) + '</td><td class="n">' + chg(l.change) + '</td></tr>'; }).join('') + '</tbody></table></div>') +
       '<h3 class="vs-h">' + t('vaPeople') + ' · ' + t('vsShown').replace('{n}', r.shown).replace('{t}', r.all) + '</h3><div class="vs-wrap"><table class="vs-tbl"><thead><tr><th>' + t('vsEmpNo') + '</th><th>' + t('vsName') + '</th><th>' + t('vsSponsor') + '</th><th>' + t('vsDept') + '</th><th>' + t('vsLoc') + '</th>' +
-        '<th class="n">' + vaL('base') + '</th><th class="n">' + vaL('now') + '</th><th class="n">' + t('vaChg') + '</th><th>' + t('vaFlags') + '</th></tr></thead><tbody>' +
-        r.people.slice(0, 400).map(function(p, i){ return '<tr class="go" data-pi="' + i + '"><td dir="ltr">' + esc(p.empNo) + '</td><td>' + esc(p.name) + '</td><td>' + esc(p.dims.payGroup) + '</td><td>' + esc(p.dims.department) + '</td><td>' + esc(p.dims.location) + '</td>' +
-          '<td class="n">' + amt(p.base ? p.base.net : null) + '</td><td class="n">' + amt(p.cur ? p.cur.net : null) + '</td><td class="n">' + chg(p.net) + '</td><td>' + p.flags.map(function(f){ return '<span class="vs-flag">' + t('fl_' + f) + '</span>'; }).join('') + '</td></tr>'; }).join('') + '</tbody></table></div>';
-    var re = function(){ load(); };
-    var fd = $('.vs-more', el); if (fd) fd.ontoggle = function(){ VA.fOpen = fd.open; };
-    $('#vaM', el).onchange = function(){ VA.month = this.value; re(); };
-    $('#vaC', el).onchange = function(){ if (this.value === 'pick') { VA.picking = true; draw(); return; } VA.picking = false; VA.compare = this.value; re(); };
-    if ($('#vaPk', el)) {
-      $$('[data-pk]', el).forEach(function(b){ b.onclick = function(){ $$('#vaPk input', el).forEach(function(c){ c.checked = b.dataset.pk === 'all'; }); }; });
-      $('#vaPkGo', el).onclick = function(){ var ms = $$('#vaPk input', el).filter(function(c){ return c.checked; }).map(function(c){ return c.value; }); if (!ms.length) return toast(t('vaPickLead')); VA.compare = 'pick:' + ms.join(','); VA.picking = false; re(); };
+        '<th class="n">' + esc(vaL('base')) + '</th><th class="n">' + esc(vaL('now')) + '</th><th class="n">' + t('vaChg') + '</th><th>' + t('vaFlags') + '</th></tr></thead><tbody>' +
+        ppl.map(function(p, i){ return '<tr class="go" data-pi="' + i + '"><td dir="ltr">' + esc(p.empNo) + '</td><td>' + esc(p.name) + '</td><td>' + esc(p.dims.payGroup) + '</td><td>' + esc(p.dims.department) + '</td><td>' + esc(p.dims.location) + '</td>' +
+          '<td class="n">' + amt(p.base ? p.base.net : null) + '</td><td class="n">' + amt(p.cur ? p.cur.net : null) + '</td><td class="n">' + chg(p.net) + '</td><td>' + p.flags.map(function(f){ return '<span class="vs-flag">' + t('fl_' + f) + '</span>'; }).join('') + '</td></tr>'; }).join('') +
+        '</tbody><tfoot><tr><td colspan="5">' + t('vsTotal') + ' (' + r.shown + ')</td><td class="n">' + amt(T0.net.base) + '</td><td class="n">' + amt(T0.net.cur) + '</td><td class="n">' + chg(T0.net.change) + '</td><td></td></tr></tfoot></table></div>' +
+      (lim && r.people.length > lim ? '<p class="vs-more-p">' + t('vaLimit').replace('{n}', lim).replace('{t}', r.people.length) + ' <button type="button" class="btn btn-line btn-sm" id="vaAll">' + t('vaShowAll') + '</button></p>' : '');
+    wireViz(el);
+    $('#vaM', top).onchange = function(){ VA.month = this.value; load(); };
+    $('#vaC', top).onchange = function(){ if (this.value === 'pick') { VA.picking = true; draw(); return; } VA.picking = false; VA.compare = this.value; load(); };
+    if ($('#vaPk', top)) {
+      $$('[data-pk]', top).forEach(function(x){ x.onclick = function(){ $$('#vaPk input', top).forEach(function(c){ c.checked = x.dataset.pk === 'all'; }); }; });
+      $('#vaPkGo', top).onclick = function(){ var ms = $$('#vaPk input', top).filter(function(c){ return c.checked; }).map(function(c){ return c.value; }); if (!ms.length) return toast(t('vaPickLead')); VA.compare = 'pick:' + ms.join(','); VA.picking = false; load(); };
     }
-    $('#vaP', el).onchange = function(){ VA.pct = +this.value || 10; re(); };
-    $('#vaN', el).onchange = function(){ VA.min = this.value === '' ? 100 : +this.value; re(); };
-    var tm; $('#vaQ', el).oninput = function(){ var v = this.value; clearTimeout(tm); tm = setTimeout(function(){ VA.f.q = v; re(); }, 400); };
-    $('#vaCh', el).onchange = function(){ VA.f.changed = this.checked; re(); };
-    $('#vaClr', el).onclick = function(){ VA.f = {}; re(); };
-    $$('select[data-f]', el).forEach(function(s){ s.onchange = function(){ VA.f[s.dataset.f] = s.value; re(); }; });
     $$('[data-dim]', el).forEach(function(b2){ b2.onclick = function(){ VA.dim = b2.dataset.dim; draw(); }; });
-    $$('[data-dv]', el).forEach(function(tr){ tr.onclick = function(){ VA.f[VA.dim] = tr.dataset.dv; re(); }; });
-    $$('[data-pi]', el).forEach(function(tr){ tr.onclick = function(){ person(r.people[+tr.dataset.pi]); }; });
-    $('#vaCity', el).onclick = cities;
-    $('#vaX', el).onclick = function(){ exportVar(r); };
+    $$('[data-dv]', el).forEach(function(tr2){ tr2.onclick = function(){ VA.f[VA.dim] = [tr2.dataset.dv]; load(); }; });
+    $$('[data-pi]', el).forEach(function(tr2){ tr2.onclick = function(){ person(r.people[+tr2.dataset.pi]); }; });
+    $$('[data-go-p]', el).forEach(function(x){ x.onclick = function(){ person(r.people[+x.dataset.goP]); }; x.onkeydown = function(e){ if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); x.onclick(); } }; });
+    var all2 = $('#vaAll', el); if (all2) all2.onclick = function(){ VA.limit = 0; draw(); };
+    $('#vaX', top).onclick = function(){ exportVar(r); };
   }
   function person(p){
-    var keys = orderLines(Object.keys(p.lines));
-    drawer('<h3>' + esc(p.name) + ' <small dir="ltr">' + esc(p.empNo) + '</small></h3><p class="hr-hint">' + esc([p.dims.payGroup, p.dims.department, p.dims.title, p.dims.location, p.dims.city].join(' · ')) + '</p>' +
+    var keys = orderLines(Object.keys(p.lines)), netOnly = (R.netOnlyMonths || []).length > 0;
+    var hist = (R.trend || []).map(function(x, i){ return p.hist[i]; });
+    var dw = drawer('<h3>' + esc(p.name) + ' <small dir="ltr">' + esc(p.empNo) + '</small></h3><p class="hr-hint">' + esc([p.dims.payGroup, p.dims.department, p.dims.title, p.dims.location, p.dims.city].join(' · ')) + '</p>' +
       '<p>' + p.flags.map(function(f){ return '<span class="vs-flag">' + t('fl_' + f) + '</span>'; }).join('') + '</p>' +
-      '<div class="vs-wrap"><table class="vs-tbl"><thead><tr><th>' + t('vaLines') + '</th><th class="n">' + vaL('base') + '</th><th class="n">' + vaL('now') + '</th><th class="n">' + t('vaChg') + '</th></tr></thead><tbody>' +
-      keys.map(function(k){ var v = p.lines[k]; return '<tr><td>' + esc(lineName(k)) + (k.indexOf('d:') === 0 ? ' (-)' : '') + '</td><td class="n">' + amt(v[1]) + '</td><td class="n">' + amt(v[0]) + '</td><td class="n">' + chg({ diff: Math.round((v[0] - v[1]) * 100) / 100, pct: null }) + '</td></tr>'; }).join('') +
+      (netOnly ? netOnlyNote(R.netOnlyMonths) : '') +
+      '<div class="vs-wrap"><table class="vs-tbl"><thead><tr><th>' + t('vaLines') + '</th><th class="n">' + esc(vaL('base')) + '</th><th class="n">' + esc(vaL('now')) + '</th><th class="n">' + t('vaChg') + '</th></tr></thead><tbody>' +
+      (netOnly ? '' : keys.map(function(k){ var v = p.lines[k]; return '<tr><td>' + esc(lineName(k)) + (k.indexOf('d:') === 0 ? ' (-)' : '') + '</td><td class="n">' + amt(v[1]) + '</td><td class="n">' + amt(v[0]) + '</td><td class="n">' + chg({ diff: Math.round((v[0] - v[1]) * 100) / 100, pct: null }) + '</td></tr>'; }).join('')) +
       '<tr><td><b>' + t('vsNet') + '</b></td><td class="n">' + amt(p.base ? p.base.net : null) + '</td><td class="n"><b>' + amt(p.cur ? p.cur.net : null) + '</b></td><td class="n">' + chg(p.net) + '</td></tr></tbody></table></div>' +
       (p.package != null ? '<p class="hr-hint">' + t('fl_off_package') + ': ' + acctFmt(p.package) + '</p>' : '') +
-      '<div class="vs-bar" style="grid-template-columns:repeat(12,1fr);align-items:end;height:80px" dir="ltr">' + (function(){ var mx = Math.max.apply(null, p.hist.map(function(v){ return Math.abs(v || 0); }).concat([1])); return p.hist.map(function(v){ return '<i title="' + (v == null ? '-' : acctFmt(v)) + '" style="height:' + Math.max(2, Math.round(Math.abs(v || 0) / mx * 70)) + 'px;' + (v == null ? 'opacity:.15' : '') + '"></i>'; }).join(''); })() + '</div>');
+      '<h4>' + t('vaTrend') + '</h4>' + (V() && hist.filter(function(v){ return v != null; }).length > 1 ? V().lineChart((R.trend || []).map(function(x, i){ return { label: mon(x.month), y: hist[i] || 0, note: hist[i] == null ? t('vaNotPaid') : '' }; }), { fmt: 'sar', aria: t('vaTrend') }) : '<p class="hr-hint">' + t('vaTrendFew') + '</p>'));
+    wireViz(dw || document.body);
   }
   function cities(){
     api('varianceCities', {}, true).then(function(c){
@@ -283,13 +445,114 @@ function varianceSection(body){
       { key: 'netCur', label: vaL('now') + ' ' + t('vsNet'), type: 'money', sum: true }, { key: 'diff', label: t('vaChg'), type: 'money', sum: true }];
     var sheets = [{ name: xlName(t('vaPeople')), title: title, columns: pc, rows: prow }].concat(DIMS.map(function(d){ return { name: xlName(t(d[1])), title: title + ' · ' + t(d[1]), columns: dc,
       rows: r.dims[d[0]].map(function(x){ return { key: dimVal(d[0], x.key), headBase: x.headBase, headCur: x.headCur, joiners: x.joiners, leavers: x.leavers, netBase: x.netBase, netCur: x.netCur, diff: x.net.diff }; }) }; }))
-      .concat([{ name: xlName(t('vaLines')), title: title, columns: [{ key: 'l', label: t('vaLines'), type: 'text' }, { key: 'b', label: vaL('base'), type: 'money', sum: true }, { key: 'c', label: vaL('now'), type: 'money', sum: true }, { key: 'd', label: t('vaChg'), type: 'money', sum: true }],
+      .concat([{ name: xlName(t('vaTrend')), title: title, columns: [{ key: 'm', label: t('vsMonth'), type: 'text' }, { key: 'h', label: t('vsHead'), type: 'int' }, { key: 'n', label: t('vsNet'), type: 'money', sum: true }, { key: 'g', label: t('vsGross'), type: 'money', sum: true }],
+        rows: (r.trend || []).filter(function(p){ return !p.none; }).map(function(p){ return { m: p.month, h: p.headcount, n: p.net, g: p.netOnly ? null : p.gross }; }) }])
+      .concat((r.netOnlyMonths || []).length ? [] : [{ name: xlName(t('vaLines')), title: title, columns: [{ key: 'l', label: t('vaLines'), type: 'text' }, { key: 'b', label: vaL('base'), type: 'money', sum: true }, { key: 'c', label: vaL('now'), type: 'money', sum: true }, { key: 'd', label: t('vaChg'), type: 'money', sum: true }],
         rows: r.lines.slice().sort(function(a, b){ return lineRank(a.code) - lineRank(b.code); }).map(function(l){ return { l: lineName(l.code), b: l.base, c: l.cur, d: l.change.diff }; }) }]);
-    loadScript('js/xl.js').then(function(){ return XL.download({ fileName: 'VARIANCE_' + r.month, title: title, lang: en ? 'en' : 'ar', company: coName(), by: S.me.name, logo: logoInk(), sheets: sheets }); })
+    loadScript('js/xl.js').then(function(){ return XL.download({ fileName: 'VARIANCE_' + r.month, title: title, lang: en ? 'en' : 'ar', company: coName(), by: S.me.name, logo: logoInk(), filters: xlFilters(VA.f), sheets: sheets }); })
+      .then(function(){ toast(t('v2Exported')); }, function(){ toast(errText('network')); });
+  }
+  load();
+}
+
+// ======================================================================= month by month
+var MO = { n: 6, months: null, metric: 'net', by: 'person', show: 'amt', f: {}, sort: null, dir: -1, limit: 300, picking: false };
+var MO_METRICS = [['net', 'vsNet', 2], ['gross', 'vsGross', 0], ['deductions', 'vsDed', 1], ['companyCost', 'vsCost', 3], ['headcount', 'vsHead', -1]];
+function monthlySection(body){
+  var box = K.head(body, 'moTitle', 'moLead');
+  box.innerHTML = '<div id="moTop"></div><div class="vs-cfh" id="moCf"></div><div id="moBox"></div>'; var el = $('#moBox', box), top = $('#moTop', box), cf = $('#moCf', box), R = null;
+  function load(){
+    K.busy(el);
+    api('payrollMonthly', { months: MO.months || undefined, n: MO.n || 24, filters: serverFilters(MO.f) }, true).then(function(r){
+      if (!el.isConnected) return;
+      if (!r.ok) return el.innerHTML = r.error === 'unknown_action' ? '<div class="vs-note">' + ph('info') + '<p>' + t('moServer') + '</p></div>' : K.bad(r.error);
+      if (r.empty) return el.innerHTML = K.empty('table', t('vsNone'));
+      R = r; draw();
+    });
+  }
+  function draw(){
+    var r = R, ms = r.months, mt = MO_METRICS.filter(function(x){ return x[0] === MO.metric; })[0], idx = mt[2], netOnly = r.netOnlyMonths || [];
+    var val = function(p, m){ var v = p.m[m]; return idx < 0 ? (v ? 1 : 0) : v ? v[idx] : null; };
+    // rows: one per person, or one per value of the chosen dimension (summed)
+    var rows;
+    if (MO.by === 'person') rows = r.people.map(function(p){ var o = { key: p.empId, label: p.name, sub: p.empNo, p: p, v: {} }; ms.forEach(function(m){ o.v[m] = val(p, m); }); return o; });
+    else { var g = {}; r.people.forEach(function(p){ var k = p.dims[MO.by], o = g[k] = g[k] || { key: k, label: dimVal(MO.by, k), v: {}, n: 0 }; o.n++; ms.forEach(function(m){ var x = val(p, m); if (x != null) o.v[m] = (o.v[m] || 0) + x; }); }); rows = Object.keys(g).map(function(k){ return g[k]; }); }
+    rows.forEach(function(o){ var vals = ms.map(function(m){ return o.v[m]; }), have = vals.filter(function(x){ return x != null; });
+      o.total = have.reduce(function(a, x){ return a + x; }, 0); o.avg = have.length ? o.total / have.length : 0;
+      var first = o.v[ms[0]] || 0, last = o.v[ms[ms.length - 1]] || 0; o.change = Math.round((last - first) * 100) / 100; });
+    var s = MO.sort || 'last', dir = MO.dir; rows.sort(function(a, b){ var A = s === 'label' ? a.label : s === 'last' ? (a.v[ms[ms.length - 1]] || 0) : s === 'total' ? a.total : s === 'change' ? a.change : (a.v[s] || 0), B = s === 'label' ? b.label : s === 'last' ? (b.v[ms[ms.length - 1]] || 0) : s === 'total' ? b.total : s === 'change' ? b.change : (b.v[s] || 0);
+      return (typeof A === 'string' ? String(A).localeCompare(String(B)) : A - B) * dir; });
+    var colTot = {}; ms.forEach(function(m){ colTot[m] = rows.reduce(function(a, o){ return a + (o.v[m] || 0); }, 0); });
+    var hc = idx < 0, money = function(v){ return hc ? String(Math.round(v)) : acctFmt(Math.round(v * 100) / 100); };
+    var cellOf = function(o, m, i){ var v = o.v[m]; if (v == null) return '<td class="n mo na">-</td>';
+      var bad = !hc && idx !== 2 && netOnly.indexOf(m) >= 0;
+      if (MO.show === 'amt' || i === 0) return '<td class="n mo' + (bad ? ' nonly' : '') + '">' + money(v) + (bad ? '*' : '') + '</td>';
+      var pv = o.v[ms[i - 1]]; if (pv == null) return '<td class="n mo na">' + t('moNew') + '</td>';
+      var d = Math.round((v - pv) * 100) / 100; return '<td class="n mo">' + (MO.show === 'pct' ? (pv ? pctChg(d / Math.abs(pv) * 100) : '-') : chg({ diff: d, pct: null })) + '</td>'; };
+    var lim = MO.limit, shown = lim ? rows.slice(0, lim) : rows;
+    var th = function(k, label, cls){ return '<th class="' + (cls || '') + '" data-s="' + k + '">' + label + (MO.sort === k ? (MO.dir > 0 ? ' ▲' : ' ▼') : '') + '</th>'; };
+    top.innerHTML = '<div class="vs-top"><div class="vs-sel"><span>' + t('moMonths') + '</span>' + seg('moN', [[3, '3'], [6, '6'], [12, '12'], [24, t('moAll')], ['pick', t('moPick')]], MO.months ? 'pick' : MO.n) + '</div>' +
+      selBox('moMet', 'vsMetric', MO_METRICS.map(function(x){ return [x[0], t(x[1])]; }), MO.metric) +
+      selBox('moBy', 'moBy', [['person', t('moPerson')]].concat(DIMS.map(function(d){ return [d[0], t(d[1])]; })), MO.by) +
+      '<div class="vs-sel"><span>' + t('moShow') + '</span>' + seg('moSh', [['amt', t('moAmt')], ['chg', t('moChg')], ['pct', t('moPct')]], MO.show) + '</div>' +
+      '<span class="sp"></span><button type="button" class="btn btn-dark btn-sm" id="moX">' + ph('microsoft-excel-logo') + 'Excel</button></div>' +
+      (MO.picking || MO.months ? '<div class="vs-pick" id="moPk"><p>' + t('moPickLead') + '</p><div class="vs-pick-m">' + r.allMonths.map(function(m){ return '<label><input type="checkbox" value="' + m + '"' + (ms.indexOf(m) >= 0 ? ' checked' : '') + '><span>' + esc(mon(m)) + '</span></label>'; }).join('') + '</div>' +
+        '<div class="btnrow"><button type="button" class="btn btn-line btn-sm" data-pk="all">' + t('vaPickAll') + '</button><button type="button" class="btn btn-line btn-sm" data-pk="none">' + t('vaPickNone') + '</button><button type="button" class="btn btn-dark btn-sm" id="moPkGo">' + t('vaPickGo') + '</button></div></div>' : '');
+    chipBar(cf, { f: MO.f, dims: DIMS, val: dimVal, onChange: load, opts: function(k){ return r.options[k] || []; } });
+    var totFirst = colTot[ms[0]] || 0, totLast = colTot[ms[ms.length - 1]] || 0, avg = ms.length ? ms.reduce(function(a, m){ return a + colTot[m]; }, 0) / ms.length : 0;
+    var pk = ms.reduce(function(a, m){ return colTot[m] > colTot[a] ? m : a; }, ms[0]);
+    var trendPts = ms.map(function(m){ return { label: mon(m), y: Math.round(colTot[m] * 100) / 100, note: netOnly.indexOf(m) >= 0 && !hc && idx !== 2 ? t('vaNetOnlyShort') : '' }; });
+    el.innerHTML = (netOnly.length ? netOnlyNote(netOnly) : '') +
+      K.tiles([[t(mt[1]) + ' · ' + esc(mon(ms[ms.length - 1])), money(totLast), ms.length > 1 ? chg({ diff: Math.round((totLast - totFirst) * 100) / 100, pct: totFirst ? Math.round((totLast - totFirst) / Math.abs(totFirst) * 1000) / 10 : null }) + ' <small>' + t('moSince').replace('{m}', esc(mon(ms[0]))) + '</small>' : '', true],
+        [t('moAvg'), money(avg)], [t('moPeak'), money(colTot[pk] || 0), esc(mon(pk))], [t('moRows'), String(rows.length), t('vsShown').replace('{n}', r.shown).replace('{t}', r.all)]]) +
+      '<div class="vs-grid"><div class="wide">' + card('moTr', t('moTrend').replace('{x}', t(mt[1])), t('moTrendLead'), ms.length > 1 && V() ? V().lineChart(trendPts, { fmt: hc ? '' : 'sar', aria: t('moTrend').replace('{x}', t(mt[1])) }) : '<p class="hr-hint">' + t('vaTrendFew') + '</p>',
+        vtbl([t('vsMonth'), t(mt[1])], ms.map(function(m){ return [esc(mon(m)), money(colTot[m])]; }))) + '</div></div>' +
+      '<div class="vs-wrap"><table class="vs-tbl vs-mo"><thead><tr>' + th('label', MO.by === 'person' ? t('vsName') : t(DIMS.filter(function(d){ return d[0] === MO.by; })[0][1])) + (MO.by === 'person' ? '<th>' + t('vsSponsor') + '</th>' : '<th class="n">' + t('vsHead') + '</th>') +
+        ms.map(function(m){ return th(m, esc(mon(m)), 'n mo'); }).join('') + (hc ? '' : th('total', t('vsTotal'), 'n')) + th('change', t('moFirstLast'), 'n') + '<th>' + t('moShape') + '</th></tr></thead><tbody>' +
+        shown.map(function(o){ return '<tr' + (o.p ? ' class="go" data-mp="' + esc(o.key) + '"' : ' class="go" data-mg="' + esc(o.key) + '"') + '><td>' + esc(o.label) + (o.sub ? ' <small dir="ltr">' + esc(o.sub) + '</small>' : '') + '</td>' + (o.p ? '<td>' + esc(o.p.dims.payGroup) + '</td>' : '<td class="n">' + o.n + '</td>') +
+          ms.map(function(m, i){ return cellOf(o, m, i); }).join('') + (hc ? '' : '<td class="n"><b>' + money(o.total) + '</b></td>') + '<td class="n">' + chg({ diff: o.change, pct: null }) + '</td><td class="sp-c">' + (V() ? V().spark(ms.map(function(m){ return o.v[m]; })) : '') + '</td></tr>'; }).join('') +
+        '</tbody><tfoot><tr><td>' + t('vsTotal') + '</td><td class="n">' + (MO.by === 'person' ? '' : r.shown) + '</td>' + ms.map(function(m, i){ return '<td class="n mo">' + (MO.show === 'amt' || i === 0 ? money(colTot[m]) : chg({ diff: Math.round((colTot[m] - colTot[ms[i - 1]]) * 100) / 100, pct: MO.show === 'pct' && colTot[ms[i - 1]] ? Math.round((colTot[m] - colTot[ms[i - 1]]) / Math.abs(colTot[ms[i - 1]]) * 1000) / 10 : null })) + '</td>'; }).join('') +
+        (hc ? '' : '<td class="n">' + money(ms.reduce(function(a, m){ return a + colTot[m]; }, 0)) + '</td>') + '<td class="n">' + chg({ diff: Math.round((totLast - totFirst) * 100) / 100, pct: null }) + '</td><td></td></tr></tfoot></table></div>' +
+      (lim && rows.length > lim ? '<p class="vs-more-p">' + t('vaLimit').replace('{n}', lim).replace('{t}', rows.length) + ' <button type="button" class="btn btn-line btn-sm" id="moAll">' + t('vaShowAll') + '</button></p>' : '') +
+      (netOnly.length && !hc && idx !== 2 ? '<p class="hr-hint">* ' + t('moStar') + '</p>' : '');
+    wireViz(el);
+    $$('#moN button', top).forEach(function(b){ b.onclick = function(){ if (b.dataset.v === 'pick') { MO.picking = true; draw(); return; } MO.months = null; MO.picking = false; MO.n = +b.dataset.v; load(); }; });
+    $('#moMet', top).onchange = function(){ MO.metric = this.value; draw(); };
+    $('#moBy', top).onchange = function(){ MO.by = this.value; MO.sort = null; draw(); };
+    $$('#moSh button', top).forEach(function(b){ b.onclick = function(){ MO.show = b.dataset.v; draw(); }; });
+    if ($('#moPk', top)) {
+      $$('[data-pk]', top).forEach(function(x){ x.onclick = function(){ $$('#moPk input', top).forEach(function(c){ c.checked = x.dataset.pk === 'all'; }); }; });
+      $('#moPkGo', top).onclick = function(){ var sel2 = $$('#moPk input', top).filter(function(c){ return c.checked; }).map(function(c){ return c.value; }); if (!sel2.length) return toast(t('moPickLead')); MO.months = sel2; MO.picking = false; load(); };
+    }
+    $$('[data-s]', el).forEach(function(h){ h.onclick = function(){ var k = h.dataset.s; if (MO.sort === k) MO.dir = -MO.dir; else { MO.sort = k; MO.dir = k === 'label' ? 1 : -1; } draw(); }; });
+    $$('[data-mg]', el).forEach(function(tr2){ tr2.onclick = function(){ MO.f[MO.by] = [tr2.dataset.mg]; MO.by = 'person'; load(); }; });
+    $$('[data-mp]', el).forEach(function(tr2){ tr2.onclick = function(){ var o = rows.filter(function(x){ return x.key === tr2.dataset.mp; })[0]; if (o) showPerson(o.p); }; });
+    var a2 = $('#moAll', el); if (a2) a2.onclick = function(){ MO.limit = 0; draw(); };
+    $('#moX', top).onclick = function(){ exportMo(rows, ms); };
+  }
+  function showPerson(p){
+    var ms = R.months;
+    var dw = drawer('<h3>' + esc(p.name) + ' <small dir="ltr">' + esc(p.empNo) + '</small></h3><p class="hr-hint">' + esc([p.dims.payGroup, p.dims.department, p.dims.title, p.dims.location].join(' · ')) + '</p>' +
+      '<div class="vs-wrap"><table class="vs-tbl"><thead><tr><th>' + t('vsMonth') + '</th><th class="n">' + t('vsGross') + '</th><th class="n">' + t('vsDed') + '</th><th class="n">' + t('vsNet') + '</th><th class="n">' + t('vsCost') + '</th><th class="n">' + t('vsDays') + '</th></tr></thead><tbody>' +
+      ms.map(function(m){ var v = p.m[m], no = (R.netOnlyMonths || []).indexOf(m) >= 0; return '<tr><td>' + esc(mon(m)) + '</td>' + (v ? '<td class="n">' + (no ? '-' : amt(v[0])) + '</td><td class="n">' + (no ? '-' : amt(v[1])) + '</td><td class="n"><b>' + amt(v[2]) + '</b></td><td class="n">' + (no ? '-' : amt(v[3])) + '</td><td class="n">' + (v[4] || '') + '</td>' : '<td colspan="5" class="na">' + t('vaNotPaid') + '</td>') + '</tr>'; }).join('') +
+      '</tbody></table></div>' + (V() ? V().lineChart(ms.map(function(m){ return { label: mon(m), y: p.m[m] ? p.m[m][2] : 0, note: p.m[m] ? '' : t('vaNotPaid') }; }), { fmt: 'sar', aria: t('vsNet') }) : ''));
+    wireViz(dw || document.body);
+  }
+  function exportMo(rows, ms){
+    var en = S.lang === 'en', title = t('moTitle') + ' ' + ms[0] + ' → ' + ms[ms.length - 1];
+    var byPerson = MO.by === 'person', head = [{ key: 'label', label: byPerson ? t('vsName') : t(DIMS.filter(function(d){ return d[0] === MO.by; })[0][1]), type: 'text' }].concat(byPerson ? [{ key: 'empNo', label: t('vsEmpNo'), type: 'text' }].concat(DIMS.map(function(d){ return { key: d[0], label: t(d[1]), type: 'text' }; })) : [{ key: 'n', label: t('vsHead'), type: 'int' }]);
+    var sheetFor = function(metric){ var mt = MO_METRICS.filter(function(x){ return x[0] === metric; })[0], idx = mt[2];
+      var list = byPerson ? R.people.map(function(p){ var o = { label: p.name, empNo: p.empNo }; DIMS.forEach(function(d){ o[d[0]] = dimVal(d[0], p.dims[d[0]]); }); ms.forEach(function(m, i){ var v = p.m[m]; o['m' + i] = idx < 0 ? (v ? 1 : 0) : v ? v[idx] : null; }); return o; })
+        : (function(){ var g = {}; R.people.forEach(function(p){ var k = p.dims[MO.by], o = g[k] = g[k] || { label: dimVal(MO.by, k), n: 0 }; o.n++; ms.forEach(function(m, i){ var v = p.m[m]; if (v) o['m' + i] = (o['m' + i] || 0) + (idx < 0 ? 1 : v[idx]); }); }); return Object.keys(g).map(function(k){ return g[k]; }); })();
+      list.forEach(function(o){ o.total = ms.reduce(function(a, m, i){ return a + (o['m' + i] || 0); }, 0); o.change = (o['m' + (ms.length - 1)] || 0) - (o.m0 || 0); });
+      return { name: xlName(t(mt[1])), title: title + ' · ' + t(mt[1]), columns: head.concat(ms.map(function(m, i){ return { key: 'm' + i, label: m + ((R.netOnlyMonths || []).indexOf(m) >= 0 && idx !== 2 && idx >= 0 ? ' *' : ''), type: idx < 0 ? 'int' : 'money', sum: true }; }))
+        .concat(idx < 0 ? [] : [{ key: 'total', label: t('vsTotal'), type: 'money', sum: true }]).concat([{ key: 'change', label: t('moFirstLast'), type: idx < 0 ? 'int' : 'money', sum: true }]), rows: list }; };
+    var sheets = [sheetFor(MO.metric)].concat(MO_METRICS.filter(function(x){ return x[0] !== MO.metric; }).map(function(x){ return sheetFor(x[0]); }));
+    loadScript('js/xl.js').then(function(){ return XL.download({ fileName: 'MONTH_BY_MONTH_' + ms[0] + '_' + ms[ms.length - 1], title: title, lang: en ? 'en' : 'ar', company: coName(), by: S.me.name, logo: logoInk(), filters: xlFilters(MO.f), sheets: sheets }); })
       .then(function(){ toast(t('v2Exported')); }, function(){ toast(errText('network')); });
   }
   load();
 }
 window.PaySheet = { section: sheetSection };
-window.Variance = { section: varianceSection };
+window.Variance = { section: varianceSection, monthly: monthlySection };
 })();
