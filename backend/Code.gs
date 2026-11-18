@@ -568,7 +568,7 @@ var DEFAULT_SETTINGS = {
   adminSeesPay: true,        // the system administrator also holds payroll; switch off to keep pay apart from administration
   wpsDueDay: 10,            // WPS / Mudad: salaries of month M uploaded by this day of month M+1 (check with the bank / Mudad)
   attachmentsEnabled: false, // document scans in Drive (Hr.gs api_docUpload): needs the drive.file and external_request scopes
-  notifyDigest: false, notifyHour: 7, appUrl: '', aiAssistant: false, whatsappDigest: false, newNav: false, // daily e-mail digest (Payroll.gs notifySweep_): needs M365 properties and the external_request scope
+  notifyDigest: false, notifyHour: 7, appUrl: '', aiAssistant: false, whatsappDigest: false, newNav: true, // daily e-mail digest (Payroll.gs notifySweep_): needs M365 properties and the external_request scope
   welcomeAr: '', welcomeEn: '', preboardDocs: '', // pre-boarding welcome text and documents to bring (Engage.gs api_welcome)
   internalMinMonths: 6,      // internal mobility: months of service before applying internally (Recruitment.gs)
   rostersEnabled: false,     // shifts and rosters (Shifts.gs); off = everyone keeps their own shift, nothing extra is read
