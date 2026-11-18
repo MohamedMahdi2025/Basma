@@ -3396,10 +3396,19 @@ function sri(el, url){ var h = SRI[url]; if (h) { el.integrity = h; el.crossOrig
 function loadScript(src){
   if (loadedScripts[src]) return loadedScripts[src];
   return (loadedScripts[src] = new Promise(function(res, rej){
-    var sc = document.createElement('script'); sc.async = false; sc.src = src + '?v=' + BUILD; // speed (2026-11-18): files download side by side and still run in the order asked
+    var sc = document.createElement('script'); sc.src = src + '?v=' + BUILD;
     sc.onload = res; sc.onerror = function(){ delete loadedScripts[src]; sc.remove(); rej(); };
     document.head.appendChild(sc);
   }));
+}
+/** Speed (2026-11-18): every file a screen needs starts downloading at once (a preload hint each); they still run one after
+ *  another, so a file that fails stops the ones after it exactly as before. */
+var warmed = {};
+function warmScripts(files){
+  files.forEach(function(f){
+    if (loadedScripts[f] || warmed[f]) return; warmed[f] = 1;
+    var l = document.createElement('link'); l.rel = 'preload'; l.as = 'script'; l.href = f + '?v=' + BUILD; document.head.appendChild(l);
+  });
 }
 /** Which HR screens this person gets: remembered per device so the tab shows at once next time. */
 function hrAccessFromStore(){
@@ -3418,10 +3427,11 @@ function lazyScreen(files, run, target){
   var need = files.filter(function(f){ return !loadedScripts[f]; });
   var stop = need.length ? progressCard(main, t('loadingScreen')) : null;
   if (!need.length) main.innerHTML = '<section class="page"><span class="sk" style="width:40%"></span><span class="sk" style="margin-top:12px"></span></section>';
-  Promise.all(files.map(function(f){
+  warmScripts(files);
+  files.reduce(function(p, f){ return p.then(function(){
     if (loadedScripts[f]) return loadedScripts[f];
     var id = Progress.start('script:' + f); return loadScript(f).then(function(){ Progress.done(id); }, function(e){ Progress.done(id, false); throw e; });
-  })).then(function(){ if (stop) stop(); if (main.isConnected) run(main); }, function(){
+  }); }, Promise.resolve()).then(function(){ if (stop) stop(); if (main.isConnected) run(main); }, function(){
     if (stop) stop();
     main.innerHTML = '<section class="page"><div class="empty">' + ph('wifi-slash') + '<b>' + t('e_network') + '</b><div class="btnrow" style="justify-content:center;margin-top:12px"><button class="btn btn-dark btn-sm" type="button" id="lzRetry">' + t('retry') + '</button></div></div></section>';
     $('#lzRetry', main).onclick = function(){ lazyScreen(files, run, target); };
@@ -5025,7 +5035,7 @@ function areaLead(a){ var k = 'al' + a.id.charAt(0).toUpperCase() + a.id.slice(1
 function view(){ return $('#v2Body') || $('#main'); }
 /** The v2 block must come after every module's own <style>, so equal selectors resolve to v2. */
 function themeLast(){ ['dsv2', 'dsv3', 'dsed', 'dsfp', 'dspg', 'dsdark', 'dsmo', 'dsgate', 'dsfb', 'dsfbx', 'dsv4', 'dsv5', 'dsv6', 'brandTheme'].forEach(function(id){ var s = document.getElementById(id); if (s) document.head.appendChild(s); }); }
-function loadAll(files){ return Promise.all(files.map(loadScript)); }
+function loadAll(files){ warmScripts(files); return files.reduce(function(p, f){ return p.then(function(){ return loadScript(f); }); }, Promise.resolve()); }
 
 /** Where a task from the bell opens. HR sections map to their area; personal items to growth or the profile. */
 var SEC_DEST = { contingent: 'people:contingent', safety: 'engage:safety', openshifts: 'time:openshifts', inbox: 'requests:inbox', leave: 'requests:leave', approvals: 'pay:approvals', payroll: 'pay:runs', compliance: 'pay:compliance', reports: 'insights:reports', dashboard: 'insights:dashboard',
