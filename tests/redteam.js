@@ -152,7 +152,7 @@ ok(writes.length === 0, 'no row was created for the victim, or created already a
 ok(powers.length === 0, 'no role, status, manager, device or contact field of anyone was changed by those calls (no mass assignment)', powers.slice(0, 8));
 
 // ------------------------------------------------------------------ 3. the second organisation cannot reach the first, in either direction
-const PUBLIC_BY_DESIGN = /^(orgLogo|orgCheck|careersList|careersApply|kioskPing|devicePunch|apiQuery|ping|bootstrapStatus|punchBegin|punchFinish|pinChange|demoData)$/; // the last three prove who you are another way (a device signature, the current PIN, the setup key), so they answer bad_credential before any session check; none returns data
+const PUBLIC_BY_DESIGN = /^(orgLogo|orgCheck|careersList|careersApply|kioskPing|devicePunch|apiQuery|ping|bootstrapStatus|punchBegin|punchFinish|pinChange|demoData|backupPush)$/; // the last three prove who you are another way (a device signature, the current PIN, the setup key, the backup HMAC), so they answer bad_credential before any session check; none returns data
 console.log('3. Cross-organisation');
 let cross = [], crossBack = [];
 ALL.filter(a => !SKIP.has(a)).forEach(a => {

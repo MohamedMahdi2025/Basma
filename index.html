@@ -2317,7 +2317,9 @@ html .plx-ring{box-shadow:0 0 0 1px rgba(217,181,110,.45),0 0 0 14px rgba(217,18
 // Apps Script /exec URL. The local preview server overrides it with window.BG_API.
 // HTTPS only: a page opened over plain http (anywhere but a local test machine) moves to https at once
 if (location.protocol === 'http:' && !/^(localhost|127.d+.d+.d+|[::1]|.*.localhost)$/.test(location.hostname)) location.replace('https:' + location.href.slice(5));
-var API_URL = window.BG_API || 'https://script.google.com/macros/s/AKfycbz1XJ-WF6qnXiGtieQev6g53pAMThwCWhpp7r-pwbWtQi-ShJrpQIJUFHr17E3AryKG/exec';
+var API_URL = window.BG_API || movedApi() || 'https://script.google.com/macros/s/AKfycbz1XJ-WF6qnXiGtieQev6g53pAMThwCWhpp7r-pwbWtQi-ShJrpQIJUFHr17E3AryKG/exec';
+/** The move to Postgres (2026-11-18): once the old server answers "moved", this device remembers the new address. */
+function movedApi(){ try { var v = localStorage.getItem('bgApiMoved') || ''; return /^https:\/\/[A-Za-z0-9.-]+(\/[A-Za-z0-9._~\/-]*)?$/.test(v) ? v : ''; } catch (e) { return ''; } }
 var BUILD = '2026.09.30b';
 // Brand artwork, embedded so the page never shows a broken image.
 var LOGO = 'data:image/png;base64,iVBORw0KGgoAAAAN' +
@@ -3223,9 +3225,16 @@ function apiSend(action, payload, quiet){
       .then(function(r){ return r.json(); })
       .then(function(x){ clearTimeout(timer); return x; }, function(e){ clearTimeout(timer); throw e; });
   };
+  // the old server did nothing but say where the system went: switch to it for good and send this request there (safe for writes too)
+  var follow = function(res){
+    if (!res || res.error !== 'moved' || window.BG_API || !/^https:\/\/[A-Za-z0-9.-]+(\/[A-Za-z0-9._~\/-]*)?$/.test(String(res.api || '')) || res.api === API_URL) return res;
+    API_URL = res.api; try { localStorage.setItem('bgApiMoved', res.api); } catch (e) {}
+    return once().catch(function(){ return { ok:false, error:'network' }; });
+  };
   return once()
     .catch(function(){ return isRead ? new Promise(function(r){ setTimeout(r, 800); }).then(once) : Promise.reject(); })
     .catch(function(){ return { ok:false, error:'network' }; })
+    .then(follow)
     .then(function(res){
       if (pid) Progress.done(pid, !!(res && res.ok !== undefined));
       if (res && res.token) { S.token = res.token; store('token', res.token); }

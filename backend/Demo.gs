@@ -614,3 +614,40 @@ function bookExport_(req) {
   var rows = vals.map(function (r) { return r.map(function (c) { return c instanceof Date ? { d: c.toISOString() } : c; }); });
   return { ok: true, tab: tabName, header: header, rows: rows, offset: off, total: Math.max(last - 1, 0) };
 }
+
+/* backupPush (2026-11-18): once the system runs on Postgres, the platform's weekly job writes every tab back into this sheet, so
+ * the Google Sheet stays a complete copy (and, with MOVED_TO cleared, a working fallback). Only after the move (MOVED_TO set), and
+ * only with an HMAC-SHA256 of the request under script property BACKUP_KEY (the same key as HRP_BACKUP_KEY on the platform),
+ * at most 10 minutes old. A push with start 0 replaces the tab (header + first rows); later pushes add the next rows.
+ * Text is written quoted (as toRow_ does), so Google never turns "0501..." into a number or "2026-01-01" into a date. */
+function api_backupPush(req) {
+  var p = PropertiesService.getScriptProperties(), key = p.getProperty('BACKUP_KEY') || '';
+  if (!movedTo_() || key.length < 32) fail_('not_available');
+  if (!rateLimit_('backup', 600, 3600)) fail_('too_many_attempts');
+  var ts = Number(req.ts) || 0;
+  if (Math.abs(Date.now() - ts) > 600000) fail_('bad_request');
+  var tab = String(req.tab || ''), start = Math.max(0, Math.floor(Number(req.start) || 0));
+  if (!HEADERS[tab] || !Array.isArray(req.rows) || req.rows.length > 5000) fail_('bad_request');
+  var body = ts + '|' + tab + '|' + start + '|' + JSON.stringify(req.header || null) + '|' + JSON.stringify(req.rows);
+  var sig = Utilities.computeHmacSha256Signature(body, key).map(function (b) { return ('0' + (b & 255).toString(16)).slice(-2); }).join('');
+  if (!safeEqual_(sig, String(req.sig || ''))) { secEvent_('backup_bad_sig', '', tab); fail_('forbidden'); }
+  return withLock_(function () {
+    var sh = sheet_(tab), header = start === 0 ? (Array.isArray(req.header) ? req.header : HEADERS[tab]) : HEADERS[tab];
+    var width = Math.max(header.length, 1);
+    if (start === 0) {
+      if (sh.getLastRow() > 0) sh.getRange(1, 1, sh.getLastRow(), Math.max(sh.getLastColumn(), width)).clearContent();
+      sh.getRange(1, 1, 1, width).setValues([header]);
+    }
+    var cell = function (c) {
+      if (c && typeof c === 'object' && typeof c.d === 'string') return new Date(c.d);
+      if (c === null || c === undefined) return '';
+      if (typeof c === 'object') return "'" + JSON.stringify(c);
+      if (typeof c === 'string' && c !== '') return "'" + c;
+      return c;
+    };
+    var rows = req.rows.map(function (r) { var out = []; for (var j = 0; j < width; j++) out.push(cell(r[j])); return out; });
+    if (rows.length) sh.getRange(2 + start, 1, rows.length, width).setValues(rows);
+    forget_(tab); bumpTab_(tab);
+    return { ok: true, tab: tab, written: rows.length };
+  });
+}

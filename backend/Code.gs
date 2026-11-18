@@ -1182,7 +1182,7 @@ function doPost(e) {
   return json_(handle_(req));
 }
 
-var PUBLIC_ACTIONS = { orgActivation: 1, orgRenumber: 1, orgBrandSet: 1, orgImport: 1, platformHealth: 1, ssoLogin: 1, devicePunch: 1, orgLogo: 1, apiQuery: 1, orgCreate: 1, orgList: 1, orgSetStatus: 1, orgSetGroup: 1, orgOverview: 1, orgCheck: 1, kioskPing: 1, careersList: 1, careersApply: 1,
+var PUBLIC_ACTIONS = { backupPush: 1, orgActivation: 1, orgRenumber: 1, orgBrandSet: 1, orgImport: 1, platformHealth: 1, ssoLogin: 1, devicePunch: 1, orgLogo: 1, apiQuery: 1, orgCreate: 1, orgList: 1, orgSetStatus: 1, orgSetGroup: 1, orgOverview: 1, orgCheck: 1, kioskPing: 1, careersList: 1, careersApply: 1,
   ping: 1, bootstrapStatus: 1, bootstrap: 1, enrollBegin: 1, enrollFinish: 1,
   pinLogin: 1, authBegin: 1, authFinish: 1, punchBegin: 1, punchFinish: 1, adminRecover: 1, pwLogin: 1, pinChange: 1, diag: 1, demoData: 1
 };
@@ -1251,6 +1251,10 @@ function learnTabs_(action) {
 var REQ_DEV_ = ''; // the device sending this request (see bindDevice_)
 var ADMIN_ACTIONS = { waTest: 1, hrRolesSave: 1, empResetDevice: 1, zoneSave: 1, zoneDelete: 1, settingsSave: 1 };
 
+/** The new address once the system has moved to Postgres (script property MOVED_TO, set by the owner after the export). */
+function movedTo_() { try { var v = PropertiesService.getScriptProperties().getProperty('MOVED_TO') || ''; return /^https:\/\/[A-Za-z0-9.-]+(\/[A-Za-z0-9._~\/-]*)?$/.test(v) ? v : ''; } catch (e) { return ''; } }
+var MOVED_OK_ = { backupPush: 1, demoData: 1, platformHealth: 1 };
+
 function handle_(req) {
   READ_MEMO_ = {}; READ_LEN_ = {}; SETTINGS_MEMO_ = null; READ_SHEET_ = []; TAIL_MEMO_ = {}; SINCE_MEMO_ = {};
   REQ_HOST_ = req && typeof req.host === 'string' ? req.host.toLowerCase().slice(0, 80) : '';
@@ -1262,6 +1266,8 @@ function handle_(req) {
   try {
     var fn = /^[a-zA-Z]+$/.test(String(action)) ? globalThis['api_' + action] : null;
     if (typeof fn !== 'function') { secEvent_('unknown_action', '', String(action).replace(/[^A-Za-z0-9_]/g, '').slice(0, 40)); return { ok: false, error: 'unknown_action' }; }
+    // After the move to Postgres (Demo.gs): this copy answers only the weekly backup and the owner's tools; the app is told where to go.
+    var moved = movedTo_(); if (moved && !MOVED_OK_[action]) return { ok: false, error: 'moved', api: moved };
     setOrg_(PLATFORM_ACTIONS_[action] ? orgRec_(homeOrgId_()) : resolveOrg_(req, action));
     if (READ_ONLY_ACTIONS[action]) { USE_TAB_CACHE_ = true; preloadFor_(action); }
     if (PUBLIC_ACTIONS[action]) return fn(req, null);
