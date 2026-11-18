@@ -8,7 +8,7 @@ const fs = require('fs'), path = require('path');
 const ROOT = path.join(__dirname, '..');
 const DEP = (fs.readFileSync(path.join(ROOT, 'tools/deploy.sh'), 'utf8').match(/DEP="?([A-Za-z0-9_-]{40,})/) || [])[1];
 const URL = process.env.BASMA_EXPORT_URL || 'https://script.google.com/macros/s/' + DEP.slice(2) + '/exec';
-const KEY = fs.readFileSync(path.join(ROOT, '../apps-script/SETUP-KEY.txt'), 'utf8').trim();
+const KEY = process.env.BASMA_SETUP_KEY || fs.readFileSync(path.join(ROOT, '../apps-script/SETUP-KEY.txt'), 'utf8').trim(); // the env form is for the local rehearsal
 const arg = (n, d) => { const i = process.argv.indexOf(n); return i > 0 ? process.argv[i + 1] : d; };
 const OUT = path.resolve(arg('--out', path.join(ROOT, '../apps-script/book-export')));
 
