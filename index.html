@@ -3396,7 +3396,7 @@ function sri(el, url){ var h = SRI[url]; if (h) { el.integrity = h; el.crossOrig
 function loadScript(src){
   if (loadedScripts[src]) return loadedScripts[src];
   return (loadedScripts[src] = new Promise(function(res, rej){
-    var sc = document.createElement('script'); sc.src = src + '?v=' + BUILD;
+    var sc = document.createElement('script'); sc.async = false; sc.src = src + '?v=' + BUILD; // speed (2026-11-18): files download side by side and still run in the order asked
     sc.onload = res; sc.onerror = function(){ delete loadedScripts[src]; sc.remove(); rej(); };
     document.head.appendChild(sc);
   }));
@@ -3418,10 +3418,10 @@ function lazyScreen(files, run, target){
   var need = files.filter(function(f){ return !loadedScripts[f]; });
   var stop = need.length ? progressCard(main, t('loadingScreen')) : null;
   if (!need.length) main.innerHTML = '<section class="page"><span class="sk" style="width:40%"></span><span class="sk" style="margin-top:12px"></span></section>';
-  files.reduce(function(p, f){ return p.then(function(){
+  Promise.all(files.map(function(f){
     if (loadedScripts[f]) return loadedScripts[f];
     var id = Progress.start('script:' + f); return loadScript(f).then(function(){ Progress.done(id); }, function(e){ Progress.done(id, false); throw e; });
-  }); }, Promise.resolve()).then(function(){ if (stop) stop(); if (main.isConnected) run(main); }, function(){
+  })).then(function(){ if (stop) stop(); if (main.isConnected) run(main); }, function(){
     if (stop) stop();
     main.innerHTML = '<section class="page"><div class="empty">' + ph('wifi-slash') + '<b>' + t('e_network') + '</b><div class="btnrow" style="justify-content:center;margin-top:12px"><button class="btn btn-dark btn-sm" type="button" id="lzRetry">' + t('retry') + '</button></div></div></section>';
     $('#lzRetry', main).onclick = function(){ lazyScreen(files, run, target); };
@@ -5025,7 +5025,7 @@ function areaLead(a){ var k = 'al' + a.id.charAt(0).toUpperCase() + a.id.slice(1
 function view(){ return $('#v2Body') || $('#main'); }
 /** The v2 block must come after every module's own <style>, so equal selectors resolve to v2. */
 function themeLast(){ ['dsv2', 'dsv3', 'dsed', 'dsfp', 'dspg', 'dsdark', 'dsmo', 'dsgate', 'dsfb', 'dsfbx', 'dsv4', 'dsv5', 'dsv6', 'brandTheme'].forEach(function(id){ var s = document.getElementById(id); if (s) document.head.appendChild(s); }); }
-function loadAll(files){ return files.reduce(function(p, f){ return p.then(function(){ return loadScript(f); }); }, Promise.resolve()); }
+function loadAll(files){ return Promise.all(files.map(loadScript)); }
 
 /** Where a task from the bell opens. HR sections map to their area; personal items to growth or the profile. */
 var SEC_DEST = { contingent: 'people:contingent', safety: 'engage:safety', openshifts: 'time:openshifts', inbox: 'requests:inbox', leave: 'requests:leave', approvals: 'pay:approvals', payroll: 'pay:runs', compliance: 'pay:compliance', reports: 'insights:reports', dashboard: 'insights:dashboard',
