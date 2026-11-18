@@ -21,6 +21,9 @@ B.props.BACKUP_KEY = KEY;
 ok(push(msg()).error === 'not_available', 'no backup is taken while the Sheet is still the live system');
 ok(B.call({ action: 'bootstrapStatus' }).ok, 'and the app works as before');
 
+console.log('A second organisation (before the move)');
+const org = B.raw({ action: 'orgCreate', setupKey: 'k', logo: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', nameAr: 'شركة أخرى', unn: '7000000077', adminName: 'م' });
+
 console.log('After the move');
 B.props.MOVED_TO = 'https://api.example.sa/c/bestgas/api';
 r = B.call({ action: 'bootstrapStatus' });
@@ -43,6 +46,11 @@ ok(r.ok && B.sheets.holidays._rows.length === 3, 'the next part adds rows after 
 r = push(msg());
 ok(r.ok && B.sheets.holidays._rows.filter(x => x.some(c => c !== '' && c != null)).length === 2, 'a new backup (start 0) replaces the tab (old rows cleared)');
 ok(B.call({ action: 'demoData', setupKey: 'k', mode: 'bookExport' }).ok, "the owner's export still works after the move");
+ok(B.call({ action: 'demoData', setupKey: 'k', mode: 'sheetImport', people: [], months: {} }).error === 'moved', "the owner's other tools (salary loads) are refused: Friday's backup would overwrite them");
+// another organisation on this Apps Script did not move
+ok(org.ok, 'a second organisation exists on this Apps Script', org);
+if (org.ok) ok(B.raw({ action: 'bootstrapStatus', orgId: org.orgId }).error !== 'moved', 'another organisation on the same Apps Script keeps working (only the home one moved)');
+ok(B.raw({ action: 'orgCreate', setupKey: 'k', nameAr: 'ثالثة', unn: '7000000078', adminName: 'م' }).error === 'moved', 'no new organisation is created on the frozen script');
 B.props.BACKUP_KEY = 'short';
 ok(push(msg(), 'short').error === 'not_available', 'a key shorter than 32 characters is never accepted');
 

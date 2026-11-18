@@ -1267,8 +1267,10 @@ function handle_(req) {
     var fn = /^[a-zA-Z]+$/.test(String(action)) ? globalThis['api_' + action] : null;
     if (typeof fn !== 'function') { secEvent_('unknown_action', '', String(action).replace(/[^A-Za-z0-9_]/g, '').slice(0, 40)); return { ok: false, error: 'unknown_action' }; }
     // After the move to Postgres (Demo.gs): this copy answers only the weekly backup and the owner's tools; the app is told where to go.
-    var moved = movedTo_(); if (moved && !MOVED_OK_[action]) return { ok: false, error: 'moved', api: moved };
     setOrg_(PLATFORM_ACTIONS_[action] ? orgRec_(homeOrgId_()) : resolveOrg_(req, action));
+    // only the home organisation moved; of the owner's tools only the export still runs (a salary load into the frozen Sheet would
+    // be lost to Friday's backup)
+    if (!ORG_ || ORG_.home) { var moved = movedTo_(); if (moved && !(MOVED_OK_[action] && (action !== 'demoData' || req.mode === 'bookExport'))) return { ok: false, error: 'moved', api: moved }; }
     if (READ_ONLY_ACTIONS[action]) { USE_TAB_CACHE_ = true; preloadFor_(action); }
     if (PUBLIC_ACTIONS[action]) return fn(req, null);
     var me = readToken_(req.token);
