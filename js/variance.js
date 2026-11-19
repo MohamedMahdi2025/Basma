@@ -217,6 +217,9 @@ function netOnlyNote(ms){ return ms && ms.length ? '<div class="vs-note" role="n
   '.vs-rate{display:grid;grid-template-columns:1fr 1fr;gap:8px}.vs-rate div{padding:12px 14px;border-radius:12px;background:var(--q-tray,#F4F2EC)}.vs-rate span{display:block;font-size:12px;color:var(--ink-2);margin-bottom:4px}.vs-rate b{font-size:17px;direction:ltr;unicode-bidi:isolate}' +
   '.vs-ins .db-ch h3{display:flex;align-items:center;gap:8px}.vs-ins .db-ch h3 i{color:var(--brand)}.vs-insl{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:8px}.vs-insl li{display:grid;grid-template-columns:36px 1fr auto;gap:12px;align-items:center;padding:10px 12px;border-radius:12px;background:var(--well);font-size:14px;line-height:1.6}.vs-insl li.sev{background:color-mix(in srgb,#C98500 12%,var(--card))}.vs-insl .vi-ic{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:color-mix(in srgb,var(--brand) 12%,var(--card));color:var(--brand);font-size:18px}.vs-insl li.sev .vi-ic{background:color-mix(in srgb,#C98500 20%,var(--card));color:#8F5A0C}' +
   '.vs-tbl td.vs-why-c{white-space:normal;min-width:240px;max-width:360px;font-size:12.5px;line-height:1.5;color:var(--ink-2)}.vs-tbl td.vs-why-c div+div{margin-top:2px}' +
+  '.vs-hirep{margin:-4px 0 12px}.vs-hire{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-2);background:var(--well);border-radius:999px;padding:4px 12px}.vs-hire i{color:var(--brand)}' +
+  '.vs-whyb{background:color-mix(in srgb,var(--brand) 6%,var(--card));border:1px solid color-mix(in srgb,var(--brand) 20%,var(--line));border-radius:14px;padding:12px 16px;margin:0 0 12px}.vs-whyb h4{margin:0 0 6px;display:flex;align-items:center;gap:6px;font-size:14px}.vs-whyb h4 i{color:var(--brand)}.vs-whyb ul{margin:0;padding-inline-start:18px;display:grid;gap:4px;font-size:13.5px;line-height:1.6}.vs-whyb p{margin:8px 0 0}' +
+  '.vs-tbl tr.vs-drow td{background:var(--well);font-weight:600}.vs-dm td{text-align:center!important}.vs-dm td b{display:block;font-size:15px}.vs-dm td small{display:block;color:var(--ink-3);font-size:11px}.vs-na{color:var(--ink-3)}' +
   '.vs-heat td.vh0{color:var(--ink-3)}.vs-heat td,.vs-heat th{min-width:92px}.vs-heat td:first-child,.vs-heat th:first-child{position:sticky;inset-inline-start:0;background:var(--card);z-index:1}' +
   '.vs-more-p{display:flex;align-items:center;gap:12px;margin:-12px 0 20px;font-size:13px;color:var(--ink-2)}.vs-mo td.sp-c svg{display:block}.vs-mo th.mo,.vs-mo td.mo{min-width:96px}.vs-mo td.nonly{color:var(--ink-2);font-style:italic}';
   document.head.appendChild(st); })();
@@ -355,9 +358,15 @@ var VA_REVIEW = ['off_package', 'deductions_spike', 'net_zero', 'paid_inactive']
 // hire date, days worked and the reason for each change, per person (owner 2026-11-20: "need to see all data as the hiring
 // date, the reason of the increases, days working comparison")
 Object.assign(T.ar, { vaHire:'تاريخ التعيين', vaDaysCol:'أيام العمل', vaWhy:'سبب التغير', wyNew:'تعيين جديد في {d}', wyPartial:'شهر جزئي: {n} يوم مدفوع', wyLeft:'لم يُصرف له هذا الشهر (غادر أو أُوقف)',
-  wyBack:'عاد بعد انقطاع', wyDays:'أيام العمل {a} → {b}', wyPkg:'تغير الراتب الثابت (عقد أو باقة جديدة)', wyNone:'بدون تغير', wyNetOnly:'صافي فقط هذا الشهر: لا تفصيل للبنود' });
+  wyBack:'عاد بعد انقطاع', wyDays:'أيام العمل {a} → {b}', wyPkg:'تغير الراتب الثابت (عقد أو باقة جديدة)', wyNone:'بدون تغير', wyNetOnly:'صافي فقط هذا الشهر: لا تفصيل للبنود',
+  wyPkgFull:'تغير الراتب الثابت من {from}{by}{at}: الأساسي {b0} → {b1}، الإجمالي {t0} → {t1}', wyBy:' باعتماد {n}', wyAt:' في {d}', wyNote:'ملاحظة الاعتماد: {n}',
+  vaTenure:'مدة الخدمة', vaYm:'{y} سنة و{m} شهر', vaPaidDays:'أيام مدفوعة', vaWhyH:'لماذا تغير', vaDaysMonth:'الأيام المدفوعة شهريا' });
 Object.assign(T.en, { vaHire:'Hire date', vaDaysCol:'Days worked', vaWhy:'Reason for the change', wyNew:'New hire on {d}', wyPartial:'Part month: {n} days paid', wyLeft:'Not paid this month (left or stopped)',
-  wyBack:'Back after a break', wyDays:'Days worked {a} → {b}', wyPkg:'Fixed pay changed (new contract or package)', wyNone:'No change', wyNetOnly:'Net only this month: no line breakdown' });
+  wyBack:'Back after a break', wyDays:'Days worked {a} → {b}', wyPkg:'Fixed pay changed (new contract or package)', wyNone:'No change', wyNetOnly:'Net only this month: no line breakdown',
+  wyPkgFull:'Fixed pay changed from {from}{by}{at}: basic {b0} → {b1}, total {t0} → {t1}', wyBy:', approved by {n}', wyAt:' on {d}', wyNote:'Approval note: {n}',
+  vaTenure:'Service', vaYm:'{y} y {m} m', vaPaidDays:'Days paid', vaWhyH:'Why it changed', vaDaysMonth:'Days paid each month' });
+function vaTenure(hd, month){ if (!/^\d{4}-\d{2}-\d{2}/.test(hd || '')) return ''; var a = new Date(hd.slice(0, 10) + 'T00:00:00Z'), b = new Date(Date.UTC(+month.slice(0, 4), +month.slice(5, 7), 0));
+  var m = (b.getUTCFullYear() - a.getUTCFullYear()) * 12 + b.getUTCMonth() - a.getUTCMonth() - (b.getUTCDate() < a.getUTCDate() ? 1 : 0); if (m < 0) return ''; return t('vaYm').replace('{y}', Math.floor(m / 12)).replace('{m}', m % 12); }
 function vaDays(p){ var a = p.base ? p.base.days : null, b = p.cur ? p.cur.days : null; return { base: a, cur: b, diff: a != null && b != null ? Math.round((b - a) * 100) / 100 : null }; }
 /** The reasons behind one person's change, most important first, as plain sentences (no server call: lines and flags are in the answer). */
 function vaWhy(p, netOnly){
@@ -367,7 +376,12 @@ function vaWhy(p, netOnly){
   if (f.indexOf('leaver') >= 0) out.push(t('wyLeft'));
   if (p.cur && p.base) {
     if (d.diff) out.push(t('wyDays').replace('{a} → {b}', '⁦' + d.base + ' → ' + d.cur + '⁩'));
-    if (f.indexOf('package_change') >= 0) out.push(t('wyPkg'));
+    var pc = p.pkgChange;
+    if (pc) { var n2 = function(v){ return v == null ? '-' : acctFmt(v); };
+      out.push(t('wyPkgFull').replace('{from}', pc.from).replace('{by}', pc.by ? t('wyBy').replace('{n}', pc.by) : '').replace('{at}', pc.at ? t('wyAt').replace('{d}', pc.at) : '')
+        .replace('{b0} → {b1}', '\u2066' + n2(pc.basic[0]) + ' → ' + n2(pc.basic[1]) + '\u2069').replace('{t0} → {t1}', '\u2066' + n2(pc.total[0]) + ' → ' + n2(pc.total[1]) + '\u2069'));
+      if (pc.note) out.push(t('wyNote').replace('{n}', pc.note)); }
+    else if (f.indexOf('package_change') >= 0) out.push(t('wyPkg'));
     if (netOnly) out.push(t('wyNetOnly'));
     else (p.reasons || []).slice(0, 4).forEach(function(x){ out.push(lineName(x.line) + ': ⁦' + acctFmt(x.from) + ' → ' + acctFmt(x.to) + ' (' + sgn(x.effect) + ')⁩'); });
   }
@@ -581,16 +595,24 @@ function varianceSection(body){
     $$('[data-hv]', el).forEach(function(tr2){ tr2.onclick = function(){ VA.f.department = [tr2.dataset.hv]; load(); }; });
   }
   function person(p){
-    var keys = orderLines(Object.keys(p.lines)), netOnly = (R.netOnlyMonths || []).length > 0;
-    var hist = (R.trend || []).map(function(x, i){ return p.hist[i]; });
-    var dw = drawer('<h3>' + esc(p.name) + ' <small dir="ltr">' + esc(p.empNo) + '</small></h3><p class="hr-hint">' + esc([p.dims.payGroup, p.dims.department, p.dims.title, p.dims.location, p.dims.city].join(' · ')) + '</p>' +
-      '<p>' + p.flags.map(function(f){ return '<span class="vs-flag">' + t('fl_' + f) + '</span>'; }).join('') + '</p>' +
+    var keys = orderLines(Object.keys(p.lines)), netOnly = (R.netOnlyMonths || []).length > 0, dd = vaDays(p), tr = R.trend || [];
+    var hist = tr.map(function(x, i){ return p.hist[i]; }), hd = p.histDays || [];
+    var head = [p.dims.payGroup, p.dims.department, p.dims.title, p.dims.location, p.dims.city].filter(function(x){ return x && x !== '-'; }).join(' · ');
+    var ten = vaTenure(p.hireDate, R.month);
+    var hire = p.hireDate ? '<span class="vs-hire">' + ph('calendar-check') + t('vaHire') + ': <b class="num" dir="ltr">' + esc(p.hireDate) + '</b>' + (ten ? ' · ' + t('vaTenure') + ': <b>' + esc(ten) + '</b>' : '') + '</span>' : '';
+    var dRow = function(v){ return v == null ? '-' : '<span class="num">' + v + '</span>'; };
+    var dw = drawer('<h3>' + esc(p.name) + ' <small dir="ltr">' + esc(p.empNo) + '</small></h3><p class="hr-hint">' + esc(head) + '</p>' + (hire ? '<p class="vs-hirep">' + hire + '</p>' : '') +
+      '<div class="vs-whyb"><h4>' + ph('lightbulb') + t('vaWhyH') + '</h4><ul>' + vaWhy(p, netOnly).map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' +
+        (p.flags.length ? '<p>' + p.flags.map(function(f){ return '<span class="vs-flag">' + t('fl_' + f) + '</span>'; }).join('') + '</p>' : '') + '</div>' +
       (netOnly ? netOnlyNote(R.netOnlyMonths) : '') +
       '<div class="vs-wrap"><table class="vs-tbl"><thead><tr><th>' + t('vaLines') + '</th><th class="n">' + esc(vaL('base')) + '</th><th class="n">' + esc(vaL('now')) + '</th><th class="n">' + t('vaChg') + '</th></tr></thead><tbody>' +
+      '<tr class="vs-drow"><td>' + ph('calendar-dots') + ' ' + t('vaPaidDays') + '</td><td class="n">' + dRow(dd.base) + '</td><td class="n">' + dRow(dd.cur) + '</td><td class="n">' + (dd.diff ? '<bdi dir="ltr">' + (dd.diff > 0 ? '+' : '') + dd.diff + '</bdi>' : '0') + '</td></tr>' +
       (netOnly ? '' : keys.map(function(k){ var v = p.lines[k]; return '<tr><td>' + esc(lineName(k)) + (k.indexOf('d:') === 0 ? ' (-)' : '') + '</td><td class="n">' + amt(v[1]) + '</td><td class="n">' + amt(v[0]) + '</td><td class="n">' + chg({ diff: Math.round((v[0] - v[1]) * 100) / 100, pct: null }) + '</td></tr>'; }).join('')) +
       '<tr><td><b>' + t('vsNet') + '</b></td><td class="n">' + amt(p.base ? p.base.net : null) + '</td><td class="n"><b>' + amt(p.cur ? p.cur.net : null) + '</b></td><td class="n">' + chg(p.net) + '</td></tr></tbody></table></div>' +
       (p.package != null ? '<p class="hr-hint">' + t('fl_off_package') + ': ' + acctFmt(p.package) + '</p>' : '') +
-      '<h4>' + t('vaTrend') + '</h4>' + (V() && hist.filter(function(v){ return v != null; }).length > 1 ? V().lineChart((R.trend || []).map(function(x, i){ return { label: mon(x.month), y: hist[i] || 0, note: hist[i] == null ? t('vaNotPaid') : '' }; }), { fmt: 'sar', aria: t('vaTrend') }) : '<p class="hr-hint">' + t('vaTrendFew') + '</p>'));
+      '<h4>' + t('vaTrend') + '</h4>' + (V() && hist.filter(function(v){ return v != null; }).length > 1 ? V().lineChart(tr.map(function(x, i){ return { label: mon(x.month), y: hist[i] || 0, note: hist[i] == null ? t('vaNotPaid') : t('vaPaidDays') + ': ' + (hd[i] == null ? '-' : hd[i]) }; }), { fmt: 'sar', aria: t('vaTrend') }) : '<p class="hr-hint">' + t('vaTrendFew') + '</p>') +
+      (hd.length ? '<h4>' + t('vaDaysMonth') + '</h4><div class="vs-wrap"><table class="vs-tbl vs-dm"><thead><tr>' + tr.map(function(x){ return '<th class="n">' + esc(mon(x.month)) + '</th>'; }).join('') + '</tr></thead><tbody><tr>' +
+        tr.map(function(x, i){ return '<td class="n">' + (hd[i] == null ? '<span class="vs-na">-</span>' : '<b class="num">' + hd[i] + '</b><small class="num">' + acctFmt(hist[i] || 0) + '</small>') + '</td>'; }).join('') + '</tr></tbody></table></div>' : ''));
     wireViz(dw || document.body);
   }
   function cities(){

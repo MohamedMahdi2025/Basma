@@ -1453,6 +1453,19 @@ function api_payrollVarianceMonth(req, me) {
   var emps = book.emps, dimsOf = book.dimsOf, comps = currentCompMap_(monthLast_(month) > today_() ? today_() : monthLast_(month));
   var chg = function (a, b) { a = Number(a) || 0; b = Number(b) || 0; return { diff: r2_(a - b), pct: b ? r2_((a - b) / Math.abs(b) * 100) : (a ? null : 0) }; };
   var big = function (a, b) { var c = chg(a, b); return Math.abs(c.diff) >= minAmt && (c.pct === null || Math.abs(c.pct) >= pct); };
+  var compBy = {}; readAll_(SHEETS.COMP).forEach(function (c) { if (c.status === 'approved') (compBy[c.empId] = compBy[c.empId] || []).push(c); });
+  Object.keys(compBy).forEach(function (k) { compBy[k].sort(function (a, b) { return String(a.effectiveFrom).localeCompare(String(b.effectiveFrom)) || String(a.approvedAt || '').localeCompare(String(b.approvedAt || '')); }); });
+  var winFrom = baseMonths.slice().sort()[0] + '-01', winTo = monthLast_(month);
+  var pkgTotal_ = function (c) { var o = parseJson_(c.otherJson, {}) || {}; return r2_((Number(c.basic) || 0) + (Number(c.housing) || 0) + (Number(c.transport) || 0) + Object.keys(o).reduce(function (t, k) { return t + (Number(o[k]) || 0); }, 0)); };
+  /** the latest approved package that took effect after the base began and by the end of the month, with the one before it */
+  var pkgChange = function (id) {
+    var rows = compBy[id] || [], hit = -1;
+    for (var i = rows.length - 1; i >= 0; i--) { var ef = String(rows[i].effectiveFrom).slice(0, 10); if (ef > winFrom && ef <= winTo) { hit = i; break; } }
+    if (hit < 0) return null;
+    var c = rows[hit], p = hit > 0 ? rows[hit - 1] : null, ap = emps[c.approvedBy];
+    return { from: String(c.effectiveFrom).slice(0, 10), at: String(c.approvedAt || '').slice(0, 10), by: ap ? (ap.name || '') : '', note: str_(c.reason, 200),
+      basic: [p ? r2_(p.basic) : null, r2_(c.basic)], housing: [p ? r2_(p.housing) : null, r2_(c.housing)], total: [p ? pkgTotal_(p) : null, pkgTotal_(c)] };
+  };
   var ids = {}; Object.keys(cur).forEach(function (k) { ids[k] = 1; }); bases.forEach(function (b) { Object.keys(b).forEach(function (k) { ids[k] = 1; }); });
   var all = [];
   Object.keys(ids).forEach(function (id) {
@@ -1488,12 +1501,12 @@ function api_payrollVarianceMonth(req, me) {
     }
     if (c0 && e.status === 'disabled') { flags.push('paid_inactive'); score += 30; }
     flags = flags.filter(function (fl, i2) { return flags.indexOf(fl) === i2; });
-    var d = dimsOf(e), hist = trendMonths.map(function (m) { var x = perMonth(m)[id]; return x ? r2_(x.net) : null; });
+    var d = dimsOf(e), hist = trendMonths.map(function (m) { var x = perMonth(m)[id]; return x ? r2_(x.net) : null; }), histDays = trendMonths.map(function (m) { var x = perMonth(m)[id]; return x ? r2_(x.paidDays) : null; });
     var pick = function (x) { return x ? { gross: r2_(x.gross), deductions: r2_(x.deductions), net: r2_(x.net), gosiEmployee: r2_(x.gosiEmployee), gosiEmployer: r2_(x.gosiEmployer), companyCost: r2_(x.companyCost), days: r2_(x.paidDays), absent: r2_(x.absentDays) } : null; };
     var lines = {}; Object.keys((c0 || {}).lines || {}).concat(Object.keys((b || {}).lines || {})).forEach(function (k) { lines[k] = [r2_(((c0 || {}).lines || {})[k] || 0), r2_(((b || {}).lines || {})[k] || 0)]; });
     all.push({ empId: id, empNo: String(e.empNo || ''), name: e.name || '', status: e.status || '', hireDate: String(e.hireDate || '').slice(0, 10), dims: d,
       cur: pick(c0), base: pick(b), net: chg(c0 ? c0.net : 0, b ? b.net : 0), gross: chg(c0 ? c0.gross : 0, b ? b.gross : 0), cost: chg(c0 ? c0.companyCost : 0, b ? b.companyCost : 0),
-      package: pkg, drivers: drv, reasons: reasons.slice(0, 5), lines: lines, flags: flags, score: Math.round(score), hist: hist });
+      package: pkg, pkgChange: c0 ? pkgChange(id) : null, drivers: drv, reasons: reasons.slice(0, 5), lines: lines, flags: flags, score: Math.round(score), hist: hist, histDays: histDays });
   });
   // filters; the counts beside each option follow every other filter (varFilter_)
   var VF = varFilter_(req.filters), f = VF.f, dimPass = function (dd) { return VF.pass({ dims: dd, name: '', empNo: '' }); };

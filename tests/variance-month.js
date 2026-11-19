@@ -137,6 +137,12 @@ ok(pv2.cells.every(c => near(bySp[c.month + '|' + c.sponsor] || 0, c.net)) && Ob
 ok(mm3.people.find(p => p.empNo === '1001').dims.payGroup !== mm3.people.find(p => p.empNo === '1001').m['2026-09'][6], 'fixture: the moved person\'s current sponsor differs from the one that paid September');
 C.ctx.update_('employees', Object.assign({}, C.ctx.readAll_('employees').find(e => e.empNo === '1001'), { payGroupId: aliGroup, _cached: false })); C.ctx.READ_MEMO_ = {};
 
+console.log('Why a person changed (2026-11-20)');
+v = V({});
+const aliP = v.people.find(p => p.name === 'Ali Riyadh');
+ok(aliP.pkgChange && aliP.pkgChange.basic[1] === 2500 && aliP.pkgChange.basic[0] === 2000 && /^2026-09/.test(aliP.pkgChange.from), 'the package change behind a raise: date and basic before -> after', aliP.pkgChange);
+ok(Array.isArray(aliP.histDays) && aliP.histDays.length === 12 && aliP.histDays[11] != null && aliP.histDays[0] === null, 'days paid for each of the twelve months (null when not paid)', aliP.histDays);
+ok(v.people.find(p => p.name === 'Omar Arar').pkgChange === null, 'no package change, no package note');
 console.log('Net-only month (imported from the disbursement report)');
 const C2 = load({ setupKeyHash: sha('k'), now: Date.parse('2026-11-05T06:00:00Z') });
 const bt2 = C2.call({ action: 'bootstrap', setupKey: 'k', name: 'المالك', empNo: '1000' });
