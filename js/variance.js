@@ -215,6 +215,8 @@ function netOnlyNote(ms){ return ms && ms.length ? '<div class="vs-note" role="n
   '.vs-dv .tr{display:grid;grid-template-columns:1fr 1fr;height:16px}.vs-dv .l{display:flex;justify-content:flex-end;border-inline-end:1px solid var(--axis,#C3C8C4)}.vs-dv .r{display:flex}.vs-dv i{display:block;height:16px}.vs-dv i:not([style*="width:0%"]){min-width:2px}.vs-dv i.up{background:var(--vs-up);border-radius:0 4px 4px 0}.vs-dv i.dn{background:var(--vs-dn);border-radius:4px 0 0 4px}' +
   '.vs-dvk{display:flex;gap:16px;font-size:12px;color:var(--ink-2);margin-top:6px}.vs-dvk i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:6px;vertical-align:-1px}.vs-dvk i.up{background:var(--vs-up)}.vs-dvk i.dn{background:var(--vs-dn)}' +
   '.vs-rate{display:grid;grid-template-columns:1fr 1fr;gap:8px}.vs-rate div{padding:12px 14px;border-radius:12px;background:var(--q-tray,#F4F2EC)}.vs-rate span{display:block;font-size:12px;color:var(--ink-2);margin-bottom:4px}.vs-rate b{font-size:17px;direction:ltr;unicode-bidi:isolate}' +
+  '.vs-ins .db-ch h3{display:flex;align-items:center;gap:8px}.vs-ins .db-ch h3 i{color:var(--brand)}.vs-insl{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:8px}.vs-insl li{display:grid;grid-template-columns:36px 1fr auto;gap:12px;align-items:center;padding:10px 12px;border-radius:12px;background:var(--well);font-size:14px;line-height:1.6}.vs-insl li.sev{background:color-mix(in srgb,#C98500 12%,var(--card))}.vs-insl .vi-ic{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:color-mix(in srgb,var(--brand) 12%,var(--card));color:var(--brand);font-size:18px}.vs-insl li.sev .vi-ic{background:color-mix(in srgb,#C98500 20%,var(--card));color:#8F5A0C}' +
+  '.vs-heat td.vh0{color:var(--ink-3)}.vs-heat td,.vs-heat th{min-width:92px}.vs-heat td:first-child,.vs-heat th:first-child{position:sticky;inset-inline-start:0;background:var(--card);z-index:1}' +
   '.vs-more-p{display:flex;align-items:center;gap:12px;margin:-12px 0 20px;font-size:13px;color:var(--ink-2)}.vs-mo td.sp-c svg{display:block}.vs-mo th.mo,.vs-mo td.mo{min-width:96px}.vs-mo td.nonly{color:var(--ink-2);font-style:italic}';
   document.head.appendChild(st); })();
 
@@ -329,6 +331,121 @@ function sheetSection(body){
   load();
 }
 
+// ======================================================================= variance: smart findings, extra charts, print report (2026-11-19)
+Object.assign(T.ar, { viTitle:'ما يلفت الانتباه', viLead:'ملاحظات مكتوبة من الأرقام نفسها بعد الفلاتر. اضغط "اعرض" لتصفية القائمة.', viShow:'اعرض',
+  viDriver:'أكبر سبب لتغير رواتب المستمرين هو {d}: {a} ({p}% من تغيرهم).', viDim:'{d} هي الأكثر تغيرا: {a} ({p}% من حركة الإدارات كلها، زيادات ونقص).',
+  viConc:'{n} موظفين فقط يفسرون {p}% من حركة الرواتب كلها (زيادات ونقص).', viJoin:'{n} منضمين أضافوا {a} للصافي.', viLeave:'{n} مغادرين خفضوا الصافي {a}.',
+  viReview:'{n} موظفين عليهم ملاحظات تحتاج مراجعة (يختلف عن العقد، قفزة خصومات، صافي صفر، مدفوع وهو موقوف).', viBig:'{n} موظفين تغير صافيهم أكثر من 25%.',
+  viRate:'متوسط الصافي للموظف {w} من {a} إلى {b}.', viRise:'ارتفع', viFall:'انخفض', viTrendUp:'الصافي يرتفع للشهر {n} على التوالي ({a} منذ {m}).', viTrendDn:'الصافي ينخفض للشهر {n} على التوالي ({a} منذ {m}).',
+  viNone:'لا شيء لافت في هذه المقارنة.', viTm:'المؤشر', viAvgHead:'متوسط الصافي للموظف', vaLinesMv:'بنود الراتب الأكثر تغيرا', vaLinesMvLead:'أكبر الفروقات بين الأساس والشهر.',
+  vaHeat:'الإدارات × أسباب التغير', vaHeatLead:'أحمر = زيادة، أزرق = نقص، والأغمق أكبر. الصف الأخير هو الإجمالي.', vaDist:'توزيع نسب التغير', vaDistLead:'عدد الموظفين المستمرين حسب نسبة تغير صافيهم.',
+  vaPrint:'طباعة التقرير', prKind:'تقرير فروقات الرواتب', prTitle:'تحليل فروقات الرواتب: {m} مقابل {b}', prSummary:'الخلاصة', prKpi:'المؤشرات', prFilters:'الفلاتر المطبقة', prNoFilters:'بدون فلاتر: كل الموظفين',
+  prTop:'أكبر الزيادات', prBottom:'أكبر الانخفاضات', prFlagged:'موظفون يحتاجون مراجعة', prFoot:'تقرير من بصمة. كل الأرقام من مسيرات الرواتب المقفلة بعد الفلاتر المذكورة.', prSignPay:'مسؤول الرواتب', prSignFin:'المدير المالي', prSignCeo:'الاعتماد' });
+Object.assign(T.en, { viTitle:'What stands out', viLead:'Findings written from the numbers themselves, after the filters. Tap "Show" to filter the list.', viShow:'Show',
+  viDriver:'The biggest cause of change for continuing staff is {d}: {a} ({p}% of their change).', viDim:'{d} changed the most: {a} ({p}% of all department movement, up and down).',
+  viConc:'Just {n} people explain {p}% of all pay movement (up and down).', viJoin:'{n} joiners added {a} to net.', viLeave:'{n} leavers took {a} off net.',
+  viReview:'{n} people carry notes that need a look (off contract, deductions spike, net zero, paid while disabled).', viBig:'{n} people\'s net changed by more than 25%.',
+  viRate:'Average net per person {w} from {a} to {b}.', viRise:'rose', viFall:'fell', viTrendUp:'Net has risen {n} months in a row ({a} since {m}).', viTrendDn:'Net has fallen {n} months in a row ({a} since {m}).',
+  viNone:'Nothing stands out in this comparison.', viTm:'Measure', viAvgHead:'Average net per person', vaLinesMv:'Pay lines that moved most', vaLinesMvLead:'The largest differences between the base and the month.',
+  vaHeat:'Departments × causes of change', vaHeatLead:'Red = increase, blue = decrease, darker = larger. The last row is the total.', vaDist:'How big the changes are', vaDistLead:'Continuing staff by the % change in their net.',
+  vaPrint:'Print report', prKind:'Payroll variance report', prTitle:'Payroll variance: {m} against {b}', prSummary:'Summary', prKpi:'Key figures', prFilters:'Filters applied', prNoFilters:'No filters: everyone',
+  prTop:'Largest increases', prBottom:'Largest decreases', prFlagged:'People to review', prFoot:'Report from BASMA. Every figure comes from locked payroll runs after the filters shown.', prSignPay:'Payroll officer', prSignFin:'Finance manager', prSignCeo:'Approval' });
+var VA_REVIEW = ['off_package', 'deductions_spike', 'net_zero', 'paid_inactive'];
+/** Plain-language findings from one variance answer; each may carry the filter that shows the people behind it. */
+function vaInsights(r){
+  var out = [], T0 = r.totals, tot = r.people.reduce(function(a, p){ return a + Math.abs(p.net.diff || 0); }, 0) || 1, netOnly = (r.netOnlyMonths || []).length > 0, b = r.bridge;
+  var pct = function(x, of){ return Math.round(Math.abs(x) / (of || tot) * 100); };
+  var stay = r.people.filter(function(p){ return p.cur && p.base; });
+  if (!netOnly) { var D = r.drivers, ks = Object.keys(D).filter(function(k){ return D[k]; }).sort(function(a, c){ return Math.abs(D[c]) - Math.abs(D[a]); });
+    if (ks.length && Math.abs(b.stayers) > 0.5) out.push({ ic: 'lightning', s: t('viDriver').replace('{d}', t('dv_' + ks[0])).replace('{a}', sgn(D[ks[0]])).replace('{p}', pct(D[ks[0]], Math.abs(b.stayers) || 1)) }); }
+  var dep = (r.dims.department || []).slice().sort(function(a, c){ return Math.abs(c.net.diff) - Math.abs(a.net.diff); })[0];
+  var depMove = (r.dims.department || []).reduce(function(a, d){ return a + Math.abs(d.net.diff || 0); }, 0) || 1;
+  if (dep && Math.abs(dep.net.diff) > 0.5 && (r.dims.department || []).length > 1) out.push({ ic: 'buildings', s: t('viDim').replace('{d}', esc(dep.key)).replace('{a}', sgn(dep.net.diff)).replace('{p}', pct(dep.net.diff, depMove)), f: { department: [dep.key] } });
+  var byAbs = r.people.slice().sort(function(a, c){ return Math.abs(c.net.diff) - Math.abs(a.net.diff); }), cum = 0, n = 0;
+  for (var i = 0; i < byAbs.length && n < 10; i++) { cum += Math.abs(byAbs[i].net.diff); n++; if (cum / tot >= 0.8) break; }
+  if (r.people.length > 8 && n <= Math.max(3, r.people.length / 5) && cum > 0.5) out.push({ ic: 'target', s: t('viConc').replace('{n}', n).replace('{p}', Math.min(100, Math.round(cum / tot * 100))) });
+  var jn = r.people.filter(function(p){ return p.cur && !p.base; }).length, lv = r.people.filter(function(p){ return !p.cur && p.base; }).length;
+  if (jn) out.push({ ic: 'user-plus', s: t('viJoin').replace('{n}', jn).replace('{a}', sgn(b.joiners)), f: { flags: ['joiner', 'returner'] } });
+  if (lv) out.push({ ic: 'user-minus', s: t('viLeave').replace('{n}', lv).replace('{a}', sgn(b.leavers)), f: { flags: ['leaver'] } });
+  var rev = r.people.filter(function(p){ return p.flags.some(function(f){ return VA_REVIEW.indexOf(f) >= 0; }); }).length;
+  if (rev) out.push({ ic: 'warning', sev: 1, s: t('viReview').replace('{n}', rev), f: { flags: VA_REVIEW.slice() } });
+  var big = stay.filter(function(p){ return p.net.pct != null && Math.abs(p.net.pct) > 25; }).length;
+  if (big) out.push({ ic: 'arrows-out-line-vertical', s: t('viBig').replace('{n}', big), f: { changed: true } });
+  var vr = r.volumeRate || {}; if (vr.avgBefore && Math.abs(vr.avgNow - vr.avgBefore) >= 1) out.push({ ic: 'user', s: t('viRate').replace('{w}', t(vr.avgNow > vr.avgBefore ? 'viRise' : 'viFall')).replace('{a}', acctFmt(vr.avgBefore)).replace('{b}', acctFmt(vr.avgNow)) });
+  var tr = (r.trend || []).filter(function(p){ return !p.none; });
+  if (tr.length >= 3) { var dir = 0, run = 0; for (var j = tr.length - 1; j > 0; j--) { var d = tr[j].net - tr[j - 1].net, s = d > 0.5 ? 1 : d < -0.5 ? -1 : 0; if (!s || (dir && s !== dir)) break; dir = s; run++; }
+    if (run >= 2) out.push({ ic: dir > 0 ? 'trend-up' : 'trend-down', s: t(dir > 0 ? 'viTrendUp' : 'viTrendDn').replace('{n}', run).replace('{a}', sgn(tr[tr.length - 1].net - tr[tr.length - 1 - run].net)).replace('{m}', mon(tr[tr.length - 1 - run].month)) }); }
+  return out;
+}
+/** Department x driver heatmap: diverging colour (red up, blue down) scaled to the largest cell; a total row at the end. */
+function vaHeat(rows, keys){
+  if (!rows.length || !keys.length) return '<p class="hr-hint">-</p>';
+  var mx = 1; rows.forEach(function(r){ keys.forEach(function(k){ mx = Math.max(mx, Math.abs(r.drivers[k] || 0)); }); });
+  var cell = function(v){ v = Math.round((v || 0) * 100) / 100; if (!v) return '<td class="n vh0">-</td>'; var a = Math.min(1, Math.abs(v) / mx), mix = Math.round(10 + a * 55);
+    return '<td class="n" style="background:color-mix(in srgb,var(' + (v > 0 ? '--vs-up' : '--vs-dn') + ') ' + mix + '%,var(--card));' + (mix > 45 ? 'color:#fff' : '') + '" title="' + esc(sgn(v)) + '">' + '<bdi dir="ltr">' + sgn(v) + '</bdi>' + '</td>'; };
+  var tot = {}; keys.forEach(function(k){ tot[k] = rows.reduce(function(a, r){ return a + (r.drivers[k] || 0); }, 0); });
+  return '<div class="vs-wrap"><table class="vs-tbl vs-heat"><thead><tr><th>' + t('vsDept') + '</th>' + keys.map(function(k){ return '<th class="n">' + t('dv_' + k) + '</th>'; }).join('') + '<th class="n">' + t('vaChg') + '</th></tr></thead><tbody>' +
+    rows.map(function(r){ return '<tr class="go" data-hv="' + esc(r.key) + '"><td>' + esc(r.key) + '</td>' + keys.map(function(k){ return cell(r.drivers[k]); }).join('') + '<td class="n"><b>' + '<bdi dir="ltr">' + sgn(r.net.diff) + '</bdi>' + '</b></td></tr>'; }).join('') +
+    '</tbody><tfoot><tr><td>' + t('vsTotal') + '</td>' + keys.map(function(k){ return '<td class="n">' + '<bdi dir="ltr">' + sgn(tot[k]) + '</bdi>' + '</td>'; }).join('') + '<td class="n">' + sgn(rows.reduce(function(a, r){ return a + r.net.diff; }, 0)) + '</td></tr></tfoot></table></div>';
+}
+var VA_BINS = [[-Infinity, -20, '< −20%'], [-20, -10, '−20…−10%'], [-10, -2, '−10…−2%'], [-2, 2, '±2%'], [2, 10, '+2…+10%'], [10, 20, '+10…+20%'], [20, Infinity, '> +20%']];
+function vaDist(stay){
+  var c = VA_BINS.map(function(){ return 0; });
+  stay.forEach(function(p){ var x = p.net.pct == null ? 0 : p.net.pct; for (var i = 0; i < VA_BINS.length; i++) if (x >= VA_BINS[i][0] && x < VA_BINS[i][1]) { c[i]++; break; } });
+  return VA_BINS.map(function(bn, i){ return { label: bn[2], value: c[i], alt: i < 3, tip: bn[2] + ': ' + c[i] }; });
+}
+/** A static SVG line for the print report (no hover, no animation). */
+function vaPrintLine(pts){
+  if (pts.length < 2) return '';
+  var W = 640, H = 170, L = 56, R = 12, Tt = 12, B = 26, mx = Math.max.apply(null, pts.map(function(p){ return p.y; }).concat([1])), mn = Math.min.apply(null, pts.map(function(p){ return p.y; }).concat([0]));
+  mn = Math.min(0, mn); var x = function(i){ return L + i * (W - L - R) / (pts.length - 1); }, y = function(v){ return Tt + (H - Tt - B) * (1 - (v - mn) / ((mx - mn) || 1)); };
+  var d = pts.map(function(p, i){ return (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(p.y).toFixed(1); }).join(' ');
+  return '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:auto" dir="ltr"><g font-size="9" fill="#6B786D">' + [mx, (mx + mn) / 2, mn].map(function(v){ var yy = y(v); return '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + yy + '" y2="' + yy + '" stroke="#E6E9E6"/><text x="' + (L - 6) + '" y="' + (yy + 3) + '" text-anchor="end">' + acctFmt(Math.round(v)) + '</text>'; }).join('') +
+    pts.map(function(p, i){ return '<text x="' + x(i) + '" y="' + (H - 8) + '" text-anchor="middle">' + esc(p.label) + '</text>'; }).join('') + '</g><path d="' + d + '" fill="none" stroke="#2F5134" stroke-width="2"/>' +
+    pts.map(function(p, i){ return '<circle cx="' + x(i) + '" cy="' + y(p.y) + '" r="3" fill="#2F5134"/>'; }).join('') + '</svg>';
+}
+function vaPrintBars(items){
+  var mx = Math.max.apply(null, items.map(function(i){ return Math.abs(i.value || 0); }).concat([1]));
+  return '<table class="tb pbars"><tbody>' + items.map(function(i){ var w = Math.abs(i.value || 0) / mx * 100, up = (i.value || 0) > 0;
+    return '<tr><td style="width:34%">' + esc(i.label) + '</td><td><div style="display:grid;grid-template-columns:1fr 1fr;direction:ltr"><div style="display:flex;justify-content:flex-end;border-right:1px solid #B9C0BA">' + (up ? '' : '<i style="display:block;height:10px;width:' + w + '%;background:#2a78d6;border-radius:3px 0 0 3px"></i>') + '</div><div>' + (up ? '<i style="display:block;height:10px;width:' + w + '%;background:#e34948;border-radius:0 3px 3px 0"></i>' : '') + '</div></div></td><td class="n" style="width:18%">' + sgn(i.value) + '</td></tr>'; }).join('') + '</tbody></table>';
+}
+/** The printable report: A4, the shared document kit (letterhead, page numbers, footer), charts drawn as static SVG. */
+function printVar(r){
+  if (!window.Doc) return loadScript('js/doc.js').then(function(){ printVar(r); });
+  var lang = S.lang === 'en' ? 'en' : 'ar', T0 = r.totals, b = r.bridge, netOnly = (r.netOnlyMonths || []).length > 0, ins = vaInsights(r);
+  var kv = function(lbl, v, c){ return '<div><dt>' + esc(lbl) + '</dt><dd class="num">' + v + (c ? ' <small style="font-weight:400;color:#6B786D">' + c + '</small>' : '') + '</dd></div>'; };
+  var cTxt = function(c){ return c && c.diff ? sgn(c.diff) + (c.pct != null ? ' (' + (c.diff > 0 ? '+' : '−') + Math.abs(c.pct) + '%)' : '') : '0'; };
+  var steps = [['dv_joiners', b.joiners], ['dv_leavers', b.leavers]].concat(netOnly ? [['vaStayers', b.stayers]] : Object.keys(r.drivers).filter(function(k){ return r.drivers[k]; }).map(function(k){ return ['dv_' + k, r.drivers[k]]; }));
+  var stay = r.people.filter(function(p){ return p.cur && p.base && p.net.diff; }).sort(function(a, c){ return c.net.diff - a.net.diff; });
+  var ptab = function(list){ return '<table class="tb"><thead><tr><th>' + t('vsEmpNo') + '</th><th>' + t('vsName') + '</th><th>' + t('vsDept') + '</th><th class="n">' + esc(vaL('base')) + '</th><th class="n">' + esc(vaL('now')) + '</th><th class="n">' + t('vaChg') + '</th></tr></thead><tbody>' +
+    list.map(function(p){ return '<tr><td class="num">' + esc(p.empNo) + '</td><td>' + esc(p.name) + '</td><td>' + esc(p.dims.department) + '</td><td class="n num">' + acctFmt(p.base ? p.base.net : 0) + '</td><td class="n num">' + acctFmt(p.cur ? p.cur.net : 0) + '</td><td class="n num">' + sgn(p.net.diff) + '</td></tr>'; }).join('') + '</tbody></table>'; };
+  var dtab = function(k, lbl){ var rows = (r.dims[k] || []).slice(0, 15); return '<table class="tb"><thead><tr><th>' + lbl + '</th><th class="n">' + t('vsHead') + '</th><th class="n">' + esc(vaL('base')) + '</th><th class="n">' + esc(vaL('now')) + '</th><th class="n">' + t('vaChg') + '</th><th class="n">' + t('vaShare') + '</th></tr></thead><tbody>' +
+    rows.map(function(d){ return '<tr><td>' + esc(dimVal(k, d.key)) + '</td><td class="n num">' + d.headCur + '</td><td class="n num">' + acctFmt(d.netBase) + '</td><td class="n num">' + acctFmt(d.netCur) + '</td><td class="n num">' + sgn(d.net.diff) + '</td><td class="n num">' + (d.shareCur || 0) + '%</td></tr>'; }).join('') +
+    '</tbody><tfoot><tr><td>' + t('vsTotal') + '</td><td class="n num">' + T0.headcount.cur + '</td><td class="n num">' + acctFmt(T0.net.base) + '</td><td class="n num">' + acctFmt(T0.net.cur) + '</td><td class="n num">' + sgn(T0.net.change.diff) + '</td><td class="n">100%</td></tr></tfoot></table>'; };
+  var flagged = r.people.filter(function(p){ return p.flags.length; }).slice(0, 30);
+  var fl = xlFilters(VA.f);
+  var tr = (r.trend || []).filter(function(p){ return !p.none; });
+  var body =
+    '<section><div class="grid c4">' + kv(t('vsHead'), T0.headcount.cur, cTxt(T0.headcount.change)) + kv(t('vsNet'), acctFmt(T0.net.cur), cTxt(T0.net.change)) +
+      kv(t('vsGross'), acctFmt(T0.gross.cur), netOnly ? t('vaNA') : cTxt(T0.gross.change)) + kv(t('vsCost'), acctFmt(T0.companyCost.cur), netOnly ? t('vaNA') : cTxt(T0.companyCost.change)) + '</div></section>' +
+    (netOnly ? '<section><p class="note warn">' + esc(t('vaNetOnly').replace('{m}', r.netOnlyMonths.map(mon).join('، '))) + '</p></section>' : '') +
+    '<section><h2 class="sh">' + t('prSummary') + '</h2><p>' + esc(t('vaStory1').replace('{now}', vaL('now')).replace('{net}', acctFmt(T0.net.cur))) + ' ' + esc(T0.net.change.diff ? t(T0.net.change.diff > 0 ? 'vaStoryUp' : 'vaStoryDown').replace('{d}', acctFmt(Math.abs(T0.net.change.diff))).replace('{p}', T0.net.change.pct == null ? '' : '(' + Math.abs(T0.net.change.pct) + '%)') : t('vaStorySame')) + ' ' + esc(t('vaStoryCmp').replace('{base}', vaL('base'))) + '</p>' +
+      (ins.length ? '<ul style="margin:6px 0 0;padding-inline-start:18px">' + ins.map(function(x){ return '<li>' + x.s + '</li>'; }).join('') + '</ul>' : '') + '</section>' +
+    '<section><h2 class="sh">' + t('prFilters') + '</h2><p style="margin:0">' + (fl.length ? fl.map(function(x){ return esc(x[0]) + ': ' + esc(x[1]); }).join(' · ') : t('prNoFilters')) + ' · ' + t('vaBaseIs') + ': ' + esc((r.baseMonths || []).map(mon).join('، ')) + '</p></section>' +
+    (tr.length > 1 ? '<section><h2 class="sh">' + t('vaTrend') + '</h2>' + vaPrintLine(tr.map(function(p){ return { label: mon(p.month), y: p.net }; })) + '</section>' : '') +
+    '<section><h2 class="sh">' + t('vaBridge') + '</h2><p style="margin:0 0 4px">' + esc(t('vaBridgeLead').replace('{a}', acctFmt(b.from)).replace('{b}', acctFmt(b.to))) + '</p>' + vaPrintBars(steps.map(function(s){ return { label: t(s[0]), value: s[1] }; })) + '</section>' +
+    '<section><h2 class="sh">' + t('vsSponsor') + '</h2>' + dtab('payGroup', t('vsSponsor')) + '</section>' +
+    '<section><h2 class="sh">' + t('vsDept') + '</h2>' + dtab('department', t('vsDept')) + '</section>' +
+    (stay.length ? '<section><h2 class="sh">' + t('prTop') + '</h2>' + ptab(stay.slice(0, 10)) + '</section><section><h2 class="sh">' + t('prBottom') + '</h2>' + ptab(stay.slice(-10).reverse().filter(function(p){ return p.net.diff < 0; })) + '</section>' : '') +
+    (netOnly ? '' : '<section><h2 class="sh">' + t('vaLines') + '</h2><table class="tb"><thead><tr><th>' + t('vaLines') + '</th><th class="n">' + esc(vaL('base')) + '</th><th class="n">' + esc(vaL('now')) + '</th><th class="n">' + t('vaChg') + '</th></tr></thead><tbody>' +
+      r.lines.slice().sort(function(a, c){ return lineRank(a.code) - lineRank(c.code); }).map(function(l){ return '<tr><td>' + esc(lineName(l.code)) + (l.code.indexOf('d:') === 0 ? ' (-)' : '') + '</td><td class="n num">' + acctFmt(l.base) + '</td><td class="n num">' + acctFmt(l.cur) + '</td><td class="n num">' + sgn(l.change.diff) + '</td></tr>'; }).join('') + '</tbody></table></section>') +
+    (flagged.length ? '<section><h2 class="sh">' + t('prFlagged') + '</h2><table class="tb"><thead><tr><th>' + t('vsEmpNo') + '</th><th>' + t('vsName') + '</th><th class="n">' + t('vaChg') + '</th><th>' + t('vaFlags') + '</th></tr></thead><tbody>' +
+      flagged.map(function(p){ return '<tr><td class="num">' + esc(p.empNo) + '</td><td>' + esc(p.name) + '</td><td class="n num">' + sgn(p.net.diff) + '</td><td>' + p.flags.map(function(f){ return esc(t('fl_' + f)); }).join('، ') + '</td></tr>'; }).join('') + '</tbody></table></section>' : '');
+  Doc.open({ lang: lang, kind: t('prKind'), title: t('prTitle').replace('{m}', vaL('now')).replace('{b}', vaL('base')), ref: 'VAR-' + r.month, body: body,
+    extraCss: 'table.pbars td{border-bottom:1px solid #F1EEE6;padding:4px 8px}table.pbars tr:nth-child(even) td{background:none}', by: S.me ? S.me.name : '', footnote: t('prFoot'),
+    qr: 'VAR|' + r.month + '|' + (r.baseMonths || []).join('+') + '|' + T0.net.cur.toFixed(2), signatures: [Doc.bi(T.ar.prSignPay, T.en.prSignPay, lang), Doc.bi(T.ar.prSignFin, T.en.prSignFin, lang), Doc.bi(T.ar.prSignCeo, T.en.prSignCeo, lang)] });
+}
+
 // ======================================================================= variance analysis
 var VA = { month: '', compare: 'm1', pct: 10, min: 100, f: {}, dim: 'payGroup', limit: 200 };
 var VA_DIMS = DIMS.concat([['flags', 'vaFlags']]);
@@ -350,7 +467,7 @@ function varianceSection(body){
     top.innerHTML = '<div class="vs-top">' + selBox('vaM', 'vsMonth', r.months.map(function(m){ return [m, mon(m)]; }), r.month) +
       selBox('vaC', 'vaCmp', [['m1', t('vaM1')], ['m2', t('vaM2')], ['avg3', t('vaAvg3')], ['avg6', t('vaAvg6')], ['avg12', t('vaAvg12')], ['yoy', t('vaYoy')], ['pick', t('vaPick')]].concat(r.months.filter(function(m){ return m !== r.month; }).map(function(m){ return [m, mon(m)]; })),
         String(r.compare).indexOf('pick:') === 0 ? 'pick' : r.compare) +
-      '<span class="sp"></span><button type="button" class="btn btn-dark btn-sm" id="vaX">' + ph('microsoft-excel-logo') + 'Excel</button></div>' +
+      '<span class="sp"></span><button type="button" class="btn btn-line btn-sm" id="vaPr">' + ph('printer') + t('vaPrint') + '</button><button type="button" class="btn btn-dark btn-sm" id="vaX">' + ph('microsoft-excel-logo') + 'Excel</button></div>' +
       (function(){ var picked = String(r.compare).indexOf('pick:') === 0 ? r.baseMonths : [], open = VA.picking || picked.length, earlier = r.months.filter(function(m){ return m < r.month; });
         return (open ? '<div class="vs-pick" id="vaPk"><p>' + t('vaPickLead') + '</p><div class="vs-pick-m">' + earlier.map(function(m){ return '<label><input type="checkbox" value="' + m + '"' + (picked.indexOf(m) >= 0 ? ' checked' : '') + '><span>' + esc(mon(m)) + '</span></label>'; }).join('') + '</div>' +
           '<div class="btnrow"><button type="button" class="btn btn-line btn-sm" data-pk="all">' + t('vaPickAll') + '</button><button type="button" class="btn btn-line btn-sm" data-pk="none">' + t('vaPickNone') + '</button><button type="button" class="btn btn-dark btn-sm" id="vaPkGo">' + t('vaPickGo') + '</button></div></div>' : '') +
@@ -372,8 +489,22 @@ function varianceSection(body){
     var na = function(c){ return netOnly ? '<small>' + t('vaNA') + '</small>' : chg(c); };
     // charts
     var tr = (r.trend || []).filter(function(p){ return !p.none; });
-    var trendCard = card('vaTr', t('vaTrend'), t('vaTrendLead'), tr.length > 1 && V() ? V().lineChart(tr.map(function(p){ return { label: mon(p.month), y: p.net, note: t('vsHead') + ' ' + p.headcount + (p.netOnly ? ' · ' + t('vaNetOnlyShort') : '') }; }), { fmt: 'sar', aria: t('vaTrend') }) : '<p class="hr-hint">' + t('vaTrendFew') + '</p>',
-      vtbl([t('vsMonth'), t('vsHead'), t('vsNet'), t('vsGross')], tr.map(function(p){ return [esc(mon(p.month)), p.headcount, acctFmt(p.net), p.netOnly ? '-' : acctFmt(p.gross)]; })));
+    // trend: one measure at a time on one axis (net, gross, deductions, cost, headcount, average net per person); net-only months
+    // drop out of the gross / deductions / cost lines instead of showing net as if it were gross
+    var TM = [['net', 'vsNet'], ['gross', 'vsGross'], ['deductions', 'vsDed'], ['companyCost', 'vsCost'], ['headcount', 'vsHead'], ['avg', 'viAvgHead']], tm = VA.tm || 'net';
+    var tv = function(p){ return tm === 'avg' ? (p.headcount ? Math.round(p.net / p.headcount * 100) / 100 : 0) : p[tm] || 0; };
+    var trP = tr.filter(function(p){ return !(p.netOnly && ['gross', 'deductions', 'companyCost'].indexOf(tm) >= 0); });
+    var trendCard = card('vaTr', t('vaTrend'), seg('vaTm', TM.map(function(x){ return [x[0], t(x[1])]; }), tm), trP.length > 1 && V() ? V().lineChart(trP.map(function(p){ return { label: mon(p.month), y: tv(p), note: t('vsHead') + ' ' + p.headcount + (p.netOnly ? ' · ' + t('vaNetOnlyShort') : '') }; }), { fmt: tm === 'headcount' ? '' : 'sar', aria: t('vaTrend') }) : '<p class="hr-hint">' + t('vaTrendFew') + '</p>',
+      vtbl([t('vsMonth'), t('vsHead'), t('vsNet'), t('vsGross'), t('vsDed'), t('viAvgHead')], tr.map(function(p){ return [esc(mon(p.month)), p.headcount, acctFmt(p.net), p.netOnly ? '-' : acctFmt(p.gross), p.netOnly ? '-' : acctFmt(p.deductions || 0), p.headcount ? acctFmt(Math.round(p.net / p.headcount)) : '-']; })));
+    var ins = vaInsights(r);
+    var insCard = '<div class="db-card vs-ins"><div class="db-ch"><h3>' + ph('sparkle') + ' ' + t('viTitle') + '</h3></div><p>' + t('viLead') + '</p>' + (ins.length ? '<ul class="vs-insl">' + ins.map(function(x, i){ return '<li class="' + (x.sev ? 'sev' : '') + '"><span class="vi-ic">' + ph(x.ic) + '</span><span class="vi-t">' + x.s + '</span>' + (x.f ? '<button type="button" class="btn btn-line btn-sm" data-vi="' + i + '">' + t('viShow') + '</button>' : '') + '</li>'; }).join('') + '</ul>' : '<p class="hr-hint">' + t('viNone') + '</p>') + '</div>';
+    var mvLines = netOnly ? [] : r.lines.filter(function(l){ return l.change.diff; }).slice(0, 8);
+    var linesCard = mvLines.length ? card('vaLm', t('vaLinesMv'), t('vaLinesMvLead'), dvBars(mvLines.map(function(l){ var effect = l.code.indexOf('d:') === 0 ? -l.change.diff : l.change.diff; return { label: lineName(l.code) + (l.code.indexOf('d:') === 0 ? ' (−)' : ''), value: effect, tip: lineName(l.code) + ': ' + acctFmt(l.base) + ' → ' + acctFmt(l.cur) }; })),
+      vtbl([t('vaLines'), vaL('base'), vaL('now'), t('vaChg')], mvLines.map(function(l){ return [esc(lineName(l.code)), acctFmt(l.base), acctFmt(l.cur), sgn(l.change.diff)]; }))) : '';
+    var hk = netOnly ? ['joiners', 'leavers'] : ['joiners', 'leavers'].concat(Object.keys(D).filter(function(k){ return D[k]; }));
+    var heatCard = (r.dims.department || []).length > 1 ? '<div class="db-card"><div class="db-ch"><h3>' + t('vaHeat') + '</h3></div><p>' + t('vaHeatLead') + '</p>' + vaHeat((r.dims.department || []).slice(0, 15), hk) + '</div>' : '';
+    var stayAll = r.people.filter(function(p){ return p.cur && p.base; });
+    var distCard = stayAll.length > 2 && V() ? card('vaDs', t('vaDist'), t('vaDistLead'), V().cols(vaDist(stayAll), { labels: true }), vtbl([t('vaDist'), t('vsHead')], vaDist(stayAll).map(function(x){ return [esc(x.label), x.value]; }))) : '';
     var steps = [['dv_joiners', b.joiners], ['dv_leavers', b.leavers]].concat(netOnly ? [['vaStayers', b.stayers]] : Object.keys(D).filter(function(k){ return D[k]; }).map(function(k){ return ['dv_' + k, D[k]]; }));
     var bridgeCard = card('vaBr', t('vaBridge'), t('vaBridgeLead').replace('{a}', acctFmt(b.from)).replace('{b}', acctFmt(b.to)), dvBars(steps.map(function(s){ return { label: t(s[0]), value: s[1] }; })),
       vtbl([t('vaBy'), t('vaChg')], [[t('vaFrom'), acctFmt(b.from)]].concat(steps.map(function(s){ return [t(s[0]), sgn(s[1])]; })).concat([[t('vaTo'), acctFmt(b.to)]])));
@@ -393,7 +524,7 @@ function varianceSection(body){
     el.innerHTML = netOnlyNote(r.netOnlyMonths) + story +
       K.tiles([[t('vsHead'), String(T0.headcount.cur), chg(T0.headcount.change), true], [t('vsNet'), amt(T0.net.cur), chg(T0.net.change)], [t('vsGross'), amt(T0.gross.cur), na(T0.gross.change)],
         [t('vsDed'), amt(T0.deductions.cur), na(T0.deductions.change)], [t('vsCost'), amt(T0.companyCost.cur), na(T0.companyCost.change)]]) +
-      '<div class="vs-grid"><div class="wide">' + trendCard + '</div>' + bridgeCard + moverCard + mixCard + rateCard + '</div>' +
+      '<div class="vs-grid"><div class="wide">' + insCard + '</div><div class="wide">' + trendCard + '</div>' + bridgeCard + moverCard + (linesCard || '') + (distCard || '') + mixCard + rateCard + (heatCard ? '<div class="wide">' + heatCard + '</div>' : '') + '</div>' +
       '<h3 class="vs-h">' + t('vaBy') + '</h3><div class="vs-tabs">' + DIMS.map(function(d){ return '<button type="button" data-dim="' + d[0] + '" aria-pressed="' + (VA.dim === d[0]) + '">' + t(d[1]) + '</button>'; }).join('') + '</div>' +
       '<div class="vs-wrap"><table class="vs-tbl"><thead><tr><th>' + dimLabel + '</th><th class="n">' + esc(vaL('base')) + ' · ' + t('vsHead') + '</th><th class="n">' + esc(vaL('now')) + ' · ' + t('vsHead') + '</th><th class="n">' + t('vaJoin') + '</th><th class="n">' + t('vaLeave') + '</th>' +
         '<th class="n">' + esc(vaL('base')) + ' · ' + t('vsNet') + '</th><th class="n">' + esc(vaL('now')) + ' · ' + t('vsNet') + '</th><th class="n">' + t('vaChg') + '</th><th class="n">' + t('vaShare') + '</th><th>' + t('vaFlags') + '</th></tr></thead><tbody>' +
@@ -421,6 +552,10 @@ function varianceSection(body){
     $$('[data-go-p]', el).forEach(function(x){ x.onclick = function(){ person(r.people[+x.dataset.goP]); }; x.onkeydown = function(e){ if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); x.onclick(); } }; });
     var all2 = $('#vaAll', el); if (all2) all2.onclick = function(){ VA.limit = 0; draw(); };
     $('#vaX', top).onclick = function(){ exportVar(r); };
+    $('#vaPr', top).onclick = function(){ printVar(r); };
+    $$('#vaTm button', el).forEach(function(b2){ b2.onclick = function(){ VA.tm = b2.dataset.v; draw(); }; });
+    $$('[data-vi]', el).forEach(function(b2){ b2.onclick = function(){ var x = ins[+b2.dataset.vi]; if (!x || !x.f) return; Object.keys(x.f).forEach(function(k){ VA.f[k] = x.f[k]; }); load(); }; });
+    $$('[data-hv]', el).forEach(function(tr2){ tr2.onclick = function(){ VA.f.department = [tr2.dataset.hv]; load(); }; });
   }
   function person(p){
     var keys = orderLines(Object.keys(p.lines)), netOnly = (R.netOnlyMonths || []).length > 0;
