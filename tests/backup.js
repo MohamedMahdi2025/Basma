@@ -54,5 +54,15 @@ ok(B.raw({ action: 'orgCreate', setupKey: 'k', nameAr: 'ثالثة', unn: '70000
 B.props.BACKUP_KEY = 'short';
 ok(push(msg(), 'short').error === 'not_available', 'a key shorter than 32 characters is never accepted');
 
+// moveSet: the owner freezes or undoes the move with the setup key, no Apps Script editor
+delete B.props.MOVED_TO;
+ok(B.call({ action: 'demoData', setupKey: 'x', mode: 'moveSet', moved: 'https://a.up.railway.app/c/bestgas/api' }).ok !== true, 'moveSet needs the setup key');
+ok(B.call({ action: 'demoData', setupKey: 'k', mode: 'moveSet', moved: 'https://evil.example/c/x/api' }).error === 'not_available', 'moveSet only accepts a Railway API address');
+r = B.call({ action: 'demoData', setupKey: 'k', mode: 'moveSet', moved: 'https://basma-api-production.up.railway.app/c/bestgas/api', backupKey: 'K'.repeat(44) });
+ok(r.ok && r.moved && r.backupKey && !JSON.stringify(r).includes('KKKK'), 'moveSet freezes, stores the backup key and never echoes it');
+ok(B.call({ action: 'myTasks' }).error === 'moved', 'after moveSet the app is told where to go');
+r = B.call({ action: 'demoData', setupKey: 'k', mode: 'moveSet', moved: '' });
+ok(r.ok && !r.moved && !B.props.MOVED_TO, 'moveSet with an empty address undoes the move (rollback) even while frozen');
+
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exitCode = failed ? 1 : 0;

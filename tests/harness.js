@@ -114,7 +114,7 @@ function load(opts = {}) {
       create: name => { const id = 'book' + (Object.keys(books).length + 1); books[id] = { name, tabs: {} }; return book(id); },
       openById: id => { if (!books[id]) throw new Error('no spreadsheet ' + id); return book(id); }
     },
-    PropertiesService: { getScriptProperties: () => ({ getProperty: k => (k in props ? props[k] : null), setProperty: (k, v) => { props[k] = v; }, getProperties: () => Object.assign({}, props) }) },
+    PropertiesService: { getScriptProperties: () => ({ getProperty: k => (k in props ? props[k] : null), setProperty: (k, v) => { props[k] = v; }, deleteProperty: k => { delete props[k]; }, getProperties: () => Object.assign({}, props) }) },
     CacheService: { getScriptCache: () => ({
       get: k => (cache[k] && cache[k].exp > FakeDate.now() ? cache[k].v : null),
       put: (k, v, s) => { cache[k] = { v, exp: FakeDate.now() + s * 1000 }; },

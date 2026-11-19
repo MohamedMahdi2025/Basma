@@ -1272,7 +1272,7 @@ function handle_(req) {
     setOrg_(PLATFORM_ACTIONS_[action] ? orgRec_(homeOrgId_()) : resolveOrg_(req, action));
     // only the home organisation moved; of the owner's tools only the export still runs (a salary load into the frozen Sheet would
     // be lost to Friday's backup)
-    if (!ORG_ || ORG_.home) { var moved = movedTo_(); if (moved && !(MOVED_OK_[action] && (action !== 'demoData' || req.mode === 'bookExport'))) return { ok: false, error: 'moved', api: moved }; }
+    if (!ORG_ || ORG_.home) { var moved = movedTo_(); if (moved && !(MOVED_OK_[action] && (action !== 'demoData' || req.mode === 'bookExport' || req.mode === 'moveSet'))) return { ok: false, error: 'moved', api: moved }; }
     if (READ_ONLY_ACTIONS[action]) { USE_TAB_CACHE_ = true; preloadFor_(action); }
     if (PUBLIC_ACTIONS[action]) return fn(req, null);
     var me = readToken_(req.token);

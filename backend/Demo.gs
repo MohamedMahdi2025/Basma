@@ -86,6 +86,7 @@ function api_demoData(req) {
   if (mode === 'packageSet') return withLock_(function () { return packageSet_(req); });
   if (mode === 'sheetYear') return withLock_(function () { return sheetYear_(req); });
   if (mode === 'bookExport') return bookExport_(req);
+  if (mode === 'moveSet') return moveSet_(req);
   fail_('bad_request');
 }
 
@@ -650,4 +651,18 @@ function api_backupPush(req) {
     forget_(tab); bumpTab_(tab);
     return { ok: true, tab: tab, written: rows.length };
   });
+}
+
+/**
+ * moveSet (owner setup key): freezes the home book for the move to Postgres, or undoes it, without the Apps Script editor.
+ * moved = the new API address (only an https Railway address ending in /c/<slug>/api is accepted) or '' to undo (rollback);
+ * backupKey (optional, 32+ chars) = the HMAC key the weekly backup signs with. Answers yes / no only, never a value.
+ */
+function moveSet_(req) {
+  var p = PropertiesService.getScriptProperties(), moved = String(req.moved == null ? '' : req.moved).trim();
+  if (moved && !/^https:\/\/[a-z0-9-]+\.up\.railway\.app\/c\/[a-z0-9-]+\/api$/.test(moved)) fail_('not_available');
+  if (req.backupKey != null) { var k = String(req.backupKey).trim(); if (k.length < 32) fail_('not_available'); p.setProperty('BACKUP_KEY', k); }
+  if (moved) p.setProperty('MOVED_TO', moved); else p.deleteProperty('MOVED_TO');
+  audit_('owner', 'move_set', '', moved ? 'frozen' : 'undone');
+  return { ok: true, moved: !!movedTo_(), backupKey: !!p.getProperty('BACKUP_KEY') };
 }
