@@ -216,6 +216,7 @@ function netOnlyNote(ms){ return ms && ms.length ? '<div class="vs-note" role="n
   '.vs-dvk{display:flex;gap:16px;font-size:12px;color:var(--ink-2);margin-top:6px}.vs-dvk i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:6px;vertical-align:-1px}.vs-dvk i.up{background:var(--vs-up)}.vs-dvk i.dn{background:var(--vs-dn)}' +
   '.vs-rate{display:grid;grid-template-columns:1fr 1fr;gap:8px}.vs-rate div{padding:12px 14px;border-radius:12px;background:var(--q-tray,#F4F2EC)}.vs-rate span{display:block;font-size:12px;color:var(--ink-2);margin-bottom:4px}.vs-rate b{font-size:17px;direction:ltr;unicode-bidi:isolate}' +
   '.vs-ins .db-ch h3{display:flex;align-items:center;gap:8px}.vs-ins .db-ch h3 i{color:var(--brand)}.vs-insl{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:8px}.vs-insl li{display:grid;grid-template-columns:36px 1fr auto;gap:12px;align-items:center;padding:10px 12px;border-radius:12px;background:var(--well);font-size:14px;line-height:1.6}.vs-insl li.sev{background:color-mix(in srgb,#C98500 12%,var(--card))}.vs-insl .vi-ic{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:color-mix(in srgb,var(--brand) 12%,var(--card));color:var(--brand);font-size:18px}.vs-insl li.sev .vi-ic{background:color-mix(in srgb,#C98500 20%,var(--card));color:#8F5A0C}' +
+  '.vs-tbl td.vs-why-c{white-space:normal;min-width:240px;max-width:360px;font-size:12.5px;line-height:1.5;color:var(--ink-2)}.vs-tbl td.vs-why-c div+div{margin-top:2px}' +
   '.vs-heat td.vh0{color:var(--ink-3)}.vs-heat td,.vs-heat th{min-width:92px}.vs-heat td:first-child,.vs-heat th:first-child{position:sticky;inset-inline-start:0;background:var(--card);z-index:1}' +
   '.vs-more-p{display:flex;align-items:center;gap:12px;margin:-12px 0 20px;font-size:13px;color:var(--ink-2)}.vs-mo td.sp-c svg{display:block}.vs-mo th.mo,.vs-mo td.mo{min-width:96px}.vs-mo td.nonly{color:var(--ink-2);font-style:italic}';
   document.head.appendChild(st); })();
@@ -351,6 +352,27 @@ Object.assign(T.en, { viTitle:'What stands out', viLead:'Findings written from t
   vaPrint:'Print report', prKind:'Payroll variance report', prTitle:'Payroll variance: {m} against {b}', prSummary:'Summary', prKpi:'Key figures', prFilters:'Filters applied', prNoFilters:'No filters: everyone',
   prTop:'Largest increases', prBottom:'Largest decreases', prFlagged:'People to review', prFoot:'Report from BASMA. Every figure comes from locked payroll runs after the filters shown.', prSignPay:'Payroll officer', prSignFin:'Finance manager', prSignCeo:'Approval' });
 var VA_REVIEW = ['off_package', 'deductions_spike', 'net_zero', 'paid_inactive'];
+// hire date, days worked and the reason for each change, per person (owner 2026-11-20: "need to see all data as the hiring
+// date, the reason of the increases, days working comparison")
+Object.assign(T.ar, { vaHire:'تاريخ التعيين', vaDaysCol:'أيام العمل', vaWhy:'سبب التغير', wyNew:'تعيين جديد في {d}', wyPartial:'شهر جزئي: {n} يوم مدفوع', wyLeft:'لم يُصرف له هذا الشهر (غادر أو أُوقف)',
+  wyBack:'عاد بعد انقطاع', wyDays:'أيام العمل {a} → {b}', wyPkg:'تغير الراتب الثابت (عقد أو باقة جديدة)', wyNone:'بدون تغير', wyNetOnly:'صافي فقط هذا الشهر: لا تفصيل للبنود' });
+Object.assign(T.en, { vaHire:'Hire date', vaDaysCol:'Days worked', vaWhy:'Reason for the change', wyNew:'New hire on {d}', wyPartial:'Part month: {n} days paid', wyLeft:'Not paid this month (left or stopped)',
+  wyBack:'Back after a break', wyDays:'Days worked {a} → {b}', wyPkg:'Fixed pay changed (new contract or package)', wyNone:'No change', wyNetOnly:'Net only this month: no line breakdown' });
+function vaDays(p){ var a = p.base ? p.base.days : null, b = p.cur ? p.cur.days : null; return { base: a, cur: b, diff: a != null && b != null ? Math.round((b - a) * 100) / 100 : null }; }
+/** The reasons behind one person's change, most important first, as plain sentences (no server call: lines and flags are in the answer). */
+function vaWhy(p, netOnly){
+  var out = [], d = vaDays(p), f = p.flags || [];
+  if (f.indexOf('joiner') >= 0) { out.push(t('wyNew').replace('{d}', p.hireDate || '-')); if (d.cur != null && d.cur > 0 && d.cur < 28) out.push(t('wyPartial').replace('{n}', d.cur)); }
+  if (f.indexOf('returner') >= 0) out.push(t('wyBack'));
+  if (f.indexOf('leaver') >= 0) out.push(t('wyLeft'));
+  if (p.cur && p.base) {
+    if (d.diff) out.push(t('wyDays').replace('{a} → {b}', '⁦' + d.base + ' → ' + d.cur + '⁩'));
+    if (f.indexOf('package_change') >= 0) out.push(t('wyPkg'));
+    if (netOnly) out.push(t('wyNetOnly'));
+    else (p.reasons || []).slice(0, 4).forEach(function(x){ out.push(lineName(x.line) + ': ⁦' + acctFmt(x.from) + ' → ' + acctFmt(x.to) + ' (' + sgn(x.effect) + ')⁩'); });
+  }
+  return out.length ? out : [t('wyNone')];
+}
 /** Plain-language findings from one variance answer; each may carry the filter that shows the people behind it. */
 function vaInsights(r){
   var out = [], T0 = r.totals, tot = r.people.reduce(function(a, p){ return a + Math.abs(p.net.diff || 0); }, 0) || 1, netOnly = (r.netOnlyMonths || []).length > 0, b = r.bridge;
@@ -417,8 +439,8 @@ function printVar(r){
   var cTxt = function(c){ return c && c.diff ? sgn(c.diff) + (c.pct != null ? ' (' + (c.diff > 0 ? '+' : '−') + Math.abs(c.pct) + '%)' : '') : '0'; };
   var steps = [['dv_joiners', b.joiners], ['dv_leavers', b.leavers]].concat(netOnly ? [['vaStayers', b.stayers]] : Object.keys(r.drivers).filter(function(k){ return r.drivers[k]; }).map(function(k){ return ['dv_' + k, r.drivers[k]]; }));
   var stay = r.people.filter(function(p){ return p.cur && p.base && p.net.diff; }).sort(function(a, c){ return c.net.diff - a.net.diff; });
-  var ptab = function(list){ return '<table class="tb"><thead><tr><th>' + t('vsEmpNo') + '</th><th>' + t('vsName') + '</th><th>' + t('vsDept') + '</th><th class="n">' + esc(vaL('base')) + '</th><th class="n">' + esc(vaL('now')) + '</th><th class="n">' + t('vaChg') + '</th></tr></thead><tbody>' +
-    list.map(function(p){ return '<tr><td class="num">' + esc(p.empNo) + '</td><td>' + esc(p.name) + '</td><td>' + esc(p.dims.department) + '</td><td class="n num">' + acctFmt(p.base ? p.base.net : 0) + '</td><td class="n num">' + acctFmt(p.cur ? p.cur.net : 0) + '</td><td class="n num">' + sgn(p.net.diff) + '</td></tr>'; }).join('') + '</tbody></table>'; };
+  var ptab = function(list){ return '<table class="tb"><thead><tr><th>' + t('vsEmpNo') + '</th><th>' + t('vsName') + '</th><th>' + t('vsDept') + '</th><th class="n">' + esc(vaL('base')) + '</th><th class="n">' + esc(vaL('now')) + '</th><th class="n">' + t('vaChg') + '</th><th>' + t('vaHire') + '</th><th class="n">' + t('vaDaysCol') + '</th><th>' + t('vaWhy') + '</th></tr></thead><tbody>' +
+    list.map(function(p){ var dd = vaDays(p); return '<tr><td class="num">' + esc(p.empNo) + '</td><td>' + esc(p.name) + '</td><td>' + esc(p.dims.department) + '</td><td class="n num">' + acctFmt(p.base ? p.base.net : 0) + '</td><td class="n num">' + acctFmt(p.cur ? p.cur.net : 0) + '</td><td class="n num">' + sgn(p.net.diff) + '</td><td class="num">' + esc(p.hireDate || '-') + '</td><td class="n num">' + (dd.base == null ? '-' : dd.base) + ' → ' + (dd.cur == null ? '-' : dd.cur) + '</td><td><small style="color:#15201A;font-size:8pt">' + vaWhy(p, netOnly).map(esc).join('<br>') + '</small></td></tr>'; }).join('') + '</tbody></table>'; };
   var dtab = function(k, lbl){ var rows = (r.dims[k] || []).slice(0, 15); return '<table class="tb"><thead><tr><th>' + lbl + '</th><th class="n">' + t('vsHead') + '</th><th class="n">' + esc(vaL('base')) + '</th><th class="n">' + esc(vaL('now')) + '</th><th class="n">' + t('vaChg') + '</th><th class="n">' + t('vaShare') + '</th></tr></thead><tbody>' +
     rows.map(function(d){ return '<tr><td>' + esc(dimVal(k, d.key)) + '</td><td class="n num">' + d.headCur + '</td><td class="n num">' + acctFmt(d.netBase) + '</td><td class="n num">' + acctFmt(d.netCur) + '</td><td class="n num">' + sgn(d.net.diff) + '</td><td class="n num">' + (d.shareCur || 0) + '%</td></tr>'; }).join('') +
     '</tbody><tfoot><tr><td>' + t('vsTotal') + '</td><td class="n num">' + T0.headcount.cur + '</td><td class="n num">' + acctFmt(T0.net.base) + '</td><td class="n num">' + acctFmt(T0.net.cur) + '</td><td class="n num">' + sgn(T0.net.change.diff) + '</td><td class="n">100%</td></tr></tfoot></table>'; };
@@ -533,11 +555,12 @@ function varianceSection(body){
         '</tbody><tfoot><tr><td>' + t('vsTotal') + '</td><td class="n">' + T0.headcount.base + '</td><td class="n">' + T0.headcount.cur + '</td><td class="n">' + jn + '</td><td class="n">' + lv + '</td><td class="n">' + amt(T0.net.base) + '</td><td class="n">' + amt(T0.net.cur) + '</td><td class="n">' + chg(T0.net.change) + '</td><td class="n">100%</td><td></td></tr></tfoot></table></div>' +
       (netOnly ? '' : '<h3 class="vs-h">' + t('vaLines') + '</h3><div class="vs-wrap"><table class="vs-tbl"><thead><tr><th>' + t('vaLines') + '</th><th class="n">' + esc(vaL('base')) + '</th><th class="n">' + esc(vaL('now')) + '</th><th class="n">' + t('vaChg') + '</th></tr></thead><tbody>' +
         r.lines.slice().sort(function(a, c){ return lineRank(a.code) - lineRank(c.code); }).map(function(l){ return '<tr><td>' + esc(lineName(l.code)) + (l.code.indexOf('d:') === 0 ? ' <small>(-)</small>' : '') + '</td><td class="n">' + amt(l.base) + '</td><td class="n">' + amt(l.cur) + '</td><td class="n">' + chg(l.change) + '</td></tr>'; }).join('') + '</tbody></table></div>') +
-      '<h3 class="vs-h">' + t('vaPeople') + ' · ' + t('vsShown').replace('{n}', r.shown).replace('{t}', r.all) + '</h3><div class="vs-wrap"><table class="vs-tbl"><thead><tr><th>' + t('vsEmpNo') + '</th><th>' + t('vsName') + '</th><th>' + t('vsSponsor') + '</th><th>' + t('vsDept') + '</th><th>' + t('vsLoc') + '</th>' +
-        '<th class="n">' + esc(vaL('base')) + '</th><th class="n">' + esc(vaL('now')) + '</th><th class="n">' + t('vaChg') + '</th><th>' + t('vaFlags') + '</th></tr></thead><tbody>' +
-        ppl.map(function(p, i){ return '<tr class="go" data-pi="' + i + '"><td dir="ltr">' + esc(p.empNo) + '</td><td>' + esc(p.name) + '</td><td>' + esc(p.dims.payGroup) + '</td><td>' + esc(p.dims.department) + '</td><td>' + esc(p.dims.location) + '</td>' +
-          '<td class="n">' + amt(p.base ? p.base.net : null) + '</td><td class="n">' + amt(p.cur ? p.cur.net : null) + '</td><td class="n">' + chg(p.net) + '</td><td>' + p.flags.map(function(f){ return '<span class="vs-flag">' + t('fl_' + f) + '</span>'; }).join('') + '</td></tr>'; }).join('') +
-        '</tbody><tfoot><tr><td colspan="5">' + t('vsTotal') + ' (' + r.shown + ')</td><td class="n">' + amt(T0.net.base) + '</td><td class="n">' + amt(T0.net.cur) + '</td><td class="n">' + chg(T0.net.change) + '</td><td></td></tr></tfoot></table></div>' +
+      '<h3 class="vs-h">' + t('vaPeople') + ' · ' + t('vsShown').replace('{n}', r.shown).replace('{t}', r.all) + '</h3><div class="vs-wrap"><table class="vs-tbl"><thead><tr><th>' + t('vsEmpNo') + '</th><th>' + t('vsName') + '</th><th>' + t('vsSponsor') + '</th><th>' + t('vsDept') + '</th><th>' + t('vsLoc') + '</th><th>' + t('vaHire') + '</th><th class="n">' + t('vaDaysCol') + '</th>' +
+        '<th class="n">' + esc(vaL('base')) + '</th><th class="n">' + esc(vaL('now')) + '</th><th class="n">' + t('vaChg') + '</th><th>' + t('vaWhy') + '</th><th>' + t('vaFlags') + '</th></tr></thead><tbody>' +
+        ppl.map(function(p, i){ var dd = vaDays(p); return '<tr class="go" data-pi="' + i + '"><td dir="ltr">' + esc(p.empNo) + '</td><td>' + esc(p.name) + '</td><td>' + esc(p.dims.payGroup) + '</td><td>' + esc(p.dims.department) + '</td><td>' + esc(p.dims.location) + '</td>' +
+          '<td class="num" dir="ltr">' + esc(p.hireDate || '-') + '</td><td class="n"><bdi dir="ltr">' + (dd.base == null ? '-' : dd.base) + ' → ' + (dd.cur == null ? '-' : dd.cur) + '</bdi></td>' +
+          '<td class="n">' + amt(p.base ? p.base.net : null) + '</td><td class="n">' + amt(p.cur ? p.cur.net : null) + '</td><td class="n">' + chg(p.net) + '</td><td class="vs-why-c">' + vaWhy(p, netOnly).map(function(x){ return '<div>' + esc(x) + '</div>'; }).join('') + '</td><td>' + p.flags.map(function(f){ return '<span class="vs-flag">' + t('fl_' + f) + '</span>'; }).join('') + '</td></tr>'; }).join('') +
+        '</tbody><tfoot><tr><td colspan="7">' + t('vsTotal') + ' (' + r.shown + ')</td><td class="n">' + amt(T0.net.base) + '</td><td class="n">' + amt(T0.net.cur) + '</td><td class="n">' + chg(T0.net.change) + '</td><td></td><td></td></tr></tfoot></table></div>' +
       (lim && r.people.length > lim ? '<p class="vs-more-p">' + t('vaLimit').replace('{n}', lim).replace('{t}', r.people.length) + ' <button type="button" class="btn btn-line btn-sm" id="vaAll">' + t('vaShowAll') + '</button></p>' : '');
     wireViz(el);
     $('#vaM', top).onchange = function(){ VA.month = this.value; load(); };
@@ -584,9 +607,11 @@ function varianceSection(body){
     var en = S.lang === 'en', title = t('vaTitle2') + ' ' + r.month + ' / ' + r.baseMonths.join('+');
     var pc = [{ key: 'empNo', label: t('vsEmpNo'), type: 'text' }, { key: 'name', label: t('vsName'), type: 'text' }].concat(DIMS.map(function(d){ return { key: d[0], label: t(d[1]), type: 'text' }; }))
       .concat([{ key: 'baseNet', label: vaL('base') + ' ' + t('vsNet'), type: 'money', sum: true }, { key: 'curNet', label: vaL('now') + ' ' + t('vsNet'), type: 'money', sum: true }, { key: 'diff', label: t('vaChg'), type: 'money', sum: true },
-        { key: 'baseGross', label: vaL('base') + ' ' + t('vsGross'), type: 'money', sum: true }, { key: 'curGross', label: vaL('now') + ' ' + t('vsGross'), type: 'money', sum: true }, { key: 'flags', label: t('vaFlags'), type: 'text' }, { key: 'score', label: 'Score', type: 'int' }]);
+        { key: 'baseGross', label: vaL('base') + ' ' + t('vsGross'), type: 'money', sum: true }, { key: 'curGross', label: vaL('now') + ' ' + t('vsGross'), type: 'money', sum: true }, { key: 'hireDate', label: t('vaHire'), type: 'text' }, { key: 'baseDays', label: vaL('base') + ' · ' + t('vaDaysCol'), type: 'num' }, { key: 'curDays', label: vaL('now') + ' · ' + t('vaDaysCol'), type: 'num' }, { key: 'why', label: t('vaWhy'), type: 'text' },
+        { key: 'flags', label: t('vaFlags'), type: 'text' }, { key: 'score', label: 'Score', type: 'int' }]);
     var nOnly = (r.netOnlyMonths || []).length > 0; // a net-only month has no real gross: leave those cells empty
     var prow = r.people.map(function(p){ var o = { empNo: p.empNo, name: p.name, baseNet: p.base ? p.base.net : 0, curNet: p.cur ? p.cur.net : 0, diff: p.net.diff, baseGross: nOnly ? null : p.base ? p.base.gross : 0, curGross: nOnly ? null : p.cur ? p.cur.gross : 0,
+      hireDate: p.hireDate || '', baseDays: p.base ? p.base.days : null, curDays: p.cur ? p.cur.days : null, why: vaWhy(p, nOnly).join(' · '),
       flags: p.flags.map(function(f){ return t('fl_' + f); }).join(', '), score: p.score }; DIMS.forEach(function(d){ o[d[0]] = dimVal(d[0], p.dims[d[0]]); }); return o; });
     var dc = [{ key: 'key', label: t('vaBy'), type: 'text' }, { key: 'headBase', label: vaL('base') + ' ' + t('vsHead'), type: 'int', sum: true }, { key: 'headCur', label: vaL('now') + ' ' + t('vsHead'), type: 'int', sum: true },
       { key: 'joiners', label: t('vaJoin'), type: 'int', sum: true }, { key: 'leavers', label: t('vaLeave'), type: 'int', sum: true }, { key: 'netBase', label: vaL('base') + ' ' + t('vsNet'), type: 'money', sum: true },
