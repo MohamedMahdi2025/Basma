@@ -5701,6 +5701,8 @@ function goArea(area, sub, arg, o){
     var cur = el.classList.contains('v2-sub') ? el.dataset.area === a.id + ':' + s.id : !el.classList.contains('center') && id === a.id;
     if (cur) el.setAttribute('aria-current', 'page'); else el.removeAttribute('aria-current'); });
   // the current space's page list opens by itself (unless this person closed it)
+  // sidebar accordion (owner 2026-11-20): moving to another space closes the ones left open, so the list stays short
+  if (S.navLast !== a.id) { S.navLast = a.id; S.navOpen = {}; $$('#v2Nav .v2-subs').forEach(function(x){ if (x.dataset.sp !== a.id && !x.hidden) { x.hidden = true; var tx = $('#v2Nav [data-tog="' + x.dataset.sp + '"]'); if (tx) tx.setAttribute('aria-expanded', 'false'); } }); }
   var spBox = $('#v2Nav [data-sp="' + a.id + '"]'); if (spBox && spBox.hidden && !(S.navOpen && S.navOpen[a.id] === false)) { spBox.hidden = false; var tg = $('#v2Nav [data-tog="' + a.id + '"]'); if (tg) tg.setAttribute('aria-expanded', 'true'); }
   var toPunch = isPunchPage(a.id, s.id), page = full ? null : $('.page.v2[data-page="' + a.id + '"]:not(.fp-page)', main);
   if (full) {

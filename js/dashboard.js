@@ -195,6 +195,20 @@ var css = '' +
 '.db-ring text{fill:var(--ink);font-family:var(--f-num,inherit);font-size:13px;font-weight:700}' +
 '@media print{.db-seg,.db-open,.db-go{display:none!important}}' +
 '@media print{.tabs,.topbar,.hr-rail,.db-filters button,.db-card .tg,.update-bar{display:none!important}.app{padding:0!important}.hr-shell{display:block!important;min-height:0!important}.db-card,.db-tile{break-inside:avoid}body{background:#fff}}';
+// One rhythm for every area page that uses the kit (owner 2026-11-20 "the redesign and the alignment"): 4 px grid, sections 24
+// apart, 16 inside; panels and cards 16 px corners and 24 px padding; tiles in a row share one height.
+var DBR = 'html body.v2-on.v2-on.v2-on.v2-on ';
+css += DBR + '.page.v2:not(.hm-page){padding-left:48px!important;padding-right:48px!important;padding-top:32px!important}' +
+  DBR + '.db-panel{border-radius:16px!important;padding:24px!important}' +
+  DBR + '.db-panel .db-ph{margin-bottom:16px!important}' +
+  DBR + '.db-tiles{gap:16px!important;align-items:stretch!important;margin-bottom:16px!important}' +
+  DBR + '.db-tile{border-radius:16px!important;padding:20px 24px!important;height:100%;box-sizing:border-box}' +
+  DBR + '.db-grid{gap:16px!important;margin-top:0!important;margin-bottom:16px!important}' + DBR + '.db-grid:last-child{margin-bottom:0!important}' +
+  DBR + '.db-card{border-radius:16px!important;padding:24px!important}' +
+  DBR + '.v2-area > .toolbar{gap:12px!important;margin:24px 0 16px!important}' +
+  DBR + '.v2-area > :is(.db,.db-panel) + :is(.db,.db-panel){margin-top:24px!important}' +
+  DBR + ':is(.tblwrap,.hr-desk){border-radius:16px!important}' +
+  '@media (max-width:900px){' + DBR + '.page.v2:not(.hm-page){padding-left:16px!important;padding-right:16px!important;padding-top:16px!important}' + DBR + ':is(.db-panel,.db-card){padding:16px!important}' + DBR + '.db-tile{padding:16px!important}' + DBR + ':is(.db-tiles,.db-grid){gap:12px!important}}';
 var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 
 var tip = null, gradN = 0;
