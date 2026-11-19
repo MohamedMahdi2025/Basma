@@ -2396,6 +2396,111 @@ html body.v2-on.nav2 .hm-daily{display:none!important}
 }
 @media (prefers-reduced-motion:reduce){html body.v2-on.nav2 :is(.td-go,.td-sc){transition:none}}
 </style>
+<style id="ds8">
+/* ============ ds8 "Clear" (2026-11-18; skills: ui-ux-pro-max design system + pro rules, bestgas-brand, frontend-design).
+   The owner found v6 heavy ("very bad"): beige everywhere, black slabs for the first tile, the current menu item and every
+   count, grain, trays inside cards. ds8 is one light, crisp layer over every screen:
+   - a cool off-white canvas, white cards with one hairline and a 1px shadow, 14px corners;
+   - the organisation's colour (--brand, from the company profile) is the only accent: current menu item, primary button,
+     focus ring, the "my day" card, counts; no black surfaces anywhere;
+   - one type scale (page 26/700, section 16/600, body 14, label 12/600) and tabular numbers;
+   - controls 40px high with 10px corners (44px touch targets on phones), visible focus, 150ms state changes;
+   - dark appearance from the same tokens.
+   Loads after ds7 (themeLast) and before brandTheme, so a company's own colour still wins. ============ */
+html body.v2-on.v2-on.v2-on{
+  --paper:#F4F6F3; --frame:#F4F6F3; --card:#FFFFFF; --well:#F1F4F0; --ink:#16201A; --ink-2:#4A574E; --ink-3:#768279;
+  --line:#E1E6E0; --line-2:#ECEFEB; --input:#C6CEC6;
+  --q-hair:var(--line); --q-hair-2:var(--line-2); --q-hair-3:var(--input); --q-tray:var(--well); --q-tray-2:#E8ECE7; --q-card:var(--card);
+  --q-brand-ink:color-mix(in srgb,var(--brand) 82%,#000); --q-tint:color-mix(in srgb,var(--brand) 10%,var(--card));
+  --c8-soft:color-mix(in srgb,var(--brand) 11%,var(--card)); --c8-soft-2:color-mix(in srgb,var(--brand) 18%,var(--card));
+  --c8-deep:color-mix(in srgb,var(--brand) 78%,#06130B);
+  --q-r-xl:18px; --q-r-l:16px; --q-r-m:12px; --q-r-s:10px; --r-ctl:10px; --r-card:16px; --r-sheet:20px;
+  --q-sh:0 1px 2px rgba(16,32,22,.05); --q-sh-up:0 2px 4px rgba(16,32,22,.05),0 12px 28px -14px rgba(16,32,22,.18);
+  --q-sh-float:0 24px 60px -24px rgba(16,32,22,.35),0 0 0 1px var(--line); --lift:var(--q-sh);
+  --ring:0 0 0 3px color-mix(in srgb,var(--brand) 28%,transparent);
+}
+html[data-theme="dark"] body.v2-on.v2-on.v2-on{
+  --paper:#0E1210; --frame:#0E1210; --card:#161B18; --well:#1C2320; --ink:#E8EEEA; --ink-2:#AAB6AE; --ink-3:#7C8880;
+  --line:#27302B; --line-2:#202824; --input:#3B4640; --q-tray-2:#222A26;
+  --q-brand-ink:color-mix(in srgb,var(--brand) 55%,#fff); --c8-soft:color-mix(in srgb,var(--brand) 22%,var(--card)); --c8-soft-2:color-mix(in srgb,var(--brand) 32%,var(--card));
+  --c8-deep:color-mix(in srgb,var(--brand) 62%,#000);
+  --q-sh:0 1px 2px rgba(0,0,0,.4); --q-sh-up:0 2px 4px rgba(0,0,0,.4),0 14px 30px -14px rgba(0,0,0,.6);
+}
+/* canvas: no grain, no trays */
+html body.v2-on.v2-on.v2-on::after{display:none!important}
+html body.v2-on.v2-on.v2-on #main,html body.v2-on.v2-on.v2-on .app.v2{background:var(--paper)!important}
+/* type scale */
+html body.v2-on.v2-on.v2-on #main :is(h1,.v2-ph h1,.hm-ph h1,.v3-hero h1){font-size:clamp(22px,2vw,26px)!important;font-weight:700!important;color:var(--ink);letter-spacing:0}
+html[lang="en"] body.v2-on.v2-on.v2-on #main :is(h1,.v3-hero h1){letter-spacing:-.02em!important}
+html body.v2-on.v2-on.v2-on #main :is(h2,h3,.db-ch h3,.vs-h){font-size:16px!important;font-weight:600!important;color:var(--ink)}
+html body.v2-on.v2-on.v2-on :is(.db-tile span,.hm-k .lb,.kpi span,.stat span,.td-k,.v2-grp){font-size:12px!important;font-weight:600!important;letter-spacing:0!important;color:var(--ink-2)!important;text-transform:none!important}
+/* shell: white top bar and side rail, a hairline between them and the page */
+html body.v2-on.v2-on.v2-on .v2-top{background:var(--card)!important;border-bottom:1px solid var(--line)!important;box-shadow:none!important}
+html body.v2-on.v2-on.v2-on .v2-side{background:var(--card)!important;border-inline-end:1px solid var(--line)!important}
+html body.v2-on.v2-on.v2-on .v2-nav a{border-radius:10px!important;color:var(--ink-2)!important;background:none!important;min-height:44px;font-weight:500;transition:background-color .15s,color .15s;position:relative}
+html body.v2-on.v2-on.v2-on .v2-nav a:hover{background:var(--well)!important;color:var(--ink)!important}
+html body.v2-on.v2-on.v2-on .v2-nav a[aria-current]{background:var(--c8-soft)!important;color:var(--q-brand-ink)!important;font-weight:700!important;box-shadow:none!important}
+html body.v2-on.v2-on.v2-on .v2-nav a[aria-current]::before{content:"";position:absolute;inset-block:10px;inset-inline-start:-14px;width:3px;border-radius:3px;background:var(--brand)}
+html body.v2-on.v2-on.v2-on .v2-nav a[aria-current] :is(i,.v3-ic){color:var(--brand)!important;background:none!important}
+html body.v2-on.v2-on.v2-on .v2-nav :is(.cnt,b.num){background:var(--c8-soft-2)!important;color:var(--q-brand-ink)!important;border:0!important;font-weight:700;min-width:22px;height:22px;border-radius:999px;display:inline-grid;place-items:center;padding:0 7px;font-size:12px}
+/* cards: one white surface, one hairline */
+html body.v2-on.v2-on.v2-on :is(.db-card,.hm-card,.card,.td-wait,.vs-story,.vs-wrap,.tblwrap,.panel,.box,.list:not(.cf-ol)){background:var(--card)!important;border:1px solid var(--line)!important;border-radius:16px!important;box-shadow:var(--q-sh)!important}
+html body.v2-on.v2-on.v2-on .db-card .tblwrap{border:0!important;box-shadow:none!important}
+/* KPI tiles: white, no tray, no black first tile */
+html body.v2-on.v2-on.v2-on :is(.db-tiles,.kpis,.stats,.hm-kpis){background:none!important;border:0!important;padding:0!important;box-shadow:none!important;gap:12px!important}
+html body.v2-on.v2-on.v2-on :is(.db-tile,.hm-k,.kpi,.stat){background:var(--card)!important;color:var(--ink)!important;border:1px solid var(--line)!important;border-radius:14px!important;box-shadow:var(--q-sh)!important;transition:border-color .15s,box-shadow .15s}
+html body.v2-on.v2-on.v2-on :is(.db-tile,.hm-k,.kpi,.stat) :is(b,.v,strong){color:var(--ink)!important;font-size:clamp(22px,2.1vw,28px)}
+html body.v2-on.v2-on.v2-on :is(.db-tile,.hm-k,.kpi,.stat) :is(small,p,em){color:var(--ink-2)!important}
+html body.v2-on.v2-on.v2-on :is(.db-tile,.hm-k).is-go:hover{border-color:color-mix(in srgb,var(--brand) 45%,var(--line))!important;box-shadow:var(--q-sh-up)!important}
+html body.v2-on.v2-on.v2-on :is(.db-tile,.hm-k,.kpi,.stat) :is(.v3-ic,.ic,.db-ic){background:var(--c8-soft)!important;color:var(--brand)!important;border:0!important}
+html body.v2-on.v2-on.v2-on :is(.db-tile,.hm-k) :is(.db-spark,.mo-line){stroke:var(--brand)!important;color:var(--brand)!important}
+/* Today band: the day card in the company colour, white type; waiting rows and shortcuts as calm cards */
+html body.v2-on.v2-on.v2-on.nav2 .td-day{background:var(--c8-deep)!important;color:#fff!important;border:0!important;border-radius:18px!important;box-shadow:0 18px 40px -22px color-mix(in srgb,var(--brand) 70%,#000)!important}
+html body.v2-on.v2-on.v2-on.nav2 .td-day :is(.td-k,.td-shift){color:rgba(255,255,255,.78)!important}
+html body.v2-on.v2-on.v2-on.nav2 .td-day .td-state{color:#fff!important}
+html body.v2-on.v2-on.v2-on.nav2 .td-day .td-go{background:#fff!important;color:var(--c8-deep)!important;border:0!important;border-radius:12px!important;font-weight:700;min-height:44px}
+html body.v2-on.v2-on.v2-on.nav2 .td-wait b.num,html body.v2-on.v2-on.v2-on #main .hm-row b.num{background:var(--c8-soft-2)!important;color:var(--q-brand-ink)!important}
+html body.v2-on.v2-on.v2-on.nav2 .td-sc{background:var(--card)!important;border:1px solid var(--line)!important;border-radius:14px!important;box-shadow:var(--q-sh)!important;color:var(--ink)!important;min-height:88px}
+html body.v2-on.v2-on.v2-on.nav2 .td-sc:hover{border-color:color-mix(in srgb,var(--brand) 45%,var(--line))!important;transform:translateY(-1px);box-shadow:var(--q-sh-up)!important}
+html body.v2-on.v2-on.v2-on.nav2 .td-sc :is(i,.td-ic){color:var(--brand)!important}
+html body.v2-on.v2-on.v2-on :is(.td-ic,.hm-r .ic,.row .ic){background:var(--c8-soft)!important;color:var(--brand)!important;border-radius:10px!important}
+/* page head: no slab, just the title, its purpose and the tabs */
+html body.v2-on.v2-on.v2-on .v3-hero{background:none!important;border:0!important;box-shadow:none!important;padding-inline:0!important}
+html body.v2-on.v2-on.v2-on .v3-hero-ic{background:var(--c8-soft)!important;color:var(--brand)!important}
+/* tabs: underline in the company colour */
+html body.v2-on.v2-on.v2-on .v2-views{border-bottom:1px solid var(--line)!important;gap:4px}
+html body.v2-on.v2-on.v2-on .v2-views :is(button,a){color:var(--ink-2)!important;border-radius:0!important;background:none!important;min-height:44px;font-weight:500}
+html body.v2-on.v2-on.v2-on .v2-views :is(button,a):hover{color:var(--ink)!important}
+html body.v2-on.v2-on.v2-on .v2-views :is(button,a):is([aria-selected="true"],[aria-current],.on){color:var(--q-brand-ink)!important;font-weight:700!important;box-shadow:inset 0 -2px 0 var(--brand)!important}
+/* buttons */
+html body.v2-on.v2-on.v2-on :is(.btn,button.btn){border-radius:10px!important;min-height:40px;font-weight:600;transition:background-color .15s,border-color .15s,box-shadow .15s}
+html body.v2-on.v2-on.v2-on :is(.btn-dark,.btn-primary,.btn.primary){background:var(--brand)!important;color:#fff!important;border:1px solid var(--brand)!important;box-shadow:0 1px 2px rgba(16,32,22,.12)!important}
+html body.v2-on.v2-on.v2-on :is(.btn-dark,.btn-primary,.btn.primary):hover{background:var(--c8-deep)!important;border-color:var(--c8-deep)!important}
+html body.v2-on.v2-on.v2-on :is(.btn-line,.btn-ghost,.btn-outline){background:var(--card)!important;color:var(--ink)!important;border:1px solid var(--input)!important}
+html body.v2-on.v2-on.v2-on :is(.btn-line,.btn-ghost,.btn-outline):hover{border-color:var(--ink-3)!important;background:var(--well)!important}
+html body.v2-on.v2-on.v2-on :is(.btn,button,a,[role=button],input,select,textarea):focus-visible{outline:2px solid var(--brand)!important;outline-offset:2px!important}
+html body.v2-on.v2-on.v2-on .btn > :is(.coin,.ic){background:rgba(255,255,255,.18)!important}
+/* fields */
+html body.v2-on.v2-on.v2-on :is(#main,.drawer,.form,.toolbar,.v2-area) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]),select,textarea){background:var(--card)!important;border:1px solid var(--input)!important;border-radius:10px!important;box-shadow:none!important;color:var(--ink)!important}
+html body.v2-on.v2-on.v2-on :is(#main,.drawer,.form,.toolbar,.v2-area) :is(input,select,textarea):focus{border-color:var(--brand)!important;box-shadow:var(--ring)!important}
+html body.v2-on.v2-on.v2-on .v2-top :is(input[type=search],.v2-search){background:var(--well)!important;border:1px solid transparent!important;border-radius:10px!important}
+/* tables */
+html body.v2-on.v2-on.v2-on :is(.tbl,.vs-tbl,.pt) th{background:var(--well)!important;color:var(--ink-2)!important;font-size:12px!important;font-weight:600!important;border-bottom:1px solid var(--line)!important}
+html body.v2-on.v2-on.v2-on :is(.tbl,.vs-tbl,.pt) td{border-bottom:1px solid var(--line-2)!important}
+html body.v2-on.v2-on.v2-on :is(.tbl,.vs-tbl,.pt) tbody tr:hover td{background:color-mix(in srgb,var(--brand) 4%,var(--card))!important}
+/* small things: chips, badges, empty states, drawers */
+html body.v2-on.v2-on.v2-on :is(.chip,.v3-pill,.badge):not(.cf-chip){border-radius:999px!important;background:var(--well)!important;color:var(--ink-2)!important;border:1px solid var(--line)!important}
+html body.v2-on.v2-on.v2-on .drawer{background:var(--card)!important;border-radius:20px!important}
+html body.v2-on.v2-on.v2-on :is(.db-hb .tr i,.db-cols .c i,.db-meter i){background:var(--brand)!important}
+html body.v2-on.v2-on.v2-on :is(.empty,.db-empty){background:var(--card)!important;border:1px dashed var(--input)!important;border-radius:16px!important}
+/* phones: 44px targets, white bottom bar with the check-in button in the company colour */
+@media (max-width:900px){
+  html body.v2-on.v2-on.v2-on :is(.btn,button.btn){min-height:44px}
+  html body.v2-on.v2-on.v2-on :is(.m-bar,.v2-bbar,.mbar,nav.bb){background:var(--card)!important;border-top:1px solid var(--line)!important}
+  html body.v2-on.v2-on.v2-on :is(.m-bar,.v2-bbar,.mbar,nav.bb) :is(.m-fab,.fab,.bb-fab,.mid){background:var(--brand)!important;color:#fff!important}
+}
+@media (prefers-reduced-motion:reduce){html body.v2-on.v2-on.v2-on :is(.td-sc,.db-tile,.hm-k,.btn,.v2-nav a){transition:none!important;transform:none!important}}
+</style>
 </head>
 <body>
 <div id="root"></div>
@@ -5252,7 +5357,7 @@ function areaLead(a){ var k = 'al' + a.id.charAt(0).toUpperCase() + a.id.slice(1
 /** Where the page body goes: the area body in the shell, #main before the shell exists. */
 function view(){ return $('#v2Body') || $('#main'); }
 /** The v2 block must come after every module's own <style>, so equal selectors resolve to v2. */
-function themeLast(){ ['dsv2', 'dsv3', 'dsed', 'dsfp', 'dspg', 'dsdark', 'dsmo', 'dsgate', 'dsfb', 'dsfbx', 'dsv4', 'dsv5', 'dsv6', 'ds7', 'brandTheme'].forEach(function(id){ var s = document.getElementById(id); if (s) document.head.appendChild(s); }); }
+function themeLast(){ ['dsv2', 'dsv3', 'dsed', 'dsfp', 'dspg', 'dsdark', 'dsmo', 'dsgate', 'dsfb', 'dsfbx', 'dsv4', 'dsv5', 'dsv6', 'ds7', 'ds8', 'brandTheme'].forEach(function(id){ var s = document.getElementById(id); if (s) document.head.appendChild(s); }); }
 function loadAll(files){ warmScripts(files); return files.reduce(function(p, f){ return p.then(function(){ return loadScript(f); }); }, Promise.resolve()); }
 
 /** Where a task from the bell opens. HR sections map to their area; personal items to growth or the profile. */
