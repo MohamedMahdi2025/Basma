@@ -1031,6 +1031,8 @@ function restCreateBook_(title) {
 function api_platformHealth() {
   var out = { ok: true, fetch: false, sheetsApi: '' };
   if (!rateLimit_('health', 30, 600)) fail_('too_many_attempts');
+  // move to Postgres: whether the owner's MOVED_TO property is set and valid (yes / no only; the address itself is public anyway)
+  try { out.movedSet = !!PropertiesService.getScriptProperties().getProperty('MOVED_TO'); out.moved = !!movedTo_(); } catch (e) {}
   try { UrlFetchApp.fetch('https://sheets.googleapis.com/$discovery/rest?version=v4', { muteHttpExceptions: true }); out.fetch = true; }
   catch (e) { out.fetchError = /external_request|UrlFetchApp/.test(String(e && e.message)) ? 'needs_owner_authorization' : 'fetch_failed'; return out; }
   try {
@@ -1252,7 +1254,7 @@ var REQ_DEV_ = ''; // the device sending this request (see bindDevice_)
 var ADMIN_ACTIONS = { waTest: 1, hrRolesSave: 1, empResetDevice: 1, zoneSave: 1, zoneDelete: 1, settingsSave: 1 };
 
 /** The new address once the system has moved to Postgres (script property MOVED_TO, set by the owner after the export). */
-function movedTo_() { try { var v = PropertiesService.getScriptProperties().getProperty('MOVED_TO') || ''; return /^https:\/\/[A-Za-z0-9.-]+(\/[A-Za-z0-9._~\/-]*)?$/.test(v) ? v : ''; } catch (e) { return ''; } }
+function movedTo_() { try { var v = PropertiesService.getScriptProperties().getProperty('MOVED_TO') || ''; v = String(v).replace(/^[\s'"]+|[\s'"\/]+$/g, ''); return /^https:\/\/[A-Za-z0-9.-]+(\/[A-Za-z0-9._~\/-]*)?$/.test(v) ? v : ''; } catch (e) { return ''; } }
 var MOVED_OK_ = { backupPush: 1, demoData: 1, platformHealth: 1 };
 
 function handle_(req) {
@@ -1270,7 +1272,7 @@ function handle_(req) {
     setOrg_(PLATFORM_ACTIONS_[action] ? orgRec_(homeOrgId_()) : resolveOrg_(req, action));
     // only the home organisation moved; of the owner's tools only the export still runs (a salary load into the frozen Sheet would
     // be lost to Friday's backup)
-    if (!ORG_ || ORG_.home) { var moved = movedTo_(); if (moved && !(MOVED_OK_[action] && (action !== 'demoData' || req.mode === 'bookExport'))) return { ok: false, error: 'moved', api: moved }; }
+    if (!ORG_ || ORG_.home) { var moved = movedTo_(); if (moved && !(MOVED_OK_[action] && (action !== 'demoData' || req.mode === 'bookExport' || req.mode === 'moveSet'))) return { ok: false, error: 'moved', api: moved }; }
     if (READ_ONLY_ACTIONS[action]) { USE_TAB_CACHE_ = true; preloadFor_(action); }
     if (PUBLIC_ACTIONS[action]) return fn(req, null);
     var me = readToken_(req.token);
