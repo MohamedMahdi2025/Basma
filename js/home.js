@@ -188,6 +188,27 @@ css += '' +
 // the daily wisdom and "on this day" become a quiet footer strip
 '.hm-page .hm-daily{margin-top:22px;opacity:.95}' +
 '@media (max-width:900px){.hm-page .hm-k .v{margin-top:10px}.hm-page .hm-card{padding:18px}.hm-page .hm-banner h1{font-size:22px}}';
+// One rhythm for Today (owner 2026-11-20 "the redesign and the alignment"): every gap, padding and corner from one small set on a
+// 4 px grid: page 32/48, sections 24 apart, 16 inside a section; cards 16 px corners and 24 px padding; small tiles 12 / 16.
+var HMR = 'html body.v2-on.v2-on.v2-on.v2-on ';
+css += HMR + '.hm-page{padding:32px 48px 80px!important}' +
+  HMR + '.hm-page > *{margin-top:0!important;margin-bottom:0!important}' + HMR + '.hm-page{display:flex;flex-direction:column;gap:24px}' +
+  HMR + '.hm-page .hm-banner{padding:0!important}' +
+  HMR + '.hm-page .td-band{gap:16px!important}' + HMR + '.hm-page .td-scs{gap:16px!important}' +
+  HMR + '.hm-page :is(.td-day,.td-wait,.hm-card){border-radius:16px!important;padding:24px!important}' +
+  HMR + '.hm-page .td-sc{border-radius:12px!important;padding:16px!important}' +
+  HMR + '.hm-page .td-go{border-radius:12px!important}' +
+  HMR + '.hm-page .hm-grid{gap:16px!important}' +
+  HMR + '.hm-page .hm-rowset{gap:16px!important}' +
+  // KPI tiles: one look for every tile (the first one had a white icon on a white coin) and a light trend fill
+  HMR + '.hm-page .hm-k{border-radius:16px!important;padding:20px 24px!important;gap:8px!important}' +
+  HMR + '.hm-page .hm-k .ic{width:36px!important;height:36px!important;border-radius:12px!important;background:color-mix(in srgb,var(--brand) 10%,transparent)!important;color:var(--brand)!important;display:grid!important;place-items:center!important}' +
+  HMR + '.hm-page .hm-k .ic i{color:var(--brand)!important;font-size:20px!important}' +
+  HMR + '.hm-page .hm-k .lb{font-size:14px!important;color:var(--ink-2)!important;font-weight:500!important}' +
+  HMR + '.hm-page .hm-k .v{font-size:32px!important;line-height:1.1!important;color:var(--ink)!important}' +
+  HMR + '.hm-page .hm-k .db-spark .a{fill:color-mix(in srgb,var(--brand) 8%,transparent)!important}' + HMR + '.hm-page .hm-k .db-spark .l{stroke:var(--brand)!important}' +
+  HMR + '.hm-page .hm-k .db-spark.warm .a{fill:color-mix(in srgb,#C98500 10%,transparent)!important}' + HMR + '.hm-page .hm-k .db-spark.warm .l{stroke:#C98500!important}' +
+  '@media (max-width:900px){' + HMR + '.hm-page{padding:16px 16px 96px!important;gap:16px}' + HMR + '.hm-page :is(.td-day,.td-wait,.hm-card){padding:16px!important}}';
 var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 
 function go(area, sub){ if (window.goArea) goArea(area, sub); }
