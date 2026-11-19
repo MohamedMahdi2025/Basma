@@ -2500,6 +2500,29 @@ html body.v2-on.v2-on.v2-on :is(.empty,.db-empty){background:var(--card)!importa
   html body.v2-on.v2-on.v2-on :is(.m-bar,.v2-bbar,.mbar,nav.bb) :is(.m-fab,.fab,.bb-fab,.mid){background:var(--brand)!important;color:#fff!important}
 }
 @media (prefers-reduced-motion:reduce){html body.v2-on.v2-on.v2-on :is(.td-sc,.db-tile,.hm-k,.btn,.v2-nav a){transition:none!important;transform:none!important}}
+/* ---- sign-in (2026-11-19): the company green behind the watch (green and gold), a clean white form ---- */
+html body .gate.gate.gate,html:root[dir] body .gate.gate.gate{background:radial-gradient(60% 70% at 72% 40%,color-mix(in srgb,var(--brand) 55%,transparent),transparent 70%),radial-gradient(120% 90% at 50% 120%,#03100A 25%,transparent 75%),linear-gradient(160deg,color-mix(in srgb,var(--brand) 70%,#06150D),#06120B)!important}
+html:root[dir=ltr] body .gate.gate.gate{background:radial-gradient(60% 70% at 28% 40%,color-mix(in srgb,var(--brand) 55%,transparent),transparent 70%),radial-gradient(120% 90% at 50% 120%,#03100A 25%,transparent 75%),linear-gradient(200deg,color-mix(in srgb,var(--brand) 70%,#06150D),#06120B)!important}
+html body .gate.gate .aurora{opacity:.32!important}
+html body .gate.gate .aurora i{background:radial-gradient(closest-side,color-mix(in srgb,var(--brand) 80%,#7BE0A8),transparent)!important}
+html body .gate.gate :is(.gate-tag,.gate-legal,.gate-legal a){color:rgba(236,245,239,.78)!important}
+html body .gate.gate :is(.wm-ar,.gate-brand b){color:#fff!important}
+html body .gate.gate .gate-form,html body .gate.gate .gate-form:not(:has(.pinpad)),html body .gate.gate .gate-form:has(.pinpad){background:#fff!important;color:#16201A!important;border:0!important;border-radius:24px!important;box-shadow:0 40px 90px -30px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.08)!important;padding:32px 32px 24px!important;gap:12px!important}
+html body .gate.gate .gate-form :is(h1,h2){color:#16201A!important;font-size:26px!important;font-weight:700!important}
+html body .gate.gate .gate-form > p,html body .gate.gate .gate-form .field label{color:#4A574E!important}
+html body .gate.gate .gate-form .field label{font-size:13px!important;font-weight:600!important}
+html body .gate.gate .gate-form input:not([type=checkbox]){background:#fff!important;border:1px solid #C6CEC6!important;border-radius:12px!important;min-height:48px!important;font-size:15px!important;color:#16201A!important}
+html body .gate.gate .gate-form input:focus{border-color:var(--brand)!important;box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 25%,transparent)!important;outline:0!important}
+html body .gate.gate .gate-form :is(#go,.btn-primary,.btn-dark){background:var(--brand)!important;color:#fff!important;border:0!important;border-radius:12px!important;min-height:52px!important;font-size:16px!important;font-weight:700!important;box-shadow:0 10px 24px -12px color-mix(in srgb,var(--brand) 90%,#000)!important}
+html body .gate.gate .gate-form :is(#go,.btn-primary,.btn-dark):hover{background:color-mix(in srgb,var(--brand) 80%,#000)!important}
+html body .gate.gate .si-seg{background:#F1F4F0!important;border:0!important;border-radius:12px!important;padding:4px!important}
+html body .gate.gate .si-seg button{border-radius:9px!important;color:#4A574E!important;min-height:40px}
+html body .gate.gate .si-seg button[aria-pressed=true],html body .gate.gate .si-seg button.on{background:#fff!important;color:#16201A!important;box-shadow:0 1px 3px rgba(16,32,22,.15)!important;font-weight:700}
+html body .gate.gate .gate-form :is(.linkish,a){color:color-mix(in srgb,var(--brand) 85%,#000)!important;font-weight:600}
+html body .gate.gate .pinpad button{background:#F1F4F0!important;color:#16201A!important;border:0!important}
+html body .gate.gate .pinpad button:active{background:color-mix(in srgb,var(--brand) 18%,#fff)!important}
+html body .gate.gate .lang,html body .gate.gate [data-act=lang]{background:rgba(255,255,255,.1)!important;color:#fff!important;border:1px solid rgba(255,255,255,.2)!important}
+html body .gate.gate .gt-time{display:flex;flex-direction:column;align-items:center;gap:2px;margin-top:-6px;color:#fff}html body .gate.gate .gt-time b{font-size:clamp(34px,4vw,48px);font-weight:700;letter-spacing:.02em;line-height:1;font-family:'Manrope','IBM Plex Sans Arabic',sans-serif;color:#fff;text-shadow:0 2px 18px rgba(0,0,0,.35)}html body .gate.gate .gt-time small{font-size:14px;color:rgba(236,245,239,.8)}
 </style>
 </head>
 <body>
@@ -3820,7 +3843,7 @@ function gateOff(){
 function gateBrand(){
   gateOn();
   return '<aside class="gate-brand"><div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div><div class="gb-scene" aria-hidden="true"><i></i><i></i><i></i></div>' +
-    '<div class="gb-dial' + (S.gate || !S.orgId ? ' has-watch' : '') + '">' + (S.gate || !S.orgId ? watchSvg() : gaugeSvg()) + brand3dHtml('gate') + '</div><p class="gate-tag">' + t('gateTag') + '</p><p class="gate-legal"><a href="privacy.html" target="_blank" rel="noopener">' + (S.lang === 'en' ? 'Privacy policy' : 'سياسة الخصوصية') + '</a> · <a href="delete-account.html" target="_blank" rel="noopener">' + (S.lang === 'en' ? 'Delete account' : 'حذف الحساب') + '</a></p></aside>';
+    '<div class="gb-dial' + (S.gate || !S.orgId ? ' has-watch' : '') + '">' + (S.gate || !S.orgId ? watchSvg() : gaugeSvg()) + brand3dHtml('gate') + '</div>' + (S.gate || !S.orgId ? '<div class="gt-time" aria-live="off"><b id="gtTime" class="num" dir="ltr"></b><small id="gtDate"></small></div>' : '') + '<p class="gate-tag">' + t('gateTag') + '</p><p class="gate-legal"><a href="privacy.html" target="_blank" rel="noopener">' + (S.lang === 'en' ? 'Privacy policy' : 'سياسة الخصوصية') + '</a> · <a href="delete-account.html" target="_blank" rel="noopener">' + (S.lang === 'en' ? 'Delete account' : 'حذف الحساب') + '</a></p></aside>';
 }
 /** The BASMA watch (2026-11-06, second design): around the fingerprint, Riyadh time live. The second hand is a comet that
  *  sweeps smoothly with a fading tail; an arc fills with the seconds and the dial pulses as each minute begins; the hour
@@ -3840,8 +3863,8 @@ function watchSvg(){
     '<g class="bw-orbit"><circle class="bw-bezel" cx="100" cy="100" r="98"/></g>' +
     '<circle class="bw-ring" cx="100" cy="100" r="95"/><circle class="bw-arc" id="bwArc" cx="100" cy="100" r="95" pathLength="60" transform="rotate(-90 100 100)"/>' +
     '<g class="bw-ticks">' + tk + '</g><g class="bw-num">' + nums + '</g>' +
-    '<g class="bw-h" id="bwH"><path d="M100 19 L96.4 34 Q100 36.5 103.6 34 Z"/></g>' +
-    '<g class="bw-m" id="bwM"><rect x="98.5" y="10" width="3" height="26" rx="1.5"/></g>' +
+    '<g class="bw-h" id="bwH"><path d="M100 24 L94.5 44 Q100 47.5 105.5 44 Z"/></g>' +
+    '<g class="bw-m" id="bwM"><rect x="97.75" y="8" width="4.5" height="36" rx="2.25"/></g>' +
     '<g class="bw-s" id="bwS"><g class="bw-tail">' + tail + '</g><line x1="100" y1="37" x2="100" y2="9"/><circle class="bw-head" cx="100" cy="5" r="3.4"/></g>' +
     '<circle class="bw-pulse" id="bwPulse" cx="100" cy="100" r="95"/></svg>';
 }
@@ -3856,6 +3879,9 @@ function watchTick(){
   document.getElementById('bwS').setAttribute('transform', 'rotate(' + (s * 6).toFixed(3) + ' 100 100)');
   var arc = document.getElementById('bwArc'); if (arc) arc.style.strokeDasharray = s.toFixed(3) + ' 60';
   var mi = d.getUTCMinutes();
+  if (mi !== WATCH_MIN) { var gt = document.getElementById('gtTime'), gd = document.getElementById('gtDate'), now = new Date();
+    if (gt) gt.textContent = now.toLocaleTimeString(S.lang === 'en' ? 'en-GB' : 'ar-SA-u-nu-latn', { hour: '2-digit', minute: '2-digit', hour12: S.lang !== 'en', timeZone: 'Asia/Riyadh' });
+    if (gd) gd.textContent = now.toLocaleDateString(S.lang === 'en' ? 'en-GB' : 'ar-SA-u-ca-gregory-nu-latn', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Asia/Riyadh' }); }
   if (WATCH_MIN !== -1 && mi !== WATCH_MIN) { var pu = document.getElementById('bwPulse'); if (pu && !reduced) { pu.classList.remove('go'); void pu.getBBox(); pu.classList.add('go'); } }
   WATCH_MIN = mi;
   if (reduced || document.hidden) WATCH_T = setTimeout(watchTick, 1000 - (Date.now() % 1000));
