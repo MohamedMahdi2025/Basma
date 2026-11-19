@@ -2523,6 +2523,12 @@ html body .gate.gate .pinpad button{background:#F1F4F0!important;color:#16201A!i
 html body .gate.gate .pinpad button:active{background:color-mix(in srgb,var(--brand) 18%,#fff)!important}
 html body .gate.gate .lang,html body .gate.gate [data-act=lang]{background:rgba(255,255,255,.1)!important;color:#fff!important;border:1px solid rgba(255,255,255,.2)!important}
 html body .gate.gate .gt-time{display:flex;flex-direction:column;align-items:center;gap:2px;margin-top:-6px;color:#fff}html body .gate.gate .gt-time b{font-size:clamp(34px,4vw,48px);font-weight:700;letter-spacing:.02em;line-height:1;font-family:'Manrope','IBM Plex Sans Arabic',sans-serif;color:#fff;text-shadow:0 2px 18px rgba(0,0,0,.35)}html body .gate.gate .gt-time small{font-size:14px;color:rgba(236,245,239,.8)}
+/* sidebar: every space opens to list all its pages (2026-11-19) */
+html body.v2-on.v2-on.v2-on .v2-sp{position:relative}html body.v2-on.v2-on.v2-on .v2-tog{position:absolute;top:6px;inset-inline-end:4px;width:32px;height:32px;border:0;background:none;border-radius:8px;color:var(--ink-3);cursor:pointer;display:grid;place-items:center;z-index:1}html body.v2-on.v2-on.v2-on .v2-tog:hover{background:var(--well);color:var(--ink)}html body.v2-on.v2-on.v2-on .v2-tog[aria-expanded=true] i{transform:rotate(180deg)}html body.v2-on.v2-on.v2-on .v2-tog i{transition:transform .15s}
+html body.v2-on.v2-on.v2-on .v2-sp > a{padding-inline-end:40px}html body.v2-on.v2-on.v2-on .v2-sp > a .cnt{margin-inline-end:4px}
+html body.v2-on.v2-on.v2-on .v2-subs{display:flex;flex-direction:column;gap:2px;margin:2px 0 8px;padding-inline-start:22px;border-inline-start:1px solid var(--line);margin-inline-start:22px}html body.v2-on.v2-on.v2-on .v2-subs[hidden]{display:none}
+html body.v2-on.v2-on.v2-on .v2-nav a.v2-sub{min-height:36px!important;font-size:13.5px;padding-block:6px;gap:8px;display:flex;align-items:center}html body.v2-on.v2-on.v2-on .v2-nav a.v2-sub i{font-size:16px;color:var(--ink-3)}html body.v2-on.v2-on.v2-on .v2-nav a.v2-sub[aria-current]::before{display:none}html body.v2-on.v2-on.v2-on .v2-nav a.v2-sub[aria-current] i{color:var(--brand)!important}
+html body.v2-on.v2-on.v2-on .v2-subh{margin:8px 0 2px;padding-inline-start:12px;font-size:11px;font-weight:700;color:var(--ink-3);letter-spacing:.02em}
 </style>
 </head>
 <body>
@@ -5476,7 +5482,19 @@ function paintNav(){
   var nav = $('#v2Nav'), foot = $('#v2Foot'), bot = $('#v2Bottom'); if (!nav) return;
   // lifecycle menu (2026-10-20): the employee journey in order, then analysis and administration, each under a small heading
   var grp = '', main = vis.filter(function(a){ return !a.foot; });
-  nav.innerHTML = main.map(function(a){ var h = a.grp && a.grp !== grp && main.filter(function(x){ return x.grp; }).length > 3 ? '<p class="v2-grp">' + t(a.grp === 'life' ? 'navLife' : 'navMgmt') + '</p>' : ''; if (a.grp) grp = a.grp; return h + item(a); }).join('');
+  // new navigation (2026-11-19, owner: "as admin I can't see everything in the side bar"): every space opens in place to list
+  // all its pages (tabs first, then the ones behind More), so nothing hides behind a sheet; the current space is open
+  var subsOf = function(a){ if (!S.nav2 || !a.subs || a.bare) return '';
+    var ok = a.subs.filter(function(s){ try { return s.ok(); } catch (e) { return false; } }), seen = {};
+    ok = ok.filter(function(s){ if (seen[s.id]) return false; seen[s.id] = 1; return true; });
+    if (ok.length < 2) return '';
+    var open = S.navOpen ? !!S.navOpen[a.id] : S.tab === a.id, link = function(s){ return '<a href="#' + a.id + '/' + s.id + '" class="v2-sub" data-area="' + a.id + ':' + s.id + '">' + (s.ic ? ph(s.ic) : '') + '<span>' + t(s.n) + '</span></a>'; };
+    var main1 = ok.filter(function(s){ return !s.more; }), more = ok.filter(function(s){ return s.more; });
+    return '<button type="button" class="v2-tog" data-tog="' + a.id + '" aria-expanded="' + open + '" aria-label="' + esc(areaName(a)) + '">' + ph('caret-down') + '</button>' +
+      '<div class="v2-subs" data-sp="' + a.id + '"' + (open ? '' : ' hidden') + '>' + main1.map(link).join('') + (more.length ? '<p class="v2-subh">' + t('v2More') + '</p>' + more.map(link).join('') : '') + '</div>'; };
+  nav.innerHTML = main.map(function(a){ var h = a.grp && a.grp !== grp && main.filter(function(x){ return x.grp; }).length > 3 ? '<p class="v2-grp">' + t(a.grp === 'life' ? 'navLife' : 'navMgmt') + '</p>' : ''; if (a.grp) grp = a.grp; var sb = subsOf(a); return h + (sb ? '<div class="v2-sp">' + item(a) + sb + '</div>' : item(a)); }).join('');
+  $$('#v2Nav [data-tog]').forEach(function(b){ b.onclick = function(e){ e.preventDefault(); e.stopPropagation(); var id = b.dataset.tog, box = $('#v2Nav [data-sp="' + id + '"]'), open = box.hidden;
+    S.navOpen = S.navOpen || {}; $$('#v2Nav .v2-subs').forEach(function(x){ if (S.navOpen[x.dataset.sp] === undefined) S.navOpen[x.dataset.sp] = !x.hidden; }); S.navOpen[id] = open; box.hidden = !open; b.setAttribute('aria-expanded', String(open)); }; });
   foot.innerHTML = vis.filter(function(a){ return a.foot; }).map(item).join('') + '<button type="button" id="v2Lock" data-area="account"><span class="v3-ic">' + ph('lock-simple', 'duotone') + '</span><span>' + t('signOut') + '</span></button>';
   var r = R(), fourth = r.hr || r.manager ? ['people', 'users-three', r.hr ? 'v2PeopleS' : 'vwTeam'] : ['pay', 'wallet', 'v2MyPay'];
   var bn = [['home', 'house', 'arHome'], ['requests', 'tray', 'v2Req'], ['time:punch', 'fingerprint', 'v2Punch', 1], fourth, ['more', 'dots-three-outline', 'v2More']];
@@ -5630,7 +5648,11 @@ function goArea(area, sub, arg, o){
   } catch (e) {} });
   closeSide(); closeMenus();
   var main = $('#main'); if (!main) return;
-  $$('#v2Nav [data-area], #v2Foot [data-area], #v2Bottom [data-area]').forEach(function(el){ var id = el.dataset.area.split(':')[0]; if (!el.classList.contains('center') && id === a.id) el.setAttribute('aria-current', 'page'); else el.removeAttribute('aria-current'); });
+  $$('#v2Nav [data-area], #v2Foot [data-area], #v2Bottom [data-area]').forEach(function(el){ var id = el.dataset.area.split(':')[0];
+    var cur = el.classList.contains('v2-sub') ? el.dataset.area === a.id + ':' + s.id : !el.classList.contains('center') && id === a.id;
+    if (cur) el.setAttribute('aria-current', 'page'); else el.removeAttribute('aria-current'); });
+  // the current space's page list opens by itself (unless this person closed it)
+  var spBox = $('#v2Nav [data-sp="' + a.id + '"]'); if (spBox && spBox.hidden && !(S.navOpen && S.navOpen[a.id] === false)) { spBox.hidden = false; var tg = $('#v2Nav [data-tog="' + a.id + '"]'); if (tg) tg.setAttribute('aria-expanded', 'true'); }
   var toPunch = isPunchPage(a.id, s.id), page = full ? null : $('.page.v2[data-page="' + a.id + '"]:not(.fp-page)', main);
   if (full) {
     main.scrollTop = 0;
