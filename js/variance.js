@@ -357,11 +357,11 @@ Object.assign(T.en, { viTitle:'What stands out', viLead:'Findings written from t
 var VA_REVIEW = ['off_package', 'deductions_spike', 'net_zero', 'paid_inactive'];
 // hire date, days worked and the reason for each change, per person (owner 2026-11-20: "need to see all data as the hiring
 // date, the reason of the increases, days working comparison")
-Object.assign(T.ar, { vaHire:'تاريخ التعيين', vaDaysCol:'أيام العمل', vaWhy:'سبب التغير', wyNew:'تعيين جديد في {d}', wyPartial:'شهر جزئي: {n} يوم مدفوع', wyLeft:'لم يُصرف له هذا الشهر (غادر أو أُوقف)',
+Object.assign(T.ar, { wyPkgNote:'الراتب الجديد من {d}: {r} (اعتمده {b})', wyNoReason:'بدون سبب مسجل', vaHire:'تاريخ التعيين', vaDaysCol:'أيام العمل', vaWhy:'سبب التغير', wyNew:'تعيين جديد في {d}', wyPartial:'شهر جزئي: {n} يوم مدفوع', wyLeft:'لم يُصرف له هذا الشهر (غادر أو أُوقف)',
   wyBack:'عاد بعد انقطاع', wyDays:'أيام العمل {a} → {b}', wyPkg:'تغير الراتب الثابت (عقد أو باقة جديدة)', wyNone:'بدون تغير', wyNetOnly:'صافي فقط هذا الشهر: لا تفصيل للبنود',
   wyPkgFull:'تغير الراتب الثابت من {from}{by}{at}: الأساسي {b0} → {b1}، الإجمالي {t0} → {t1}', wyBy:' باعتماد {n}', wyAt:' في {d}', wyNote:'ملاحظة الاعتماد: {n}',
   vaTenure:'مدة الخدمة', vaYm:'{y} سنة و{m} شهر', vaPaidDays:'أيام مدفوعة', vaWhyH:'لماذا تغير', vaDaysMonth:'الأيام المدفوعة شهريا' });
-Object.assign(T.en, { vaHire:'Hire date', vaDaysCol:'Days worked', vaWhy:'Reason for the change', wyNew:'New hire on {d}', wyPartial:'Part month: {n} days paid', wyLeft:'Not paid this month (left or stopped)',
+Object.assign(T.en, { wyPkgNote:'New pay from {d}: {r} (approved by {b})', wyNoReason:'no reason recorded', vaHire:'Hire date', vaDaysCol:'Days worked', vaWhy:'Reason for the change', wyNew:'New hire on {d}', wyPartial:'Part month: {n} days paid', wyLeft:'Not paid this month (left or stopped)',
   wyBack:'Back after a break', wyDays:'Days worked {a} → {b}', wyPkg:'Fixed pay changed (new contract or package)', wyNone:'No change', wyNetOnly:'Net only this month: no line breakdown',
   wyPkgFull:'Fixed pay changed from {from}{by}{at}: basic {b0} → {b1}, total {t0} → {t1}', wyBy:', approved by {n}', wyAt:' on {d}', wyNote:'Approval note: {n}',
   vaTenure:'Service', vaYm:'{y} y {m} m', vaPaidDays:'Days paid', vaWhyH:'Why it changed', vaDaysMonth:'Days paid each month' });
@@ -381,7 +381,7 @@ function vaWhy(p, netOnly){
       out.push(t('wyPkgFull').replace('{from}', pc.from).replace('{by}', pc.by ? t('wyBy').replace('{n}', pc.by) : '').replace('{at}', pc.at ? t('wyAt').replace('{d}', pc.at) : '')
         .replace('{b0} → {b1}', '\u2066' + n2(pc.basic[0]) + ' → ' + n2(pc.basic[1]) + '\u2069').replace('{t0} → {t1}', '\u2066' + n2(pc.total[0]) + ' → ' + n2(pc.total[1]) + '\u2069'));
       if (pc.note) out.push(t('wyNote').replace('{n}', pc.note)); }
-    else if (f.indexOf('package_change') >= 0) out.push(t('wyPkg'));
+    else if (f.indexOf('package_change') >= 0) { out.push(t('wyPkg')); var pn = p.pkgNote; if (pn && (pn.from || pn.reason || pn.by)) out.push(t('wyPkgNote').replace('{d}', pn.from || '-').replace('{r}', pn.reason || t('wyNoReason')).replace('{b}', pn.by || '-')); }
     if (netOnly) out.push(t('wyNetOnly'));
     else (p.reasons || []).slice(0, 4).forEach(function(x){ out.push(lineName(x.line) + ': ⁦' + acctFmt(x.from) + ' → ' + acctFmt(x.to) + ' (' + sgn(x.effect) + ')⁩'); });
   }
