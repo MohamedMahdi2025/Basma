@@ -2395,6 +2395,29 @@ html body.v2-on.nav2 .hm-daily{display:none!important}
   html body.v2-on.nav2 .td-scs{grid-template-columns:repeat(3,minmax(0,1fr))}
 }
 @media (prefers-reduced-motion:reduce){html body.v2-on.nav2 :is(.td-go,.td-sc){transition:none}}
+
+/* Trust (redesign §5.4): the status line before a punch, the receipt after it. Works in both navigations. */
+html body.v2-on .ts-line{display:flex;align-items:center;gap:8px;margin:6px 0 2px;padding:8px 12px;border-radius:12px;font-size:14px;line-height:1.5;font-weight:500;font-family:inherit;letter-spacing:0;color:var(--ink);background:color-mix(in srgb,var(--ink) 5%,transparent);word-break:normal;white-space:normal}
+html body.v2-on .ts-line::before{content:"";width:8px;height:8px;border-radius:50%;flex:none;background:currentColor}
+html body.v2-on .ts-line.ts-ok{color:#1E6B3F;background:color-mix(in srgb,#1E6B3F 10%,transparent)}
+html body.v2-on .ts-line.ts-wait{color:var(--ink-2)}
+html body.v2-on .ts-line.ts-weak{color:#8A5A00;background:color-mix(in srgb,#C98500 14%,transparent)}
+html body.v2-on .ts-line.ts-bad{color:#9F1D1D;background:color-mix(in srgb,#D92D20 12%,transparent)}
+html body.v2-on small.ts-line{font-size:14px!important;font-weight:500!important;opacity:1!important}
+html body.v2-on small.ts-line.ts-ok{color:#1E6B3F!important}html body.v2-on small.ts-line.ts-weak{color:#8A5A00!important}html body.v2-on small.ts-line.ts-bad{color:#9F1D1D!important}html body.v2-on small.ts-line.ts-wait{color:var(--ink-2)!important}
+:root[data-theme="dark"] body.v2-on small.ts-line.ts-ok{color:#7BD3A0!important}:root[data-theme="dark"] body.v2-on small.ts-line.ts-weak{color:#F2C46B!important}:root[data-theme="dark"] body.v2-on small.ts-line.ts-bad{color:#F7A8A8!important}
+:root[data-theme="dark"] body.v2-on .ts-line.ts-ok{color:#7BD3A0}
+:root[data-theme="dark"] body.v2-on .ts-line.ts-weak{color:#F2C46B}
+:root[data-theme="dark"] body.v2-on .ts-line.ts-bad{color:#F7A8A8}
+.stamp .rc{display:grid;gap:2px;margin:12px 0 14px;padding:8px 12px;border-radius:14px;background:color-mix(in srgb,var(--ink,#1B1A17) 5%,transparent);text-align:start}
+.stamp .rc-row{display:flex;justify-content:space-between;gap:12px;padding:6px 0;font-size:14px;border-bottom:1px solid color-mix(in srgb,var(--ink,#1B1A17) 8%,transparent)}
+.stamp .rc-row:last-child{border-bottom:0}
+.stamp .rc-row span{color:var(--ink-2,#56534B)}
+.stamp .rc-row b{font-weight:600}
+.stamp .rc-note{margin:4px 0 0;color:var(--ink-2,#56534B)}
+.stamp .rc-why{margin:8px 0 4px;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,#C98500 12%,transparent);font-size:14px;line-height:1.6;text-align:start}
+/* Today: the "my day" band is every role's own block, so the old Company / Me switch goes (§5.3) */
+html body.v2-on.nav2 .hm-banner .hm-scope{display:none!important}
 </style>
 <style id="ds8">
 /* ============ ds8 "Clear" (2026-11-18; skills: ui-ux-pro-max design system + pro rules, bestgas-brand, frontend-design).
@@ -3201,7 +3224,7 @@ var T = {
     oldPhone:'هاتفي لا يدعم Face ID / البصمة', tapMode:'تسجيل بالنقر', bioMode:'Face ID / بصمة', unlockTap:'دخول', allowDk:'السماح للأجهزة القديمة بالتسجيل بالنقر (بدون بصمة، داخل النطاق فقط)', f_no_biometric:'جهاز بدون بصمة (تسجيل بالنقر)', e_device_key_disabled:'التسجيل بالنقر موقوف، تواصل مع الموارد البشرية', e_no_devicekey:'هذا المتصفح قديم جداً، حدّث المتصفح',
     readyIn:'جاهز لتسجيل الحضور', readyOut:'جاهز لتسجيل الانصراف', moveCloser:'اقترب من المقر لتفعيل الزر', weakGps:'إشارة الموقع ضعيفة، اقترب من نافذة أو انتظر قليلاً',
     firstIn:'الحضور', lastOut:'الانصراف', worked:'ساعات العمل', shift:'الدوام', late:'تأخير', min:'د', h:'س',
-    doneIn:'تم تسجيل الحضور', doneOut:'تم تسجيل الانصراف', reviewNote:'سُجّل وسيُراجع من الموارد البشرية', close:'تم', closeX:'إغلاق', tkTitle:'مهامي', tkLead:'كل ما ينتظر قرارك أو إجراءك، مرتبا حسب القسم.', tkWaitingN:'بانتظارك: {n}', tkClear:'لا شيء معلق', tkNone:'لا شيء ينتظرك الآن', tkNoneLead:'ستظهر هنا الطلبات والموافقات والمهام التي تحتاج إجراءك.',
+    tsOffline:'لا يوجد اتصال بالإنترنت: لن تُرسل البصمة حتى يعود الاتصال', tsLocOff:'الموقع مغلق لهذا الموقع: افتحه من إعدادات المتصفح', tsLocating:'جارٍ تحديد موقعك…', tsReady:'الموقع جاهز، الدقة ±{a} م', tsWeak:'دقة الموقع ضعيفة (±{a} م): اقترب من نافذة أو انتظر لحظات', rcSaved:'حُفظ في سجلي', rcPlace:'المكان', rcAcc:'دقة الموقع', rcDist:'المسافة عن المركز', rcMethod:'التحقق', rcRef:'المرجع', rfOutside:'أنت خارج حدود النطاق بنحو {d} م (دقة الموقع ±{a} م). اقترب وحاول مجدداً.', rfWeak:'دقة موقعك ±{a} م، والمطلوب ±{m} م أو أفضل. اقترب من نافذة أو اخرج قليلاً ثم أعد المحاولة.', rfNoLoc:'لم يصل أي موقع من الجهاز. تأكد أن الموقع مفعّل لهذا الموقع ثم أعد المحاولة.', rfOffline:'لا يوجد اتصال بالإنترنت. أعد المحاولة عند عودة الاتصال.', rfRetry:'إعادة المحاولة', rfCorrection:'طلب تصحيح الحضور', doneIn:'تم تسجيل الحضور', doneOut:'تم تسجيل الانصراف', reviewNote:'سُجّل وسيُراجع من الموارد البشرية', close:'تم', closeX:'إغلاق', tkTitle:'مهامي', tkLead:'كل ما ينتظر قرارك أو إجراءك، مرتبا حسب القسم.', tkWaitingN:'بانتظارك: {n}', tkClear:'لا شيء معلق', tkNone:'لا شيء ينتظرك الآن', tkNoneLead:'ستظهر هنا الطلبات والموافقات والمهام التي تحتاج إجراءك.',
     tk_requests:'طلبات تنتظر قرارك', tk_salaries:'رواتب تنتظر اعتمادك', tk_payroll:'مسيرات رواتب تنتظر اعتمادك', tk_reports:'تقارير صادرة تنتظر مراجعتك', tk_recon:'فروقات أجور (التأمينات أو قوى) تنتظر إغلاقك',
     tk_wps:'رفع ملف حماية الأجور ينتظر تأكيدك', tk_onboarding:'مهام انضمام مستحقة خلال أسبوع', tk_policies:'سياسات تحتاج إقرارك', tk_survey:'استبيان ينتظر مشاركتك', tk_plans:'خطة تطوير تنتظر اطلاعك', tk_delegated:'مفوض بالموافقات نيابة عن', tk_disc_respond:'مخالفة تنتظر ردك', tk_disc_decide:'قضايا تأديبية تنتظر القرار', tk_disc_objection:'تظلمات تنتظر البت', tk_injury:'إصابات عمل تنتظر المتابعة', tk_asset_ack:'عهد تنتظر إقرارك باستلامها', tk_asset_charge:'خصومات عهد تنتظر اعتمادك', tk_clearance:'مهام إخلاء طرف لك', tk_escalated:'بنود مصعدة إليك للعلم', tk_leavecycle:'مهام دورات إجازة لفريقك', tk_leavecycle_me:'مهام في إجازتك أو إجازة زميل تغطيه', tk_expense_approve:'مطالبات مصروفات تنتظر قرارك', tk_expense_pay:'مطالبات معتمدة تنتظر تسجيل الصرف', tk_gov_visa_issue:'تأشيرات معتمدة تنتظر التسجيل', tk_gov_visa_return:'لم يعودوا بعد انتهاء التأشيرة', tk_iqama_renewal:'إقامات تنتهي خلال 30 يوما', tk_ticket_due:'تذاكر سنوية مستحقة', tk_gov_fee_verify:'رسوم حكومية تنتظر التحقق', tk_ticket_approve:'تكاليف تذاكر تنتظر اعتمادك', tk_journal_import:'قيد رواتب ينتظر الاستيراد في أودو', tk_journal_confirm:'قيد رواتب ينتظر تأكيدك', tk_recruit_req_approve:'طلبات توظيف تنتظر قرارك', tk_recruit_offer_approve:'عروض وظيفية تنتظر اعتمادك', tk_recruit_feedback:'مقابلات تنتظر تقييمك', tk_recruit_hire:'عروض مقبولة تنتظر التعيين', tk_recruit_purge:'بيانات مرشحين حان موعد محوها', tk_loan_approve:'طلبات قروض تنتظر قرارك', tk_loan_disburse:'قروض معتمدة تنتظر تسجيل الصرف', tk_loan_settle_verify:'سدادات مبكرة تنتظر التحقق', tk_training_request:'طلبات تدريب تنتظر قرارك', tk_training_mark:'دورات انتهت تنتظر تسجيل النتائج', tk_insurance_move:'حركات تأمين طبي تنتظر الإجراء', tk_insurance_request:'طلبات إضافة مرافقين للتأمين', tk_announcement_ack:'إعلانات تنتظر إقرارك', tk_hd_unassigned:'طلبات دعم بلا مسؤول', tk_hd_assigned:'طلبات دعم مسندة إليك', tk_hd_reply:'طلب دعم ينتظر ردك', tk_exit_survey:'مقابلة الخروج تنتظر إجابتك', tk_settlement_approve:'مخالصات نهائية تنتظر اعتمادك', tk_settlement_pay:'مخالصات معتمدة تنتظر تسجيل الصرف', tk_comp_review:'مراجعة الرواتب: نسب زيادة تنتظر اقتراحك', tk_timesheet:'كشوف دوام الشهر الماضي تنتظر اعتمادك',
     punchFailed:'لم يتم التسجيل', todayTitle:'اليوم',
@@ -3262,7 +3285,7 @@ var T = {
     oldPhone:'My phone has no Face ID / fingerprint', tapMode:'Tap check-in', bioMode:'Face ID / fingerprint', unlockTap:'Sign in', allowDk:'Let older phones check in with a tap (no biometric, inside the zone only)', f_no_biometric:'No biometric (tap check-in)', e_device_key_disabled:'Tap check-in is switched off. Contact HR.', e_no_devicekey:'This browser is too old. Update it.',
     readyIn:'Ready to check in', readyOut:'Ready to check out', moveCloser:'Move closer to HQ to enable the button', weakGps:'Weak location signal. Move near a window or wait a moment',
     firstIn:'In', lastOut:'Out', worked:'Worked', shift:'Shift', late:'Late', min:'m', h:'h',
-    doneIn:'Checked in', doneOut:'Checked out', reviewNote:'Recorded, HR will review it', close:'Done', closeX:'Close', tkTitle:'My tasks', tkLead:'Everything waiting for your decision or action, by area.', tkWaitingN:'Waiting for you: {n}', tkClear:'All clear', tkNone:'Nothing is waiting for you', tkNoneLead:'Requests, approvals and tasks that need your action appear here.',
+    tsOffline:'No internet: the punch will not be sent until you are back online', tsLocOff:'Location is blocked for this site: allow it in the browser settings', tsLocating:'Finding your location…', tsReady:'Location ready, accurate to ±{a} m', tsWeak:'Location is weak (±{a} m): move near a window or wait a moment', rcSaved:'Saved in My attendance', rcPlace:'Place', rcAcc:'Location accuracy', rcDist:'Distance from centre', rcMethod:'Verified by', rcRef:'Reference', rfOutside:'You are about {d} m outside the zone edge (location accurate to ±{a} m). Move closer and try again.', rfWeak:'Your location is accurate to ±{a} m; ±{m} m or better is needed. Move near a window or step outside, then try again.', rfNoLoc:'No location reached us from this device. Check that location is allowed for this site, then try again.', rfOffline:'No internet connection. Try again once you are back online.', rfRetry:'Try again', rfCorrection:'Request an attendance correction', doneIn:'Checked in', doneOut:'Checked out', reviewNote:'Recorded, HR will review it', close:'Done', closeX:'Close', tkTitle:'My tasks', tkLead:'Everything waiting for your decision or action, by area.', tkWaitingN:'Waiting for you: {n}', tkClear:'All clear', tkNone:'Nothing is waiting for you', tkNoneLead:'Requests, approvals and tasks that need your action appear here.',
     tk_requests:'Requests waiting for your decision', tk_salaries:'Salaries waiting for your approval', tk_payroll:'Payroll runs waiting for your approval', tk_reports:'Exported reports waiting for your review', tk_recon:'Wage mismatches (GOSI or Qiwa) waiting for you',
     tk_wps:'WPS upload waiting for your confirmation', tk_onboarding:'Onboarding tasks due within a week', tk_policies:'Policies to acknowledge', tk_survey:'A survey waiting for you', tk_plans:'A development plan to read', tk_delegated:'Approving on behalf of', tk_disc_respond:'A violation waiting for your reply', tk_disc_decide:'Disciplinary cases waiting for a decision', tk_disc_objection:'Objections waiting for a ruling', tk_injury:'Work injuries to follow up', tk_asset_ack:'Assets to confirm you received', tk_asset_charge:'Asset charges waiting for your approval', tk_clearance:'Clearance tasks for you', tk_escalated:'Items escalated to you for information', tk_leavecycle:'Leave-cycle tasks for your team', tk_leavecycle_me:'Tasks in your leave or a colleague\'s you cover', tk_expense_approve:'Expense claims waiting for your decision', tk_expense_pay:'Approved claims waiting for payment', tk_gov_visa_issue:'Approved visas to record', tk_gov_visa_return:'Not back after the visa expired', tk_iqama_renewal:'Iqamas expiring within 30 days', tk_ticket_due:'Annual tickets due', tk_gov_fee_verify:'Government fees to verify', tk_ticket_approve:'Ticket costs waiting for your approval', tk_journal_import:'Payroll journal waiting for the Odoo import', tk_journal_confirm:'Payroll journal waiting for your confirmation', tk_recruit_req_approve:'Hiring requests waiting for your decision', tk_recruit_offer_approve:'Job offers waiting for your approval', tk_recruit_feedback:'Interviews waiting for your score', tk_recruit_hire:'Accepted offers waiting to be hired', tk_recruit_purge:'Candidate data due for erasure', tk_loan_approve:'Loan requests waiting for your decision', tk_loan_disburse:'Approved loans waiting for the payout', tk_loan_settle_verify:'Early repayments waiting for verification', tk_training_request:'Training requests waiting for your decision', tk_training_mark:'Finished sessions waiting for results', tk_insurance_move:'Medical insurance changes to process', tk_insurance_request:'Requests to add dependants to insurance', tk_announcement_ack:'Announcements to acknowledge', tk_hd_unassigned:'Help desk tickets with nobody assigned', tk_hd_assigned:'Help desk tickets assigned to you', tk_hd_reply:'A help desk ticket waiting for your reply', tk_exit_survey:'Your exit interview is waiting', tk_settlement_approve:'Final settlements waiting for your approval', tk_settlement_pay:'Approved settlements waiting for payout', tk_comp_review:'Pay review: increases waiting for your proposal', tk_timesheet:'Last month\'s timesheets waiting for your approval',
     punchFailed:'Not recorded', todayTitle:'Today',
@@ -6381,8 +6404,21 @@ function locDiag(){
   var d = locDevice(), app = (navigator.standalone || (window.matchMedia && matchMedia('(display-mode: standalone)').matches)) ? 'app' : 'web';
   var parts = [d.os + '/' + d.br, app, 'perm:' + (S.locPerm || '?'), 'err:' + (S.locErr == null ? '-' : S.locErr), 'acc:' + (S.fix ? Math.round(S.fix.acc) + 'm' : '-'),
     'age:' + (S.fix ? Math.round((Date.now() - S.fix.t) / 1000) + 's' : '-'), 'wait:' + (S.locStart && !S.fix ? Math.round((Date.now() - S.locStart) / 1000) + 's' : '-'), 'n:' + S.samples.length, 'v' + BUILD];
-  el.textContent = parts.join(' · ');
+  // Trust (redesign §5.4): before the punch, say plainly whether it can work: internet, location permission, accuracy.
+  var raw = parts.join(' · '), lvl = 'ok', msg;
+  if (navigator.onLine === false) { lvl = 'bad'; msg = t('tsOffline'); }
+  else if (S.locPerm === 'denied') { lvl = 'bad'; msg = t('tsLocOff'); }
+  else if (!S.fix) { lvl = 'wait'; msg = t('tsLocating'); }
+  else {
+    var acc = Math.round(S.fix.acc), max = (S.rules && S.rules.maxAccuracy) || 100;
+    lvl = acc <= max ? 'ok' : 'weak';
+    msg = (acc <= max ? t('tsReady') : t('tsWeak')).replace('{a}', acc);
+  }
+  el.className = 'ts-line ts-' + lvl; el.title = raw;
+  el.textContent = /diag/.test(location.hash) ? raw : msg;
 }
+window.addEventListener('online', function(){ locDiag(); });
+window.addEventListener('offline', function(){ locDiag(); });
 try { navigator.permissions && navigator.permissions.query({ name: 'geolocation' }).then(function(p){ S.locPerm = p.state; p.addEventListener('change', function(){ S.locPerm = p.state; locDiag(); }); }); } catch (e) {}
 function updateRadar(){
   var hero = $('#hero'); if (!hero) return;
@@ -6488,7 +6524,7 @@ function doPunch(){
     var ptype = S.today ? S.today.next : 'in';
     punchSamples().then(function(gs){ return api('punchPw', { type: ptype, geo: { samples: gs }, qr: qrFresh() || undefined, deviceTime: Date.now(), ua: navigator.userAgent, integ: integSnap() }); }).then(function(r){
       S.busy = false;
-      if (r.ok) { S.today = r.today; showStamp(true, ptype, r.punch); } else showStamp(false, ptype, null, r.error);
+      if (r.ok) { S.today = r.today; showStamp(true, ptype, r.punch); } else showStamp(false, ptype, null, r.error, r);
       if (onPunch()) renderHome();
       paintChip();
     });
@@ -6504,7 +6540,7 @@ function doPunch(){
     S.busy = false;
     if (r.ok) { S.today = r.today; showStamp(true, type, r.punch); }
     else if (r.error === 'cancelled') toast(errText('cancelled'));
-    else showStamp(false, type, null, r.error);
+    else showStamp(false, type, null, r.error, r);
     if (r.next && r.next.options) { S.punchOpts = r.next.options; S.punchType = r.next.type; S.punchOptsAt = Date.now(); schedulePunchPrefetch(true); }
     else schedulePunchPrefetch();
     if (onPunch()) { renderHome(); }
@@ -6512,18 +6548,44 @@ function doPunch(){
   });
 }
 
-function showStamp(ok, type, punch, err){
+/** The punch result (redesign §5.4, trust): a receipt after every punch (time, place, accuracy, method, reference), and a
+ *  refusal that says why in numbers (how far outside the zone, how precise the location was) with what to do next. */
+function showStamp(ok, type, punch, err, res){
   var d = document.createElement('div'); d.className = 'stamp'; d.setAttribute('role', 'dialog');
+  var method = S.auth === 'pw' ? t('pwMode') : usesPin() ? t('pinMode') : S.kind === 'devicekey' ? t('tapMode') : t('bioMode');
+  var row = function(k, v){ return v === '' || v == null ? '' : '<div class="rc-row"><span>' + k + '</span><b>' + v + '</b></div>'; };
+  var body;
+  if (ok) {
+    var z = (S.zones || []).filter(function(x){ return x.id === punch.zoneId; })[0];
+    var zn = z ? esc(S.lang === 'en' && z.nameEn ? z.nameEn : z.name) : '';
+    body = '<div class="time num">' + fmtTime(punch.ts) + '</div>' +
+      '<p class="rc-note">' + (punch.status === 'review' ? t('reviewNote') : t('rcSaved')) + '</p>' +
+      '<div class="rc">' + row(t('rcPlace'), zn) +
+        row(t('rcAcc'), punch.acc != null ? '<bdi class="num">±' + Math.round(punch.acc) + ' ' + t('m') + '</bdi>' : '') +
+        row(t('rcDist'), punch.distance != null ? '<bdi class="num">' + Math.round(punch.distance) + ' ' + t('m') + '</bdi>' : '') +
+        row(t('rcMethod'), method + ' ✓') +
+        row(t('rcRef'), '<bdi class="num" dir="ltr">' + esc(String(punch.id || '').slice(-8).toUpperCase()) + '</bdi>') + '</div>';
+  } else {
+    var why = errText(err), more = '';
+    res = res || {};
+    var g = typeof geoState === 'function' ? geoState() : null, radius = g && g.zone ? g.zone.radius : null;
+    if (err === 'outside_zone' && res.distance != null && radius != null) more = t('rfOutside').replace('{d}', Math.max(1, Math.round(res.distance - radius))).replace('{a}', res.accuracy != null ? Math.round(res.accuracy) : '?');
+    else if (err === 'accuracy_too_low') more = t('rfWeak').replace('{a}', res.accuracy != null ? Math.round(res.accuracy) : '?').replace('{m}', (S.rules && S.rules.maxAccuracy) || 100);
+    else if (err === 'no_location') more = t('rfNoLoc');
+    else if (err === 'network' || navigator.onLine === false) more = t('rfOffline');
+    var geoErr = err === 'outside_zone' || err === 'accuracy_too_low' || err === 'no_location';
+    body = '<p>' + why + '</p>' + (more ? '<p class="rc-why">' + more + '</p>' : '') +
+      (geoErr ? '<button type="button" class="btn btn-ghost rc-fix" style="width:100%;margin-top:8px">' + t('rfCorrection') + '</button>' : '');
+  }
   d.innerHTML = '<div class="card"><div class="tick' + (ok ? '' : ' bad') + '">' + (ok ? I.check : I.x) + '</div>' +
-    '<h3>' + (ok ? (type === 'out' ? t('doneOut') : t('doneIn')) : t('punchFailed')) + '</h3>' +
-    (ok ? '<div class="time num">' + fmtTime(punch.ts) + '</div><p>' + (punch.status === 'review' ? t('reviewNote') : (S.auth === 'pw' ? t('pwMode') : usesPin() ? t('pinMode') : S.kind === 'devicekey' ? t('tapMode') : t('bioMode')) + ' ✓ · ' + (punch.distance != null ? punch.distance + ' ' + t('m') : '')) + '</p>'
-        : '<p>' + errText(err) + '</p>') +
-    '<button class="btn btn-dark" style="width:100%">' + t('close') + '</button></div>';
+    '<h3>' + (ok ? (type === 'out' ? t('doneOut') : t('doneIn')) : t('punchFailed')) + '</h3>' + body +
+    '<button class="btn btn-dark rc-close" style="width:100%">' + (ok ? t('close') : t('rfRetry')) + '</button></div>';
   document.body.appendChild(d);
   if (ok && navigator.vibrate) navigator.vibrate([20, 60, 30]);
-  d.setAttribute('aria-modal', 'true'); d.querySelector('button').focus();
+  d.setAttribute('aria-modal', 'true'); d.querySelector('.rc-close').focus();
   d.addEventListener('keydown', function(e){ if (e.key === 'Escape') d.remove(); });
-  d.querySelector('button').onclick = function(){ d.remove(); };
+  d.querySelector('.rc-close').onclick = function(){ d.remove(); };
+  var fix = d.querySelector('.rc-fix'); if (fix) fix.onclick = function(){ d.remove(); goArea('requests', 'new', 'correction'); };
   d.onclick = function(e){ if (e.target === d) d.remove(); };
 }
 
