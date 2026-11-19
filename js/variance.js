@@ -354,9 +354,9 @@ Object.assign(T.en, { viTitle:'What stands out', viLead:'Findings written from t
 var VA_REVIEW = ['off_package', 'deductions_spike', 'net_zero', 'paid_inactive'];
 // hire date, days worked and the reason for each change, per person (owner 2026-11-20: "need to see all data as the hiring
 // date, the reason of the increases, days working comparison")
-Object.assign(T.ar, { vaHire:'تاريخ التعيين', vaDaysCol:'أيام العمل', vaWhy:'سبب التغير', wyNew:'تعيين جديد في {d}', wyPartial:'شهر جزئي: {n} يوم مدفوع', wyLeft:'لم يُصرف له هذا الشهر (غادر أو أُوقف)',
+Object.assign(T.ar, { wyPkgNote:'الراتب الجديد من {d}: {r} (اعتمده {b})', wyNoReason:'بدون سبب مسجل', vaHire:'تاريخ التعيين', vaDaysCol:'أيام العمل', vaWhy:'سبب التغير', wyNew:'تعيين جديد في {d}', wyPartial:'شهر جزئي: {n} يوم مدفوع', wyLeft:'لم يُصرف له هذا الشهر (غادر أو أُوقف)',
   wyBack:'عاد بعد انقطاع', wyDays:'أيام العمل {a} → {b}', wyPkg:'تغير الراتب الثابت (عقد أو باقة جديدة)', wyNone:'بدون تغير', wyNetOnly:'صافي فقط هذا الشهر: لا تفصيل للبنود' });
-Object.assign(T.en, { vaHire:'Hire date', vaDaysCol:'Days worked', vaWhy:'Reason for the change', wyNew:'New hire on {d}', wyPartial:'Part month: {n} days paid', wyLeft:'Not paid this month (left or stopped)',
+Object.assign(T.en, { wyPkgNote:'New pay from {d}: {r} (approved by {b})', wyNoReason:'no reason recorded', vaHire:'Hire date', vaDaysCol:'Days worked', vaWhy:'Reason for the change', wyNew:'New hire on {d}', wyPartial:'Part month: {n} days paid', wyLeft:'Not paid this month (left or stopped)',
   wyBack:'Back after a break', wyDays:'Days worked {a} → {b}', wyPkg:'Fixed pay changed (new contract or package)', wyNone:'No change', wyNetOnly:'Net only this month: no line breakdown' });
 function vaDays(p){ var a = p.base ? p.base.days : null, b = p.cur ? p.cur.days : null; return { base: a, cur: b, diff: a != null && b != null ? Math.round((b - a) * 100) / 100 : null }; }
 /** The reasons behind one person's change, most important first, as plain sentences (no server call: lines and flags are in the answer). */
@@ -367,7 +367,7 @@ function vaWhy(p, netOnly){
   if (f.indexOf('leaver') >= 0) out.push(t('wyLeft'));
   if (p.cur && p.base) {
     if (d.diff) out.push(t('wyDays').replace('{a} → {b}', '⁦' + d.base + ' → ' + d.cur + '⁩'));
-    if (f.indexOf('package_change') >= 0) out.push(t('wyPkg'));
+    if (f.indexOf('package_change') >= 0) { out.push(t('wyPkg')); var pn = p.pkgNote; if (pn && (pn.from || pn.reason || pn.by)) out.push(t('wyPkgNote').replace('{d}', pn.from || '-').replace('{r}', pn.reason || t('wyNoReason')).replace('{b}', pn.by || '-')); }
     if (netOnly) out.push(t('wyNetOnly'));
     else (p.reasons || []).slice(0, 4).forEach(function(x){ out.push(lineName(x.line) + ': ⁦' + acctFmt(x.from) + ' → ' + acctFmt(x.to) + ' (' + sgn(x.effect) + ')⁩'); });
   }

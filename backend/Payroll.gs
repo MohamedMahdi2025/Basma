@@ -1493,7 +1493,9 @@ function api_payrollVarianceMonth(req, me) {
     var lines = {}; Object.keys((c0 || {}).lines || {}).concat(Object.keys((b || {}).lines || {})).forEach(function (k) { lines[k] = [r2_(((c0 || {}).lines || {})[k] || 0), r2_(((b || {}).lines || {})[k] || 0)]; });
     all.push({ empId: id, empNo: String(e.empNo || ''), name: e.name || '', status: e.status || '', hireDate: String(e.hireDate || '').slice(0, 10), dims: d,
       cur: pick(c0), base: pick(b), net: chg(c0 ? c0.net : 0, b ? b.net : 0), gross: chg(c0 ? c0.gross : 0, b ? b.gross : 0), cost: chg(c0 ? c0.companyCost : 0, b ? b.companyCost : 0),
-      package: pkg, drivers: drv, reasons: reasons.slice(0, 5), lines: lines, flags: flags, score: Math.round(score), hist: hist });
+      package: pkg, drivers: drv, reasons: reasons.slice(0, 5), lines: lines, flags: flags, score: Math.round(score), hist: hist,
+      // owner 2026-11-20: the salary change's own record (effective date, reason, approver) beside 'fixed pay changed'
+      pkgNote: pk && flags.indexOf('package_change') >= 0 ? { from: String(pk.effectiveFrom || '').slice(0, 10), reason: String(pk.reason || '').slice(0, 200), by: ((emps[pk.approvedBy] || {}).name) || '' } : null });
   });
   // filters; the counts beside each option follow every other filter (varFilter_)
   var VF = varFilter_(req.filters), f = VF.f, dimPass = function (dd) { return VF.pass({ dims: dd, name: '', empNo: '' }); };

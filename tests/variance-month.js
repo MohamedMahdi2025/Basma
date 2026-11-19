@@ -39,6 +39,7 @@ ok(v.totals.headcount.cur === 4 && v.totals.headcount.base === 4, 'every pay gro
 ok(by('Ali Riyadh') && !by('Ali Riyadh').flags.includes('leaver') && !by('Ali Riyadh').flags.includes('joiner'), 'nobody is a false leaver or joiner because of pay groups', by('Ali Riyadh') && by('Ali Riyadh').flags);
 ok(by('Leaver Jed') && by('Leaver Jed').flags.includes('leaver') && by('سعود').flags.includes('joiner'), 'real leaver and joiner found');
 ok(by('Ali Riyadh').flags.includes('package_change') && by('Ali Riyadh').flags.includes('one_off'), 'package change and one-off bonus flagged', by('Ali Riyadh').flags);
+ok((n => n && /^\d{4}-\d\d-\d\d$/.test(n.from) && 'reason' in n && 'by' in n)(by('Ali Riyadh').pkgNote), 'a package change carries its record: effective date, reason, approver', by('Ali Riyadh').pkgNote);
 const br = v.bridge;
 ok(Math.abs(br.from + br.joiners + br.leavers + br.stayers - br.to) < 0.01, 'the bridge adds up', br);
 const sumD = Object.keys(v.drivers).reduce((t, k) => t + v.drivers[k], 0);
