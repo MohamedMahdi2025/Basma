@@ -630,7 +630,7 @@ function api_backupPush(req) {
   var tab = String(req.tab || ''), start = Math.max(0, Math.floor(Number(req.start) || 0));
   if (!HEADERS[tab] || !Array.isArray(req.rows) || req.rows.length > 5000) fail_('bad_request');
   var body = ts + '|' + tab + '|' + start + '|' + JSON.stringify(req.header || null) + '|' + JSON.stringify(req.rows);
-  var sig = Utilities.computeHmacSha256Signature(body, key).map(function (b) { return ('0' + (b & 255).toString(16)).slice(-2); }).join('');
+  var sig = Utilities.computeHmacSha256Signature(body, key, Utilities.Charset.UTF_8).map(function (b) { return ('0' + (b & 255).toString(16)).slice(-2); }).join('');
   if (!safeEqual_(sig, String(req.sig || ''))) { secEvent_('backup_bad_sig', '', tab); fail_('forbidden'); }
   return withLock_(function () {
     var sh = sheet_(tab), header = start === 0 ? (Array.isArray(req.header) ? req.header : HEADERS[tab]) : HEADERS[tab];

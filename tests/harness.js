@@ -137,6 +137,7 @@ function load(opts = {}) {
       base64Encode: b => Buffer.from(Uint8Array.from(b, x => x & 255)).toString('base64'),
       base64EncodeWebSafe: b => Buffer.from(Uint8Array.from(b, x => x & 255)).toString('base64').replace(/\+/g, '-').replace(/\//g, '_'),
       computeDigest: (alg, b) => signed(crypto.createHash('sha256').update(Buffer.from(Uint8Array.from(b, x => x & 255))).digest()),
+      Charset: { UTF_8: "UTF-8", US_ASCII: "US-ASCII" },
       computeHmacSha256Signature: (m, k) => { const buf = v => Array.isArray(v) ? Buffer.from(v.map(b => b & 255)) : v; return signed(crypto.createHmac('sha256', buf(k)).update(buf(m)).digest()); }, // Apps Script takes strings or byte arrays
       DigestAlgorithm: { SHA_256: 'sha256' },
       newBlob: x => ({
