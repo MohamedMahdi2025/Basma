@@ -12,6 +12,9 @@ var GOSI_GCC = { KW: 1, KWT: 1, BH: 1, BHR: 1, QA: 1, QAT: 1, AE: 1, ARE: 1, OM:
 var ADJ_CODES = { bonus: 'earning', commission: 'earning', other_earning: 'earning', overtime_hours: 'hours', fine: 'deduction', other_deduction: 'deduction',
   reimbursement: 'earning', per_diem: 'earning', arrears: 'earning' }; // arrears: Wave5.gs retro pay // per_diem: an approved business trip (Leave.gs 'travel'), non-wage like reimbursement; an approved expense claim (Expenses.gs): paid with the salary, not wage (no GOSI, outside the Art. 93 base)
 var ADJ_NON_WAGE = { reimbursement: 1, per_diem: 1 };
+// additions that need a supporting document (an approval memo, a timesheet, an OT sheet) before the run can be approved
+// (owner 2026-11-20); claims, trips and retro pay arrive already approved through their own requests
+var PAY_SUPPORT_CODES = { overtime: 1, bonus: 1, commission: 1, incentive: 1, other_earning: 1 };
 var ADJ_SYSTEM_ONLY = { reimbursement: 1, per_diem: 1, arrears: 1 }; // arrears: withdrawn with retroCancel // only written by an approved claim, never typed in payroll
 
 function gosiRates_(isSaudi, cohort, month) {
@@ -249,6 +252,7 @@ function api_payrollCreate(req, me) {
   if (!payGroupAccess_(me, gid, groups)) fail_('forbidden');
   return withLock_(function () {
     if (readAll_(SHEETS.RUN).some(function (r) { return r.month === month && r.status !== 'cancelled' && !isDemoRun_(r) && String(r.payGroupId || '') === gid; })) fail_('run_exists'); // a demo run never blocks
+    var copied = req.fromPrev ? copyPrevAdjs_(month, gid, me) : null;
     var now = new Date().toISOString(), x = payrollCtx_(month, gid);
     var run = { id: newId_('P'), ref: nextRef_('payroll', refsOf_(SHEETS.RUN)), month: month, status: 'draft', preparedBy: me.id, preparedAt: now,
       approvedBy: '', approvedAt: '', totalsJson: '', note: str_(req.note, 300), emailedAt: '', createdAt: now, updatedAt: now, scope: '', payGroupId: gid };
@@ -259,8 +263,8 @@ function api_payrollCreate(req, me) {
     run.totalsJson = JSON.stringify(totals_(rows));
     append_(SHEETS.RUN, run);
     appendMany_(SHEETS.SLIP, rows);
-    audit_(me.id, 'payroll_create', run.id, { ref: run.ref, month: month, headcount: rows.length, payGroup: gid });
-    return { ok: true, run: publicRun_(run) };
+    audit_(me.id, 'payroll_create', run.id, { ref: run.ref, month: month, headcount: rows.length, payGroup: gid, fromPrev: copied ? copied.count : undefined });
+    return { ok: true, run: publicRun_(run), copied: copied };
   });
 }
 
@@ -303,11 +307,27 @@ function api_payrollApprove(req, me) {
     var now = new Date().toISOString();
     var slips = readAll_(SHEETS.SLIP).filter(function (s) { return s.runId === run.id && s.status === 'draft'; });
     if (!isDemoRun_(run) && tsMissing_(run.month, slips.map(function (s) { return s.empId; }))) fail_('timesheets_open'); // setting timesheetRequired (Attendance.gs)
+    // the step-by-step review (owner 2026-11-20): days, then each addition, then each deduction, all ticked; every addition
+    // carries a supporting document (from its adjustment, or typed by the approver for computed lines such as overtime)
+    var pub = slips.map(function (s) { return publicSlip_(s, null); }), keys = payrollReviewKeys_(pub), seen = {};
+    (Array.isArray(req.review) ? req.review : []).forEach(function (k) { seen[String(k)] = 1; });
+    if (keys.some(function (k) { return !seen[k]; })) fail_('review_incomplete');
+    var adjRef = {}; readAll_(SHEETS.ADJ).forEach(function (a) { if (a.month === run.month && a.status !== 'deleted') adjRef[a.ref] = a; });
+    var given = req.support && typeof req.support === 'object' ? req.support : {}, supp = {};
+    slips.forEach(function (s) {
+      lines_(s).forEach(function (l) {
+        if (l.kind !== 'earning' || !PAY_SUPPORT_CODES[l.code] || !(Number(l.amount) > 0)) return;
+        var a = l.ref && adjRef[l.ref], doc = (a && str_(a.docRef, 200)) || str_(given[s.id + ':' + l.code + (l.ref ? ':' + l.ref : '')], 200) || str_(given[s.id + ':' + l.code], 200);
+        if (!doc) fail_('support_missing');
+        (supp[s.id] = supp[s.id] || {})[l.code + (l.ref ? ':' + l.ref : '')] = { doc: doc, by: me.id, at: now };
+      });
+    });
+    slips.forEach(function (s) { if (supp[s.id]) { var inf = {}; try { inf = JSON.parse(s.infoJson || '{}') || {}; } catch (e) {} inf.support = supp[s.id]; s.infoJson = JSON.stringify(inf); } });
     slips.forEach(function (s) { s.status = 'locked'; s.updatedAt = now; });
     updateMany_(SHEETS.SLIP, slips);
     run.status = 'locked'; run.approvedBy = me.id; run.approvedAt = now; run.updatedAt = now;
     update_(SHEETS.RUN, run);
-    audit_(me.id, 'payroll_approve', run.id, { ref: run.ref, month: run.month, net: totals_(slips).net });
+    audit_(me.id, 'payroll_approve', run.id, { ref: run.ref, month: run.month, net: totals_(slips).net, reviewed: keys.length, supported: Object.keys(supp).reduce(function (t, k) { return t + Object.keys(supp[k]).length; }, 0) });
     return { ok: true, run: publicRun_(run) };
   });
 }
@@ -332,13 +352,52 @@ function publicRun_(r) {
   return { id: r.id, ref: r.ref, month: r.month, status: r.status, preparedBy: r.preparedBy, preparedAt: r.preparedAt, approvedBy: r.approvedBy,
     approvedAt: r.approvedAt, totals: t, note: r.note, emailedAt: r.emailedAt, scope: runScope_(r), payGroupId: String(r.payGroupId || '') };
 }
+/** The columns an approver must tick, from the run's own lines: days, then every addition, then every deduction. */
+function payrollReviewKeys_(slips) {
+  var e = {}, d = {};
+  slips.forEach(function (s) { (s.lines || []).forEach(function (l) { if (!(Number(l.amount) > 0)) return; (l.kind === 'deduction' ? d : e)[l.code] = 1; }); });
+  return ['days'].concat(Object.keys(e).sort().map(function (k) { return 'e:' + k; })).concat(Object.keys(d).sort().map(function (k) { return 'd:' + k; }));
+}
+/** Last month's figures for each person of this run (its pay group's locked runs), for the approver to compare. */
+function prevMonthOf_(run, me) {
+  var pm = addMonths_(run.month, -1), groups = payGroups_(), gid = String(run.payGroupId || ''), ids = {}, by = {};
+  readAll_(SHEETS.RUN).forEach(function (r) { if (r.month === pm && r.status === 'locked' && String(r.payGroupId || '') === gid && runScope_(r) === runScope_(run) && runAccess_(me, r, groups)) ids[r.id] = 1; });
+  readAll_(SHEETS.SLIP).forEach(function (s) {
+    if (!ids[s.runId] || s.status === 'void') return;
+    var o = by[s.empId] = by[s.empId] || { days: 0, net: 0, lines: {} }; o.days += Number(s.paidDays) || 0; o.net = r2_(o.net + (Number(s.net) || 0));
+    lines_(s).forEach(function (l) { var k = (l.kind === 'deduction' ? 'd:' : 'e:') + l.code; o.lines[k] = r2_((o.lines[k] || 0) + (Number(l.amount) || 0)); });
+  });
+  return { month: pm, byEmp: by, has: Object.keys(ids).length > 0 };
+}
+/** Start a month from the last one: last month's additions and deductions (adjustments, or the lines of an imported run) become
+ *  this month's adjustments, marked as copies; fixed pay, leave, attendance and GOSI are worked out fresh. A copied addition
+ *  keeps no document: the approver attaches this month's before approval. Never anyone's own pay. */
+function copyPrevAdjs_(month, gid, me) {
+  var pm = addMonths_(month, -1), people = {}, out = [], now = new Date().toISOString(), seen = {}, skippedOwn = 0;
+  payrollEmps_(month, '', gid).forEach(function (e) { people[e.id] = 1; });
+  var have = {}; readAll_(SHEETS.ADJ).forEach(function (a) { if (a.month === month && a.status !== 'deleted') have[a.empId + '|' + a.code + '|' + Number(a.amount)] = 1; });
+  var take = function (empId, code, amount, reason, from) {
+    if (!people[empId] || !ADJ_CODES[code] || ADJ_SYSTEM_ONLY[code] || !(amount > 0)) return;
+    if (empId === me.id) { skippedOwn++; return; }
+    var k = empId + '|' + code + '|' + amount; if (seen[k] || have[k]) return; seen[k] = 1;
+    out.push({ id: newId_('A'), ref: '', empId: empId, month: month, kind: ADJ_CODES[code], code: code, amount: r2_(amount), reason: str_('نسخة من ' + pm + ': ' + (reason || code), 200),
+      enteredBy: me.id, status: 'active', createdAt: now, docRef: '', copiedFrom: from || '' });
+  };
+  readAll_(SHEETS.ADJ).forEach(function (a) { if (a.month === pm && a.status !== 'deleted') take(a.empId, a.code, Number(a.amount), a.reason, a.ref); });
+  var imp = {}; readAll_(SHEETS.RUN).forEach(function (r) { if (r.month === pm && r.status === 'locked' && r.scope === 'import' && String(r.payGroupId || '') === gid) imp[r.id] = 1; });
+  readAll_(SHEETS.SLIP).forEach(function (s) { if (!imp[s.runId] || s.status === 'void') return;
+    lines_(s).forEach(function (l) { if (l.code === 'bonus' || l.code === 'commission' || l.code === 'other_earning' && !/صافي الراتب المعتمد|approved net/i.test(String(l.label || '')) || l.code === 'fine' || l.code === 'other_deduction') take(s.empId, l.code, Number(l.amount), l.label, s.ref); }); });
+  var refs = nextRefs_('adjustment', out.length, refsOf_(SHEETS.ADJ)); out.forEach(function (r, i) { r.ref = refs[i]; });
+  if (out.length) appendMany_(SHEETS.ADJ, out);
+  return { from: pm, count: out.length, skippedOwn: skippedOwn, needDocs: out.filter(function (r) { return r.kind === 'earning'; }).length };
+}
 function publicSlip_(s, emps) {
   var info = {}; try { info = JSON.parse(s.infoJson || '{}'); } catch (e) {}
   var e = emps && emps[s.empId];
   return { id: s.id, ref: s.ref, runId: s.runId, month: s.month, empId: s.empId, status: s.status, lines: lines_(s), gross: Number(s.gross), deductions: Number(s.deductions),
     net: Number(s.net), gosiEmployee: Number(s.gosiEmployee), gosiEmployer: Number(s.gosiEmployer), paidDays: Number(s.paidDays), absentDays: Number(s.absentDays),
     eosAccrual: Number(s.eosAccrual) || 0, companyCost: Number(s.companyCost) || r2_(Number(s.gross) + Number(s.gosiEmployer)),
-    info: info.info || {}, warnings: info.warnings || [], emailedAt: s.emailedAt,
+    info: info.info || {}, warnings: info.warnings || [], support: info.support || {}, emailedAt: s.emailedAt,
     emp: e ? { id: e.id, empNo: String(e.empNo), name: e.name, nameEn: e.nameEn, title: e.title, department: e.department, email: e.email, departmentId: e.departmentId } : null };
 }
 
@@ -361,12 +420,12 @@ function api_payrollGet(req, me) {
   var slips = readAll_(SHEETS.SLIP).filter(function (s) { return s.runId === run.id && s.status !== 'void'; }).map(function (s) { var o = publicSlip_(s, emps); if (o.emp) o.emp.deptName = dnames[o.emp.departmentId] || o.emp.department || ''; return o; })
     .sort(function (a, b) { return String(a.emp && a.emp.name).localeCompare(String(b.emp && b.emp.name)); });
   var adjs = readAll_(SHEETS.ADJ).filter(function (a) { return a.month === run.month && a.status !== 'deleted'; }).map(function (a) {
-    return { id: a.id, ref: a.ref, empId: a.empId, empName: emps[a.empId] ? emps[a.empId].name : '', kind: a.kind, code: a.code, amount: Number(a.amount), reason: a.reason, enteredBy: emps[a.enteredBy] ? emps[a.enteredBy].name : '' };
+    return { id: a.id, ref: a.ref, empId: a.empId, empName: emps[a.empId] ? emps[a.empId].name : '', kind: a.kind, code: a.code, amount: Number(a.amount), reason: a.reason, enteredBy: emps[a.enteredBy] ? emps[a.enteredBy].name : '', docRef: a.docRef || '', copiedFrom: a.copiedFrom || '' };
   });
   audit_(me.id, 'salary_view', run.id, { payroll: run.ref });
   var o = publicRun_(run);
   o.preparedByName = emps[run.preparedBy] ? emps[run.preparedBy].name : ''; o.approvedByName = emps[run.approvedBy] ? emps[run.approvedBy].name : '';
-  return { ok: true, run: o, slips: slips, adjustments: adjs, canApprove: canApprovePayroll_(me) && run.preparedBy !== me.id && run.status === 'draft' };
+  return { ok: true, run: o, slips: slips, adjustments: adjs, prev: prevMonthOf_(run, me), reviewKeys: payrollReviewKeys_(slips), canApprove: canApprovePayroll_(me) && run.preparedBy !== me.id && run.status === 'draft' };
 }
 
 // ---------------- adjustments (one month, one line each) ----------------
@@ -388,13 +447,14 @@ function api_payrollAdjSave(req, me) {
   if (!(amount > 0) || (code === 'overtime_hours' && amount > 200)) fail_('bad_amount');
   if (!str_(d.reason, 200)) fail_('note_required');
   if (d.empId === me.id) fail_('cannot_change_own_salary');
+  if ((ADJ_CODES[code] === 'earning' || code === 'overtime_hours') && !str_(d.docRef, 200)) fail_('support_required');
   return withLock_(function () {
     var emp = findBy_(SHEETS.EMP, 'id', d.empId);
     if (!emp) fail_('not_found');
     if (!payGroupAccess_(me, groupOf_(emp))) fail_('forbidden');
     if (monthLocked_(emp.id, month)) fail_('month_locked');
     var row = { id: newId_('A'), ref: nextRef_('adjustment', refsOf_(SHEETS.ADJ)), empId: emp.id, month: month, kind: ADJ_CODES[code], code: code,
-      amount: amount, reason: str_(d.reason, 200), enteredBy: me.id, status: 'active', createdAt: new Date().toISOString() };
+      amount: amount, reason: str_(d.reason, 200), enteredBy: me.id, status: 'active', createdAt: new Date().toISOString(), docRef: str_(d.docRef, 200), copiedFrom: '' };
     append_(SHEETS.ADJ, row);
     audit_(me.id, 'payroll_adjustment', emp.id, { ref: row.ref, code: code, amount: amount, month: month });
     return { ok: true, adj: { id: row.id, ref: row.ref } };

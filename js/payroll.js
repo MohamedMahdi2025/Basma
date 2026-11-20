@@ -269,6 +269,91 @@ function slipInto(d, s, who, ctx){
   $$('[data-mv]', d).forEach(function(b){ b.onclick = function(){ var to = +b.dataset.mv < 0 ? prev : next; if (!to) return; d.setArg('me.' + to.id); slipInto(d, to, who, ctx); var f = $('[data-mv="' + b.dataset.mv + '"]', d); if (f && !f.disabled) f.focus(); }; });
 }
 
+// draft from last month, supporting documents, step-by-step approval (2026-11-20)
+Object.assign(T.ar, { pvFromPrev:'ابدأ من الشهر السابق', pvFromPrevHint:'تنسخ إضافات وخصومات الشهر السابق إلى المسودة، ثم تراجعها وتعدلها قبل الاعتماد.',
+  pvCopied:'نسخنا {n} بندا من {m}. الإضافات تحتاج مستند اعتماد قبل اعتماد المسير.', pvCopiedNone:'لا توجد بنود في الشهر السابق لنسخها.',
+  prAdjDoc:'مستند الاعتماد', prAdjDocPh:'رقم المستند أو الطلب أو رابطه', prAdjDocNeed:'أي إضافة أو ساعات عمل إضافي تحتاج مستند اعتماد.', prAdjCopy:'نسخة من الشهر السابق', prAdjNoDoc:'بدون مستند',
+  awTitle:'مراجعة المسير قبل الاعتماد', awLead:'كل عمود في المسير خطوة: راجعه مقابل الشهر السابق ثم أكد. الإضافات تحتاج مستند اعتماد لكل سطر.',
+  awStep:'الخطوة {i} من {n}', awDays:'أيام العمل', awPrev:'الشهر السابق', awNow:'هذا الشهر', awDiff:'الفرق', awNoPrev:'لا يوجد مسير معتمد للشهر السابق للمقارنة.',
+  awConfirm:'راجعت هذا العمود وأؤكد صحته', awNext:'التالي', awBack:'السابق', awFinish:'اعتماد المسير وقفله', awDocs:'مستندات الاعتماد', awDocMissing:'أدخل مستند الاعتماد لكل سطر.',
+  awChanged:'تغير', awNew:'جديد', awOnly:'المتغير فقط', awAll:'الكل', awSum:'المجموع', awFinal:'بعد الاعتماد يقفل المسير ولا يمكن التعديل.', awSupport:'المستندات',
+  e_review_incomplete:'راجع كل أعمدة المسير قبل الاعتماد.', e_support_missing:'كل إضافة تحتاج مستند اعتماد قبل اعتماد المسير.', e_support_required:'أدخل مستند الاعتماد لهذه الإضافة (مثلا رقم طلب العمل الإضافي).' });
+Object.assign(T.en, { pvFromPrev:'Start from last month', pvFromPrevHint:'Copies last month\'s additions and deductions into the draft; review and edit them before approval.',
+  pvCopied:'Copied {n} lines from {m}. Additions need a supporting document before the run is approved.', pvCopiedNone:'Last month has no lines to copy.',
+  prAdjDoc:'Supporting document', prAdjDocPh:'Document or request number, or a link', prAdjDocNeed:'Every addition or overtime entry needs a supporting document.', prAdjCopy:'Copied from last month', prAdjNoDoc:'no document',
+  awTitle:'Review the run before approval', awLead:'Each column of the run is a step: check it against last month, then confirm. Additions need a supporting document per line.',
+  awStep:'Step {i} of {n}', awDays:'Days worked', awPrev:'Last month', awNow:'This month', awDiff:'Difference', awNoPrev:'No approved run last month to compare with.',
+  awConfirm:'I have checked this column and confirm it', awNext:'Next', awBack:'Back', awFinish:'Approve and lock the run', awDocs:'Supporting documents', awDocMissing:'Enter a supporting document for every line.',
+  awChanged:'changed', awNew:'new', awOnly:'Changes only', awAll:'All', awSum:'Total', awFinal:'Once approved the run is locked and cannot be changed.', awSupport:'Documents',
+  e_review_incomplete:'Review every column of the run before approval.', e_support_missing:'Every addition needs a supporting document before the run is approved.', e_support_required:'Enter a supporting document for this addition (for example the overtime request number).' });
+var SUPPORT_CODES = { overtime: 1, bonus: 1, commission: 1, incentive: 1, other_earning: 1 }; // the server's PAY_SUPPORT_CODES
+
+/** Approval, one column at a time (owner 2026-11-20): days worked, then every addition, then every deduction, each against
+ *  last month. Additions in SUPPORT_CODES need a document per line (prefilled from the adjustment). The server checks it all again. */
+function approveWizard(r, run, done){
+  var keys = r.reviewKeys || ['days'], prev = r.prev || { byEmp: {}, has: false }, adjRef = {}, i = 0, ticked = {}, support = {}, only = false;
+  (r.adjustments || []).forEach(function(a){ adjRef[a.ref] = a; });
+  var people = r.slips.slice().sort(function(a, b){ return String(a.emp ? a.emp.name : '').localeCompare(String(b.emp ? b.emp.name : '')); });
+  var nm = function(k){ if (k === 'days') return t('awDays'); var p = k.split(':'); return lab({ code: p[1], kind: p[0] === 'd' ? 'deduction' : 'earning' }); };
+  var d = drawer('<h3>' + t('awTitle') + ' · ' + esc(monthName(run.month)) + '</h3><p class="hr-hint">' + t('awLead') + '</p><div id="awB"></div>', { wide: true });
+  var el = $('#awB', d);
+  // every line of this column, per person: [{ slip, label, amount, ref, key }]
+  var rowsOf = function(k){ var out = [];
+    people.forEach(function(s){ var pv = prev.byEmp[s.empId] || null;
+      if (k === 'days') return out.push({ s: s, now: +s.paidDays || 0, was: pv ? pv.days : null, lines: [] });
+      var p = k.split(':'), kind = p[0] === 'd' ? 'deduction' : 'earning', ls = (s.lines || []).filter(function(l){ return l.code === p[1] && (l.kind === 'deduction') === (kind === 'deduction') && +l.amount > 0; });
+      var now = ls.reduce(function(a, l){ return a + (+l.amount || 0); }, 0), was = pv ? (pv.lines[k] || 0) : null;
+      if (now || was) out.push({ s: s, now: Math.round(now * 100) / 100, was: was, lines: ls });
+    });
+    return out; };
+  var needDoc = function(k){ return k.indexOf('e:') === 0 && SUPPORT_CODES[k.slice(2)]; };
+  var sk = function(s, l){ return s.id + ':' + l.code + (l.ref ? ':' + l.ref : ''); };
+  var docOf = function(s, l){ var key = sk(s, l); if (support[key] != null) return support[key]; var a = l.ref && adjRef[l.ref]; return (a && a.docRef) || (s.support && s.support[key]) || ''; };
+  var fmt = function(k, v){ return v == null ? '-' : k === 'days' ? String(v) : acct(v); };
+  function draw(){
+    var k = keys[i], rows = rowsOf(k), doc = needDoc(k), changed = function(x){ return x.was == null || Math.abs(x.now - x.was) > 0.005; };
+    var shown = only ? rows.filter(changed) : rows, sum = function(f){ return rows.reduce(function(a, x){ return a + (+x[f] || 0); }, 0); };
+    el.innerHTML = '<div class="aw-steps" role="list">' + keys.map(function(x, n){ return '<button type="button" role="listitem" class="aw-dot' + (n === i ? ' on' : '') + (ticked[x] ? ' ok' : '') + '" data-go="' + n + '"' + (n > i && !keys.slice(0, n).every(function(y){ return ticked[y]; }) ? ' disabled' : '') + '>' + (ticked[x] ? ph('check') : n + 1) + ' <span>' + esc(nm(x)) + '</span></button>'; }).join('') + '</div>' +
+      '<div class="aw-head"><small>' + t('awStep').replace('{i}', i + 1).replace('{n}', keys.length) + '</small><h4>' + esc(nm(k)) + '</h4>' +
+      '<div class="aw-tot"><span>' + t('awPrev') + ' <b class="num">' + (prev.has ? fmt(k, sum('was')) : '-') + '</b></span><span>' + t('awNow') + ' <b class="num">' + fmt(k, sum('now')) + '</b></span>' +
+      (prev.has ? '<span>' + t('awDiff') + ' <b class="num">' + fmt(k, Math.round((sum('now') - sum('was')) * 100) / 100) + '</b></span>' : '') + '</div>' +
+      (prev.has ? '' : '<p class="hr-hint">' + ph('info') + t('awNoPrev') + '</p>') +
+      '<div class="aw-flt"><button type="button" class="chip' + (only ? '' : ' on') + '" data-only="0">' + t('awAll') + ' (' + rows.length + ')</button><button type="button" class="chip' + (only ? ' on' : '') + '" data-only="1">' + t('awOnly') + ' (' + rows.filter(changed).length + ')</button></div></div>' +
+      '<div class="pt-wrap"><table class="pt aw-t"><thead><tr><th>' + t('hrName') + '</th><th class="a">' + t('awPrev') + '</th><th class="a">' + t('awNow') + '</th><th class="a">' + t('awDiff') + '</th>' + (doc ? '<th>' + t('awDocs') + '</th>' : '') + '</tr></thead><tbody>' +
+      (shown.length ? shown.map(function(x){ var c = changed(x), df = x.was == null ? null : Math.round((x.now - x.was) * 100) / 100;
+        return '<tr class="' + (c ? 'aw-ch' : '') + '"><td class="nm"><b>' + esc(x.s.emp ? x.s.emp.name : '') + '</b><small>' + esc(x.s.emp ? x.s.emp.empNo : '') + '</small></td>' +
+          '<td class="a">' + fmt(k, x.was) + '</td><td class="a"><b>' + fmt(k, x.now) + '</b></td><td class="a">' + (x.was == null ? '<span class="pv-st pv-draft">' + t('awNew') + '</span>' : c ? fmt(k, df) : '-') + '</td>' +
+          (doc ? '<td class="aw-docs">' + x.lines.map(function(l){ var key = sk(x.s, l); return '<label><small>' + esc(l.label || nm(k)) + ' · <b class="num">' + acct(l.amount) + '</b></small><input data-sup="' + esc(key) + '" value="' + esc(docOf(x.s, l)) + '" maxlength="200" placeholder="' + t('prAdjDocPh') + '"></label>'; }).join('') + '</td>' : '') + '</tr>'; }).join('')
+        : '<tr><td colspan="' + (doc ? 5 : 4) + '" class="pt-none">' + t('ptNone') + '</td></tr>') + '</tbody></table></div>' +
+      '<label class="aw-ok"><input type="checkbox" id="awTick"' + (ticked[k] ? ' checked' : '') + '> ' + t('awConfirm') + '</label><div class="err" id="awErr"></div>' +
+      (i === keys.length - 1 ? '<p class="hr-hint">' + ph('lock') + t('awFinal') + '</p>' : '') +
+      '<div class="btnrow">' + (i ? '<button type="button" class="btn btn-line btn-sm" id="awPrevB">' + t('awBack') + '</button>' : '') +
+      '<button type="button" class="btn btn-dark btn-sm" id="awNextB"' + (ticked[k] ? '' : ' disabled') + '>' + (i === keys.length - 1 ? ph('seal-check') + t('awFinish') : t('awNext')) + '</button></div>';
+    $$('[data-sup]', el).forEach(function(x){ x.oninput = function(){ support[x.dataset.sup] = x.value; }; });
+    $$('[data-only]', el).forEach(function(b){ b.onclick = function(){ only = b.dataset.only === '1'; draw(); }; });
+    $$('[data-go]', el).forEach(function(b){ b.onclick = function(){ i = +b.dataset.go; draw(); }; });
+    $('#awTick', el).onchange = function(){ ticked[k] = this.checked; $('#awNextB', el).disabled = !this.checked; };
+    if ($('#awPrevB', el)) $('#awPrevB', el).onclick = function(){ i--; draw(); };
+    $('#awNextB', el).onclick = function(){
+      if (doc) { var miss = rows.some(function(x){ return x.lines.some(function(l){ return !String(docOf(x.s, l)).trim(); }); }); if (miss) { $('#awErr', el).textContent = t('awDocMissing'); return; } }
+      if (i < keys.length - 1) { i++; return draw(); }
+      var sup = {}; keys.filter(needDoc).forEach(function(kk){ rowsOf(kk).forEach(function(x){ x.lines.forEach(function(l){ sup[sk(x.s, l)] = String(docOf(x.s, l)).trim(); }); }); });
+      var b = this; b.disabled = true;
+      api('payrollApprove', { id: run.id, review: keys.slice(), support: sup }).then(function(x){ b.disabled = false; if (!x.ok) return $('#awErr', el).textContent = errText(x.error); d.remove(); done(x); });
+    };
+  }
+  if (!$('#awCss')) { var st = document.createElement('style'); st.id = 'awCss'; st.textContent =
+    '.aw-steps{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 14px}.aw-dot{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--q-hair,#ddd);background:transparent;border-radius:999px;padding:4px 10px;font:inherit;font-size:12px;cursor:pointer;color:inherit}' +
+    '.aw-dot.on{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand)}.aw-dot.ok{background:var(--q-tray,#f3f1ec)}.aw-dot:disabled{opacity:.45;cursor:default}' +
+    '.aw-head h4{margin:2px 0 8px;font-size:20px}.aw-tot{display:flex;flex-wrap:wrap;gap:16px;font-size:13px;margin-bottom:8px}.aw-flt{display:flex;gap:6px;margin:8px 0}' +
+    '.aw-flt .chip{border:1px solid var(--q-hair,#ddd);background:transparent;border-radius:999px;padding:3px 10px;font:inherit;font-size:12px;cursor:pointer;color:inherit}.aw-flt .chip.on{background:var(--ink,#222);color:var(--paper,#fff)}' +
+    '.aw-t tr.aw-ch td{background:color-mix(in srgb,var(--brand) 7%,transparent)}.aw-docs label{display:block;margin:2px 0}.aw-docs input{width:100%;min-width:180px;font:inherit;font-size:13px;padding:5px 8px;border:1px solid var(--q-hair,#ccc);border-radius:8px;background:transparent;color:inherit}' +
+    '.va .aw-t,.aw-t{min-width:0!important;width:100%;table-layout:auto}.aw-t td,.aw-t th{white-space:nowrap}.aw-t td.aw-docs{white-space:normal;min-width:200px}' +
+    '.aw-ok{display:flex;gap:8px;align-items:center;margin:14px 0 6px;font-weight:600}';
+    document.head.appendChild(st); }
+  draw();
+}
+
 // ---------------- HR console: payroll ----------------
 var xlsxP = null;
 function xlsx(){ if (window.XLSX) return Promise.resolve(); if (xlsxP) return xlsxP; xlsxP = new Promise(function(res, rej){ var sc = document.createElement('script'); sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'; sri(sc, sc.src); sc.onload = res; sc.onerror = function(){ xlsxP = null; rej(); }; document.head.appendChild(sc); }); return xlsxP; }
@@ -281,11 +366,14 @@ function section(body){
     '<form class="pv-new" id="prNewF"' + (done ? ' hidden' : '') + '><div class="pv-new-t">' + ph('calculator', 'duotone') + '<div><b>' + t('pvNew') + '</b><small>' + t('pvNewLead') + '</small></div></div>' +
     '<label class="pv-fld"><span>' + t('prMonth') + '</span><input type="month" name="month" value="' + last + '" max="' + riyadhToday().slice(0, 7) + '" required></label>' +
     '<label class="pv-fld" id="prGrpL" hidden><span>' + t('pgGroup') + '</span><select name="group" id="prGrp" aria-label="' + t('pgGroup') + '"></select></label>' +
+    '<label class="pv-fld pv-chk" title="' + t('pvFromPrevHint') + '"><input type="checkbox" name="fromPrev" checked> <span>' + t('pvFromPrev') + '</span></label>' +
     '<button class="btn btn-dark">' + ph('calculator') + t('prCreate') + '</button><span class="err" id="prErr"></span></form><div id="prList"></div>' +
     (done ? '' : '<section class="pv-card"><h3 class="pv-h3">' + ph('calculator') + t('prEos') + '</h3><div id="prEos"></div></section>') + '</div>';
   $('#prNewF', body).onsubmit = function(ev){
     ev.preventDefault(); var b = this.querySelector('button'); b.disabled = true;
-    api('payrollCreate', { month: this.elements.month.value, payGroupId: this.elements.group.value || '' }).then(function(r){ b.disabled = false; if (!r.ok) { $('#prErr', body).textContent = errText(r.error); return; } S.prRun = r.run.id; section(body); });
+    api('payrollCreate', { month: this.elements.month.value, payGroupId: this.elements.group.value || '', fromPrev: !!this.elements.fromPrev.checked }).then(function(r){ b.disabled = false; if (!r.ok) { $('#prErr', body).textContent = errText(r.error); return; }
+      if (r.copied) toast(r.copied.count ? t('pvCopied').replace('{n}', r.copied.count).replace('{m}', monthName(r.copied.from)) : t('pvCopiedNone'));
+      S.prRun = r.run.id; section(body); });
   };
   var el = $('#prList', body);
   apiFresh('payrollList', {}, function(r){
@@ -376,7 +464,7 @@ function runView(body, id){
       b.dataset.old = b.innerHTML; b.dataset.armed = '1'; b.textContent = t(key);
       setTimeout(function(){ if (b.isConnected && b.dataset.armed && !b.disabled) { delete b.dataset.armed; b.innerHTML = b.dataset.old; } }, 4000);
     }; };
-    if ($('#prOk', el)) $('#prOk', el).onclick = twice('prSureLock', act('payrollApprove', function(){ toast(t('prApproved')); runView(body, id); }));
+    if ($('#prOk', el)) $('#prOk', el).onclick = function(){ approveWizard(r, run, function(){ toast(t('prApproved')); runView(body, id); }); };
     if ($('#prDel', el)) $('#prDel', el).onclick = twice('prSureDel', act('payrollDelete', function(){ S.prRun = null; section(body); }));
     if ($('#prMail', el)) $('#prMail', el).onclick = act('payrollEmail', function(x){
       toast(t('prEmailed') + ': ' + x.queued);
@@ -468,15 +556,18 @@ function adjBox(el, r, draft, changed){
   var names = {}; r.slips.forEach(function(s){ if (s.emp) names[s.emp.id] = s.emp.name; });
   var codes = ['overtime_hours', 'bonus', 'commission', 'other_earning', 'fine', 'other_deduction'];
   el.innerHTML = (r.adjustments.length ? '<div class="list">' + r.adjustments.map(function(a){
-    return '<div class="row"><div class="main"><b>' + esc(a.empName) + '، ' + esc((L[S.lang] || L.ar)[a.code] || a.code) + '</b><small><bdi>' + esc(a.ref) + '</bdi>، ' + esc(a.reason) + '</small></div><b class="num">' + (a.code === 'overtime_hours' ? a.amount : money(a.amount)) + '</b>' +
+    return '<div class="row"><div class="main"><b>' + esc(a.empName) + '، ' + esc((L[S.lang] || L.ar)[a.code] || a.code) + '</b><small><bdi>' + esc(a.ref) + '</bdi>، ' + esc(a.reason) + (a.copiedFrom ? ' · ' + t('prAdjCopy') : '') + (a.kind === 'earning' || a.code === 'overtime_hours' ? ' · ' + ph('paperclip') + (a.docRef ? '<bdi>' + esc(a.docRef) + '</bdi>' : '<em>' + t('prAdjNoDoc') + '</em>') : '') + '</small></div><b class="num">' + (a.code === 'overtime_hours' ? a.amount : money(a.amount)) + '</b>' +
       (draft ? '<button type="button" class="btn btn-line btn-sm" data-adel="' + a.id + '">' + I.x + '</button>' : '') + '</div>';
   }).join('') + '</div>' : '<p class="hr-hint">' + t('prAdjNone') + '</p>') +
     (draft ? '<form class="form" id="adjF" style="margin-top:10px"><div class="two"><div class="field"><label>' + t('prAdjEmp') + '</label><select name="empId" required>' + Object.keys(names).filter(function(k){ return k !== S.me.id; }).map(function(k){ return '<option value="' + k + '">' + esc(names[k]) + '</option>'; }).join('') + '</select></div>' +
       '<div class="field"><label>' + t('prAdjCode') + '</label><select name="code">' + codes.map(function(c){ return '<option value="' + c + '">' + esc((L[S.lang] || L.ar)[c]) + '</option>'; }).join('') + '</select></div></div>' +
       '<div class="two"><div class="field"><label>' + t('prAdjAmount') + '</label><input name="amount" type="number" min="0.01" step="0.01" required inputmode="decimal"></div><div class="field"><label>' + t('prAdjReason') + '</label><input name="reason" required maxlength="200"></div></div>' +
+      '<div class="field" id="adjDocF"><label>' + t('prAdjDoc') + '</label><input name="docRef" maxlength="200" placeholder="' + t('prAdjDocPh') + '"><small class="hr-hint">' + t('prAdjDocNeed') + '</small></div>' +
       '<div class="err" id="adjErr" style="color:var(--red)"></div><div class="btnrow"><button class="btn btn-dark btn-sm">' + ph('plus') + t('prAdjAdd') + '</button></div></form>' : '');
   $$('[data-adel]', el).forEach(function(b){ b.onclick = function(){ b.disabled = true; api('payrollAdjDelete', { id: b.dataset.adel }).then(function(x){ if (!x.ok) { b.disabled = false; return toast(errText(x.error)); } changed(); }); }; });
   var f = $('#adjF', el);
+  // a deduction needs no document; an addition or overtime hours does (the server refuses it without one)
+  if (f) { var syncDoc = function(){ var c = f.elements.code.value, need = c === 'overtime_hours' || c === 'bonus' || c === 'commission' || c === 'other_earning'; $('#adjDocF', el).hidden = !need; f.elements.docRef.required = need; }; f.elements.code.onchange = syncDoc; syncDoc(); }
   if (f) f.onsubmit = function(ev){ ev.preventDefault(); var v = {}; Array.prototype.forEach.call(f.elements, function(x){ if (x.name) v[x.name] = x.value; }); v.month = r.run.month;
     var b = f.querySelector('button'); b.disabled = true;
     api('payrollAdjSave', { adj: v }).then(function(x){ b.disabled = false; if (!x.ok) return $('#adjErr', el).textContent = errText(x.error); changed(); }); };

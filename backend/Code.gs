@@ -128,7 +128,7 @@ var HEADERS = {
     'scope', 'payGroupId'], // payGroupId: one run per pay group per month ('' the general group). scope '' = the company's payroll; 'demo' = a run over the demo company only (Demo.gs), never mixed with the real one
   payslips: ['id', 'ref', 'runId', 'month', 'empId', 'status', 'linesJson', 'gross', 'deductions', 'net', 'gosiEmployee', 'gosiEmployer',
     'paidDays', 'absentDays', 'infoJson', 'emailedAt', 'createdAt', 'updatedAt', 'eosAccrual', 'companyCost'],
-  adjustments: ['id', 'ref', 'empId', 'month', 'kind', 'code', 'amount', 'reason', 'enteredBy', 'status', 'createdAt'],
+  adjustments: ['id', 'ref', 'empId', 'month', 'kind', 'code', 'amount', 'reason', 'enteredBy', 'status', 'createdAt', 'docRef', 'copiedFrom'],
   perfCycles: ['id', 'ref', 'year', 'nameAr', 'nameEn', 'type', 'status', 'kpiWeight', 'compWeight', 'goalsDue', 'midDue', 'reviewDue', 'createdBy', 'createdAt', 'updatedAt'],
   kpis: ['id', 'ref', 'cycleId', 'empId', 'titleAr', 'titleEn', 'measure', 'target', 'unit', 'weight', 'status', 'midStatus', 'midNote', 'actual',
     'selfScore', 'selfComment', 'mgrScore', 'mgrComment', 'setBy', 'createdAt', 'updatedAt'],

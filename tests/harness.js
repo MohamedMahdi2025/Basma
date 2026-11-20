@@ -151,10 +151,21 @@ function load(opts = {}) {
   const dir = path.join(__dirname, '..', 'backend');
   for (const f of ['Code.gs', 'WebAuthn.gs', 'Attendance.gs', 'Admin.gs', 'Hr.gs', 'Leave.gs', 'Payroll.gs', 'Performance.gs', 'Dashboard.gs', 'Reports.gs', 'Engage.gs', 'Compliance.gs', 'Shifts.gs', 'Relations.gs', 'Custody.gs', 'Demo.gs', 'GovServices.gs', 'Expenses.gs', 'Journal.gs', 'Flows.gs', 'Recruitment.gs', 'Loans.gs', 'Training.gs', 'Insurance.gs', 'Announce.gs', 'HelpDesk.gs', 'Wave5.gs', 'Wave6.gs', 'Wave7.gs']) vm.runInContext(fs.readFileSync(path.join(dir, f), 'utf8'), ctx, { filename: f });
   if (opts.setupKeyHash) vm.runInContext(`var SETUP_KEY_HASH = ${JSON.stringify(opts.setupKeyHash)};`, ctx);
+  // payroll approval (2026-11-20) needs every column reviewed and every addition supported; older tests approve without that, so
+  // fill it from the run's own lines (a test sets noAutoReview: true to see the rule itself)
+  const autoReview = req => {
+    if (req && req.action === 'payrollAdjSave' && req.adj && req.adj.docRef === undefined && !req.noAutoReview) return Object.assign({}, req, { adj: Object.assign({}, req.adj, { docRef: 'test-doc' }) });
+    if (!req || req.action !== 'payrollApprove' || req.review !== undefined || req.noAutoReview || typeof ctx.payrollReviewKeys_ !== 'function') return req;
+    let slips = [];
+    try { ctx.READ_MEMO_ = {}; slips = ctx.readAll_('payslips').filter(x => x.runId === req.id && x.status === 'draft').map(x => ({ id: x.id, lines: JSON.parse(x.linesJson || '[]') })); } catch (e) { return req; }
+    const support = {};
+    slips.forEach(x => x.lines.forEach(l => { if (l.kind === 'earning' && ctx.PAY_SUPPORT_CODES[l.code] && l.amount > 0) support[x.id + ':' + l.code + (l.ref ? ':' + l.ref : '')] = 'test-doc'; }));
+    return Object.assign({}, req, { review: ctx.payrollReviewKeys_(slips), support });
+  };
   const self = {
     ctx, sheets, books, props, cache,
     // like the app: every request names its organisation (the home one unless the test says otherwise); raw() sends it as is
-    call: req => JSON.parse(JSON.stringify(ctx.handle_(req && req.orgId === undefined && !req.token ? Object.assign({ orgId: '1001' }, req) : req))),
+    call: req => { req = autoReview(req); return JSON.parse(JSON.stringify(ctx.handle_(req && req.orgId === undefined && !req.token ? Object.assign({ orgId: '1001' }, req) : req))); },
     raw: req => JSON.parse(JSON.stringify(ctx.handle_(req))),
     setNow: ms => { clock = ms; },
     now: () => FakeDate.now(),

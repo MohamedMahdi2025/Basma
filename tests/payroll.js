@@ -164,6 +164,31 @@ ok(!r.ok && r.error === 'second_approver_required', 'whoever recalculated last b
 r = call('3002', 'payrollDelete', { id: nov });
 ok(r.ok && !call('3002', 'payrollList').rows.some(x => x.id === nov), 'a draft can be discarded', r);
 
+console.log('Draft from last month, step-by-step approval, supporting documents (2026-11-20)');
+r = call('3002', 'payrollCreate', { month: '2026-11', fromPrev: true });
+ok(r.ok && r.copied && r.copied.from === '2026-10' && r.copied.count >= 3 && r.copied.needDocs >= 1, 'a draft can start from last month: its lines are copied', r.copied || r.error);
+const fp = r.run.id;
+let g = call('3002', 'payrollGet', { id: fp });
+const cps = g.adjustments.filter(x => x.copiedFrom);
+ok(cps.length === r.copied.count && cps.every(x => x.docRef === '' && /^نسخة من 2026-10/.test(x.reason)), 'copies are marked, name the month, and carry no document', cps.map(x => [x.code, x.docRef, x.reason]));
+ok(g.prev && g.prev.has && g.prev.month === '2026-10' && g.prev.byEmp[ids['5004']] && g.prev.byEmp[ids['5004']].lines['e:bonus'] === 500, 'the approver gets last month per person to compare', g.prev && g.prev.month);
+ok(g.reviewKeys[0] === 'days' && g.reviewKeys.indexOf('e:bonus') > 0 && g.reviewKeys.indexOf('d:fine') > g.reviewKeys.indexOf('e:bonus'), 'review steps: days, then additions, then deductions', g.reviewKeys);
+r = call('3004', 'payrollApprove', { id: fp, noAutoReview: true });
+ok(!r.ok && r.error === 'review_incomplete', 'approval without reviewing every column is refused', r);
+r = call('3004', 'payrollApprove', { id: fp, noAutoReview: true, review: g.reviewKeys.slice(1) });
+ok(!r.ok && r.error === 'review_incomplete', 'skipping the days column is refused', r);
+r = call('3004', 'payrollApprove', { id: fp, noAutoReview: true, review: g.reviewKeys, support: {} });
+ok(!r.ok && r.error === 'support_missing', 'a copied addition without a document is refused', r);
+r = call('3002', 'payrollAdjSave', { noAutoReview: true, adj: { empId: ids['5004'], month: '2026-11', code: 'bonus', amount: 50, reason: 'x' } });
+ok(!r.ok && r.error === 'support_required', 'a new addition needs a supporting document', r);
+r = call('3002', 'payrollAdjSave', { noAutoReview: true, adj: { empId: ids['5004'], month: '2026-11', code: 'fine', amount: 50, reason: 'x' } });
+ok(r.ok, 'a deduction needs none', r.error);
+if (r.ok) call('3002', 'payrollAdjDelete', { id: r.id || (r.adj && r.adj.id) || call('3002', 'payrollGet', { id: fp }).adjustments.filter(x => x.code === 'fine' && x.amount === 50)[0].id });
+cps.forEach(x => call('3002', 'payrollAdjDelete', { id: x.id }));
+g = call('3002', 'payrollGet', { id: fp });
+ok(!g.adjustments.some(x => x.copiedFrom || (x.code === 'fine' && x.amount === 50)), 'copies can be removed like any line', g.adjustments.length);
+call('3002', 'payrollDelete', { id: fp });
+
 console.log('Deduction cap (Art. 92-93)');
 direct(() => B.ctx.append_('requests', { id: 'RB', ref: 'AD-2026-00002', empId: ids['5002'], type: 'advance', subtype: '', fromDate: '', toDate: '', days: '', amount: 20000, months: 2, payloadJson: JSON.stringify({ startMonth: '2026-11', installment: 10000 }), reason: '', docNo: '', status: 'approved', step: 'done', stepsJson: '[]', effectJson: '{}', createdAt: '2026-10-20T00:00:00Z', updatedAt: '', decidedAt: '2026-10-21T00:00:00Z' }));
 r = call('3002', 'payrollCreate', { month: '2026-11' });
