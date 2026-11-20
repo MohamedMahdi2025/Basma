@@ -2571,6 +2571,49 @@ html body.v2-on.v2-on.v2-on .v2-all{border:0;background:none;color:var(--ink-3);
 html body.v2-on.v2-on.v2-on .v2-all:focus-visible{outline:2px solid var(--brand);outline-offset:-2px}
 html body.v2-on.v2-on.v2-on .v2-subh{display:none}
 </style>
+<style id="ds9">
+/* ds9 (owner 2026-11-20: "the header pane design very bad", "the text inter in others"): the final layer, loaded last. One header:
+   a 64 px top bar (search first, then a tidy row of 40 px controls that can never overlap) and a page header whose title, status
+   and tabs line up with the page content (48 px side padding, the same as every page). 4 px grid throughout. */
+html body.v2-on.v2-on.v2-on.v2-on .v2-main{background:var(--paper,#F6F7F5)}
+html body.v2-on.v2-on.v2-on.v2-on .v2-top{position:sticky;top:0;z-index:30;display:flex!important;align-items:center!important;gap:8px!important;height:64px!important;min-height:64px!important;padding:0 32px!important;background:var(--card,#fff)!important;border-bottom:1px solid var(--line,#E5E7E3)!important;box-shadow:none!important}
+html body.v2-on.v2-on.v2-on.v2-on .v2-top > *{flex-shrink:0}
+html body.v2-on.v2-on.v2-on.v2-on .v2-top .sp{flex:1 1 0;min-width:8px}
+html body.v2-on.v2-on.v2-on.v2-on .v2-search{flex:0 1 480px!important;min-width:160px!important;height:40px!important;display:flex!important;align-items:center!important;gap:8px!important;padding:0 12px!important;border-radius:12px!important;background:var(--well,#F1F3EF)!important;border:1px solid transparent!important;color:var(--ink-3,#6B7068)!important;font-size:14px!important;text-align:start!important;transition:border-color .15s,background-color .15s}
+html body.v2-on.v2-on.v2-on.v2-on .v2-search:hover{border-color:var(--line,#E5E7E3)!important;background:var(--card,#fff)!important}
+html body.v2-on.v2-on.v2-on.v2-on .v2-search span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html body.v2-on.v2-on.v2-on.v2-on .v2-search kbd{flex:none;font:600 11px/1 inherit;padding:4px 8px;border-radius:6px;background:var(--card,#fff);border:1px solid var(--line,#E5E7E3);color:var(--ink-3,#6B7068)}
+html body.v2-on.v2-on.v2-on.v2-on .v2-top .v2-ib{width:40px!important;height:40px!important;min-width:40px!important;padding:0!important;border-radius:12px!important;display:inline-grid!important;place-items:center!important;background:none!important;border:0!important;color:var(--ink-2,#4A4F48)!important;position:relative}
+html body.v2-on.v2-on.v2-on.v2-on .v2-top .v2-ib:hover{background:var(--well,#F1F3EF)!important;color:var(--ink,#16201A)!important}
+html body.v2-on.v2-on.v2-on.v2-on .v2-top .v2-ib i{font-size:20px!important}
+html body.v2-on.v2-on.v2-on.v2-on .v2-top .v2-lang{width:auto!important;min-width:40px!important;padding:0 12px!important;font:600 13px/1 inherit!important;white-space:nowrap!important;border:1px solid var(--line,#E5E7E3)!important;border-radius:999px!important;height:36px!important}
+html body.v2-on.v2-on.v2-on.v2-on .v2-top .tk-n{position:absolute!important;top:2px!important;inset-inline-end:0!important;min-width:20px!important;height:20px!important;padding:0 5px!important;border-radius:999px!important;font:700 11px/16px inherit!important;text-align:center;border:2px solid var(--card,#fff)!important;box-sizing:border-box!important}
+html body.v2-on.v2-on.v2-on.v2-on .v2-top .tk-n.hidden{display:none!important}
+@media (min-width:901px){html body.v2-on.v2-on.v2-on.v2-on .v2-top :is(.v2-hamb,.fb-brand){display:none!important}}
+html body.v2-on.v2-on.v2-on.v2-on .v2-top .v2-chip{height:36px!important;padding:0 12px!important;border-radius:999px!important;font:600 13px/1 inherit!important;display:inline-flex!important;align-items:center!important;gap:8px!important;white-space:nowrap!important;max-width:240px;overflow:hidden;text-overflow:ellipsis;margin-inline-end:8px!important}
+html body.v2-on.v2-on.v2-on.v2-on .v2-top .v2-av{width:40px!important;height:40px!important;border-radius:50%!important;display:grid!important;place-items:center!important;font:700 14px/1 inherit!important;margin-inline-start:4px!important}
+/* page header: full-width white band, contents on the page's 48 px line */
+html body.v2-on.v2-on.v2-on.v2-on .pg-head{margin:-32px -48px 24px!important;padding:24px 48px 0!important;background:var(--card,#fff)!important;border-bottom:1px solid var(--line,#E5E7E3)!important;border-radius:0!important;box-shadow:none!important}
+html body.v2-on.v2-on.v2-on.v2-on .pg-head .v3-hero{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:16px!important;padding:0!important;margin:0 0 16px!important;min-height:0!important;background:none!important}
+html body.v2-on.v2-on.v2-on.v2-on .pg-head .v3-hero h1{margin:0!important;font-size:28px!important;line-height:1.25!important;font-weight:700!important;letter-spacing:-.01em;color:var(--ink,#16201A)!important}
+html body.v2-on.v2-on.v2-on.v2-on .pg-head .v3-hero p{margin:4px 0 0!important;font-size:14px!important;line-height:1.6!important;color:var(--ink-2,#4A4F48)!important}
+html body.v2-on.v2-on.v2-on.v2-on .pg-head .v3-hero-stats{display:flex!important;gap:8px!important;align-items:center!important;flex-wrap:wrap;justify-content:flex-end;margin:0!important}
+html body.v2-on.v2-on.v2-on.v2-on .pg-head .v3-pill{height:32px!important;padding:0 12px!important;border-radius:999px!important;font:600 13px/1 inherit!important;display:inline-flex!important;align-items:center!important;gap:8px!important}
+html body.v2-on.v2-on.v2-on.v2-on .pg-head .v2-views{display:flex!important;gap:4px!important;margin:0!important;padding:0!important;border:0!important;overflow-x:auto;scrollbar-width:none}
+html body.v2-on.v2-on.v2-on.v2-on .pg-head .v2-views::-webkit-scrollbar{display:none}
+html body.v2-on.v2-on.v2-on.v2-on .pg-head .v2-views > button{height:48px!important;padding:0 16px!important;border:0!important;border-bottom:2px solid transparent!important;border-radius:0!important;background:none!important;color:var(--ink-2,#4A4F48)!important;font:500 14px/1 inherit!important;display:inline-flex!important;align-items:center!important;gap:8px!important;white-space:nowrap!important;margin:0 0 -1px!important;box-shadow:none!important}
+html body.v2-on.v2-on.v2-on.v2-on .pg-head .v2-views > button:hover{color:var(--ink,#16201A)!important}
+html body.v2-on.v2-on.v2-on.v2-on .pg-head .v2-views > button:is([aria-selected=true],[aria-current],.on,.active){color:var(--q-brand-ink,var(--brand))!important;border-bottom-color:var(--brand)!important;font-weight:700!important}
+html body.v2-on.v2-on.v2-on.v2-on .pg-head .v2-views > button i{font-size:18px!important}
+@media (max-width:900px){
+  html body.v2-on.v2-on.v2-on.v2-on .v2-top{height:56px!important;min-height:calc(56px + env(safe-area-inset-top))!important;padding:env(safe-area-inset-top) 16px 0!important}
+  html body.v2-on.v2-on.v2-on.v2-on .pg-head{margin:-16px -16px 16px!important;padding:16px 16px 0!important}
+  html body.v2-on.v2-on.v2-on.v2-on .pg-head .v3-hero{flex-wrap:wrap}
+  html body.v2-on.v2-on.v2-on.v2-on .pg-head .v3-hero h1{font-size:22px!important}
+  html body.v2-on.v2-on.v2-on.v2-on .pg-head .v2-views{display:none!important} /* phones use the page picker card instead */
+}
+:root[data-theme="dark"] body.v2-on .v2-top,:root[data-theme="dark"] body.v2-on .pg-head{background:var(--card)!important;border-color:var(--line)!important}
+</style>
 </head>
 <body>
 <div id="root"></div>
@@ -5430,7 +5473,7 @@ function areaLead(a){ var k = 'al' + a.id.charAt(0).toUpperCase() + a.id.slice(1
 /** Where the page body goes: the area body in the shell, #main before the shell exists. */
 function view(){ return $('#v2Body') || $('#main'); }
 /** The v2 block must come after every module's own <style>, so equal selectors resolve to v2. */
-function themeLast(){ ['dsv2', 'dsv3', 'dsed', 'dsfp', 'dspg', 'dsdark', 'dsmo', 'dsgate', 'dsfb', 'dsfbx', 'dsv4', 'dsv5', 'dsv6', 'ds7', 'ds8', 'brandTheme'].forEach(function(id){ var s = document.getElementById(id); if (s) document.head.appendChild(s); }); }
+function themeLast(){ ['dsv2', 'dsv3', 'dsed', 'dsfp', 'dspg', 'dsdark', 'dsmo', 'dsgate', 'dsfb', 'dsfbx', 'dsv4', 'dsv5', 'dsv6', 'ds7', 'ds8', 'ds9', 'brandTheme'].forEach(function(id){ var s = document.getElementById(id); if (s) document.head.appendChild(s); }); }
 function loadAll(files){ warmScripts(files); return files.reduce(function(p, f){ return p.then(function(){ return loadScript(f); }); }, Promise.resolve()); }
 
 /** Where a task from the bell opens. HR sections map to their area; personal items to growth or the profile. */
