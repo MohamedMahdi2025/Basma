@@ -2614,6 +2614,49 @@ html body.v2-on.v2-on.v2-on.v2-on .pg-head .v2-views > button i{font-size:18px!i
 }
 :root[data-theme="dark"] body.v2-on .v2-top,:root[data-theme="dark"] body.v2-on .pg-head{background:var(--card)!important;border-color:var(--line)!important}
 </style>
+<style id="dsbrand">
+/* dsbrand (2026-11-24): the whole shell takes the company's logo colours (brandPalette/applyBrand feed every var below).
+   Brand-led: deep brand sidebar, brand primary actions, brand key tiles and table heads; data colours stay fixed. */
+html body.v2-on.v2-on.v2-on.v2-on .v2-side{background:linear-gradient(180deg,var(--brand-deep) 0%,var(--pine) 100%)!important;border-inline-end:0!important;color:rgba(255,255,255,.86)!important}
+html body.v2-on.v2-on.v2-on.v2-on .v2-side :is(h1,h2,h3,h4,b,strong,small,span,p,label){color:inherit}
+html body.v2-on.v2-on.v2-on.v2-on .v2-nav a,html body.v2-on.v2-on.v2-on.v2-on .v2-all{color:rgba(255,255,255,.78)!important}
+html body.v2-on.v2-on.v2-on.v2-on .v2-nav a :is(i,.v3-ic),html body.v2-on.v2-on.v2-on.v2-on .v2-nav a.v2-sub i,html body.v2-on.v2-on.v2-on.v2-on .v2-all i{color:rgba(255,255,255,.62)!important;background:none!important}
+html body.v2-on.v2-on.v2-on.v2-on .v2-nav a:hover,html body.v2-on.v2-on.v2-on.v2-on .v2-all:hover{background:rgba(255,255,255,.08)!important;color:#fff!important}
+html body.v2-on.v2-on.v2-on.v2-on .v2-nav a[aria-current],html body.v2-on.v2-on.v2-on.v2-on .v2-nav a.v2-sub[aria-current]{background:rgba(255,255,255,.14)!important;color:#fff!important}
+html body.v2-on.v2-on.v2-on.v2-on .v2-nav a[aria-current] :is(i,.v3-ic){color:var(--signal)!important}
+html body.v2-on.v2-on.v2-on.v2-on .v2-nav a[aria-current]::before{background:var(--signal)!important}
+html body.v2-on.v2-on.v2-on.v2-on .v2-nav :is(.cnt,b.num){background:rgba(255,255,255,.16)!important;color:#fff!important}
+html body.v2-on.v2-on.v2-on.v2-on .v2-subs{border-inline-start-color:rgba(255,255,255,.18)!important}
+html body.v2-on.v2-on.v2-on.v2-on .v2-side :is(hr,.v2-sep){border-color:rgba(255,255,255,.14)!important}
+html body.v2-on.v2-on.v2-on.v2-on .v2-side input{background:rgba(255,255,255,.1)!important;color:#fff!important;border-color:rgba(255,255,255,.2)!important}
+/* top bar: a brand hairline under it */
+html body.v2-on.v2-on.v2-on.v2-on .v2-top{box-shadow:inset 0 -2px 0 var(--brand)!important}
+/* titles and underline tabs in the brand */
+html body.v2-on.v2-on.v2-on.v2-on #main :is(.hr-h h2,.pv-head h2,.pv-tt h2,.v2-ph h1,.v2-ph h2){color:var(--brand-deep)!important}
+html body.v2-on.v2-on.v2-on.v2-on .v2-views :is(a,button)[aria-current],html body.v2-on.v2-on.v2-on.v2-on .v2-views :is(a,button)[aria-pressed="true"]{color:var(--brand)!important;box-shadow:inset 0 -2px 0 var(--brand)!important}
+/* primary actions */
+html body.v2-on.v2-on.v2-on.v2-on :is(.btn-dark,.btn-primary){background:var(--brand)!important;border-color:var(--brand)!important;color:#fff!important}
+html body.v2-on.v2-on.v2-on.v2-on :is(.btn-dark,.btn-primary):hover{background:var(--brand-h)!important;border-color:var(--brand-h)!important}
+html body.v2-on.v2-on.v2-on.v2-on .btn-line:hover{border-color:var(--brand)!important;color:var(--brand)!important}
+/* key tiles: the first tile of a row and the net figure in the brand's deep shade */
+html body.v2-on.v2-on.v2-on.v2-on :is(.db-tiles,.kpis,.stats,.hm-kpis) > :first-child,html body.v2-on.v2-on.v2-on.v2-on .pv-k.net{background:var(--brand-deep)!important;color:#fff!important;border-color:transparent!important}
+html body.v2-on.v2-on.v2-on.v2-on :is(.db-tiles,.kpis,.stats,.hm-kpis) > :first-child *,html body.v2-on.v2-on.v2-on.v2-on .pv-k.net *{color:inherit!important}
+html body.v2-on.v2-on.v2-on.v2-on :is(.db-tiles,.kpis,.stats,.hm-kpis) > :first-child :is(span,small,em),html body.v2-on.v2-on.v2-on.v2-on .pv-k.net span{opacity:.78}
+html body.v2-on.v2-on.v2-on.v2-on .pv-kpis{background:var(--brand-tint)!important;border-color:transparent!important}
+/* table heads: a brand tint with deep brand text */
+html body.v2-on.v2-on.v2-on.v2-on :is(.pt-reg,.vs-tbl,.tbl,.pt,.rp-tbl) thead th{background:var(--brand-tint)!important;color:var(--brand-deep)!important;border-bottom-color:color-mix(in srgb,var(--brand) 30%,transparent)!important}
+html body.v2-on.v2-on.v2-on.v2-on :is(.pt-reg,.vs-tbl,.tbl,.pt) tfoot td{background:color-mix(in srgb,var(--brand) 10%,var(--card,#fff))!important;color:var(--brand-deep)!important}
+html body.v2-on.v2-on.v2-on.v2-on .pt-reg .net{background:color-mix(in srgb,var(--brand) 7%,var(--card,#fff))!important;color:var(--brand-deep)!important}
+/* the payslip hero and status in the brand */
+html body.v2-on.v2-on.v2-on.v2-on .ps-net-main{background:linear-gradient(135deg,var(--brand-deep),var(--brand))!important;color:#fff!important}
+html body.v2-on.v2-on.v2-on.v2-on .vs-story{border-inline-start:4px solid var(--brand)!important}
+html body.v2-on.v2-on.v2-on.v2-on :is(a:not(.btn):not([class*="v2-"])):is(:hover){color:var(--brand)}
+html body.v2-on.v2-on.v2-on.v2-on :focus-visible{outline-color:var(--brand)!important}
+/* dark appearance: keep the sidebar deep and the tints quiet */
+html[data-theme="dark"] body.v2-on.v2-on.v2-on.v2-on .v2-side{background:linear-gradient(180deg,var(--pine) 0%,#0B0F0C 100%)!important}
+html[data-theme="dark"] body.v2-on.v2-on.v2-on.v2-on :is(.pt-reg,.vs-tbl,.tbl,.pt) thead th{background:color-mix(in srgb,var(--brand) 18%,var(--card))!important;color:var(--ink)!important}
+html[data-theme="dark"] body.v2-on.v2-on.v2-on.v2-on #main :is(.hr-h h2,.pv-head h2,.pv-tt h2){color:var(--ink)!important}
+</style>
 </head>
 <body>
 <div id="root"></div>
@@ -5473,7 +5516,7 @@ function areaLead(a){ var k = 'al' + a.id.charAt(0).toUpperCase() + a.id.slice(1
 /** Where the page body goes: the area body in the shell, #main before the shell exists. */
 function view(){ return $('#v2Body') || $('#main'); }
 /** The v2 block must come after every module's own <style>, so equal selectors resolve to v2. */
-function themeLast(){ ['dsv2', 'dsv3', 'dsed', 'dsfp', 'dspg', 'dsdark', 'dsmo', 'dsgate', 'dsfb', 'dsfbx', 'dsv4', 'dsv5', 'dsv6', 'ds7', 'ds8', 'ds9', 'brandTheme'].forEach(function(id){ var s = document.getElementById(id); if (s) document.head.appendChild(s); }); }
+function themeLast(){ ['dsv2', 'dsv3', 'dsed', 'dsfp', 'dspg', 'dsdark', 'dsmo', 'dsgate', 'dsfb', 'dsfbx', 'dsv4', 'dsv5', 'dsv6', 'ds7', 'ds8', 'ds9', 'dsbrand', 'brandTheme'].forEach(function(id){ var s = document.getElementById(id); if (s) document.head.appendChild(s); }); }
 function loadAll(files){ warmScripts(files); return files.reduce(function(p, f){ return p.then(function(){ return loadScript(f); }); }, Promise.resolve()); }
 
 /** Where a task from the bell opens. HR sections map to their area; personal items to growth or the profile. */
