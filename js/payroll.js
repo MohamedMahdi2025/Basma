@@ -279,7 +279,7 @@ Object.assign(T.ar, { pvFromPrev:'ابدأ من الشهر السابق', pvFrom
   awConfirm:'راجعت هذا العمود وأؤكد صحته', awNext:'التالي', awBack:'السابق', awFinish:'اعتماد المسير وقفله', awDocs:'مستندات الاعتماد', awDocMissing:'أدخل مستند الاعتماد لكل سطر.',
   awChanged:'تغير', awNew:'جديد', awOnly:'المتغير فقط', awAll:'الكل', awSum:'المجموع', awFinal:'بعد الاعتماد يقفل المسير ولا يمكن التعديل.', awSupport:'المستندات',
   e_review_incomplete:'راجع كل أعمدة المسير قبل الاعتماد.', e_support_missing:'كل إضافة تحتاج مستند اعتماد قبل اعتماد المسير.', e_support_required:'أدخل مستند الاعتماد لهذه الإضافة (مثلا رقم طلب العمل الإضافي).',
-  e_prep_changed:'تغيرت بيانات هذه الخطوة منذ فتحها. راجعها مرة أخرى ثم أكد.', e_prep_errors:'في المسير صافي سالب يمنع التأكيد. عالجه ثم أعد الاحتساب.', e_prep_incomplete:'أكمل خطوات إعداد المسير الثماني قبل الاعتماد.', e_prep_step_locked:'أكد الخطوات السابقة أولا.', e_recalc_needed:'أضيفت أو حذفت بنود بعد آخر احتساب. أعد احتساب المسير ثم أكد.' });
+  e_prep_changed:'تغيرت بيانات هذه الخطوة منذ فتحها. راجعها مرة أخرى ثم أكد.', e_prep_errors:'في المسير صافي سالب يمنع التأكيد. عالجه ثم أعد الاحتساب.', e_prep_incomplete:'أكمل خطوات إعداد المسير الثماني قبل الاعتماد.', e_prep_step_locked:'أكد الخطوات السابقة أولا.', e_recalc_needed:'أضيفت أو حذفت بنود بعد آخر احتساب. أعد احتساب المسير ثم أكد.', e_variance_unexplained:'اكتب سبب التغير لكل موظف تغير صافيه قبل تأكيد المراجعة.', pzWhyCol:'ما الذي تغير', pzExplCol:'التبرير', pzExplBtn:'اشرح', pzX_open:'بلا تبرير', pzX_explained:'مبرر', pzX_accepted:'مقبول', pzX_query:'استيضاح' });
 Object.assign(T.en, { pvFromPrev:'Start from last month', pvFromPrevHint:'Copies the additions and deductions of the month you pick (one of the last 3 approved) into the draft; review and edit them before approval.',
   pvFromM:'Start from the run of', pvFromNone:'Copy nothing',
   pvCopied:'Copied {n} lines from {m}. Additions need a supporting document before the run is approved.', pvCopiedNone:'Last month has no lines to copy.',
@@ -289,7 +289,7 @@ Object.assign(T.en, { pvFromPrev:'Start from last month', pvFromPrevHint:'Copies
   awConfirm:'I have checked this column and confirm it', awNext:'Next', awBack:'Back', awFinish:'Approve and lock the run', awDocs:'Supporting documents', awDocMissing:'Enter a supporting document for every line.',
   awChanged:'changed', awNew:'new', awOnly:'Changes only', awAll:'All', awSum:'Total', awFinal:'Once approved the run is locked and cannot be changed.', awSupport:'Documents',
   e_review_incomplete:'Review every column of the run before approval.', e_support_missing:'Every addition needs a supporting document before the run is approved.', e_support_required:'Enter a supporting document for this addition (for example the overtime request number).',
-  e_prep_changed:'This step changed since you opened it. Review it again, then confirm.', e_prep_errors:'A negative net blocks confirmation. Fix it and recalculate.', e_prep_incomplete:'Complete the eight preparation steps before approval.', e_prep_step_locked:'Confirm the earlier steps first.', e_recalc_needed:'Lines were added or removed after the last calculation. Recalculate the run, then confirm.' });
+  e_prep_changed:'This step changed since you opened it. Review it again, then confirm.', e_prep_errors:'A negative net blocks confirmation. Fix it and recalculate.', e_prep_incomplete:'Complete the eight preparation steps before approval.', e_prep_step_locked:'Confirm the earlier steps first.', e_recalc_needed:'Lines were added or removed after the last calculation. Recalculate the run, then confirm.', e_variance_unexplained:'Write the reason for every person whose net moved before confirming the review.', pzWhyCol:'What changed', pzExplCol:'Explanation', pzExplBtn:'Explain', pzX_open:'Not explained', pzX_explained:'Explained', pzX_accepted:'Accepted', pzX_query:'Query' });
 var SUPPORT_CODES = { overtime: 1, bonus: 1, commission: 1, incentive: 1, other_earning: 1 }; // the server's PAY_SUPPORT_CODES
 
 /** Approval, one column at a time (owner 2026-11-20): days worked, then every addition, then every deduction, each against
@@ -483,8 +483,13 @@ function prepWizard(runId, done, opts){
         (x.errors.length ? '<div class="pz-err"><b>' + ph('x-circle') + t('pzErrors') + '</b><ul>' + x.errors.map(function(e){ return '<li><bdi dir="auto">' + esc(e.name) + '</bdi> <small>' + esc(e.empNo) + '</small> · ' + t('pw_' + e.code) + '</li>'; }).join('') + '</ul></div>' : '') +
         ((x.noPackage || []).length ? '<div class="pz-stalebar">' + ph('warning') + '<b>' + t('pzNoPkgList') + ':</b> ' + x.noPackage.map(function(e){ return '<bdi dir="auto">' + esc(e.name) + '</bdi> <small>' + esc(e.empNo) + '</small>'; }).join('، ') + '</div>' : '') +
         (w.length ? '<p class="pz-sm">' + t('pzWarns') + ': ' + w.map(function(k){ return '<span class="chip late">' + t('pw_' + k) + ' · ' + x.warnings[k] + '</span>'; }).join(' ') + '</p>' : '') +
-        (R.length ? '<h4 class="pz-h4">' + t('pzVarLead').replace('{p}', x.pct).replace('{m}', x.min) + '</h4>' + table([L(t('hrName')), A(t('awPrev')), A(t('awNow')), A(t('awDiff'))], R.map(function(r){
-          return '<tr class="aw-ch">' + pzName(r) + '<td class="a">' + acct(r.was) + '</td><td class="a"><b>' + acct(r.now) + '</b></td><td class="a">' + pzDiff(r.was, r.now) + '</td></tr>'; })) : '');
+        (R.length ? '<h4 class="pz-h4">' + t('pzVarLead').replace('{p}', x.pct).replace('{m}', x.min) + '</h4>' + table([L(t('hrName')), A(t('awPrev')), A(t('awNow')), A(t('awDiff')), L(t('pzWhyCol')), L(t('pzExplCol'))], R.map(function(r, ri){
+          var n = r.note, st = !n || n.stale ? 'open' : n.status;
+          return '<tr class="aw-ch">' + pzName(r) + '<td class="a">' + acct(r.was) + '</td><td class="a"><b>' + acct(r.now) + '</b></td><td class="a">' + pzDiff(r.was, r.now) + '</td>' +
+            '<td class="pz-sm">' + (r.why || []).map(function(w){ var p = w.line.split(':'); return '<div>' + esc(lab({ code: p[1], kind: p[0] === 'd' ? 'deduction' : 'earning' })) + ' <b class="pz-d ' + (w.effect > 0 ? 'up' : 'dn') + '">' + (w.effect > 0 ? '+' : '') + acct(w.effect) + '</b></div>'; }).join('') +
+            (r.daysWas != null && r.daysWas !== r.daysNow ? '<div>' + t('pzDays') + ' ' + r.daysWas + ' → ' + r.daysNow + '</div>' : '') + '</td>' +
+            '<td class="pz-sm"><span class="pz-chip pz-x' + st + '">' + t('pzX_' + st) + '</span>' + (n && !n.stale ? '<small><bdi dir="auto">' + esc(n.note) + '</bdi></small>' : '') +
+            (P.run.status === 'draft' ? '<button type="button" class="btn btn-line btn-sm" data-vx="' + ri + '">' + ph('note-pencil') + t('pzExplBtn') + '</button>' : '') + '</td></tr>'; })) : '');
     }
     return '';
   }
@@ -516,6 +521,8 @@ function prepWizard(runId, done, opts){
       (can ? '<button type="button" class="btn btn-dark" id="pzOk"' + (needRecalc || (x.errors || []).length ? ' disabled' : '') + '>' + ph('check') + t('pzConfirm').replace('{s}', t('pz_' + x.key)) + '</button>'
         : x.state === 'done' ? '<button type="button" class="btn btn-line btn-sm" id="pzNext">' + t('awNext') + '</button>' : '') + '</div></section>';
     wire();
+    $$('[data-vx]', el).forEach(function(b){ b.onclick = function(){ var r = x.rows[+b.dataset.vx];
+      W2_FILES.concat(['js/variance.js']).reduce(function(p, f){ return p.then(function(){ return loadScript(f); }); }, Promise.resolve()).then(function(){ Variance.explain(runId, r.empId, r.name, r.note, P.me, function(){ load(false); }); }); }; });
     $$('[data-sup]', el).forEach(function(inp){ inp.oninput = function(){ support[inp.dataset.sup] = inp.value; }; });
     if ($('#pzRe', el)) $('#pzRe', el).onclick = function(){ var b = this; b.disabled = true; api('payrollRecalc', { id: runId }).then(function(r){ b.disabled = false; if (!r.ok) return $('#pzErr', el).textContent = errText(r.error); changed = true; toast(t('prRecalcDone')); load(true); }); };
     if ($('#pzAdd', el)) $('#pzAdd', el).onclick = function(){ changed = true; close(); setTimeout(function(){ var a = $('#prAdj'); if (a) { a.scrollIntoView({ behavior: 'smooth', block: 'start' }); var f = a.querySelector('select,input'); if (f) f.focus(); } }, 300); };
@@ -699,7 +706,8 @@ function runView(body, id){
       (window.Viz ? '<details class="pv-more"><summary>' + ph('chart-bar') + t('pvAnalysis') + '</summary>' + runDash(r) + '</details>' : '') +
       '<section class="pv-card"><h3 class="pv-h3">' + ph('sliders-horizontal') + t('prAdj') + '</h3><div id="prAdj"></div></section></div>';
     $('#prBack', el).onclick = function(){ S.prRun = null; section(body); };
-    $('#prVar', el).onclick = function(){ varianceView(run); };
+    // the main variance engine for this run alone (2026-11-25; the old drawer mixed in other pay groups)
+    $('#prVar', el).onclick = function(){ W2_FILES.concat(['js/variance.js']).reduce(function(p, f){ return p.then(function(){ return loadScript(f); }); }, Promise.resolve()).then(function(){ Variance.openRun(run); }, function(){ varianceView(run); }); };
     if ($('#pzGo', el)) { pzCss(); $('#pzGo', el).onclick = function(){ prepWizard(run.id, function(){ runView(body, id); }); }; }
     if (window.Viz) Viz.wire(el);
     slipTable($('#ptBox', el), r, run);

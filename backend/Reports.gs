@@ -727,7 +727,7 @@ function api_reportVerify(req, me) {
  * years of service and wage / 12 after (Art. 84) on the eosWageBasis setting, pro rata to the days paid. A payslip that
  * carries its own eosAccrual / employerGosi / companyCost (the payslip change in Payroll.gs) is read as it is.
  */
-var RX_MIN_GROUP = 3;
+var RX_MIN_GROUP = 5; // 2026-11-25: the same 5 as every other cost view (was 3)
 var RX_SLA_HOURS = 48;          // target hours for one approval step
 var RX_GOSI_SHARE_MIN = 50;     // a GOSI wage under this share of gross is flagged for a look
 var RX_OT_YEAR_HOURS = 720;     // overtime guide, hours a year (check the current executive regulations)

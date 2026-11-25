@@ -344,7 +344,13 @@ console.log('Preparation wizard: nine steps in order (2026-11-24)');
   const run = call('3002', 'payrollCreate', { month: '2026-11' }).run;
   const prep = () => call('3002', 'payrollPrep', { id: run.id });
   const step = (p, k) => p.steps.find(x => x.key === k);
-  const confirm = (no, k, extra) => { const p = call(no, 'payrollPrep', { id: run.id }); return call(no, 'payrollPrepConfirm', Object.assign({ id: run.id, step: k, sig: step(p, k).sig }, extra || {})); };
+  // step 8 needs a written reason for every mover (2026-11-25): explain them first (someone other than the person themself)
+  let explained = false;
+  const explainAll = () => { const p = call('3002', 'payrollPrep', { id: run.id }), rv = p.steps.find(x => x.key === 'review');
+    rv.rows.filter(r => !r.note || r.note.stale || r.note.status === 'query').forEach(r => { const by = r.empId === ids['3002'] ? '3004' : '3002';
+      const x = call(by, 'varianceNote', { runId: run.id, empId: r.empId, reason: 'correction', note: 'checked against the October sheet' }); if (!x.ok) console.log('  note failed', x.error); });
+    explained = true; };
+  const confirm = (no, k, extra) => { if (k === 'review' && !explained) { const pre = call(no, 'payrollPrep', { id: run.id }).steps.find(x => x.key === 'review'); if (pre.rows.length && !pre.rows.every(r => r.note && !r.note.stale)) { const q = call(no, 'payrollPrepConfirm', { id: run.id, step: 'review', sig: pre.sig }); ok(q.error === 'variance_unexplained' || pre.state !== 'open', 'step 8 waits for a written reason for every mover', q.error); } explainAll(); } const p = call(no, 'payrollPrep', { id: run.id }); return call(no, 'payrollPrepConfirm', Object.assign({ id: run.id, step: k, sig: step(p, k).sig }, extra || {})); };
   let p = prep();
   ok(p.ok && p.required && p.steps.length === 8 && p.steps.map(x => x.key).join() === 'days,status,hires,leavers,package,additions,deductions,review', 'eight preparation steps in the fixed order, approval is the ninth', p.steps && p.steps.map(x => x.key));
   ok(p.steps[0].state === 'open' && p.steps.slice(1).every(x => x.state === 'locked') && p.open === 'days', 'only the first step is open');

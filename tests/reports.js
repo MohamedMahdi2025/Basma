@@ -427,9 +427,10 @@ ok(rowOf(r, y => y.line === 'unpaid_leave').amount === 900 && rowOf(r, y => y.li
 r = run('3001', 'pay_ot_trend', { from: '2026-09-01', to: '2026-10-31' });
 ok(rowOf(r, y => y.month === '2026-09').otAmount === 246.67 && rowOf(r, y => y.month === '2026-09').otHours === 4 && rowOf(r, y => y.month === '2026-10').changePct === -100, 'overtime trend: 4 h in September = 4 x (45 + 50% x 33.33) = 246.67, none in October', r.rows);
 ok(rowOf(run('3005', 'pay_ot_trend', { from: '2026-09-01', to: '2026-10-31' }), y => y.month === '2026-09').otAmount === null, 'one person\'s overtime pay is hidden from the executive');
-r = run('3005', 'pay_cost_per_head', { from: '2026-09-01', to: '2026-10-31' });
+r = run('3001', 'pay_cost_per_head', { from: '2026-09-01', to: '2026-10-31' });
 x = rowOf(r, y => y.month === '2026-10');
-ok(x.headcount === 3 && x.companyCost === 33700.01 && x.perHead === 11233.34 && x.prev === 11808.89 && x.changePct === -4.9 && x.eosAccrual === 1743.75, 'cost per head: 33,700.01 / 3 = 11,233.34 against 35,426.68 / 3 in September (-4.9%), shown to the executive', x);
+ok(rowOf(run('3005', 'pay_cost_per_head', { from: '2026-09-01', to: '2026-10-31' }), y => y.month === '2026-10').perHead === null, 'cost per head of 3 people is hidden from the executive (fewer than 5, 2026-11-25)');
+ok(x.headcount === 3 && x.companyCost === 33700.01 && x.perHead === 11233.34 && x.prev === 11808.89 && x.changePct === -4.9 && x.eosAccrual === 1743.75, 'cost per head: 33,700.01 / 3 = 11,233.34 against 35,426.68 / 3 in September (-4.9%), shown to HR', x);
 x = rowOf(run('3002', 'pay_cost', {}), y => y.department === 'المبيعات');
 ok(x.companyCost === 14484.38 && x.eosAccrual === 1012.5 && x.prev === 15984.38 && x.change === -1500, 'cost by department now adds the end-of-service provision, company cost and the change from the last locked run (as payroll sees it)', x);
 
