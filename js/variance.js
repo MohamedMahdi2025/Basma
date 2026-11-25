@@ -436,9 +436,9 @@ function vaPrintLine(pts){
   var W = 640, H = 170, L = 56, R = 12, Tt = 12, B = 26, mx = Math.max.apply(null, pts.map(function(p){ return p.y; }).concat([1])), mn = Math.min.apply(null, pts.map(function(p){ return p.y; }).concat([0]));
   mn = Math.min(0, mn); var x = function(i){ return L + i * (W - L - R) / (pts.length - 1); }, y = function(v){ return Tt + (H - Tt - B) * (1 - (v - mn) / ((mx - mn) || 1)); };
   var d = pts.map(function(p, i){ return (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(p.y).toFixed(1); }).join(' ');
-  return '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:auto" dir="ltr"><g font-size="9" fill="#6B786D">' + [mx, (mx + mn) / 2, mn].map(function(v){ var yy = y(v); return '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + yy + '" y2="' + yy + '" stroke="#E6E9E6"/><text x="' + (L - 6) + '" y="' + (yy + 3) + '" text-anchor="end">' + acctFmt(Math.round(v)) + '</text>'; }).join('') +
-    pts.map(function(p, i){ return '<text x="' + x(i) + '" y="' + (H - 8) + '" text-anchor="middle">' + esc(p.label) + '</text>'; }).join('') + '</g><path d="' + d + '" fill="none" stroke="#2F5134" stroke-width="2"/>' +
-    pts.map(function(p, i){ return '<circle cx="' + x(i) + '" cy="' + y(p.y) + '" r="3" fill="#2F5134"/>'; }).join('') + '</svg>';
+  return '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:auto" dir="ltr"><g font-size="9" fill="var(--muted,#6B786D)">' + [mx, (mx + mn) / 2, mn].map(function(v){ var yy = y(v); return '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + yy + '" y2="' + yy + '" stroke="#E6E9E6"/><text x="' + (L - 6) + '" y="' + (yy + 3) + '" text-anchor="end">' + acctFmt(Math.round(v)) + '</text>'; }).join('') +
+    pts.map(function(p, i){ return '<text x="' + x(i) + '" y="' + (H - 8) + '" text-anchor="middle">' + esc(p.label) + '</text>'; }).join('') + '</g><path d="' + d + '" fill="none" stroke="var(--s1,#2E7D4F)" stroke-width="2"/>' +
+    pts.map(function(p, i){ return '<circle cx="' + x(i) + '" cy="' + y(p.y) + '" r="3" fill="var(--s1,#2E7D4F)"/>'; }).join('') + '</svg>';
 }
 function vaPrintBars(items){
   var mx = Math.max.apply(null, items.map(function(i){ return Math.abs(i.value || 0); }).concat([1]));

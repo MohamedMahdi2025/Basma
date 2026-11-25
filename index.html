@@ -1822,7 +1822,7 @@ html body.v2-on .chip{border-radius:999px}
    (Firecrawl branding extraction): one 4px spacing grid, one accent (the company colour), one corner family, flat surfaces,
    one easing curve and three durations. This block loads last (themeLast, before brandTheme) and is the single source for
    spacing, corners and motion inside the app; the sign-in screen (.gate) keeps its own styles. */
-html body.v2-on{--s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:20px;--s6:24px;--s8:32px;--s10:40px;
+html body.v2-on{--sp1:4px;--sp2:8px;--sp3:12px;--s4:16px;--s5:20px;--s6:24px;--s8:32px;--s10:40px;
   --r-ctl:10px;--r-card:12px;--r-sheet:16px;--d1:140ms;--d2:220ms;--d3:320ms;--ease:cubic-bezier(.2,.7,.2,1);--ease-out:cubic-bezier(.16,1,.3,1);
   --ring:0 0 0 3px color-mix(in srgb,var(--brand) 22%,transparent);--lift:0 1px 2px rgba(30,36,32,.06),0 1px 1px rgba(30,36,32,.03)}
 /* surfaces: a calm warm page, no glows */
@@ -1832,9 +1832,9 @@ html body.v2-on #main{background-image:none!important}
 html body.v2-on .v3-hero{margin-bottom:var(--s6)!important;padding:0!important}
 html body.v2-on .v3-hero h1{font-size:clamp(22px,2.2vw,28px)!important;font-weight:700;letter-spacing:-.01em;line-height:1.25}
 html body.v2-on .v3-hero-ic{width:48px!important;height:48px!important;border-radius:var(--r-card)!important;background:var(--brand)!important;box-shadow:none!important;animation:none!important}
-html body.v2-on .hr-h{margin:0 0 var(--s6)!important;gap:var(--s3)}
+html body.v2-on .hr-h{margin:0 0 var(--s6)!important;gap:var(--sp3)}
 html body.v2-on .hr-h h2{font-size:22px;font-weight:700;letter-spacing:-.01em;margin:0}
-html body.v2-on :is(#main,.drawer) .hr-sub{margin:var(--s8) 0 var(--s3)!important;font-size:16px;font-weight:600;letter-spacing:0}
+html body.v2-on :is(#main,.drawer) .hr-sub{margin:var(--s8) 0 var(--sp3)!important;font-size:16px;font-weight:600;letter-spacing:0}
 html body.v2-on :is(#main,.drawer) .hr-sub:first-child{margin-top:0!important}
 /* navigation: a tinted current item, no gradient pill, no sliding */
 html body.v2-on .v2-nav a,html body.v2-on .v2-nav button{border-radius:var(--r-ctl)!important;transition:background var(--d1) var(--ease),color var(--d1) var(--ease)!important}
@@ -1843,7 +1843,7 @@ html body.v2-on .v2-nav a[aria-current="page"]{background:color-mix(in srgb,var(
 html body.v2-on .v2-nav a[aria-current="page"] i{color:var(--brand)!important}
 html body.v2-on .v2-nav a[aria-current="page"] .cnt{background:var(--brand)!important;color:#fff!important}
 /* tabs */
-html body.v2-on .v2-views{border-radius:var(--r-card)!important;padding:var(--s1)!important;gap:var(--s1)!important;box-shadow:none!important}
+html body.v2-on .v2-views{border-radius:var(--r-card)!important;padding:var(--sp1)!important;gap:var(--sp1)!important;box-shadow:none!important}
 html body.v2-on .v2-views button{border-radius:8px!important;height:36px!important}
 html body.v2-on .v2-views button[aria-selected="true"]{background:var(--brand)!important;color:#fff!important;box-shadow:none!important}
 /* cards: one radius, one gentle lift, one padding */
@@ -1856,10 +1856,10 @@ html body.v2-on .db-tile{border-radius:var(--r-card)!important;padding:var(--s5)
 html body.v2-on .db-tile.is-go{transition:box-shadow var(--d2) var(--ease),transform var(--d2) var(--ease)}
 html body.v2-on .db-tile.is-go:hover{transform:translateY(-1px);box-shadow:0 4px 14px -6px rgba(30,36,32,.18)}
 /* lists and tables */
-html body.v2-on .list .row{padding:var(--s3) var(--s4)!important;gap:var(--s3)!important;transition:background var(--d1) var(--ease)}
+html body.v2-on .list .row{padding:var(--sp3) var(--s4)!important;gap:var(--sp3)!important;transition:background var(--d1) var(--ease)}
 html body.v2-on .list .row + .row{border-top:1px solid color-mix(in srgb,var(--line) 60%,transparent)}
-html body.v2-on .tbl th{font-size:12px!important;font-weight:600;letter-spacing:.01em;padding:var(--s3) var(--s4)!important}
-html body.v2-on .tbl td{padding:var(--s3) var(--s4)!important}
+html body.v2-on .tbl th{font-size:12px!important;font-weight:600;letter-spacing:.01em;padding:var(--sp3) var(--s4)!important}
+html body.v2-on .tbl td{padding:var(--sp3) var(--s4)!important}
 html body.v2-on .num,html body.v2-on .tbl td{font-variant-numeric:tabular-nums}
 /* forms: the spacing the user asked for. 20px between fields, 8px label to control, 16px between paired columns */
 html body.v2-on :is(#main,.drawer) .form{gap:var(--s5)!important}
@@ -1868,14 +1868,14 @@ html body.v2-on :is(#main,.drawer) .two{column-gap:var(--s4)!important;row-gap:v
 html body.v2-on :is(#main,.drawer) :not(.form) > :is(.two,.field,.fp-rows,.btnrow) + :is(.two,.field,.fp-rows){margin-top:var(--s5)!important}
 html body.v2-on :is(#main,.drawer) .field{margin:0!important}
 html body.v2-on :is(#main,.drawer) :not(.form):not(.two) > .field + .field{margin-top:var(--s5)!important}
-html body.v2-on :is(#main,.drawer) .field > label{margin:0 0 var(--s2)!important;font-size:13px!important;font-weight:500!important;color:var(--ink-2)!important;line-height:1.4}
+html body.v2-on :is(#main,.drawer) .field > label{margin:0 0 var(--sp2)!important;font-size:13px!important;font-weight:500!important;color:var(--ink-2)!important;line-height:1.4}
 html body.v2-on :is(#main,.drawer) .field .hr-hint{display:block;margin-top:6px;font-size:12px;line-height:1.5}
-html body.v2-on :is(#main,.drawer) :is(.field,.form) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),select){min-height:44px;border-radius:var(--r-ctl)!important;padding-inline:var(--s3)}
-html body.v2-on :is(#main,.drawer) :is(.field,.form) textarea{border-radius:var(--r-ctl)!important;padding:var(--s3)!important;line-height:1.6}
+html body.v2-on :is(#main,.drawer) :is(.field,.form) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),select){min-height:44px;border-radius:var(--r-ctl)!important;padding-inline:var(--sp3)}
+html body.v2-on :is(#main,.drawer) :is(.field,.form) textarea{border-radius:var(--r-ctl)!important;padding:var(--sp3)!important;line-height:1.6}
 html body.v2-on :is(#main,.drawer) :is(input,select,textarea){transition:border-color var(--d1) var(--ease),box-shadow var(--d1) var(--ease)}
 html body.v2-on :is(#main,.drawer) :is(input,select,textarea):focus{border-color:var(--brand)!important;box-shadow:var(--ring)!important;outline:0}
-html body.v2-on :is(#main,.drawer) .btnrow{gap:var(--s2)!important;margin-top:var(--s2)}
-html body.v2-on :is(#main,.drawer) .toolbar{gap:var(--s3)!important;margin-bottom:var(--s4)}
+html body.v2-on :is(#main,.drawer) .btnrow{gap:var(--sp2)!important;margin-top:var(--sp2)}
+html body.v2-on :is(#main,.drawer) .toolbar{gap:var(--sp3)!important;margin-bottom:var(--s4)}
 /* buttons: flat, one radius, a press you can feel */
 html body.v2-on .btn{border-radius:var(--r-ctl)!important;transition:background-color var(--d1) var(--ease),border-color var(--d1) var(--ease),color var(--d1) var(--ease),transform var(--d1) var(--ease)!important}
 html body.v2-on .btn:active{transform:scale(.98)!important}
@@ -1903,7 +1903,7 @@ html body.v2-on .chip{border-radius:999px;font-weight:500}
 /* shadows: one soft family for every card, menu, drawer and popover (light mode; dark keeps its own) */
 html:not([data-theme="dark"]) body.v2-on{--e1:0 1px 2px rgba(30,36,32,.06),0 1px 1px rgba(30,36,32,.03);--e2:0 1px 2px rgba(30,36,32,.05),0 4px 12px -4px rgba(30,36,32,.10);--e3:0 2px 4px rgba(30,36,32,.05),0 12px 28px -10px rgba(30,36,32,.16);--e4:0 4px 8px rgba(30,36,32,.06),0 24px 56px -18px rgba(30,36,32,.26)}
 /* buttons: two heights, one weight, every state */
-html body.v2-on .btn{min-height:44px;padding-inline:18px;gap:var(--s2);font-weight:600;display:inline-flex;align-items:center;justify-content:center}
+html body.v2-on .btn{min-height:44px;padding-inline:18px;gap:var(--sp2);font-weight:600;display:inline-flex;align-items:center;justify-content:center}
 html body.v2-on .btn.btn-sm{min-height:36px;padding-inline:14px;font-size:13px}
 html body.v2-on .btn-danger{background:var(--bad)!important;color:#fff!important;border:0!important;box-shadow:none!important}
 html body.v2-on .btn-danger:hover{background:color-mix(in srgb,var(--bad) 88%,#000)!important}
@@ -2629,6 +2629,9 @@ html body.v2-on.v2-on.v2-on.v2-on .v2-nav :is(.cnt,b.num){background:rgba(255,25
 html body.v2-on.v2-on.v2-on.v2-on .v2-subs{border-inline-start-color:rgba(255,255,255,.18)!important}
 html body.v2-on.v2-on.v2-on.v2-on .v2-side :is(hr,.v2-sep){border-color:rgba(255,255,255,.14)!important}
 html body.v2-on.v2-on.v2-on.v2-on .v2-side input{background:rgba(255,255,255,.1)!important;color:#fff!important;border-color:rgba(255,255,255,.2)!important}
+/* the logo on the deep sidebar (2026-11-25: it showed black): the mark in the logo's own cream, an uploaded colour logo on a light tile */
+html body.v2-on.v2-on.v2-on.v2-on .v2-side .v2-mark{background:#F2EEE4!important;opacity:1!important}
+html body.v2-on.v2-on.v2-on.v2-on .v2-side img.v2-logo{background:#fff!important;border-radius:12px!important;padding:4px!important;box-shadow:0 1px 3px rgba(0,0,0,.25)!important;object-fit:contain}
 /* top bar: a brand hairline under it */
 html body.v2-on.v2-on.v2-on.v2-on .v2-top{box-shadow:inset 0 -2px 0 var(--brand)!important}
 /* titles and underline tabs in the brand */
@@ -2652,6 +2655,12 @@ html body.v2-on.v2-on.v2-on.v2-on .ps-net-main{background:linear-gradient(135deg
 html body.v2-on.v2-on.v2-on.v2-on .vs-story{border-inline-start:4px solid var(--brand)!important}
 html body.v2-on.v2-on.v2-on.v2-on :is(a:not(.btn):not([class*="v2-"])):is(:hover){color:var(--brand)}
 html body.v2-on.v2-on.v2-on.v2-on :focus-visible{outline-color:var(--brand)!important}
+/* form controls the browser draws (checkboxes, radios, sliders, progress): the company colour too (2026-11-25) */
+html body.v2-on, html body.v2-on .gate, .gate{accent-color:var(--brand)}
+/* tile figures never clip: they shrink with the tile (375px phones put two tiles in a row) */
+html body.v2-on .db-tile > b{font-size:clamp(18px, 7.2cqi, 32px)!important;overflow-wrap:anywhere;line-height:1.15}
+html body.v2-on .db-tile{container-type:inline-size;min-width:0}
+html body.v2-on ::selection{background:color-mix(in srgb,var(--brand) 24%,transparent)}
 /* dark appearance: keep the sidebar deep and the tints quiet */
 html[data-theme="dark"] body.v2-on.v2-on.v2-on.v2-on .v2-side{background:linear-gradient(180deg,var(--pine) 0%,#0B0F0C 100%)!important}
 html[data-theme="dark"] body.v2-on.v2-on.v2-on.v2-on :is(.pt-reg,.vs-tbl,.tbl,.pt) thead th{background:color-mix(in srgb,var(--brand) 18%,var(--card))!important;color:var(--ink)!important}
@@ -3388,7 +3397,7 @@ var T = {
     e_already_paired:'بينكما برنامج إرشاد قائم بالفعل.', e_answer_all:'أجب عن كل الأسئلة.', e_bad_owner:'اختر مسؤولا نشطا.', e_bad_questions:'من 2 إلى 30 سؤالا، لكل سؤال من 2 إلى 6 خيارات وإجابة صحيحة واحدة.', e_body_required:'اكتب نص الخطاب (20 حرفا على الأقل).', e_goal_required:'اكتب هدف الإرشاد.', e_mentor_full:'اكتمل عدد المسترشدين لدى هذا المرشد.', e_name_required:'اكتب الاسم.', e_not_a_mentor:'هذا الموظف لا يقدّم الإرشاد حاليا.', e_reason_required:'اكتب السبب.', e_same_person:'لا يكون المرشد والمسترشد الشخص نفسه.', e_title_required:'اكتب العنوان.', e_unknown_placeholder:'في النص حقل غير معروف:', e_device_not_recognised:'هذا الجهاز غير مربوط بحسابك', e_device_taken:'هذا الجهاز مسجّل باسم موظف آخر. لا يُسمح بتسجيل الحضور لغيرك؛ تفكّه الموارد البشرية عند الحاجة.', e_device_mismatch:'هذا المفتاح لا يعمل إلا على الجهاز الذي فُعّل عليه.', e_bad_signature:'تعذّر التحقق من البصمة', e_challenge_expired:'انتهت المهلة، حاول مجدداً', e_session_expired:'انتهت الجلسة', e_network:'تعذّر الاتصال بالخادم', e_moved:'انتقل النظام إلى خادم جديد. أعد المحاولة بعد لحظات.', e_not_available:'هذه الخدمة غير متاحة الآن.',
     e_bad_setup_key:'مفتاح التهيئة غير صحيح', e_not_empty:'المنشأة فيها موظفون أو مسيرات بالفعل؛ الاستيراد يتم على منشأة فارغة فقط', e_net_mismatch:'سطر في الكشف لا يساوي صافيه مجموع بنوده', e_duplicate_emp_no:'الرقم الوظيفي مستخدم', e_cannot_edit_self:'لا تعدل بياناتك بنفسك: قدّم طلب تحديث بيانات ليعتمده غيرك.', e_forbidden:'ليست لديك صلاحية', e_no_user_verification:'يلزم Face ID أو البصمة',
     e_cancelled:'أُلغيت عملية التحقق', e_no_passkey:'هذا المتصفح لا يدعم Face ID / البصمة. استخدم Safari أو Chrome حديثاً.', e_cannot_correct_self:'لا يمكنك تصحيح حضورك بنفسك', e_cannot_review_self:'لا يمكنك مراجعة حركتك بنفسك',
-    e_future_time:'لا يمكن التسجيل في وقت لاحق', e_bad_zone:'بيانات النطاق غير صحيحة', e_bad_radius:'نصف القطر بين 20 و 5000 م', e_missing_fields:'أكمل الحقول المطلوبة', plTitle2:'الدخول بالرمز السري', plLead2:'أدخل رقمك الوظيفي ورمزك السري من 6 أرقام. يعمل من أي جهاز.', plPin2:'الرمز السري (6 أرقام)', plFirst2:'أول مرة؟ لدي رمز تفعيل', e_bad_pin_login:'الرقم الوظيفي أو الرمز السري غير صحيح.', e_pin_locked:'أخطأت 5 مرات: الدخول بالرمز السري موقوف 15 دقيقة. اطلب رمز تفعيل جديد إن نسيت الرمز.', siPin:'الرمز السري', siPw:'كلمة المرور', siPinFirst:'أول مرة على هذا الجهاز: أدخل رمز التفعيل من الموارد البشرية واختر رمزك السري من 6 أرقام. بعدها تدخل بالرمز السري فقط.', mvTitle:'بصمة انتقلت إلى رابط جديد', mvLead:'انتقل الآن بضغطة واحدة: يفتح الرابط الجديد ورمز التفعيل جاهز، ثم تختار رمزك السري. لا تحتاج رمزا من الموارد البشرية.', mvGo:'انتقل الآن', mvLater:'لاحقا', mvIn:'مرحبا في الرابط الجديد لبصمة. اختر رمزك السري لإكمال الانتقال.', empNoAuto:'يولد تلقائيا', empNoBySystem:'يصدر النظام الرقم الوظيفي تلقائيا عند الحفظ، حسب إعدادات أرقام الموظفين.', empNoNextIs:'الرقم التالي: {n}', e_needs_owner_authorization:'يحتاج النظام موافقة مالك الحساب على صلاحية الاتصال الخارجي مرة واحدة (من محرر Apps Script).', setEmpNo:'أرقام الموظفين', setEmpNoLead:'يولد النظام رقم كل موظف جديد تلقائيا: البادئة ثم رقم متسلسل. يمكن للموظف الدخول بالرقم وحده دون البادئة.', setEmpNoPrefix:'البادئة (حروف إنجليزية أو أرقام، اختيارية)', setEmpNoDigits:'عدد الخانات', setEmpNoStart:'أول رقم', setEmpNoEx:'مثال: {n}', e_bad_unn:'الرقم الوطني الموحد 10 أرقام ويبدأ بالرقم 7', e_unn_exists:'توجد منشأة بهذا الرقم الوطني الموحد', e_server_error:'خطأ في الخادم', e_generic:'حدث خطأ'
+    e_future_time:'لا يمكن التسجيل في وقت لاحق', e_bad_zone:'بيانات النطاق غير صحيحة', e_bad_radius:'نصف القطر بين 20 و 5000 م', e_missing_fields:'أكمل الحقول المطلوبة', plTitle2:'الدخول بالرمز السري', plLead2:'أدخل رقمك الوظيفي ورمزك السري من 6 أرقام. يعمل من أي جهاز.', plPin2:'الرمز السري (6 أرقام)', plFirst2:'أول مرة؟ لدي رمز تفعيل', acHaveAcct:'لدي حساب؟ الدخول بالرمز السري', e_bad_pin_login:'الرقم الوظيفي أو الرمز السري غير صحيح.', e_pin_locked:'أخطأت 5 مرات: الدخول بالرمز السري موقوف 15 دقيقة. اطلب رمز تفعيل جديد إن نسيت الرمز.', siPin:'الرمز السري', siPw:'كلمة المرور', siPinFirst:'أول مرة على هذا الجهاز: أدخل رمز التفعيل من الموارد البشرية واختر رمزك السري من 6 أرقام. بعدها تدخل بالرمز السري فقط.', mvTitle:'بصمة انتقلت إلى رابط جديد', mvLead:'انتقل الآن بضغطة واحدة: يفتح الرابط الجديد ورمز التفعيل جاهز، ثم تختار رمزك السري. لا تحتاج رمزا من الموارد البشرية.', mvGo:'انتقل الآن', mvLater:'لاحقا', mvIn:'مرحبا في الرابط الجديد لبصمة. اختر رمزك السري لإكمال الانتقال.', empNoAuto:'يولد تلقائيا', empNoBySystem:'يصدر النظام الرقم الوظيفي تلقائيا عند الحفظ، حسب إعدادات أرقام الموظفين.', empNoNextIs:'الرقم التالي: {n}', e_needs_owner_authorization:'يحتاج النظام موافقة مالك الحساب على صلاحية الاتصال الخارجي مرة واحدة (من محرر Apps Script).', setEmpNo:'أرقام الموظفين', setEmpNoLead:'يولد النظام رقم كل موظف جديد تلقائيا: البادئة ثم رقم متسلسل. يمكن للموظف الدخول بالرقم وحده دون البادئة.', setEmpNoPrefix:'البادئة (حروف إنجليزية أو أرقام، اختيارية)', setEmpNoDigits:'عدد الخانات', setEmpNoStart:'أول رقم', setEmpNoEx:'مثال: {n}', e_bad_unn:'الرقم الوطني الموحد 10 أرقام ويبدأ بالرقم 7', e_unn_exists:'توجد منشأة بهذا الرقم الوطني الموحد', e_server_error:'خطأ في الخادم', e_generic:'حدث خطأ'
   },
   en: {
     appName:'BASMA', company:'BASMA', gateTag:'Check in at head office with one tap, protected by your PIN.',
@@ -3449,7 +3458,7 @@ var T = {
     e_already_paired:'You two already have a mentorship.', e_answer_all:'Answer every question.', e_bad_owner:'Pick an active owner.', e_bad_questions:'2 to 30 questions, each with 2 to 6 choices and one correct answer.', e_body_required:'Write the letter text (at least 20 characters).', e_goal_required:'Write the mentoring goal.', e_mentor_full:'This mentor has no room for another mentee.', e_name_required:'Write the name.', e_not_a_mentor:'This person does not offer mentoring now.', e_reason_required:'Write the reason.', e_same_person:'Mentor and mentee cannot be the same person.', e_title_required:'Write the title.', e_unknown_placeholder:'Unknown field in the text:', e_device_not_recognised:'This device is not linked to your account', e_device_taken:'This device is registered to another employee. Nobody may check in for someone else; HR can release it if needed.', e_device_mismatch:'This key only works on the device it was activated on.', e_bad_signature:'Biometric check could not be verified', e_challenge_expired:'Timed out, try again', e_session_expired:'Session ended', e_network:'Cannot reach the server', e_moved:'The system has moved to a new server. Try again in a moment.', e_not_available:'This service is not available right now.',
     e_bad_setup_key:'Setup key is wrong', e_not_empty:'This organisation already has employees or payroll runs; the import only runs on an empty one', e_net_mismatch:'A sheet line whose parts do not add up to its net', e_duplicate_emp_no:'Employee number already used', e_cannot_edit_self:'You cannot edit your own record: send a data change request for someone else to approve.', e_forbidden:'You do not have access', e_no_user_verification:'Face ID or fingerprint is required',
     e_cancelled:'Verification was cancelled', e_no_passkey:'This browser cannot use Face ID / fingerprint. Use an up-to-date Safari or Chrome.', e_cannot_correct_self:'You cannot correct your own attendance', e_cannot_review_self:'You cannot review your own punch',
-    e_future_time:'That time is in the future', e_bad_zone:'Zone details are invalid', e_bad_radius:'Radius must be 20 to 5000 m', e_missing_fields:'Fill in the required fields', plTitle2:'Sign in with your PIN', plLead2:'Enter your employee number and your 6-digit PIN. Works from any device.', plPin2:'PIN (6 digits)', plFirst2:'First time? I have an activation code', e_bad_pin_login:'Employee number or PIN is wrong.', e_pin_locked:'5 wrong tries: PIN sign-in is paused for 15 minutes. Ask for a new activation code if you forgot your PIN.', siPin:'PIN', siPw:'Password', siPinFirst:'First time on this device: enter the activation code from HR and choose your 6-digit PIN. After that you sign in with the PIN only.', mvTitle:'BASMA has a new link', mvLead:'Move now with one tap: the new link opens with your activation code filled in, then you choose your PIN. No code from HR is needed.', mvGo:'Move now', mvLater:'Later', mvIn:'Welcome to BASMA\'s new link. Choose your PIN to finish the move.', empNoAuto:'Generated automatically', empNoBySystem:'The system issues the employee number when you save, following the employee number settings.', empNoNextIs:'Next number: {n}', e_needs_owner_authorization:'The system needs the account owner to approve the external-request permission once (in the Apps Script editor).', setEmpNo:'Employee numbers', setEmpNoLead:'The system gives every new employee the next number: the prefix, then a running number. People can sign in with the number alone, without the prefix.', setEmpNoPrefix:'Prefix (English letters or digits, optional)', setEmpNoDigits:'Digits', setEmpNoStart:'First number', setEmpNoEx:'Example: {n}', e_bad_unn:'The unified national number is 10 digits starting with 7', e_unn_exists:'An organisation with this unified national number already exists', e_server_error:'Server error', e_generic:'Something went wrong'
+    e_future_time:'That time is in the future', e_bad_zone:'Zone details are invalid', e_bad_radius:'Radius must be 20 to 5000 m', e_missing_fields:'Fill in the required fields', plTitle2:'Sign in with your PIN', plLead2:'Enter your employee number and your 6-digit PIN. Works from any device.', plPin2:'PIN (6 digits)', plFirst2:'First time? I have an activation code', acHaveAcct:'Already have an account? Sign in with your PIN', e_bad_pin_login:'Employee number or PIN is wrong.', e_pin_locked:'5 wrong tries: PIN sign-in is paused for 15 minutes. Ask for a new activation code if you forgot your PIN.', siPin:'PIN', siPw:'Password', siPinFirst:'First time on this device: enter the activation code from HR and choose your 6-digit PIN. After that you sign in with the PIN only.', mvTitle:'BASMA has a new link', mvLead:'Move now with one tap: the new link opens with your activation code filled in, then you choose your PIN. No code from HR is needed.', mvGo:'Move now', mvLater:'Later', mvIn:'Welcome to BASMA\'s new link. Choose your PIN to finish the move.', empNoAuto:'Generated automatically', empNoBySystem:'The system issues the employee number when you save, following the employee number settings.', empNoNextIs:'Next number: {n}', e_needs_owner_authorization:'The system needs the account owner to approve the external-request permission once (in the Apps Script editor).', setEmpNo:'Employee numbers', setEmpNoLead:'The system gives every new employee the next number: the prefix, then a running number. People can sign in with the number alone, without the prefix.', setEmpNoPrefix:'Prefix (English letters or digits, optional)', setEmpNoDigits:'Digits', setEmpNoStart:'First number', setEmpNoEx:'Example: {n}', e_bad_unn:'The unified national number is 10 digits starting with 7', e_unn_exists:'An organisation with this unified national number already exists', e_server_error:'Server error', e_generic:'Something went wrong'
   }
 };
 
@@ -3962,14 +3971,20 @@ function root(html){
  * mark and name, whichever organisation the device remembers. The company is named in text only (the Org ID line); its own
  * colour, logo and name take over when the app opens (enterApp).
  */
+/** A returning person on this device (their company and number are remembered): the sign-in screens wear the company's own
+ *  logo and colours (owner 2026-11-25). A new device, or someone who chose 'not me', sees the platform's look. */
+function gateCo(){ return !!(S.orgId && S.empNo && S.company && !S.company.platform && S.company.orgId !== undefined); }
 function gateOn(){
-  if (S.gateShown) return;
-  S.gateShown = true; S.gate = true; applyBrand('', false); document.title = S.lang === 'en' ? CO_PLATFORM.nameEn : CO_PLATFORM.nameAr;
-  if (window.Brand3D && Brand3D.reset) Brand3D.reset();
+  var mode = gateCo() ? 'co' : 'pf';
+  if (S.gateShown && S.gateMode === mode) return;
+  S.gateShown = true; S.gate = true; S.gateMode = mode;
+  if (mode === 'co') { var c = S.company; applyBrand(c.brandColor || '', c.home !== false, c.brandAccent || ''); document.title = t('appName'); setTimeout(logoAutoTheme, 0); }
+  else { applyBrand('', false); document.title = S.lang === 'en' ? CO_PLATFORM.nameEn : CO_PLATFORM.nameAr; }
+  if (window.Brand3D && Brand3D.reset) Brand3D.reset(); paintMarks();
 }
 function gateOff(){
   if (!S.gate && !S.gateShown) return;
-  S.gate = false; S.gateShown = false; var c = S.company || {};
+  S.gate = false; S.gateShown = false; S.gateMode = ''; var c = S.company || {};
   applyBrand(c.brandColor || '', c.home !== false && !c.platform); document.title = t('appName');
   if (window.Brand3D && Brand3D.reset) Brand3D.reset(); paintMarks();
 }
@@ -4060,7 +4075,7 @@ function eyeify(scope){
 
 // The company name arrives word by word (Arabic), then letter by letter (English).
 function wordmarkHtml(){
-  var na = S.gate ? CO_PLATFORM.nameAr : coName('ar'), ne = S.gate ? CO_PLATFORM.nameEn : coName('en'); // before sign-in: the platform's name
+  var pf = S.gate && !gateCo(), na = pf ? CO_PLATFORM.nameAr : coName('ar'), ne = pf ? CO_PLATFORM.nameEn : coName('en'); // before sign-in: the platform's name (a returning person: their company's)
   var ar = na.split(' '), en = ne.toUpperCase().split('');
   return '<div class="wordmark" role="img" aria-label="' + esc(na + ' - ' + ne) + '">' +
     '<span class="wm-ar" aria-hidden="true">' + ar.map(function(w, i){ return '<span class="w" style="--i:' + i + '">' + esc(w) + '</span>'; }).join('') + '</span>' +
@@ -4091,7 +4106,7 @@ function basmaLiveSvg(){
     '<circle class="xr-core" cx="256" cy="232" r="7"/></svg>';
 }
 function brand3dHtml(where){
-  if ((S.gate || !S.orgId) && where !== 'hero') return '<div class="brand3d"><div class="b3d basma-live">' + basmaLiveSvg() + '</div>' + wordmarkHtml() + '</div>'; // the platform's own mark, alive
+  if (((S.gate && !gateCo()) || !S.orgId) && where !== 'hero') return '<div class="brand3d"><div class="b3d basma-live">' + basmaLiveSvg() + '</div>' + wordmarkHtml() + '</div>'; // the platform's own mark, alive
   return '<div class="brand3d"><div class="b3d" data-b3d="' + where + '"><img class="b3d-fallback" src="' + brandMark() + '" alt=""></div>' + (where === 'hero' ? '' : wordmarkHtml()) + '</div>';
 }
 
@@ -4181,7 +4196,7 @@ function boot(){
   }
   if (!S.empNo) {
     root('<div class="gate">' + gateBrand() + '</div>');
-    (S.bootPromise || api('bootstrapStatus', {}, true)).then(function(r){ S.bootPromise = null; if (r.ok && r.needsSetup) renderSetup(); else renderActivate(); });
+    (S.bootPromise || api('bootstrapStatus', {}, true)).then(function(r){ S.bootPromise = null; if (r.ok && r.needsSetup) renderSetup(); else renderPinLogin(); }); // a returning person signs in; the activation code is one tap away (owner 2026-11-25)
   } else if (!S.orgId) renderOrgGate(renderLock); else renderLock();
 }
 
@@ -4215,7 +4230,9 @@ function renderActivate(prefNo, prefCode){
     '<div class="field"><label for="p2">' + t('pinAgain') + '</label><input id="p2" class="pinin" type="password" inputmode="numeric" pattern="\\d{6}" maxlength="6" autocomplete="new-password" required dir="ltr"></div>' +
     '<div class="err" id="err" role="alert"></div>' +
     '<button class="btn btn-primary" id="go">' + I.lock + t('activatePin') + '</button></form>' +
+    '<button class="linkish" type="button" id="haveAcct">' + t('acHaveAcct') + '</button>' +
     '<button class="linkish" type="button" id="pwl">' + t('pwLogin') + '</button></div>');
+  $('#haveAcct').onclick = function(){ renderPinLogin($('#no').value); };
   $('#pwl').onclick = function(){ renderPwLogin($('#no').value); };
   $('#siPw').onclick = function(){ S.siFromPw = false; renderPwLogin($('#no').value); };
   wireOrgField();
@@ -4591,7 +4608,7 @@ function deviceId(){
   }
   return v;
 }
-function forget(){ ['empNo', 'token', 'name', 'kind', 'dkId', 'dkJwk', 'platform', 'hasPin', 'pwOnly'].forEach(function(k){ store(k, null); }); S.hasPin = false; S.pwOnly = false; S.auth = 'dev'; S.empNo = null; S.token = null; S.kind = 'passkey'; S.dkId = null; S.platform = ''; S.pin = null; renderActivate(); }
+function forget(){ ['empNo', 'token', 'name', 'kind', 'dkId', 'dkJwk', 'platform', 'hasPin', 'pwOnly'].forEach(function(k){ store(k, null); }); S.hasPin = false; S.pwOnly = false; S.auth = 'dev'; S.empNo = null; S.token = null; S.kind = 'passkey'; S.dkId = null; S.platform = ''; S.pin = null; renderPinLogin(); }
 
 function doUnlock(padPin, retried){
   $('#err').textContent = '';
@@ -4723,12 +4740,23 @@ function applyBrand(hex, home, accent){
     'html body.v2-on.v2-on :is(.home-wide,.hm-clock,.stamp,.v2-bottom){--pine:' + p['--pine'] + '!important}' +
     'html[data-theme="dark"] body.v2-on.v2-on{' + decl({ '--brand': dk, '--brand-h': c(Math.min(s, 55), 74), '--brand-tint': 'rgba(' + dkRgb + ',.14)', '--pine': p['--brand'],
       '--paper': c(ns, 6), '--frame': c(ns, 8), '--card': c(ns, 11), '--well': c(ns, 13), '--line': c(ns, 20), '--line-2': c(ns, 16), '--input': c(ns, 38), '--ink': c(ns, 93), '--ink-2': c(ns, 77), '--ink-3': c(ns, 62) }) + '}' +
-    'html[data-theme="dark"] body.v2-on.v2-on :is(.home-wide,.hm-clock,.stamp,.v2-bottom){--pine:' + p['--pine'] + '!important}';
+    'html[data-theme="dark"] body.v2-on.v2-on :is(.home-wide,.hm-clock,.stamp,.v2-bottom){--pine:' + p['--pine'] + '!important}' + chartSeriesCss(h, s);
   if (!el) { el = document.createElement('style'); el.id = 'brandTheme'; }
   var changed = el.textContent !== css;
   el.textContent = css; document.head.appendChild(el); // always last in head
   setThemeMeta();
   if (changed) brandRedraw();
+}
+/** Charts (2026-11-25): the first data series takes the logo's hue, at a lightness with at least 3:1 against the card in light and
+ *  dark (the dataviz rule the fixed palette was validated with). A hue within 35 degrees of the amber (40) or blue (214) series would
+ *  blur with them, and a hue with too little colour (s < 30) is not a series colour: those keep the validated green. */
+function chartSeriesCss(h, s){
+  var near = function(a, b){ var d = Math.abs(a - b) % 360; return Math.min(d, 360 - d) < 35; };
+  if (s < 30 || near(h, 40) || near(h, 214)) return '';
+  var sat = Math.max(48, Math.min(s, 72)), L = 46, D = 58;
+  while (L > 20 && contrast(hslRgb(h, sat, L), [255, 255, 255]) < 3.2) L -= 1;
+  while (D < 80 && contrast(hslRgb(h, sat, D), [23, 32, 27]) < 3.2) D += 1;
+  return 'html body.v2-on.v2-on{--s1:' + rgbHex(hslRgb(h, sat, L)) + '}html[data-theme="dark"] body.v2-on.v2-on{--s1:' + rgbHex(hslRgb(h, sat, D)) + '}';
 }
 /** The coin and the monogram are drawn in the palette's colours: draw them again when it changes. */
 function brandRedraw(){ try { if (typeof paintMarks === 'function') paintMarks(); if (window.Brand3D && Brand3D.reset) Brand3D.reset(); } catch (e) {} }
@@ -4770,9 +4798,9 @@ function monogram(){
     return c.toDataURL('image/png'); } catch (e) { return ''; }
 }
 /** The mark to show: the company's upload, else the home artwork (home organisation only), else its monogram. */
-function brandImg(){ return !S.orgId || S.gate ? platformMark() : CO_LOGO.img || (CO_LOGO.home ? LOGO : monogram()); }
-function brandMark(){ return !S.orgId || S.gate ? platformMark() : CO_LOGO.img || (CO_LOGO.home ? MARK : monogram()); }
-function brandCustom(){ return !S.orgId || S.gate || !!CO_LOGO.img || !CO_LOGO.home; }
+function brandImg(){ return !S.orgId || (S.gate && !gateCo()) ? platformMark() : CO_LOGO.img || (CO_LOGO.home ? LOGO : monogram()); }
+function brandMark(){ return !S.orgId || (S.gate && !gateCo()) ? platformMark() : CO_LOGO.img || (CO_LOGO.home ? MARK : monogram()); }
+function brandCustom(){ return !S.orgId || (S.gate && !gateCo()) || !!CO_LOGO.img || !CO_LOGO.home; }
 /** Called with every company payload (sign-in, orgCheck): fetches the logo when its version changed. */
 function syncLogo(info){
   if (!info || !S.orgId) return;
@@ -4785,13 +4813,22 @@ function syncLogo(info){
 }
 /** No colour saved but a logo uploaded: the palette comes from the logo (on this device; saving makes it the company's). */
 function logoAutoTheme(){
-  if (S.gate || !CO_LOGO.img || !S.company || S.company.brandColor) return;
-  logoPalette(CO_LOGO.img).then(function(p){ if (p.primary && !S.gate && S.company && !S.company.brandColor) applyBrand(p.primary, S.company.home !== false, p.accent); });
+  if ((S.gate && !gateCo()) || !CO_LOGO.img || !S.company || S.company.brandColor) return;
+  logoPalette(CO_LOGO.img).then(function(p){ if (p.primary && (!S.gate || gateCo()) && S.company && !S.company.brandColor) applyBrand(p.primary, S.company.home !== false, p.accent); });
 }
 /** Marks already on screen take the new logo at once. */
 function paintMarks(){
+  brandIcons();
   $$('.b3d-fallback').forEach(function(i){ i.src = brandMark(); });
   $$('.v2-brand').forEach(function(b){ var m = b.querySelector('.v2-mark, .v2-logo'); if (m) m.outerHTML = sideMarkHtml(); });
+}
+/** The browser tab and home-screen icons (2026-11-25): the company's logo once it is known, else the platform's own files. */
+var ICON_ORIG = null;
+function brandIcons(){
+  var links = [].slice.call(document.querySelectorAll('link[rel="icon"],link[rel="apple-touch-icon"]'));
+  if (!ICON_ORIG) ICON_ORIG = links.map(function(l){ return l.getAttribute('href'); });
+  var custom = S.orgId && CO_LOGO.img && !(S.gate && !gateCo());
+  links.forEach(function(l, i){ var want = custom ? CO_LOGO.img : ICON_ORIG[i]; if (want && l.getAttribute('href') !== want) l.setAttribute('href', want); });
 }
 function sideMarkHtml(){
   return brandCustom() ? '<img class="v2-logo" src="' + brandMark() + '" alt="' + esc(coShort(S.lang)) + '">'
@@ -4862,7 +4899,7 @@ function setCompany(c, keep){
   ['logoVer', 'home', 'orgId', 'brandColor', 'brandAccent'].forEach(function(k){ if (c[k] === undefined && prev[k] !== undefined) c[k] = prev[k]; });
   S.company = Object.assign({}, S.orgId ? CO_DEFAULT : CO_PLATFORM, c);
   if (c && c.logoVer !== undefined) syncLogo(c);
-  if (c && c.home !== undefined && !S.gate) applyBrand(c.brandColor || '', c.home !== false); // sign-in screens keep the platform look (gateOn / gateOff)
+  if (c && c.home !== undefined && (!S.gate || gateCo())) applyBrand(c.brandColor || '', c.home !== false, c.brandAccent || ''); // sign-in screens keep the platform look (gateOn / gateOff)
   T.ar.company = S.company.nameAr; T.en.company = S.company.nameEn;
   if (S.company.platform) { T.ar.appName = CO_PLATFORM.nameAr; T.en.appName = CO_PLATFORM.nameEn; }
   else { T.ar.appName = 'حضور ' + S.company.shortAr; T.en.appName = S.company.shortEn + ' Attendance'; }
