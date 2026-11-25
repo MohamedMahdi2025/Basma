@@ -5128,7 +5128,7 @@ function welcomeBurst(){
   el.innerHTML = '<div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div><div class="wl-grid" aria-hidden="true"></div>' +
     '<div class="wl-core" aria-hidden="true"><svg viewBox="0 0 200 200"><defs><linearGradient id="wlG" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="rgba(255,255,255,.35)"/></linearGradient></defs>' +
       '<circle class="wl-tr" cx="100" cy="100" r="86"/><circle class="wl-ring" cx="100" cy="100" r="86" pathLength="1"/><circle class="wl-orb" cx="100" cy="100" r="96"/></svg>' +
-      '<div class="wl-sparks">' + sparks + '</div><img src="' + brandMark() + '" alt=""><b class="wl-ok">' + ph('check') + '</b></div>' +
+      '<div class="wl-sparks">' + sparks + '</div><img src="' + (S.orgId ? logoInk() : brandMark()) + '" alt=""><b class="wl-ok">' + ph('check') + '</b></div>' +
     '<h2 class="wl-hi">' + words + '</h2>' + (co ? '<p class="wl-co">' + esc(co) + '</p>' : '') +
     '<p class="wl-date"><span>' + esc(greg) + '</span>' + (hij ? '<span>' + esc(hij) + '</span>' : '') + '<span class="num">' + esc(time) + '</span></p>' +
     '<div class="wl-load" aria-hidden="true"><b class="wl-pct num" id="wlPct">0%</b><div class="wl-bar"><i style="animation-duration:' + MS + 'ms"></i></div></div><button type="button" class="wl-skip">' + (en ? 'Skip' : 'تخطي') + '</button>';

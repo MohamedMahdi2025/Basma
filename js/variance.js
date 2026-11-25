@@ -803,7 +803,7 @@ function wireSlips(el){ $$('[data-slip]', el).forEach(function(x){ x.onclick = f
 /** The explanation box for one person of one draft run; note = the server's row (or null). done(): after a save. */
 function explainBox(runId, empId, note, meId, done){
   var st = note ? (note.stale ? 'open' : note.status) : 'open';
-  return '<div class="vp-ex" data-ex="' + esc(empId) + '"><h4>' + ph('note-pencil') + t('vpExpl') + ' <span class="vp-st vp-' + st + '">' + t('vpSt_' + st) + '</span></h4><p class="hr-hint">' + t('vpExplLead') + '</p>' +
+  return '<div class="vp-ex" data-ex="' + esc(empId) + '"><h4>' + ph('pencil-simple') + t('vpExpl') + ' <span class="vp-st vp-' + st + '">' + t('vpSt_' + st) + '</span></h4><p class="hr-hint">' + t('vpExplLead') + '</p>' +
     (note && note.stale ? '<p class="vp-warn">' + ph('arrows-clockwise') + t('vpStale') + '</p>' : '') +
     (note ? '<p class="vp-who">' + t('vpBy').replace('{n}', esc(note.byName || '')) + (note.acceptedByName ? ' · ' + t('vpAccBy').replace('{n}', esc(note.acceptedByName)) : '') + '</p>' : '') +
     '<label><span>' + t('vpReason') + '</span><select data-exr>' + VR.map(function(k){ return '<option value="' + k + '"' + (note && note.reason === k ? ' selected' : '') + '>' + t('vr_' + k) + '</option>'; }).join('') + '</select></label>' +
