@@ -4,10 +4,10 @@
 'use strict';
 
 var L = {
-  ar: { arrears:'فروقات بأثر رجعي', basic:'الراتب الأساسي', housing:'بدل السكن', transport:'بدل النقل', allowance:'بدل', overtime:'عمل إضافي', bonus:'مكافأة', commission:'عمولة', other_earning:'استحقاق آخر', reimbursement:'تعويض مصروفات', per_diem:'بدل انتداب',
+  ar: { leave_pay:'راتب الإجازة مقدما', arrears:'فروقات بأثر رجعي', basic:'الراتب الأساسي', housing:'بدل السكن', transport:'بدل النقل', allowance:'بدل', overtime:'عمل إضافي', bonus:'مكافأة', commission:'عمولة', other_earning:'استحقاق آخر', reimbursement:'تعويض مصروفات', per_diem:'بدل انتداب',
     unpaid_leave:'إجازة بدون راتب', sick_75:'إجازة مرضية بثلاثة أرباع الأجر', sick_unpaid:'إجازة مرضية بدون أجر', absence:'غياب', late:'دقائق التأخير',
     gosi:'التأمينات الاجتماعية', advance:'قسط سلفة', fine:'جزاء', other_deduction:'خصم آخر', overtime_hours:'ساعات عمل إضافي' },
-  en: { arrears:'Retro pay (arrears)', basic:'Basic salary', housing:'Housing allowance', transport:'Transport allowance', allowance:'Allowance', overtime:'Overtime', bonus:'Bonus', commission:'Commission', other_earning:'Other earning', reimbursement:'Expense reimbursement', per_diem:'Travel per diem',
+  en: { leave_pay:'Leave pay in advance', arrears:'Retro pay (arrears)', basic:'Basic salary', housing:'Housing allowance', transport:'Transport allowance', allowance:'Allowance', overtime:'Overtime', bonus:'Bonus', commission:'Commission', other_earning:'Other earning', reimbursement:'Expense reimbursement', per_diem:'Travel per diem',
     unpaid_leave:'Unpaid leave', sick_75:'Sick leave at 75%', sick_unpaid:'Unpaid sick leave', absence:'Absence', late:'Minutes late',
     gosi:'GOSI (employee share)', advance:'Advance instalment', fine:'Fine', other_deduction:'Other deduction', overtime_hours:'Overtime hours' }
 };

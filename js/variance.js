@@ -957,5 +957,91 @@ function explainDrawer(runId, empId, name, note, meId, done){
   wireExplain(d, runId, function(){ if (d.parentNode) d.parentNode.removeChild(d); if (done) done(); });
 }
 
-window.Variance = { explain: explainDrawer, section: varianceSection, monthly: monthlySection, openRun: openRun, lines: linesSection, reconcile: reconcileSection, summary: summarySection };
+// ======================================================================= leave financial clearance (2026-11-25)
+// Before annual leave: the days worked this month, every leave day in advance, the month's additions and deductions, GOSI;
+// never end of service (that waits for the last working day). Server: leaveClearance* in Payroll.gs.
+Object.assign(T.ar, { lcTitle:'مخالصات الإجازات', lcLead:'قبل أن يبدأ الموظف إجازته السنوية: راتب أيام العمل في الشهر حتى اليوم السابق للإجازة، وراتب أيام الإجازة مقدما، وكل إضافة أو خصم مسجل للشهر (مكافأة، عمل إضافي، جزاء)، مع التأمينات. مكافأة نهاية الخدمة لا تمس حتى آخر يوم عمل. بعد الاعتماد لا يصرف المسير هذه الأيام مرة أخرى.',
+  lcLeaves:'إجازات سنوية معتمدة قادمة', lcAll:'المخالصات', lcPrep:'إعداد المخالصة', lcOpen:'فتح', lcNone:'لا توجد إجازات سنوية معتمدة قادمة.', lcNoRows:'لا توجد مخالصات بعد.',
+  lcLeave:'الإجازة', lcFrom:'من', lcTo:'إلى', lcDays:'الأيام', lcWorked:'أيام العمل قبل الإجازة', lcLeavePay:'أيام الإجازة المدفوعة مقدما', lcBalBefore:'الرصيد قبل الإجازة', lcBalAfter:'الرصيد بعد الإجازة',
+  lcEos:'مكافأة نهاية الخدمة: لا تصرف هنا، تبقى حتى آخر يوم عمل.', lcGross:'إجمالي المستحق', lcDed:'إجمالي الخصومات', lcNet:'صافي المخالصة', lcSave:'حفظ المخالصة', lcApprove:'اعتماد المخالصة', lcPaid:'تسجيل الصرف',
+  lcPaidRef:'مرجع التحويل', lcPaidOn:'تاريخ الصرف', lcCancel:'إلغاء المخالصة', lcCancelNote:'سبب الإلغاء', lcPrint:'طباعة', lcSt_draft:'مسودة', lcSt_approved:'معتمدة', lcSt_paid:'مصروفة', lcSt_cancelled:'ملغاة',
+  lcPrepared:'أعدها {n}', lcApproved:'اعتمدها {n}', lcTwo:'يعتمدها شخص من الرواتب غير الذي أعدها.', lcW_leave_over_balance:'أيام الإجازة أكثر من الرصيد المتاح', lcW_month_locked_worked_paid:'رواتب الشهر معتمدة: أيام العمل مصروفة في المسير',
+  lcLine:'البند', lcAmount:'المبلغ', lcDone:'تم', lcSign:'توقيع الموظف', lcSignHr:'الموارد البشرية', lcSignPay:'الرواتب' });
+Object.assign(T.en, { lcTitle:'Leave clearances', lcLead:'Before annual leave starts: pay for the days worked this month up to the day before the leave, every leave day in advance, and every addition or deduction entered for the month (bonus, overtime, fine), with GOSI. End of service is not touched until the last working day. Once approved, the payroll runs never pay these days again.',
+  lcLeaves:'Upcoming approved annual leave', lcAll:'Clearances', lcPrep:'Prepare clearance', lcOpen:'Open', lcNone:'No upcoming approved annual leave.', lcNoRows:'No clearances yet.',
+  lcLeave:'Leave', lcFrom:'From', lcTo:'To', lcDays:'Days', lcWorked:'Days worked before the leave', lcLeavePay:'Leave days paid in advance', lcBalBefore:'Balance before the leave', lcBalAfter:'Balance after the leave',
+  lcEos:'End of service: not paid here; it waits for the last working day.', lcGross:'Total due', lcDed:'Total deductions', lcNet:'Clearance net', lcSave:'Save clearance', lcApprove:'Approve clearance', lcPaid:'Record payment',
+  lcPaidRef:'Transfer reference', lcPaidOn:'Paid on', lcCancel:'Cancel clearance', lcCancelNote:'Reason for cancelling', lcPrint:'Print', lcSt_draft:'Draft', lcSt_approved:'Approved', lcSt_paid:'Paid', lcSt_cancelled:'Cancelled',
+  lcPrepared:'Prepared by {n}', lcApproved:'Approved by {n}', lcTwo:'A payroll holder other than the preparer approves it.', lcW_leave_over_balance:'More leave days than the balance available', lcW_month_locked_worked_paid:'The month is locked: the worked days were paid in the run',
+  lcLine:'Line', lcAmount:'Amount', lcDone:'Done', lcSign:'Employee signature', lcSignHr:'HR', lcSignPay:'Payroll' });
+LN.ar.leave_pay = 'راتب الإجازة مقدما'; LN.en = LN.en || {}; LN.en.leave_pay = 'Leave pay in advance';
+function lcLineName(l){ return lineName((l.kind === 'deduction' ? 'd:' : 'e:') + l.code) + (l.days && l.code !== 'leave_pay' ? ' (' + l.days + ')' : ''); }
+function lcBody(q){
+  var ls = (q.lines || []).slice().sort(function(a, b){ return lineRank((a.kind === 'deduction' ? 'd:' : 'e:') + a.code) - lineRank((b.kind === 'deduction' ? 'd:' : 'e:') + b.code); });
+  var E = ls.filter(function(l){ return l.kind !== 'deduction'; }), D = ls.filter(function(l){ return l.kind === 'deduction'; });
+  var row = function(l){ return '<tr><td>' + esc(lcLineName(l)) + (l.code === 'leave_pay' ? ' <small>' + l.days + ' ' + t('lcDays') + '</small>' : '') + '</td><td class="n">' + amt(l.amount) + '</td></tr>'; };
+  return '<div class="lc-facts"><span>' + t('lcLeave') + ' <b class="num" dir="ltr">' + esc(q.leaveStart) + ' → ' + esc(q.leaveEnd) + '</b></span><span>' + t('lcWorked') + ' <b>' + (q.workedDays || 0) + '</b></span>' +
+      '<span>' + t('lcLeavePay') + ' <b>' + (q.leavePayDays || 0) + '</b></span><span>' + t('lcBalBefore') + ' <b>' + q.balanceBefore + '</b></span><span>' + t('lcBalAfter') + ' <b>' + q.balanceAfter + '</b></span></div>' +
+    (q.warnings || []).filter(function(w){ return T[S.lang]['lcW_' + w]; }).map(function(w){ return '<p class="vp-warn">' + ph('warning') + t('lcW_' + w) + '</p>'; }).join('') +
+    '<div class="vs-wrap"><table class="vs-tbl"><thead><tr><th>' + t('lcLine') + '</th><th class="n">' + t('lcAmount') + '</th></tr></thead><tbody>' + E.map(row).join('') +
+    '<tr class="lc-sum"><td><b>' + t('lcGross') + '</b></td><td class="n"><b>' + amt(q.gross) + '</b></td></tr>' + D.map(row).join('') +
+    '<tr class="lc-sum"><td><b>' + t('lcDed') + '</b></td><td class="n"><b>' + amt(q.deductions) + '</b></td></tr><tr class="lc-net"><td><b>' + t('lcNet') + '</b></td><td class="n"><b>' + amt(q.net) + '</b></td></tr></tbody></table></div>' +
+    '<p class="sm-note">' + ph('info') + t('lcEos') + '</p>';
+}
+function lcPrint(c){
+  var w = window.open('', '_blank'); if (!w) return toast(errText('popup_blocked'));
+  var html = '<!doctype html><html dir="' + (S.lang === 'en' ? 'ltr' : 'rtl') + '"><head><meta charset="utf-8"><title>' + esc(c.ref) + '</title><style>body{font:14px system-ui,sans-serif;margin:32px;color:#111}h1{font-size:20px;margin:0 0 4px}' +
+    'table{width:100%;border-collapse:collapse;margin:12px 0}td,th{border-bottom:1px solid #ddd;padding:6px 8px;text-align:start}.n{text-align:end;font-variant-numeric:tabular-nums}.lc-net td{font-size:16px;border-top:2px solid #111}' +
+    '.lc-facts span{display:inline-block;margin-inline-end:16px}.sig{display:flex;gap:24px;margin-top:48px}.sig div{flex:1;border-top:1px solid #111;padding-top:6px;font-size:12px}header{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid var(--brand,#333);padding-bottom:12px;margin-bottom:16px}header img{height:56px}.vp-warn,.sm-note{font-size:12px;color:#555}</style></head><body>' +
+    '<header><div><h1>' + t('lcTitle') + ' · <bdi>' + esc(c.ref) + '</bdi></h1><div>' + esc(coName()) + '</div><div>' + esc(c.emp.name) + ' · ' + esc(c.emp.empNo) + ' · ' + t('lcSt_' + c.status) + '</div></div><img src="' + logoInk() + '" alt=""></header>' +
+    lcBody(c.quote).replace(/<i class="ph[^"]*"[^>]*><\/i>/g, '') + '<div class="sig"><div>' + t('lcSign') + '</div><div>' + t('lcSignHr') + (c.preparedBy ? ': ' + esc(c.preparedBy) : '') + '</div><div>' + t('lcSignPay') + (c.approvedBy ? ': ' + esc(c.approvedBy) : '') + '</div></div></body></html>';
+  w.document.open(); w.document.write(window.brandVarsCss ? html.replace(/<head>/i, '<head><style>' + brandVarsCss() + '</style>') : html); w.document.close(); setTimeout(function(){ try { w.print(); } catch (e) {} }, 400);
+}
+function clearanceSection(body){
+  vpCss();
+  var box = K.head(body, 'lcTitle', 'lcLead');
+  if (!$('#lcCss')) { var st = document.createElement('style'); st.id = 'lcCss'; st.textContent = 'html body.v2-on .lc-facts{display:flex;flex-wrap:wrap;gap:8px 16px;margin:0 0 12px;font-size:13px}html body.v2-on .lc-sum td{background:var(--q-tray,#f3f1ec)}html body.v2-on .lc-net td{background:color-mix(in srgb,var(--brand) 10%,transparent);font-size:16px}' +
+    'html body.v2-on .lc-form{display:grid;gap:8px;margin:12px 0}html body.v2-on .lc-form input{font:inherit;padding:8px 12px;border:1px solid var(--q-hair,#ccc);border-radius:12px;background:transparent;color:inherit}'; document.head.appendChild(st); }
+  function load(){
+    K.busy(box);
+    api('leaveClearanceList', {}, true).then(function(r){
+      if (!box.isConnected) return; if (!r.ok) return box.innerHTML = K.bad(r.error);
+      var st = function(s){ return '<span class="pv-st pv-' + (s === 'paid' ? 'locked' : s === 'cancelled' ? 'cancelled' : 'draft') + '">' + t('lcSt_' + s) + '</span>'; };
+      box.innerHTML = '<h3 class="vs-h">' + ph('airplane-takeoff') + ' ' + t('lcLeaves') + '</h3>' + (r.leaves.length ? '<div class="vs-wrap"><table class="vs-tbl"><thead><tr><th>' + t('vsEmpNo') + '</th><th>' + t('vsName') + '</th><th>' + t('lcFrom') + '</th><th>' + t('lcTo') + '</th><th class="n">' + t('lcDays') + '</th><th></th></tr></thead><tbody>' +
+          r.leaves.map(function(l, i){ return '<tr><td dir="ltr">' + esc(l.empNo) + '</td><td>' + esc(l.name) + '</td><td class="num" dir="ltr">' + esc(l.from) + '</td><td class="num" dir="ltr">' + esc(l.to) + '</td><td class="n">' + l.days + '</td><td>' +
+            (l.clearance && l.clearance.status !== 'draft' ? st(l.clearance.status) + ' <button type="button" class="btn btn-line btn-sm" data-lco="' + esc(l.clearance.id) + '">' + t('lcOpen') + '</button>' : '<button type="button" class="btn btn-dark btn-sm" data-lcq="' + i + '">' + ph('calculator') + t('lcPrep') + '</button>') + '</td></tr>'; }).join('') + '</tbody></table></div>' : K.empty('airplane-takeoff', t('lcNone'))) +
+        '<h3 class="vs-h">' + ph('receipt') + ' ' + t('lcAll') + '</h3>' + (r.rows.length ? '<div class="vs-wrap"><table class="vs-tbl"><thead><tr><th>' + t('lcLine') + '</th><th>' + t('vsName') + '</th><th>' + t('lcLeave') + '</th><th class="n">' + t('lcNet') + '</th><th></th></tr></thead><tbody>' +
+          r.rows.map(function(c){ return '<tr class="go" data-lco="' + esc(c.id) + '"><td><bdi>' + esc(c.ref) + '</bdi></td><td>' + esc(c.emp.name) + ' <small dir="ltr">' + esc(c.emp.empNo) + '</small></td><td class="num" dir="ltr">' + esc(c.leaveStart) + ' → ' + esc(c.leaveEnd) + '</td><td class="n">' + amt(c.net) + '</td><td>' + st(c.status) + '</td></tr>'; }).join('') + '</tbody></table></div>' : K.empty('receipt', t('lcNoRows')));
+      $$('[data-lcq]', box).forEach(function(b){ b.onclick = function(){ prepare(r.leaves[+b.dataset.lcq], r); }; });
+      $$('[data-lco]', box).forEach(function(b){ b.onclick = function(){ var c = r.rows.filter(function(x){ return x.id === b.dataset.lco; })[0]; if (c) open(c, r); }; });
+    });
+  }
+  function prepare(l, r){
+    var d = drawer('<h3>' + t('lcPrep') + ' · ' + esc(l.name) + '</h3><div id="lcQ"><div class="list"><div class="row"><div class="main"><span class="sk"></span></div></div></div></div>', { wide: true }), el = $('#lcQ', d);
+    api('leaveClearanceQuote', { leaveId: l.id }, true).then(function(x){
+      if (!x.ok) return el.innerHTML = K.bad(x.error);
+      el.innerHTML = lcBody(x.quote) + '<div class="err" id="lcE"></div><div class="btnrow"><button type="button" class="btn btn-dark" id="lcS">' + ph('check') + t('lcSave') + '</button></div><p class="hr-hint">' + t('lcTwo') + '</p>';
+      $('#lcS', el).onclick = function(){ var b = this; b.disabled = true; api('leaveClearanceSave', { leaveId: l.id }).then(function(y){ b.disabled = false; if (!y.ok) return $('#lcE', el).textContent = errText(y.error); toast(t('lcDone')); if (d.parentNode) d.parentNode.removeChild(d); load(); }); };
+    });
+  }
+  function open(c, r){
+    var mine = c.preparedById === r.me, can = r.canApprove;
+    var d = drawer('<h3><bdi>' + esc(c.ref) + '</bdi> · ' + esc(c.emp.name) + '</h3><p class="hr-hint">' + t('lcSt_' + c.status) + (c.preparedBy ? ' · ' + t('lcPrepared').replace('{n}', esc(c.preparedBy)) : '') + (c.approvedBy ? ' · ' + t('lcApproved').replace('{n}', esc(c.approvedBy)) : '') + (c.paidRef ? ' · <bdi>' + esc(c.paidRef) + '</bdi> ' + esc(c.paidOn) : '') + '</p>' +
+      lcBody(c.quote) + '<div class="err" id="lcE"></div>' +
+      (c.status === 'approved' && can ? '<div class="lc-form"><label>' + t('lcPaidRef') + ' <input id="lcR" maxlength="80"></label><label>' + t('lcPaidOn') + ' <input id="lcD" type="date" dir="ltr"></label></div>' : '') +
+      (c.status === 'draft' || c.status === 'approved' ? '<div class="lc-form"><label>' + t('lcCancelNote') + ' <input id="lcN" maxlength="300"></label></div>' : '') +
+      '<div class="btnrow">' + (c.status === 'draft' && can && !mine ? '<button type="button" class="btn btn-dark" data-op="approve">' + ph('seal-check') + t('lcApprove') + '</button>' : '') +
+        (c.status === 'approved' && can ? '<button type="button" class="btn btn-dark" data-op="paid">' + ph('bank') + t('lcPaid') + '</button>' : '') +
+        (c.status === 'draft' || c.status === 'approved' ? '<button type="button" class="btn btn-line" data-op="cancel">' + t('lcCancel') + '</button>' : '') +
+        '<button type="button" class="btn btn-line" id="lcP">' + ph('printer') + t('lcPrint') + '</button></div>' + (c.status === 'draft' && mine ? '<p class="hr-hint">' + t('lcTwo') + '</p>' : ''), { wide: true });
+    $('#lcP', d).onclick = function(){ lcPrint(c); };
+    $$('[data-op]', d).forEach(function(b){ b.onclick = function(){ var op = b.dataset.op, p = { id: c.id, op: op };
+      if (op === 'paid') { p.paidRef = $('#lcR', d).value.trim(); p.paidOn = $('#lcD', d).value; }
+      if (op === 'cancel') p.note = $('#lcN', d).value.trim();
+      b.disabled = true; api('leaveClearanceStep', p).then(function(y){ b.disabled = false; if (!y.ok) return $('#lcE', d).textContent = errText(y.error); toast(t('lcDone')); if (d.parentNode) d.parentNode.removeChild(d); load(); }); }; });
+  }
+  load();
+}
+
+window.Variance = { clearance: clearanceSection, explain: explainDrawer, section: varianceSection, monthly: monthlySection, openRun: openRun, lines: linesSection, reconcile: reconcileSection, summary: summarySection };
 })();

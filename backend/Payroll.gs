@@ -53,7 +53,7 @@ function payrollCtx_(month, gid) {
     lines_(sl).forEach(function (l) { if (l.code === 'advance' && l.ref) advDone[l.ref] = (advDone[l.ref] || 0) + l.amount; });
   });
   return { month: month, first: first, last: last, s: s, now: new Date(), today: today_(), comps: readAll_(SHEETS.COMP), reqs: readAll_(SHEETS.REQ),
-    adjs: readAll_(SHEETS.ADJ).filter(function (a) { return a.month === month && a.status !== 'deleted'; }), off: offIndex_(from0, last), win: win, group: grp, lastAtt: lastAttTo_(),
+    adjs: readAll_(SHEETS.ADJ).filter(function (a) { return a.month === month && a.status !== 'deleted' && !a.clearanceRef; }), lcCov: lcCovered_(), off: offIndex_(from0, last), win: win, group: grp, lastAtt: lastAttTo_(),
     byEmpDay: byEmpDay, priv: priv, advDone: advDone };
 }
 function lines_(sl) { try { return JSON.parse(sl.linesJson || '[]') || []; } catch (e) { return []; } }
@@ -62,6 +62,8 @@ function lines_(sl) { try { return JSON.parse(sl.linesJson || '[]') || []; } cat
 function calcSlip_(emp, x) {
   var hire = String(emp.hireDate || '').slice(0, 10) || joinedDate_(emp), lwd = String(emp.lastWorkingDay || '').slice(0, 10);
   var from = maxDate_(x.first, hire), to = lwd ? minDate_(x.last, lwd) : x.last;
+  // a leave clearance paid every day from its month's start to the leave's end: this month starts after that (2026-11-25)
+  var lcPaid = false; ((x.lcCov || {})[emp.id] || []).forEach(function (c) { if (c.from <= x.last && c.to >= from) { from = maxDate_(from, addDays_(c.to, 1)); lcPaid = true; } });
   if (from > to) return null;
   var out = { lines: [], warnings: [], info: {} }, add = function (l) { l.amount = r2_(l.amount); if (l.amount) out.lines.push(l); };
   var comp = compOn_(emp.id, to, x.comps);
@@ -103,6 +105,7 @@ function calcSlip_(emp, x) {
   // a leaver up to the last day; never a day already counted on an earlier locked payslip (a new cut-off, or a move between groups)
   var aw = x.win || { from: x.first, to: x.last }, attFrom = maxDate_(maxDate_(aw.from, hire), joinedDate_(emp)), attTo = lwd && lwd <= x.last ? lwd : minDate_(aw.to, to);
   if (x.lastAtt && x.lastAtt[emp.id] && x.lastAtt[emp.id] >= attFrom) attFrom = addDays_(x.lastAtt[emp.id], 1);
+  if (lcPaid) attFrom = maxDate_(attFrom, from); // days the leave clearance paid are not counted again
   out.info.attFrom = attFrom; out.info.attTo = attTo;
   var absent = 0, lateMin = 0, otMin = 0;
   for (var day = attFrom, j = 0; day <= attTo && j < 40; day = addDays_(day, 1), j++) {
@@ -676,7 +679,7 @@ function graphSend_(c, token, to, subject, html, files) {
       attachments: (files || []).map(function (f) { return { '@odata.type': '#microsoft.graph.fileAttachment', name: f.name, contentType: f.type, contentBytes: Utilities.base64Encode(f.bytes) }; }) }, saveToSentItems: true }) });
   if (r.getResponseCode() >= 300) fail_('email_send_failed');
 }
-var PAY_LABELS_AR = { arrears: 'فروقات بأثر رجعي', basic: 'الراتب الأساسي', housing: 'بدل السكن', transport: 'بدل النقل', allowance: 'بدل', overtime: 'عمل إضافي', bonus: 'مكافأة', commission: 'عمولة',
+var PAY_LABELS_AR = { leave_pay: 'راتب الإجازة مقدما', arrears: 'فروقات بأثر رجعي', basic: 'الراتب الأساسي', housing: 'بدل السكن', transport: 'بدل النقل', allowance: 'بدل', overtime: 'عمل إضافي', bonus: 'مكافأة', commission: 'عمولة',
   other_earning: 'استحقاق آخر', reimbursement: 'تعويض مصروفات', unpaid_leave: 'إجازة بدون راتب', sick_75: 'إجازة مرضية بثلاثة أرباع الأجر', sick_unpaid: 'إجازة مرضية بدون أجر', absence: 'غياب',
   late: 'دقائق التأخير', gosi: 'التأمينات الاجتماعية (حصة الموظف)', advance: 'قسط سلفة', fine: 'جزاء', other_deduction: 'خصم آخر' };
 function payslipEmailHtml_(sl) {
@@ -1830,7 +1833,8 @@ function prepBuild_(run, me) {
   };
   Object.keys(emps).forEach(function (id) { var e = emps[id], lwd = String(e.lastWorkingDay || '').slice(0, 10);
     if (mine(e) && lwd && lwd <= last && (lwd >= first || inRun[id] || pv(id))) leaver(id, 'last_day'); });
-  Object.keys(prev.byEmp).forEach(function (id) { if (!inRun[id]) leaver(id, (emps[id] || {}).status === 'suspended' ? 'suspended' : 'not_in_run'); });
+  var lcc = lcCovered_(); // paid in advance by a leave clearance: on leave, not a leaver
+  Object.keys(prev.byEmp).forEach(function (id) { if (!inRun[id]) leaver(id, (emps[id] || {}).status === 'suspended' ? 'suspended' : (lcc[id] || []).some(function (c) { return c.to >= first; }) ? 'leave_clearance' : 'not_in_run'); });
   steps.leavers = { rows: lRows, sig: prepSig_(lRows.map(function (r) { return [r.empId, r.lastDay, r.inRun, r.days, r.settlement && r.settlement.status]; })) };
 
   // 5. package changes: an approved package effective this month, or fixed pay different from last month's (a raise approved
@@ -2161,4 +2165,159 @@ function api_varianceSummary(req, me) {
   return { ok: true, month: month, months: months, compare: cmp, baseMonths: baseMonths, min: MIN, masked: !pay, folded: folded,
     totals: { headcount: { cur: curN, base: baseN }, net: { cur: sum(rows, 'cur', 'net'), base: sum(rows, 'base', 'net') }, cost: { cur: sum(rows, 'cur', 'cost'), base: sum(rows, 'base', 'cost') } },
     headBridge: { opening: baseN, joiners: joiners.length, leavers: leavers.length, closing: curN }, bridge: bridge, drivers: drivers, dims: dims, trend: trend };
+}
+
+
+// ======================================================================= leave financial clearance (2026-11-25)
+// مخالصة الإجازة (owner 2026-11-25). Before an employee goes on annual leave, payroll settles in one document: the salary of the
+// days worked this month up to the day before the leave, the salary of every leave day (paid in advance), and every addition or
+// deduction already entered for this month (bonus, reward, overtime, fines), with GOSI on all of it. End of service is NOT
+// touched: it is paid only after the last working day (final settlement). Art. 111: annual leave cannot be paid out instead of
+// being taken during employment, so the leave days paid are the days of this approved leave, at most the balance available.
+// Once approved, the regular runs leave out every day the clearance paid (calcSlip_ starts after the leave ends) and the
+// month's adjustments it carried are marked with its ref so no run pays them twice. Advance and loan instalments stay in the
+// regular runs. Two people: prepared by hr or payroll, approved by a payroll holder who did not prepare it; never one's own.
+function lcPublic_(c, emps) {
+  var e = emps[c.empId] || {}, q = parseJson_(c.quoteJson, {}) || {};
+  return { id: c.id, ref: c.ref, empId: c.empId, emp: { name: e.name || '', empNo: String(e.empNo || '') }, leaveRef: c.leaveRef, leaveId: c.leaveReqId, month: c.month,
+    leaveStart: String(c.leaveStart).slice(0, 10), leaveEnd: String(c.leaveEnd).slice(0, 10), leaveDays: Number(c.leaveDays) || 0, quote: q, gross: Number(c.gross) || 0,
+    deductions: Number(c.deductions) || 0, net: Number(c.net) || 0, status: c.status, preparedBy: emps[c.preparedBy] ? emps[c.preparedBy].name : '', preparedById: c.preparedBy,
+    approvedBy: emps[c.approvedBy] ? emps[c.approvedBy].name : '', approvedAt: c.approvedAt, paidOn: String(c.paidOn || '').slice(0, 10), paidRef: c.paidRef || '', note: c.note || '', createdAt: c.createdAt };
+}
+/** Clearances in force (approved or paid) per employee: the regular runs leave out the days they paid. */
+function lcCovered_() { var o = {}; readAll_(SHEETS.LCL).forEach(function (c) { if (c.status === 'approved' || c.status === 'paid') (o[c.empId] = o[c.empId] || []).push({ from: String(c.month) + '-01', to: String(c.leaveEnd).slice(0, 10), ref: c.ref }); }); return o; }
+/** Pay days of a calendar span, month by month on the 30-day basis the payslip uses (a whole month counts 30). */
+function lcPayDays_(a, b) {
+  var t = 0, m = a.slice(0, 7);
+  while (m <= b.slice(0, 7)) {
+    var f = maxDate_(a, m + '-01'), l = minDate_(b, monthLast_(m));
+    if (f <= l) t += f === m + '-01' && l === monthLast_(m) ? 30 : Math.min(30, daysBetween_(f, l) + 1);
+    m = addMonths_(m, 1);
+  }
+  return t;
+}
+/** The clearance for one approved annual leave, worked out fresh. */
+function lcQuote_(leave, me) {
+  var emp = findBy_(SHEETS.EMP, 'id', leave.empId); if (!emp) fail_('not_found');
+  var start = String(leave.fromDate).slice(0, 10), end = String(leave.toDate).slice(0, 10), month = start.slice(0, 7), dayBefore = addDays_(start, -1);
+  var reqs = readAll_(SHEETS.REQ).filter(function (r) { return r.empId === emp.id; });
+  var bal = annualBalance_(emp, dayBefore, reqs.filter(function (r) { return r.id !== leave.id; }), null), avail = Math.max(0, Number(bal.available) || 0);
+  var comp = compOn_(emp.id, start, readAll_(SHEETS.COMP)); if (!comp) fail_('no_package');
+  var locked = monthLocked_(emp.id, month), x = payrollCtx_(month, groupOf_(emp)), warnings = [];
+  // 1. the days worked this month before the leave: the payslip engine itself, ending the day before the leave
+  var out = { lines: [], warnings: [], info: {} };
+  if (!locked && start > month + '-01') {
+    var worked = calcSlip_(Object.assign({}, emp, { lastWorkingDay: dayBefore }), x);
+    if (worked) out = worked;
+  }
+  if (locked) warnings.push('month_locked_worked_paid');
+  out.lines = out.lines.filter(function (l) { return l.code !== 'advance' && l.code !== 'loan'; }); // instalments stay in the runs
+  // 2. the leave itself, paid in advance at the full wage (Art. 109); a locked month's leave days were already paid
+  var payFrom = locked ? addMonths_(month, 1) + '-01' : start, leavePayDays = payFrom <= end ? lcPayDays_(payFrom, end) : 0;
+  var calDays = daysBetween_(start, end) + 1;
+  if (Number(leave.days) > avail + 0.001) warnings.push('leave_over_balance');
+  var daily = comp.total / 30;
+  if (leavePayDays) out.lines.push({ kind: 'earning', code: 'leave_pay', days: leavePayDays, label: start + ' → ' + end, amount: r2_(leavePayDays * daily) });
+  // GOSI on the leave days too (the runs will not see those days); the same wage, cap and rate as the payslip
+  var p = x.priv[emp.id] || {}, saudi = bool_(emp.isSaudi), rates = gosiRates_(saudi, p.gosiCohort, month);
+  var gWage = Number(p.gosiWage) || (comp.basic + comp.housing), gBase = Math.min(GOSI_MAX, Math.max(saudi ? GOSI_MIN : 0, gWage));
+  if (rates.emp && leavePayDays) {
+    var g = r2_(gBase * leavePayDays / 30 * rates.emp / 100), gl = out.lines.filter(function (l) { return l.code === 'gosi'; })[0];
+    if (gl) gl.amount = r2_(gl.amount + g); else out.lines.push({ kind: 'deduction', code: 'gosi', rate: rates.emp, amount: g, statutory: true });
+  }
+  out.gosiEmployer = r2_((out.gosiEmployer || 0) + gBase * leavePayDays / 30 * rates.er / 100);
+  out.lines = out.lines.filter(function (l) { return Number(l.amount) > 0; });
+  out = finish_(out);
+  var adjRefs = x.adjs.filter(function (a) { return a.empId === emp.id; }).map(function (a) { return a.ref; });
+  return { empId: emp.id, leaveId: leave.id, leaveRef: leave.ref, month: month, leaveStart: start, leaveEnd: end, calendarDays: calDays, leaveDays: Number(leave.days) || calDays,
+    leavePayDays: leavePayDays, balanceBefore: r2_(avail), balanceAfter: r2_(avail - (Number(leave.days) || 0)), wage: r2_(comp.total), workedDays: locked ? 0 : out.info.paidDays || 0, monthLocked: locked,
+    lines: out.lines, gross: out.gross, deductions: out.deductions, net: out.net, gosiEmployer: out.gosiEmployer, eos: 'untouched', adjustments: adjRefs,
+    warnings: warnings.concat(out.warnings || []).filter(function (w, i, a) { return a.indexOf(w) === i; }) };
+}
+function lcLeave_(id) {
+  var r = findBy_(SHEETS.REQ, 'id', String(id || ''));
+  if (!r || r.type !== 'leave' || r.subtype !== 'annual') fail_('not_found');
+  if (r.status !== 'approved') fail_('leave_not_approved');
+  return r;
+}
+function api_leaveClearanceQuote(req, me) {
+  if (!canPayroll_(me)) fail_('forbidden');
+  var leave = lcLeave_(req.leaveId), emp = findBy_(SHEETS.EMP, 'id', leave.empId);
+  if (!emp || !payGroupAccess_(me, groupOf_(emp))) fail_('forbidden');
+  var q = lcQuote_(leave, me);
+  audit_(me.id, 'salary_view', leave.empId, { leaveClearance: leave.ref });
+  return { ok: true, quote: q };
+}
+/** Prepare (or refresh a draft of) the clearance for one approved annual leave. */
+function api_leaveClearanceSave(req, me) {
+  if (!canPayroll_(me)) fail_('forbidden');
+  return withLock_(function () {
+    var leave = lcLeave_(req.leaveId), emp = findBy_(SHEETS.EMP, 'id', leave.empId);
+    if (leave.empId === me.id) fail_('cannot_change_own_salary');
+    if (!emp || !payGroupAccess_(me, groupOf_(emp))) fail_('forbidden');
+    var rows = readAll_(SHEETS.LCL), cur = rows.filter(function (c) { return c.leaveReqId === leave.id && c.status !== 'cancelled'; })[0] || null;
+    if (cur && cur.status !== 'draft') fail_('already_exists');
+    var q = lcQuote_(leave, me), now = new Date().toISOString();
+    var row = cur || { id: newId_('C'), ref: nextRef_('leaveClearance', refsOf_(SHEETS.LCL)), empId: emp.id, leaveReqId: leave.id, createdAt: now, approvedBy: '', approvedAt: '', paidOn: '', paidRef: '', paidBy: '' };
+    Object.assign(row, { leaveRef: leave.ref, month: q.month, leaveStart: q.leaveStart, leaveEnd: q.leaveEnd, leaveDays: q.leaveDays, quoteJson: JSON.stringify(q), gross: q.gross, deductions: q.deductions,
+      net: q.net, status: 'draft', preparedBy: me.id, preparedAt: now, note: str_(req.note, 300), updatedAt: now });
+    if (cur) update_(SHEETS.LCL, row); else append_(SHEETS.LCL, row);
+    audit_(me.id, 'leave_clearance_prepare', emp.id, { ref: row.ref, leave: leave.ref, net: q.net });
+    return { ok: true, clearance: lcPublic_(row, fsEmps_()) };
+  });
+}
+/** approve (a payroll holder who did not prepare it; refreshed figures must still match), paid (bank reference), cancel. */
+function api_leaveClearanceStep(req, me) {
+  if (!canPayroll_(me)) fail_('forbidden');
+  return withLock_(function () {
+    var c = findBy_(SHEETS.LCL, 'id', String(req.id || '')); if (!c) fail_('not_found');
+    var emp = findBy_(SHEETS.EMP, 'id', c.empId); if (!emp || !payGroupAccess_(me, groupOf_(emp))) fail_('forbidden');
+    if (c.empId === me.id) fail_('cannot_change_own_salary');
+    var now = new Date().toISOString(), op = String(req.op || '');
+    if (op === 'approve') {
+      if (!canApprovePayroll_(me)) fail_('forbidden');
+      if (c.status !== 'draft') fail_('not_found');
+      if (c.preparedBy === me.id) fail_('second_approver_required');
+      var q = lcQuote_(lcLeave_(c.leaveReqId), me);
+      if (Math.abs(q.net - Number(c.net)) > 0.005 || Math.abs(q.gross - Number(c.gross)) > 0.005) fail_('clearance_changed'); // prepare it again first
+      if (monthLocked_(c.empId, c.month) && !q.monthLocked) fail_('month_locked');
+      // the month's adjustments it pays: marked so no run pays them again
+      var mark = {}; q.adjustments.forEach(function (r) { mark[r] = 1; });
+      var adjs = readAll_(SHEETS.ADJ).filter(function (a) { return mark[a.ref] && a.empId === c.empId && !a.clearanceRef; });
+      adjs.forEach(function (a) { a.clearanceRef = c.ref; });
+      if (adjs.length) updateMany_(SHEETS.ADJ, adjs);
+      c.status = 'approved'; c.approvedBy = me.id; c.approvedAt = now;
+    } else if (op === 'paid') {
+      if (!canApprovePayroll_(me)) fail_('forbidden');
+      if (c.status !== 'approved') fail_('not_found');
+      c.status = 'paid'; c.paidOn = isoDate_(req.paidOn) || today_(); c.paidRef = str_(req.paidRef, 80); c.paidBy = me.id;
+      if (!c.paidRef) fail_('missing_fields');
+    } else if (op === 'cancel') {
+      if (c.status === 'paid' || c.status === 'cancelled') fail_('not_found');
+      if (c.status === 'approved') { // its adjustments go back to the regular run
+        var back = readAll_(SHEETS.ADJ).filter(function (a) { return a.clearanceRef === c.ref; });
+        back.forEach(function (a) { a.clearanceRef = ''; }); if (back.length) updateMany_(SHEETS.ADJ, back);
+        if (readAll_(SHEETS.SLIP).some(function (s) { return s.empId === c.empId && s.status === 'locked' && String(s.month) >= c.month && String(s.month) <= String(c.leaveEnd).slice(0, 7); })) fail_('month_locked');
+      }
+      if (!str_(req.note, 300)) fail_('note_required');
+      c.status = 'cancelled'; c.note = str_(req.note, 300);
+    } else fail_('bad_value');
+    c.updatedAt = now;
+    update_(SHEETS.LCL, c);
+    audit_(me.id, 'leave_clearance_' + op, c.empId, { ref: c.ref, net: Number(c.net) });
+    return { ok: true, clearance: lcPublic_(c, fsEmps_()) };
+  });
+}
+/** Approved annual leaves starting from last month on (without a clearance, or with one), and every clearance. Read only. */
+function api_leaveClearanceList(req, me) {
+  if (!canPayroll_(me)) fail_('forbidden');
+  var emps = fsEmps_(), groups = payGroups_(), from = addMonths_(today_().slice(0, 7), -1) + '-01';
+  var mine = function (id) { var e = emps[id]; return e && payGroupAccess_(me, groupOf_(e, groups), groups); };
+  var cl = readAll_(SHEETS.LCL).filter(function (c) { return mine(c.empId); }), byLeave = {};
+  cl.forEach(function (c) { if (c.status !== 'cancelled') byLeave[c.leaveReqId] = c; });
+  var leaves = readAll_(SHEETS.REQ).filter(function (r) { return r.type === 'leave' && r.subtype === 'annual' && r.status === 'approved' && String(r.fromDate).slice(0, 10) >= from && mine(r.empId); })
+    .sort(function (a, b) { return String(a.fromDate).localeCompare(String(b.fromDate)); })
+    .map(function (r) { var e = emps[r.empId] || {}, c = byLeave[r.id]; return { id: r.id, ref: r.ref, empId: r.empId, name: e.name || '', empNo: String(e.empNo || ''), from: String(r.fromDate).slice(0, 10), to: String(r.toDate).slice(0, 10), days: Number(r.days) || 0,
+      clearance: c ? { id: c.id, ref: c.ref, status: c.status, net: Number(c.net) || 0 } : null }; });
+  return { ok: true, leaves: leaves, rows: cl.sort(function (a, b) { return String(b.createdAt).localeCompare(String(a.createdAt)); }).map(function (c) { return lcPublic_(c, emps); }), me: me.id, canApprove: canApprovePayroll_(me) };
 }
