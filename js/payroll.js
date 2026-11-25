@@ -277,7 +277,8 @@ Object.assign(T.ar, { pvFromPrev:'ابدأ من الشهر السابق', pvFrom
   awStep:'الخطوة {i} من {n}', awDays:'أيام العمل', awPrev:'الشهر السابق', awNow:'هذا الشهر', awDiff:'الفرق', awNoPrev:'لا يوجد مسير معتمد للشهر السابق للمقارنة.',
   awConfirm:'راجعت هذا العمود وأؤكد صحته', awNext:'التالي', awBack:'السابق', awFinish:'اعتماد المسير وقفله', awDocs:'مستندات الاعتماد', awDocMissing:'أدخل مستند الاعتماد لكل سطر.',
   awChanged:'تغير', awNew:'جديد', awOnly:'المتغير فقط', awAll:'الكل', awSum:'المجموع', awFinal:'بعد الاعتماد يقفل المسير ولا يمكن التعديل.', awSupport:'المستندات',
-  e_review_incomplete:'راجع كل أعمدة المسير قبل الاعتماد.', e_support_missing:'كل إضافة تحتاج مستند اعتماد قبل اعتماد المسير.', e_support_required:'أدخل مستند الاعتماد لهذه الإضافة (مثلا رقم طلب العمل الإضافي).' });
+  e_review_incomplete:'راجع كل أعمدة المسير قبل الاعتماد.', e_support_missing:'كل إضافة تحتاج مستند اعتماد قبل اعتماد المسير.', e_support_required:'أدخل مستند الاعتماد لهذه الإضافة (مثلا رقم طلب العمل الإضافي).',
+  e_prep_changed:'تغيرت بيانات هذه الخطوة منذ فتحها. راجعها مرة أخرى ثم أكد.', e_prep_errors:'في المسير صافي سالب يمنع التأكيد. عالجه ثم أعد الاحتساب.', e_prep_incomplete:'أكمل خطوات إعداد المسير الثماني قبل الاعتماد.', e_prep_step_locked:'أكد الخطوات السابقة أولا.', e_recalc_needed:'أضيفت أو حذفت بنود بعد آخر احتساب. أعد احتساب المسير ثم أكد.' });
 Object.assign(T.en, { pvFromPrev:'Start from last month', pvFromPrevHint:'Copies last month\'s additions and deductions into the draft; review and edit them before approval.',
   pvCopied:'Copied {n} lines from {m}. Additions need a supporting document before the run is approved.', pvCopiedNone:'Last month has no lines to copy.',
   prAdjDoc:'Supporting document', prAdjDocPh:'Document or request number, or a link', prAdjDocNeed:'Every addition or overtime entry needs a supporting document.', prAdjCopy:'Copied from last month', prAdjNoDoc:'no document',
@@ -285,7 +286,8 @@ Object.assign(T.en, { pvFromPrev:'Start from last month', pvFromPrevHint:'Copies
   awStep:'Step {i} of {n}', awDays:'Days worked', awPrev:'Last month', awNow:'This month', awDiff:'Difference', awNoPrev:'No approved run last month to compare with.',
   awConfirm:'I have checked this column and confirm it', awNext:'Next', awBack:'Back', awFinish:'Approve and lock the run', awDocs:'Supporting documents', awDocMissing:'Enter a supporting document for every line.',
   awChanged:'changed', awNew:'new', awOnly:'Changes only', awAll:'All', awSum:'Total', awFinal:'Once approved the run is locked and cannot be changed.', awSupport:'Documents',
-  e_review_incomplete:'Review every column of the run before approval.', e_support_missing:'Every addition needs a supporting document before the run is approved.', e_support_required:'Enter a supporting document for this addition (for example the overtime request number).' });
+  e_review_incomplete:'Review every column of the run before approval.', e_support_missing:'Every addition needs a supporting document before the run is approved.', e_support_required:'Enter a supporting document for this addition (for example the overtime request number).',
+  e_prep_changed:'This step changed since you opened it. Review it again, then confirm.', e_prep_errors:'A negative net blocks confirmation. Fix it and recalculate.', e_prep_incomplete:'Complete the eight preparation steps before approval.', e_prep_step_locked:'Confirm the earlier steps first.', e_recalc_needed:'Lines were added or removed after the last calculation. Recalculate the run, then confirm.' });
 var SUPPORT_CODES = { overtime: 1, bonus: 1, commission: 1, incentive: 1, other_earning: 1 }; // the server's PAY_SUPPORT_CODES
 
 /** Approval, one column at a time (owner 2026-11-20): days worked, then every addition, then every deduction, each against
@@ -354,6 +356,238 @@ function approveWizard(r, run, done){
   draw();
 }
 
+// ---------------- preparation wizard (2026-11-24) ----------------
+// A new month is prepared in nine steps, one after another (docs/research/2026-11-24-payroll-prep-wizard-rea.md). Steps 1-8 are
+// confirmed here (payrollPrepConfirm records who and when, and the fingerprint of what was shown); step 9 is approveWizard, by
+// another payroll holder. The server decides which step is open, which are stale (changed after confirming) and which are locked.
+Object.assign(T.ar, { pzTitle:'إعداد مسير الرواتب خطوة بخطوة', pzLead:'كل خطوة تفتح بعد تأكيد التي قبلها. تعرض كل خطوة الموظفين المتأثرين فقط وما تغير عن الشهر السابق.',
+  pzStep:'الخطوة {i} من 9', pzOpen:'متابعة الإعداد', pzOpenN:'متابعة الإعداد: الخطوة {i} من 9', pzDoneAll:'اكتملت خطوات الإعداد الثماني. ينتظر الاعتماد من شخص آخر.',
+  pzBanner:'إعداد المسير', pzBannerLead:'أكد الخطوات بالترتيب قبل أن يُرسل المسير للاعتماد.',
+  pz_days:'أيام العمل والحضور', pz_status:'حالة الموظفين', pz_hires:'المعينون الجدد', pz_leavers:'المغادرون', pz_package:'تغييرات الرواتب', pz_additions:'الإضافات', pz_deductions:'الخصومات', pz_review:'المراجعة مقابل الشهر السابق', pz_approve:'الاعتماد',
+  pzL_days:'أيام العمل في فترة الحضور لكل موظف: الغياب والتأخير والعمل الإضافي، والأيام مقابل الشهر السابق.',
+  pzL_status:'من الموقوف عن العمل (لا يصرف له)، ومن في إجازة أو إجازة بدون راتب أو مرضية خلال الشهر.',
+  pzL_hires:'من انضم منذ الشهر السابق، وراتبه محسوب بالأيام من تاريخ مباشرته.',
+  pzL_leavers:'من ينتهي عمله أو لم يعد في المسير، بآخر يوم عمل وحالة المخالصة النهائية ومكافأة نهاية الخدمة.',
+  pzL_package:'كل راتب معتمد تغير منذ بداية الشهر السابق: من كم إلى كم، ومن أي تاريخ، ومن اعتمده.',
+  pzL_additions:'كل ما يصرف فوق الراتب الثابت. كل إضافة تحتاج مستند اعتماد.',
+  pzL_deductions:'كل خصم في المسير: التأمينات والجزاءات والسلف والغياب والإجازات غير المدفوعة.',
+  pzL_review:'المجاميع مقابل الشهر السابق، ومطابقة العدد (السابق + الجدد - المغادرين)، ومن تغير صافيه كثيرا.',
+  pzL_approve:'يعتمد المسير شخص يحمل صلاحية الرواتب لم يعده ولم يؤكد أي خطوة من خطواته.',
+  pzConfirm:'أؤكد {s}', pzConfirmed:'أكدها {n} في {d}', pzStale:'تغيرت بيانات هذه الخطوة بعد تأكيدها. راجعها وأكدها مرة أخرى.', pzLocked:'أكد الخطوات السابقة أولا.',
+  pzWasConfirmed:'أكدت سابقا من {n}', pzNote:'ملاحظة (اختياري)', pzNone:'لا يوجد موظف متأثر في هذه الخطوة.', pzNoneOk:'لا يوجد ما يراجع هنا. أكد الخطوة للمتابعة.',
+  pzOthers:'{n} آخرون بلا تغيير', pzWindow:'فترة الحضور', pzRecalc:'إعادة الاحتساب', pzRecalcNeed:'أضيفت أو حذفت بنود بعد آخر احتساب. أعد الاحتساب قبل التأكيد.',
+  pzAddLine:'إضافة بند', pzDays:'الأيام', pzAbsent:'غياب', pzLate:'تأخير (دقيقة)', pzOt:'إضافي (ساعة)', pzKind:'الحالة', pzFrom:'من', pzTo:'إلى', pzInRun:'في المسير',
+  pzK_suspended:'موقوف', pzK_leave:'إجازة', pzK_unpaid:'إجازة بدون راتب', pzK_sick:'إجازة مرضية', pzNotPaid:'لا يصرف له', pzWasPaid:'صرف له الشهر السابق',
+  pzHire:'تاريخ المباشرة', pzPaidFrom:'يصرف من', pzMonthly:'الراتب الشهري', pzGross:'الإجمالي', pzLateHire:'لم يكن في مسير الشهر السابق', pzNoPkg:'بلا راتب معتمد',
+  pzLastDay:'آخر يوم عمل', pzWhy:'السبب', pzW_last_day:'آخر يوم عمل مسجل', pzW_not_in_run:'كان في الشهر السابق وليس في هذا المسير', pzW_suspended:'موقوف',
+  pzSettle:'المخالصة النهائية', pzNoSettle:'لا مخالصة بعد', pzBySettle:'يصرف الشهر ضمن المخالصة', pzFs_draft:'مسودة', pzFs_approved:'معتمدة', pzFs_paid:'مصروفة', pzFs_pending:'بانتظار الاعتماد',
+  pzWas:'كان', pzNow:'أصبح', pzEff:'يسري من', pzReason:'السبب', pzApprover:'اعتمده', pzLines:'البنود', pzDoc:'المستند', pzCopied:'منسوخة',
+  pzHead:'العدد', pzNet:'الصافي', pzRecon:'مطابقة العدد', pzReconLine:'{a} الشهر السابق + {j} جدد - {l} مغادرون = {e}؛ في المسير {n}', pzReconOk:'العدد مطابق', pzReconBad:'العدد غير مطابق: راجع المعينين والمغادرين',
+  pzErrors:'أخطاء تمنع التأكيد', pzNoPkgList:'بلا راتب معتمد، لا يصرف لهم شيء هذا الشهر', pzVarLead:'من تغير صافيه {p}% و{m} ريال أو أكثر', pzWarns:'ملاحظات على القسائم',
+  pzToApprove:'فتح الاعتماد', pzApproveOther:'يعتمده شخص آخر يحمل صلاحية الرواتب ولم يعد المسير ولم يؤكد أي خطوة.', pzApproved:'اعتمد المسير وقفل.',
+  pzStepDone:'تم تأكيد الخطوة', pzNoPrev:'لا يوجد مسير معتمد للشهر السابق؛ كل الموظفين يظهرون جددا.', pzLockedRun:'المسير معتمد ومقفل.' });
+Object.assign(T.en, { pzTitle:'Prepare the payroll step by step', pzLead:'Each step opens once the one before it is confirmed. Each step shows only the people affected and what changed since last month.',
+  pzStep:'Step {i} of 9', pzOpen:'Continue preparing', pzOpenN:'Continue preparing: step {i} of 9', pzDoneAll:'All eight preparation steps are confirmed. Waiting for approval by someone else.',
+  pzBanner:'Run preparation', pzBannerLead:'Confirm the steps in order before the run goes for approval.',
+  pz_days:'Working days and attendance', pz_status:'Employee status', pz_hires:'New hires', pz_leavers:'Leavers', pz_package:'Package changes', pz_additions:'Additions', pz_deductions:'Deductions', pz_review:'Review against last month', pz_approve:'Approval',
+  pzL_days:'Days worked in the attendance window per person: absence, minutes late, overtime, and days against last month.',
+  pzL_status:'Who is suspended (not paid), and who is on leave, unpaid leave or sick leave during the month.',
+  pzL_hires:'Who joined since last month, paid by the day from their start date.',
+  pzL_leavers:'Who is leaving or no longer on the run, with the last working day and the final settlement and end-of-service status.',
+  pzL_package:'Every approved package that changed since last month began: from what to what, from which date, approved by whom.',
+  pzL_additions:'Everything paid above fixed pay. Each addition needs a supporting document.',
+  pzL_deductions:'Every deduction on the run: GOSI, fines, advances, absence, unpaid leave.',
+  pzL_review:'Totals against last month, the headcount check (last month + joiners - leavers), and whose net moved a lot.',
+  pzL_approve:'A payroll holder who did not prepare the run and confirmed none of its steps approves it.',
+  pzConfirm:'Confirm {s}', pzConfirmed:'Confirmed by {n} on {d}', pzStale:'This step changed after it was confirmed. Review it and confirm it again.', pzLocked:'Confirm the earlier steps first.',
+  pzWasConfirmed:'Earlier confirmed by {n}', pzNote:'Note (optional)', pzNone:'Nobody is affected in this step.', pzNoneOk:'Nothing to review here. Confirm the step to continue.',
+  pzOthers:'{n} others unchanged', pzWindow:'Attendance window', pzRecalc:'Recalculate', pzRecalcNeed:'Lines were added or removed after the last calculation. Recalculate before confirming.',
+  pzAddLine:'Add a line', pzDays:'Days', pzAbsent:'Absent', pzLate:'Late (min)', pzOt:'Overtime (h)', pzKind:'Status', pzFrom:'From', pzTo:'To', pzInRun:'On the run',
+  pzK_suspended:'Suspended', pzK_leave:'Leave', pzK_unpaid:'Unpaid leave', pzK_sick:'Sick leave', pzNotPaid:'not paid', pzWasPaid:'paid last month',
+  pzHire:'Start date', pzPaidFrom:'Paid from', pzMonthly:'Monthly pay', pzGross:'Gross', pzLateHire:'was not on last month\'s run', pzNoPkg:'no approved package',
+  pzLastDay:'Last working day', pzWhy:'Reason', pzW_last_day:'last working day recorded', pzW_not_in_run:'on last month, not on this run', pzW_suspended:'suspended',
+  pzSettle:'Final settlement', pzNoSettle:'no settlement yet', pzBySettle:'this month is paid in the settlement', pzFs_draft:'draft', pzFs_approved:'approved', pzFs_paid:'paid', pzFs_pending:'awaiting approval',
+  pzWas:'Was', pzNow:'Now', pzEff:'From', pzReason:'Reason', pzApprover:'Approved by', pzLines:'Lines', pzDoc:'Document', pzCopied:'copied',
+  pzHead:'Headcount', pzNet:'Net', pzRecon:'Headcount check', pzReconLine:'{a} last month + {j} joiners - {l} leavers = {e}; on the run {n}', pzReconOk:'Headcount matches', pzReconBad:'Headcount does not match: check hires and leavers',
+  pzErrors:'Errors that block confirmation', pzNoPkgList:'No approved package: paid nothing this month', pzVarLead:'Whose net moved by {p}% and {m} SAR or more', pzWarns:'Payslip notes',
+  pzToApprove:'Open approval', pzApproveOther:'Someone else with payroll access, who did not prepare the run and confirmed none of its steps, approves it.', pzApproved:'The run is approved and locked.',
+  pzStepDone:'Step confirmed', pzNoPrev:'No approved run last month: everyone shows as new.', pzLockedRun:'The run is approved and locked.' });
+
+var PZ_ICON = { days: 'calendar-check', status: 'user-switch', hires: 'user-plus', leavers: 'user-minus', package: 'currency-circle-dollar', additions: 'plus-circle', deductions: 'minus-circle', review: 'scales', approve: 'seal-check' };
+function pzDate(d){ d = String(d || '').slice(0, 10); return d ? new Date(d + 'T00:00:00Z').toLocaleDateString(LOCALE(), { day: 'numeric', month: 'short', timeZone: 'UTC' }) : '-'; }
+function pzWhen(ts){ try { return new Date(ts).toLocaleString(LOCALE(), { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Riyadh' }); } catch (e) { return ''; } }
+function pzName(x){ return '<td class="nm"><b><bdi dir="auto">' + esc((S.lang === 'en' && x.nameEn) || x.name || '') + '</bdi></b><small>' + esc(x.empNo || '') + '</small></td>'; }
+function pzDiff(was, now, days){ if (was == null) return '<span class="pv-st pv-draft">' + t('awNew') + '</span>'; var d = Math.round((now - was) * 100) / 100; return d ? '<b class="pz-d ' + (d > 0 ? 'up' : 'dn') + '">' + (d > 0 ? '+' : '') + (days ? d : acct(d)) + '</b>' : '-'; }
+
+/** The wizard page for a draft run. done(): the run page redraws after closing (a confirmation or approval changed it). */
+function prepWizard(runId, done, opts){
+  var d = drawer('<h3>' + t('pzTitle') + '</h3><p class="hr-hint">' + t('pzLead') + '</p><div id="pzB"><div class="list"><div class="row"><div class="main"><span class="sk" style="width:40%"></span><span class="sk"></span></div></div></div></div>', { wide: true });
+  var el = $('#pzB', d), P = null, cur = null, support = {}, changed = false;
+  var close = function(){ d.remove(); if (changed && done) done(); };
+  pzCss();
+  function load(goOpen){
+    api('payrollPrep', { id: runId }, true).then(function(r){
+      if (!d.isConnected) return;
+      if (!r.ok) { el.innerHTML = '<p class="hr-bad">' + errText(r.error) + '</p>'; return; }
+      P = r;
+      if (goOpen || cur == null) cur = r.complete || r.run.status !== 'draft' ? 8 : r.steps.findIndex(function(x){ return x.state === 'open'; });
+      draw();
+    });
+  }
+  function stepper(){
+    var list = P.steps.map(function(x){ return { key: x.key, n: x.n, state: x.state, stale: x.stale }; }).concat([{ key: 'approve', n: 9, state: P.run.status === 'locked' ? 'done' : P.complete ? 'open' : 'locked' }]);
+    return '<ol class="pz-steps" role="list">' + list.map(function(x, i){
+      return '<li><button type="button" class="pz-dot pz-' + x.state + (x.stale ? ' pz-stale' : '') + (i === cur ? ' on' : '') + '" data-go="' + i + '"' + (x.state === 'locked' ? ' disabled' : '') + ' aria-current="' + (i === cur ? 'step' : 'false') + '">' +
+        '<i>' + (x.state === 'done' ? ph('check') : x.state === 'locked' ? ph('lock-simple') : x.n) + '</i><span>' + t('pz_' + x.key) + '</span></button></li>'; }).join('') + '</ol>';
+  }
+  function table(head, rows){ return '<div class="pt-wrap"><table class="pt pz-t"><thead><tr>' + head.map(function(h){ return '<th' + (h.a ? ' class="a"' : '') + '>' + h.t + '</th>'; }).join('') + '</tr></thead><tbody>' + rows.join('') + '</tbody></table></div>'; }
+  var A = function(s){ return { t: s, a: 1 }; }, L = function(s){ return { t: s }; };
+  function body(x){
+    var R = x.rows, prevNone = !P.prev.has ? '<p class="hr-hint">' + ph('info') + t('pzNoPrev') + '</p>' : '';
+    if (x.key === 'days') return '<div class="pz-facts"><span>' + ph('calendar') + t('pzWindow') + ' <b>' + pzDate(x.window.from) + ' – ' + pzDate(x.window.to) + '</b></span><span>' + plural(x.total, 'people') + '</span>' +
+        (x.total > R.length ? '<span>' + t('pzOthers').replace('{n}', x.total - R.length) + '</span>' : '') + '</div>' + prevNone +
+      (R.length ? table([L(t('hrName')), A(t('awPrev')), A(t('pzDays')), A(t('awDiff')), A(t('pzAbsent')), A(t('pzLate')), A(t('pzOt')), L(t('pzWindow'))], R.map(function(r){
+        return '<tr class="' + (r.was == null || r.was !== r.days ? 'aw-ch' : '') + '">' + pzName(r) + '<td class="a">' + (r.was == null ? '-' : r.was) + '</td><td class="a"><b>' + r.days + '</b></td><td class="a">' + pzDiff(r.was, r.days, true) + '</td>' +
+          '<td class="a">' + (r.absent || '-') + '</td><td class="a">' + (r.lateMin || '-') + '</td><td class="a">' + (r.otHours || '-') + '</td><td class="pz-sm">' + (r.attFrom ? pzDate(r.attFrom) + ' – ' + pzDate(r.attTo) : '-') + '</td></tr>'; })) : '');
+    if (x.key === 'status') return R.length ? table([L(t('hrName')), L(t('pzKind')), L(t('pzFrom')), L(t('pzTo')), A(t('pzDays')), L(t('pzInRun'))], R.map(function(r){
+        return '<tr>' + pzName(r) + '<td><span class="pz-chip pz-' + r.kind + '">' + t('pzK_' + r.kind) + '</span></td><td>' + pzDate(r.from) + '</td><td>' + pzDate(r.to) + '</td><td class="a">' + (r.days || '-') + '</td>' +
+          '<td>' + (r.inRun ? ph('check') : '<small class="pz-warn">' + t('pzNotPaid') + (r.wasPaid ? ' · ' + t('pzWasPaid') : '') + '</small>') + '</td></tr>'; })) : '';
+    if (x.key === 'hires') return prevNone + (R.length ? table([L(t('hrName')), L(t('pzHire')), L(t('pzPaidFrom')), A(t('pzDays')), A(t('pzMonthly')), A(t('pzGross')), A(t('prNet'))], R.map(function(r){
+        return '<tr>' + pzName(r) + '<td>' + pzDate(r.hireDate) + (r.late ? '<small class="pz-warn">' + t('pzLateHire') + '</small>' : '') + '</td><td>' + pzDate(r.from) + '</td><td class="a"><b>' + r.days + '</b></td>' +
+          '<td class="a">' + (r.noPackage ? '<span class="pz-warn">' + t('pzNoPkg') + '</span>' : acct(r.monthly)) + '</td><td class="a">' + acct(r.gross) + '</td><td class="a"><b>' + acct(r.net) + '</b></td></tr>'; })) : '');
+    if (x.key === 'leavers') return R.length ? table([L(t('hrName')), L(t('pzLastDay')), L(t('pzWhy')), A(t('pzDays')), A(t('prNet')), L(t('pzSettle'))], R.map(function(r){
+        var s = r.settlement;
+        return '<tr>' + pzName(r) + '<td>' + pzDate(r.lastDay) + '</td><td class="pz-sm">' + t('pzW_' + r.why) + '</td><td class="a">' + (r.inRun ? r.days : '-') + '</td><td class="a">' + (r.inRun ? acct(r.net) : '-') + '</td>' +
+          '<td>' + (s ? '<bdi>' + esc(s.ref) + '</bdi> · ' + (T[S.lang]['pzFs_' + s.status] ? t('pzFs_' + s.status) : esc(s.status)) + ' · <b class="num">' + acct(s.net) + '</b>' : '<span class="pz-warn">' + t('pzNoSettle') + '</span>') +
+          (r.paidBySettlement ? '<small>' + t('pzBySettle') + '</small>' : '') + '</td></tr>'; })) : '';
+    if (x.key === 'package') return R.length ? table([L(t('hrName')), A(t('pzWas')), A(t('pzNow')), A(t('awDiff')), L(t('pzEff')), L(t('pzReason')), L(t('pzApprover'))], R.map(function(r){
+        return '<tr class="aw-ch">' + pzName(r) + '<td class="a">' + (r.was == null ? '-' : acct(r.was)) + '</td><td class="a"><b>' + acct(r.now) + '</b></td><td class="a">' + pzDiff(r.was, r.now) + '</td>' +
+          '<td>' + pzDate(r.effectiveFrom) + '</td><td class="pz-sm"><bdi dir="auto">' + esc(r.reason || '-') + '</bdi>' + (r.ref ? ' <small><bdi>' + esc(r.ref) + '</bdi></small>' : '') + '</td><td class="pz-sm">' + esc(r.approvedBy || '-') + (r.approvedAt ? '<small>' + pzDate(r.approvedAt) + '</small>' : '') + '</td></tr>'; })) : '';
+    if (x.key === 'additions' || x.key === 'deductions') { var add = x.key === 'additions';
+      return (R.length ? table([L(t('hrName')), L(t('pzLines')), A(t('awPrev')), A(t('awNow')), A(t('awDiff'))], R.map(function(r){
+        return '<tr class="' + (r.was == null || Math.abs(r.now - r.was) > 0.005 ? 'aw-ch' : '') + '">' + pzName(r) + '<td class="pz-lines">' + r.lines.map(function(l){
+            var doc = l.doc || support[l.key] || P.support[l.key] || '';
+            return '<div><span>' + esc(lab(l)) + (l.label && l.code !== 'allowance' ? ' <small><bdi dir="auto">' + esc(l.label) + '</bdi></small>' : '') + (l.hours ? ' <small>' + l.hours + 'h</small>' : '') + (l.days ? ' <small>' + plural(l.days, 'days') + '</small>' : '') +
+              (l.copied ? ' <small class="pz-chip">' + t('pzCopied') + '</small>' : '') + '</span><b class="num">' + acct(l.amount) + '</b>' +
+              (add && l.needDoc ? (l.doc ? '<small class="pz-doc">' + ph('paperclip') + '<bdi>' + esc(l.doc) + '</bdi></small>' : '<input class="pz-in" data-sup="' + esc(l.key) + '" value="' + esc(doc) + '" maxlength="200" placeholder="' + t('prAdjDocPh') + '" aria-label="' + t('pzDoc') + '">') : '') + '</div>'; }).join('') +
+            (r.warnings.length ? warnChips(r.warnings) : '') + '</td><td class="a">' + (r.was == null ? '-' : acct(r.was)) + '</td><td class="a"><b>' + acct(r.now) + '</b></td><td class="a">' + pzDiff(r.was, r.now) + '</td></tr>'; })) : '');
+    }
+    if (x.key === 'review') { var tt = x.totals, pt = x.prevTotals || {}, exp = (pt.headcount || 0) + x.joiners - x.leavers, kp = function(lb, a, b){ return '<div class="pv-k"><span>' + lb + '</span><b class="num">' + b + '</b><small>' + t('awPrev') + ' ' + a + '</small></div>'; };
+      var w = Object.keys(x.warnings || {});
+      return '<div class="pv-kpis">' + kp(t('pzHead'), P.prev.has ? pt.headcount : '-', tt.headcount) + kp(t('pvTotAdd'), P.prev.has ? money(pt.gross) : '-', money(tt.gross)) + kp(t('pvTotDed'), P.prev.has ? money(pt.deductions) : '-', money(tt.deductions)) +
+          kp(t('pzNet'), P.prev.has ? money(pt.net) : '-', money(tt.net)) + '</div>' +
+        (P.prev.has ? '<p class="pz-recon ' + (exp === tt.headcount ? 'ok' : 'bad') + '">' + ph(exp === tt.headcount ? 'check-circle' : 'warning') + '<b>' + t(exp === tt.headcount ? 'pzReconOk' : 'pzReconBad') + '</b> ' +
+          t('pzReconLine').replace('{a}', pt.headcount).replace('{j}', x.joiners).replace('{l}', x.leavers).replace('{e}', exp).replace('{n}', tt.headcount) + '</p>' : prevNone) +
+        (x.errors.length ? '<div class="pz-err"><b>' + ph('x-circle') + t('pzErrors') + '</b><ul>' + x.errors.map(function(e){ return '<li><bdi dir="auto">' + esc(e.name) + '</bdi> <small>' + esc(e.empNo) + '</small> · ' + t('pw_' + e.code) + '</li>'; }).join('') + '</ul></div>' : '') +
+        ((x.noPackage || []).length ? '<div class="pz-stalebar">' + ph('warning') + '<b>' + t('pzNoPkgList') + ':</b> ' + x.noPackage.map(function(e){ return '<bdi dir="auto">' + esc(e.name) + '</bdi> <small>' + esc(e.empNo) + '</small>'; }).join('، ') + '</div>' : '') +
+        (w.length ? '<p class="pz-sm">' + t('pzWarns') + ': ' + w.map(function(k){ return '<span class="chip late">' + t('pw_' + k) + ' · ' + x.warnings[k] + '</span>'; }).join(' ') + '</p>' : '') +
+        (R.length ? '<h4 class="pz-h4">' + t('pzVarLead').replace('{p}', x.pct).replace('{m}', x.min) + '</h4>' + table([L(t('hrName')), A(t('awPrev')), A(t('awNow')), A(t('awDiff'))], R.map(function(r){
+          return '<tr class="aw-ch">' + pzName(r) + '<td class="a">' + acct(r.was) + '</td><td class="a"><b>' + acct(r.now) + '</b></td><td class="a">' + pzDiff(r.was, r.now) + '</td></tr>'; })) : '');
+    }
+    return '';
+  }
+  function draw(){
+    var locked = P.run.status !== 'draft', i = cur;
+    if (i === 8) {
+      el.innerHTML = stepper() + '<section class="pz-card"><header class="pz-hd"><small>' + t('pzStep').replace('{i}', 9) + '</small><h4>' + ph(PZ_ICON.approve) + t('pz_approve') + '</h4><p>' + t('pzL_approve') + '</p></header>' +
+        (locked ? '<p class="pz-ok">' + ph('lock') + t('pzLockedRun') + '</p>' : !P.complete ? '<p class="pz-lock">' + ph('lock-simple') + t('pzLocked') + '</p>'
+          : '<p class="pz-ok">' + ph('check-circle') + t('pzDoneAll') + '</p>' + (P.canApprove ? '<div class="btnrow"><button type="button" class="btn btn-dark" id="pzAppr">' + ph('seal-check') + t('pzToApprove') + '</button></div>' : '<p class="hr-hint">' + ph('info') + t('pzApproveOther') + '</p>')) +
+        '<div class="err" id="pzErr"></div><div class="btnrow pz-nav"><button type="button" class="btn btn-line btn-sm" id="pzBack">' + t('awBack') + '</button></div></section>';
+      wire();
+      if ($('#pzAppr', el)) $('#pzAppr', el).onclick = function(){ var b = this; b.disabled = true;
+        api('payrollGet', { id: runId }, true).then(function(g){ b.disabled = false; if (!g.ok) return $('#pzErr', el).textContent = errText(g.error);
+          approveWizard(g, g.run, function(){ toast(t('pzApproved')); changed = true; close(); }); }); };
+      return;
+    }
+    var x = P.steps[i], c = x.confirmed, can = !locked && x.state === 'open';
+    var needRecalc = P.pendingAdjustments && (x.key === 'additions' || x.key === 'deductions' || x.key === 'review');
+    el.innerHTML = stepper() + '<section class="pz-card"><header class="pz-hd"><small>' + t('pzStep').replace('{i}', x.n) + ' · ' + plural(x.count, 'people') + '</small><h4>' + ph(PZ_ICON[x.key]) + t('pz_' + x.key) + '</h4><p>' + t('pzL_' + x.key) + '</p></header>' +
+      (x.stale ? '<p class="pz-stalebar">' + ph('arrows-clockwise') + t('pzStale') + (c ? ' <small>' + t('pzWasConfirmed').replace('{n}', esc(c.byName)) + '</small>' : '') + '</p>'
+        : c && x.state === 'done' ? '<p class="pz-ok">' + ph('check-circle') + t('pzConfirmed').replace('{n}', esc(c.byName)).replace('{d}', pzWhen(c.at)) + (c.note ? ' · <bdi dir="auto">' + esc(c.note) + '</bdi>' : '') + '</p>' : '') +
+      (x.state === 'locked' ? '<p class="pz-lock">' + ph('lock-simple') + t('pzLocked') + '</p>' : '') +
+      (needRecalc && !locked ? '<p class="pz-stalebar">' + ph('warning') + t('pzRecalcNeed') + '</p>' : '') +
+      '<div class="pz-body">' + (x.rows.length || x.key === 'review' || x.key === 'days' ? body(x) : '<div class="pz-empty">' + ph('check-circle') + '<b>' + t('pzNone') + '</b><small>' + t('pzNoneOk') + '</small></div>') + '</div>' +
+      (!locked ? '<div class="pz-tools">' + ((x.key === 'days' || needRecalc || x.stale || x.key === 'review') ? '<button type="button" class="btn btn-line btn-sm" id="pzRe">' + ph('arrows-clockwise') + t('pzRecalc') + '</button>' : '') +
+        (x.key === 'additions' || x.key === 'deductions' ? '<button type="button" class="btn btn-line btn-sm" id="pzAdd">' + ph('plus') + t('pzAddLine') + '</button>' : '') + '</div>' : '') +
+      (can ? '<label class="pz-note"><span>' + t('pzNote') + '</span><input id="pzNote" maxlength="300"></label>' : '') + '<div class="err" id="pzErr"></div>' +
+      '<div class="btnrow pz-nav">' + (i ? '<button type="button" class="btn btn-line btn-sm" id="pzBack">' + t('awBack') + '</button>' : '') +
+      (can ? '<button type="button" class="btn btn-dark" id="pzOk"' + (needRecalc || (x.errors || []).length ? ' disabled' : '') + '>' + ph('check') + t('pzConfirm').replace('{s}', t('pz_' + x.key)) + '</button>'
+        : x.state === 'done' ? '<button type="button" class="btn btn-line btn-sm" id="pzNext">' + t('awNext') + '</button>' : '') + '</div></section>';
+    wire();
+    $$('[data-sup]', el).forEach(function(inp){ inp.oninput = function(){ support[inp.dataset.sup] = inp.value; }; });
+    if ($('#pzRe', el)) $('#pzRe', el).onclick = function(){ var b = this; b.disabled = true; api('payrollRecalc', { id: runId }).then(function(r){ b.disabled = false; if (!r.ok) return $('#pzErr', el).textContent = errText(r.error); changed = true; toast(t('prRecalcDone')); load(true); }); };
+    if ($('#pzAdd', el)) $('#pzAdd', el).onclick = function(){ changed = true; close(); setTimeout(function(){ var a = $('#prAdj'); if (a) { a.scrollIntoView({ behavior: 'smooth', block: 'start' }); var f = a.querySelector('select,input'); if (f) f.focus(); } }, 300); };
+    if ($('#pzNext', el)) $('#pzNext', el).onclick = function(){ cur = i + 1; draw(); };
+    if ($('#pzOk', el)) $('#pzOk', el).onclick = function(){
+      var b = this, sup = {};
+      if (x.key === 'additions') { var miss = false;
+        x.rows.forEach(function(r){ r.lines.forEach(function(l){ if (!l.needDoc || l.doc) return; var v = String(support[l.key] || P.support[l.key] || '').trim(); if (!v) miss = true; sup[l.key] = v; }); });
+        if (miss) { $('#pzErr', el).textContent = t('awDocMissing'); return; } }
+      b.disabled = true;
+      api('payrollPrepConfirm', { id: runId, step: x.key, sig: x.sig, note: ($('#pzNote', el) || {}).value || '', support: sup }).then(function(r){
+        b.disabled = false; if (!r.ok) { $('#pzErr', el).textContent = errText(r.error); if (r.error === 'prep_changed') load(false); return; }
+        changed = true; toast(t('pzStepDone')); load(true);
+        var top = d.querySelector('.dp-panel') || d; if (top.scrollIntoView) top.scrollIntoView({ block: 'start' });
+      });
+    };
+  }
+  function wire(){
+    $$('[data-go]', el).forEach(function(b){ b.onclick = function(){ cur = +b.dataset.go; draw(); }; });
+    if ($('#pzBack', el)) $('#pzBack', el).onclick = function(){ cur = Math.max(0, cur - 1); draw(); };
+    var on = $('.pz-dot.on', el); if (on && on.scrollIntoView) try { on.scrollIntoView({ block: 'nearest', inline: 'center' }); } catch (e) {}
+  }
+  // closing by the drawer's own close button: redraw the run page when something was confirmed
+  var mo = new MutationObserver(function(){ if (!d.isConnected) { mo.disconnect(); if (changed && done) { var f = done; done = null; f(); } } });
+  if (d.parentNode) mo.observe(d.parentNode, { childList: true });
+  load(true);
+}
+/** The wizard's place on the run page: where preparation stands and the button that continues it. */
+function prepBanner(r){
+  pzCss();
+  var p = r.prep; if (!p) return '';
+  var n = p.complete ? 9 : (['days', 'status', 'hires', 'leavers', 'package', 'additions', 'deductions', 'review'].indexOf(p.open) + 1);
+  return '<section class="pz-banner' + (p.complete ? ' ok' : '') + '"><div class="pz-bt">' + ph(p.complete ? 'check-circle' : 'list-checks', 'duotone') + '<div><b>' + t('pzBanner') + '</b><small>' + (p.complete ? t('pzDoneAll') : t('pzBannerLead')) + '</small></div></div>' +
+    '<div class="pz-mini" aria-hidden="true">' + [1, 2, 3, 4, 5, 6, 7, 8, 9].map(function(k){ return '<i class="' + (k <= p.done ? 'd' : k === n ? 'o' : '') + '"></i>'; }).join('') + '</div>' +
+    '<button type="button" class="btn ' + (p.complete ? 'btn-line' : 'btn-dark') + ' btn-sm" id="pzGo">' + ph('list-checks') + (p.complete ? t('pzOpen') : t('pzOpenN').replace('{i}', n)) + '</button></section>';
+}
+function pzCss(){
+  if ($('#pzCss')) return;
+  var st = document.createElement('style'); st.id = 'pzCss'; st.textContent =
+    'html body.v2-on .pz-steps{list-style:none;display:flex;flex-wrap:wrap;gap:8px;margin:0 0 16px;padding:0 0 4px}' +
+    'html body.v2-on .pz-steps li{flex:0 0 auto}' +
+    'html body.v2-on .pz-dot{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--q-hair,#ddd);background:transparent;border-radius:999px;padding:4px 12px 4px 4px;font:inherit;font-size:13px;cursor:pointer;color:inherit;white-space:nowrap}' +
+    'html body.v2-on [dir=rtl] .pz-dot,html[dir=rtl] body.v2-on .pz-dot{padding:4px 4px 4px 12px}' +
+    'html body.v2-on .pz-dot i{font-style:normal;display:inline-grid;place-items:center;width:24px;height:24px;border-radius:999px;background:var(--q-tray,#f3f1ec);font-size:12px;font-weight:700}' +
+    'html body.v2-on .pz-dot.pz-done i{background:var(--q-brand-ink,var(--brand));color:var(--paper,#fff)}' +
+    'html body.v2-on .pz-dot.pz-open i{background:var(--ink,#222);color:var(--paper,#fff)}' +
+    'html body.v2-on .pz-dot.pz-stale i{background:#C98500;color:#fff}' +
+    'html body.v2-on .pz-dot.on{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand)}html body.v2-on .pz-dot:disabled{opacity:.5;cursor:default}' +
+    'html body.v2-on .pz-card{border:1px solid var(--q-hair,#e5e2dc);border-radius:16px;padding:24px;background:var(--card,transparent)}' +
+    'html body.v2-on .pz-hd small{color:var(--muted,#777);font-size:12px}html body.v2-on .pz-hd h4{margin:4px 0 4px;font-size:20px;display:flex;align-items:center;gap:8px}html body.v2-on .pz-hd p{margin:0 0 16px;color:var(--muted,#666);font-size:14px}' +
+    'html body.v2-on .pz-ok,html body.v2-on .pz-lock,html body.v2-on .pz-stalebar,html body.v2-on .pz-recon{display:flex;flex-wrap:wrap;align-items:center;gap:8px;border-radius:12px;padding:8px 12px;margin:0 0 12px;font-size:13px}' +
+    'html body.v2-on .pz-ok{background:color-mix(in srgb,#2E7D4F 10%,transparent)}html body.v2-on .pz-lock{background:var(--q-tray,#f3f1ec)}' +
+    'html body.v2-on .pz-stalebar{background:color-mix(in srgb,#C98500 14%,transparent)}html body.v2-on .pz-recon.ok{background:color-mix(in srgb,#2E7D4F 10%,transparent)}html body.v2-on .pz-recon.bad{background:color-mix(in srgb,#C98500 14%,transparent)}' +
+    'html body.v2-on .pz-facts{display:flex;flex-wrap:wrap;gap:16px;font-size:13px;margin:0 0 12px}html body.v2-on .pz-facts span{display:inline-flex;align-items:center;gap:4px}' +
+    'html body.v2-on .pz-t{width:100%;min-width:0!important}html body.v2-on .pz-t td,html body.v2-on .pz-t th{white-space:nowrap}html body.v2-on .pz-t td.nm small,html body.v2-on .pz-t td small{display:block;color:var(--muted,#777);font-size:12px}' +
+    'html body.v2-on .pz-t tr.aw-ch td{background:color-mix(in srgb,var(--brand) 7%,transparent)}html body.v2-on .pz-sm{font-size:12px;white-space:normal!important}' +
+    'html body.v2-on .pz-lines{white-space:normal!important;min-width:220px}html body.v2-on .pz-lines>div{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 12px;padding:2px 0}' +
+    'html body.v2-on .pz-lines small{display:inline!important}html body.v2-on .pz-in{flex:1 0 100%;font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--q-hair,#ccc);border-radius:8px;background:transparent;color:inherit}' +
+    'html body.v2-on .pz-doc{flex:1 0 100%;display:flex!important;align-items:center;gap:4px}html body.v2-on .pz-chip{display:inline-block;border-radius:999px;padding:2px 8px;font-size:12px;background:var(--q-tray,#f3f1ec)}' +
+    'html body.v2-on .pz-chip.pz-suspended{background:color-mix(in srgb,#B3261E 12%,transparent)}html body.v2-on .pz-chip.pz-unpaid{background:color-mix(in srgb,#C98500 16%,transparent)}' +
+    'html body.v2-on .pz-warn{color:#9A5B00;font-size:12px}html body.v2-on .pz-d.up{color:#2E7D4F}html body.v2-on .pz-d.dn{color:#B3261E}' +
+    'html body.v2-on .pz-err{border:1px solid color-mix(in srgb,#B3261E 40%,transparent);border-radius:12px;padding:8px 12px;margin:0 0 12px;font-size:13px}html body.v2-on .pz-err ul{margin:4px 0 0;padding-inline-start:20px}' +
+    'html body.v2-on .pz-h4{font-size:14px;margin:16px 0 8px}html body.v2-on .pz-empty{display:grid;justify-items:center;gap:4px;padding:24px;text-align:center;color:var(--muted,#666)}' +
+    'html body.v2-on .pz-tools{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}html body.v2-on .pz-note{display:grid;gap:4px;margin:12px 0 0;font-size:13px}' +
+    'html body.v2-on .pz-note input{font:inherit;padding:8px 12px;border:1px solid var(--q-hair,#ccc);border-radius:12px;background:transparent;color:inherit}' +
+    'html body.v2-on .pz-nav{margin-top:16px;justify-content:space-between}' +
+    'html body.v2-on .pz-banner{display:flex;flex-wrap:wrap;align-items:center;gap:12px 24px;border:1px solid var(--q-hair,#e5e2dc);border-radius:16px;padding:16px 24px;margin:0 0 16px;background:color-mix(in srgb,var(--brand) 5%,transparent)}' +
+    'html body.v2-on .pz-banner.ok{background:color-mix(in srgb,#2E7D4F 7%,transparent)}html body.v2-on .pz-bt{display:flex;align-items:center;gap:12px;flex:1 1 260px}html body.v2-on .pz-bt small{display:block;color:var(--muted,#666);font-size:12px}' +
+    'html body.v2-on .pz-bt>i,html body.v2-on .pz-bt>.ph-duotone{font-size:28px}html body.v2-on .pz-mini{display:flex;gap:4px}html body.v2-on .pz-mini i{width:16px;height:6px;border-radius:4px;background:var(--q-hair,#ddd)}' +
+    'html body.v2-on .pz-mini i.d{background:var(--q-brand-ink,var(--brand))}html body.v2-on .pz-mini i.o{background:var(--ink,#222)}' +
+    '@media (max-width:600px){html body.v2-on .pz-steps{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}html body.v2-on .pz-card{padding:16px}html body.v2-on .pz-banner{padding:16px}html body.v2-on .pz-dot span{display:none}html body.v2-on .pz-dot.on span{display:inline}html body.v2-on .pz-nav .btn{flex:1}}';
+  document.head.appendChild(st);
+}
+
 // ---------------- HR console: payroll ----------------
 var xlsxP = null;
 function xlsx(){ if (window.XLSX) return Promise.resolve(); if (xlsxP) return xlsxP; xlsxP = new Promise(function(res, rej){ var sc = document.createElement('script'); sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'; sri(sc, sc.src); sc.onload = res; sc.onerror = function(){ xlsxP = null; rej(); }; document.head.appendChild(sc); }); return xlsxP; }
@@ -373,7 +607,7 @@ function section(body){
     ev.preventDefault(); var b = this.querySelector('button'); b.disabled = true;
     api('payrollCreate', { month: this.elements.month.value, payGroupId: this.elements.group.value || '', fromPrev: !!this.elements.fromPrev.checked }).then(function(r){ b.disabled = false; if (!r.ok) { $('#prErr', body).textContent = errText(r.error); return; }
       if (r.copied) toast(r.copied.count ? t('pvCopied').replace('{n}', r.copied.count).replace('{m}', monthName(r.copied.from)) : t('pvCopiedNone'));
-      S.prRun = r.run.id; section(body); });
+      S.prRun = r.run.id; section(body); prepWizard(r.run.id, function(){ section(body); }); });
   };
   var el = $('#prList', body);
   apiFresh('payrollList', {}, function(r){
@@ -444,15 +678,16 @@ function runView(body, id){
       '<div class="pv-acts">' + (draft ? '<button type="button" class="btn btn-line btn-sm" id="prRe">' + ph('arrows-clockwise') + t('prRecalc') + '</button>' +
         '<button type="button" class="btn btn-danger btn-sm" id="prDel">' + t('prDelete') + '</button>' : '<button type="button" class="btn btn-line btn-sm" id="prMail">' + ph('envelope-simple') + t('prEmail') + '</button>') +
       '<button type="button" class="btn btn-line btn-sm" id="prVar">' + ph('chart-line-up') + t('vaBtn') + '</button><button type="button" class="btn btn-line btn-sm" id="prXls">' + ph('microsoft-excel-logo') + t('prExport') + '</button>' +
-      (draft && r.canApprove ? '<button type="button" class="btn btn-dark btn-sm" id="prOk">' + ph('seal-check') + t('prApprove') + '</button>' : '') + '</div></header>' +
+      (draft && r.canApprove && (!r.prep || r.prep.complete) ? '<button type="button" class="btn btn-dark btn-sm" id="prOk">' + ph('seal-check') + t('prApprove') + '</button>' : '') + '</div></header>' +
       '<div class="pv-kpis">' + kpi(t('prHead'), tt.headcount || 0) + kpi(t('pvTotAdd'), money(tt.gross), 'add') + kpi(t('pvTotDed'), money(tt.deductions), 'ded') +
         kpi(t('prNet') + ' <small>' + t('mfSar') + '</small>', money(tt.net), 'net') + kpi(t('prGosiEr'), money(tt.gosiEmployer)) + '</div>' +
-      (draft ? '<p class="pv-hint">' + ph('info') + t('prApproveHint') + '</p>' : '') + '<div class="err" id="prMsg"></div>' +
+      (draft ? prepBanner(r) + '<p class="pv-hint">' + ph('info') + t('prApproveHint') + '</p>' : '') + '<div class="err" id="prMsg"></div>' +
       '<section class="pv-card pv-tblcard"><h3 class="pv-h3">' + ph('users-three') + t('pvStaff') + '</h3><div id="ptBox"></div></section>' +
       (window.Viz ? '<details class="pv-more"><summary>' + ph('chart-bar') + t('pvAnalysis') + '</summary>' + runDash(r) + '</details>' : '') +
       '<section class="pv-card"><h3 class="pv-h3">' + ph('sliders-horizontal') + t('prAdj') + '</h3><div id="prAdj"></div></section></div>';
     $('#prBack', el).onclick = function(){ S.prRun = null; section(body); };
     $('#prVar', el).onclick = function(){ varianceView(run); };
+    if ($('#pzGo', el)) { pzCss(); $('#pzGo', el).onclick = function(){ prepWizard(run.id, function(){ runView(body, id); }); }; }
     if (window.Viz) Viz.wire(el);
     slipTable($('#ptBox', el), r, run);
     var msg = $('#prMsg', el), act = function(action, done){ return function(){ this.disabled = true; var b = this; api(action, { id: run.id }).then(function(x){ b.disabled = false; if (!x.ok) { msg.textContent = errText(x.error); if (x.error === 'email_not_configured') msg.textContent = t('prEmailNo'); return; } done(x); }); }; };
@@ -755,5 +990,5 @@ function varianceView(run, pct, min){
   });
 }
 
-window.Payroll = { section: section, myCard: myCard, totalRewards: totalRewards, openSlip: openSlip, openSlipRef: openSlipRef, printSlip: printSlip, variance: varianceView };
+window.Payroll = { prepWizard: prepWizard, section: section, myCard: myCard, totalRewards: totalRewards, openSlip: openSlip, openSlipRef: openSlipRef, printSlip: printSlip, variance: varianceView };
 })();

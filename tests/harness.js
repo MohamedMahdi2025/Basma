@@ -155,6 +155,26 @@ function load(opts = {}) {
   // fill it from the run's own lines (a test sets noAutoReview: true to see the rule itself)
   const autoReview = req => {
     if (req && req.action === 'payrollAdjSave' && req.adj && req.adj.docRef === undefined && !req.noAutoReview) return Object.assign({}, req, { adj: Object.assign({}, req.adj, { docRef: 'test-doc' }) });
+    // the preparation wizard (2026-11-24): older tests approve without walking its eight steps, so mark them confirmed by the
+    // run's preparer with the current fingerprints (tests/payroll.js sets noAutoPrep: true to see the wizard itself)
+    if (req && req.action === 'payrollApprove' && !req.noAutoPrep && typeof ctx.prepBuild_ === 'function') {
+      try {
+        ctx.READ_MEMO_ = {}; ctx.USE_TAB_CACHE_ = false;
+        const run = ctx.findBy_('payrollRuns', 'id', req.id);
+        if (run && run.status === 'draft' && ctx.prepRequired_(run)) {
+          const me = ctx.findBy_('employees', 'id', run.preparedBy) || { id: run.preparedBy, role: 'hr' };
+          const b = ctx.prepBuild_(run, me);
+          if (!b.complete || Object.keys(ctx.prepConfirmers_(run)).some(id => id !== run.preparedBy)) {
+            const steps = {}, support = Object.assign({}, b.support);
+            b.steps.forEach(x => { steps[x.key] = { by: run.preparedBy, at: 'test', sig: x.sig, count: x.count }; });
+            if (!req.noAutoReview) b.steps[5].rows.forEach(r => r.lines.forEach(l => { if (l.needDoc && !l.doc && !support[l.key]) support[l.key] = 'test-doc'; }));
+            run.prepJson = JSON.stringify({ steps, support });
+            ctx.update_('payrollRuns', run);
+          }
+        }
+        ctx.READ_MEMO_ = {};
+      } catch (e) { if (process.env.PREP_DEBUG) console.log('autoPrep', e); }
+    }
     if (!req || req.action !== 'payrollApprove' || req.review !== undefined || req.noAutoReview || typeof ctx.payrollReviewKeys_ !== 'function') return req;
     let slips = [];
     try { ctx.READ_MEMO_ = {}; slips = ctx.readAll_('payslips').filter(x => x.runId === req.id && x.status === 'draft').map(x => ({ id: x.id, lines: JSON.parse(x.linesJson || '[]') })); } catch (e) { return req; }

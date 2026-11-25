@@ -606,3 +606,21 @@ organisation's palette and the dark appearance fall out of the same rules. Rules
   shows "Finding your location…" meanwhile, falls back to the check-in screen's reading when one is under two minutes old, and names the
   reason on failure (blocked / timed out / unavailable). Before this it asked for GPS with no timeout and could wait forever in silence.
   Map tiles (`img.leaflet-tile`) are excluded from the lazy-image observer. Tests: tests/geo-once.js.
+
+## Payroll preparation wizard (2026-11-24; docs/research/2026-11-24-payroll-prep-wizard-rea.md)
+
+A company run (not demo, not imported) is prepared in nine steps before it can be approved: working days in the attendance
+window (`pgWindow_`), employee status (suspended, leave, unpaid, sick), new hires, leavers (last day, final settlement),
+package changes, additions (each needing a document), deductions, review against last month, then approval.
+- Backend (Payroll.gs end): `prepBuild_` works out each step from the run's payslips; `payrollPrep` (read-only) returns the
+  steps, `payrollPrepConfirm` confirms one. Run column `prepJson` keeps `{steps:{key:{by,at,sig,count,note}}, support}`.
+- A step opens only when every earlier one is done. Each confirmation stores a fingerprint (`prepSig_`) of what was shown; when
+  the data changes later (recalculation, new adjustment, package) that step turns stale, opens again and every later step locks.
+  The page sends the fingerprint it showed (`prep_changed` otherwise). Adjustments typed after the last calculation block steps
+  6-8 with `recalc_needed`. Step 8 blocks only on a negative net; people with no approved package are listed, not blocked.
+- `payrollApprove` needs every step done (`prep_incomplete`), and nobody who confirmed a step may approve
+  (`second_approver_required`). Documents typed in step 6 count as approval support.
+- Page: js/payroll.js `prepWizard` (opens after "create run" and from the run page banner `prepBanner`); step 9 hands over to
+  `approveWizard`. The run page hides "approve" until the eight steps are done.
+- Tests: tests/payroll.js "Preparation wizard". tests/harness.js marks the steps confirmed by the preparer for older tests
+  that approve directly (`noAutoPrep: true` turns that off).

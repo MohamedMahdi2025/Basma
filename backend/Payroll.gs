@@ -303,6 +303,13 @@ function api_payrollApprove(req, me) {
     var run = findBy_(SHEETS.RUN, 'id', req.id); if (run && !runAccess_(me, run)) fail_('forbidden'); // a closed pay group: its own payroll staff only
     if (!run || run.status !== 'draft') fail_('not_found');
     if (run.preparedBy === me.id) fail_('second_approver_required');
+    // the preparation wizard (2026-11-24): steps 1-8 confirmed and unchanged since, and nobody who confirmed one approves
+    var prepSupport = {};
+    if (prepRequired_(run)) {
+      if (prepConfirmers_(run)[me.id]) fail_('second_approver_required');
+      var pb = prepBuild_(run, me); if (!pb.complete) fail_('prep_incomplete');
+      prepSupport = pb.support || {};
+    }
     if (reconBlocks_(run.month)) fail_('recon_open'); // an open GOSI / Qiwa wage mismatch for this month
     var now = new Date().toISOString();
     var slips = readAll_(SHEETS.SLIP).filter(function (s) { return s.runId === run.id && s.status === 'draft'; });
@@ -317,7 +324,7 @@ function api_payrollApprove(req, me) {
     slips.forEach(function (s) {
       lines_(s).forEach(function (l) {
         if (l.kind !== 'earning' || !PAY_SUPPORT_CODES[l.code] || !(Number(l.amount) > 0)) return;
-        var a = l.ref && adjRef[l.ref], doc = (a && str_(a.docRef, 200)) || str_(given[s.id + ':' + l.code + (l.ref ? ':' + l.ref : '')], 200) || str_(given[s.id + ':' + l.code], 200);
+        var a = l.ref && adjRef[l.ref], lk = s.id + ':' + l.code + (l.ref ? ':' + l.ref : ''), doc = (a && str_(a.docRef, 200)) || str_(given[lk], 200) || str_(given[s.id + ':' + l.code], 200) || str_(prepSupport[lk], 200);
         if (!doc) fail_('support_missing');
         (supp[s.id] = supp[s.id] || {})[l.code + (l.ref ? ':' + l.ref : '')] = { doc: doc, by: me.id, at: now };
       });
@@ -425,7 +432,8 @@ function api_payrollGet(req, me) {
   audit_(me.id, 'salary_view', run.id, { payroll: run.ref });
   var o = publicRun_(run);
   o.preparedByName = emps[run.preparedBy] ? emps[run.preparedBy].name : ''; o.approvedByName = emps[run.approvedBy] ? emps[run.approvedBy].name : '';
-  return { ok: true, run: o, slips: slips, adjustments: adjs, prev: prevMonthOf_(run, me), reviewKeys: payrollReviewKeys_(slips), canApprove: canApprovePayroll_(me) && run.preparedBy !== me.id && run.status === 'draft' };
+  return { ok: true, run: o, slips: slips, adjustments: adjs, prev: prevMonthOf_(run, me), reviewKeys: payrollReviewKeys_(slips), canApprove: canApprovePayroll_(me) && run.preparedBy !== me.id && run.status === 'draft' && !prepConfirmers_(run)[me.id],
+    prep: run.status === 'draft' && prepRequired_(run) ? (function () { var pb = prepBuild_(run, me); return { complete: pb.complete, open: pb.open, done: pb.steps.filter(function (x) { return x.state === 'done'; }).length, support: pb.support }; })() : null };
 }
 
 // ---------------- adjustments (one month, one line each) ----------------
@@ -1686,4 +1694,218 @@ function api_payrollPivot(req, me) {
   audit_(me.id, 'salary_view', '', { pivot: months[0] + '..' + months[months.length - 1], detail: detail || undefined });
   return { ok: true, months: months, allMonths: allMonths, sponsors: sp, cells: Object.keys(cells).map(function (k) { return cells[k]; }), totals: totals,
     lineKeys: Object.keys(lineKeys).sort(), detail: detail, rows: rows };
+}
+
+
+// ======================================================================= preparation wizard (2026-11-24)
+// HR prepares a month in nine fixed steps (docs/research/2026-11-24-payroll-prep-wizard-rea.md): working days, employee status,
+// new hires, leavers, package changes, additions, deductions, review against last month, then approval by another payroll
+// holder (payrollApprove). A step opens only when every earlier step is confirmed. Each confirmation stores who, when and a
+// fingerprint of the step's data; when the data changes afterwards (a recalculation, a new adjustment, a package change) the
+// fingerprint no longer matches, that step opens again and every later step locks until it is confirmed again.
+var PREP_STEPS_ = ['days', 'status', 'hires', 'leavers', 'package', 'additions', 'deductions', 'review'];
+var PREP_FIXED_ = { basic: 1, housing: 1, transport: 1, allowance: 1 };
+
+/** A short fingerprint of a value (32-bit FNV-1a over its JSON). */
+function prepSig_(v) {
+  var s = JSON.stringify(v), h = 0x811c9dc5;
+  for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return ('0000000' + (h >>> 0).toString(16)).slice(-8);
+}
+function prepState_(run) { var p = parseJson_(run.prepJson, {}) || {}; p.steps = p.steps || {}; return p; }
+/** Must this run go through the wizard before approval? Every company run; never a demo run or an imported one. */
+function prepRequired_(run) { return !!run && !isDemoRun_(run) && String(run.scope || '') !== 'import'; }
+/** Everyone who confirmed a preparation step: none of them may approve the run. */
+function prepConfirmers_(run) { var o = {}, s = prepState_(run).steps; Object.keys(s).forEach(function (k) { if (s[k] && s[k].by) o[s[k].by] = 1; }); return o; }
+
+/** Last month's locked payslips of the same pay group, per person: days, fixed pay, net and each line. */
+function prepPrev_(run, me) {
+  var pm = addMonths_(run.month, -1), groups = payGroups_(), gid = String(run.payGroupId || ''), ids = {}, by = {}, tot = { headcount: 0, gross: 0, deductions: 0, net: 0 };
+  readAll_(SHEETS.RUN).forEach(function (r) { if (r.month === pm && r.status === 'locked' && String(r.payGroupId || '') === gid && runScope_(r) === runScope_(run) && runAccess_(me, r, groups)) ids[r.id] = 1; });
+  readAll_(SHEETS.SLIP).forEach(function (s) {
+    if (!ids[s.runId] || s.status === 'void') return;
+    var inf = parseJson_(s.infoJson, {}).info || {}, o = by[s.empId] = by[s.empId] || { days: 0, monthly: 0, gross: 0, deductions: 0, net: 0, lines: {} };
+    o.days += Number(s.paidDays) || 0; o.monthly = Number(inf.monthly) || o.monthly;
+    o.gross = r2_(o.gross + (Number(s.gross) || 0)); o.deductions = r2_(o.deductions + (Number(s.deductions) || 0)); o.net = r2_(o.net + (Number(s.net) || 0));
+    lines_(s).forEach(function (l) { var k = (l.kind === 'deduction' ? 'd:' : 'e:') + l.code; o.lines[k] = r2_((o.lines[k] || 0) + (Number(l.amount) || 0)); });
+    tot.headcount++; tot.gross += Number(s.gross) || 0; tot.deductions += Number(s.deductions) || 0; tot.net += Number(s.net) || 0;
+  });
+  Object.keys(tot).forEach(function (k) { tot[k] = r2_(tot[k]); });
+  return { month: pm, has: Object.keys(ids).length > 0, byEmp: by, totals: tot };
+}
+
+/** Everything the nine steps show, worked out from the run's current payslips and the books. Read-only. */
+function prepBuild_(run, me) {
+  var first = run.month + '-01', last = monthLast_(run.month), gid = String(run.payGroupId || ''), groups = payGroups_(), demo = demoEmpIds_();
+  var emps = {}; readAll_(SHEETS.EMP).forEach(function (e) { emps[e.id] = e; });
+  var slips = readAll_(SHEETS.SLIP).filter(function (s) { return s.runId === run.id && s.status !== 'void'; }).map(function (s) { return publicSlip_(s, emps); });
+  var inRun = {}; slips.forEach(function (s) { inRun[s.empId] = s; });
+  var prev = prepPrev_(run, me), pv = function (id) { return prev.byEmp[id] || null; };
+  var who = function (id) { var e = emps[id] || {}; return { empId: id, name: e.name || '', nameEn: e.nameEn || '', empNo: String(e.empNo || '') }; };
+  var mine = function (e) { return !demo[e.id] && groupOf_(e, groups) === gid; };
+  var adjs = readAll_(SHEETS.ADJ).filter(function (a) { return a.month === run.month && inRun[a.empId]; });
+  var adjByRef = {}; adjs.forEach(function (a) { if (a.ref) adjByRef[a.ref] = a; });
+  var steps = {};
+
+  // 1. working days in the attendance window (calendar month, or the pay group's cut-off window)
+  var win = pgWindow_(run.month, gid ? groups[gid] || null : null), dAll = [], dRows = [];
+  slips.forEach(function (s) {
+    var i = s.info || {}, p = pv(s.empId), r = Object.assign(who(s.empId), { days: s.paidDays || 0, was: p ? p.days : null, absent: s.absentDays || 0, lateMin: Number(i.lateMin) || 0,
+      otHours: Number(i.overtimeHours) || 0, attFrom: i.attFrom || '', attTo: i.attTo || '' });
+    dAll.push([r.empId, r.days, r.absent, r.lateMin, r.otHours, r.attFrom, r.attTo]);
+    if (r.days < 30 || r.absent || r.lateMin || r.otHours || (r.was != null && r.was !== r.days) || (prev.has && r.was == null)) dRows.push(r);
+  });
+  steps.days = { rows: dRows, total: slips.length, window: win, sig: prepSig_(dAll) };
+
+  // 2. status: suspended people of the group (not paid), leave and unpaid leave in the month
+  var stRows = [];
+  Object.keys(emps).forEach(function (id) { var e = emps[id];
+    if (!mine(e) || e.status !== 'suspended') return;
+    stRows.push(Object.assign(who(id), { kind: 'suspended', inRun: !!inRun[id], wasPaid: !!pv(id), days: 0, from: '', to: '' }));
+  });
+  readAll_(SHEETS.REQ).forEach(function (r) {
+    if (r.type !== 'leave' || r.status !== 'approved' || !inRun[r.empId]) return;
+    var a = maxDate_(String(r.fromDate).slice(0, 10), first), b = minDate_(String(r.toDate).slice(0, 10), last);
+    if (a > b) return;
+    var kind = r.subtype === 'unpaid' ? 'unpaid' : r.subtype === 'sick' ? 'sick' : 'leave';
+    stRows.push(Object.assign(who(r.empId), { kind: kind, subtype: String(r.subtype || ''), inRun: true, days: daysBetween_(a, b) + 1, from: a, to: b, ref: r.ref || '' }));
+  });
+  stRows.sort(function (x, y) { return String(x.name).localeCompare(String(y.name)) || String(x.from).localeCompare(String(y.from)); });
+  steps.status = { rows: stRows, total: slips.length, sig: prepSig_(stRows.map(function (r) { return [r.empId, r.kind, r.days, r.from, r.to, r.inRun]; })) };
+
+  // 3. new hires: on this run and not on last month's (or hired inside the month), paid by the day from the start date
+  var hRows = [];
+  slips.forEach(function (s) {
+    var e = emps[s.empId] || {}, hire = String(e.hireDate || '').slice(0, 10) || joinedDate_(e), i = s.info || {};
+    if (!((hire >= first && hire <= last) || (prev.has && !pv(s.empId)))) return;
+    hRows.push(Object.assign(who(s.empId), { hireDate: hire, from: i.from || '', days: s.paidDays || 0, monthly: Number(i.monthly) || 0, gross: s.gross, net: s.net,
+      late: hire < first, noPackage: (s.warnings || []).indexOf('no_package') >= 0 }));
+  });
+  steps.hires = { rows: hRows, sig: prepSig_(hRows.map(function (r) { return [r.empId, r.hireDate, r.days, r.gross]; })) };
+
+  // 4. leavers: a last working day up to this month's end, or paid last month and not on this run
+  var fs = {}; readAll_(SHEETS.FSET).forEach(function (x) { if (x.status !== 'cancelled') fs[x.empId] = x; });
+  var lRows = [], seenL = {};
+  var leaver = function (id, why) {
+    if (seenL[id]) return; seenL[id] = 1;
+    var e = emps[id] || {}, s = inRun[id], f = fs[id], lwd = String(e.lastWorkingDay || '').slice(0, 10);
+    lRows.push(Object.assign(who(id), { lastDay: lwd, why: why, inRun: !!s, days: s ? s.paidDays : 0, net: s ? s.net : 0, status: e.status || '',
+      settlement: f ? { ref: f.ref, status: f.status, net: Number(f.net) || 0, lastDay: String(f.lastDay).slice(0, 10) } : null, paidBySettlement: fsPaidMonth_(id, run.month) }));
+  };
+  Object.keys(emps).forEach(function (id) { var e = emps[id], lwd = String(e.lastWorkingDay || '').slice(0, 10);
+    if (mine(e) && lwd && lwd <= last && (lwd >= first || inRun[id] || pv(id))) leaver(id, 'last_day'); });
+  Object.keys(prev.byEmp).forEach(function (id) { if (!inRun[id]) leaver(id, (emps[id] || {}).status === 'suspended' ? 'suspended' : 'not_in_run'); });
+  steps.leavers = { rows: lRows, sig: prepSig_(lRows.map(function (r) { return [r.empId, r.lastDay, r.inRun, r.days, r.settlement && r.settlement.status]; })) };
+
+  // 5. package changes: an approved package effective this month, or fixed pay different from last month's (a raise approved
+  // after last month was locked, back-dated into it, shows here through the difference)
+  var pmFirst = first, pRows = [], comps = readAll_(SHEETS.COMP);
+  slips.forEach(function (s) {
+    var now = Number((s.info || {}).monthly) || 0, p = pv(s.empId), ch = null;
+    comps.forEach(function (c) { if (c.empId === s.empId && c.status === 'approved' && String(c.effectiveFrom) >= pmFirst && String(c.effectiveFrom) <= last && better_(c, ch)) ch = c; });
+    if (!ch && !(p && Math.abs(p.monthly - now) > 0.005)) return;
+    var pk = (s.info || {}).package || {};
+    pRows.push(Object.assign(who(s.empId), { was: p ? p.monthly : null, now: now, basic: Number(pk.basic) || 0, housing: Number(pk.housing) || 0,
+      effectiveFrom: ch ? String(ch.effectiveFrom).slice(0, 10) : '', reason: ch ? String(ch.reason || '') : '', approvedBy: ch && emps[ch.approvedBy] ? emps[ch.approvedBy].name : '',
+      approvedAt: ch ? String(ch.approvedAt || '').slice(0, 10) : '', ref: ch ? String(ch.ref || '') : '' }));
+  });
+  steps.package = { rows: pRows, sig: prepSig_(pRows.map(function (r) { return [r.empId, r.was, r.now, r.effectiveFrom, r.ref]; })) };
+
+  // 6. additions (everything earned beyond fixed pay), each supporting document shown; 7. deductions
+  var lineRows = function (kind) {
+    var rows = [], all = [], ded = kind === 'deduction';
+    slips.forEach(function (s) {
+      var ls = (s.lines || []).filter(function (l) { return l.kind === kind && !(!ded && PREP_FIXED_[l.code]) && Number(l.amount) > 0; });
+      var p = pv(s.empId), was = 0;
+      if (p) Object.keys(p.lines).forEach(function (k) { if (k.charAt(0) === (ded ? 'd' : 'e') && !(!ded && PREP_FIXED_[k.slice(2)])) was += p.lines[k]; });
+      var now = r2_(ls.reduce(function (t, l) { return t + Number(l.amount); }, 0));
+      all.push([s.empId, ls.map(function (l) { return [l.code, l.ref || '', l.amount]; })]);
+      if (!ls.length && !(was > 0)) return;
+      rows.push(Object.assign(who(s.empId), { slipId: s.id, now: now, was: p ? r2_(was) : null, warnings: (s.warnings || []).filter(function (w) { return /capped|deferred|negative/.test(w); }),
+        lines: ls.map(function (l) { var a = l.ref && adjByRef[l.ref];
+          return { code: l.code, label: l.label || '', amount: l.amount, ref: l.ref || '', hours: l.hours || 0, days: l.days || 0, reduced: l.reduced || 0,
+            doc: (a && a.docRef) || '', copied: !!(a && a.copiedFrom), needDoc: !ded && !!PAY_SUPPORT_CODES[l.code], key: s.id + ':' + l.code + (l.ref ? ':' + l.ref : '') }; }) }));
+    });
+    return { rows: rows, all: all };
+  };
+  var ad = lineRows('earning'), dd = lineRows('deduction');
+  // adjustments typed (or deleted) after the last calculation are not on the payslips yet: steps 6-8 ask for a recalculation first
+  var onSlip = {}; slips.forEach(function (s) { (s.lines || []).forEach(function (l) { if (l.ref) onSlip[s.empId + '|' + l.ref] = 1; }); });
+  var pending = adjs.filter(function (a) { return a.status !== 'deleted' && a.code !== 'fine' && a.code !== 'overtime_hours' && !onSlip[a.empId + '|' + a.ref]; }).length +
+    adjs.filter(function (a) { return a.status === 'deleted' && onSlip[a.empId + '|' + a.ref]; }).length;
+  var adjSig = function (ded) { return adjs.filter(function (a) { return a.status !== 'deleted' && (ADJ_CODES[a.code] === 'deduction') === ded; }).map(function (a) { return [a.ref, a.code, Number(a.amount)]; }).sort(); };
+  steps.additions = { rows: ad.rows, sig: prepSig_([ad.all, adjSig(false)]) };
+  steps.deductions = { rows: dd.rows, sig: prepSig_([dd.all, adjSig(true)]) };
+
+  // 8. review against last month: totals, people whose net moved by VAR_PCT_ % and VAR_MIN_ SAR or more, blocking problems
+  // a negative net blocks; someone with no approved package (an account not paid through payroll) is listed by name, paid nothing
+  var t = totals_(readAll_(SHEETS.SLIP).filter(function (s) { return s.runId === run.id; })), vRows = [], errors = [], noPkg = [], warns = {};
+  slips.forEach(function (s) {
+    (s.warnings || []).forEach(function (w) { warns[w] = (warns[w] || 0) + 1; if (w === 'net_negative') errors.push(Object.assign(who(s.empId), { code: w })); if (w === 'no_package') noPkg.push(who(s.empId)); });
+    var p = pv(s.empId); if (!p) return;
+    var d = r2_(s.net - p.net);
+    if (Math.abs(d) >= VAR_MIN_ && (!p.net || Math.abs(d) / Math.abs(p.net) * 100 >= VAR_PCT_)) vRows.push(Object.assign(who(s.empId), { was: p.net, now: s.net, diff: d }));
+  });
+  vRows.sort(function (a, b) { return Math.abs(b.diff) - Math.abs(a.diff); });
+  steps.review = { rows: vRows, totals: { headcount: t.headcount, gross: t.gross, deductions: t.deductions, net: t.net }, prevTotals: prev.totals,
+    joiners: hRows.length, leavers: lRows.filter(function (r) { return !r.inRun; }).length, errors: errors, noPackage: noPkg, warnings: warns, pct: VAR_PCT_, min: VAR_MIN_,
+    sig: prepSig_([t.headcount, t.gross, t.deductions, t.net, slips.map(function (s) { return [s.empId, s.net]; })]) };
+
+  // states: done (confirmed, unchanged), open (the first not done; 'stale' when its confirmation no longer matches), locked
+  var st = prepState_(run), ok = true, open = '';
+  PREP_STEPS_.forEach(function (k, n) {
+    var c = st.steps[k] || null, x = steps[k];
+    x.key = k; x.n = n + 1; x.count = x.rows.length;
+    x.confirmed = c ? { by: c.by, byName: emps[c.by] ? emps[c.by].name : '', at: c.at, note: c.note || '', count: c.count } : null;
+    x.stale = !!(c && c.sig !== x.sig);
+    if (ok && c && !x.stale) x.state = 'done';
+    else if (ok) { x.state = 'open'; ok = false; open = k; }
+    else x.state = 'locked';
+  });
+  return { steps: PREP_STEPS_.map(function (k) { return steps[k]; }), open: open, complete: ok, pendingAdjustments: pending, prev: { month: prev.month, has: prev.has },
+    support: st.support || {} };
+}
+
+function api_payrollPrep(req, me) {
+  if (!canPayroll_(me)) fail_('forbidden');
+  var run = findBy_(SHEETS.RUN, 'id', req.id); if (run && !runAccess_(me, run)) fail_('forbidden');
+  if (!run || run.status === 'cancelled') fail_('not_found');
+  var b = prepBuild_(run, me), emps = {}; readAll_(SHEETS.EMP).forEach(function (e) { emps[e.id] = e.name; });
+  audit_(me.id, 'salary_view', run.id, { payroll: run.ref, prep: 1 });
+  var o = publicRun_(run); o.preparedByName = emps[run.preparedBy] || ''; o.approvedByName = emps[run.approvedBy] || '';
+  return { ok: true, run: o, steps: b.steps, open: b.open, complete: b.complete, required: prepRequired_(run), pendingAdjustments: b.pendingAdjustments, prev: b.prev,
+    support: b.support, me: me.id, canApprove: canApprovePayroll_(me) && run.status === 'draft' && run.preparedBy !== me.id && !prepConfirmers_(run)[me.id] };
+}
+
+/** Confirm one step. The page sends the fingerprint it showed; a different one means the data moved since (prep_changed). */
+function api_payrollPrepConfirm(req, me) {
+  if (!canPayroll_(me)) fail_('forbidden');
+  var k = String(req.step || '');
+  if (PREP_STEPS_.indexOf(k) < 0) fail_('bad_value');
+  return withLock_(function () {
+    var run = findBy_(SHEETS.RUN, 'id', req.id); if (run && !runAccess_(me, run)) fail_('forbidden');
+    if (!run || run.status !== 'draft') fail_('not_found');
+    if (!prepRequired_(run)) fail_('bad_value');
+    var b = prepBuild_(run, me), x = b.steps[PREP_STEPS_.indexOf(k)];
+    if (x.state === 'locked') fail_('prep_step_locked');
+    if (String(req.sig || '') !== x.sig) fail_('prep_changed');
+    if (b.pendingAdjustments && (k === 'additions' || k === 'deductions' || k === 'review')) fail_('recalc_needed');
+    var st = prepState_(run), now = new Date().toISOString();
+    if (k === 'additions') { // every addition that needs a document has one: from its adjustment, or typed here (an overtime sheet)
+      var given = req.support && typeof req.support === 'object' ? req.support : {}, sup = st.support || {};
+      x.rows.forEach(function (r) { r.lines.forEach(function (l) {
+        if (!l.needDoc || l.doc) return;
+        var doc = str_(given[l.key], 200) || str_(sup[l.key], 200);
+        if (!doc) fail_('support_missing');
+        sup[l.key] = doc;
+      }); });
+      st.support = sup;
+    }
+    if (k === 'review' && x.errors.length) fail_('prep_errors');
+    st.steps[k] = { by: me.id, at: now, sig: x.sig, count: x.rows.length, note: str_(req.note, 300) };
+    run.prepJson = JSON.stringify(st); run.updatedAt = now;
+    update_(SHEETS.RUN, run);
+    audit_(me.id, 'payroll_prep_confirm', run.id, { ref: run.ref, step: k, n: x.n, people: x.rows.length });
+    return { ok: true, step: k, at: now };
+  });
 }

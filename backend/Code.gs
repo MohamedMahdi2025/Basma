@@ -125,7 +125,7 @@ var HEADERS = {
     'flowJson'], // the approval flow fixed when the request was made (Flows.gs); empty = the built-in chain
   holidays: ['id', 'date', 'toDate', 'nameAr', 'nameEn', 'createdBy', 'createdAt', 'status'],
   payrollRuns: ['id', 'ref', 'month', 'status', 'preparedBy', 'preparedAt', 'approvedBy', 'approvedAt', 'totalsJson', 'note', 'emailedAt', 'createdAt', 'updatedAt',
-    'scope', 'payGroupId'], // payGroupId: one run per pay group per month ('' the general group). scope '' = the company's payroll; 'demo' = a run over the demo company only (Demo.gs), never mixed with the real one
+    'scope', 'payGroupId', 'prepJson'], // prepJson: the preparation wizard's confirmed steps (Payroll.gs prepBuild_). payGroupId: one run per pay group per month ('' the general group). scope '' = the company's payroll; 'demo' = a run over the demo company only (Demo.gs), never mixed with the real one
   payslips: ['id', 'ref', 'runId', 'month', 'empId', 'status', 'linesJson', 'gross', 'deductions', 'net', 'gosiEmployee', 'gosiEmployer',
     'paidDays', 'absentDays', 'infoJson', 'emailedAt', 'createdAt', 'updatedAt', 'eosAccrual', 'companyCost'],
   adjustments: ['id', 'ref', 'empId', 'month', 'kind', 'code', 'amount', 'reason', 'enteredBy', 'status', 'createdAt', 'docRef', 'copiedFrom'],
@@ -1192,7 +1192,7 @@ var EMP_ACTIONS = { payrollPivot: 1, payrollVarianceMonth: 1, payrollMonthly: 1,
   myFile: 1, hrEmpFile: 1, hrTeam: 1, hrCompList: 1, hrCompPropose: 1, hrCompDecide: 1,
   myRequests: 1, requestQuote: 1, requestCreate: 1, requestCancel: 1, reqInbox: 1, reqDecide: 1, holidayList: 1, leaveTeam: 1,
   mySlips: 1, payrollList: 1, payrollGet: 1, payrollCreate: 1, payrollRecalc: 1, payrollApprove: 1, payrollDelete: 1, payrollAdjSave: 1,
-  payrollAdjDelete: 1, payrollExport: 1, payrollEmail: 1, eosQuote: 1,
+  payrollAdjDelete: 1, payrollExport: 1, payrollEmail: 1, eosQuote: 1, payrollPrep: 1, payrollPrepConfirm: 1,
   dashboard: 1, myPerformance: 1, perfTeam: 1, perfEmp: 1, kpiSave: 1, kpiMid: 1, reviewSelf: 1, reviewManager: 1, reviewAck: 1, feedbackSubmit: 1, feedbackResults: 1,
   reportCatalog: 1, reportRun: 1, reportExport: 1, reportLog: 1, reportReview: 1, reportVerify: 1,
   onboardList: 1, onboardTask: 1, mySurveys: 1, surveyAnswer: 1, surveyResults: 1, policyList: 1, policyAck: 1, planSave: 1, planList: 1, planCheckIn: 1, planAck: 1,
@@ -1223,7 +1223,7 @@ var HR_ACTIONS = { alumniList: 1, alumniSave: 1, rehireCheck: 1, skillSave: 1, p
 var READ_ONLY_ACTIONS = { payrollPivot: 1, payrollVarianceMonth: 1, payrollMonthly: 1, budgetView: 1, nitaqatSim: 1, signList: 1, signVerify: 1, autoHub: 1, wpsCompliance: 1, gosiQueue: 1, celebrations: 1, svActList: 1, mentorHub: 1, skillHub: 1, skillGap: 1, letterTplList: 1, quizList: 1, quizTake: 1, alumniList: 1, rehireCheck: 1, cwList: 1, cwInvoices: 1, retroScan: 1, retroLog: 1, gradeList: 1, bandReport: 1, pushKey: 1, hseList: 1, ppeList: 1, hseStats: 1, aiStatus: 1, flowPreview: 1, officeMap: 1, myTotalRewards: 1, apiKeyList: 1, webhookDeliveries: 1, payGroupList: 1, snapshotList: 1, snapshotView: 1, reportSubList: 1, kioskList: 1, notifyStatus: 1, perkList: 1, welcome: 1, internalJobs: 1, careerPathList: 1, rolesOverview: 1, nineBox: 1, successionList: 1, kbSearch: 1, kbList: 1, oneOnOneList: 1, goalList: 1, workforcePlan: 1, careersList: 1, careerPostList: 1, shiftOfferList: 1, searchAll: 1, customFieldList: 1, customValuesGet: 1, customValuesAll: 1, myFinalSettlement: 1, myExitSurvey: 1, kudosFeed: 1, exitSurveyResults: 1, kudosStats: 1, me: 1, myHistory: 1, myFile: 1, hrEmpFile: 1, hrTeam: 1, hrCompList: 1, hrDirectory: 1, hrDeptList: 1,
   hrPositionList: 1, hrDocList: 1, hrExpiring: 1, hrBootstrap: 1, hrImportValidate: 1, board: 1, empList: 1, zoneList: 1, report: 1,
   reviewList: 1, auditList: 1, securityEvents: 1, settingsGet: 1, myRequests: 1, requestQuote: 1, reqInbox: 1, holidayList: 1, leaveTeam: 1, leaveBalances: 1,
-  dashboard: 1, mySlips: 1, payrollList: 1, payrollGet: 1, eosQuote: 1, myPerformance: 1, perfTeam: 1, perfEmp: 1, feedbackResults: 1, perfCycleList: 1, perfOverview: 1,
+  dashboard: 1, mySlips: 1, payrollList: 1, payrollGet: 1, payrollPrep: 1, eosQuote: 1, myPerformance: 1, perfTeam: 1, perfEmp: 1, feedbackResults: 1, perfCycleList: 1, perfOverview: 1,
   reportCatalog: 1, reportRun: 1, reportLog: 1, onboardList: 1, mySurveys: 1, surveyResults: 1, policyList: 1, planList: 1, myTasks: 1, delegationList: 1, reconList: 1, complianceCalendar: 1, wpsFile: 1, shiftList: 1, rosterList: 1, discCodes: 1, discList: 1, injuryList: 1, assetList: 1, clearanceList: 1,
   myGov: 1, govOverview: 1, myExpenses: 1, expenseCheck: 1, expenseInbox: 1, expenseReport: 1, journalList: 1, journalBuild: 1, journalMapGet: 1,
   approvalsInbox: 1, approvalHistory: 1, leaveCycleList: 1, myLeaveCycles: 1, flowList: 1,

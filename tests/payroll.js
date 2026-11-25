@@ -229,14 +229,14 @@ r = call('3002', 'payrollEmail', { id: runId });
 ok(!r.ok && r.error === 'email_not_configured', 'email says it is not configured yet, and sends nothing', r);
 const sent = [];
 B.ctx.UrlFetchApp = { fetch: (url, o) => { sent.push({ url, o }); return url.includes('/token') ? { getContentText: () => '{"access_token":"t"}', getResponseCode: () => 200 } : { getContentText: () => '', getResponseCode: () => 202 }; } };
-['M365_TENANT', 'M365_CLIENT_ID', 'M365_CLIENT_SECRET', 'M365_SENDER'].forEach(k => B.ctx.PropertiesService.getScriptProperties().setProperty(k, k === 'M365_SENDER' ? 'm.mahdi@bestgas.sa' : 'x'));
+['M365_TENANT', 'M365_CLIENT_ID', 'M365_CLIENT_SECRET', 'M365_SENDER'].forEach(k => B.ctx.PropertiesService.getScriptProperties().setProperty(k, k === 'M365_SENDER' ? 'payroll@example.com' : 'x'));
 r = call('3002', 'payrollEmail', { id: runId });
 ok(r.ok && r.queued === 8 && sent.filter(x => x.url.includes('/sendMail')).length === 0, 'the request only queues the mails and answers at once (nothing is sent inside it)', r);
 let q = call('3002', 'jobRun', {}); for (let i = 0; i < 5 && q.left > 0; i++) q = call('3002', 'jobRun', {});
 const mails = sent.filter(x => x.url.includes('/sendMail'));
 r.sent = mails.length;
-ok(r.ok && r.sent === 8 && r.skipped.length === 1 && r.skipped[0] === '1000' && mails.length === 8 && mails[0].url.includes('m.mahdi%40bestgas.sa') && JSON.parse(mails[0].o.payload).message.body.content.includes('صافي الراتب'),
-  'once configured: one Graph sendMail per employee from m.mahdi@bestgas.sa; the one without an email is listed, not guessed', { sent: r.sent, n: mails.length });
+ok(r.ok && r.sent === 8 && r.skipped.length === 1 && r.skipped[0] === '1000' && mails.length === 8 && mails[0].url.includes('payroll%40example.com') && JSON.parse(mails[0].o.payload).message.body.content.includes('صافي الراتب'),
+  'once configured: one Graph sendMail per employee from the configured sender; the one without an email is listed, not guessed', { sent: r.sent, n: mails.length });
 
 
 console.log('Annual pay review (CR), 2026-10-18');
@@ -315,6 +315,75 @@ console.log('Total rewards statement (2026-10-23)');
   ok(tr.total === 176412.5 && tr.leave.days === 30, 'total yearly value 176,412.50; 30 days of paid leave shown as part of pay', { total: tr.total, leave: tr.leave });
   ok(call('5003', 'myTotalRewards', { empId: ids['5002'] }).error === 'forbidden', 'a colleague cannot see someone else\'s statement');
   ok(call('3002', 'myTotalRewards', { empId: ids['5002'] }).total === 176412.5, 'payroll can, and it is logged as a salary view');
+}
+
+console.log('Preparation wizard: nine steps in order (2026-11-24)');
+{
+  Object.keys(toks).forEach(k => delete toks[k]);
+  call('3002', 'payrollList', {}).rows.filter(x => x.month === '2026-11' && x.status === 'draft').forEach(x => call('3002', 'payrollDelete', { id: x.id }));
+  // November: 5003 leaves on the 15th, 5004 takes two unpaid days, 5006 gets a package from 1 November, 5002 works 4 overtime hours
+  direct(() => {
+    const e = B.ctx.findBy_('employees', 'empNo', '5003'); e.lastWorkingDay = '2026-11-15'; B.ctx.update_('employees', e);
+    B.ctx.append_('requests', { id: 'RU2', ref: 'LV-2026-00090', empId: ids['5004'], type: 'leave', subtype: 'unpaid', fromDate: '2026-11-02', toDate: '2026-11-03', days: 2, amount: '', months: '', payloadJson: '{}', reason: '', docNo: '', status: 'approved', createdAt: '2026-11-01T00:00:00Z' });
+    B.ctx.append_('compensation', { id: 'C5006', ref: 'SAL-T9', empId: ids['5006'], effectiveFrom: '2026-11-01', basic: 4000, housing: 1000, transport: 400, otherJson: '{}', currency: 'SAR', reason: 'تعيين الراتب',
+      enteredBy: ids['3001'], approvedBy: ids['3004'], approvedAt: '2026-11-01T00:00:00Z', status: 'approved', createdAt: '2026-11-01T00:00:00Z', batchId: '' });
+  });
+  ok(call('3002', 'payrollAdjSave', { adj: { empId: ids['5002'], month: '2026-11', code: 'overtime_hours', amount: 4, reason: 'جرد', docRef: 'OT-11' } }).ok, 'overtime hours entered with their sheet');
+  const run = call('3002', 'payrollCreate', { month: '2026-11' }).run;
+  const prep = () => call('3002', 'payrollPrep', { id: run.id });
+  const step = (p, k) => p.steps.find(x => x.key === k);
+  const confirm = (no, k, extra) => { const p = call(no, 'payrollPrep', { id: run.id }); return call(no, 'payrollPrepConfirm', Object.assign({ id: run.id, step: k, sig: step(p, k).sig }, extra || {})); };
+  let p = prep();
+  ok(p.ok && p.required && p.steps.length === 8 && p.steps.map(x => x.key).join() === 'days,status,hires,leavers,package,additions,deductions,review', 'eight preparation steps in the fixed order, approval is the ninth', p.steps && p.steps.map(x => x.key));
+  ok(p.steps[0].state === 'open' && p.steps.slice(1).every(x => x.state === 'locked') && p.open === 'days', 'only the first step is open');
+  ok(p.steps[0].window.from === '2026-11-01' && p.steps[0].window.to === '2026-11-30', 'step 1 names the attendance window');
+  ok(call('5002', 'payrollPrep', { id: run.id }).error === 'forbidden' && call('5002', 'payrollPrepConfirm', { id: run.id, step: 'days', sig: 'x' }).error === 'forbidden', 'an employee can neither see nor confirm it');
+  ok(call('3002', 'payrollPrepConfirm', { id: run.id, step: 'status', sig: step(p, 'status').sig }).error === 'prep_step_locked', 'a later step cannot be confirmed first');
+  ok(call('3002', 'payrollPrepConfirm', { id: run.id, step: 'days', sig: 'deadbeef' }).error === 'prep_changed', 'a confirmation of data the page did not show is refused');
+  ok(call('3002', 'payrollApprove', { id: run.id, noAutoPrep: true }).error === 'second_approver_required', 'the preparer still cannot approve');
+  ok(call('3004', 'payrollApprove', { id: run.id, noAutoPrep: true }).error === 'prep_incomplete', 'approval waits for the eight steps');
+  r = confirm('3002', 'days', { note: 'checked with the site' });
+  p = prep();
+  ok(r.ok && step(p, 'days').state === 'done' && step(p, 'days').confirmed.by === ids['3002'] && step(p, 'days').confirmed.byName === 'محاسب الرواتب' && step(p, 'days').confirmed.at && step(p, 'status').state === 'open', 'confirming records who and when, and opens the next step', step(p, 'days'));
+  ok(step(p, 'status').rows.some(x => x.empId === ids['5004'] && x.kind === 'unpaid' && x.days === 2), 'step 2 lists the unpaid leave with its days', step(p, 'status').rows);
+  ok(step(p, 'leavers').rows.some(x => x.empId === ids['5003'] && x.lastDay === '2026-11-15' && x.inRun && x.days === 15 && x.settlement === null), 'step 4 lists the leaver with the last day, the days paid and no settlement yet', step(p, 'leavers').rows);
+  ok(step(p, 'package').rows.some(x => x.empId === ids['5006'] && x.effectiveFrom === '2026-11-01' && x.now === 5400 && x.approvedBy === 'مدير مالي'), 'step 5 shows the new package with its date and approver', step(p, 'package').rows);
+  const ot = step(p, 'additions').rows.find(x => x.empId === ids['5002']);
+  ok(ot && ot.lines.some(l => l.code === 'overtime' && l.needDoc && !l.doc), 'step 6 shows the overtime line, which needs a document', ot);
+  ok(step(p, 'days').rows.some(x => x.empId === ids['5003'] && x.days === 15) && step(p, 'days').rows.every(x => x.days < 30 || x.absent || x.lateMin || x.otHours || x.was !== x.days), 'step 1 lists only people with something to check (the leaver: 15 days)', step(p, 'days').rows.map(x => [x.empNo, x.days, x.absent]));
+  ['status', 'hires', 'leavers', 'package'].forEach(k => { const x = confirm('3002', k); ok(x.ok, 'step ' + k + ' confirmed', x.error); });
+  r = confirm('3002', 'additions');
+  ok(r.error === 'support_missing', 'an addition without a document blocks step 6', r);
+  p = prep(); const key = step(p, 'additions').rows.find(x => x.empId === ids['5002']).lines.find(l => l.code === 'overtime').key;
+  r = confirm('3002', 'additions', { support: { [key]: 'OT-SHEET-11' } });
+  ok(r.ok && prep().support[key] === 'OT-SHEET-11', 'with the overtime sheet named, step 6 is confirmed and the document kept', r);
+  ok(confirm('3002', 'deductions').ok, 'step 7 confirmed');
+  p = prep();
+  const rv = step(p, 'review');
+  ok(rv.prevTotals.headcount > 0 && rv.totals.headcount > 0, 'step 8 compares totals with October', { now: rv.totals, was: rv.prevTotals });
+  ok(!rv.errors.length && rv.noPackage.length > 0 && rv.noPackage.every(x => x.empId && x.name), 'step 8 names the people with no approved package; only a negative net blocks', { e: rv.errors, n: rv.noPackage });
+  if (rv.noPackage.length) {
+    direct(() => rv.noPackage.forEach((x, i) => B.ctx.append_('compensation', { id: 'CX' + i, ref: 'SAL-X' + i, empId: x.empId, effectiveFrom: '2026-01-01', basic: 3000, housing: 750, transport: 300, otherJson: '{}', currency: 'SAR', reason: 'x',
+      enteredBy: ids['3001'], approvedBy: ids['3004'], approvedAt: '2026-01-01T00:00:00Z', status: 'approved', createdAt: '2026-01-01T00:00:00Z', batchId: '' })));
+    ok(call('3002', 'payrollRecalc', { id: run.id }).ok, 'packages added and the run recalculated');
+    p = prep();
+    const op = p.steps.find(x => x.state === 'open');
+    ok(op && op.stale && p.steps.slice(op.n).every(x => x.state === 'locked') && p.steps.slice(op.n).some(x => x.stale), 'a changed step opens again (stale) and every later step locks', p.steps.map(x => x.key + ':' + x.state + (x.stale ? '*' : '')));
+    p.steps.filter(x => x.state !== 'done' && x.key !== 'review').forEach(x => { const c = confirm('3002', x.key, x.key === 'additions' ? { support: { [key]: 'OT-SHEET-11' } } : {}); ok(c.ok, 'step ' + x.key + ' confirmed again', c.error); });
+  }
+  ok(call('3002', 'payrollAdjSave', { adj: { empId: ids['5004'], month: '2026-11', code: 'other_deduction', amount: 25, reason: 'x' } }).ok, 'a deduction typed after the calculation');
+  ok(confirm('3002', 'deductions').error === 'recalc_needed', 'step 7 reopens and asks for a recalculation first');
+  call('3002', 'payrollRecalc', { id: run.id });
+  p = prep();
+  ok(step(p, 'deductions').state === 'open' && step(p, 'deductions').stale, 'the new line reopens step 7', p.steps.map(x => x.key + ':' + x.state));
+  ok(confirm('3002', 'deductions').ok && confirm('3004', 'review').ok, 'steps 7 and 8 confirmed (8 by the finance manager)');
+  ok(prep().complete, 'all eight steps done');
+  ok(call('3004', 'payrollApprove', { id: run.id, noAutoPrep: true }).error === 'second_approver_required', 'someone who confirmed a step cannot approve');
+  ok(confirm('3002', 'review').ok, 'the preparer confirms step 8 instead');
+  ok(call('3004', 'payrollGet', { id: run.id }).prep.complete === true, 'the run page knows the wizard is complete');
+  r = call('3004', 'payrollApprove', { id: run.id, noAutoPrep: true });
+  ok(r.ok && r.run.status === 'locked', 'step 9: another payroll holder approves; the overtime document from the wizard counts as support', r.error);
+  ok(call('3002', 'payrollPrepConfirm', { id: run.id, step: 'days', sig: 'x' }).error === 'not_found', 'a locked run takes no more confirmations');
 }
 
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
