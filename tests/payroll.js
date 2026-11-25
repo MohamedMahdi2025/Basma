@@ -189,6 +189,18 @@ g = call('3002', 'payrollGet', { id: fp });
 ok(!g.adjustments.some(x => x.copiedFrom || (x.code === 'fine' && x.amount === 50)), 'copies can be removed like any line', g.adjustments.length);
 call('3002', 'payrollDelete', { id: fp });
 
+console.log('Start from any of the last 3 months (2026-11-25)');
+['2026-11', '2026-12', '2026-07', '2026-08', 'x'].forEach(m => {
+  const x = call('3002', 'payrollCreate', { month: '2026-11', fromMonth: m });
+  ok(!x.ok && x.error === 'bad_value', 'starting from ' + m + ' is refused (not one of the 3 months before, or no locked run)', x.error);
+});
+r = call('3002', 'payrollCreate', { month: '2026-11', fromMonth: '2026-10' });
+ok(r.ok && r.copied && r.copied.from === '2026-10' && r.copied.count >= 3, 'a locked month in the window is copied', r.copied || r.error);
+{ const g2 = call('3002', 'payrollGet', { id: r.run.id }); g2.adjustments.filter(x => x.copiedFrom).forEach(x => call('3002', 'payrollAdjDelete', { id: x.id })); call('3002', 'payrollDelete', { id: r.run.id }); }
+r = call('3002', 'payrollCreate', { month: '2026-11' });
+ok(r.ok && r.copied === null, 'without a month nothing is copied');
+call('3002', 'payrollDelete', { id: r.run.id });
+
 console.log('Deduction cap (Art. 92-93)');
 direct(() => B.ctx.append_('requests', { id: 'RB', ref: 'AD-2026-00002', empId: ids['5002'], type: 'advance', subtype: '', fromDate: '', toDate: '', days: '', amount: 20000, months: 2, payloadJson: JSON.stringify({ startMonth: '2026-11', installment: 10000 }), reason: '', docNo: '', status: 'approved', step: 'done', stepsJson: '[]', effectJson: '{}', createdAt: '2026-10-20T00:00:00Z', updatedAt: '', decidedAt: '2026-10-21T00:00:00Z' }));
 r = call('3002', 'payrollCreate', { month: '2026-11' });

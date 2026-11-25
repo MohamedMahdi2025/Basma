@@ -270,7 +270,8 @@ function slipInto(d, s, who, ctx){
 }
 
 // draft from last month, supporting documents, step-by-step approval (2026-11-20)
-Object.assign(T.ar, { pvFromPrev:'ابدأ من الشهر السابق', pvFromPrevHint:'تنسخ إضافات وخصومات الشهر السابق إلى المسودة، ثم تراجعها وتعدلها قبل الاعتماد.',
+Object.assign(T.ar, { pvFromPrev:'ابدأ من الشهر السابق', pvFromPrevHint:'تنسخ إضافات وخصومات الشهر الذي تختاره (من آخر 3 أشهر معتمدة) إلى المسودة، ثم تراجعها وتعدلها قبل الاعتماد.',
+  pvFromM:'ابدأ من مسير', pvFromNone:'لا تنسخ شيئا',
   pvCopied:'نسخنا {n} بندا من {m}. الإضافات تحتاج مستند اعتماد قبل اعتماد المسير.', pvCopiedNone:'لا توجد بنود في الشهر السابق لنسخها.',
   prAdjDoc:'مستند الاعتماد', prAdjDocPh:'رقم المستند أو الطلب أو رابطه', prAdjDocNeed:'أي إضافة أو ساعات عمل إضافي تحتاج مستند اعتماد.', prAdjCopy:'نسخة من الشهر السابق', prAdjNoDoc:'بدون مستند',
   awTitle:'مراجعة المسير قبل الاعتماد', awLead:'كل عمود في المسير خطوة: راجعه مقابل الشهر السابق ثم أكد. الإضافات تحتاج مستند اعتماد لكل سطر.',
@@ -279,7 +280,8 @@ Object.assign(T.ar, { pvFromPrev:'ابدأ من الشهر السابق', pvFrom
   awChanged:'تغير', awNew:'جديد', awOnly:'المتغير فقط', awAll:'الكل', awSum:'المجموع', awFinal:'بعد الاعتماد يقفل المسير ولا يمكن التعديل.', awSupport:'المستندات',
   e_review_incomplete:'راجع كل أعمدة المسير قبل الاعتماد.', e_support_missing:'كل إضافة تحتاج مستند اعتماد قبل اعتماد المسير.', e_support_required:'أدخل مستند الاعتماد لهذه الإضافة (مثلا رقم طلب العمل الإضافي).',
   e_prep_changed:'تغيرت بيانات هذه الخطوة منذ فتحها. راجعها مرة أخرى ثم أكد.', e_prep_errors:'في المسير صافي سالب يمنع التأكيد. عالجه ثم أعد الاحتساب.', e_prep_incomplete:'أكمل خطوات إعداد المسير الثماني قبل الاعتماد.', e_prep_step_locked:'أكد الخطوات السابقة أولا.', e_recalc_needed:'أضيفت أو حذفت بنود بعد آخر احتساب. أعد احتساب المسير ثم أكد.' });
-Object.assign(T.en, { pvFromPrev:'Start from last month', pvFromPrevHint:'Copies last month\'s additions and deductions into the draft; review and edit them before approval.',
+Object.assign(T.en, { pvFromPrev:'Start from last month', pvFromPrevHint:'Copies the additions and deductions of the month you pick (one of the last 3 approved) into the draft; review and edit them before approval.',
+  pvFromM:'Start from the run of', pvFromNone:'Copy nothing',
   pvCopied:'Copied {n} lines from {m}. Additions need a supporting document before the run is approved.', pvCopiedNone:'Last month has no lines to copy.',
   prAdjDoc:'Supporting document', prAdjDocPh:'Document or request number, or a link', prAdjDocNeed:'Every addition or overtime entry needs a supporting document.', prAdjCopy:'Copied from last month', prAdjNoDoc:'no document',
   awTitle:'Review the run before approval', awLead:'Each column of the run is a step: check it against last month, then confirm. Additions need a supporting document per line.',
@@ -600,12 +602,12 @@ function section(body){
     '<form class="pv-new" id="prNewF"' + (done ? ' hidden' : '') + '><div class="pv-new-t">' + ph('calculator', 'duotone') + '<div><b>' + t('pvNew') + '</b><small>' + t('pvNewLead') + '</small></div></div>' +
     '<label class="pv-fld"><span>' + t('prMonth') + '</span><input type="month" name="month" value="' + last + '" max="' + riyadhToday().slice(0, 7) + '" required></label>' +
     '<label class="pv-fld" id="prGrpL" hidden><span>' + t('pgGroup') + '</span><select name="group" id="prGrp" aria-label="' + t('pgGroup') + '"></select></label>' +
-    '<label class="pv-fld pv-chk" title="' + t('pvFromPrevHint') + '"><input type="checkbox" name="fromPrev" checked> <span>' + t('pvFromPrev') + '</span></label>' +
+    '<label class="pv-fld" title="' + t('pvFromPrevHint') + '"><span>' + t('pvFromM') + '</span><select name="fromM" id="prFromM" aria-label="' + t('pvFromM') + '"><option value="">' + t('pvFromNone') + '</option></select></label>' +
     '<button class="btn btn-dark">' + ph('calculator') + t('prCreate') + '</button><span class="err" id="prErr"></span></form><div id="prList"></div>' +
     (done ? '' : '<section class="pv-card"><h3 class="pv-h3">' + ph('calculator') + t('prEos') + '</h3><div id="prEos"></div></section>') + '</div>';
   $('#prNewF', body).onsubmit = function(ev){
     ev.preventDefault(); var b = this.querySelector('button'); b.disabled = true;
-    api('payrollCreate', { month: this.elements.month.value, payGroupId: this.elements.group.value || '', fromPrev: !!this.elements.fromPrev.checked }).then(function(r){ b.disabled = false; if (!r.ok) { $('#prErr', body).textContent = errText(r.error); return; }
+    api('payrollCreate', { month: this.elements.month.value, payGroupId: this.elements.group.value || '', fromMonth: this.elements.fromM.value || '' }).then(function(r){ b.disabled = false; if (!r.ok) { $('#prErr', body).textContent = errText(r.error); return; }
       if (r.copied) toast(r.copied.count ? t('pvCopied').replace('{n}', r.copied.count).replace('{m}', monthName(r.copied.from)) : t('pvCopiedNone'));
       S.prRun = r.run.id; section(body); prepWizard(r.run.id, function(){ section(body); }); });
   };
@@ -614,6 +616,17 @@ function section(body){
     if (!r.ok) return el.innerHTML = '<p class="hr-bad">' + errText(r.error) + '</p>';
     var gs = $('#prGrp', body); // pay groups (2026-10-21): pick which group's run to prepare
     if (gs && r.groups && r.groups.length > 1) { var keep = gs.value; gs.innerHTML = r.groups.map(function(g){ return '<option value="' + esc(g.id) + '">' + esc((S.lang === 'en' ? g.nameEn : g.nameAr) || g.nameAr) + '</option>'; }).join(''); gs.value = keep || ''; $('#prGrpL', body).hidden = false; }
+    // start from any of the last 3 months that has a locked run of the chosen group (owner 2026-11-25), the month before first
+    var fm = $('#prFromM', body), fF = $('#prNewF', body), fromOpts = function(){
+      if (!fm) return; var m = fF.elements.month.value, g = fF.elements.group.value || '', keep = fm.value, opts = [];
+      for (var k = 1; k <= 3 && /^\d{4}-\d{2}$/.test(m); k++) { var d = new Date(Date.UTC(+m.slice(0, 4), +m.slice(5, 7) - 1 - k, 15)).toISOString().slice(0, 7);
+        var lr = r.rows.filter(function(x){ return x.month === d && x.status === 'locked' && String(x.payGroupId || '') === g; })[0];
+        if (lr) opts.push('<option value="' + d + '">' + esc(monthName(d)) + ' · ' + t('prNet') + ' ' + money(lr.totals && lr.totals.net) + '</option>'); }
+      fm.innerHTML = '<option value="">' + t('pvFromNone') + '</option>' + opts.join('');
+      fm.value = keep && fm.querySelector('option[value="' + keep + '"]') ? keep : (opts.length ? fm.options[1].value : '');
+    };
+    if (fm && !fm.dataset.wired) { fm.dataset.wired = '1'; fF.elements.month.addEventListener('change', function(){ fm.value = ''; fromOpts(); }); fF.elements.group.addEventListener('change', function(){ fm.value = ''; fromOpts(); }); }
+    fromOpts();
     var rows = r.rows.filter(function(x){ return done ? x.status === 'locked' : x.status !== 'locked'; });
     // one block per month (newest first), one card per pay-group run inside it
     var byM = {}; rows.forEach(function(x){ (byM[x.month] = byM[x.month] || []).push(x); });

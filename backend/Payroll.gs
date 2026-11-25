@@ -252,7 +252,15 @@ function api_payrollCreate(req, me) {
   if (!payGroupAccess_(me, gid, groups)) fail_('forbidden');
   return withLock_(function () {
     if (readAll_(SHEETS.RUN).some(function (r) { return r.month === month && r.status !== 'cancelled' && !isDemoRun_(r) && String(r.payGroupId || '') === gid; })) fail_('run_exists'); // a demo run never blocks
-    var copied = req.fromPrev ? copyPrevAdjs_(month, gid, me) : null;
+    // start from one of the last 3 months (owner 2026-11-25): fromMonth names it and needs a locked run of this pay group;
+    // fromPrev alone keeps meaning the month before
+    var from = '';
+    if (req.fromMonth) {
+      from = String(req.fromMonth);
+      if (!/^\d{4}-\d{2}$/.test(from) || from >= month || from < addMonths_(month, -3)) fail_('bad_value');
+      if (!readAll_(SHEETS.RUN).some(function (r) { return r.month === from && r.status === 'locked' && !isDemoRun_(r) && String(r.payGroupId || '') === gid; })) fail_('bad_value');
+    } else if (req.fromPrev) from = addMonths_(month, -1);
+    var copied = from ? copyPrevAdjs_(month, gid, me, from) : null;
     var now = new Date().toISOString(), x = payrollCtx_(month, gid);
     var run = { id: newId_('P'), ref: nextRef_('payroll', refsOf_(SHEETS.RUN)), month: month, status: 'draft', preparedBy: me.id, preparedAt: now,
       approvedBy: '', approvedAt: '', totalsJson: '', note: str_(req.note, 300), emailedAt: '', createdAt: now, updatedAt: now, scope: '', payGroupId: gid };
@@ -379,8 +387,8 @@ function prevMonthOf_(run, me) {
 /** Start a month from the last one: last month's additions and deductions (adjustments, or the lines of an imported run) become
  *  this month's adjustments, marked as copies; fixed pay, leave, attendance and GOSI are worked out fresh. A copied addition
  *  keeps no document: the approver attaches this month's before approval. Never anyone's own pay. */
-function copyPrevAdjs_(month, gid, me) {
-  var pm = addMonths_(month, -1), people = {}, out = [], now = new Date().toISOString(), seen = {}, skippedOwn = 0;
+function copyPrevAdjs_(month, gid, me, fromMonth) {
+  var pm = fromMonth || addMonths_(month, -1), people = {}, out = [], now = new Date().toISOString(), seen = {}, skippedOwn = 0;
   payrollEmps_(month, '', gid).forEach(function (e) { people[e.id] = 1; });
   var have = {}; readAll_(SHEETS.ADJ).forEach(function (a) { if (a.month === month && a.status !== 'deleted') have[a.empId + '|' + a.code + '|' + Number(a.amount)] = 1; });
   var take = function (empId, code, amount, reason, from) {
